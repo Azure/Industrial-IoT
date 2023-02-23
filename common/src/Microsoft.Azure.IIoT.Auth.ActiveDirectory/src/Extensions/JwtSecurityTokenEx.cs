@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
     /// Token extensions
     /// </summary>
     public static class JwtSecurityTokenEx {
-
         /// <summary>
         /// Convert to Token model
         /// </summary>

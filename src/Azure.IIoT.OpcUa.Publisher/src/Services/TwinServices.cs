@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Twin {
     /// the endpoint's status back to the hub.
     /// </summary>
     public class TwinServices : IDisposable {
-
         /// <inheritdoc/>
         public EndpointConnectivityState State { get; private set; }
             = EndpointConnectivityState.Disconnected;

@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class BrowseNextRequestModel {
-
         /// <summary>
         /// Continuation token from previews browse request.
         /// (mandatory)

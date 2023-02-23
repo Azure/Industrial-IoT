@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class DataSetMetaDataModel {
-
         /// <summary>
         /// Name of the dataset
         /// </summary>

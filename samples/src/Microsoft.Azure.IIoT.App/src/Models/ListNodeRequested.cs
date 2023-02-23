@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.App.Models {
     using System;
 
     public class ListNodeRequested {
-
         public ListNodeRequested(PublishedItemModel publishedItem) {
             _requestedPublishingInterval = publishedItem?.PublishingInterval;
             _requestedSamplingInterval = publishedItem?.SamplingInterval;

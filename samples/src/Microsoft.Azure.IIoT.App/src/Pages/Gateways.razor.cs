@@ -10,8 +10,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
     using global::Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Threading.Tasks;
+    using System.Globalization;
 
-    public partial class Gateways {
+    public sealed partial class Gateways {
         [Parameter]
         public string Page { get; set; } = "1";
 
@@ -31,7 +32,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             GatewayList = CommonHelper.UpdatePage(RegistryHelper.GetGatewayListAsync, page, GatewayList, ref _pagedGatewayList, CommonHelper.PageLength);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "gateways/" + page);
             for (var i = 0; i < _pagedGatewayList.Results.Count; i++) {
-                _pagedGatewayList.Results[i] = (await RegistryService.GetGatewayAsync(_pagedGatewayList.Results[i].Id)).Gateway;
+                _pagedGatewayList.Results[i] = (await RegistryService.GetGatewayAsync(_pagedGatewayList.Results[i].Id).ConfigureAwait(false)).Gateway;
             }
             CommonHelper.Spinner = string.Empty;
             StateHasChanged();
@@ -50,27 +51,29 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                GatewayList = await RegistryHelper.GetGatewayListAsync();
+                GatewayList = await RegistryHelper.GetGatewayListAsync().ConfigureAwait(false);
                 Page = "1";
-                _pagedGatewayList = GatewayList.GetPaged(int.Parse(Page), CommonHelper.PageLength, GatewayList.Error);
+                _pagedGatewayList = GatewayList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
+                    CommonHelper.PageLength, GatewayList.Error);
                 CommonHelper.Spinner = string.Empty;
                 CommonHelper.CheckErrorOrEmpty(_pagedGatewayList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
                 _gatewayEvent = await RegistryServiceEvents.SubscribeGatewayEventsAsync(
-                    ev => InvokeAsync(() => GatewayEvent(ev)));
+                    ev => InvokeAsync(() => GatewayEventAsync(ev))).ConfigureAwait(false);
             }
         }
 
-        private Task GatewayEvent(GatewayEventModel ev) {
+        private Task GatewayEventAsync(GatewayEventModel ev) {
             GatewayList.Results.Update(ev);
-            _pagedGatewayList = GatewayList.GetPaged(int.Parse(Page), CommonHelper.PageLength, GatewayList.Error);
+            _pagedGatewayList = GatewayList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
+                CommonHelper.PageLength, GatewayList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }
 
-        public async void Dispose() {
+        public async ValueTask DisposeAsync() {
             if (_gatewayEvent != null) {
-                await _gatewayEvent.DisposeAsync();
+                await _gatewayEvent.DisposeAsync().ConfigureAwait(false);
             }
         }
     }

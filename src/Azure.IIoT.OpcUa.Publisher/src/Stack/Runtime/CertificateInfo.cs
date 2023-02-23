@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
-
     /// <summary>
     /// Certificate information
     /// </summary>
     public class CertificateInfo : CertificateStore {
-
         /// <summary>
         /// Subject name
         /// </summary>

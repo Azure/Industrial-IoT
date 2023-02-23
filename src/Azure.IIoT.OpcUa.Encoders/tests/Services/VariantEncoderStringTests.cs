@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     using Xunit;
 
     public class VariantEncoderStringTests {
-
         [Fact]
         public void DecodeEncodeStringFromJValue() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
@@ -58,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringFromString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "123";
+            const string str = "123";
             var variant = codec.Decode(str, BuiltInType.String);
             var expected = new Variant("123");
             var encoded = codec.Encode(variant);
@@ -69,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringFromString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "123, 124, 125";
+            const string str = "123, 124, 125";
             var variant = codec.Decode(str, BuiltInType.String);
             var expected = new Variant("123, 124, 125");
             var encoded = codec.Encode(variant);
@@ -80,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringFromString3() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[test, test, test]";
+            const string str = "[test, test, test]";
             var variant = codec.Decode(str, BuiltInType.String);
             var expected = new Variant(str);
             var encoded = codec.Encode(variant);
@@ -91,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringArrayFromString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[123, 124, 125]";
+            const string str = "[123, 124, 125]";
             var variant = codec.Decode(str, BuiltInType.String);
             var expected = new Variant(new string[] { "123", "124", "125" });
             var encoded = codec.Encode(variant);
@@ -102,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringArrayFromString4() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[]";
+            const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.String);
             var expected = new Variant(System.Array.Empty<string>());
             var encoded = codec.Encode(variant);
@@ -113,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringFromStringTypeNullIsString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "test";
+            const string str = "test";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant("test");
             var encoded = codec.Encode(variant);
@@ -124,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringArrayFromStringTypeNullIsString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "test, test, test";
+            const string str = "test, test, test";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new string[] { "test", "test", "test" });
             var encoded = codec.Encode(variant);
@@ -135,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringArrayFromStringTypeNullIsString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[\"test\", \"test\", \"test\"]";
+            const string str = "[\"test\", \"test\", \"test\"]";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new string[] { "test", "test", "test" });
             var encoded = codec.Encode(variant);
@@ -146,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringArrayFromStringTypeNullIsString3() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[test, test, test]";
+            const string str = "[test, test, test]";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new string[] { "[test", "test", "test]" });
             var encoded = codec.Encode(variant);
@@ -157,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringArrayFromStringTypeNullIsNull() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[]";
+            const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = Variant.Null;
             var encoded = codec.Encode(variant);
@@ -167,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringFromQuotedString1() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "\"test\"";
+            const string str = "\"test\"";
             var variant = codec.Decode(str, BuiltInType.String);
             var expected = new Variant("test");
             var encoded = codec.Encode(variant);
@@ -178,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringFromQuotedString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "\"\\\"test\\\"\"";
+            const string str = "\"\\\"test\\\"\"";
             var variant = codec.Decode(str, BuiltInType.String);
             var expected = new Variant("\"test\"");
             var encoded = codec.Encode(variant);
@@ -189,7 +188,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringFromSinglyQuotedString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "  'test'";
+            const string str = "  'test'";
             var variant = codec.Decode(str, BuiltInType.String);
             var expected = new Variant("test");
             var encoded = codec.Encode(variant);
@@ -200,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringArrayFromQuotedString1() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "\"test\",'test',\"test\"";
+            const string str = "\"test\",'test',\"test\"";
             var variant = codec.Decode(str, BuiltInType.String);
             var expected = new Variant(new string[] { "test", "test", "test" });
             var encoded = codec.Encode(variant);
@@ -211,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringArrayFromQuotedString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = " [\"test\",'test',\"test\"] ";
+            const string str = " [\"test\",'test',\"test\"] ";
             var variant = codec.Decode(str, BuiltInType.String);
             var expected = new Variant(new string[] { "test", "test", "test" });
             var encoded = codec.Encode(variant);
@@ -222,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeStringArrayFromQuotedString3() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = " [\"\\\"test\\\"\",'\\\"test\\\"',\"\\\"test\\\"\"] ";
+            const string str = " [\"\\\"test\\\"\",'\\\"test\\\"',\"\\\"test\\\"\"] ";
             var variant = codec.Decode(str, BuiltInType.String);
             var expected = new Variant(new string[] { "test", "test", "test" });
             // TODO: var expected = new Variant(new string[] { "\"test\"", "\"test\"", "\"test\"" });

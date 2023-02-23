@@ -10,12 +10,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Endpoint api model extensions
     /// </summary>
     public static class EndpointModelEx {
-
         /// <summary>
         /// Update an endpoint
         /// </summary>
-        /// <param name="endpoint"></param>
         /// <param name="update"></param>
+        /// <param name="endpoint"></param>
         public static EndpointModel Patch(this EndpointModel update,
             EndpointModel endpoint) {
             if (update == null) {

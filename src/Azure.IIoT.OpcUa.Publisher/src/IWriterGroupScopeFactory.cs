@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Creates writer group scopes
     /// </summary>
     public interface IWriterGroupScopeFactory {
-
         /// <summary>
         /// Create a writer group container containing everything
         /// needed to resolve the writer group processing engine.

@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
 
     /// <summary>
     /// Implementation of twin and job services, talking to iot hub
@@ -24,7 +25,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     /// </summary>
     public sealed class IoTHubServiceHttpClient : IoTHubHttpClientBase,
         IIoTHubTwinServices, IHealthCheck {
-
         /// <summary>
         /// The host name the client is talking to
         /// </summary>
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         public async Task<HealthCheckResult> CheckHealthAsync(
             HealthCheckContext context, CancellationToken ct) {
             try {
-                await QueryAsync("SELECT * FROM devices", null, 1, ct);
+                await QueryAsync("SELECT * FROM devices", null, 1, ct).ConfigureAwait(false);
                 return HealthCheckResult.Healthy();
             }
             catch (Exception ex) {
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 throw new ArgumentNullException(nameof(twin.Id));
             }
             // Retry transient errors
-            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
+            return Retry2.WithExponentialBackoffAsync(_logger, async () => {
                 // First try create device
                 try {
                     var device = NewRequest($"/devices/{twin.Id}");
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                             capabilities = twin.Capabilities
                         });
                     }
-                    var response = await _httpClient.PutAsync(device, ct);
+                    var response = await _httpClient.PutAsync(device, ct).ConfigureAwait(false);
                     response.Validate();
                 }
                 catch (ConflictingResourceException)
@@ -90,7 +90,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     // Continue onward
                     // Update the deviceScope if the twin provided is for leaf iot device
                     //  (not iotedge device or iotedge module)
-                    if (!(twin.Capabilities?.IotEdge).GetValueOrDefault(false) &&
+                    if (!((twin.Capabilities?.IotEdge) ?? false) &&
                         string.IsNullOrEmpty(twin.ModuleId) &&
                         !string.IsNullOrEmpty(twin.DeviceScope)) {
                         try {
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                                 deviceId = twin.Id,
                                 deviceScope = twin.DeviceScope
                             });
-                            var response = await _httpClient.PutAsync(update, ct);
+                            var response = await _httpClient.PutAsync(update, ct).ConfigureAwait(false);
                             // just throw if the update fails
                             response.Validate();
                         }
@@ -120,15 +120,15 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                             deviceId = twin.Id,
                             moduleId = twin.ModuleId
                         });
-                        var response = await _httpClient.PutAsync(module, ct);
+                        var response = await _httpClient.PutAsync(module, ct).ConfigureAwait(false);
                         response.Validate();
                     }
                     catch (ConflictingResourceException)
                         when (force) {
                     }
                 }
-                return await PatchAsync(twin, true, ct);  // Force update of twin
-            }, kMaxRetryCount);
+                return await PatchAsync(twin, true, ct).ConfigureAwait(false);  // Force update of twin
+            }, ct, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
@@ -139,15 +139,13 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (string.IsNullOrEmpty(twin.Id)) {
                 throw new ArgumentNullException(nameof(twin.Id));
             }
-            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
-
+            return Retry2.WithExponentialBackoffAsync(_logger, async () => {
                 // Then update twin assuming it now exists. If fails, retry...
                 var patch = NewRequest(
                     $"/twins/{ToResourceId(twin.Id, twin.ModuleId)}");
                 patch.Headers.Add("If-Match",
                     $"\"{(string.IsNullOrEmpty(twin.Etag) || force ? "*" : twin.Etag)}\"");
                 if (!string.IsNullOrEmpty(twin.ModuleId)) {
-
                     // Patch module
                     _serializer.SerializeToRequest(patch, new {
                         deviceId = twin.Id,
@@ -169,15 +167,15 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     });
                 }
                 {
-                    var response = await _httpClient.PatchAsync(patch, ct);
+                    var response = await _httpClient.PatchAsync(patch, ct).ConfigureAwait(false);
                     response.Validate();
                     var result = _serializer.DeserializeResponse<DeviceTwinModel>(response);
                     _logger.LogInformation(
-                        "{id} ({moduleId}) created or updated ({twinEtag} -> {resultEtag})",
+                        "{Id} ({ModuleId}) created or updated ({TwinEtag} -> {ResultEtag})",
                         twin.Id, twin.ModuleId ?? string.Empty, twin.Etag ?? "*", result.Etag);
                     return result;
                 }
-            }, kMaxRetryCount);
+            }, ct, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
@@ -201,7 +199,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 // responseTimeoutInSeconds = ...
                 payload = _serializer.Parse(parameters.JsonPayload)
             });
-            var response = await _httpClient.PostAsync(request, ct);
+            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             var result = _serializer.ParseResponse(response);
             return new MethodResultModel {
@@ -216,7 +214,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
+            return Retry2.WithExponentialBackoffAsync(_logger, async () => {
                 var request = NewRequest(
                     $"/twins/{ToResourceId(deviceId, moduleId)}");
                 _serializer.SerializeToRequest(request, new {
@@ -227,9 +225,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 });
                 request.Headers.Add("If-Match",
                     $"\"{(string.IsNullOrEmpty(etag) ? "*" : etag)}\"");
-                var response = await _httpClient.PatchAsync(request, ct);
+                var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
-            }, kMaxRetryCount);
+            }, ct, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
@@ -238,13 +236,13 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
+            return Retry2.WithExponentialBackoffAsync(_logger, async () => {
                 var request = NewRequest(
                     $"/twins/{ToResourceId(deviceId, moduleId)}");
-                var response = await _httpClient.GetAsync(request, ct);
+                var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
                 return _serializer.DeserializeResponse<DeviceTwinModel>(response);
-            }, kMaxRetryCount);
+            }, ct, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
@@ -253,13 +251,13 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
+            return Retry2.WithExponentialBackoffAsync(_logger, async () => {
                 var request = NewRequest(
                     $"/devices/{ToResourceId(deviceId, moduleId)}");
-                var response = await _httpClient.GetAsync(request, ct);
+                var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
                 return ToDeviceRegistrationModel(_serializer.ParseResponse(response));
-            }, kMaxRetryCount);
+            }, ct, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
@@ -280,7 +278,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             _serializer.SerializeToRequest(request, new {
                 query
             });
-            var response = await _httpClient.PostAsync(request, ct);
+            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             if (response.Headers.TryGetValues(HttpHeader.ContinuationToken, out var values)) {
                 continuation = _serializer.SerializeContinuationToken(
@@ -303,14 +301,14 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 throw new ArgumentNullException(nameof(deviceId));
             }
             etag = null; // TODO : Fix - Currently prevents internal server error
-            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
+            return Retry2.WithExponentialBackoffAsync(_logger, async () => {
                 var request = NewRequest(
                     $"/devices/{ToResourceId(deviceId, moduleId)}");
                 request.Headers.Add("If-Match",
                     $"\"{(string.IsNullOrEmpty(etag) ? "*" : etag)}\"");
-                var response = await _httpClient.DeleteAsync(request, ct);
+                var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
-            }, kMaxRetryCount);
+            }, ct, kMaxRetryCount);
         }
 
         /// <summary>

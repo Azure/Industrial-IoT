@@ -29,14 +29,13 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             InputData = new ListNodeRequested(NodeData.PublishedItem);
         }
 
-
         /// <summary>
         /// Close Drawer and update discovery
         /// </summary>
         /// <param name="discoverer"></param>
         private async Task UpdatePublishedNodeConfigAsync() {
             NodeData.TryUpdateData(InputData);
-            await Onclick.InvokeAsync(NodeData);
+            await Onclick.InvokeAsync(NodeData).ConfigureAwait(false);
         }
     }
 }

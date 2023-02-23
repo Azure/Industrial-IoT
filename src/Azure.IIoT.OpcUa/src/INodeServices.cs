@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -42,6 +43,16 @@ namespace Azure.IIoT.OpcUa {
         /// <returns></returns>
         Task<BrowseNextResponseModel> BrowseNextAsync(T id,
             BrowseNextRequestModel request, CancellationToken ct = default);
+
+        /// <summary>
+        /// Stream node and references
+        /// </summary>
+        /// <param name="id">Connection to server to talk to</param>
+        /// <param name="request">Continuation token</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        IAsyncEnumerable<BrowseStreamChunkModel> BrowseAsync(T id,
+            BrowseStreamRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Browse by path

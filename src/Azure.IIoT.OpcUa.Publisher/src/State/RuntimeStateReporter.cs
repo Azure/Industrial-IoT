@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.State {
     /// This class manages reporting of runtime state.
     /// </summary>
     public class RuntimeStateReporter : IRuntimeStateReporter {
-
         private const string RuntimeStateReportingPath = "runtimeinfo";
 
         private readonly IClientAccessor _clientAccessor;
@@ -32,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.State {
             IJsonSerializer jsonSerializer,
             IRuntimeStateReporterConfiguration config,
             ILogger logger) {
-
             _clientAccessor = clientAccessor ?? throw new ArgumentNullException(nameof(clientAccessor));
             _jsonSerializer = jsonSerializer ?? throw new ArgumentNullException(nameof(jsonSerializer));
             _config = config ?? throw new ArgumentNullException(nameof(config));

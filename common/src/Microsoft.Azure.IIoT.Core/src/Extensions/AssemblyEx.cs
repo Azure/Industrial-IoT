@@ -12,7 +12,6 @@ namespace System {
     /// Assembly type extensions
     /// </summary>
     public static class AssemblyEx {
-
         /// <summary>
         /// Get assembly info version
         /// </summary>

@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Storage {
     /// Cache abstraction
     /// </summary>
     public interface ICache {
-
         /// <summary>
         /// Set value
         /// </summary>

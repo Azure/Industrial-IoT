@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class GatewaysController : ControllerBase {
-
         /// <summary>
         /// Create controller for Gateway services
         /// </summary>
@@ -46,8 +45,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Gateway registration</returns>
         [HttpGet("{GatewayId}")]
         public async Task<GatewayInfoModel> GetGatewayAsync(string GatewayId) {
-            var result = await _gateways.GetGatewayAsync(GatewayId);
-            return result;
+            return await _gateways.GetGatewayAsync(GatewayId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -67,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 throw new ArgumentNullException(nameof(request));
             }
             await _gateways.UpdateGatewayAsync(GatewayId,
-                request);
+                request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -98,9 +96,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _gateways.ListGatewaysAsync(
-                continuationToken, pageSize);
-            return result;
+            return await _gateways.ListGatewaysAsync(
+                continuationToken, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -127,9 +124,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _gateways.QueryGatewaysAsync(
-                query, pageSize);
-            return result;
+            return await _gateways.QueryGatewaysAsync(
+                query, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -149,7 +145,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task<GatewayListModel> GetFilteredListOfGatewayAsync(
             [FromQuery][Required] GatewayQueryModel query,
             [FromQuery] int? pageSize) {
-
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
             }
@@ -157,9 +152,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _gateways.QueryGatewaysAsync(
-                query, pageSize);
-            return result;
+            return await _gateways.QueryGatewaysAsync(
+                query, pageSize).ConfigureAwait(false);
         }
 
         private readonly IGatewayRegistry _gateways;

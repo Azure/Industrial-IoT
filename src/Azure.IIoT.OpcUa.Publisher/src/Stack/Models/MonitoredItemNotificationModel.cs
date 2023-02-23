@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Monitored item notification
     /// </summary>
     public class MonitoredItemNotificationModel {
-
         /// <summary>
         /// Identifier of the monitored item that originated the message
         /// </summary>

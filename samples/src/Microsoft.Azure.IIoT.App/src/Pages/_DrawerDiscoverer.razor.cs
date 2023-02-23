@@ -33,9 +33,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         private async Task UpdateDiscovererConfigAsync() {
             DiscovererData.TryUpdateData(InputData);
-            await Onclick.InvokeAsync(DiscovererData);
+            await Onclick.InvokeAsync(DiscovererData).ConfigureAwait(false);
             if (!DiscovererData.isAdHocDiscovery) {
-                Status = await RegistryHelper.UpdateDiscovererAsync(DiscovererData);
+                Status = await RegistryHelper.UpdateDiscovererAsync(DiscovererData).ConfigureAwait(false);
             }
         }
     }

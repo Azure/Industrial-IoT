@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Operation extensions
     /// </summary>
     public static class RegistryOperationContextModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

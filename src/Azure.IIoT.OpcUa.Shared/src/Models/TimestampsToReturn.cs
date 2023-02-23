@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public enum TimestampsToReturn {
-
         /// <summary>
         /// Both time stamps
         /// </summary>

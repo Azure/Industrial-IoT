@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     [DataContract]
     public class MethodParameterModel {
-
         /// <summary>
         /// Name of method
         /// </summary>

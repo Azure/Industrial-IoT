@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake {
     /// Blob Storage configuration extension
     /// </summary>
     public static class BlobConfigEx {
-
         /// <summary>
         /// Get blob storage connection string
         /// </summary>

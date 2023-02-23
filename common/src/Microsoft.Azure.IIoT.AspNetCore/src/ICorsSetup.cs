@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore {
     /// Cors setup
     /// </summary>
     public interface ICorsSetup {
-
         /// <summary>
         /// Configure cors on app
         /// </summary>

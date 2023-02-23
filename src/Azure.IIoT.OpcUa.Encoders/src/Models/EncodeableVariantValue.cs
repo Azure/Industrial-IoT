@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
     /// Encodeable wrapper for Json tokens
     /// </summary>
     public sealed class EncodeableVariantValue : IEncodeable {
-
         /// <summary>
         /// The encoded object
         /// </summary>

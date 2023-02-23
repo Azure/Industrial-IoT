@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     [DataContract]
     [Flags]
     public enum NetworkMessageContentMask {
-
         /// <summary>
         /// Publisher id
         /// </summary>

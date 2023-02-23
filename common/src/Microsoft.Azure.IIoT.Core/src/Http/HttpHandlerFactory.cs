@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// Wraps http handles in a delegating handler
     /// </summary>
     public sealed class HttpHandlerFactory : IHttpHandlerFactory {
-
         /// <summary>Constant to use as default resource id</summary>
         public static readonly string DefaultResourceId = "$default$";
 
@@ -48,14 +47,13 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         }
 
         /// <inheritdoc/>
-        public TimeSpan Create(string name, out HttpMessageHandler handler) {
-            var resource = name == DefaultResourceId ? Resource.None : name;
-            if (resource != null && resource.StartsWith(Resource.Local)) {
+        public TimeSpan Create(string resourceId, out HttpMessageHandler handler) {
+            var resource = resourceId == DefaultResourceId ? Resource.None : resourceId;
+            if (resource?.StartsWith(Resource.Local, StringComparison.Ordinal) == true) {
                 resource = resource.Remove(0, Resource.Local.Length);
             }
-#pragma warning disable IDE0067 // Dispose objects before losing scope
+
             var del = new HttpHandlerDelegate(new HttpClientHandler(), resource,
-#pragma warning restore IDE0067 // Dispose objects before losing scope
                 _handlers.Where(h => h.IsFor?.Invoke(resource) ?? true),
                 _proxy, _logger);
             handler = del;

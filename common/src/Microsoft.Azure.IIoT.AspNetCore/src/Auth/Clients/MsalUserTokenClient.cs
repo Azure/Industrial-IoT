@@ -24,7 +24,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// service. This uses the behalf_of flow defined in xxx.
     /// </summary>
     public class MsalUserTokenClient : ITokenClient, IUserTokenClient {
-
         /// <inheritdoc/>
         public string Provider => AuthProvider.AzureAD;
 
@@ -57,7 +56,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             if (_ctx.HttpContext?.User == null) {
                 return null;
             }
-            var schemes = await _schemes.GetAllSchemesAsync();
+            var schemes = await _schemes.GetAllSchemesAsync().ConfigureAwait(false);
             if (!schemes.Any(s => s.Name == Provider)) {
                 return null;
             }
@@ -67,10 +66,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     config, CreateRedirectUrl());
                 try {
                     var result = await AcquireTokenSilentAsync(decorator.Client,
-                        _ctx.HttpContext.User, GetScopes(config, scopes), config.TenantId);
+                        _ctx.HttpContext.User, GetScopes(config, scopes), config.TenantId).ConfigureAwait(false);
                     if (result != null) {
                         _logger.LogDebug(
-                            "Successfully acquired token {resource} with {config}.",
+                            "Successfully acquired token {Resource} with {Config}.",
                             resource, config.GetName());
                         return result.ToTokenResult();
                     }
@@ -79,7 +78,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     // Expected if not in cache - continue down
                 }
                 catch (Exception e) {
-                    _logger.LogDebug(e, "Failed to get token silently for {resource} with {config}.",
+                    _logger.LogDebug(e, "Failed to get token silently for {Resource} with {Config}.",
                         resource, config.GetName());
                     exceptions.Add(e);
                     continue;
@@ -94,9 +93,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
                     try {
                         var result = await decorator.Client.AcquireTokenOnBehalfOf(
-                            GetScopes(config, scopes), new UserAssertion(accessToken)).ExecuteAsync();
+                            GetScopes(config, scopes), new UserAssertion(accessToken)).ExecuteAsync().ConfigureAwait(false);
                         _logger.LogInformation(
-                            "Successfully acquired on behalf token for {resource} with {config}.",
+                            "Successfully acquired on behalf token for {Resource} with {Config}.",
                                 resource, config.GetName());
                         return result.ToTokenResult();
                     }
@@ -106,7 +105,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     }
                 }
                 else {
-                    _logger.LogDebug("Could not find token for {resource} with {config} in http context.",
+                    _logger.LogDebug("Could not find token for {Resource} with {Config} in http context.",
                         resource, config.GetName());
                 }
             }
@@ -122,7 +121,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             if (user == null) {
                 return null;
             }
-            var schemes = await _schemes.GetAllSchemesAsync();
+            var schemes = await _schemes.GetAllSchemesAsync().ConfigureAwait(false);
             if (!schemes.Any(s => s.Name == Provider)) {
                 return null;
             }
@@ -131,13 +130,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 try {
                     var result = await decorator.Client
                          .AcquireTokenByAuthorizationCode(GetScopes(config, scopes), code)
-                         .ExecuteAsync();
+                         .ExecuteAsync().ConfigureAwait(false);
                     if (result != null) {
                         return result.ToTokenResult();
                     }
                 }
                 catch (Exception e) {
-                    _logger.LogError(e, "Failed to get token for code with {config}.",
+                    _logger.LogError(e, "Failed to get token for code with {Config}.",
                          config.GetName());
                 }
             }
@@ -154,7 +153,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 var decorator = CreateConfidentialClientApplication(user, config);
                 try {
                     var result = await AcquireTokenSilentAsync(decorator.Client,
-                        user, GetScopes(config, scopes), config.TenantId);
+                        user, GetScopes(config, scopes), config.TenantId).ConfigureAwait(false);
                     if (result != null) {
                         return result.ToTokenResult();
                     }
@@ -173,18 +172,18 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             }
             foreach (var config in _config.Query(Provider)) {
                 var decorator = CreateConfidentialClientApplication(user, config);
-                var account = await decorator.Client.GetAccountAsync(user.GetMsalAccountId());
+                var account = await decorator.Client.GetAccountAsync(user.GetMsalAccountId()).ConfigureAwait(false);
 
                 if (account == null) {
 #pragma warning disable CS0618 // Type or member is obsolete
-                    var accounts = await decorator.Client.GetAccountsAsync();
+                    var accounts = await decorator.Client.GetAccountsAsync().ConfigureAwait(false);
 #pragma warning restore CS0618 // Type or member is obsolete
                     account = accounts.FirstOrDefault(a => a.Username == user.GetLoginHint());
                 }
 
                 if (account != null) {
-                    await decorator.Client.RemoveAsync(account);
-                    await decorator.ClearCacheAsync();
+                    await decorator.Client.RemoveAsync(account).ConfigureAwait(false);
+                    await decorator.ClearCacheAsync().ConfigureAwait(false);
                 }
             }
         }
@@ -196,7 +195,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             }
             foreach (var config in _config.Query(resource, Provider)) {
                 var decorator = CreateConfidentialClientApplication(_ctx.HttpContext.User, config);
-                await decorator.ClearCacheAsync();
+                await decorator.ClearCacheAsync().ConfigureAwait(false);
             }
         }
 
@@ -207,25 +206,25 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="user">User to get token for</param>
         /// <param name="scopes">Scopes for api to call</param>
         /// <param name="tenant"></param>
-        private async Task<AuthenticationResult> AcquireTokenSilentAsync(
+        private static async Task<AuthenticationResult> AcquireTokenSilentAsync(
             IConfidentialClientApplication application, ClaimsPrincipal user,
             IEnumerable<string> scopes, string tenant) {
-            var account = await GetUserAccountAsync(application, user);
+            var account = await GetUserAccountAsync(application, user).ConfigureAwait(false);
             if (account == null) {
                 return null;
             }
             if (!string.IsNullOrWhiteSpace(tenant)) {
                 // Acquire an access token as another authority
                 var authority = application.Authority.Replace(
-                    new Uri(application.Authority).PathAndQuery, $"/{tenant}/");
+                    new Uri(application.Authority).PathAndQuery, $"/{tenant}/", StringComparison.Ordinal);
                 return await application
                     .AcquireTokenSilent(scopes, account)
                     .WithAuthority(authority)
-                    .ExecuteAsync();
+                    .ExecuteAsync().ConfigureAwait(false);
             }
             return await application
                 .AcquireTokenSilent(scopes, account)
-                .ExecuteAsync();
+                .ExecuteAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -237,9 +236,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             if (request == null) {
                 return null;
             }
-            var redirectUri = new UriBuilder(request.Scheme, request.Host.Host,
+            return new UriBuilder(request.Scheme, request.Host.Host,
                 request.Host.Port ?? -1, request.PathBase + "/signin-oidc").ToString();
-            return redirectUri;
         }
 
         /// <summary>
@@ -248,7 +246,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="config"></param>
         /// <param name="scopes"></param>
         /// <returns></returns>
-        private IEnumerable<string> GetScopes(IOAuthClientConfig config,
+        private static IEnumerable<string> GetScopes(IOAuthClientConfig config,
             IEnumerable<string> scopes) {
             var requestedScopes = new HashSet<string>();
             if (scopes != null) {
@@ -273,14 +271,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             var accountId = user.GetMsalAccountId();
             IAccount account = null;
             if (accountId != null) {
-                account = await application.GetAccountAsync(accountId);
+                account = await application.GetAccountAsync(accountId).ConfigureAwait(false);
                 // Special case for guest users as the Guest oid / tenant id are not surfaced.
                 if (account == null) {
                     var loginHint = user.GetLoginHint();
                     if (loginHint == null) {
                         throw new ArgumentNullException(nameof(loginHint));
                     }
-                    var accounts = await application.GetAccountsAsync();
+                    var accounts = await application.GetAccountsAsync().ConfigureAwait(false);
                     account = accounts.FirstOrDefault(a => a.Username == loginHint);
                 }
             }

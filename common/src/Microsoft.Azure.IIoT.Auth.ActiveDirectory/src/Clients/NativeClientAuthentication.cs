@@ -15,10 +15,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// Public native console client authentication
     /// </summary>
     public class NativeClientAuthentication : Module {
-
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
-
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ClientAuthAggregateConfig>()
@@ -47,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <summary>
         /// Authenticate with device token after trying app and developer authentication.
         /// </summary>
-        internal class NativeClientTokenSource : TokenClientAggregateSource, ITokenSource {
+        internal class NativeClientTokenSource : TokenClientAggregateSource{
             /// <inheritdoc/>
             public NativeClientTokenSource(DevAuthenticationClient ld, AppAuthenticationClient aa,
                 MsalInteractiveClient ic, MsalDeviceCodeClient dc,

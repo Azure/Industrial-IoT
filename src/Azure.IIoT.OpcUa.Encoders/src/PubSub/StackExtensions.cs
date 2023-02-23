@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Samples message extension flags
     /// </summary>
     public static class JsonDataSetMessageContentMaskEx {
-
         /// <summary>
         /// Extra fields included
         /// </summary>

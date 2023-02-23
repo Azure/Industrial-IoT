@@ -10,12 +10,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Handle event
     /// </summary>
     public static class GatewayModelEx {
-
         /// <summary>
         /// Update a discover
         /// </summary>
-        /// <param name="gateway"></param>
         /// <param name="update"></param>
+        /// <param name="gateway"></param>
         public static GatewayModel Patch(this GatewayModel update,
             GatewayModel gateway) {
             if (update == null) {

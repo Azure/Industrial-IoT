@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// be extended to provide more detailed semantics.
     /// </summary>
     public class ExternalDependencyException : Exception {
-
         /// <inheritdoc />
         public ExternalDependencyException() {
         }

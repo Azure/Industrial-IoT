@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// Caching token provider
     /// </summary>
     public class CachingTokenProvider : DefaultTokenProvider {
-
         /// <inheritdoc/>
         public CachingTokenProvider(IEnumerable<ITokenSource> tokenSources,
             ICache cache) : base(tokenSources) {
@@ -31,12 +30,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             if (string.IsNullOrEmpty(resource)) {
                 resource = Http.Resource.Platform;
             }
-            var token = await Try.Async(() => GetTokenFromCacheAsync(resource, scopes));
+            var token = await Try.Async(() => GetTokenFromCacheAsync(resource, scopes)).ConfigureAwait(false);
             if (token == null) {
-                token = await base.GetTokenForAsync(resource, scopes);
-                if (token != null && !token.Cached) {
+                token = await base.GetTokenForAsync(resource, scopes).ConfigureAwait(false);
+                if (token?.Cached == false) {
                     await Try.Async(() => _cache.SetAsync(GetKey(resource),
-                        Encoding.UTF8.GetBytes(token.RawToken), token.ExpiresOn));
+                        Encoding.UTF8.GetBytes(token.RawToken), token.ExpiresOn)).ConfigureAwait(false);
                 }
             }
             return token;
@@ -47,8 +46,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             if (string.IsNullOrEmpty(resource)) {
                 resource = Http.Resource.Platform;
             }
-            await _cache.RemoveAsync(GetKey(resource));
-            await base.InvalidateAsync(resource);
+            await _cache.RemoveAsync(GetKey(resource)).ConfigureAwait(false);
+            await base.InvalidateAsync(resource).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -57,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <returns></returns>
         private async Task<TokenResultModel> GetTokenFromCacheAsync(string resource,
             IEnumerable<string> scopes) {
-            var cached = await _cache.GetAsync(GetKey(resource));
+            var cached = await _cache.GetAsync(GetKey(resource)).ConfigureAwait(false);
             if (cached != null) {
                 var token = JwtSecurityTokenEx.Parse(Encoding.UTF8.GetString(cached));
                 if (token.ExpiresOn >= DateTimeOffset.UtcNow + TimeSpan.FromSeconds(30)) {

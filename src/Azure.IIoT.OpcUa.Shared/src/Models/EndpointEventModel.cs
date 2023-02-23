@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class EndpointEventModel {
-
         /// <summary>
         /// Type of event
         /// </summary>

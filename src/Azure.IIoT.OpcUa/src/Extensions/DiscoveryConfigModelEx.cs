@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Discovery configuration model extensions
     /// </summary>
     public static class DiscoveryConfigModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

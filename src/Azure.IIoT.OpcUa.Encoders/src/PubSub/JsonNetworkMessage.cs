@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
     public class JsonNetworkMessage : BaseNetworkMessage {
-
         /// <inheritdoc/>
         public override string MessageSchema => HasSamplesPayload ?
             MessageSchemaTypes.MonitoredItemMessageJson : MessageSchemaTypes.NetworkMessageJson;
@@ -92,8 +91,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                 return MessageSchema;
             }
             set {
-                if (value != null &&
-                    value.Equals(MessageSchemaTypes.MonitoredItemMessageJson, StringComparison.OrdinalIgnoreCase)) {
+                if (value?.Equals(MessageSchemaTypes.MonitoredItemMessageJson, StringComparison.OrdinalIgnoreCase) == true) {
                     HasSamplesPayload = true;
                 }
                 else {
@@ -136,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                 if (UseArrayEnvelope) {
                     return JsonEncoderEx.JsonEncoding.Array;
                 }
-                return JsonEncoderEx.JsonEncoding.Object;
+                return JsonEncoderEx.JsonEncoding.StartObject;
             }
         }
 
@@ -437,7 +435,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                 return false;
             }
             var messageType = decoder.ReadString(nameof(MessageType));
-            if (!messageType.Equals(MessageTypeUaData, StringComparison.InvariantCultureIgnoreCase)) {
+            if (!messageType.Equals(MessageTypeUaData, StringComparison.OrdinalIgnoreCase)) {
                 // Not a dataset network message
                 return false;
             }

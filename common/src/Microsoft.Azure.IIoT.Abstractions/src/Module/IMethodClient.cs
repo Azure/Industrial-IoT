@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module {
     /// Call method with buffer and content type as payload
     /// </summary>
     public interface IMethodClient {
-
         /// <summary>
         /// Call method with buffer and return payload buffer.
         /// </summary>

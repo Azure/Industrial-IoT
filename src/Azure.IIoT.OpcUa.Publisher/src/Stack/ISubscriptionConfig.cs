@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
     /// Subscription configuration
     /// </summary>
     public interface ISubscriptionConfig {
-
         /// <summary>
         /// The default interval for heartbeats if not configured.
         /// </summary>

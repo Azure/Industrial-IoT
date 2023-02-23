@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     /// Industrial iot diagnostics
     /// </summary>
     public static class Diagnostics {
-
         /// <summary>
         /// Helper - remove when moving to 7.0, then update below
         /// </summary>

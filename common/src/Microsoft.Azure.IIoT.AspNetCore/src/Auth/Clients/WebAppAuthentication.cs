@@ -19,10 +19,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// Default web app authentication
     /// </summary>
     public class WebAppAuthentication : Module {
-
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
-
             builder.RegisterType<HttpHandlerFactory>()
                 .AsImplementedInterfaces();
             builder.RegisterType<HttpBearerAuthentication>()
@@ -58,8 +56,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <summary>
         /// First try passthrough, then try service client credentials
         /// </summary>
-        internal class UserTokenSource : TokenClientAggregateSource, ITokenSource {
-
+        internal class UserTokenSource : TokenClientAggregateSource{
             /// <inheritdoc/>
             public UserTokenSource(OpenIdUserTokenClient oi, MsalUserTokenClient uc,
                 IEnumerable<ITokenClient> providers, ILogger logger)

@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Testing.Runtime {
     /// Client's application configuration implementation
     /// </summary>
     public class TestClientServicesConfig : IClientServicesConfig, IDisposable {
-
         /// <inheritdoc/>
         public string PkiRootPath { get; }
         /// <inheritdoc/>

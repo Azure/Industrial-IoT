@@ -24,7 +24,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
 
     [Collection(WriteBinaryCollection.Name)]
     public class CallControllerScalarTests : IClassFixture<WebApiTestFixture> {
-
         public CallControllerScalarTests(WebApiTestFixture factory, TestServerFixture server) {
             _factory = factory;
             _server = server;
@@ -58,107 +57,107 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
 
         [Fact]
         public async Task NodeMethodMetadataStaticScalarMethod1TestAsync() {
-            await GetTests().NodeMethodMetadataStaticScalarMethod1TestAsync();
+            await GetTests().NodeMethodMetadataStaticScalarMethod1TestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodMetadataStaticScalarMethod2TestAsync() {
-            await GetTests().NodeMethodMetadataStaticScalarMethod2TestAsync();
+            await GetTests().NodeMethodMetadataStaticScalarMethod2TestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodMetadataStaticScalarMethod3TestAsync() {
-            await GetTests().NodeMethodMetadataStaticScalarMethod3TestAsync();
+            await GetTests().NodeMethodMetadataStaticScalarMethod3TestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async() {
-            await GetTests().NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async();
+            await GetTests().NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async() {
-            await GetTests().NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async();
+            await GetTests().NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod1Test1Async() {
-            await GetTests().NodeMethodCallStaticScalarMethod1Test1Async();
+            await GetTests().NodeMethodCallStaticScalarMethod1Test1Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod1Test2Async() {
-            await GetTests().NodeMethodCallStaticScalarMethod1Test2Async();
+            await GetTests().NodeMethodCallStaticScalarMethod1Test2Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod1Test3Async() {
-            await GetTests().NodeMethodCallStaticScalarMethod1Test3Async();
+            await GetTests().NodeMethodCallStaticScalarMethod1Test3Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod1Test4Async() {
-            await GetTests().NodeMethodCallStaticScalarMethod1Test4Async();
+            await GetTests().NodeMethodCallStaticScalarMethod1Test4Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod1Test5Async() {
-            await GetTests().NodeMethodCallStaticScalarMethod1Test5Async();
+            await GetTests().NodeMethodCallStaticScalarMethod1Test5Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod2Test1Async() {
-            await GetTests().NodeMethodCallStaticScalarMethod2Test1Async();
+            await GetTests().NodeMethodCallStaticScalarMethod2Test1Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod2Test2Async() {
-            await GetTests().NodeMethodCallStaticScalarMethod2Test2Async();
+            await GetTests().NodeMethodCallStaticScalarMethod2Test2Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod3Test1Async() {
-            await GetTests().NodeMethodCallStaticScalarMethod3Test1Async();
+            await GetTests().NodeMethodCallStaticScalarMethod3Test1Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod3Test2Async() {
-            await GetTests().NodeMethodCallStaticScalarMethod3Test2Async();
+            await GetTests().NodeMethodCallStaticScalarMethod3Test2Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod3WithBrowsePathNoIdsTestAsync() {
-            await GetTests().NodeMethodCallStaticScalarMethod3WithBrowsePathNoIdsTestAsync();
+            await GetTests().NodeMethodCallStaticScalarMethod3WithBrowsePathNoIdsTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndBrowsePathTestAsync() {
-            await GetTests().NodeMethodCallStaticScalarMethod3WithObjectIdAndBrowsePathTestAsync();
+            await GetTests().NodeMethodCallStaticScalarMethod3WithObjectIdAndBrowsePathTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndMethodIdAndBrowsePathTestAsync() {
-            await GetTests().NodeMethodCallStaticScalarMethod3WithObjectIdAndMethodIdAndBrowsePathTestAsync();
+            await GetTests().NodeMethodCallStaticScalarMethod3WithObjectIdAndMethodIdAndBrowsePathTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod3WithObjectPathAndMethodIdAndBrowsePathTestAsync() {
-            await GetTests().NodeMethodCallStaticScalarMethod3WithObjectPathAndMethodIdAndBrowsePathTestAsync();
+            await GetTests().NodeMethodCallStaticScalarMethod3WithObjectPathAndMethodIdAndBrowsePathTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndPathAndMethodIdAndPathTestAsync() {
-            await GetTests().NodeMethodCallStaticScalarMethod3WithObjectIdAndPathAndMethodIdAndPathTestAsync();
+            await GetTests().NodeMethodCallStaticScalarMethod3WithObjectIdAndPathAndMethodIdAndPathTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallBoiler2ResetTestAsync() {
-            await GetTests().NodeMethodCallBoiler2ResetTestAsync();
+            await GetTests().NodeMethodCallBoiler2ResetTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeMethodCallBoiler1ResetTestAsync() {
-            await GetTests().NodeMethodCallBoiler1ResetTestAsync();
+            await GetTests().NodeMethodCallBoiler1ResetTestAsync().ConfigureAwait(false);
         }
     }
 }

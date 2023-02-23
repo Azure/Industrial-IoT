@@ -20,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
     /// Discovery request wrapper
     /// </summary>
     internal sealed class DiscoveryRequest : IDisposable {
-
         /// <summary>
         /// Cancellation token to cancel request
         /// </summary>
@@ -169,8 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
                         AddressRanges = AddLocalHost(interfaces
                             .Select(t => new AddressRange(t, false, 24))
                             .Concat(interfaces
-                                .Where(t => t.Gateway != null &&
-                                            !t.Gateway.Equals(IPAddress.Any) &&
+                                .Where(t => t.Gateway?.Equals(IPAddress.Any) == false &&
                                             !t.Gateway.Equals(IPAddress.None))
                                 .Select(i => new AddressRange(i.Gateway, 32)))
                             .Distinct());
@@ -181,8 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
                         AddressRanges = AddLocalHost(interfaces
                             .Select(t => new AddressRange(t, false))
                             .Concat(interfaces
-                                .Where(t => t.Gateway != null &&
-                                            !t.Gateway.Equals(IPAddress.Any) &&
+                                .Where(t => t.Gateway?.Equals(IPAddress.Any) == false &&
                                             !t.Gateway.Equals(IPAddress.None))
                                 .Select(i => new AddressRange(i.Gateway, 32)))
                             .Distinct());
@@ -217,12 +214,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
 
             // Update reported configuration with used settings
 
-            if (AddressRanges != null && AddressRanges.Any()) {
+            if (AddressRanges?.Any() == true) {
                 Request.Configuration.AddressRangesToScan = AddressRange.Format(AddressRanges);
                 TotalAddresses = AddressRanges?.Sum(r => r.Count) ?? 0;
             }
 
-            if (PortRanges != null && PortRanges.Any()) {
+            if (PortRanges?.Any() == true) {
                 Request.Configuration.PortRangesToScan = PortRange.Format(PortRanges);
                 TotalPorts = PortRanges?.Sum(r => r.Count) ?? 0;
             }
@@ -265,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="ranges"></param>
         /// <returns></returns>
-        public IEnumerable<AddressRange> AddLocalHost(IEnumerable<AddressRange> ranges) {
+        public static IEnumerable<AddressRange> AddLocalHost(IEnumerable<AddressRange> ranges) {
             if (Host.IsContainer) {
                 try {
                     var addresses = Dns.GetHostAddresses("host.docker.internal");

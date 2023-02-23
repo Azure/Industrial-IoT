@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class ContentFilterModel {
-
         /// <summary>
         /// The flat list of elements in the filter AST
         /// </summary>

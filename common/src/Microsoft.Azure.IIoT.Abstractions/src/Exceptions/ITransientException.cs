@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Exceptions {
-
     /// <summary>
     /// Marks exceptions that are transient in nature, i.e.
     /// they can be retried with another outcome.

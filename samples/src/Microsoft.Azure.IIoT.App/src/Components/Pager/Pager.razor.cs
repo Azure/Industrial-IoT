@@ -15,8 +15,8 @@ namespace Microsoft.Azure.IIoT.App.Components.Pager {
         [Parameter]
         public Action<int> PageChanged { get; set; }
 
-        protected int StartIndex { get; private set; } = 0;
-        protected int FinishIndex { get; private set; } = 0;
+        protected int StartIndex { get; private set; }
+        protected int FinishIndex { get; private set; }
 
         protected override void OnParametersSet() {
             StartIndex = Math.Max(Result.CurrentPage - 10, 1);

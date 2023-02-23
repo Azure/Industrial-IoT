@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
     using Furly.Extensions.Serializers;
+    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
     using System;
     using System.IO;
     using System.IO.Compression;
@@ -13,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// Query continuation token extensions
     /// </summary>
     public static class QueryContinuationEx {
-
         /// <summary>
         /// Convert to continuation token string
         /// </summary>
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
             QueryContinuation continuation) {
             using (var result = new MemoryStream()) {
                 using (var gs = new GZipStream(result, CompressionMode.Compress)) {
-                    gs.Write(serializer.SerializeToBytes(continuation));
+                    gs.Write(serializer.SerializeToMemory((object)continuation).Span);
                 }
                 return result.ToArray().ToBase64String();
             }
@@ -73,9 +73,9 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="serializer"></param>
         /// <param name="token"></param>
+        /// <param name="query"></param>
         /// <param name="continuationToken"></param>
         /// <param name="pageSize"></param>
-        /// <param name="query"></param>
         /// <returns></returns>
         public static void DeserializeContinuationToken(this ISerializer serializer,
             string token, out string query, out string continuationToken, out int? pageSize) {

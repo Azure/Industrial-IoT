@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
     /// the OPC Publihser module.
     /// </summary>
     public sealed class PublisherApiClient : IPublisherApi {
-
         /// <summary>
         /// Create module client
         /// </summary>
@@ -63,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "PublishStart", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<PublishStartResponseModel>(response);
         }
 
@@ -83,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "PublishStop", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<PublishStopResponseModel>(response);
         }
 
@@ -103,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "PublishBulk", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<PublishBulkResponseModel>(response);
         }
 
@@ -123,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "PublishList", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<PublishedItemListResponseModel>(response);
         }
 
@@ -134,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "PublishNodes", _serializer.SerializeToString(request), null, ct);
+                "PublishNodes", _serializer.SerializeToString(request), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<PublishedNodesResponseModel>(response);
         }
 
@@ -145,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "UnpublishNodes", _serializer.SerializeToString(request), null, ct);
+                "UnpublishNodes", _serializer.SerializeToString(request), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<PublishedNodesResponseModel>(response);
         }
 
@@ -156,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "UnpublishAllNodes", _serializer.SerializeToString(request), null, ct);
+                "UnpublishAllNodes", _serializer.SerializeToString(request), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<PublishedNodesResponseModel>(response);
         }
 
@@ -167,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-               "AddOrUpdateEndpoints", _serializer.SerializeToString(request), null, ct);
+               "AddOrUpdateEndpoints", _serializer.SerializeToString(request), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<PublishedNodesResponseModel>(response);
         }
 
@@ -175,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
         public async Task<GetConfiguredEndpointsResponseModel> GetConfiguredEndpointsAsync(
             CancellationToken ct) {
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-               "GetConfiguredEndpoints", null, null, ct);
+               "GetConfiguredEndpoints", null, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(response);
         }
 
@@ -186,17 +185,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "GetConfiguredNodesOnEndpoint", _serializer.SerializeToString(request), null, ct);
+                "GetConfiguredNodesOnEndpoint", _serializer.SerializeToString(request), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseModel>(response);
         }
 
         /// <inheritdoc/>
         public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(CancellationToken ct) {
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "GetDiagnosticInfo", null, null, ct);
+                "GetDiagnosticInfo", null, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(response);
         }
-
 
         private readonly IJsonSerializer _serializer;
         private readonly IMethodClient _methodClient;

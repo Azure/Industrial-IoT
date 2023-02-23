@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class AutoRestExtensionAttribute : Attribute {
-
         /// <summary>
         /// Describe the operation as long running
         /// </summary>

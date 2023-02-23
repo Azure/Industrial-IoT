@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class PublishersController : ControllerBase {
-
         /// <summary>
         /// Create controller for publisher services
         /// </summary>
@@ -50,9 +49,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpGet("{publisherId}")]
         public async Task<PublisherModel> GetPublisherAsync(string publisherId,
             [FromQuery] bool? onlyServerState) {
-            var result = await _publishers.GetPublisherAsync(publisherId,
-                onlyServerState ?? false);
-            return result;
+            return await _publishers.GetPublisherAsync(publisherId,
+                onlyServerState ?? false).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -72,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 throw new ArgumentNullException(nameof(request));
             }
             await _publishers.UpdatePublisherAsync(publisherId,
-                request);
+                request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -106,9 +104,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _publishers.ListPublishersAsync(
-                continuationToken, onlyServerState ?? false, pageSize);
-            return result;
+            return await _publishers.ListPublishersAsync(
+                continuationToken, onlyServerState ?? false, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -139,12 +136,12 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _publishers.QueryPublishersAsync(
-                query, onlyServerState ?? false, pageSize);
+            
 
             // TODO: Filter results based on RBAC
 
-            return result;
+            return await _publishers.QueryPublishersAsync(
+                query, onlyServerState ?? false, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -168,7 +165,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             [FromQuery][Required] PublisherQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
-
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
             }
@@ -176,12 +172,12 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _publishers.QueryPublishersAsync(
-                query, onlyServerState ?? false, pageSize);
+            
 
             // TODO: Filter results based on RBAC
 
-            return result;
+            return await _publishers.QueryPublishersAsync(
+                query, onlyServerState ?? false, pageSize).ConfigureAwait(false);
         }
 
         private readonly IPublisherRegistry _publishers;

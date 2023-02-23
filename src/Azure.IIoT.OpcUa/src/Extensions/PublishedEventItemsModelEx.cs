@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Data items extensions
     /// </summary>
     public static class PublishedEventItemsModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

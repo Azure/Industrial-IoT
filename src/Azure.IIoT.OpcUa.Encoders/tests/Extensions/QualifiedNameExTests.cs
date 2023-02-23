@@ -7,13 +7,11 @@ namespace Opc.Ua.Extensions {
     using System;
     using Xunit;
 
-
     public class QualifiedNameExTests {
-
         [Fact]
         public void DecodeQnFromStringNoUri() {
             var context = new ServiceMessageContext();
-            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             var result = expected.ToQualifiedName(context);
             Assert.Equal(expected, result.Name);
         }
@@ -21,7 +19,7 @@ namespace Opc.Ua.Extensions {
         [Fact]
         public void DecodeQnFromStringUrlEncodedNoUri() {
             var context = new ServiceMessageContext();
-            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             var result = expected.UrlEncode().ToQualifiedName(context);
             Assert.Equal(expected, result.Name);
         }
@@ -29,8 +27,8 @@ namespace Opc.Ua.Extensions {
         [Fact]
         public void DecodeQnFromString() {
             var context = new ServiceMessageContext();
-            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
-            var uri = "http://contosos.com/UA";
+            const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            const string uri = "http://contosos.com/UA";
             var result = (uri + "#" + expected).ToQualifiedName(context);
             Assert.Equal(expected, result.Name);
             Assert.Equal(uri, context.NamespaceUris.GetString(1));
@@ -40,8 +38,8 @@ namespace Opc.Ua.Extensions {
         [Fact]
         public void DecodeQnFromStringUrlEncoded() {
             var context = new ServiceMessageContext();
-            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
-            var uri = "http://contosos.com/UA";
+            const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            const string uri = "http://contosos.com/UA";
             var result = (uri + "#" + expected.UrlEncode()).ToQualifiedName(context);
             Assert.Equal(expected, result.Name);
             Assert.Equal(uri, context.NamespaceUris.GetString(1));
@@ -51,8 +49,8 @@ namespace Opc.Ua.Extensions {
         [Fact]
         public void DecodeQnFromStringUrlEncodedBadNamespaceUri() {
             var context = new ServiceMessageContext();
-            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
-            var uri = "contosos";
+            const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            const string uri = "contosos";
             var result = (uri + "#" + expected.UrlEncode()).ToQualifiedName(context);
             Assert.Equal(expected, result.Name);
             Assert.Equal(uri, context.NamespaceUris.GetString(1));
@@ -62,8 +60,8 @@ namespace Opc.Ua.Extensions {
         [Fact]
         public void DecodeQnFromStringUrnNamespaceUri() {
             var context = new ServiceMessageContext();
-            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
-            var uri = "urn:contosos";
+            const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            const string uri = "urn:contosos";
             var result = (uri + "#" + expected).ToQualifiedName(context);
             Assert.Equal(expected, result.Name);
             Assert.Equal(uri, context.NamespaceUris.GetString(1));
@@ -73,8 +71,8 @@ namespace Opc.Ua.Extensions {
         [Fact]
         public void DecodeQnFromStringUrlEncodedUrnNamespaceUri() {
             var context = new ServiceMessageContext();
-            var expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
-            var uri = "urn:contosos";
+            const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
+            const string uri = "urn:contosos";
             var result = (uri + "#" + expected.UrlEncode()).ToQualifiedName(context);
             Assert.Equal(expected, result.Name);
             Assert.Equal(uri, context.NamespaceUris.GetString(1));
@@ -83,7 +81,6 @@ namespace Opc.Ua.Extensions {
 
         [Fact]
         public void EncodeDecodeQualifiedName() {
-
             var context = new ServiceMessageContext();
             var expected = new QualifiedName("   space    tests /(%)§;#;;#;()§$\"))\"\")(§",
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
@@ -100,7 +97,6 @@ namespace Opc.Ua.Extensions {
 
         [Fact]
         public void EncodeDecodeQualifiedNameDefaultUri() {
-
             var context = new ServiceMessageContext();
             var expected = new QualifiedName("   space    tests /(%)§;#;;#;()§$\"))\"\")(§", 0);
 
@@ -116,7 +112,6 @@ namespace Opc.Ua.Extensions {
 
         [Fact]
         public void EncodeDecodeQualifiedNameWithEmptyString() {
-
             var context = new ServiceMessageContext();
             var expected = new QualifiedName("",
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
@@ -138,7 +133,6 @@ namespace Opc.Ua.Extensions {
 
         [Fact]
         public void EncodeDecodeQualifiedNameWithEmptyStringDefaultUri() {
-
             var context = new ServiceMessageContext();
             var expected = new QualifiedName("", 0);
 
@@ -159,7 +153,6 @@ namespace Opc.Ua.Extensions {
 
         [Fact]
         public void EncodeDecodeQualifiedNameWithNullString() {
-
             var context = new ServiceMessageContext();
             var expected = new QualifiedName(null,
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
@@ -181,7 +174,6 @@ namespace Opc.Ua.Extensions {
 
         [Fact]
         public void EncodeDecodeQualifiedNameWithNullStringDefaultUri() {
-
             var context = new ServiceMessageContext();
             var expected = new QualifiedName(null, 0);
 
@@ -202,7 +194,6 @@ namespace Opc.Ua.Extensions {
 
         [Fact]
         public void EncodeDecodeNullQualifiedName() {
-
             var context = new ServiceMessageContext();
             var expected = QualifiedName.Null;
 

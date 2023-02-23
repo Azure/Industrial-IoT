@@ -32,7 +32,6 @@ namespace TestData {
     using System;
 
     public partial class TestDataObjectState {
-
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
@@ -41,8 +40,6 @@ namespace TestData {
 
             GenerateValues.OnCall = OnGenerateValues;
         }
-
-
 
         /// <summary>
         /// Initialzies the variable as a counter.
@@ -83,22 +80,18 @@ namespace TestData {
         /// <summary>
         /// Validates a written value.
         /// </summary>
-        public ServiceResult OnWriteAnalogValue(
+        public static ServiceResult OnWriteAnalogValue(
             ISystemContext context,
             NodeState node,
             ref object value) {
             try {
-
-
                 if (!(node.FindChild(context, Opc.Ua.BrowseNames.EURange) is BaseVariableState euRange)) {
                     return ServiceResult.Good;
                 }
 
-
                 if (!(euRange.Value is Opc.Ua.Range range)) {
                     return ServiceResult.Good;
                 }
-
 
                 if (value is Array array) {
                     for (var ii = 0; ii < array.Length; ii++) {
@@ -134,7 +127,7 @@ namespace TestData {
         /// <summary>
         /// Generates a new value for the variable.
         /// </summary>
-        protected void GenerateValue(TestDataSystem system, BaseVariableState variable) {
+        protected static void GenerateValue(TestDataSystem system, BaseVariableState variable) {
             variable.Value = system.ReadValue(variable);
             variable.Timestamp = DateTime.UtcNow;
             variable.StatusCode = StatusCodes.Good;
@@ -194,7 +187,6 @@ namespace TestData {
             ref object value,
             ref StatusCode statusCode,
             ref DateTime timestamp) {
-
             if (!(node is BaseVariableState variable)) {
                 return ServiceResult.Good;
             }
@@ -202,7 +194,6 @@ namespace TestData {
             if (!SimulationActive.Value) {
                 return ServiceResult.Good;
             }
-
 
             if (!(context.SystemHandle is TestDataSystem system)) {
                 return StatusCodes.BadOutOfService;

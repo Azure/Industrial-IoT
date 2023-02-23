@@ -36,7 +36,6 @@ namespace DataAccess {
     /// A node manager for a server that exposes several variables.
     /// </summary>
     public class DataAccessNodeManager : CustomNodeManager2 {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -140,25 +139,20 @@ namespace DataAccess {
                 // check for check for nodes that are being currently monitored.
 
                 if (MonitoredNodes.TryGetValue(nodeId, out var monitoredNode)) {
-                    var handle = new NodeHandle {
+                    return new NodeHandle {
                         NodeId = nodeId,
                         Validated = true,
                         Node = monitoredNode.Node
                     };
-
-                    return handle;
                 }
 
                 if (nodeId.IdType != IdType.String) {
-
                     if (PredefinedNodes.TryGetValue(nodeId, out var node)) {
-                        var handle = new NodeHandle {
+                        return new NodeHandle {
                             NodeId = nodeId,
                             Node = node,
                             Validated = true
                         };
-
-                        return handle;
                     }
                 }
 
@@ -166,14 +160,12 @@ namespace DataAccess {
                 var parsedNodeId = ParsedNodeId.Parse(nodeId);
 
                 if (parsedNodeId != null) {
-                    var handle = new NodeHandle {
+                    return new NodeHandle {
                         NodeId = nodeId,
                         Validated = false,
                         Node = null,
                         ParsedNodeId = parsedNodeId
                     };
-
-                    return handle;
                 }
 
                 return null;
@@ -293,8 +285,6 @@ namespace DataAccess {
             }
         }
 
-
-
         /// <summary>
         /// Called after creating a MonitoredItem.
         /// </summary>
@@ -302,7 +292,6 @@ namespace DataAccess {
         /// <param name="handle">The handle for the node.</param>
         /// <param name="monitoredItem">The monitored item.</param>
         protected override void OnMonitoredItemCreated(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem) {
-
             if (handle.Node.GetHierarchyRoot() is BlockState block) {
                 block.StartMonitoring(context);
 
@@ -318,7 +307,6 @@ namespace DataAccess {
         /// <param name="handle">The handle for the node.</param>
         /// <param name="monitoredItem">The monitored item.</param>
         protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem) {
-
             if (handle.Node.GetHierarchyRoot() is BlockState block) {
                 if (!block.StopMonitoring(context)) {
                     // can remove the block since all monitored items for the block are gone.
@@ -328,7 +316,9 @@ namespace DataAccess {
         }
 
         private readonly UnderlyingSystem _system;
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly DataAccessServerConfiguration _configuration;
+#pragma warning restore IDE0052 // Remove unread private members
         private readonly Dictionary<NodeId, BlockState> _blocks;
     }
 }

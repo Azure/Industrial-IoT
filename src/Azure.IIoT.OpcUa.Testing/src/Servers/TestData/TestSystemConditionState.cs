@@ -31,7 +31,6 @@ namespace TestData {
     using Opc.Ua;
 
     public partial class TestSystemConditionState {
-
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
@@ -48,7 +47,6 @@ namespace TestData {
             ISystemContext context,
             NodeState node,
             ref object value) {
-
             if (!(context.SystemHandle is TestDataSystem system)) {
                 return StatusCodes.BadOutOfService;
             }

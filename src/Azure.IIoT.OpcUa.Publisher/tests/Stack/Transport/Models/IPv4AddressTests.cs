@@ -3,13 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
     using System;
     using System.Net;
     using Xunit;
 
     public class IPv4AddressTests {
-
         [Fact]
         public void TestEmptyAddress() {
             var address = new IPv4Address(new byte[] { 0, 0, 0, 0 });

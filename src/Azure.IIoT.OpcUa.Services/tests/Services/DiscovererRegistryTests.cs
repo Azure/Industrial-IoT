@@ -22,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     using Xunit;
 
     public class DiscovererRegistryTests {
-
         [Fact]
         public void GetDiscovererThatDoesNotExist() {
             CreateDiscovererFixtures(out _, out _, out var modules);
@@ -58,10 +57,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
 
                 // Run
-                var result = service.GetDiscovererAsync(discoverers.First().Id).Result;
+                var result = service.GetDiscovererAsync(discoverers[0].Id).Result;
 
                 // Assert
-                Assert.True(result.IsSameAs(discoverers.First()));
+                Assert.True(result.IsSameAs(discoverers[0]));
             }
         }
 
@@ -171,7 +170,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             }
         }
 
-
         /// <summary>
         /// Helper to create app fixtures
         /// </summary>
@@ -197,10 +195,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 .ToList();
 
             modules = discoverers
-                .Select(a => {
-                    var r = a.ToPublisherRegistration();
-                    return r;
-                })
+                .Select(a => a.ToPublisherRegistration())
                 .Select(a => a.ToDeviceTwin(_serializer))
                 .Select(t => {
                     t.Properties.Reported = new Dictionary<string, VariantValue> {

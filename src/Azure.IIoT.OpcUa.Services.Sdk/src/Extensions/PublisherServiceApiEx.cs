@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Publisher service api extensions
     /// </summary>
     public static class PublisherServiceApiEx {
-
         /// <summary>
         /// Get list of published nodes
         /// </summary>
@@ -22,11 +21,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         public static async Task<IEnumerable<PublishedItemModel>> NodePublishListAllAsync(
             this IPublisherServiceApi service, string endpointId) {
             var nodes = new List<PublishedItemModel>();
-            var result = await service.NodePublishListAsync(endpointId);
+            var result = await service.NodePublishListAsync(endpointId).ConfigureAwait(false);
             nodes.AddRange(result.Items);
             while (result.ContinuationToken != null) {
                 result = await service.NodePublishListAsync(endpointId,
-                    result.ContinuationToken);
+                    result.ContinuationToken).ConfigureAwait(false);
                 nodes.AddRange(result.Items);
             }
             return nodes;

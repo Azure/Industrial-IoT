@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Discovered Endpoint Model extensions
     /// </summary>
     public static class DiscoveredEndpointModelEx {
-
         /// <summary>
         /// Create server model
         /// </summary>

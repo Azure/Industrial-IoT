@@ -21,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
     /// Sample server factory
     /// </summary>
     public class ServerFactory : IServerFactory {
-
         /// <summary>
         /// Whether to log status
         /// </summary>
@@ -68,7 +67,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
 
         /// <inheritdoc/>
         private class Server : StandardServer {
-
             /// <summary>
             /// Create server
             /// </summary>
@@ -145,7 +143,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                     TransportConfigurations = new TransportConfigurationCollection(),
                     TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),
                     ServerConfiguration = new ServerConfiguration {
-
                         // Sample server specific
                         ServerProfileArray = new StringCollection {
                              "Standard UA Server Profile",
@@ -231,7 +228,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
 
             /// <inheritdoc/>
             protected override ServerProperties LoadServerProperties() {
-                var properties = new ServerProperties {
+                return new ServerProperties {
                     ManufacturerName = "OPC Foundation",
                     ProductName = "OPC UA Sample Servers",
                     ProductUri = "http://opcfoundation.org/UA/Samples/v1.0",
@@ -239,7 +236,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                     BuildNumber = Utils.GetAssemblyBuildNumber(),
                     BuildDate = Utils.GetAssemblyTimestamp()
                 };
-                return properties;
             }
 
             /// <inheritdoc/>
@@ -318,7 +314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                         }
                         _lastEventTime = DateTime.UtcNow;
                     }
-                    await Try.Async(() => Task.Delay(1000, ct));
+                    await Try.Async(() => Task.Delay(1000, ct)).ConfigureAwait(false);
                 }
             }
 
@@ -459,7 +455,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// Validates the token
             /// </summary>
             /// <param name="wssToken"></param>
-            private bool VerifyToken(IssuedIdentityToken wssToken) {
+            private static bool VerifyToken(IssuedIdentityToken wssToken) {
                 if ((wssToken.TokenData?.Length ?? 0) == 0) {
                     var info = new TranslationInfo("InvalidToken", "en-US",
                         "Specified token is empty.");
@@ -474,7 +470,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// <summary>
             /// Validates the password for a username token.
             /// </summary>
-            private bool VerifyPassword(string userName, string password) {
+            private static bool VerifyPassword(string userName, string password) {
                 if (string.IsNullOrEmpty(password)) {
                     // construct translation object with default text.
                     var info = new TranslationInfo(

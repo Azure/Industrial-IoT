@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     /// </summary>
     [Flags]
     public enum TransportOption {
-
         /// <summary>
         /// Amqp over tcp/ssl
         /// </summary>

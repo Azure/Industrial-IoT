@@ -8,8 +8,6 @@ namespace System.Collections.Generic {
     /// Dictionary extensions
     /// </summary>
     public static class DictionaryEx {
-
-
         /// <summary>
         /// Returns the contents of a dictionary as KeyValuePairs
         /// </summary>
@@ -23,6 +21,5 @@ namespace System.Collections.Generic {
                 yield return new KeyValuePair<K, V>((K)key, (V)dictionary[key]);
             }
         }
-
     }
 }

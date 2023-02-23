@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
     /// Gather security operations
     /// </summary>
     internal class SecurityRequirementsOperationFilter : AutoRestOperationExtensions {
-
         /// <summary>
         /// Create filter using injected and configured authorization options
         /// </summary>
@@ -62,4 +61,3 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
         private readonly IOptions<AuthorizationOptions> _options;
     }
 }
-

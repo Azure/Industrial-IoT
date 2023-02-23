@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     [Flags]
     [DataContract]
     public enum DataSetFieldContentMask {
-
         /// <summary>
         /// Status code
         /// </summary>

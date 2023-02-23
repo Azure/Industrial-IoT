@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api {
 
     [CollectionDefinition(Name)]
     public class TestServerWriteCollection : ICollectionFixture<TestServerFixture> {
-
         public const string Name = "Supervisor.Api.Write";
     }
 }

@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
     /// IoT hub services runtime configuration
     /// </summary>
     public class IoTHubConfig : ConfigBase, IIoTHubConfig {
-
         /// <summary>
         /// Service configuration
         /// </summary>

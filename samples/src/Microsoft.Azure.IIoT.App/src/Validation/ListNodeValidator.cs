@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.App.Validation {
     using FluentValidation;
 
     public class ListNodeValidator : AbstractValidator<ListNodeRequested> {
-
         private static readonly ValidationUtils utils = new();
 
         public ListNodeValidator() {
@@ -26,11 +25,11 @@ namespace Microsoft.Azure.IIoT.App.Validation {
         }
 
         private bool BeAValidIntervalMs(string value) {
-            return utils.ShouldUseDefaultValue(value) || double.TryParse(value, out var result) && result >= 0;
+            return utils.ShouldUseDefaultValue(value) || (double.TryParse(value, out var result) && result >= 0);
         }
 
         private bool BeAValidIntervalSec(string value) {
-            return utils.ShouldUseDefaultValue(value) || double.TryParse(value, out var result) && result >= 0;
+            return utils.ShouldUseDefaultValue(value) || (double.TryParse(value, out var result) && result >= 0);
         }
     }
 }

@@ -15,14 +15,11 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
 
     [CollectionDefinition(Name)]
     public class WebAppCollection : ICollectionFixture<SignalRTestFixture> {
-
         public const string Name = "WebApp";
     }
 
-
     /// <inheritdoc/>
     public class SignalRTestFixture : IDisposable {
-
         /// <summary>
         /// Base address
         /// </summary>
@@ -33,7 +30,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         /// </summary>
         public static int Port { get; } =
             new Random().Next(40000, 60000);
-
 
         /// <inheritdoc/>
         public SignalRTestFixture() {
@@ -71,5 +67,4 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
 
         private readonly IHost _server;
     }
-
 }

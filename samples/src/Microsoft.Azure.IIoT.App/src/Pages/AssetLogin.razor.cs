@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 // By this stage we know the client has connected back to the server, and
                 // browser services are available. So if we didn't load the data earlier,
                 // we should do so now, then trigger a new render
-                ShowLogin = !await CheckLoginAsync();
+                ShowLogin = !await CheckLoginAsync().ConfigureAwait(false);
                 StateHasChanged();
             }
         }
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// LoadAsync
         /// </summary>
         public async Task LoadAsync() {
-            Credential = await GetSecureItemAsync<UsernamePassword>(CommonHelper.CredentialKey);
+            Credential = await GetSecureItemAsync<UsernamePassword>(CommonHelper.CredentialKey).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="bool"></param>
         public async Task<bool> CheckLoginAsync() {
             var isLoggedIn = false;
-            await LoadAsync();
+            await LoadAsync().ConfigureAwait(false);
             if (Credential != null) {
                 if (!string.IsNullOrEmpty(Credential.Username) && !string.IsNullOrEmpty(Credential.Password)) {
                     isLoggedIn = true;
@@ -55,8 +55,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// SignOut
         /// </summary>
         public async Task SignOutAsync() {
-            await RemoveSecureItemAsync(CommonHelper.CredentialKey);
-            ShowLogin = !await CheckLoginAsync();
+            await RemoveSecureItemAsync(CommonHelper.CredentialKey).ConfigureAwait(false);
+            ShowLogin = !await CheckLoginAsync().ConfigureAwait(false);
             StateHasChanged();
         }
 
@@ -64,24 +64,23 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// SignIn
         /// </summary>
         public async Task SignInAsync() {
-            await SetSecureItemAsync(CommonHelper.CredentialKey, Credential);
-            ShowLogin = !await CheckLoginAsync();
+            await SetSecureItemAsync(CommonHelper.CredentialKey, Credential).ConfigureAwait(false);
+            ShowLogin = !await CheckLoginAsync().ConfigureAwait(false);
             StateHasChanged();
         }
 
-
         public async Task<T> GetSecureItemAsync<T>(string key) {
-            var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
+            var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key).ConfigureAwait(false);
             return secureData.UnprotectDeserialize<T>(serializedProtectedData);
         }
 
         public async Task SetSecureItemAsync<T>(string key, T data) {
             var serializedProtectedData = secureData.ProtectSerialize(data);
-            await sessionStorage.SetItemAsync(key, serializedProtectedData);
+            await sessionStorage.SetItemAsync(key, serializedProtectedData).ConfigureAwait(false);
         }
 
         public async Task RemoveSecureItemAsync(string key) {
-            await sessionStorage.RemoveItemAsync(key);
+            await sessionStorage.RemoveItemAsync(key).ConfigureAwait(false);
         }
     }
 }

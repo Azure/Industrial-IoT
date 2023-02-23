@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     [DataContract]
     public class TwinPropertiesModel {
-
         /// <summary>
         /// Reported settings
         /// </summary>

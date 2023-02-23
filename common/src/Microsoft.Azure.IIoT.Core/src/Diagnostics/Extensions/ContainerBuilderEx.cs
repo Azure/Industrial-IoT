@@ -15,7 +15,6 @@ namespace Autofac {
     /// Register console logger
     /// </summary>
     public static class ContainerBuilderEx {
-
         /// <summary>
         /// Register trace logger
         /// </summary>

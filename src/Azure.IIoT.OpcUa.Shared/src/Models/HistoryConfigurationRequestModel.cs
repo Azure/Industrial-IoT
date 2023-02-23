@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class HistoryConfigurationRequestModel {
-
         /// <summary>
         /// Optional request header
         /// </summary>

@@ -27,7 +27,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </remarks>
     [DataContract]
     public sealed record class MethodCallRequestModel {
-
         /// <summary>
         /// Method id of method to call.
         /// </summary>

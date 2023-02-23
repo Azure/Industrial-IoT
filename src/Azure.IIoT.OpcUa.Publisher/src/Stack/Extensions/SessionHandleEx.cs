@@ -21,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
     /// Session Handle extensions
     /// </summary>
     public static class SessionHandleEx {
-
         /// <summary>
         /// Async browse service
         /// </summary>

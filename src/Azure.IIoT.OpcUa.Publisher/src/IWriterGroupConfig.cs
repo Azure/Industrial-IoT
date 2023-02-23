@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Writer group configuration provider
     /// </summary>
     public interface IWriterGroupConfig {
-
         /// <summary>
         /// Publisher id
         /// </summary>

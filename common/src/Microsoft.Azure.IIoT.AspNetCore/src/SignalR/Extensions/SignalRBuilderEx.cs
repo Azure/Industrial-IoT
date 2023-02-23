@@ -17,7 +17,6 @@ namespace Microsoft.Extensions.DependencyInjection {
     /// SignalR setup extensions
     /// </summary>
     public static class SignalRBuilderEx {
-
         /// <summary>
         /// Add json serializer
         /// </summary>

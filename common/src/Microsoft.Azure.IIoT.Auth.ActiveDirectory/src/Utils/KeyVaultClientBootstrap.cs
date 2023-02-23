@@ -17,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
     /// communcation
     /// </summary>
     public class KeyVaultClientBootstrap : IDisposable {
-
         /// <summary>
         /// Get client
         /// </summary>
@@ -59,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
                         scope = resource + "/" + scope;
                     }
                     var token = await provider.GetTokenForAsync(
-                        Http.Resource.KeyVault, scope.YieldReturn());
+                        Http.Resource.KeyVault, scope.YieldReturn()).ConfigureAwait(false);
                     return token?.RawToken;
                 });
             }).AsSelf().AsImplementedInterfaces();

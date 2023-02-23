@@ -10,94 +10,93 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Logger extensions
     /// </summary>
     public static class LoggerEx {
-
         /// <summary>
         /// Log ev.Progress from event model
         /// </summary>
-        /// <param name="_logger"></param>
+        /// <param name="logger"></param>
         /// <param name="ev"></param>
-        public static void LogProgress(this ILogger _logger, DiscoveryProgressModel ev) {
+        public static void LogProgress(this ILogger logger, DiscoveryProgressModel ev) {
             switch (ev.EventType) {
                 case DiscoveryProgressType.Pending:
-                    _logger.LogTrace("{request}: Discovery operations pending.",
+                    logger.LogTrace("{Request}: Discovery operations pending.",
                         ev.Request.Id);
                     break;
                 case DiscoveryProgressType.Started:
-                    _logger.LogInformation("{request}: Discovery operation started.",
+                    logger.LogInformation("{Request}: Discovery operation started.",
                         ev.Request.Id);
                     break;
                 case DiscoveryProgressType.Cancelled:
-                    _logger.LogInformation("{request}: Discovery operation cancelled.",
+                    logger.LogInformation("{Request}: Discovery operation cancelled.",
                         ev.Request.Id);
                     break;
                 case DiscoveryProgressType.Error:
-                    _logger.LogError("{request}: Error {error} during discovery run.",
+                    logger.LogError("{Request}: Error {Error} during discovery run.",
                         ev.Request.Id, ev.Result);
                     break;
                 case DiscoveryProgressType.Finished:
-                    _logger.LogInformation("{request}: Discovery operation completed.",
+                    logger.LogInformation("{Request}: Discovery operation completed.",
                         ev.Request.Id);
                     break;
                 case DiscoveryProgressType.NetworkScanStarted:
-                    _logger.LogInformation(
-                        "{request}: Starting network scan ({active} probes active)...",
+                    logger.LogInformation(
+                        "{Request}: Starting network scan ({Active} probes active)...",
                         ev.Request.Id, ev.Workers);
                     break;
                 case DiscoveryProgressType.NetworkScanResult:
-                    _logger.LogInformation("{request}: Found address {address} ({scanned} scanned)...",
+                    logger.LogInformation("{Request}: Found address {Address} ({Scanned} scanned)...",
                         ev.Request.Id, ev.Result, ev.Progress);
                     break;
                 case DiscoveryProgressType.NetworkScanProgress:
-                    _logger.LogInformation("{request}: {scanned} addresses scanned - {discovered} " +
-                        "ev.Discovered ({active} probes active)...", ev.Request.Id,
+                    logger.LogInformation("{Request}: {Scanned} addresses scanned - {Discovered} " +
+                        "ev.Discovered ({Active} probes active)...", ev.Request.Id,
                         ev.Progress, ev.Discovered, ev.Workers);
                     break;
                 case DiscoveryProgressType.NetworkScanFinished:
-                    _logger.LogInformation("{request}: Found {count} addresses. " +
-                        "({scanned} scanned)...", ev.Request.Id,
+                    logger.LogInformation("{Request}: Found {Count} addresses. " +
+                        "({Scanned} scanned)...", ev.Request.Id,
                         ev.Discovered, ev.Progress);
                     break;
                 case DiscoveryProgressType.PortScanStarted:
-                    _logger.LogInformation(
-                        "{request}: Starting port scanning ({active} probes active)...",
+                    logger.LogInformation(
+                        "{Request}: Starting port scanning ({Active} probes active)...",
                         ev.Request.Id, ev.Workers);
                     break;
                 case DiscoveryProgressType.PortScanResult:
-                    _logger.LogInformation("{request}: Found server {endpoint} ({scanned} scanned)...",
+                    logger.LogInformation("{Request}: Found server {Endpoint} ({Scanned} scanned)...",
                         ev.Request.Id, ev.Result, ev.Progress);
                     break;
                 case DiscoveryProgressType.PortScanProgress:
-                    _logger.LogInformation("{request}: {scanned} ports scanned - {discovered} discovered" +
-                        " ({active} probes active)...", ev.Request.Id,
+                    logger.LogInformation("{Request}: {Scanned} ports scanned - {Discovered} discovered" +
+                        " ({Active} probes active)...", ev.Request.Id,
                         ev.Progress, ev.Discovered, ev.Workers);
                     break;
                 case DiscoveryProgressType.PortScanFinished:
-                    _logger.LogInformation("{request}: Found {count} ports on servers " +
-                        "({scanned} scanned)...",
+                    logger.LogInformation("{Request}: Found {Count} ports on servers " +
+                        "({Scanned} scanned)...",
                         ev.Request.Id, ev.Discovered, ev.Progress);
                     break;
                 case DiscoveryProgressType.ServerDiscoveryStarted:
-                    _logger.LogInformation(
-                        "{request}: Searching {count} discovery urls for endpoints...",
+                    logger.LogInformation(
+                        "{Request}: Searching {Count} discovery urls for endpoints...",
                         ev.Request.Id, ev.Total);
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryStarted:
-                    _logger.LogInformation(
-                        "{request}: Trying to find endpoints on {details}...",
+                    logger.LogInformation(
+                        "{Request}: Trying to find endpoints on {Details}...",
                         ev.Request.Id, ev.RequestDetails["url"]);
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryFinished:
                     if (!ev.Discovered.HasValue || ev.Discovered == 0) {
-                        _logger.LogInformation(
-                            "{request}: No endpoints ev.Discovered on {details}.",
+                        logger.LogInformation(
+                            "{Request}: No endpoints ev.Discovered on {Details}.",
                             ev.Request.Id, ev.RequestDetails["url"]);
                     }
-                    _logger.LogInformation(
-                        "{request}: Found {count} endpoints on {details}.",
+                    logger.LogInformation(
+                        "{Request}: Found {Count} endpoints on {Details}.",
                         ev.Request.Id, ev.Discovered, ev.RequestDetails["url"]);
                     break;
                 case DiscoveryProgressType.ServerDiscoveryFinished:
-                    _logger.LogInformation("{request}: Found total of {count} servers ...",
+                    logger.LogInformation("{Request}: Found total of {Count} servers ...",
                         ev.Request.Id, ev.Discovered);
                     break;
             }

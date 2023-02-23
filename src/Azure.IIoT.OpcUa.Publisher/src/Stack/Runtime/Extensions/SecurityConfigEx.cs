@@ -14,9 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Certificate store extensions
     /// </summary>
     public static class SecurityConfigEx {
-
         /// <summary>
-        /// Builds and applies the the security configuration according to the local settings. Returns a the
+        /// Builds and applies the security configuration according to the local settings. Returns a the
         /// configuration application ready to use for initialization of the OPC UA SDK client object.
         /// </summary>
         ///<remarks>

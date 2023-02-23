@@ -23,7 +23,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     /// Open id configuration
     /// </summary>
     public static class OpenIdAuthEx {
-
         /// <summary>
         /// Add openid authentication
         /// </summary>
@@ -32,7 +31,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <returns></returns>
         public static AuthenticationBuilder AddOpenIdConnect(this AuthenticationBuilder builder,
             string provider) {
-
             builder.Services.AddHttpContextAccessor();
             builder.Services.TryAddTransient<IClientAuthConfig, ClientAuthAggregateConfig>();
 
@@ -66,7 +64,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             builder.Services.AddTransient<IConfigureOptions<OpenIdConnectOptions>>(services => {
                 var schemes = services.GetRequiredService<IClientAuthConfig>();
                 return new ConfigureNamedOptions<OpenIdConnectOptions>(openIdConnectScheme, options => {
-
                     // Find whether the scheme is configurable
                     var config = schemes.Providers?.FirstOrDefault(s => s.Provider == provider);
                     if (config == null) {
@@ -122,7 +119,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                             context.ProtocolMessage.SetParameter(kAdditionalClaims,
                                 context.Properties.Items[kAdditionalClaims]);
                         }
-                        await redirectToIdpHandler(context);
+                        await redirectToIdpHandler(context).ConfigureAwait(false);
                     };
 
                     // Chain code received handler
@@ -138,13 +135,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                                 user.AddClaims(context.Principal.Claims);
                             }
                             var result = await redeemer.RedeemCodeForUserAsync(
-                                context.HttpContext.User, context.ProtocolMessage.Code, options.Scope);
+                                context.HttpContext.User, context.ProtocolMessage.Code, options.Scope).ConfigureAwait(false);
                             if (result?.IdToken != null) {
                                 // Only share id token or otherwise ASP.NET will cache the access token
                                 context.HandleCodeRedemption(null, result.IdToken);
                             }
                         }
-                        await codeReceivedHandler(context);
+                        await codeReceivedHandler(context).ConfigureAwait(false);
                     };
 
                     // Chain sign out
@@ -154,9 +151,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                             .GetRequiredService<IEnumerable<IUserTokenClient>>();
                         var redeemer = redeemers.FirstOrDefault(r => r.Provider == provider);
                         if (redeemer != null) {
-                            await redeemer.SignOutUserAsync(context.HttpContext.User);
+                            await redeemer.SignOutUserAsync(context.HttpContext.User).ConfigureAwait(false);
                         }
-                        await signOutHandler(context);
+                        await signOutHandler(context).ConfigureAwait(false);
                     };
                 });
             });

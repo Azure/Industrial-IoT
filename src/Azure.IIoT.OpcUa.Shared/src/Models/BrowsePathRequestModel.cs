@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class BrowsePathRequestModel {
-
         /// <summary>
         /// Node to browse from.
         /// (defaults to root folder).

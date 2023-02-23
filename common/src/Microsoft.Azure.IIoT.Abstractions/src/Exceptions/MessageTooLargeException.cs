@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// max buffer size.
     /// </summary>
     public class MessageTooLargeException : Exception {
-
         /// <summary>
         /// Actual size
         /// </summary>
@@ -30,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// <param name="maxMessageSize"></param>
         public MessageTooLargeException(string message,
             int messageSize, int maxMessageSize) : base(message) {
-
             MessageSize = messageSize;
             MaxMessageSize = maxMessageSize;
         }

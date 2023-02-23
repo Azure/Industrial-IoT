@@ -24,7 +24,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters {
     /// @see https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/filters
     /// </summary>
     public class ExceptionsFilterAttribute : ExceptionFilterAttribute {
-
         /// <inheritdoc />
         public override void OnException(ExceptionContext context) {
             if (context.Exception == null) {
@@ -34,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters {
             if (context.Exception is AggregateException ae) {
                 var root = ae.GetBaseException();
                 if (root is AggregateException) {
-                    context.Exception = ae.InnerExceptions.First();
+                    context.Exception = ae.InnerExceptions[0];
                 }
                 else {
                     context.Exception = root;
@@ -138,11 +137,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters {
         /// <param name="code"></param>
         /// <param name="exception"></param>
         /// <returns></returns>
-        private ObjectResult GetResponse(HttpStatusCode code, Exception exception) {
-            var result = new ObjectResult(exception) {
+        private static ObjectResult GetResponse(HttpStatusCode code, Exception exception) {
+            return new ObjectResult(exception) {
                 StatusCode = (int)code
             };
-            return result;
         }
     }
 }

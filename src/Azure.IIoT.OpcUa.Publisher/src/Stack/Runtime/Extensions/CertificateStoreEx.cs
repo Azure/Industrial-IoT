@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Certificate store extensions
     /// </summary>
     public static class CertificateStoreEx {
-
         /// <summary>
         /// Apply the configured settings provided via a CertificateStore to a CertificateTrustList.
         /// </summary>
@@ -55,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
 
         /// <summary>
         /// Apply the configured settings provided via a CertificateStore to a CertificateStoreIdentifier
-        /// Particularily used for for rejected certificates store.
+        /// Particularily used for rejected certificates store.
         /// </summary>
         public static void ApplyLocalConfig(
             this CertificateStoreIdentifier certificateStoreIdentifier,

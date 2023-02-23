@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Module {
     /// Represents a method invoker
     /// </summary>
     public interface IMethodInvoker : IDisposable {
-
         /// <summary>
         /// Name of method to handle
         /// </summary>

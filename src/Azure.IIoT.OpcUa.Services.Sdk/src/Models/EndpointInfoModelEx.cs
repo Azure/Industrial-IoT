@@ -10,12 +10,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Handle event
     /// </summary>
     public static class EndpointInfoModelEx {
-
         /// <summary>
         /// Update an endpoint
         /// </summary>
-        /// <param name="endpoint"></param>
         /// <param name="update"></param>
+        /// <param name="endpoint"></param>
         public static EndpointInfoModel Patch(this EndpointInfoModel update,
             EndpointInfoModel endpoint) {
             if (update == null) {

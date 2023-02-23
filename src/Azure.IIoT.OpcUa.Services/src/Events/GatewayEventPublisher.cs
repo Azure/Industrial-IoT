@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Events {
     /// Gateway registry event publisher
     /// </summary>
     public class GatewayEventPublisher<THub> : IGatewayRegistryListener {
-
         /// <inheritdoc/>
         public GatewayEventPublisher(ICallbackInvokerT<THub> callback) {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));

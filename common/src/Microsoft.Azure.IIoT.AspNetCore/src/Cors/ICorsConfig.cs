@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
-
     /// <summary>
     /// Configuration interface for auth
     /// </summary>
     public interface ICorsConfig {
-
         /// <summary>
         /// CORS whitelist, in form { "origins": [], "methods": [], "headers": [] }
         /// Defaults to empty, meaning No CORS.

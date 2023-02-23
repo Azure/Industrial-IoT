@@ -20,7 +20,6 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     /// Chunked method provide reliable any size send/receive
     /// </summary>
     public sealed class ChunkMethodServer : IMethodInvoker {
-
         /// <inheritdoc/>
         public string MethodName => MethodNames.Call;
 
@@ -64,8 +63,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                         $"Adding handle {handle} failed.");
                 }
             }
-            var response = await processor.ProcessAsync(handler, request);
-            return _serializer.SerializeToBytes(response).ToArray();
+            var response = await processor.ProcessAsync(handler, request).ConfigureAwait(false);
+            return _serializer.SerializeToMemory((object)response).ToArray();
         }
 
         /// <summary>
@@ -83,7 +82,6 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         /// Processes chunks
         /// </summary>
         private class ChunkProcessor {
-
             /// <summary>
             /// Request handle
             /// </summary>
@@ -129,7 +127,6 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             /// <returns></returns>
             public async Task<MethodChunkModel> ProcessAsync(IMethodHandler handler,
                 MethodChunkModel request) {
-
                 var status = 200;
                 if (_sent == -1) {
                     // Receiving
@@ -146,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     try {
                         // Process
                         var result = await handler.InvokeAsync(_method,
-                            _payload.Unzip(), _contentType);
+                            _payload.Unzip(), _contentType).ConfigureAwait(false);
                         // Set response payload
                         _payload = result.Zip();
                     }

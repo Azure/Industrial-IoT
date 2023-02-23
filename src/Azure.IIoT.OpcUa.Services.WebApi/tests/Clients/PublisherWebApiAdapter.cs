@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
     /// Implements node and publish services as adapter on top of api.
     /// </summary>
     public sealed class PublisherWebApiAdapter : IPublishServices<string> {
-
         /// <summary>
         /// Create adapter
         /// </summary>
@@ -26,29 +25,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
         /// <inheritdoc/>
         public async Task<PublishStartResponseModel> NodePublishStartAsync(
             string endpoint, PublishStartRequestModel request, CancellationToken ct) {
-            var result = await _client.NodePublishStartAsync(endpoint, request, ct);
-            return result;
+            return await _client.NodePublishStartAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<PublishStopResponseModel> NodePublishStopAsync(
             string endpoint, PublishStopRequestModel request, CancellationToken ct) {
-            var result = await _client.NodePublishStopAsync(endpoint, request, ct);
-            return result;
+            return await _client.NodePublishStopAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<PublishBulkResponseModel> NodePublishBulkAsync(
             string endpoint, PublishBulkRequestModel request, CancellationToken ct) {
-            var result = await _client.NodePublishBulkAsync(endpoint, request, ct);
-            return result;
+            return await _client.NodePublishBulkAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<PublishedItemListResponseModel> NodePublishListAsync(
             string endpoint, PublishedItemListRequestModel request, CancellationToken ct) {
-            var result = await _client.NodePublishListAsync(endpoint, request, ct);
-            return result;
+            return await _client.NodePublishListAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         private readonly IPublisherServiceApi _client;

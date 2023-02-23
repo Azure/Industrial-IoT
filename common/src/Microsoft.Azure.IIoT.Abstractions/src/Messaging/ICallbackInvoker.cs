@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Messaging {
     /// Callback invocation client
     /// </summary>
     public interface ICallbackInvoker : IDisposable {
-
         /// <summary>
         /// Call a method on a module or device identity with
         /// json payload.

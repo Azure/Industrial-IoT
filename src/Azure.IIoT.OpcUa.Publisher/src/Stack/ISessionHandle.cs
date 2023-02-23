@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Represents session handle
     /// </summary>
     public interface ISessionHandle : IAsyncDisposable {
-
         /// <summary>
         /// Connectivity state change events
         /// </summary>

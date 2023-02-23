@@ -18,8 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
     /// <summary>
     /// Discovery progress message sender
     /// </summary>
-    public class ProgressPublisher : ProgressLogger, IDiscoveryProgress {
-
+    public class ProgressPublisher : ProgressLogger{
         /// <summary>
         /// Create listener
         /// </summary>
@@ -55,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <returns></returns>
         private Task SendAsync(DiscoveryProgressModel progress) {
             return Try.Async(() => _events.SendEventAsync(
-                _serializer.SerializeToBytes(progress).ToArray(), ContentMimeType.Json,
+                _serializer.SerializeToMemory((object)progress).ToArray(), ContentMimeType.Json,
                 MessageSchemaTypes.DiscoveryMessage, "utf-8"));
         }
 

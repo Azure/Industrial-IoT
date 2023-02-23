@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
     /// while running on top of the ThreadPool.
     /// </summary>
     public sealed class LimitingScheduler : ITaskScheduler {
-
         /// <inheritdoc/>
         public TaskFactory Factory => kFactory;
 
@@ -25,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         /// <returns></returns>
         static LimitingScheduler() {
             kScheduler = new LimitingTaskScheduler(Environment.ProcessorCount);
-            kFactory = new TaskFactory(CancellationToken.None,
+            kFactory = new TaskFactory(default,
                 TaskCreationOptions.DenyChildAttach, TaskContinuationOptions.None,
                     kScheduler);
         }
@@ -34,7 +33,6 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         /// Scheduler implementation
         /// </summary>
         private class LimitingTaskScheduler : TaskScheduler {
-
             /// <summary>
             /// Gets the maximum concurrency level supported by this scheduler.
             /// </summary>

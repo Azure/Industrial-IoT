@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
     /// operation.
     /// </summary>
     public sealed class TokenResultModel {
-
         /// <summary>
         /// Gets the authority that has issued the token.
         /// </summary>

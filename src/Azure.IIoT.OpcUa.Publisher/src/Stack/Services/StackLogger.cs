@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     /// Injectable service that registers logger with stack
     /// </summary>
     public class StackLogger : IStartable {
-
         /// <summary>
         /// Wrapped logger
         /// </summary>

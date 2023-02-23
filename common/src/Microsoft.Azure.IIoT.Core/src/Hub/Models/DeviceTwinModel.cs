@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     [DataContract]
     public class DeviceTwinModel {
-
         /// <summary>
         /// Device id
         /// </summary>

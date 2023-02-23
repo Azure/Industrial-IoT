@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Publisher configuration
     /// </summary>
     public interface IPublisherConfiguration {
-
         /// <summary>
         /// Site of the publisher
         /// </summary>

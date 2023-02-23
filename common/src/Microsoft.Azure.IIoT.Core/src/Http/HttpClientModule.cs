@@ -10,13 +10,11 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// Injected http client framework module
     /// </summary>
     public sealed class HttpClientModule : Module {
-
         /// <summary>
         /// Load the module
         /// </summary>
         /// <param name="builder"></param>
         protected override void Load(ContainerBuilder builder) {
-
             // Http client services ...
             builder.RegisterType<HttpClient>()
                 .AsImplementedInterfaces()

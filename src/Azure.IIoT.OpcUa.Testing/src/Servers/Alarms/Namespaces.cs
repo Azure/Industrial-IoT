@@ -28,7 +28,6 @@
  * ======================================================================*/
 
 namespace Alarms {
-
     /// <summary>
     /// Defines constants for namespaces used by the application.
     /// </summary>

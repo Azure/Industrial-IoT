@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
     using Xunit;
 
     public class JsonNetworkMessageEncoderTests2 {
-
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -650,7 +649,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
 ]"), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
-
         private static JsonNetworkMessage CreateMessage(uint messageMask, uint datasetMask, uint fieldMask) {
             return new JsonNetworkMessage {
                 DataSetClassId = Guid.Parse("5ae1a63a-9757-4aa7-ab71-0d88931266fc"),
@@ -691,6 +689,5 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
                 }
             };
         }
-
     }
 }

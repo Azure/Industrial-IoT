@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// retried.
     /// </summary>
     public class TemporarilyBusyException : Exception, ITransientException {
-
         /// <summary>
         /// When to retry the call
         /// </summary>

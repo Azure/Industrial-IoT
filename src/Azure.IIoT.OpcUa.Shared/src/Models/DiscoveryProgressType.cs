@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public enum DiscoveryProgressType {
-
         /// <summary>
         /// Discovery run pending
         /// </summary>

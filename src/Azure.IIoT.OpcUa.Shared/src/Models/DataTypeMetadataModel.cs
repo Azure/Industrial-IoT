@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class DataTypeMetadataModel {
-
         /// <summary>
         /// The data type for the instance declaration.
         /// </summary>

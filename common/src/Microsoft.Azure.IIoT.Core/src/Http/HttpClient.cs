@@ -20,7 +20,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// for easy injection.
     /// </summary>
     public sealed class HttpClient : IHttpClient {
-
         /// <summary>
         /// Create client
         /// </summary>
@@ -80,20 +79,18 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <returns></returns>
         private async Task<IHttpResponse> SendAsync(IHttpRequest httpRequest,
             HttpMethod httpMethod, CancellationToken ct) {
-
             if (!(httpRequest is HttpRequest wrapper)) {
                 throw new InvalidOperationException("Bad request");
             }
 
             using (var client = _factory.CreateClient(httpRequest.ResourceId ??
                 HttpHandlerFactory.DefaultResourceId)) {
-
                 if (httpRequest.Options.Timeout.HasValue) {
                     client.Timeout = httpRequest.Options.Timeout.Value;
                 }
 
                 var sw = Stopwatch.StartNew();
-                _logger.LogTrace("Sending {method} request to {uri}...", httpMethod,
+                _logger.LogTrace("Sending {Method} request to {Uri}...", httpMethod,
                     httpRequest.Uri);
 
                 // We will use this local function for Exception formatting
@@ -103,10 +100,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                         errorMessage += " - " + e.InnerException.Message;
                     }
                     if (!httpRequest.Options.SuppressHttpClientLogging) {
-                        _logger.LogWarning("{method} to {uri} failed (after {elapsed}) : {message}!",
+                        _logger.LogWarning("{Method} to {Uri} failed (after {Elapsed}) : {Message}!",
                             httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
                     }
-                    _logger.LogDebug(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
+                    _logger.LogDebug(e, "{Method} to {Uri} failed (after {Elapsed}) : {Message}!",
                         httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
                     return new HttpRequestException(errorMessage, e);
                 }
@@ -114,27 +111,27 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct)) {
                     try {
                         wrapper.Request.Method = httpMethod;
-                        using (var response = await client.SendAsync(wrapper.Request, linkedCts.Token)) {
+                        using (var response = await client.SendAsync(wrapper.Request, linkedCts.Token).ConfigureAwait(false)) {
                             var result = new HttpResponse {
                                 ResourceId = httpRequest.ResourceId,
                                 StatusCode = response.StatusCode,
                                 Headers = response.Headers,
                                 ContentHeaders = response.Content.Headers,
-                                Content = await response.Content.ReadAsByteArrayAsync(ct)
+                                Content = await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false)
                             };
                             if (result.IsError()) {
                                 if (!httpRequest.Options.SuppressHttpClientLogging) {
-                                    _logger.LogWarning("{method} to {uri} returned {code} (took {elapsed}) {error}.",
+                                    _logger.LogWarning("{Method} to {Uri} returned {Code} (took {Elapsed}) {Error}.",
                                         httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
                                          result.GetContentAsString(Encoding.UTF8));
                                 }
                                 else {
-                                    _logger.LogDebug("{method} to {uri} returned {code} (took {elapsed}).",
+                                    _logger.LogDebug("{Method} to {Uri} returned {Code} (took {Elapsed}).",
                                         httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
                                 }
                             }
                             else {
-                                _logger.LogTrace("{method} to {uri} returned {code} (took {elapsed}).",
+                                _logger.LogTrace("{Method} to {Uri} returned {Code} (took {Elapsed}).",
                                     httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
                             }
                             return result;
@@ -158,7 +155,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     }
                     catch (Exception ex) {
                         if (!httpRequest.Options.SuppressHttpClientLogging) {
-                            _logger.LogWarning("{method} to {uri} failed (after {elapsed}) : {message}!",
+                            _logger.LogWarning("{Method} to {Uri} failed (after {Elapsed}) : {Message}!",
                                 httpMethod, httpRequest.Uri, sw.Elapsed, ex.Message);
                         }
                         throw;
@@ -171,7 +168,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// Request object
         /// </summary>
         public sealed class HttpRequest : IHttpRequest {
-
             /// <summary>
             /// Constructor
             /// </summary>
@@ -236,7 +232,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 }
                 else {
                     // Find fake port delimiter
-                    index = localPath.IndexOf(':');
+                    index = localPath.IndexOf(':', StringComparison.Ordinal);
                     if (index != -1) {
                         fileDevice = localPath.Substring(0, index);
                         pathAndQuery = localPath.Substring(index + 1);
@@ -249,7 +245,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 }
 
                 // Find first path character and strip off everything before...
-                index = pathAndQuery.IndexOf('/');
+                index = pathAndQuery.IndexOf('/', StringComparison.Ordinal);
                 if (index > 0) {
                     pathAndQuery = pathAndQuery.Substring(index, pathAndQuery.Length - index);
                 }
@@ -259,12 +255,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             }
         }
 
-
         /// <summary>
         /// Response object
         /// </summary>
         public sealed class HttpResponse : IHttpResponse {
-
             /// <inheritdoc/>
             public string ResourceId { get; internal set; }
 

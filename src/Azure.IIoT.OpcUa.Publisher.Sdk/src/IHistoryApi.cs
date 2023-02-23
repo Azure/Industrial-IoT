@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
     /// Represents OPC Historic Access api
     /// </summary>
     public interface IHistoryApi {
-
         /// <summary>
         /// Read raw historic values
         /// </summary>

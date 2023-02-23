@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Extensions {
-
     /// <summary>
     /// Localized text extensions
     /// </summary>
     public static class LocalizedTextEx {
-
         /// <summary>
         /// Convert localized text to string
         /// </summary>

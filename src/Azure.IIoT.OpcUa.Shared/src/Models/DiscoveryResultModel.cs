@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class DiscoveryResultModel {
-
         /// <summary>
         /// Id of discovery request
         /// </summary>

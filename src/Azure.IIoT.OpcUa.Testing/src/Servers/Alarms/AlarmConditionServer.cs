@@ -42,10 +42,9 @@ namespace Alarms {
         /// <inheritdoc/>
         public StringCollection NamespacesUris {
             get {
-                var nameSpaces = new StringCollection {
+                return new StringCollection {
                     Namespaces.AlarmCondition
                 };
-                return nameSpaces;
             }
         }
     }

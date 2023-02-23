@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
-
     /// <summary>
     /// Special method names
     /// </summary>
     public static class MethodNames {
-
         /// <summary>
         /// Used by clients to call chunk
         /// server method.

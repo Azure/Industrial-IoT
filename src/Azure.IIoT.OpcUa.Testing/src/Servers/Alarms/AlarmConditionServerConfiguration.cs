@@ -37,7 +37,6 @@ namespace Alarms {
     /// </summary>
     [DataContract(Namespace = Namespaces.AlarmCondition)]
     public class AlarmConditionServerConfiguration {
-
         /// <summary>
         /// The default constructor.
         /// </summary>
@@ -49,9 +48,7 @@ namespace Alarms {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-#pragma warning disable RECS0154 // Parameter is never used
         private void Initialize(StreamingContext context) {
-#pragma warning restore RECS0154 // Parameter is never used
             Initialize();
         }
 
@@ -74,7 +71,6 @@ namespace Alarms {
     /// </summary>
     [DataContract(Namespace = Namespaces.AlarmCondition)]
     public class AreaConfiguration {
-
         /// <summary>
         /// The default constructor.
         /// </summary>
@@ -86,9 +82,7 @@ namespace Alarms {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-#pragma warning disable RECS0154 // Parameter is never used
         private void Initialize(StreamingContext context) {
-#pragma warning restore RECS0154 // Parameter is never used
             Initialize();
         }
 

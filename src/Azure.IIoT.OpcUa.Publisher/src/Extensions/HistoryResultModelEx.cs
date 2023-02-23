@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// History read results extensions
     /// </summary>
     public static class HistoryResultModelEx {
-
         /// <summary>
         /// Create from service model
         /// </summary>

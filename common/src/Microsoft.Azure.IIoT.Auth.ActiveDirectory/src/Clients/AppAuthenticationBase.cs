@@ -13,20 +13,23 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using System.Threading.Tasks;
 
     /// <summary>
+    /// <para>
     /// Authenticate using azure service token provider. This can be
     /// used for where you would not have a token from a logged on user,
     /// e.g. in deamon or service to service scenarios.
-    ///
+    /// </para>
+    /// <para>
     /// This provider works for development, managed service identity
     /// and service principal scenarios.  It can optionally be
     /// configured using a connection string provided as environment
     /// variable or injected configuration.
-    ///
+    /// </para>
+    /// <para>
     /// For more information check out
     /// https://docs.microsoft.com/en-us/azure/key-vault/service-to-service-authentication
+    /// </para>
     /// </summary>
     public abstract class AppAuthenticationBase : ITokenClient {
-
         /// <inheritdoc/>
         protected AppAuthenticationBase(ILogger logger) {
             _logger = logger;
@@ -34,18 +37,18 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
 
         /// <inheritdoc/>
         public bool Supports(string resource) {
-            return Get(resource).Any();
+            return GetProvider(resource).Any();
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
             var exceptions = new List<Exception>();
-            foreach (var (config, provider) in Get(resource)) {
+            foreach (var (config, provider) in GetProvider(resource)) {
                 try {
                     var token = await provider.KeyVaultTokenCallback(
                         config.GetAuthorityUrl(true), config.GetAudience(scopes),
-                        config.GetScopeNames(scopes)?.FirstOrDefault());
+                        config.GetScopeNames(scopes)?.FirstOrDefault()).ConfigureAwait(false);
                     if (token == null) {
                         return null;
                     }
@@ -54,13 +57,13 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                         return null;
                     }
                     _logger.LogInformation(
-                        "Successfully acquired token for {resource} with {config}.",
+                        "Successfully acquired token for {Resource} with {Config}.",
                         resource, config.GetName());
                     return result;
                 }
                 catch (Exception ex) {
                     _logger.LogDebug(ex,
-                        "Failed to retrieve token for {resource} using {config}",
+                        "Failed to retrieve token for {Resource} using {Config}",
                         resource, config.GetName());
                     exceptions.Add(ex);
                     continue;
@@ -82,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// </summary>
         /// <param name="resource"></param>
         /// <returns></returns>
-        protected abstract IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> Get(string resource);
+        protected abstract IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> GetProvider(string resource);
 
         /// <summary> Logger </summary>
         protected readonly ILogger _logger;

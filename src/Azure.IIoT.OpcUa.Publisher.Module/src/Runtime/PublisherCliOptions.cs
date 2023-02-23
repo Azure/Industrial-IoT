@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Globalization;
     using System.Linq;
 
     /// <summary>
@@ -29,9 +30,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     public class PublisherCliOptions : Dictionary<string, string>,
         ISettingsController, IEngineConfiguration, IPublisherConfiguration,
         IRuntimeStateReporterConfiguration, ISubscriptionConfig {
-
         /// <summary>
-        /// Creates a new instance of the the cli options based on existing configuration values.
+        /// Creates a new instance of the cli options based on existing configuration values.
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
@@ -47,7 +47,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// </summary>
         /// <param name="args">The specified command line arguments.</param>
         public PublisherCliOptions(string[] args) {
-
             _logger = Log.Console<PublisherCliOptions>();
 
             var showHelp = false;
@@ -56,7 +55,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
 
             // command line options
             var options = new Mono.Options.OptionSet {
-
                 "",
                 "General",
                 "-------",
@@ -74,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 { $"pfs|publishfileschema=|{PublisherCliConfigKeys.PublishedNodesConfigurationSchemaFilename}=",
                     "The validation schema filename for publish file. Schema validation is disabled by default.\nDefault: `not set` (disabled)\n",
                     s => this[PublisherCliConfigKeys.PublishedNodesConfigurationSchemaFilename] = s },
-                { $"s|site=",
+                { "s|site=",
                     "Sets the site name of the publisher module.\nDefault: `not set` \n",
                     s => this[PublisherCliConfigKeys.PublisherSite] = s},
                 { $"rs|runtimestatereporting:|{PublisherCliConfigKeys.RuntimeStateReporting}:",
@@ -108,21 +106,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 { $"bi|batchtriggerinterval=|{PublisherCliConfigKeys.BatchTriggerInterval}=",
                     "The network message publishing interval in milliseconds. Determines the publishing period at which point messages are emitted. When `--bs` is 1 and `--bi` is set to 0 batching is disabled.\nDefault: `10000` (10 seconds).\nAlternatively can be set using `BatchTriggerInterval` environment variable in the form of a time span string formatted string `[d.]hh:mm:ss[.fffffff]`.\n",
                     (int k) => this[PublisherCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromMilliseconds(k).ToString() },
-                    { $"si|iothubsendinterval=",
+                    { "si|iothubsendinterval=",
                         "The network message publishing interval in seconds for backwards compatibilty. \nDefault: `10` seconds.\n",
-                        (string k) => this[PublisherCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(int.Parse(k)).ToString(), true },
+                        (string k) => this[PublisherCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(int.Parse(k, CultureInfo.CurrentCulture)).ToString(), true },
                 { $"bs|batchsize=|{PublisherCliConfigKeys.BatchSize}=",
                     "The number of incoming OPC UA subscription notifications to collect until sending a network messages. When `--bs` is set to 1 and `--bi` is 0 batching is disabled and messages are sent as soon as notifications arrive.\nDefault: `50`.\n",
-                    (int i) => this[PublisherCliConfigKeys.BatchSize] = i.ToString() },
+                    (int i) => this[PublisherCliConfigKeys.BatchSize] = i.ToString(CultureInfo.CurrentCulture) },
                 { $"ms|maxmessagesize=|iothubmessagesize=|{PublisherCliConfigKeys.IoTHubMaxMessageSize}=",
                     "The maximum size of the messages to emit. In case the encoder cannot encode a message because the size would be exceeded, the message is dropped. Otherwise the encoder will aim to chunk messages if possible. \nDefault: `256k` in case of IoT Hub messages, `0` otherwise.\n",
-                    (int i) => this[PublisherCliConfigKeys.IoTHubMaxMessageSize] = i.ToString() },
+                    (int i) => this[PublisherCliConfigKeys.IoTHubMaxMessageSize] = i.ToString(CultureInfo.CurrentCulture) },
 
                 // TODO: Add ConfiguredMessageSize
 
                 { $"npd|maxnodesperdataset=|{PublisherCliConfigKeys.MaxNodesPerDataSet}=",
                     "Maximum number of nodes within a Subscription. When there are more nodes configured for a data set writer, they will be added to new subscriptions. This also affects metadata message size. \nDefault: `1000`.\n",
-                    (int i) => this[PublisherCliConfigKeys.MaxNodesPerDataSet] = i.ToString() },
+                    (int i) => this[PublisherCliConfigKeys.MaxNodesPerDataSet] = i.ToString(CultureInfo.CurrentCulture) },
                 { $"kfc|keyframecount=|{PublisherCliConfigKeys.DefaultKeyFrameCount}=",
                     "The default number of delta messages to send until a key frame message is sent. If 0, no key frame messages are sent, if 1, every message will be a key frame. \nDefault: `0`.\n",
                     (int i) => this[PublisherCliConfigKeys.DefaultKeyFrameCount] = TimeSpan.FromMilliseconds(i).ToString() },
@@ -164,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                     (bool b) => this[PublisherCliConfigKeys.BypassCertVerificationKey] = b.ToString() },
                 { $"om|maxoutgressmessages=|{PublisherCliConfigKeys.MaxOutgressMessages}=",
                     "The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `4096`\n",
-                    (int i) => this[PublisherCliConfigKeys.MaxOutgressMessages] = i.ToString() },
+                    (int i) => this[PublisherCliConfigKeys.MaxOutgressMessages] = i.ToString(CultureInfo.InvariantCulture) },
 
                 "",
                 "Subscription settings",
@@ -179,16 +177,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                     (int i) => this[PublisherCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
                 { $"ki|keepaliveinterval=|{PublisherCliConfigKeys.OpcKeepAliveIntervalInSec}=",
                     "The interval in seconds the publisher is sending keep alive messages to the OPC servers on the endpoints it is connected to.\nDefault: `10000` (10 seconds).\n",
-                    (int i) => this[PublisherCliConfigKeys.OpcKeepAliveIntervalInSec] = i.ToString() },
+                    (int i) => this[PublisherCliConfigKeys.OpcKeepAliveIntervalInSec] = i.ToString(CultureInfo.CurrentCulture) },
                 { $"kt|keepalivethreshold=|{PublisherCliConfigKeys.OpcKeepAliveDisconnectThreshold}=",
                     "Specify the number of keep alive packets a server can miss, before the session is disconneced.\nDefault: `50`.\n",
-                    (uint u) => this[PublisherCliConfigKeys.OpcKeepAliveDisconnectThreshold] = u.ToString() },
+                    (uint u) => this[PublisherCliConfigKeys.OpcKeepAliveDisconnectThreshold] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"fd|fetchdisplayname:|{PublisherCliConfigKeys.FetchOpcNodeDisplayName}:",
                     "Fetches the displayname for the monitored items subscribed if a display name was not specified in the configuration.\nNote: This has high impact on OPC Publisher startup performance.\nDefault: `False` (disabled).\n",
                     (bool? b) => this[PublisherCliConfigKeys.FetchOpcNodeDisplayName] = b?.ToString() ?? "True" },
                 { $"qs|queuesize=|{PublisherCliConfigKeys.DefaultQueueSize}=",
                     "Default queue size for all monitored items if queue size was not specified in the configuration.\nDefault: `1` (for backwards compatibility).\n",
-                    (uint u) => this[PublisherCliConfigKeys.DefaultQueueSize] = u.ToString() },
+                    (uint u) => this[PublisherCliConfigKeys.DefaultQueueSize] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"ndo|nodiscardold:|{PublisherCliConfigKeys.DiscardNewDefault}:",
                     "The publisher is using this as default value for the discard old setting of monitored item queue configuration. Setting to true will ensure that new values are dropped before older ones are drained. \nDefault: `False` (which is the OPC UA default).\n",
                     (bool? b) => this[PublisherCliConfigKeys.DiscardNewDefault] = b?.ToString() ?? "True" },
@@ -212,39 +210,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 { $"aa|acceptuntrusted:|{PublisherCliConfigKeys.AutoAcceptCerts}:",
                     "The publisher accepts untrusted certificates presented by a server it connects to.\nThis does not include servers presenting bad certificates or certificates that fail chain validation. These errors cannot be suppressed and connection will always be rejected.\nWARNING: This setting should never be used in production environments!\n",
                     (bool? b) => this[PublisherCliConfigKeys.AutoAcceptCerts] = b?.ToString() ?? "True" },
-                     { $"autoaccept:", "Maintained for backwards compatibility, do not use.",
+                     { "autoaccept:", "Maintained for backwards compatibility, do not use.",
                         (string b) => this[PublisherCliConfigKeys.AutoAcceptCerts] = b ?? "True", /* hidden = */ true },
                 { $"ot|operationtimeout=|{PublisherCliConfigKeys.OpcOperationTimeout}=",
                     "The operation service call timeout of the publisher OPC UA client in milliseconds. \nDefault: `120000` (2 minutes).\n",
-                    (uint u) => this[PublisherCliConfigKeys.OpcOperationTimeout] = u.ToString() },
+                    (uint u) => this[PublisherCliConfigKeys.OpcOperationTimeout] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"ct|createsessiontimeout=|{PublisherCliConfigKeys.OpcSessionCreationTimeout}=",
                     "Maximum amount of time in seconds that a session should remain open by the OPC server without any activity (session timeout) to request from the OPC server at session creation.\nDefault: `not set`.\n",
-                    (uint u) => this[PublisherCliConfigKeys.OpcSessionCreationTimeout] = u.ToString() },
+                    (uint u) => this[PublisherCliConfigKeys.OpcSessionCreationTimeout] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"slt|{PublisherCliConfigKeys.MinSubscriptionLifetimeKey}=",
                     "Minimum subscription lifetime in seconds as per OPC UA definition.\nDefault: `not set`.\n",
-                    (int i) => this[PublisherCliConfigKeys.MinSubscriptionLifetimeKey] = i.ToString() },
+                    (int i) => this[PublisherCliConfigKeys.MinSubscriptionLifetimeKey] = i.ToString(CultureInfo.CurrentCulture) },
 
                 { $"otl|opctokenlifetime=|{PublisherCliConfigKeys.SecurityTokenLifetimeKey}=",
                     "OPC UA Stack Transport Secure Channel - Security token lifetime in milliseconds.\nDefault: `3600000` (1h).\n",
-                    (uint u) => this[PublisherCliConfigKeys.SecurityTokenLifetimeKey] = u.ToString() },
+                    (uint u) => this[PublisherCliConfigKeys.SecurityTokenLifetimeKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"ocl|opcchannellifetime=|{PublisherCliConfigKeys.ChannelLifetimeKey}=",
                     "OPC UA Stack Transport Secure Channel - Channel lifetime in milliseconds.\nDefault: `300000` (5 min).\n",
-                    (uint u) => this[PublisherCliConfigKeys.ChannelLifetimeKey] = u.ToString() },
+                    (uint u) => this[PublisherCliConfigKeys.ChannelLifetimeKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"omb|opcmaxbufferlen=|{PublisherCliConfigKeys.MaxBufferSizeKey}=",
                     "OPC UA Stack Transport Secure Channel - Max buffer size.\nDefault: `65535` (64KB -1).\n",
-                    (uint u) => this[PublisherCliConfigKeys.MaxBufferSizeKey] = u.ToString() },
+                    (uint u) => this[PublisherCliConfigKeys.MaxBufferSizeKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"oml|opcmaxmessagelen=|{PublisherCliConfigKeys.MaxMessageSizeKey}=",
                     "OPC UA Stack Transport Secure Channel - Max message size.\nDefault: `4194304` (4 MB).\n",
-                    (uint u) => this[PublisherCliConfigKeys.MaxMessageSizeKey] = u.ToString() },
+                    (uint u) => this[PublisherCliConfigKeys.MaxMessageSizeKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"oal|opcmaxarraylen=|{PublisherCliConfigKeys.MaxArrayLengthKey}=",
                     "OPC UA Stack Transport Secure Channel - Max array length.\nDefault: `65535` (64KB - 1).\n",
-                    (uint u) => this[PublisherCliConfigKeys.MaxArrayLengthKey] = u.ToString() },
+                    (uint u) => this[PublisherCliConfigKeys.MaxArrayLengthKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"ol|opcmaxstringlen=|{PublisherCliConfigKeys.OpcMaxStringLength}=",
                     "The max length of a string opc can transmit/receive over the OPC UA secure channel.\nDefault: `130816` (128KB - 256).\n",
-                    (uint u) => this[PublisherCliConfigKeys.OpcMaxStringLength] = u.ToString() },
+                    (uint u) => this[PublisherCliConfigKeys.OpcMaxStringLength] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"obl|opcmaxbytestringlen=|{PublisherCliConfigKeys.MaxByteStringLengthKey}=",
                     "OPC UA Stack Transport Secure Channel - Max byte string length.\nDefault: `1048576` (1MB).\n",
-                    (uint u) => this[PublisherCliConfigKeys.MaxByteStringLengthKey] = u.ToString() },
+                    (uint u) => this[PublisherCliConfigKeys.MaxByteStringLengthKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"au|appuri=|{PublisherCliConfigKeys.ApplicationUriKey}=",
                     "Application URI as per OPC UA definition inside the OPC UA client application configuration presented to the server.\nDefault: `not set`.\n",
                     s => this[PublisherCliConfigKeys.ApplicationUriKey] = s },
@@ -317,40 +315,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                     (string i) => this[PublisherCliConfigKeys.ScaleTestCount] = i, true },
 
                 // Legacy: unsupported and hidden
-                { "mq|monitoreditemqueuecapacity=", "Legacy - do not use.", b => {legacyOptions.Add("mq|monitoreditemqueuecapacity"); }, true },
-                { "tc|telemetryconfigfile=", "Legacy - do not use.", b => {legacyOptions.Add("tc|telemetryconfigfile"); }, true },
-                { "ic|iotcentral=", "Legacy - do not use.", b => {legacyOptions.Add("ic|iotcentral"); }, true },
-                { "ns|noshutdown=", "Legacy - do not use.", b => {legacyOptions.Add("ns|noshutdown"); }, true },
-                { "rf|runforever", "Legacy - do not use.", b => {legacyOptions.Add("rf|runforever"); }, true },
-                { "pn|portnum=", "Legacy - do not use.", b => {legacyOptions.Add("pn|portnum"); }, true },
-                { "pa|path=", "Legacy - do not use.", b => {legacyOptions.Add("pa|path"); }, true },
-                { "lr|ldsreginterval=", "Legacy - do not use.", b => {legacyOptions.Add("lr|ldsreginterval"); }, true },
-                { "ss|suppressedopcstatuscodes=", "Legacy - do not use.", b => {legacyOptions.Add("ss|suppressedopcstatuscodes"); }, true },
-                { "csr", "Legacy - do not use.", b => {legacyOptions.Add("csr"); }, true },
-                { "ab|applicationcertbase64=", "Legacy - do not use.",b => {legacyOptions.Add("ab|applicationcertbase64"); }, true },
-                { "af|applicationcertfile=", "Legacy - do not use.", b => {legacyOptions.Add("af|applicationcertfile"); }, true },
-                { "pk|privatekeyfile=", "Legacy - do not use.", b => {legacyOptions.Add("pk|privatekeyfile"); }, true },
-                { "pb|privatekeybase64=", "Legacy - do not use.", b => {legacyOptions.Add("pb|privatekeybase64"); }, true },
-                { "cp|certpassword=", "Legacy - do not use.", b => {legacyOptions.Add("cp|certpassword"); }, true },
-                { "tb|addtrustedcertbase64=", "Legacy - do not use.", b => {legacyOptions.Add("tb|addtrustedcertbase64"); }, true },
-                { "tf|addtrustedcertfile=", "Legacy - do not use.", b => {legacyOptions.Add("tf|addtrustedcertfile"); }, true },
-                { "tt|trustedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("tt|trustedcertstoretype"); }, true },
-                { "rt|rejectedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("rt|rejectedcertstoretype"); }, true },
-                { "it|issuercertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("it|issuercertstoretype"); }, true },
-                { "ib|addissuercertbase64=", "Legacy - do not use.", b => {legacyOptions.Add("ib|addissuercertbase64"); }, true },
-                { "if|addissuercertfile=", "Legacy - do not use.", b => {legacyOptions.Add("if|addissuercertfile"); }, true },
-                { "rb|updatecrlbase64=", "Legacy - do not use.", b => {legacyOptions.Add("rb|updatecrlbase64"); }, true },
-                { "uc|updatecrlfile=", "Legacy - do not use.", b => {legacyOptions.Add("uc|updatecrlfile"); }, true },
-                { "rc|removecert=", "Legacy - do not use.", b => {legacyOptions.Add("rc|removecert"); }, true },
-                { "dt|devicecertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("dt|devicecertstoretype"); }, true },
-                { "dp|devicecertstorepath=", "Legacy - do not use.", b => {legacyOptions.Add("dp|devicecertstorepath"); }, true },
-                { "i|install", "Legacy - do not use.", b => {legacyOptions.Add("i|install"); }, true },
-                { "st|opcstacktracemask=", "Legacy - do not use.", b => {legacyOptions.Add("st|opcstacktracemask"); }, true },
-                { "sd|shopfloordomain=", "Legacy - do not use.", b => {legacyOptions.Add("sd|shopfloordomain"); }, true },
-                { "vc|verboseconsole=", "Legacy - do not use.", b => {legacyOptions.Add("vc|verboseconsole"); }, true },
-                { "as|autotrustservercerts=", "Legacy - do not use.", b => {legacyOptions.Add("as|autotrustservercerts"); }, true },
-                { "l|lf|logfile=", "Legacy - do not use.", b => {legacyOptions.Add("l|lf|logfile"); }, true },
-                { "lt|logflushtimespan=", "Legacy - do not use.", b => {legacyOptions.Add("lt|logflushtimespan"); }, true },
+                { "mq|monitoreditemqueuecapacity=", "Legacy - do not use.", _ => legacyOptions.Add("mq|monitoreditemqueuecapacity"), true },
+                { "tc|telemetryconfigfile=", "Legacy - do not use.", _ => legacyOptions.Add("tc|telemetryconfigfile"), true },
+                { "ic|iotcentral=", "Legacy - do not use.", _ => legacyOptions.Add("ic|iotcentral"), true },
+                { "ns|noshutdown=", "Legacy - do not use.", _ => legacyOptions.Add("ns|noshutdown"), true },
+                { "rf|runforever", "Legacy - do not use.", _ => legacyOptions.Add("rf|runforever"), true },
+                { "pn|portnum=", "Legacy - do not use.", _ => legacyOptions.Add("pn|portnum"), true },
+                { "pa|path=", "Legacy - do not use.", _ => legacyOptions.Add("pa|path"), true },
+                { "lr|ldsreginterval=", "Legacy - do not use.", _ => legacyOptions.Add("lr|ldsreginterval"), true },
+                { "ss|suppressedopcstatuscodes=", "Legacy - do not use.", _ => legacyOptions.Add("ss|suppressedopcstatuscodes"), true },
+                { "csr", "Legacy - do not use.", _ => legacyOptions.Add("csr"), true },
+                { "ab|applicationcertbase64=", "Legacy - do not use.",_ => legacyOptions.Add("ab|applicationcertbase64"), true },
+                { "af|applicationcertfile=", "Legacy - do not use.", _ => legacyOptions.Add("af|applicationcertfile"), true },
+                { "pk|privatekeyfile=", "Legacy - do not use.", _ => legacyOptions.Add("pk|privatekeyfile"), true },
+                { "pb|privatekeybase64=", "Legacy - do not use.", _ => legacyOptions.Add("pb|privatekeybase64"), true },
+                { "cp|certpassword=", "Legacy - do not use.", _ => legacyOptions.Add("cp|certpassword"), true },
+                { "tb|addtrustedcertbase64=", "Legacy - do not use.", _ => legacyOptions.Add("tb|addtrustedcertbase64"), true },
+                { "tf|addtrustedcertfile=", "Legacy - do not use.", _ => legacyOptions.Add("tf|addtrustedcertfile"), true },
+                { "tt|trustedcertstoretype=", "Legacy - do not use.", _ => legacyOptions.Add("tt|trustedcertstoretype"), true },
+                { "rt|rejectedcertstoretype=", "Legacy - do not use.", _ => legacyOptions.Add("rt|rejectedcertstoretype"), true },
+                { "it|issuercertstoretype=", "Legacy - do not use.", _ => legacyOptions.Add("it|issuercertstoretype"), true },
+                { "ib|addissuercertbase64=", "Legacy - do not use.", _ => legacyOptions.Add("ib|addissuercertbase64"), true },
+                { "if|addissuercertfile=", "Legacy - do not use.", _ => legacyOptions.Add("if|addissuercertfile"), true },
+                { "rb|updatecrlbase64=", "Legacy - do not use.", _ => legacyOptions.Add("rb|updatecrlbase64"), true },
+                { "uc|updatecrlfile=", "Legacy - do not use.", _ => legacyOptions.Add("uc|updatecrlfile"), true },
+                { "rc|removecert=", "Legacy - do not use.", _ => legacyOptions.Add("rc|removecert"), true },
+                { "dt|devicecertstoretype=", "Legacy - do not use.", _ => legacyOptions.Add("dt|devicecertstoretype"), true },
+                { "dp|devicecertstorepath=", "Legacy - do not use.", _ => legacyOptions.Add("dp|devicecertstorepath"), true },
+                { "i|install", "Legacy - do not use.", _ => legacyOptions.Add("i|install"), true },
+                { "st|opcstacktracemask=", "Legacy - do not use.", _ => legacyOptions.Add("st|opcstacktracemask"), true },
+                { "sd|shopfloordomain=", "Legacy - do not use.", _ => legacyOptions.Add("sd|shopfloordomain"), true },
+                { "vc|verboseconsole=", "Legacy - do not use.", _ => legacyOptions.Add("vc|verboseconsole"), true },
+                { "as|autotrustservercerts=", "Legacy - do not use.", _ => legacyOptions.Add("as|autotrustservercerts"), true },
+                { "l|lf|logfile=", "Legacy - do not use.", _ => legacyOptions.Add("l|lf|logfile"), true },
+                { "lt|logflushtimespan=", "Legacy - do not use.", _ => legacyOptions.Add("lt|logflushtimespan"), true },
             };
 
             try {
@@ -358,19 +356,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
             }
             catch (Exception e) {
                 Warning("Parse args exception: " + e.Message);
-                Exit(160);
+                ExitProcess(160);
                 return;
             }
 
             if (_logger.IsEnabled(LogLevel.Debug)) {
                 foreach (var key in Keys) {
-                    Debug("Parsed command line option: '{key}'='{value}'", key, this[key]);
+                    Debug("Parsed command line option: '{Key}'='{Value}'", key, this[key]);
                 }
             }
 
             if (unsupportedOptions.Count > 0) {
                 foreach (var option in unsupportedOptions) {
-                    Warning("Option {option} wrong or not supported, " +
+                    Warning("Option {Option} wrong or not supported, " +
                         "please use -h option to get all the supported options.", option);
                 }
             }
@@ -386,7 +384,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                     Warning("The specified combination of --mm, and --me is not (yet) supported. Currently supported combinations are: {MessageProfiles}), " +
                             "please use -h option to get all the supported options.",
                         MessagingProfile.Supported.Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})").Aggregate((a, b) => $"{a}, {b}"));
-                    Exit(170);
+                    ExitProcess(170);
                     return;
                 }
 
@@ -397,7 +395,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                     Environment.GetEnvironmentVariable(PublisherCliConfigKeys.EdgeHubConnectionString) == null) {
                     Warning("You must specify a connection string or run inside IoT Edge context, " +
                             "please use -h option to get all the supported options.");
-                    Exit(180);
+                    ExitProcess(180);
                     return;
                 }
             }
@@ -411,7 +409,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 Console.WriteLine();
                 Console.WriteLine(markdown);
 #endif
-                Exit(0);
+                ExitProcess(0);
             }
 
             void SetStoreType(string s, string storeTypeKey, string optionName) {
@@ -488,9 +486,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         public uint? DefaultLifeTimeCount => StandaloneCliModel.DefaultLifeTimeCount;
 
         /// <inheritdoc/>
-        public bool? DisableDataSetMetaData => StandaloneCliModel.DisableDataSetMetaData == null
-            ? !StandaloneCliModel.MessagingProfile.SupportsMetadata
-            : StandaloneCliModel.DisableDataSetMetaData.Value;
+        public bool? DisableDataSetMetaData => StandaloneCliModel.DisableDataSetMetaData
+            ?? !StandaloneCliModel.MessagingProfile.SupportsMetadata;
 
         /// <inheritdoc/>
         public bool ResolveDisplayName => StandaloneCliModel.FetchOpcNodeDisplayName;
@@ -530,7 +527,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// <summary>
         /// Call exit with exit code
         /// </summary>
-        public virtual void Exit(int exitCode) {
+        public virtual void ExitProcess(int exitCode) {
             Environment.Exit(exitCode);
         }
 
@@ -606,4 +603,3 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         private StandaloneCliModel _standaloneCliModel;
     }
 }
-

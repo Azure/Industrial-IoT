@@ -28,12 +28,10 @@
  * ======================================================================*/
 
 namespace Opc.Ua.Aggregates {
-
     /// <summary>
     /// Allows aggregates to be calculated without interpolation.
     /// </summary>
     public abstract class NonInterpolatingCalculator : BaseAggregateCalculator {
-
         /// <summary>
         /// Returns true if more data is required for the next interval.
         /// </summary>

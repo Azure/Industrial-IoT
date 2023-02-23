@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Ssl {
-
     /// <summary>
     /// Configuration interface for validation
     /// </summary>
     public interface IThumbprintValidatorConfig {
-
         /// <summary>
         /// The remote endpoint ssl certificate thumbprint the
         /// client communicates with

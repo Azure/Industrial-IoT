@@ -4,9 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Validation {
-
     public class ValidationUtils {
-
         /// <summary>
         /// Checks if the default value should be used. The default value
         /// should be used when the user did not input any value

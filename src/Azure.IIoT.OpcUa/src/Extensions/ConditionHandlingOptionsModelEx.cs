@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-
     /// <summary>
     /// Condition options extensions
     /// </summary>
     public static class ConditionHandlingOptionsModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

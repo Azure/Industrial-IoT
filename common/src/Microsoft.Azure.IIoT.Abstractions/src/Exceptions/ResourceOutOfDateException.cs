@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// resource again, to have the new Etag, and retry.
     /// </summary>
     public class ResourceOutOfDateException : Exception {
-
         /// <inheritdoc />
         public ResourceOutOfDateException() {
         }

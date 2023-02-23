@@ -16,7 +16,6 @@ namespace Microsoft.OpenApi.Models {
     /// ActionDescriptorCollectionProvider extensions
     /// </summary>
     public static class ActionDescriptorEx {
-
         /// <summary>
         /// Collect configured scopes from all controllers registered as services
         /// </summary>
@@ -59,10 +58,9 @@ namespace Microsoft.OpenApi.Models {
                 },
                 License = new OpenApiLicense() {
                     Name = "MIT LICENSE",
-                    Url = new System.Uri("https://opensource.org/licenses/MIT")
+                    Url = new Uri("https://opensource.org/licenses/MIT")
                 }
             });
         }
     }
 }
-

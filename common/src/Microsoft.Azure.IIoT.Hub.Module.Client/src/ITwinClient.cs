@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// Twin client
     /// </summary>
     public interface ITwinClient {
-
         /// <summary>
         /// Retrieve a device twin object for the current device.
         /// </summary>

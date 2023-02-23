@@ -27,14 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-
 namespace MemoryBuffer {
     using Opc.Ua;
     using Opc.Ua.Server;
 
     /// <inheritdoc/>
     public class MemoryBufferServer : INodeManagerFactory {
-
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
@@ -44,10 +42,9 @@ namespace MemoryBuffer {
         /// <inheritdoc/>
         public StringCollection NamespacesUris {
             get {
-                var nameSpaces = new StringCollection {
+                return new StringCollection {
                     Namespaces.MemoryBuffer,
                 };
-                return nameSpaces;
             }
         }
     }

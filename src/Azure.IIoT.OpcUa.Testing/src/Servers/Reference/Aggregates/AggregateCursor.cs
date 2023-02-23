@@ -35,7 +35,6 @@ namespace Opc.Ua.Aggregates {
     /// A snapshot of a structured window over a stream of data to be aggregated
     /// </summary>
     public class AggregateCursor {
-
         /// <summary>
         /// A good data point later in time than the processed point(s) we want to compute.
         /// It could be used as one bounding value in a sloped interpolation. or as the only

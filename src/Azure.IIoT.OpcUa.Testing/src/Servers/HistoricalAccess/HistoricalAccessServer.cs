@@ -27,14 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-
 namespace HistoricalAccess {
     using Opc.Ua;
     using Opc.Ua.Server;
 
     /// <inheritdoc/>
     public class HistoricalAccessServer : INodeManagerFactory {
-
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
@@ -44,10 +42,9 @@ namespace HistoricalAccess {
         /// <inheritdoc/>
         public StringCollection NamespacesUris {
             get {
-                var nameSpaces = new StringCollection {
+                return new StringCollection {
                     Namespaces.HistoricalAccess,
                 };
-                return nameSpaces;
             }
         }
     }

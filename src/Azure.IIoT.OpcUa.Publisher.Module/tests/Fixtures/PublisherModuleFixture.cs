@@ -33,7 +33,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     /// </summary>
     public class PublisherModuleFixture : IInjector,
         ISdkConfig, IDisposable {
-
         /// <summary>
         /// Device id
         /// </summary>
@@ -63,7 +62,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// Create fixture
         /// </summary>
         public PublisherModuleFixture() {
-
             DeviceId = Utils.GetHostName();
             ModuleId = Guid.NewGuid().ToString();
 
@@ -115,7 +113,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
 
         /// <inheritdoc/>
         public void Inject(ContainerBuilder builder) {
-
             // Register mock iot hub
             builder.RegisterInstance(_hub)
                 .AsImplementedInterfaces().ExternallyOwned();
@@ -137,7 +134,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
 
         /// <inheritdoc/>
         public class TestModuleConfig : IModuleConfig {
-
             /// <inheritdoc/>
             public TestModuleConfig(DeviceModel device) {
                 _device = device;
@@ -171,7 +167,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
 
         /// <inheritdoc/>
         public class TestIoTHubConfig : IIoTHubConfig {
-
             /// <inheritdoc/>
             public string IoTHubConnString =>
                 ConnectionString.CreateServiceConnectionString(

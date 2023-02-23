@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Tasks {
-
     /// <summary>
     /// Configuration for task processor
     /// </summary>
     public interface ITaskProcessorConfig {
-
         /// <summary>
         /// Max instances of processors that should run.
         /// </summary>

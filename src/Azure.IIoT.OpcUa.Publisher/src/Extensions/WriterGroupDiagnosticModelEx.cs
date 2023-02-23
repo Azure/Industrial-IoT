@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
     /// Writer group Model extensions
     /// </summary>
     public static class WriterGroupDiagnosticModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

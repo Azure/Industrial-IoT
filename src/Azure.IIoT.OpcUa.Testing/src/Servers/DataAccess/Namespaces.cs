@@ -28,7 +28,6 @@
  * ======================================================================*/
 
 namespace DataAccess {
-
     /// <summary>
     /// Defines constants for namespaces used by the application.
     /// </summary>

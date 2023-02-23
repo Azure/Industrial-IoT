@@ -36,7 +36,6 @@ namespace Alarms {
     /// This class simulates a source in the system.
     /// </summary>
     public class UnderlyingSystemSource {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="UnderlyingSystemSource"/> class.
         /// </summary>
@@ -162,7 +161,6 @@ namespace Alarms {
                 var alarm = FindAlarm(alarmName, recordNumber);
 
                 if (alarm != null) {
-
                     alarm.Time = DateTime.UtcNow;
                     alarm.Reason = "A comment was added.";
                     alarm.UserName = userName;
@@ -340,8 +338,6 @@ namespace Alarms {
             }
         }
 
-
-
         /// <summary>
         /// Finds the alarm identified by the name.
         /// </summary>
@@ -352,7 +348,6 @@ namespace Alarms {
             lock (_alarms) {
                 // look up archived alarm.
                 if (recordNumber != 0) {
-
                     if (!_archive.TryGetValue(recordNumber, out var alarm)) {
                         return null;
                     }

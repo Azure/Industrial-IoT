@@ -36,7 +36,6 @@ namespace TestData {
     /// Wraps a file which contains a list of historical values.
     /// </summary>
     internal sealed class HistoryFile : IHistoryDataSource {
-
         /// <summary>
         /// Creates a new file.
         /// </summary>
@@ -80,14 +79,12 @@ namespace TestData {
 
                 var entry = _entries[position];
 
-                var value = new DataValue {
+                return new DataValue {
                     Value = entry.Value.Value,
                     ServerTimestamp = entry.Value.ServerTimestamp,
                     SourceTimestamp = entry.Value.SourceTimestamp,
                     StatusCode = entry.Value.StatusCode
                 };
-
-                return value;
             }
         }
 
@@ -109,14 +106,12 @@ namespace TestData {
 
                 var entry = _entries[position];
 
-                var value = new DataValue {
+                return new DataValue {
                     Value = entry.Value.Value,
                     ServerTimestamp = entry.Value.ServerTimestamp,
                     SourceTimestamp = entry.Value.SourceTimestamp,
                     StatusCode = entry.Value.StatusCode
                 };
-
-                return value;
             }
         }
 

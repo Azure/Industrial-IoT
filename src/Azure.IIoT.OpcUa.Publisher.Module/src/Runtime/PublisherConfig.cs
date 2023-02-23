@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     /// Wraps a configuration root
     /// </summary>
     public class PublisherConfig : ConfigBase, IModuleConfig, IClientServicesConfig {
-
         /// <inheritdoc/>
         public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
         /// <inheritdoc/>

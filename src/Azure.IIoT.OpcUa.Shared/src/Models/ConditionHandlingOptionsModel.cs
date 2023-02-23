@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class ConditionHandlingOptionsModel {
-
         /// <summary>
         /// Time interval for sending pending interval updates in seconds.
         /// </summary>

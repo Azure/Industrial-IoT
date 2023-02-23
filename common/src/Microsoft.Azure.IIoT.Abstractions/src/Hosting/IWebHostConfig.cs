@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hosting {
-
     /// <summary>
     /// Host configuration
     /// </summary>
     public interface IWebHostConfig {
-
         /// <summary>
         /// null value allows http. Should always be set to
         /// the https port except for local development.

@@ -324,7 +324,7 @@ namespace TestData {
     /// Stores an instance of the TestDataObjectType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class TestDataObjectState : BaseObjectState {
         #region Constructors
         /// <summary>
@@ -541,11 +541,7 @@ namespace TestData {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 
@@ -1072,7 +1068,7 @@ namespace TestData {
     /// Stores an instance of the ScalarValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class ScalarValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
@@ -2105,11 +2101,7 @@ namespace TestData {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 
@@ -2152,7 +2144,7 @@ namespace TestData {
     /// Stores an instance of the AnalogScalarValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class AnalogScalarValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
@@ -2722,11 +2714,7 @@ namespace TestData {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 
@@ -3267,7 +3255,7 @@ namespace TestData {
     /// Stores an instance of the ArrayValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class ArrayValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
@@ -4304,11 +4292,7 @@ namespace TestData {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 
@@ -4351,7 +4335,7 @@ namespace TestData {
     /// Stores an instance of the AnalogArrayValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class AnalogArrayValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
@@ -4922,11 +4906,7 @@ namespace TestData {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 
@@ -4955,7 +4935,7 @@ namespace TestData {
     /// Stores an instance of the UserScalarValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class UserScalarValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
@@ -5819,11 +5799,7 @@ namespace TestData {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 
@@ -6250,7 +6226,7 @@ namespace TestData {
     /// Stores an instance of the UserArrayValueObjectType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class UserArrayValueObjectState : TestDataObjectState {
         #region Constructors
         /// <summary>
@@ -7117,11 +7093,7 @@ namespace TestData {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 
@@ -7552,7 +7524,7 @@ namespace TestData {
     /// Stores an instance of the MethodTestType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class MethodTestState : FolderState {
         #region Constructors
         /// <summary>
@@ -8106,11 +8078,7 @@ namespace TestData {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 
@@ -8136,7 +8104,7 @@ namespace TestData {
     /// Stores an instance of the TestSystemConditionType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class TestSystemConditionState : ConditionState {
         #region Constructors
         /// <summary>
@@ -8274,11 +8242,7 @@ namespace TestData {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 

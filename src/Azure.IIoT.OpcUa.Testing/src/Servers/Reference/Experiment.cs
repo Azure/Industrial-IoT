@@ -326,7 +326,6 @@ namespace Reference {
 
             if (_timeFlowsBackward) {
                 return -difference;
-
             }
 
             return difference;

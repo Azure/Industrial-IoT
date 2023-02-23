@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         public async Task<IList<ManagedMqttApplicationMessage>> LoadQueuedMessagesAsync() {
             if (File.Exists(_stateFile)) {
                 try {
-                    var content = await File.ReadAllTextAsync(_stateFile, Encoding.UTF8);
+                    var content = await File.ReadAllTextAsync(_stateFile, Encoding.UTF8).ConfigureAwait(false);
                     var messages = JsonConvert.DeserializeObject<List<ManagedMqttApplicationMessage>>(content);
                     _logger.LogInformation("Loaded MQTT state from: {StateFile}", _stateFile);
                     return messages;
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             if (messages != null) {
                 try {
                     var content = JsonConvert.SerializeObject(messages);
-                    await File.WriteAllTextAsync(_stateFile, content, Encoding.UTF8);
+                    await File.WriteAllTextAsync(_stateFile, content, Encoding.UTF8).ConfigureAwait(false);
                 }
                 catch (IOException ex) {
                     _logger.LogError(ex, "Failed to save MQTT state.");

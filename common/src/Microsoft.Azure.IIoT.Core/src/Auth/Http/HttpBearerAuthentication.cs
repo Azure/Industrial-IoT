@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
     /// Bearer authentication handler
     /// </summary>
     public class HttpBearerAuthentication : HttpMessageHandlerBase {
-
         /// <summary>
         /// Create bearer auth handler
         /// </summary>
@@ -46,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
                 var desiredPermissions = Enumerable.Empty<string>();
 
                 var result = await _provider.GetTokenForAsync(resourceId,
-                    desiredPermissions);
+                    desiredPermissions).ConfigureAwait(false);
 
                 if (result?.RawToken != null) {
                     headers.Authorization = new AuthenticationHeaderValue(
@@ -54,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
                 }
                 else {
                     _logger.LogError("Failed to aquire token calling " +
-                        "{request} ({resource}) - calling without...",
+                        "{Request} ({Resource}) - calling without...",
                         requestUri, resourceId);
                 }
             }
@@ -70,7 +69,7 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
 
             if (resourceId != null) {
                 if (statusCode == HttpStatusCode.Unauthorized) {
-                    await _provider.InvalidateAsync(resourceId);
+                    await _provider.InvalidateAsync(resourceId).ConfigureAwait(false);
                 }
             }
         }

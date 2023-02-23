@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     /// Chunked method provide reliable any size send/receive
     /// </summary>
     public sealed class ChunkMethodClient : IMethodClient {
-
         /// <summary>
         /// Create client wrapping a json method client
         /// </summary>
@@ -71,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                                 Handle = handle,
                                 Payload = chunk
                             }),
-                        timeout, ct);
+                        timeout, ct).ConfigureAwait(false);
                     var response = _serializer.Deserialize<MethodChunkModel>(result);
                     if (response.Payload != null) {
                         received.Write(response.Payload);
@@ -86,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     var result = await _client.CallMethodAsync(deviceId, moduleId,
                         MethodNames.Call, _serializer.SerializeToString(new MethodChunkModel {
                             Handle = handle,
-                        }), timeout, ct);
+                        }), timeout, ct).ConfigureAwait(false);
                     var response = _serializer.Deserialize<MethodChunkModel>(result);
                     if (response.Payload != null) {
                         received.Write(response.Payload);
@@ -99,8 +98,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 payload = received.ToArray().Unzip();
                 if (status != 200) {
                     var result = AsString(payload);
-                    _logger.LogDebug("Chunked call on {method} on {device} ({module}) with {payload} " +
-                         "returned with error {status}: {result}",
+                    _logger.LogDebug("Chunked call on {Method} on {DeviceId} ({ModuleId}) with {Payload} " +
+                         "returned with error {Status}: {Result}",
                          method, deviceId, moduleId, payload, status, result);
                     throw new MethodCallStatusException(result, status);
                 }

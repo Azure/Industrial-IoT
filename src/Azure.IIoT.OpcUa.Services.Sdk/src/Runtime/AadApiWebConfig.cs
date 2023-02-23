@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime {
     /// Auth api web application configuration
     /// </summary>
     public class AadApiWebConfig : ConfigBase, IOAuthClientConfig {
-
         /// <summary>
         /// Client configuration
         /// </summary>

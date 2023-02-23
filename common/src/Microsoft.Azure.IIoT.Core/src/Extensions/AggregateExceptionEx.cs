@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace System {
-
     /// <summary>
     /// Exceptions extensions
     /// </summary>
     public static class AggregateExceptionEx {
-
         /// <summary>
         /// Returns first exception of specified type in exception
         /// </summary>

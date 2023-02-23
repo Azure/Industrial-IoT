@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Certificate extension
     /// </summary>
     public static class X509CertificateModelEx {
-
         /// <summary>
         /// To service model
         /// </summary>

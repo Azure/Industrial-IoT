@@ -22,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
     [Version("")]
     [ExceptionsFilter]
     public class PublisherMethodsController : IMethodController {
-
         /// <summary>
         /// ctor
         /// </summary>
@@ -65,7 +64,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             return await _configServices.NodePublishBulkAsync(connection,
                 request).ConfigureAwait(false);
         }
-
 
         /// <summary>
         /// Get all published nodes for a server endpoint.
@@ -143,8 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// Handler for GetDiagnosticInfo direct method
         /// </summary>
         public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync() {
-            var response = await _configServices.GetDiagnosticInfoAsync().ConfigureAwait(false);
-            return response;
+            return await _configServices.GetDiagnosticInfoAsync().ConfigureAwait(false);
         }
 
         /// <summary>

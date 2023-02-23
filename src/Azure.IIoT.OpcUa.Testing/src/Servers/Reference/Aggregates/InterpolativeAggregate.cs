@@ -67,5 +67,4 @@ namespace Opc.Ua.Aggregates {
             return retval;
         }
     }
-
 }

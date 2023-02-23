@@ -14,10 +14,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// Default web service authentication
     /// </summary>
     public class WebApiAuthentication : Module {
-
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
-
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces();
             builder.RegisterType<ClientAuthAggregateConfig>()

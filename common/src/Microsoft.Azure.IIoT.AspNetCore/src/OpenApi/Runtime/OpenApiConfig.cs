@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
     /// OpenApi configuration with fall back to client configuration.
     /// </summary>
     public class OpenApiConfig : ConfigBase, IOpenApiConfig {
-
         /// <summary>
         /// OpenApi configuration
         /// </summary>

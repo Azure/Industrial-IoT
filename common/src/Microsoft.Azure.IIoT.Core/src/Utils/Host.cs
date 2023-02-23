@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// Host context
     /// </summary>
     public static class Host {
-
         /// <summary>
         /// Running in container
         /// </summary>

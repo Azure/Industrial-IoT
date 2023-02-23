@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
     public abstract class PubSubMessage {
-
         /// <summary>
         /// Message schema
         /// </summary>
@@ -71,10 +70,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// Decode pub sub messages from buffer
         /// </summary>
         /// <param name="buffer"></param>
-        /// <param name="messageSchema"></param>
         /// <param name="contentType"></param>
         /// <param name="context"></param>
         /// <param name="resolver"></param>
+        /// <param name="messageSchema"></param>
         /// <returns></returns>
         public static PubSubMessage Decode(byte[] buffer, string contentType,
             IServiceMessageContext context, IDataSetMetaDataResolver resolver = null,
@@ -88,10 +87,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// Decode all from reader
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="messageSchema"></param>
         /// <param name="contentType"></param>
         /// <param name="context"></param>
         /// <param name="resolver"></param>
+        /// <param name="messageSchema"></param>
         /// <returns></returns>
         public static IEnumerable<PubSubMessage> Decode(Queue<byte[]> reader, string contentType,
             IServiceMessageContext context, IDataSetMetaDataResolver resolver,
@@ -111,10 +110,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// Decode one pub sub messages from buffer
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="messageSchema"></param>
         /// <param name="contentType"></param>
         /// <param name="context"></param>
         /// <param name="resolver"></param>
+        /// <param name="messageSchema"></param>
         /// <returns></returns>
         internal static PubSubMessage DecodeOne(Queue<byte[]> reader, string contentType,
             IServiceMessageContext context, IDataSetMetaDataResolver resolver,

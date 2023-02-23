@@ -24,7 +24,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// </summary>
     public sealed class PublisherDiagnosticCollector : IPublisherDiagnosticCollector,
         IStartable, IDisposable {
-
         /// <summary>
         /// Create collector
         /// </summary>

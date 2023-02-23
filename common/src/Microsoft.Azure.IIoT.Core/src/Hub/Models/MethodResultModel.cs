@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     [DataContract]
     public class MethodResultModel {
-
         /// <summary>
         /// Status
         /// </summary>

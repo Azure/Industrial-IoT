@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Subscription abstraction
     /// </summary>
     public interface ISubscription : IDisposable {
-
         /// <summary>
         /// Subscription data change events
         /// </summary>

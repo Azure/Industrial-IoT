@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters {
     /// status code.
     /// </summary>
     public class ExceptionsFilterAttribute : ExceptionFilterAttribute {
-
         /// <inheritdoc />
         public override Exception Filter(Exception exception, out int status) {
             switch (exception) {

@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// Twin properties extensions
     /// </summary>
     public static class TwinPropertiesModelEx {
-
         /// <summary>
         /// Clone properties
         /// </summary>

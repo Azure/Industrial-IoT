@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Extensions {
     using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Furly.Exceptions;
     using System;
     using System.Globalization;
     using System.Linq;
@@ -15,7 +16,6 @@ namespace Opc.Ua.Extensions {
     /// Node id extensions
     /// </summary>
     public static class NodeIdEx {
-
         /// <summary>
         /// Creates an expanded node id from node id.
         /// </summary>
@@ -73,7 +73,8 @@ namespace Opc.Ua.Extensions {
             if (!string.IsNullOrEmpty(nodeId.NamespaceUri)) {
                 index = namespaces.GetIndex(nodeId.NamespaceUri);
                 if (index < 0) {
-                    throw new IndexOutOfRangeException($"Namespace '{nodeId.NamespaceUri}' was not found in NamespaceTable.");
+                    throw new ArgumentException(
+                        $"Namespace '{nodeId.NamespaceUri}' was not found in NamespaceTable.", nameof(nodeId));
                 }
             }
             return new NodeId(nodeId.Identifier, (ushort)index);
@@ -194,7 +195,7 @@ namespace Opc.Ua.Extensions {
             if (nsUri != null) {
                 buffer.Append(nsUri);
                 // Append node id as fragment
-                buffer.Append("#");
+                buffer.Append('#');
             }
             switch (idType) {
                 case IdType.Numeric:
@@ -205,7 +206,7 @@ namespace Opc.Ua.Extensions {
                     }
                     buffer.Append("i=");
                     if (identifier == null) {
-                        buffer.Append("0"); // null
+                        buffer.Append('0'); // null
                         break;
                     }
                     buffer.AppendFormat(CultureInfo.InvariantCulture,
@@ -259,7 +260,7 @@ namespace Opc.Ua.Extensions {
             // Get resource uri
             if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)) {
                 // Not a absolute uri, try to mitigate a potentially nonstandard namespace string
-                var sepPattern = @"(.+)#([isgb]{1}\=.*)";
+                const string sepPattern = @"(.+)#([isgb]{1}\=.*)";
                 var match = Regex.Match(value, sepPattern);
                 if (match.Success) {
                     nsUri = match.Groups[1].Value;
@@ -271,16 +272,16 @@ namespace Opc.Ua.Extensions {
             }
             else {
                 if (string.IsNullOrEmpty(uri.Fragment)) {
-                    throw new FormatException($"Bad fragment - should contain identifier.");
+                    throw new FormatException("Bad fragment - should contain identifier.");
                 }
 
-                var idStart = value.IndexOf('#');
+                var idStart = value.IndexOf('#', StringComparison.Ordinal);
 
                 nsUri = idStart >= 0 ? value.Substring(0, idStart) : uri.NoQueryAndFragment().AbsoluteUri;
                 value = uri.Fragment.TrimStart('#');
             }
 
-            var and = value?.IndexOf('&') ?? -1;
+            var and = value?.IndexOf('&', StringComparison.Ordinal) ?? -1;
             if (and != -1) {
                 var remainder = value.Substring(and);
                 // See if the query contains the server identfier
@@ -357,7 +358,6 @@ namespace Opc.Ua.Extensions {
             }
             throw new FormatException($"{type} is not a known node id type");
         }
-
 
         /// <summary>
         /// Returns a data type id for the name

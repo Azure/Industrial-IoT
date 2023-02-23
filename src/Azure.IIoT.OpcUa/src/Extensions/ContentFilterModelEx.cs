@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Content filter extensions
     /// </summary>
     public static class ContentFilterModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>
@@ -27,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                     .ToList()
             };
         }
-
 
         /// <summary>
         /// Compare operands

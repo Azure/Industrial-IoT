@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// Container builder for data set writer jobs
     /// </summary>
     public class WriterGroupScopeFactory : IWriterGroupScopeFactory {
-
         /// <summary>
         /// Create job scope factory
         /// </summary>
@@ -41,7 +40,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// </summary>
         private sealed class WriterGroupScope : IWriterGroupScope, IMetricsContext,
             IWriterGroupDiagnostics {
-
             /// <inheritdoc/>
             public IWriterGroup WriterGroup => _scope.Resolve<IWriterGroup>();
 

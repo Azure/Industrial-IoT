@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
     /// Cors setup implementation
     /// </summary>
     public class CorsSetup : ICorsSetup {
-
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -64,14 +63,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
         private void Configure(string name, string[] policies, Action all,
             Action<string[]> specific) {
             if (policies == null) {
-                _logger.LogInformation("No setting for CORS {name} policy was found, ignore", name);
+                _logger.LogInformation("No setting for CORS {Name} policy was found, ignore", name);
             }
             else if (policies.Contains("*")) {
-                _logger.LogInformation("CORS policy for {name} allows any header", name);
+                _logger.LogInformation("CORS policy for {Name} allows any header", name);
                 all();
             }
             else {
-                _logger.LogInformation("Add specified {name} policies to CORS policy", name, policies);
+                _logger.LogInformation("Add specified {Name} policies to CORS policy", name);
                 specific(policies);
             }
         }
@@ -85,13 +84,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
                 var model = JsonConvert.DeserializeObject<CorsWhitelistModel>(
                     _config.CorsWhitelist);
                 if (model == null) {
-                    _logger.LogError("Invalid CORS whitelist {whitelist}. Ignored",
+                    _logger.LogError("Invalid CORS whitelist {Whitelist}. Ignored",
                         _config.CorsWhitelist);
                 }
                 return model;
             }
             catch (Exception ex) {
-                _logger.LogError(ex, "Invalid CORS whitelist {whitelist}. Ignored",
+                _logger.LogError(ex, "Invalid CORS whitelist {Whitelist}. Ignored",
                     _config.CorsWhitelist);
                 return null;
             }

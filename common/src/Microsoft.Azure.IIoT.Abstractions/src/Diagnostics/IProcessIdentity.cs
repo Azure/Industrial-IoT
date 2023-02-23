@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
-
     /// <summary>
     /// Process info
     /// </summary>
     public interface IProcessIdentity {
-
         /// <summary>
         /// Process identity
         /// </summary>

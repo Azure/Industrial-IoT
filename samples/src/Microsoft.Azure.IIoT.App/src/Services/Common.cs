@@ -12,13 +12,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using System.Threading.Tasks;
 
     public class UICommon : ComponentBase {
-
         public PagedResult<T> UpdatePage<T>(Func<PagedResult<T>, Task<PagedResult<T>>> getList,
             int page, PagedResult<T> list, ref PagedResult<T> pagedList, int pageLength) where T : class {
-
             var newList = list;
             if (!string.IsNullOrEmpty(list.ContinuationToken) && page > pagedList.PageCount) {
-                list = Task.Run(async () => await getList(newList)).Result;
+                list = Task.Run(async () => await getList(newList).ConfigureAwait(false)).Result;
             }
             pagedList = list.GetPaged(page, pageLength, null);
             return list;
@@ -34,8 +32,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         }
 
         public string ExtractSecurityPolicy(string policy) {
-            ;
-            return policy[(policy.LastIndexOf("#") + 1)..policy.Length];
+            var sep = policy.LastIndexOf("#", StringComparison.Ordinal);
+            if (sep == -1) {
+                return policy;
+            }
+            return policy[(sep + 1)..policy.Length];
         }
 
         public int PageLength { get; set; } = 10;

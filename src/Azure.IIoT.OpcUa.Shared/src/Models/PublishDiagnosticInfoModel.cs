@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class PublishDiagnosticInfoModel {
-
         /// <summary>
         /// Endpoint Information
         /// </summary>
@@ -201,6 +200,5 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         [DataMember(Name = "ingressValueChangesInLastMinute", Order = 27,
             EmitDefaultValue = true)]
         public long IngressValueChangesInLastMinute { get; set; }
-
     }
 }

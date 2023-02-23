@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore {
-
     /// <summary>
     /// Common runtime environment variables for AspNetCore configuration.
     /// </summary>
     public static class AspNetCoreVariable {
-
         /// <summary>
         /// Determines whethere processing of forwarded headers should be enabled or not.
         /// </summary>

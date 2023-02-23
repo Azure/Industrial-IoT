@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     [Flags]
     [DataContract]
     public enum NodeValueRank {
-
         /// <summary>
         /// The variable may be a scalar or a one
         /// dimensional array.

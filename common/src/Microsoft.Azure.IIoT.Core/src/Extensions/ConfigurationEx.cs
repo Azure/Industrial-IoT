@@ -11,7 +11,6 @@ namespace Microsoft.Extensions.Configuration {
     /// Extension methods
     /// </summary>
     public static class ConfigurationEx {
-
         /// <summary>
         /// Add environment variables
         /// </summary>

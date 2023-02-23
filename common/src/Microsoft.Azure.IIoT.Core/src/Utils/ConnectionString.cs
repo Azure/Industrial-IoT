@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// Connection string helper class
     /// </summary>
     public sealed class ConnectionString {
-
         /// <summary>
         /// Identifies a part of the connection string
         /// </summary>

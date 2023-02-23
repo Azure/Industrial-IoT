@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// Configuration base helper class
     /// </summary>
     public abstract class ConfigBase {
-
         /// <summary>
         /// Configuration
         /// </summary>
@@ -54,10 +53,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <returns></returns>
         protected bool GetBoolOrDefault(string key, Func<bool> defaultValue = null) {
             var result = GetBoolOrNull(key);
-            if (result != null) {
-                return result.Value;
-            }
-            return defaultValue?.Invoke() ?? false;
+            return result ?? defaultValue?.Invoke() ?? false;
         }
 
         /// <summary>
@@ -120,10 +116,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <returns></returns>
         protected int GetIntOrDefault(string key, Func<int> defaultValue = null) {
             var value = GetIntOrNull(key);
-            if (value.HasValue) {
-                return value.Value;
-            }
-            return defaultValue?.Invoke() ?? 0;
+            return value ?? defaultValue?.Invoke() ?? 0;
         }
 
         /// <summary>

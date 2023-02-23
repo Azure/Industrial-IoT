@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Services {
     /// Encapsulates a runnable module
     /// </summary>
     public interface IModuleHost : IDisposable {
-
         /// <summary>
         /// Start module host
         /// </summary>

@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     using Xunit;
 
     public class VariantEncoderFloatTests {
-
         [Fact]
         public void DecodeEncodeFloatFromJValue() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
@@ -50,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatFromString1() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "-123.123";
+            const string str = "-123.123";
             var variant = codec.Decode(str, BuiltInType.Float);
             var expected = new Variant(-123.123f);
             var encoded = codec.Encode(variant);
@@ -62,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatFromString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "-123";
+            const string str = "-123";
             var variant = codec.Decode(str, BuiltInType.Float);
             var expected = new Variant(-123f);
             var encoded = codec.Encode(variant);
@@ -74,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatArrayFromString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "-123.123, 124.124, 0.0";
+            const string str = "-123.123, 124.124, 0.0";
             var variant = codec.Decode(str, BuiltInType.Float);
             var expected = new Variant(new float[] { -123.123f, 124.124f, 0.0f });
             var encoded = codec.Encode(variant);
@@ -86,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatArrayFromString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[-123.123, 124.124, 0.0]";
+            const string str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Float);
             var expected = new Variant(new float[] { -123.123f, 124.124f, 0.0f });
             var encoded = codec.Encode(variant);
@@ -98,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatArrayFromString3() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[]";
+            const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.Float);
             var expected = new Variant(System.Array.Empty<float>());
             var encoded = codec.Encode(variant);
@@ -109,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatFromStringTypeNumberIsDouble() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "-123.123";
+            const string str = "-123.123";
             var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
@@ -121,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatArrayFromStringTypeNumberIsDouble1() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[-123.123, 124.124, 0.0]";
+            const string str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(new Variant[] {
                 new Variant(-123.123), new Variant(124.124), new Variant(0.0)
@@ -135,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatArrayFromStringTypeNumberIsDouble2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[]";
+            const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(System.Array.Empty<Variant>());
             var encoded = codec.Encode(variant);
@@ -146,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatFromStringTypeNullIsDouble() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "-123.123";
+            const string str = "-123.123";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
@@ -157,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatArrayFromStringTypeNullIsDouble() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "-123.123, 124.124, 0.0";
+            const string str = "-123.123, 124.124, 0.0";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
             var encoded = codec.Encode(variant);
@@ -169,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatArrayFromStringTypeNullIsDouble2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[-123.123, 124.124, 0.0]";
+            const string str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
             var encoded = codec.Encode(variant);
@@ -181,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatArrayFromStringTypeNullIsNull() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[]";
+            const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = Variant.Null;
             var encoded = codec.Encode(variant);
@@ -191,20 +190,19 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatFromQuotedString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "\"-123.123\"";
+            const string str = "\"-123.123\"";
             var variant = codec.Decode(str, BuiltInType.Float);
             var expected = new Variant(-123.123f);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromObject(-123.123f),
                 encoded);
-
         }
 
         [Fact]
         public void DecodeEncodeFloatFromSinglyQuotedString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "  '-123.123'";
+            const string str = "  '-123.123'";
             var variant = codec.Decode(str, BuiltInType.Float);
             var expected = new Variant(-123.123f);
             var encoded = codec.Encode(variant);
@@ -216,7 +214,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatArrayFromQuotedString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "\"-123.123\",'124.124',\"0.0\"";
+            const string str = "\"-123.123\",'124.124',\"0.0\"";
             var variant = codec.Decode(str, BuiltInType.Float);
             var expected = new Variant(new float[] { -123.123f, 124.124f, 0.0f });
             var encoded = codec.Encode(variant);
@@ -228,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeFloatArrayFromQuotedString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = " [\"-123.123\",'124.124',\"0.0\"] ";
+            const string str = " [\"-123.123\",'124.124',\"0.0\"] ";
             var variant = codec.Decode(str, BuiltInType.Float);
             var expected = new Variant(new float[] { -123.123f, 124.124f, 0.0f });
             var encoded = codec.Encode(variant);

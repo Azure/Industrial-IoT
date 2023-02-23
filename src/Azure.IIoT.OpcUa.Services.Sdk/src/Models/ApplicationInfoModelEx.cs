@@ -10,12 +10,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Handle event
     /// </summary>
     public static class ApplicationInfoModelEx {
-
         /// <summary>
         /// Update an application
         /// </summary>
-        /// <param name="application"></param>
         /// <param name="update"></param>
+        /// <param name="application"></param>
         public static ApplicationInfoModel Patch(this ApplicationInfoModel update,
             ApplicationInfoModel application) {
             if (update == null) {

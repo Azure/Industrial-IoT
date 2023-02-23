@@ -16,13 +16,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
     /// Module
     /// </summary>
     public static class Program {
-
         /// <summary>
         /// Main entry point
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
-
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)

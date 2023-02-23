@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Http request extensions
     /// </summary>
     public static class HttpRequestEx {
-
         /// <summary>
         /// Add header value
         /// </summary>
@@ -23,10 +22,9 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <returns>this</returns>
         public static IHttpRequest AddHeader(this IHttpRequest request, string name,
             string value) {
-            if (!request.Headers.TryAddWithoutValidation(name, value)) {
-                if (name.ToLowerInvariant() != "content-type") {
-                    throw new ArgumentOutOfRangeException(name, "Invalid header name");
-                }
+            if (!request.Headers.TryAddWithoutValidation(name, value) &&
+                !string.Equals(name, "content-type", StringComparison.OrdinalIgnoreCase)) {
+                throw new ArgumentOutOfRangeException(name, "Invalid header name");
             }
             return request;
         }
@@ -41,7 +39,6 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <returns>this</returns>
         public static IHttpRequest SetByteArrayContent(this IHttpRequest request, byte[] content,
             string mediaType = null, Encoding encoding = null) {
-
             var headerValue = new MediaTypeHeaderValue(
                 string.IsNullOrEmpty(mediaType) ? ContentMimeType.Binary : mediaType);
             if (encoding != null) {

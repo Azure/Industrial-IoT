@@ -10,12 +10,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Handle event
     /// </summary>
     public static class DiscovererModelEx2 {
-
         /// <summary>
         /// Update a discover
         /// </summary>
-        /// <param name="discoverer"></param>
         /// <param name="update"></param>
+        /// <param name="discoverer"></param>
         public static DiscovererModel Patch(this DiscovererModel update,
             DiscovererModel discoverer) {
             if (update == null) {

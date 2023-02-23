@@ -27,7 +27,6 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-
 namespace DataAccess {
     /// <summary>
     /// Defines the possible tag data types

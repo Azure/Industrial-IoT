@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class BrowseNextResponseModel {
-
         /// <summary>
         /// References, if included, otherwise null.
         /// </summary>

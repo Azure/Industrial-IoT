@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class EndpointRegistrationQueryModel {
-
         /// <summary>
         /// Endoint url for direct server access
         /// </summary>
@@ -41,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         public string? SecurityPolicy { get; set; }
 
         /// <summary>
-        /// The last state of the the activated endpoint
+        /// The last state of the activated endpoint
         /// </summary>
         [DataMember(Name = "endpointState", Order = 6,
             EmitDefaultValue = false)]
@@ -76,4 +75,3 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         public string? SiteOrGatewayId { get; set; }
     }
 }
-

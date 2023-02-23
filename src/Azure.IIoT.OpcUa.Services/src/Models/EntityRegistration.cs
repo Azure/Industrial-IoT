@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// </summary>
     [DataContract]
     public abstract class EntityRegistration {
-
         /// <summary>
         /// Device id for registration
         /// </summary>

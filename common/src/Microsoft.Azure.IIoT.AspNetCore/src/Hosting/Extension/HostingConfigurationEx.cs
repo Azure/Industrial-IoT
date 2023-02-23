@@ -15,7 +15,6 @@ namespace Microsoft.Extensions.DependencyInjection {
     /// Configure http redirection and hsts
     /// </summary>
     public static class HostingConfigurationEx {
-
         /// <summary>
         /// Use https redirection
         /// </summary>
@@ -31,7 +30,6 @@ namespace Microsoft.Extensions.DependencyInjection {
             }
             return app;
         }
-
 
         /// <summary>
         /// Use https redirection

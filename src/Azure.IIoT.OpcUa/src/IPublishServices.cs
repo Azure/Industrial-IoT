@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Publish services
     /// </summary>
     public interface IPublishServices<T> {
-
         /// <summary>
         /// Start publishing values from a node
         /// </summary>

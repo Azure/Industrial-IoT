@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Exceptions {
     /// Thrown when failing to connect to resource
     /// </summary>
     public class ConnectionException : CommunicationException {
-
         /// <inheritdoc/>
         public ConnectionException(string message) :
             base(message) {

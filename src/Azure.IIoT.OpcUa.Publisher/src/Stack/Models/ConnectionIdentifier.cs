@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Lookup key for connections
     /// </summary>
     public sealed class ConnectionIdentifier {
-
         /// <summary>
         /// Create new key
         /// </summary>
@@ -77,5 +76,4 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
 
         private readonly int _hash;
     }
-
 }

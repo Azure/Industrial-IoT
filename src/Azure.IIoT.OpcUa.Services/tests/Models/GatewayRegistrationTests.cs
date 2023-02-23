@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     using Xunit;
 
     public class GatewayRegistrationTests {
-
         [Fact]
         public void TestEqualIsEqual() {
             var fix = new Fixture();
@@ -42,7 +41,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
         [Fact]
         public void TestEqualIsEqualWithServiceModelConversion() {
-
             var r1 = CreateRegistration();
             var m = r1;
             var r2 = m.ToServiceModel().ToGatewayRegistration();
@@ -102,14 +100,13 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         private static GatewayRegistration CreateRegistration() {
             var fix = new Fixture();
             var cert = fix.CreateMany<byte>(1000).ToArray();
-            var r = fix.Build<GatewayRegistration>()
+            return fix.Build<GatewayRegistration>()
                 .FromFactory(() => new GatewayRegistration(
                     fix.Create<string>()))
                 .Without(x => x.IsDisabled)
                 .Without(x => x.Connected)
                 .Without(x => x.NotSeenSince)
                 .Create();
-            return r;
         }
     }
 }

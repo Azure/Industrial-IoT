@@ -14,7 +14,6 @@ namespace Opc.Ua.Extensions {
     /// Relative path extensions
     /// </summary>
     public static class RelativePathEx {
-
         /// <summary>
         /// Convert to path object
         /// </summary>

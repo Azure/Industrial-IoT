@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// </summary>
     public class WriterGroupJobConfig : IWriterGroupConfig,
         IEngineConfiguration {
-
         /// <inheritdoc/>
         public WriterGroupModel WriterGroup { get; set; }
 

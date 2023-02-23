@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Data monitored item
     /// </summary>
     public class DataMonitoredItemModel : BaseMonitoredItemModel {
-
         /// <summary>
         /// Field id in class
         /// </summary>

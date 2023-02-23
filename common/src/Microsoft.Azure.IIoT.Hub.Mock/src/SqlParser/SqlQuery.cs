@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
     /// Mock device registry query processor
     /// </summary>
     internal sealed class SqlQuery {
-
         /// <summary>
         /// Create Registry
         /// </summary>
@@ -33,7 +32,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="sqlSelectString"></param>
         /// <returns></returns>
         public IEnumerable<VariantValue> Query(string sqlSelectString) {
-
             // Parse
             var lexer = new SqlSelectLexer(new AntlrInputStream(sqlSelectString));
             lexer.RemoveErrorListeners();
@@ -92,7 +90,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="records"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        private IEnumerable<VariantValue> Project(IEnumerable<VariantValue> records,
+        private static IEnumerable<VariantValue> Project(IEnumerable<VariantValue> records,
             SqlSelectParser.ParseContext context) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
@@ -103,7 +101,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
             return records;
         }
 
-
         /// <summary>
         /// Parse string function
         /// </summary>
@@ -111,7 +108,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <returns></returns>
         private Expression<Func<VariantValue, VariantValue>> ParseScalarLambda(
             SqlSelectParser.ScalarFunctionContext context) {
-
             if (context.STARTS_WITH() != null) {
                 return s => _serializer.FromObject(
                     ((string)s).StartsWith(ParseStringValue(context.STRING_LITERAL()),
@@ -133,7 +129,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <returns></returns>
         private Expression<Func<VariantValue, VariantValue>> ParseScalarLambda(
             SqlSelectParser.ScalarTypeFunctionContext context) {
-
             if (context.IS_DEFINED() != null) {
                 return s => _serializer.FromObject(s != null);
             }
@@ -219,7 +214,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <returns></returns>
         private Expression ParseComparisonExpression(ParameterExpression parameter,
             SqlSelectParser.ExprContext context) {
-
             var lhs = ParseParameterBinding(parameter, context.columnName(0));
             Expression rhs;
             if (context.columnName().Length > 1) {
@@ -280,15 +274,14 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
                 return null;
             }
             var root = _serializer.FromObject(target);
-            var selected = root.GetByPath(path);
-            return selected;
+            return root.GetByPath(path);
         }
 
         /// <summary>
         /// Parse target
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="parameter"></param>
+        /// <param name="context"></param>
         /// <param name="aggregateResultColumnNames"></param>
         /// <returns></returns>
         private Expression ParseParameterBinding(ParameterExpression parameter,
@@ -324,7 +317,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="lhs"></param>
         /// <param name="rhs"></param>
         /// <returns></returns>
-        private Expression CreateBinaryExpression(string op, Expression lhs, Expression rhs) {
+        private static Expression CreateBinaryExpression(string op, Expression lhs, Expression rhs) {
             switch (op.ToLowerInvariant()) {
                 case "=":
                     return Expression.Equal(lhs, rhs);
@@ -419,7 +412,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="stringLiteralContext"></param>
         /// <returns></returns>
-        private string ParseStringValue(ITerminalNode stringLiteralContext) {
+        private static string ParseStringValue(ITerminalNode stringLiteralContext) {
             return stringLiteralContext.GetText().TrimQuotes();
         }
 

@@ -12,7 +12,6 @@ namespace System.IO {
     /// Stream extensions
     /// </summary>
     public static class StreamEx {
-
         /// <summary>
         /// Zip string
         /// </summary>
@@ -95,7 +94,7 @@ namespace System.IO {
             var offset = 0;
             try {
                 while (true) {
-                    var read = await stream.ReadAsync(body, offset, body.Length - offset);
+                    var read = await stream.ReadAsync(body, offset, body.Length - offset).ConfigureAwait(false);
                     if (read <= 0) {
                         break;
                     }

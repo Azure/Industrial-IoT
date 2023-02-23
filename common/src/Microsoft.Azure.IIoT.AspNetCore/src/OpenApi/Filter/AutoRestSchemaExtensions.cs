@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
     /// Add extensions for autorest to schemas
     /// </summary>
     internal class AutoRestSchemaExtensions : ISchemaFilter, IParameterFilter, IRequestBodyFilter {
-
         /// <inheritdoc/>
         public void Apply(OpenApiSchema model, SchemaFilterContext context) {
             if (context.Type == null) {
@@ -61,7 +60,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
                 }
                 parameter.Required = context.PropertyInfo
                     .GetCustomAttributes(typeof(RequiredAttribute), true)
-                    .Any();
+                    .Length > 0;
                 AdjustSchema(context.PropertyInfo.PropertyType, parameter.Schema);
             }
             else if (context.ParameterInfo != null) {
@@ -118,4 +117,3 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
         }
     }
 }
-

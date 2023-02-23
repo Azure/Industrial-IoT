@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
     /// Service information
     /// </summary>
     public class ServiceInfo : IProcessIdentity {
-
         /// <summary>
         /// ID
         /// </summary>
@@ -25,7 +24,6 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// Name of service
         /// </summary>
         public string Name => "Engineering-Tool";
-
 
         /// <inheritdoc/>
         public string SiteId { get; }

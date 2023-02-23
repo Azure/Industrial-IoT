@@ -16,15 +16,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
     /// Browser code behind
     /// </summary>
     public class Publisher {
-
         /// <summary>
         /// Create browser
         /// </summary>
         /// <param name="publisherService"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public Publisher(IPublisherServiceApi publisherService, ITwinServiceApi twinService, IJsonSerializer serializer, ILogger logger, UICommon commonHelper) {
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+        public Publisher(IPublisherServiceApi publisherService, ITwinServiceApi twinService, ILogger logger, UICommon commonHelper) {
             _publisherService = publisherService ?? throw new ArgumentNullException(nameof(publisherService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _commonHelper = commonHelper ?? throw new ArgumentNullException(nameof(commonHelper));
@@ -43,13 +41,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
             try {
                 var continuationToken = string.Empty;
                 do {
-                    var result = await _publisherService.NodePublishListAsync(endpointId, continuationToken);
+                    var result = await _publisherService.NodePublishListAsync(endpointId, continuationToken).ConfigureAwait(false);
                     continuationToken = result.ContinuationToken;
 
                     if (result.Items != null) {
                         foreach (var item in result.Items) {
                             model.NodeId = item.NodeId;
-                            var readResponse = readValues ? await _twinService.NodeValueReadAsync(endpointId, model) : null;
+                            var readResponse = readValues ? await _twinService.NodeValueReadAsync(endpointId, model).ConfigureAwait(false) : null;
                             pageResult.Results.Add(new ListNode {
                                 PublishedItem = item,
                                 Value = readResponse?.Value?.ToJson()?.TrimQuotes(),
@@ -63,9 +61,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                var message = $"Cannot get published nodes for endpointId'{endpointId}'";
-                _logger.LogError(e, message);
-                pageResult.Error = message;
+                _logger.LogError(e, "Cannot get published nodes for {Endpoint}.", endpointId);
+                pageResult.Error = $"Cannot get published nodes for endpointId'{endpointId}'";
             }
             pageResult.PageSize = _commonHelper.PageLength;
             pageResult.RowCount = pageResult.Results.Count;
@@ -84,7 +81,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <returns>ErrorStatus</returns>
         public async Task<bool> StartPublishingAsync(string endpointId, string nodeId, string displayName,
             TimeSpan? samplingInterval, TimeSpan? publishingInterval, TimeSpan? heartBeatInterval) {
-
             try {
                 var requestModel = new PublishStartRequestModel() {
                     Item = new PublishedItemModel() {
@@ -95,11 +91,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     }
                 };
 
-                var resultModel = await _publisherService.NodePublishStartAsync(endpointId, requestModel);
+                var resultModel = await _publisherService.NodePublishStartAsync(endpointId, requestModel).ConfigureAwait(false);
                 return resultModel.ErrorInfo == null;
             }
             catch (Exception e) {
-                _logger.LogError(e, "Cannot publish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);
+                _logger.LogError(e, "Cannot publish node {NodeId} on endpointId '{EndpointId}'", nodeId, endpointId);
             }
             return false;
         }
@@ -116,16 +112,15 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     NodeId = nodeId,
                 };
 
-                var resultModel = await _publisherService.NodePublishStopAsync(endpointId, requestModel);
+                var resultModel = await _publisherService.NodePublishStopAsync(endpointId, requestModel).ConfigureAwait(false);
                 return resultModel.ErrorInfo == null;
             }
             catch (Exception e) {
-                _logger.LogError(e, "Cannot unpublish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);
+                _logger.LogError(e, "Cannot unpublish node {NodeId} on endpointId '{EndpointId}'", nodeId, endpointId);
             }
             return false;
         }
 
-        private readonly IJsonSerializer _serializer;
         private readonly IPublisherServiceApi _publisherService;
         private readonly ITwinServiceApi _twinService;
         private readonly ILogger _logger;

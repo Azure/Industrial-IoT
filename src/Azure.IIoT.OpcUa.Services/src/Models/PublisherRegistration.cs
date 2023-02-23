@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// </summary>
     [DataContract]
     public sealed class PublisherRegistration : EntityRegistration {
-
         /// <inheritdoc/>
         [DataMember]
         public override string DeviceType => IdentityType.Publisher;

@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// doesn't exist.
     /// </summary>
     public class ResourceNotFoundException : Exception {
-
         /// <inheritdoc />
         public ResourceNotFoundException() {
         }

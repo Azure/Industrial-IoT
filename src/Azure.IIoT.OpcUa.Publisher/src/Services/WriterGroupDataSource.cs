@@ -27,7 +27,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
     public sealed class WriterGroupDataSource : IMessageSource, IDisposable {
-
         /// <inheritdoc/>
         public event EventHandler<SubscriptionNotificationModel> OnMessage;
 
@@ -56,14 +55,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async ValueTask StartAsync(CancellationToken ct) {
-            await _lock.WaitAsync(ct);
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 Debug.Assert(_subscriptions.Count == 0);
 
                 foreach (var writer in _writerGroup.DataSetWriters) {
                     // Create writer subscriptions
                     var writerSubscription = await DataSetWriterSubscription.CreateAsync(
-                        this, writer, ct);
+                        this, writer, ct).ConfigureAwait(false);
                     _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                 }
             }
@@ -74,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async ValueTask UpdateAsync(WriterGroupJobModel jobConfig, CancellationToken ct) {
-            await _lock.WaitAsync(ct);
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 var writerGroupConfig = jobConfig.ToWriterGroupJobConfiguration(_publisherId);
                 var writerGroup = writerGroupConfig.WriterGroup.Clone();
@@ -82,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 if (writerGroup?.DataSetWriters == null ||
                     writerGroup.DataSetWriters.Count == 0) {
                     foreach (var subscription in _subscriptions.Values) {
-                        await subscription.DisposeAsync();
+                        await subscription.DisposeAsync().ConfigureAwait(false);
                     }
                     _logger.LogInformation("Removed all subscriptions from writer group {Name}.",
                         writerGroup.WriterGroupId);
@@ -97,13 +96,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 foreach (var id in _subscriptions.Keys.ToList()) {
                     if (!dataSetWriterSubscriptionMap.TryGetValue(id, out var writer)) {
                         if (_subscriptions.Remove(id, out var s)) {
-                            await s.DisposeAsync();
+                            await s.DisposeAsync().ConfigureAwait(false);
                         }
                     }
                     else {
                         // Update
                         if (_subscriptions.TryGetValue(id, out var s)) {
-                            await s.UpdateAsync(writer, ct);
+                            await s.UpdateAsync(writer, ct).ConfigureAwait(false);
                         }
                     }
                 }
@@ -112,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     if (!_subscriptions.ContainsKey(writer.Key)) {
                         // Add
                         var writerSubscription = await DataSetWriterSubscription.CreateAsync(
-                            this, writer.Value, ct);
+                            this, writer.Value, ct).ConfigureAwait(false);
                         _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                     }
                 }
@@ -138,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public async ValueTask DisposeAsync() {
             foreach (var s in _subscriptions.Values) {
-                await s.DisposeAsync();
+                await s.DisposeAsync().ConfigureAwait(false);
             }
             _subscriptions.Clear();
         }
@@ -147,7 +146,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Helper to manage subscriptions
         /// </summary>
         private sealed class DataSetWriterSubscription : IAsyncDisposable {
-
             /// <summary>
             /// Subscription id
             /// </summary>
@@ -163,7 +161,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// </summary>
             private DataSetWriterSubscription(WriterGroupDataSource outer,
                 DataSetWriterModel dataSetWriter) {
-
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
                 _dataSetWriter = dataSetWriter?.Clone() ??
                     throw new ArgumentNullException(nameof(dataSetWriter));
@@ -177,7 +174,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             public static async ValueTask<DataSetWriterSubscription> CreateAsync(
                 WriterGroupDataSource outer, DataSetWriterModel dataSetWriter,
                 CancellationToken ct) {
-
                 var dataSetSubscription = new DataSetWriterSubscription(outer, dataSetWriter);
 
                 // Open subscription which creates the underlying OPC UA subscription
@@ -217,9 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     if (Subscription == null) {
                         return;
                     }
-                    if (_metadataTimer != null) {
-                        _metadataTimer.Stop();
-                    }
+                    _metadataTimer?.Stop();
 
                     await CloseAsync().ConfigureAwait(false);
                 }
@@ -257,9 +251,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 Subscription.OnSubscriptionEventDiagnosticsChange
                     += OnSubscriptionEventDiagnosticsChanged;
 
-                if (_metadataTimer != null) {
-                    _metadataTimer.Start();
-                }
+                _metadataTimer?.Start();
                 _outer._logger.LogInformation("Created new subscription {Id} in writer group {Name}.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
@@ -304,7 +296,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// /// Initializes the Metadata triggering mechanism from the cconfiguration model
             /// </summary>
             private void InitializeMetaDataTrigger() {
-
                 var metaDataSendInterval = _dataSetWriter.MetaDataUpdateTime
                     .GetValueOrDefault(TimeSpan.Zero)
                     .TotalMilliseconds;
@@ -340,7 +331,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     return;
                 }
 
-                _outer._logger.LogDebug("Insert metadata message into Subscription {id}...", Id);
+                _outer._logger.LogDebug("Insert metadata message into Subscription {Id}...", Id);
                 var notification = Subscription.CreateKeepAlive();
                 if (notification != null) {
                     // This call udpates the message type, so no need to do it here.

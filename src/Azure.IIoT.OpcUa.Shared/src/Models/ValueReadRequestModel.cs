@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class ValueReadRequestModel {
-
         /// <summary>
         /// Node to read from (mandatory)
         /// </summary>

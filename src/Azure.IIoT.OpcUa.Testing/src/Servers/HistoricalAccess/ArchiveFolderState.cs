@@ -36,14 +36,12 @@ namespace HistoricalAccess {
     /// Stores the metadata for a node representing a folder on a file system.
     /// </summary>
     public class ArchiveFolderState : FolderState {
-#pragma warning disable RECS0154 // Parameter is never used
 #pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Creates a new instance of a folder.
         /// </summary>
         public ArchiveFolderState(ISystemContext context, ArchiveFolder folder, ushort namespaceIndex)
 #pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore RECS0154 // Parameter is never used
         :
             base(null) {
             ArchiveFolder = folder;

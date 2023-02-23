@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Represents id based access to node attributes
     /// </summary>
     public interface INodeAttributes : IEnumerable<KeyValuePair<uint, DataValue>> {
-
         /// <summary>
         /// Retrieve attribute from node or return a
         /// default as per node class

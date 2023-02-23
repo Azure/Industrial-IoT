@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack {
-
     /// <summary>
     /// Transport quota configuration
     /// </summary>
     public interface ITransportQuotaConfig {
-
         /// <summary>
         /// Channel lifetime in milliseconds.
         /// </summary>

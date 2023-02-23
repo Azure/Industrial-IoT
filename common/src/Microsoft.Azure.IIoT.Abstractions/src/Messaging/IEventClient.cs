@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Messaging {
     /// Send events
     /// </summary>
     public interface IEventClient {
-
         /// <summary>
         /// Send event
         /// </summary>

@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// and re-deploy the service.
     /// </summary>
     public class InvalidConfigurationException : Exception {
-
         /// <inheritdoc />
         public InvalidConfigurationException() {
         }

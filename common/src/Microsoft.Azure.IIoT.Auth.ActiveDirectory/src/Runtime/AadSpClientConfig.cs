@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     /// Auth service principal to api configuration
     /// </summary>
     public class AadSpClientConfig : ConfigBase, IOAuthClientConfig {
-
         /// <summary>
         /// Client configuration
         /// </summary>

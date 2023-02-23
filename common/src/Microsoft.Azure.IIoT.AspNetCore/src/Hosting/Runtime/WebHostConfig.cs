@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     /// Web Host configuration
     /// </summary>
     public class WebHostConfig : ConfigBase, IWebHostConfig {
-
         /// <summary>
         /// Host configuration
         /// </summary>

@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// injectable using dependency injection, e.g Autofac.
     /// </summary>
     public interface IHttpMessageHandler : IHttpHandler {
-
         /// <summary>
         /// Relative order to other handlers
         /// </summary>

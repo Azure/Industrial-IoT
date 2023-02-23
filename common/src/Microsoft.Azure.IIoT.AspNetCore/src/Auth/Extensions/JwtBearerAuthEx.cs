@@ -20,12 +20,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using System.Security.Claims;
     using System.Threading.Tasks;
 
-
     /// <summary>
     /// Configure JWT bearer authentication
     /// </summary>
     public static class JwtBearerAuthEx {
-
         /// <summary>
         /// Use jwt bearer auth
         /// </summary>
@@ -42,7 +40,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="provider"></param>
         public static AuthenticationBuilder AddJwtBearerProvider(this AuthenticationBuilder builder,
             string provider) {
-
             builder.Services.TryAddTransient<IServerAuthConfig, ServiceAuthAggregateConfig>();
             // Allow access to context from within token providers and other client auth
             builder.Services.AddHttpContextAccessor();
@@ -52,7 +49,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                 var auth = services.GetRequiredService<IServerAuthConfig>();
                 var environment = services.GetRequiredService<IWebHostEnvironment>();
                 return new ConfigureNamedOptions<JwtBearerOptions>(provider, options => {
-
                     // Find whether the scheme is configurable
                     var config = auth.JwtBearerProviders?
                         .FirstOrDefault(s => s.GetProviderName() == provider);

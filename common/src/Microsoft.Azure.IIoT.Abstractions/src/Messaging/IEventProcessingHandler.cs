@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Messaging {
     /// Handles raw events
     /// </summary>
     public interface IEventProcessingHandler : IHandler {
-
         /// <summary>
         /// Handle event
         /// </summary>

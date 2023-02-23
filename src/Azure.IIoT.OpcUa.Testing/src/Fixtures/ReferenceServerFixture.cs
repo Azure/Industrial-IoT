@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
     /// Reference server fixture
     /// </summary>
     public class ReferenceServerFixture : BaseServerFixture {
-
         /// <summary>
         /// Sample server nodes
         /// </summary>

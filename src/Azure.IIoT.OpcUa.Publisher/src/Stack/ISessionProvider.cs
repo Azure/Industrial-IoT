@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Session services
     /// </summary>
     public interface ISessionProvider<T> {
-
         /// <summary>
         /// Get a connected session
         /// </summary>

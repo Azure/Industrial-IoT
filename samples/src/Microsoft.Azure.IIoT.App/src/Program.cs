@@ -10,8 +10,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Autofac.Extensions.Hosting;
     using System.IO;
 
-    public class Program {
-
+    public static class Program {
         /// <summary>
         /// Start application
         /// </summary>

@@ -12,7 +12,6 @@ namespace Microsoft.Extensions.DependencyInjection {
     /// Extension to configure processing of forwarded headers
     /// </summary>
     public static class ServiceCollectionEx {
-
         /// <summary>
         /// Use header forwarding
         /// </summary>
@@ -20,7 +19,7 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// <returns></returns>
         public static IApplicationBuilder UseHeaderForwarding(this IApplicationBuilder builder) {
             var fhConfig = builder.ApplicationServices.GetService<IForwardedHeadersConfig>();
-            if (fhConfig == null || !fhConfig.AspNetCoreForwardedHeadersEnabled) {
+            if (fhConfig?.AspNetCoreForwardedHeadersEnabled != true) {
                 return builder;
             }
             return builder.UseForwardedHeaders();
@@ -32,7 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// <param name="services"></param>
         public static IServiceCollection AddHeaderForwarding(this IServiceCollection services) {
             var fhConfig = services.BuildServiceProvider().GetService<IForwardedHeadersConfig>();
-            if (fhConfig == null || !fhConfig.AspNetCoreForwardedHeadersEnabled) {
+            if (fhConfig?.AspNetCoreForwardedHeadersEnabled != true) {
                 return services;
             }
             services.Configure<ForwardedHeadersOptions>(options => {

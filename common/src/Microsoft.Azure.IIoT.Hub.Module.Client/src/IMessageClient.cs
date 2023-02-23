@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// The messaging client
     /// </summary>
     public interface IMessageClient {
-
         /// <summary>
         /// Maximum size body of message client can process
         /// </summary>

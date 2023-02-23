@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Diagnostics {
-
     /// <summary>
     /// Configuration interface for prometheus metric server
     /// </summary>
     public interface IMetricServerConfig {
-
         /// <summary>
         /// Metric server port
         /// </summary>

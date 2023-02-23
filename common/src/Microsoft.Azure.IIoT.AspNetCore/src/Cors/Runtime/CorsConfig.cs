@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime {
     /// Cors configuration
     /// </summary>
     public class CorsConfig : ConfigBase, ICorsConfig {
-
         /// <summary>
         /// Cors configuration
         /// </summary>

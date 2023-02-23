@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     [DataContract]
     public class DeviceTwinListModel {
-
         /// <summary>
         /// Continuation token to use for next call or null
         /// </summary>

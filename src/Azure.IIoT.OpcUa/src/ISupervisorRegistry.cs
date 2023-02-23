@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Supervisor registry
     /// </summary>
     public interface ISupervisorRegistry {
-
         /// <summary>
         /// Get all supervisors in paged form
         /// </summary>
@@ -41,8 +40,8 @@ namespace Azure.IIoT.OpcUa {
         /// <summary>
         /// Get supervisor registration by identifer.
         /// </summary>
-        /// <param name="onlyServerState"></param>
         /// <param name="id"></param>
+        /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<SupervisorModel> GetSupervisorAsync(
@@ -52,8 +51,8 @@ namespace Azure.IIoT.OpcUa {
         /// <summary>
         /// Update supervisor, e.g. set discovery mode
         /// </summary>
-        /// <param name="request"></param>
         /// <param name="id"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task UpdateSupervisorAsync(string id,

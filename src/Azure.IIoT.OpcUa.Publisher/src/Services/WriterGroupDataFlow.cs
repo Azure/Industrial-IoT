@@ -20,9 +20,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// Dataflow engine
     /// </summary>
     public class WriterGroupDataFlow : IWriterGroup {
-
         /// <inheritdoc/>
-        public IMessageSource Source => _source;
+        public IMessageSource Source { get; }
 
         /// <summary>
         /// Create engine
@@ -31,18 +30,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             IMessageSink sink, IEngineConfiguration config, ILogger logger,
             IMetricsContext metrics, IWriterGroupDiagnostics diagnostics = null)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
-
             _config = config;
-            _source = source;
+            Source = source;
             _messageSink = sink;
             _messageEncoder = encoder;
             _logger = logger;
             _diagnostics = diagnostics;
 
-            if (_config.BatchSize.HasValue && _config.BatchSize.Value > 1) {
+            if (_config.BatchSize > 1) {
                 _notificationBufferSize = _config.BatchSize.Value;
             }
-            if (_config.MaxMessageSize.HasValue && _config.MaxMessageSize.Value > 0) {
+            if (_config.MaxMessageSize > 0) {
                 _maxEncodedMessageSize = _config.MaxMessageSize.Value;
             }
             if (_maxEncodedMessageSize <= 0) {
@@ -52,9 +50,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 _maxEncodedMessageSize = _messageSink.MaxMessageSize;
             }
 
-            _batchTriggerInterval = _config.BatchTriggerInterval.GetValueOrDefault(TimeSpan.Zero);
+            _batchTriggerInterval = _config.BatchTriggerInterval ?? TimeSpan.Zero;
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
-            _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(4096); // = 1 GB
+            _maxOutgressMessages = _config.MaxOutgressMessages ?? 4096; // = 1 GB
 
             _encodingBlock = new TransformManyBlock<SubscriptionNotificationModel[], ITelemetryEvent>(
                 input => {
@@ -78,27 +76,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             _batchDataSetMessageBlock.LinkTo(_encodingBlock);
             _encodingBlock.LinkTo(_sinkBlock);
 
-            _source.OnMessage += OnMessageReceived;
-            _source.OnCounterReset += MessageTriggerCounterResetReceived;
+            Source.OnMessage += OnMessageReceived;
+            Source.OnCounterReset += MessageTriggerCounterResetReceived;
         }
 
         /// <inheritdoc/>
         public async ValueTask DisposeAsync() {
             try {
                 _batchTriggerIntervalTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-                _source.OnCounterReset -= MessageTriggerCounterResetReceived;
-                _source.OnMessage -= OnMessageReceived;
+                Source.OnCounterReset -= MessageTriggerCounterResetReceived;
+                Source.OnMessage -= OnMessageReceived;
                 _batchDataSetMessageBlock.Complete();
-                await _batchDataSetMessageBlock.Completion;
+                await _batchDataSetMessageBlock.Completion.ConfigureAwait(false);
                 _encodingBlock.Complete();
-                await _encodingBlock.Completion;
+                await _encodingBlock.Completion.ConfigureAwait(false);
                 _sinkBlock.Complete();
-                await _sinkBlock.Completion;
+                await _sinkBlock.Completion.ConfigureAwait(false);
                 _batchTriggerIntervalTimer?.Dispose();
             }
             finally {
                 _diagnostics?.Dispose();
-                await _source.DisposeAsync();
+                await Source.DisposeAsync().ConfigureAwait(false);
             }
         }
 
@@ -178,7 +176,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         private readonly IEngineConfiguration _config;
         private readonly IMessageSink _messageSink;
         private readonly IMessageEncoder _messageEncoder;
-        private readonly IMessageSource _source;
         private readonly ILogger _logger;
         private readonly IWriterGroupDiagnostics _diagnostics;
         private readonly BatchBlock<SubscriptionNotificationModel> _batchDataSetMessageBlock;

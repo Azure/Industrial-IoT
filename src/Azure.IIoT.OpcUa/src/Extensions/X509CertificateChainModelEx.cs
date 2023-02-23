@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Certificate Chain extensions
     /// </summary>
     public static class X509CertificateChainModelEx {
-
         /// <summary>
         /// Convert raw buffer to certificate chain
         /// </summary>
@@ -40,8 +39,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                 return new X509CertificateChainModel {
                     Status = validate ? certificates.Validate() : null,
                     Chain = certificates
-                        .Select(c => c.ToServiceModel())
-                        .ToList()
+                        .ConvertAll(c => c.ToServiceModel())
                 };
             }
             finally {

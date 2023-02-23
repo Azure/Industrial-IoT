@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class HistoryUpdateResponseModel {
-
         /// <summary>
         /// List of results from the update operation
         /// </summary>

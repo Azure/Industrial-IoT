@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     [Flags]
     [DataContract]
     public enum NodeEventNotifier {
-
         /// <summary>
         /// The Object or View produces event
         /// notifications.

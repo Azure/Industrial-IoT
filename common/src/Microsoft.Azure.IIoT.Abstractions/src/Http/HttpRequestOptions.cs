@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Http request options
     /// </summary>
     public class HttpRequestOptions {
-
         /// <summary>
         /// Request timeout
         /// </summary>

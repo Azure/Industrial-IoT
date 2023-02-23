@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.App.Extensions {
     /// Handle event
     /// </summary>
     public static class EndpointInfoEx {
-
         /// <summary>
         /// Update a list of endpoints from a received event
         /// </summary>

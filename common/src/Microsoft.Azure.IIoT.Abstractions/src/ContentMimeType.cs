@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT {
-
     /// <summary>
     /// Content mime types
     /// </summary>
     public static class ContentMimeType {
-
         /// <summary>
         /// Binary blob
         /// </summary>

@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Constants for diagnostics
     /// </summary>
     internal static class Constants {
-
         /// <summary>
         /// Default dataset writer id
         /// </summary>

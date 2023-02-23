@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace System.Security.Claims {
-
     /// <summary>
     /// Model extensions
     /// </summary>
     public static class ClaimsPrincipalEx {
-
         /// <summary>
         /// Gets the unique object ID associated with the <see cref="ClaimsPrincipal"/>
         /// </summary>

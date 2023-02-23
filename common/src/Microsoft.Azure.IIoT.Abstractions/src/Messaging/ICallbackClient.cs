@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Messaging {
     /// Factory to get callback registrations
     /// </summary>
     public interface ICallbackClient {
-
         /// <summary>
         /// Get callback registration interface for hub
         /// at endoint

@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// Device twin model extensions
     /// </summary>
     public static class DeviceTwinModelEx {
-
         /// <summary>
         /// Convert twin to twin
         /// </summary>
@@ -56,8 +55,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <summary>
         /// Convert to twin properties model
         /// </summary>
-        /// <param name="props"></param>
         /// <param name="serializer"></param>
+        /// <param name="props"></param>
         /// <returns></returns>
         public static Dictionary<string, VariantValue> DeserializeTwinProperties(
             this IJsonSerializer serializer, TwinCollection props) {

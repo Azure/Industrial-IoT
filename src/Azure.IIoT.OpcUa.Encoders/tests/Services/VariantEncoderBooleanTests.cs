@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     using Xunit;
 
     public class VariantEncoderBooleanTests {
-
         [Fact]
         public void DecodeEncodeBooleanFromJValue() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
@@ -58,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanFromString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "true";
+            const string str = "true";
             var variant = codec.Decode(str, BuiltInType.Boolean);
             var expected = new Variant(true);
             var encoded = codec.Encode(variant);
@@ -69,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanArrayFromString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "true, true, false";
+            const string str = "true, true, false";
             var variant = codec.Decode(str, BuiltInType.Boolean);
             var expected = new Variant(new bool[] { true, true, false });
             var encoded = codec.Encode(variant);
@@ -80,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanArrayFromString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[true, true, false]";
+            const string str = "[true, true, false]";
             var variant = codec.Decode(str, BuiltInType.Boolean);
             var expected = new Variant(new bool[] { true, true, false });
             var encoded = codec.Encode(variant);
@@ -91,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanArrayFromString3() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[]";
+            const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.Boolean);
             var expected = new Variant(System.Array.Empty<bool>());
             var encoded = codec.Encode(variant);
@@ -102,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanFromStringTypeNull() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "true";
+            const string str = "true";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(true);
             var encoded = codec.Encode(variant);
@@ -112,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanArrayFromStringTypeNull1() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "true, true, false";
+            const string str = "true, true, false";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new bool[] { true, true, false });
             var encoded = codec.Encode(variant);
@@ -123,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanArrayFromStringTypeNull2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[true, true, false]";
+            const string str = "[true, true, false]";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new bool[] { true, true, false });
             var encoded = codec.Encode(variant);
@@ -134,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanArrayFromStringTypeNullIsNull() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[]";
+            const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = Variant.Null;
             var encoded = codec.Encode(variant);
@@ -144,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanFromQuotedString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "\"true\"";
+            const string str = "\"true\"";
             var variant = codec.Decode(str, BuiltInType.Boolean);
             var expected = new Variant(true);
             var encoded = codec.Encode(variant);
@@ -155,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanFromSinglyQuotedString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "  'true'";
+            const string str = "  'true'";
             var variant = codec.Decode(str, BuiltInType.Boolean);
             var expected = new Variant(true);
             var encoded = codec.Encode(variant);
@@ -166,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanArrayFromQuotedString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "\"true\",'true',\"false\"";
+            const string str = "\"true\",'true',\"false\"";
             var variant = codec.Decode(str, BuiltInType.Boolean);
             var expected = new Variant(new bool[] { true, true, false });
             var encoded = codec.Encode(variant);
@@ -177,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeBooleanArrayFromQuotedString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = " [\"true\",'true',\"false\"] ";
+            const string str = " [\"true\",'true',\"false\"] ";
             var variant = codec.Decode(str, BuiltInType.Boolean);
             var expected = new Variant(new bool[] { true, true, false });
             var encoded = codec.Encode(variant);

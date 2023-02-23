@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT {
     /// Host
     /// </summary>
     public interface IHostProcess {
-
         /// <summary>
         /// Start host
         /// </summary>

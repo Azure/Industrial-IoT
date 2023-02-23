@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
     [Version("_V2")]
     [ExceptionsFilter]
     public class DiscoveryMethodsController : IMethodController {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -39,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (endpoint == null) {
                 throw new ArgumentNullException(nameof(endpoint));
             }
-            return await _servers.FindServerAsync(endpoint);
+            return await _servers.FindServerAsync(endpoint).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -51,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _discover.RegisterAsync(request);
+            await _discover.RegisterAsync(request).ConfigureAwait(false);
             return true;
         }
 
@@ -64,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _discover.DiscoverAsync(request);
+            await _discover.DiscoverAsync(request).ConfigureAwait(false);
             return true;
         }
 
@@ -77,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _discover.CancelAsync(request);
+            await _discover.CancelAsync(request).ConfigureAwait(false);
             return true;
         }
 

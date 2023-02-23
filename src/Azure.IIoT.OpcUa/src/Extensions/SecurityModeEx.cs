@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-
     /// <summary>
     /// Security mode enumeration extensions
     /// </summary>
     public static class SecurityModeEx {
-
         /// <summary>
         /// Match security mode to filter
         /// </summary>

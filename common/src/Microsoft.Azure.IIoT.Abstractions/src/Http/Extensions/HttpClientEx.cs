@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Http client extensions
     /// </summary>
     public static class HttpClientEx {
-
         /// <summary>
         /// New request from string
         /// </summary>

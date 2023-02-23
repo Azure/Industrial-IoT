@@ -29,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     /// Publisher module host process
     /// </summary>
     public class Program {
-
         /// <summary>
         /// Entry point
         /// </summary>
@@ -108,19 +107,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
 
                 if (deviceId == null) {
                     deviceId = Utils.GetHostName();
-                    logger.LogInformation($"Using <deviceId> '{deviceId}'");
+                    logger.LogInformation("Using <deviceId> '{DeviceId}'", deviceId);
                 }
                 if (moduleId == null) {
                     moduleId = "publisher";
-                    logger.LogInformation($"Using <moduleId> '{moduleId}'");
+                    logger.LogInformation("Using <moduleId> '{ModuleId}'", moduleId);
                 }
 
                 args = unknownArgs.ToArray();
             }
             catch (Exception e) {
-                logger.LogError(e.Message);
                 logger.LogError(
-                    @"
+                    @"{Error}
+
 Usage:       Azure.IIoT.OpcUa.Publisher.Module.Cli [options]
 
 Options:
@@ -132,14 +131,12 @@ Options:
     --help
      -?
      -h      Prints out this help.
-"
-                    );
+",
+                    e.Message);
                 return;
             }
 
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => {
-                logger.LogError(e.ExceptionObject as Exception, "Exception");
-            };
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Exception");
 
             var tasks = new List<Task>(instances);
             try {
@@ -166,17 +163,17 @@ Options:
         private static async Task HostAsync(IIoTHubConfig config, ILogger logger,
             string deviceId, string moduleId, string[] args, bool verbose = false,
             bool acceptAll = false) {
-            logger.LogInformation("Create or retrieve connection string for {deviceId} {moduleId}...",
+            logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
                 deviceId, moduleId);
 
-            var cs = await Retry2.WithExponentialBackoff(logger,
-                () => AddOrGetAsync(config, deviceId, moduleId, logger));
+            var cs = await Retry2.WithExponentialBackoffAsync(logger,
+                () => AddOrGetAsync(config, deviceId, moduleId, logger)).ConfigureAwait(false);
 
             Run(logger, deviceId, moduleId, args, verbose, acceptAll, cs);
 
             static void Run(ILogger logger, string deviceId, string moduleId, string[] args,
                 bool verbose, bool acceptAll, ConnectionString cs) {
-                logger.LogInformation("Starting publisher module {deviceId} {moduleId}...",
+                logger.LogInformation("Starting publisher module {DeviceId} {ModuleId}...",
                     deviceId, moduleId);
                 var arguments = args.ToList();
                 arguments.Add($"--ec={cs}");
@@ -184,7 +181,7 @@ Options:
                     arguments.Add("--aa");
                 }
                 Module.Program.Main(arguments.ToArray());
-                logger.LogInformation("Publisher module {deviceId} {moduleId} exited.",
+                logger.LogInformation("Publisher module {DeviceId} {ModuleId} exited.",
                     deviceId, moduleId);
             }
         }
@@ -207,7 +204,7 @@ Options:
                     logger.LogInformation("Server exiting - tear down publisher...");
                     cts.Cancel();
 
-                    await host;
+                    await host.ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
@@ -229,29 +226,27 @@ Options:
                     Capabilities = new DeviceCapabilitiesModel {
                         IotEdge = true
                     }
-                }, false, CancellationToken.None);
+                }, false, default).ConfigureAwait(false);
             }
             catch (ConflictingResourceException) {
-                logger.LogInformation("Gateway {deviceId} exists.", deviceId);
+                logger.LogInformation("Gateway {DeviceId} exists.", deviceId);
             }
             try {
                 await registry.CreateOrUpdateAsync(new DeviceTwinModel {
                     Id = deviceId,
                     ModuleId = moduleId
-                }, false, CancellationToken.None);
+                }, false, default).ConfigureAwait(false);
             }
             catch (ConflictingResourceException) {
-                logger.LogInformation("Module {moduleId} exists...", moduleId);
+                logger.LogInformation("Module {ModuleId} exists...", moduleId);
             }
-            var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
-            return cs;
+            return await registry.GetConnectionStringAsync(deviceId, moduleId).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Wraps server and disposes after use
         /// </summary>
         private class ServerWrapper : IDisposable {
-
             public string EndpointUrl { get; }
 
             /// <summary>
@@ -283,9 +278,9 @@ Options:
                     AutoAccept = true
                 }) {
                     logger.LogInformation("Starting server.");
-                    await server.StartAsync(new List<int> { 51210 });
+                    await server.StartAsync(new List<int> { 51210 }).ConfigureAwait(false);
                     logger.LogInformation("Server started.");
-                    await tcs.Task;
+                    await tcs.Task.ConfigureAwait(false);
                     logger.LogInformation("Server exited.");
                 }
             }

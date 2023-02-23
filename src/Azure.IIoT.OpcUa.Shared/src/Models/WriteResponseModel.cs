@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class WriteResponseModel {
-
         /// <summary>
         /// All results of attribute writes
         /// </summary>

@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime {
 
     /// <inheritdoc/>
     public class KeyVaultConfig : ConfigBase, IKeyVaultConfig {
-
         /// <summary>
         /// Key Vault configuration
         /// </summary>

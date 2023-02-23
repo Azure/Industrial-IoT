@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Variable extensions
     /// </summary>
     public static class PublishedDataSetVariableModelEx {
-
         /// <summary>
         /// Convert published dataset variable to monitored item
         /// </summary>

@@ -28,7 +28,6 @@
  * ======================================================================*/
 
 namespace HistoricalAccess {
-
     /// <summary>
     /// Defines the possible tag data types
     /// </summary>

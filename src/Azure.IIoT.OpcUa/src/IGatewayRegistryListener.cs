@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa {
     /// Gateway registry change listener
     /// </summary>
     public interface IGatewayRegistryListener {
-
         /// <summary>
         /// Called when gateway is created
         /// </summary>

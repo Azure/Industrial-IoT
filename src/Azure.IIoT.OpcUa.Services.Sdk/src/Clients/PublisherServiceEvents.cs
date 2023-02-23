@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Utils;
@@ -18,14 +19,13 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
     /// Publisher service events
     /// </summary>
     public class PublisherServiceEvents : IPublisherServiceEvents, IPublisherEventApi {
-
         /// <summary>
         /// Event client
         /// </summary>
         /// <param name="httpClient"></param>
+        /// <param name="client"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        /// <param name="client"></param>
         public PublisherServiceEvents(IHttpClient httpClient, ICallbackClient client,
             IServiceApiConfig config, ISerializer serializer) :
             this(httpClient, client, config?.ServiceUrl, serializer) {
@@ -50,22 +50,20 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
 
-
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(string endpointId,
             Func<MonitoredItemMessageModel, Task> callback) {
-
             if (callback == null) {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events", Resource.Platform);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events", Resource.Platform).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.PublisherSampleTarget, callback);
             try {
                 await NodePublishSubscribeByEndpointAsync(endpointId, hub.ConnectionId,
-                    CancellationToken.None);
+                    default).ConfigureAwait(false);
                 return new AsyncDisposable(registration,
                     () => NodePublishUnsubscribeByEndpointAsync(endpointId,
-                        hub.ConnectionId, CancellationToken.None));
+                        hub.ConnectionId, default));
             }
             catch {
                 registration.Dispose();

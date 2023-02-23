@@ -3,7 +3,6 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-
 namespace Microsoft.Azure.IIoT.Auth.Storage {
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Identity.Client;
@@ -14,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Auth.Storage {
     /// Decorates a client with a cache to keep tokens
     /// </summary>
     public class MsalClientApplicationDecorator<T> where T : IClientApplicationBase {
-
         /// <inheritdoc/>
         public T Client { get; }
 
@@ -35,14 +33,13 @@ namespace Microsoft.Azure.IIoT.Auth.Storage {
         /// </summary>
         /// <returns></returns>
         public virtual async Task ClearCacheAsync() {
-            await _userTokenCache.ClearAsync();
+            await _userTokenCache.ClearAsync().ConfigureAwait(false);
         }
 
         /// <summary>
         /// Token cache provider
         /// </summary>
         protected sealed class MsalTokenCacheDecorator {
-
             /// <summary>
             /// Create token cache
             /// </summary>
@@ -61,21 +58,21 @@ namespace Microsoft.Azure.IIoT.Auth.Storage {
                 if (args.HasStateChanged) {
                     if (!string.IsNullOrWhiteSpace(_cacheKey)) {
                         await _cache.SetAsync(_cacheKey, args.TokenCache.SerializeMsalV3(),
-                            DateTimeOffset.UtcNow + TimeSpan.FromDays(1));
+                            DateTimeOffset.UtcNow + TimeSpan.FromDays(1)).ConfigureAwait(false);
                     }
                 }
             }
 
             private async Task OnBeforeAccessAsync(TokenCacheNotificationArgs args) {
                 if (!string.IsNullOrEmpty(_cacheKey)) {
-                    var tokenCacheBytes = await _cache.GetAsync(_cacheKey);
+                    var tokenCacheBytes = await _cache.GetAsync(_cacheKey).ConfigureAwait(false);
                     args.TokenCache.DeserializeMsalV3(tokenCacheBytes, shouldClearExistingCache: true);
                 }
             }
 
             /// <inheritdoc/>
             public async Task ClearAsync() {
-                await _cache.RemoveAsync(_cacheKey);
+                await _cache.RemoveAsync(_cacheKey).ConfigureAwait(false);
             }
 
             private readonly ICache _cache;

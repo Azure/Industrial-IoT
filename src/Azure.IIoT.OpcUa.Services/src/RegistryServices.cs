@@ -12,13 +12,11 @@ namespace Azure.IIoT.OpcUa.Services {
     /// Injected registry services
     /// </summary>
     public sealed class RegistryServices : Module {
-
         /// <summary>
         /// Load the module
         /// </summary>
         /// <param name="builder"></param>
         protected override void Load(ContainerBuilder builder) {
-
             // Services
             builder.RegisterType<ApplicationRegistry>()
                 .AsImplementedInterfaces().SingleInstance();

@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public enum EndpointConnectivityState {
-
         /// <summary>
         /// Client connecting to endpoint
         /// </summary>

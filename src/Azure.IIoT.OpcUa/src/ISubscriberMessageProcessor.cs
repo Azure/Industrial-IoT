@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Publisher sample processing
     /// </summary>
     public interface ISubscriberMessageProcessor {
-
         /// <summary>
         /// Handle individual messages
         /// </summary>

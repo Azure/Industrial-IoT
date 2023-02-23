@@ -27,14 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-
 namespace Boiler {
     using Opc.Ua;
     using Opc.Ua.Server;
 
     /// <inheritdoc/>
     public class BoilerServer : INodeManagerFactory {
-
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
@@ -44,11 +42,10 @@ namespace Boiler {
         /// <inheritdoc/>
         public StringCollection NamespacesUris {
             get {
-                var nameSpaces = new StringCollection {
+                return new StringCollection {
                     Namespaces.Boiler,
                     Namespaces.Boiler + "Instance"
                 };
-                return nameSpaces;
             }
         }
     }

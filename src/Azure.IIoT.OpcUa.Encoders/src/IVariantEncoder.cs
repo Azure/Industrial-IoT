@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     /// Variant codec
     /// </summary>
     public interface IVariantEncoder {
-
         /// <summary>
         /// Get context
         /// </summary>

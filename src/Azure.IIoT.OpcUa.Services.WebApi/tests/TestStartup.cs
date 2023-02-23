@@ -27,7 +27,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
     /// Startup class for tests
     /// </summary>
     public class TestStartup : Startup {
-
         /// <summary>
         /// Create startup
         /// </summary>

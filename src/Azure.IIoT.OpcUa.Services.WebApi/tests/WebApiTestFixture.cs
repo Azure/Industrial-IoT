@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
 
     /// <inheritdoc/>
     public class WebApiTestFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory {
-
         public static IEnumerable<object[]> GetSerializers() {
             yield return new object[] { new MessagePackSerializer() };
             yield return new object[] { new NewtonsoftJsonSerializer() };

@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Service model extensions for discovery service
     /// </summary>
     public static class DiscovererModelEx {
-
         /// <summary>
         /// Equality comparison
         /// </summary>

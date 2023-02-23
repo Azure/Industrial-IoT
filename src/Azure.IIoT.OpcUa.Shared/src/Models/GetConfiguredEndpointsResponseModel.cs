@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class GetConfiguredEndpointsResponseModel {
-
         /// <summary>
         /// Collection of Endpoints in the configuration
         /// </summary>

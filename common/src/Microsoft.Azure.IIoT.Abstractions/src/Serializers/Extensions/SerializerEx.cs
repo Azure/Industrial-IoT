@@ -3,43 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Furly.Extensions.Serializers {
+namespace Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions {
+    using Furly.Extensions.Serializers;
+    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
     using Microsoft.Azure.IIoT.Http;
     using System;
-    using System.Buffers;
     using System.IO;
 
     /// <summary>
     /// Serializer extensions
     /// </summary>
     public static class SerializerEx {
-        /// <summary>
-        /// Serialize to byte array
-        /// </summary>
-        /// <param name="serializer"></param>
-        /// <param name="o"></param>
-        /// <param name="format"></param>
-        public static ReadOnlySpan<byte> SerializeToBytes(
-            this ISerializer serializer, object o,
-            SerializeOption format = SerializeOption.None) {
-            var writer = new ArrayBufferWriter<byte>();
-            serializer.Serialize(writer, o, format);
-            return writer.WrittenSpan;
-        }
-
-        /// <summary>
-        /// Serialize to string
-        /// </summary>
-        /// <param name="serializer"></param>
-        /// <param name="o"></param>
-        /// <param name="format"></param>
-        public static string SerializeToString(this ISerializer serializer,
-            object o, SerializeOption format = SerializeOption.None) {
-            var span = serializer.SerializeToBytes(o, format);
-            return serializer.ContentEncoding?.GetString(span)
-                ?? Convert.ToBase64String(span);
-        }
-
         /// <summary>
         /// Set accept headers
         /// </summary>
@@ -70,7 +44,7 @@ namespace Furly.Extensions.Serializers {
                 throw new ArgumentNullException(nameof(request));
             }
             serializer.SetAcceptHeaders(request);
-            request.SetByteArrayContent(serializer.SerializeToBytes(o).ToArray(),
+            request.SetByteArrayContent(serializer.SerializeToMemory(o).ToArray(),
                  serializer.MimeType, serializer.ContentEncoding);
         }
 
@@ -98,27 +72,14 @@ namespace Furly.Extensions.Serializers {
             return serializer.Parse(response.Content);
         }
 
-
         /// <summary>
         /// Serialize into indented string
         /// </summary>
         /// <param name="serializer"></param>
         /// <param name="o"></param>
         /// <returns></returns>
-        public static string SerializePretty(
-            this ISerializer serializer, object o) {
-            return serializer.SerializeToString(o, SerializeOption.Indented);
-        }
-
-        /// <summary>
-        /// Serialize into indented string
-        /// </summary>
-        /// <param name="serializer"></param>
-        /// <param name="a"></param>
-        /// <returns></returns>
-        public static string SerializeArrayPretty(
-            this ISerializer serializer, params object[] a) {
-            return serializer.SerializeToString(a, SerializeOption.Indented);
+        public static string SerializePretty(this ISerializer serializer, object o) {
+            return serializer.SerializeObjectToString(o, format: SerializeOption.Indented);
         }
 
         /// <summary>
@@ -132,45 +93,5 @@ namespace Furly.Extensions.Serializers {
             TextReader reader) {
             return serializer.Deserialize<T>(reader.ReadToEnd());
         }
-
-#if ZOMBIE
-
-        /// <summary>
-        /// Deserialize from reader
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="serializer"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public static T Deserialize<T>(this ISerializer serializer,
-            ReadOnlyMemory<byte> buffer) {
-            return (T)serializer.Deserialize(buffer, typeof(T));
-        }
-
-        /// <summary>
-        /// Deserialize from string
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="serializer"></param>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public static T Deserialize<T>(this ISerializer serializer,
-            string json) {
-            var typed = serializer.Deserialize(json, typeof(T));
-            return typed == null ? default : (T)typed;
-        }
-
-        /// <summary>
-        /// Convert to token.
-        /// </summary>
-        /// <param name="serializer"></param>
-        /// <param name="a"></param>
-        /// <returns></returns>
-        public static VariantValue FromArray(this ISerializer serializer,
-            params object[] a) {
-            return serializer.FromObject(a);
-        }
-
-#endif
     }
 }

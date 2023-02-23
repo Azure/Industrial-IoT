@@ -35,9 +35,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         private static readonly TimeSpan kRegexTimeoutMilliseconds = TimeSpan.FromMilliseconds(500);
         private static readonly Regex kIdNameRegex = new(@"^[A-Za-z0-9\-:.+%_#*?!(),=@;$']{1,128}$", kCommonRegexOptions, kRegexTimeoutMilliseconds);
         private static readonly Regex kHostNameRegex = new(@"^[a-zA-Z0-9_\-\.]+.(azure-devices\.net)$", kCommonRegexOptions, kRegexTimeoutMilliseconds);
-        private static readonly Regex kSharedAccessSignatureRegex = new(@"^(SharedAccessSignature)(( |&)((sr)|(sig)|(se))=.+){3}$", kCommonRegexOptions, kRegexTimeoutMilliseconds);
-        private static readonly Regex kSasResourceUriRegex = new(@"^SharedAccessSignature.+(sr=).+(&|$)", kCommonRegexOptions, kRegexTimeoutMilliseconds);
-        private static readonly Regex kSasSignatureRegex = new(@"^SharedAccessSignature.+(sig=).+(&|$)", kCommonRegexOptions, kRegexTimeoutMilliseconds);
+        private static readonly Regex kSharedAccessSignatureRegex = new("^(SharedAccessSignature)(( |&)((sr)|(sig)|(se))=.+){3}$", kCommonRegexOptions, kRegexTimeoutMilliseconds);
+        private static readonly Regex kSasResourceUriRegex = new("^SharedAccessSignature.+(sr=).+(&|$)", kCommonRegexOptions, kRegexTimeoutMilliseconds);
+        private static readonly Regex kSasSignatureRegex = new("^SharedAccessSignature.+(sig=).+(&|$)", kCommonRegexOptions, kRegexTimeoutMilliseconds);
         private static readonly Regex kSasExpiryRegex = new(@"^SharedAccessSignature.+(se=)\d+(&|$)", kCommonRegexOptions, kRegexTimeoutMilliseconds);
 
         /// <summary>

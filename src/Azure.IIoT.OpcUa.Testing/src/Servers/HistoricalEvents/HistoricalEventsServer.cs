@@ -27,14 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-
 namespace HistoricalEvents {
     using Opc.Ua;
     using Opc.Ua.Server;
 
     /// <inheritdoc/>
     public class HistoricalEventsServer : INodeManagerFactory {
-
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
@@ -43,10 +41,9 @@ namespace HistoricalEvents {
         /// <inheritdoc/>
         public StringCollection NamespacesUris {
             get {
-                var nameSpaces = new StringCollection {
+                return new StringCollection {
                     Namespaces.HistoricalEvents,
                 };
-                return nameSpaces;
             }
         }
     }

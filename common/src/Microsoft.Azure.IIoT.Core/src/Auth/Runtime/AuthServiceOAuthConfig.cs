@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     /// Auth service oauth configuration
     /// </summary>
     public class AuthServiceOAuthConfig : ConfigBase, IOAuthClientConfig, IOAuthServerConfig {
-
         /// <summary>
         /// Client configuration
         /// </summary>

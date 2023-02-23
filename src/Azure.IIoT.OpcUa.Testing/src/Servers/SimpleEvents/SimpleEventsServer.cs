@@ -27,14 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-
 namespace SimpleEvents {
     using Opc.Ua;
     using Opc.Ua.Server;
 
     /// <inheritdoc/>
     public class SimpleEventsServer : INodeManagerFactory {
-
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
@@ -44,10 +42,9 @@ namespace SimpleEvents {
         /// <inheritdoc/>
         public StringCollection NamespacesUris {
             get {
-                var nameSpaces = new StringCollection {
+                return new StringCollection {
                     Namespaces.SimpleEvents,
                 };
-                return nameSpaces;
             }
         }
     }

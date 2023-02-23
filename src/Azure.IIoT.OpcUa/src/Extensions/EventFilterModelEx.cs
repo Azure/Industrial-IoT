@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Event filter extensions
     /// </summary>
     public static class EventFilterModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

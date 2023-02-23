@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Http.Exceptions {
     /// Retriable exception
     /// </summary>
     public class HttpTransientException : HttpResponseException, ITransientException {
-
         /// <inheritdoc />
         public HttpTransientException(HttpStatusCode statusCode) :
             base(statusCode) {

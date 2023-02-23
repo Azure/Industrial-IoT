@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
     /// Module configuration
     /// </summary>
     public class ModuleConfig : ConfigBase {
-
         /// <summary>
         /// Module configuration
         /// </summary>

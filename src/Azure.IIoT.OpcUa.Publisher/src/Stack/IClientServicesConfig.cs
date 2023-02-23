@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Client services configuration
     /// </summary>
     public interface IClientServicesConfig : ITransportQuotaConfig, ISecurityConfig {
-
         /// <summary>
         /// Application name
         /// </summary>

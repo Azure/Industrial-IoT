@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// Device model extensions
     /// </summary>
     public static class DeviceModelEx {
-
         /// <summary>
         /// Clone twin
         /// </summary>

@@ -10,12 +10,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Handle event
     /// </summary>
     public static class SupervisorModelEx {
-
         /// <summary>
         /// Update a discover
         /// </summary>
-        /// <param name="supervisor"></param>
         /// <param name="update"></param>
+        /// <param name="supervisor"></param>
         public static SupervisorModel Patch(this SupervisorModel update,
             SupervisorModel supervisor) {
             if (update == null) {

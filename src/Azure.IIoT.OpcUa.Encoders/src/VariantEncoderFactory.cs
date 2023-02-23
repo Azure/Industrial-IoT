@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     /// Json variant codec
     /// </summary>
     public class VariantEncoderFactory : IVariantEncoderFactory {
-
         /// <summary>
         /// Create encoder
         /// </summary>

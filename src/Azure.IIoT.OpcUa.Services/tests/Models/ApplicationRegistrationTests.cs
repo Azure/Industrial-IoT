@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     using Xunit;
 
     public class ApplicationRegistrationTests {
-
         [Fact]
         public void TestEqualIsEqual() {
             var r1 = CreateRegistration();
@@ -121,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <returns></returns>
         private static ApplicationRegistration CreateRegistration() {
             var fix = new Fixture();
-            var r1 = fix.Build<ApplicationRegistration>()
+            return fix.Build<ApplicationRegistration>()
                 .With(x => x.Capabilities, fix.CreateMany<string>().ToHashSet()
                     .EncodeAsDictionary(true))
                 .With(x => x.DiscoveryUrls, fix.CreateMany<string>().ToList()
@@ -131,7 +130,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)
                 .Create();
-            return r1;
         }
 
         private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();

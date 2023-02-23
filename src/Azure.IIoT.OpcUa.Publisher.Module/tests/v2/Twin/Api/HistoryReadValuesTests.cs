@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api {
 
     [Collection(HistoryServerReadCollection.Name)]
     public class HistoryReadValuesTests : IClassFixture<PublisherModuleFixture> {
-
         public HistoryReadValuesTests(HistoryServerFixture server, PublisherModuleFixture module) {
             _server = server;
             _module = module;
@@ -47,22 +46,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api {
 
         [Fact]
         public async Task HistoryReadInt64ValuesTest1Async() {
-            await GetTests().HistoryReadInt64ValuesTest1Async();
+            await GetTests().HistoryReadInt64ValuesTest1Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task HistoryReadInt64ValuesTest2Async() {
-            await GetTests().HistoryReadInt64ValuesTest2Async();
+            await GetTests().HistoryReadInt64ValuesTest2Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task HistoryReadInt64ValuesTest3Async() {
-            await GetTests().HistoryReadInt64ValuesTest3Async();
+            await GetTests().HistoryReadInt64ValuesTest3Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task HistoryReadInt64ValuesTest4Async() {
-            await GetTests().HistoryReadInt64ValuesTest4Async();
+            await GetTests().HistoryReadInt64ValuesTest4Async().ConfigureAwait(false);
         }
     }
 }

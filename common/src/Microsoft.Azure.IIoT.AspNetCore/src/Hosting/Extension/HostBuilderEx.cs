@@ -11,7 +11,6 @@ namespace Autofac.Extensions.Hosting {
     /// Use autofac
     /// </summary>
     public static class HostBuilderEx {
-
         /// <summary>
         /// Add autofac
         /// </summary>

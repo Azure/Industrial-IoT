@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Endpoint manager extensions
     /// </summary>
     public static class EndpointManagerEx {
-
         /// <summary>
         /// Register endpoint
         /// </summary>

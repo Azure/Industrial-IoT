@@ -36,7 +36,6 @@ namespace Opc.Ua.Aggregates {
     /// An object that manages aggregate factories supported by the server.
     /// </summary>
     public class AggregateManager : IDisposable {
-
         /// <summary>
         /// Initilizes the manager.
         /// </summary>
@@ -64,7 +63,6 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "_requestTimer")]
         protected virtual void Dispose(bool disposing) {
             if (disposing) {
                 // TBD
@@ -185,7 +183,6 @@ namespace Opc.Ua.Aggregates {
             lock (_lock) {
                 _factories[aggregateId] = factory;
             }
-
         }
 
         /// <summary>

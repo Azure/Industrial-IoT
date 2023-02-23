@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class ReadController : ControllerBase {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -50,8 +49,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadEventsAsync(endpointId, request);
-            return readresult;
+            return await _historian.HistoryReadEventsAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -72,8 +70,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadEventsNextAsync(endpointId, request);
-            return readresult;
+            return await _historian.HistoryReadEventsNextAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -94,8 +91,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadValuesAsync(endpointId, request);
-            return readresult;
+            return await _historian.HistoryReadValuesAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -116,8 +112,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadValuesAtTimesAsync(endpointId, request);
-            return readresult;
+            return await _historian.HistoryReadValuesAtTimesAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -138,8 +133,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadProcessedValuesAsync(endpointId, request);
-            return readresult;
+            return await _historian.HistoryReadProcessedValuesAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -160,8 +154,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadModifiedValuesAsync(endpointId, request);
-            return readresult;
+            return await _historian.HistoryReadModifiedValuesAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -182,8 +175,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadValuesNextAsync(endpointId, request);
-            return readresult;
+            return await _historian.HistoryReadValuesNextAsync(endpointId, request).ConfigureAwait(false);
         }
 
         private readonly IHistoryServices<string> _historian;

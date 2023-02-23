@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     [DataContract]
     [Flags]
     public enum DataSetContentMask {
-
         /// <summary>
         /// Timestamp
         /// </summary>
@@ -63,6 +62,15 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         SequenceNumber = 0x80,
 
         /// <summary>
+        /// Default Uadp
+        /// </summary>
+        [EnumMember]
+        DefaultUadp = SequenceNumber |
+            DataSetWriterId | Timestamp |
+            MajorVersion | MinorVersion |
+            Status | PicoSeconds,
+
+        /// <summary>
         /// Message type (json)
         /// </summary>
         [EnumMember]
@@ -75,12 +83,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         DataSetWriterName = 0x200,
 
         /// <summary>
-        /// Reversible encoding (json)
-        /// </summary>
-        [EnumMember]
-        ReversibleFieldEncoding = 0x400,
-
-        /// <summary>
         /// Default non-reversible json
         /// </summary>
         [EnumMember]
@@ -89,12 +91,9 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
             Timestamp | MetaDataVersion | Status,
 
         /// <summary>
-        /// Default Uadp
+        /// Reversible encoding (json)
         /// </summary>
         [EnumMember]
-        DefaultUadp = MinorVersion | SequenceNumber |
-            DataSetWriterId | Timestamp |
-            MajorVersion | MinorVersion |
-            Status | PicoSeconds,
+        ReversibleFieldEncoding = 0x400,
     }
 }

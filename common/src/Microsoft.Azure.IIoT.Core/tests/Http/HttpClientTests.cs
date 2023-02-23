@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Http {
     using Xunit;
 
     public class HttpClientTests {
-
         [Fact]
         public void UnixDomainSocketHttpRequestTest1() {
             var logger = Log.Console<HttpClientTests>();
@@ -69,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Http {
             IHttpClient client = new HttpClient(new HttpClientFactory(logger), logger);
             var request = client.NewRequest(new Uri("unix:///var/test/unknown.sock:0/path/to/resource?query=36"));
             try {
-                await client.GetAsync(request);
+                await client.GetAsync(request).ConfigureAwait(false);
                 Assert.True(false);
             }
             catch (SocketException ex) {

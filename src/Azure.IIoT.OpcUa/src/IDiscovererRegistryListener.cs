@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa {
     /// Discoverer registry change listener
     /// </summary>
     public interface IDiscovererRegistryListener {
-
         /// <summary>
         /// Called when discoverer is added
         /// </summary>

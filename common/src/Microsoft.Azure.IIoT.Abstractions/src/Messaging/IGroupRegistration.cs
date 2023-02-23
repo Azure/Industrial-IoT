@@ -11,25 +11,24 @@ namespace Microsoft.Azure.IIoT.Messaging {
     /// Register user in group
     /// </summary>
     public interface IGroupRegistration {
-
         /// <summary>
         /// Add client to multicast group
         /// </summary>
         /// <param name="group"></param>
-        /// <param name="userId"></param>
+        /// <param name="client"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task SubscribeAsync(string group, string userId,
+        Task SubscribeAsync(string group, string client,
             CancellationToken ct = default);
 
         /// <summary>
         /// Remove client from group
         /// </summary>
         /// <param name="group"></param>
-        /// <param name="userId"></param>
+        /// <param name="client"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task UnsubscribeAsync(string group, string userId,
+        Task UnsubscribeAsync(string group, string client,
             CancellationToken ct = default);
     }
 }

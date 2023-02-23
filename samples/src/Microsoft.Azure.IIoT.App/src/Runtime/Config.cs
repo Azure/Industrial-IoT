@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
     /// </summary>
     public class Config : ApiConfig, ISignalRServiceConfig,
         IWebHostConfig, IForwardedHeadersConfig {
-
         /// <summary>Url</summary>
         public string TsiDataAccessFQDN =>
             GetStringOrDefault(PcsVariable.PCS_TSI_URL)?.Trim();
@@ -64,7 +63,6 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// <param name="configuration"></param>
         public Config(IConfiguration configuration) :
             base(configuration) {
-
             _host = new WebHostConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);

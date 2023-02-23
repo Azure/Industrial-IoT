@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
-
     /// <summary>
     /// Industrial IoT identity types
     /// </summary>
     public static class IdentityType {
-
         /// <summary>
         /// Gateway identity
         /// </summary>

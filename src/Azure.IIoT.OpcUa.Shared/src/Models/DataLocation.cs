@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public enum DataLocation {
-
         /// <summary>
         ///  A raw data value.
         /// </summary>

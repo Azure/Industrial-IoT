@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Events {
     /// Endpoint registry event publisher
     /// </summary>
     public class EndpointEventPublisher<THub> : IEndpointRegistryListener {
-
         /// <inheritdoc/>
         public EndpointEventPublisher(ICallbackInvokerT<THub> callback) {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));

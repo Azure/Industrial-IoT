@@ -20,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
     /// Publisher message handling
     /// </summary>
     public sealed class MonitoredItemMessageHandler : IDeviceTelemetryHandler {
-
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.MonitoredItemMessageJson;
 
@@ -40,7 +39,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-
             try {
                 var context = new ServiceMessageContext();
                 var pubSubMessage = PubSubMessage.Decode(payload, ContentMimeType.Json,
@@ -83,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                             extensionFields.TryGetValue("EndpointId", out var endpointId))
                                 ? endpointId : message.ApplicationUri ?? message.EndpointUrl,
                     };
-                    await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample)));
+                    await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample))).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) {

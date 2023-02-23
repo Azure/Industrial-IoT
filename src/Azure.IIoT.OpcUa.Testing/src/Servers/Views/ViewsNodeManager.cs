@@ -37,7 +37,6 @@ namespace Views {
     /// A node manager for a server that exposes several variables.
     /// </summary>
     public class ViewsNodeManager : CustomNodeManager2 {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -66,7 +65,6 @@ namespace Views {
         /// Creates the NodeId for the specified node.
         /// </summary>
         public override NodeId New(ISystemContext context, NodeState node) {
-
             if (node is BaseInstanceState instance && instance.Parent != null) {
                 var pnd = ParsedNodeId.Parse(instance.Parent.NodeId);
 
@@ -245,6 +243,8 @@ namespace Views {
             return ValidationComplete(context, handle, target, cache);
         }
 
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly ViewsServerConfiguration _configuration;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }

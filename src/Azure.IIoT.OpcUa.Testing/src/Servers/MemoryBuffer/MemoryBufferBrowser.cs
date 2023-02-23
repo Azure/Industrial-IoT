@@ -36,7 +36,6 @@ namespace MemoryBuffer {
     /// A class to browse the references for a memory buffer.
     /// </summary>
     public class MemoryBufferBrowser : NodeBrowser {
-
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
@@ -63,8 +62,6 @@ namespace MemoryBuffer {
             _buffer = buffer;
             _stage = Stage.Begin;
         }
-
-
 
         /// <summary>
         /// Returns the next reference.

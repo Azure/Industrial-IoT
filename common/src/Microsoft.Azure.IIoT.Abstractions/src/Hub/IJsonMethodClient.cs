@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Hub {
     /// IoTHub service clients and IoTEdge Module clients.
     /// </summary>
     public interface IJsonMethodClient {
-
         /// <summary>
         /// Max payload string size in bytes.
         /// </summary>

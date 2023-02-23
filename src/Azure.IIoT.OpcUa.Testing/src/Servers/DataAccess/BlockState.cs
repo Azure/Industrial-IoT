@@ -36,7 +36,6 @@ namespace DataAccess {
     /// A object which maps a block to a UA object.
     /// </summary>
     public class BlockState : BaseObjectState {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="BlockState"/> class.
         /// </summary>
@@ -59,7 +58,6 @@ namespace DataAccess {
             UserWriteMask = 0;
             EventNotifier = EventNotifiers.None;
 
-
             if (nodeManager.SystemContext.SystemHandle is UnderlyingSystem system) {
                 var tags = block.GetTags();
 
@@ -71,15 +69,12 @@ namespace DataAccess {
             }
         }
 
-
-
         /// <summary>
         /// Starts the monitoring the block.
         /// </summary>
         /// <param name="context">The context.</param>
         public void StartMonitoring(ServerSystemContext context) {
             if (_monitoringCount == 0) {
-
                 if (context.SystemHandle is UnderlyingSystem system) {
                     var block = system.FindBlock(_blockId);
 
@@ -98,7 +93,6 @@ namespace DataAccess {
             _monitoringCount--;
 
             if (_monitoringCount == 0) {
-
                 if (context.SystemHandle is UnderlyingSystem system) {
                     var block = system.FindBlock(_blockId);
 
@@ -116,7 +110,6 @@ namespace DataAccess {
             ISystemContext context,
             NodeState node,
             ref object value) {
-
             if (!(context.SystemHandle is UnderlyingSystem system)) {
                 return StatusCodes.BadCommunicationError;
             }
@@ -144,7 +137,6 @@ namespace DataAccess {
         private void OnTagsChanged(IList<UnderlyingSystemTag> tags) {
             lock (_nodeManager.Lock) {
                 for (var ii = 0; ii < tags.Count; ii++) {
-
                     if (FindChildBySymbolicName(_nodeManager.SystemContext, tags[ii].Name) is BaseVariableState variable) {
                         UpdateVariable(_nodeManager.SystemContext, tags[ii], variable);
                     }
@@ -164,7 +156,6 @@ namespace DataAccess {
 
             // check if the parent segments need to be returned.
             if (browser.IsRequired(ReferenceTypeIds.Organizes, true)) {
-
                 if (!(context.SystemHandle is UnderlyingSystem system)) {
                     return;
                 }
@@ -177,8 +168,6 @@ namespace DataAccess {
                 }
             }
         }
-
-
 
         /// <summary>
         /// Creates a variable from a tag.
@@ -207,8 +196,7 @@ namespace DataAccess {
                     }
 
                 case UnderlyingSystemTagType.Digital: {
-                        var node = new TwoStateDiscreteState(this);
-                        variable = node;
+                        variable = new TwoStateDiscreteState(this);
                         break;
                     }
 
@@ -224,8 +212,7 @@ namespace DataAccess {
                     }
 
                 default: {
-                        var node = new DataItemState(this);
-                        variable = node;
+                        variable = new DataItemState(this);
                         break;
                     }
             }
@@ -254,7 +241,7 @@ namespace DataAccess {
         /// <param name="context">The context.</param>
         /// <param name="tag">The tag.</param>
         /// <param name="variable">The variable to update.</param>
-        private void UpdateVariable(ISystemContext context, UnderlyingSystemTag tag, BaseVariableState variable) {
+        private static void UpdateVariable(ISystemContext context, UnderlyingSystemTag tag, BaseVariableState variable) {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
             variable.Description = tag.Description;
             variable.Value = tag.Value;
@@ -289,24 +276,21 @@ namespace DataAccess {
 
                         if (tag.EuRange != null) {
                             if (tag.EuRange.Length >= 2 && node.EURange != null) {
-                                var range = new Range(tag.EuRange[0], tag.EuRange[1]);
-                                node.EURange.Value = range;
+                                node.EURange.Value = new Range(tag.EuRange[0], tag.EuRange[1]);
                                 node.EURange.Timestamp = tag.Block.Timestamp;
                             }
 
                             if (tag.EuRange.Length >= 4 && node.InstrumentRange != null) {
-                                var range = new Range(tag.EuRange[2], tag.EuRange[3]);
-                                node.InstrumentRange.Value = range;
+                                node.InstrumentRange.Value = new Range(tag.EuRange[2], tag.EuRange[3]);
                                 node.InstrumentRange.Timestamp = tag.Block.Timestamp;
                             }
                         }
 
                         if (!string.IsNullOrEmpty(tag.EngineeringUnits) && node.EngineeringUnits != null) {
-                            var info = new EUInformation {
+                            node.EngineeringUnits.Value = new EUInformation {
                                 DisplayName = tag.EngineeringUnits,
                                 NamespaceUri = Namespaces.DataAccess
                             };
-                            node.EngineeringUnits.Value = info;
                             node.EngineeringUnits.Timestamp = tag.Block.Timestamp;
                         }
 

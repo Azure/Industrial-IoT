@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// Query continuation
     /// </summary>
     public class QueryContinuation {
-
         /// <summary>
         /// Original query string
         /// </summary>

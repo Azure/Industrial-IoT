@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
     /// No ssl validation
     /// </summary>
     public class NoOpCertValidator : IHttpCertificateValidator {
-
         /// <inheritdoc/>
         public Func<string, bool> IsFor { get; set; }
 

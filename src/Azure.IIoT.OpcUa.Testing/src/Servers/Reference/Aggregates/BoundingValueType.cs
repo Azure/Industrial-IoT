@@ -27,7 +27,6 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-
 namespace Opc.Ua.Aggregates {
     /// <summary>
     /// The possible types of bounding values.

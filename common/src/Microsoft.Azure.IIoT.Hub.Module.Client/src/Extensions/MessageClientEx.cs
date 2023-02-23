@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// Message client extensions
     /// </summary>
     public static class MessageClientEx {
-
         /// <summary>
         /// Create message
         /// </summary>

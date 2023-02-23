@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Notification model extensions
     /// </summary>
     public static class MonitoredItemNotificationModelEx {
-
         /// <summary>
         /// Clone notification
         /// </summary>
@@ -78,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
                 // Skip change notification
                 yield break;
             }
-            var sequence = notification.Message == null || notification.Message.IsEmpty
+            var sequence = notification.Message?.IsEmpty != false
                 ? (uint?)null
                 : notification.Message.SequenceNumber;
             yield return new MonitoredItemNotificationModel {
@@ -105,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             var handleId = monitoredItem.Handle as OpcUaMonitoredItem;
             if (eventFieldList != null && monitoredItem != null) {
                 for (var i = 0; i < eventFieldList.EventFields.Count; i++) {
-                    var sequenceNumber = eventFieldList.Message == null || eventFieldList.Message.IsEmpty
+                    var sequenceNumber = eventFieldList.Message?.IsEmpty != false
                             ? (uint?)null
                             : eventFieldList.Message.SequenceNumber;
                     yield return new MonitoredItemNotificationModel {

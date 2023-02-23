@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Represents OPC twin service api functions
     /// </summary>
     public interface ITwinServiceApi {
-
         /// <summary>
         /// Returns status of the service
         /// </summary>
@@ -151,7 +150,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
             string endpointId, HistoryConfigurationRequestModel request,
             CancellationToken ct = default);
-
 
         /// <summary>
         /// Read node history with custom encoded extension object details

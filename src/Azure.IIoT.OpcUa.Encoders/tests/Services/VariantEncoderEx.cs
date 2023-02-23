@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     /// Variant encoder extensions
     /// </summary>
     public static class Extensions {
-
         /// <summary>
         /// Format variant as string
         /// </summary>

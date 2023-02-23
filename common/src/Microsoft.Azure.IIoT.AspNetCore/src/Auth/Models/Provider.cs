@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
-
     /// <summary>
     /// Enabled providers
     /// </summary>
     public class Provider {
-
         /// <summary>
         /// Create provider
         /// </summary>

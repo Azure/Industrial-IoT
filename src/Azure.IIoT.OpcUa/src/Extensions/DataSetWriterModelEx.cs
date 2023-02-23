@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Dataset writer model ex
     /// </summary>
     public static class DataSetWriterModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

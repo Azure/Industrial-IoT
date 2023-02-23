@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Hub.Processor {
     /// Eventprocessor host configuration
     /// </summary>
     public interface IEventProcessorHostConfig : IStorageConfig {
-
         /// <summary>
         /// Receive batch size
         /// </summary>

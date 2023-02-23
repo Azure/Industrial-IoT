@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Request node history read extensions
     /// </summary>
     public static class HistoryRequestModelEx {
-
         /// <summary>
         /// Convert to service model
         /// </summary>

@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class PublisherQueryModel {
-
         /// <summary>
         /// Site for the supervisors
         /// </summary>

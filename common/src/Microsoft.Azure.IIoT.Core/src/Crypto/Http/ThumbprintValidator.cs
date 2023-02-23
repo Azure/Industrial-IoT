@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
     /// Validates using pinned certificate
     /// </summary>
     public class ThumbprintValidator : NoOpCertValidator {
-
         /// <summary>
         /// Create validator
         /// </summary>
@@ -42,7 +41,7 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
                 _logger.LogError(
                     "The remote endpoint is using an unknown/invalid SSL " +
                     "certificate, the thumbprint of the certificate doesn't " +
-                    "match the value provided.", sslThumbprint, _thumbprint);
+                    "match the value provided {Certifcate}/{Provided}.", sslThumbprint, _thumbprint);
                 return false;
             }
             return true;
@@ -50,6 +49,5 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
 
         private readonly string _thumbprint;
         private readonly ILogger _logger;
-
     }
 }

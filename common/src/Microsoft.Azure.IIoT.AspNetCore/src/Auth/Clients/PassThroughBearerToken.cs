@@ -17,7 +17,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// Authenticate using the current token.
     /// </summary>
     public class PassThroughBearerToken : ITokenClient {
-
         /// <summary>
         /// Create auth provider. Need to also inject the http context accessor
         /// to be able to get at the http context here.
@@ -32,7 +31,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
         /// <inheritdoc/>
         public bool Supports(string resource) {
-            return _providers.Any();
+            return _providers.Count > 0;
         }
 
         /// <inheritdoc/>
@@ -44,11 +43,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             }
             string token = null;
             if (_providers == null) {
-                token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);
+                token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey).ConfigureAwait(false);
             }
             else {
                 foreach (var provider in _providers) {
-                    token = await _ctx.HttpContext.GetTokenAsync(provider, kAccessTokenKey);
+                    token = await _ctx.HttpContext.GetTokenAsync(provider, kAccessTokenKey).ConfigureAwait(false);
                     if (token != null) {
                         break; // Use first found token
                     }
@@ -75,5 +74,4 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private readonly List<string> _providers;
         private readonly IHttpContextAccessor _ctx;
     }
-
 }

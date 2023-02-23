@@ -35,7 +35,6 @@ namespace Opc.Ua.Aggregates {
     /// Coordinates aggregation over a time series of raw data points to yield a time series of processed data points.
     /// </summary>
     public abstract class BaseAggregateCalculator : IAggregateCalculator, IAggregationContext, IAggregationActor, IAggregator {
-
         /// <summary>
         /// The start time.
         /// </summary>
@@ -187,8 +186,6 @@ namespace Opc.Ua.Aggregates {
         /// Updates the bounding values for the time slice.
         /// </summary>
         public abstract void UpdateBoundingValues(TimeSlice bucket, AggregateState state);
-
-
 
         /// <summary>
         /// The configuration to use when calculating aggregates.

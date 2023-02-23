@@ -19,9 +19,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// <summary>
     /// Revalidate all user token providers
     /// </summary>
-    public class BlazorAuthStateProvider : ServerAuthenticationStateProvider, ITokenClient,
+    public sealed class BlazorAuthStateProvider : ServerAuthenticationStateProvider, ITokenClient,
         IDisposable {
-
         /// <summary>
         /// Create auth state provider
         /// </summary>
@@ -60,7 +59,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource, IEnumerable<string> scopes) {
-            var authenticationState = await GetAuthenticationStateAsync();
+            var authenticationState = await GetAuthenticationStateAsync().ConfigureAwait(false);
             if (authenticationState?.User == null || !authenticationState.User.Identity.IsAuthenticated) {
                 return null;
             }
@@ -68,7 +67,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             foreach (var client in _clients) {
                 try {
                     // TODO: Compare provider name and identity and only check those that match.
-                    var result = await client.GetUserTokenAsync(authenticationState.User, scopes);
+                    var result = await client.GetUserTokenAsync(authenticationState.User, scopes).ConfigureAwait(false);
                     if (result?.RawToken != null) {
                         return result;
                     }
@@ -86,14 +85,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <inheritdoc/>
         public async Task InvalidateAsync(string resource) {
             try {
-                var authenticationState = await GetAuthenticationStateAsync();
+                var authenticationState = await GetAuthenticationStateAsync().ConfigureAwait(false);
                 if (authenticationState?.User == null) {
                     return;
                 }
                 foreach (var client in _clients) {
                     try {
                         // TODO: Compare provider name and identity and only check those that match.
-                        await client.SignOutUserAsync(authenticationState.User);
+                        await client.SignOutUserAsync(authenticationState.User).ConfigureAwait(false);
                     }
                     catch {
                         continue;
@@ -116,15 +115,15 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private async Task RevalidationLoopAsync(Task<AuthenticationState> authenticationStateTask,
             CancellationToken ct) {
             try {
-                var authenticationState = await authenticationStateTask;
+                var authenticationState = await authenticationStateTask.ConfigureAwait(false);
                 _logger.LogDebug("Starting token revalidation loop");
                 if (authenticationState.User.Identity.IsAuthenticated) {
                     while (!ct.IsCancellationRequested) {
                         bool isValid;
                         try {
-                            await Task.Delay(_config?.RevalidateInterval ?? TimeSpan.FromSeconds(10), ct);
+                            await Task.Delay(_config?.RevalidateInterval ?? TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
                             _logger.LogDebug("Testing token still valid...");
-                            isValid = await ValidateAuthenticationStateAsync(authenticationState, ct);
+                            isValid = await ValidateAuthenticationStateAsync(authenticationState, ct).ConfigureAwait(false);
                         }
                         catch (TaskCanceledException tce) {
                             // If it was our cancellation token, then this revalidation loop gracefully completes
@@ -169,7 +168,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     // TODO: Compare provider name and identity and only check those that match.
 
                     var result = await client.GetUserTokenAsync(
-                        authenticationState.User, string.Empty.YieldReturn());
+                        authenticationState.User, string.Empty.YieldReturn()).ConfigureAwait(false);
                     if (result?.RawToken != null) {
                         return true;
                     }

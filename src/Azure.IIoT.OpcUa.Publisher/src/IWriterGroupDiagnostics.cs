@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Writer group diagnostics control
     /// </summary>
     public interface IWriterGroupDiagnostics : IDisposable {
-
         /// <summary>
         /// Reset diagnostics for writer group
         /// </summary>

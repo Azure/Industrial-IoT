@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Logging;
@@ -32,7 +33,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
             ServiceMessageContext messageContext = null,
             INodeCache nodeCache = null,
             IVariantEncoder codec = null) {
-
             codec ??= new JsonVariantEncoder(messageContext ?? new ServiceMessageContext(),
                 new NewtonsoftJsonSerializer());
             nodeCache ??= GetNodeCache();

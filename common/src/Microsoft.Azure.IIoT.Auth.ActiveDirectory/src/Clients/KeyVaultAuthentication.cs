@@ -17,10 +17,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// service principal configuration or local development (in order)
     /// </summary>
     public class KeyVaultAuthentication : Module {
-
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
-
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<MsiKeyVaultClientConfig>()
@@ -50,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <summary>
         /// Authenticate with device token after trying app and developer authentication.
         /// </summary>
-        internal class KeyVaultTokenSource : TokenClientAggregateSource, ITokenSource {
+        internal class KeyVaultTokenSource : TokenClientAggregateSource{
             /// <inheritdoc/>
             public KeyVaultTokenSource(MsiAuthenticationClient ma, AppAuthenticationClient aa,
                 DevAuthenticationClient ld, IEnumerable<ITokenClient> providers, ILogger logger)

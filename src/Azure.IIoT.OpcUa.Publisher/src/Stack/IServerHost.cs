@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Server host
     /// </summary>
     public interface IServerHost : IDisposable {
-
         /// <summary>
         /// Server application instance certificate
         /// </summary>

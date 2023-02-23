@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Authentication method model extensions
     /// </summary>
     public static class AuthenticationMethodModelEx {
-
         /// <summary>
         /// Equality comparison
         /// </summary>

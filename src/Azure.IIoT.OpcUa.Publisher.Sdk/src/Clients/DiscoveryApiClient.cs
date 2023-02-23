@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
     /// the OPC Publihser module receiving service requests via device method calls.
     /// </summary>
     public sealed class DiscoveryApiClient : IDiscoveryApi {
-
         /// <summary>
         /// Create module client
         /// </summary>
@@ -53,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(endpoint));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "GetEndpointCertificate_V2", _serializer.SerializeToString(endpoint), null, ct);
+                "GetEndpointCertificate_V2", _serializer.SerializeToString(endpoint), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<X509CertificateChainModel>(response);
         }
 
@@ -64,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "Cancel_V2", _serializer.SerializeToString(request), null, ct);
+                "Cancel_V2", _serializer.SerializeToString(request), null, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -74,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "Discover_V2", _serializer.SerializeToString(request), null, ct);
+                "Discover_V2", _serializer.SerializeToString(request), null, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -84,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "Register_V2", _serializer.SerializeToString(request), null, ct);
+                "Register_V2", _serializer.SerializeToString(request), null, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -94,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(query));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "FindServer_V2", _serializer.SerializeToString(query), null, ct);
+                "FindServer_V2", _serializer.SerializeToString(query), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<ApplicationRegistrationModel>(response);
         }
 

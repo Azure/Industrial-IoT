@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.App.Extensions {
     /// Handle event
     /// </summary>
     public static class DiscovererInfoEx {
-
         /// <summary>
         /// Update a list of discoverers from a received event
         /// </summary>

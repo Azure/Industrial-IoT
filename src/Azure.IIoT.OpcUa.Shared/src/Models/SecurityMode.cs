@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public enum SecurityMode {
-
         /// <summary>
         /// Use best security mode
         /// </summary>

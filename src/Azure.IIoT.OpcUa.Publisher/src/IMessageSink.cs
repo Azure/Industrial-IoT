@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Message sink
     /// </summary>
     public interface IMessageSink {
-
         /// <summary>
         /// Max message size sink can handle
         /// </summary>

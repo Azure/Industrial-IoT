@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// Client factory interface
     /// </summary>
     public interface IClientFactory {
-
         /// <summary>
         /// Device id
         /// </summary>

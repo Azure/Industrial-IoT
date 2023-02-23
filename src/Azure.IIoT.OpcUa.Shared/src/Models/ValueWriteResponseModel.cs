@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class ValueWriteResponseModel {
-
         /// <summary>
         /// Service result in case of error
         /// </summary>

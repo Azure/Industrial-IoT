@@ -37,7 +37,6 @@ namespace Alarms {
     /// Maps an alarm source to a UA object node.
     /// </summary>
     public class SourceState : BaseObjectState {
-
         /// <summary>
         /// Initializes the area.
         /// </summary>
@@ -86,7 +85,6 @@ namespace Alarms {
         public override void ConditionRefresh(ISystemContext context, List<IFilterTarget> events, bool includeChildren) {
             // need to check if this source has already been processed during this refresh operation.
             for (var ii = 0; ii < events.Count; ii++) {
-
                 if (events[ii] is InstanceStateSnapshot e && ReferenceEquals(e.Handle, this)) {
                     return;
                 }
@@ -632,7 +630,6 @@ namespace Alarms {
                 return null;
             }
 
-
             if (!_events.TryGetValue(Utils.ToHexString(eventId), out var alarm)) {
                 return null;
             }
@@ -645,7 +642,7 @@ namespace Alarms {
         /// </summary>
         /// <param name="alarm">The alarm.</param>
         /// <returns>The record number; 0 if the alarm is not an archived alarm.</returns>
-        private uint GetRecordNumber(AlarmConditionState alarm) {
+        private static uint GetRecordNumber(AlarmConditionState alarm) {
             if (alarm == null) {
                 return 0;
             }
@@ -656,17 +653,13 @@ namespace Alarms {
 
             var recordNumber = alarm.BranchId.Value.Identifier as uint?;
 
-            if (recordNumber != null) {
-                return recordNumber.Value;
-            }
-
-            return 0;
+            return recordNumber ?? 0;
         }
 
         /// <summary>
         /// Gets the user name associated with the context.
         /// </summary>
-        private string GetUserName(ISystemContext context) {
+        private static string GetUserName(ISystemContext context) {
             if (context.UserIdentity != null) {
                 return context.UserIdentity.DisplayName;
             }

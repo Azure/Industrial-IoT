@@ -36,7 +36,6 @@ namespace MemoryBuffer {
     /// </summary>
     [DataContract(Namespace = Namespaces.MemoryBuffer)]
     public class MemoryBufferConfiguration {
-
         /// <summary>
         /// The default constructor.
         /// </summary>
@@ -48,10 +47,7 @@ namespace MemoryBuffer {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-#pragma warning disable RECS0154 // Parameter is never used
-        private void Initialize(StreamingContext context)
-#pragma warning restore RECS0154 // Parameter is never used
-        {
+        private void Initialize(StreamingContext context) {
             Initialize();
         }
 
@@ -61,8 +57,6 @@ namespace MemoryBuffer {
         private void Initialize() {
             Buffers = null;
         }
-
-
 
         /// <summary>
         /// The buffers exposed by the memory
@@ -76,7 +70,6 @@ namespace MemoryBuffer {
     /// </summary>
     [DataContract(Namespace = Namespaces.MemoryBuffer)]
     public class MemoryBufferInstance {
-
         /// <summary>
         /// The default constructor.
         /// </summary>
@@ -88,10 +81,7 @@ namespace MemoryBuffer {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-#pragma warning disable RECS0154 // Parameter is never used
-        private void Initialize(StreamingContext context)
-#pragma warning restore RECS0154 // Parameter is never used
-        {
+        private void Initialize(StreamingContext context) {
             Initialize();
         }
 
@@ -103,8 +93,6 @@ namespace MemoryBuffer {
             TagCount = 0;
             DataType = null;
         }
-
-
 
         /// <summary>
         /// The browse name for the instance.
@@ -124,7 +112,6 @@ namespace MemoryBuffer {
         [DataMember(Order = 3)]
         public string DataType { get; set; }
     }
-
 
     /// <summary>
     /// A collection of MemoryBufferInstances.

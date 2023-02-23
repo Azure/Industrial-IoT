@@ -15,10 +15,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Service sdk module
     /// </summary>
     public class ServiceSdk : Module {
-
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
-
             builder.RegisterType<ApiConfig>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AadApiClientConfig>()

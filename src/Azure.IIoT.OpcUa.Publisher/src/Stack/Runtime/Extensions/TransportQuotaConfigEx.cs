@@ -10,18 +10,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Transport quota config extensions
     /// </summary>
     public static class TransportQuotaConfigEx {
-
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         /// <summary>
         /// Default values for transport quotas.
         /// </summary>
         public const int DefaultSecurityTokenLifetime = 60 * 60 * 1000;
         public const int DefaultChannelLifetime = 300 * 1000;
-        public const int DefaultMaxBufferSize = 64 * 1024 - 1;
+        public const int DefaultMaxBufferSize = (64 * 1024) - 1;
         public const int DefaultMaxMessageSize = 4 * 1024 * 1024;
-        public const int DefaultMaxArrayLength = 64 * 1024 - 1;
+        public const int DefaultMaxArrayLength = (64 * 1024) - 1;
         public const int DefaultMaxByteStringLength = 1024 * 1024;
-        public const int DefaultMaxStringLength = 128 * 1024 - 256;
+        public const int DefaultMaxStringLength = (128 * 1024) - 256;
         public const int DefaultOperationTimeout = 120 * 1000;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -47,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="transportQuotaConfig"></param>
         /// <returns></returns>
         public static TransportQuotas ToTransportQuotas(this ITransportQuotaConfig transportQuotaConfig) {
-            var transportQuotas = new TransportQuotas {
+            return new TransportQuotas {
                 OperationTimeout = transportQuotaConfig.OperationTimeout,
                 MaxStringLength = transportQuotaConfig.MaxStringLength,
                 MaxByteStringLength = transportQuotaConfig.MaxByteStringLength,
@@ -57,7 +56,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 ChannelLifetime = transportQuotaConfig.ChannelLifetime,
                 SecurityTokenLifetime = transportQuotaConfig.SecurityTokenLifetime
             };
-            return transportQuotas;
         }
     }
 }

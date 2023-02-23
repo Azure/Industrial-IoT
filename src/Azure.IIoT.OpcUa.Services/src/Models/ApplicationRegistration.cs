@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// </summary>
     [DataContract]
     public sealed class ApplicationRegistration : EntityRegistration {
-
         /// <inheritdoc/>
         [DataMember]
         public override string DeviceType => IdentityType.Application;
@@ -164,7 +163,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         [DataMember(Name = "id")]
         public string Id => ApplicationInfoModelEx.CreateApplicationId(
              SiteOrGatewayId, ApplicationUri, ApplicationType);
-
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {

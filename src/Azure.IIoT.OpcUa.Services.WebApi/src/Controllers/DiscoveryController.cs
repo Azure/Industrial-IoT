@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class DiscoveryController : ControllerBase {
-
         /// <summary>
         /// Create controller for discovery services
         /// </summary>
@@ -46,8 +45,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Discoverer registration</returns>
         [HttpGet("{discovererId}")]
         public async Task<DiscovererModel> GetDiscovererAsync(string discovererId) {
-            var result = await _discoverers.GetDiscovererAsync(discovererId);
-            return result;
+            return await _discoverers.GetDiscovererAsync(discovererId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -67,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 throw new ArgumentNullException(nameof(request));
             }
             await _discoverers.UpdateDiscovererAsync(discovererId,
-                request);
+                request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -98,9 +96,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _discoverers.ListDiscoverersAsync(
-                continuationToken, pageSize);
-            return result;
+            return await _discoverers.ListDiscoverersAsync(
+                continuationToken, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -127,10 +124,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _discoverers.QueryDiscoverersAsync(
-                query, pageSize);
-
-            return result;
+            return await _discoverers.QueryDiscoverersAsync(
+                query, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -150,7 +145,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task<DiscovererListModel> GetFilteredListOfDiscoverersAsync(
             [FromQuery][Required] DiscovererQueryModel query,
             [FromQuery] int? pageSize) {
-
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
             }
@@ -158,10 +152,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _discoverers.QueryDiscoverersAsync(
-                query, pageSize);
-
-            return result;
+            return await _discoverers.QueryDiscoverersAsync(
+                query, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -177,14 +169,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{discovererId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task SetDiscoveryModeAsync(string discovererId,
-            [FromQuery][Required] Shared.Models.DiscoveryMode mode,
+            [FromQuery][Required] DiscoveryMode mode,
             [FromBody] DiscoveryConfigModel config) {
             var request = new DiscovererUpdateModel {
                 Discovery = mode,
                 DiscoveryConfig = config
             };
             await _discoverers.UpdateDiscovererAsync(discovererId,
-                request);
+                request).ConfigureAwait(false);
         }
 
         private readonly IDiscovererRegistry _discoverers;

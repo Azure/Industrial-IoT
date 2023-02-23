@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class PublishedDataSetEventModel {
-
         /// <summary>
         /// Identifier of event in the dataset.
         /// </summary>

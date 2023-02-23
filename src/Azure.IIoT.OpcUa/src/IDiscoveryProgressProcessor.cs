@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa {
     /// Discovery process processing
     /// </summary>
     public interface IDiscoveryProgressProcessor {
-
         /// <summary>
         /// Handle discovery progress messages
         /// </summary>

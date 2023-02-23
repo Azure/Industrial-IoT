@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Represents OPC Twin Historic Access service api functions
     /// </summary>
     public interface IHistoryServiceApi {
-
         /// <summary>
         /// Returns status of the service
         /// </summary>

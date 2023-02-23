@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class TypeDefinitionModel {
-
         /// <summary>
         /// The node id of the type of the node
         /// </summary>

@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport {
         /// false if expected to be called again.
         /// true if probe is complete.
         /// </returns>
-        bool CompleteAsync(int index, SocketAsyncEventArgs arg,
+        bool OnComplete(int index, SocketAsyncEventArgs arg,
             out bool ok, out int timeout);
 
         /// <summary>

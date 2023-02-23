@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Resolve metadata during encoding and decoding
     /// </summary>
     public interface IDataSetMetaDataResolver {
-
         /// <summary>
         /// Find data set metadata or return null if not found.
         /// </summary>

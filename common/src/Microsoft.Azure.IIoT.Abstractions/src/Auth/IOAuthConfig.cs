@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth {
-
     /// <summary>
     /// Configuration for oauth flows
     /// </summary>
     public interface IOAuthConfig {
-
         /// <summary>
         /// The configuration is valid
         /// </summary>

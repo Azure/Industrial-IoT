@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class HistoryController : ControllerBase {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -49,8 +48,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _client.HistoryReadAsync(endpointId, request);
-            return readresult;
+            return await _client.HistoryReadAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -70,8 +68,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _client.HistoryReadNextAsync(endpointId, request);
-            return readresult;
+            return await _client.HistoryReadNextAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -92,8 +89,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _client.HistoryUpdateAsync(endpointId, request);
-            return writeResult;
+            return await _client.HistoryUpdateAsync(endpointId, request).ConfigureAwait(false);
         }
 
         private readonly INodeServices<string> _client;

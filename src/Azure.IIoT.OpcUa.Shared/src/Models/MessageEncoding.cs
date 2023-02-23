@@ -4,47 +4,66 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
+    using System;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Message encoding
     /// </summary>
     [DataContract]
+    [Flags]
     public enum MessageEncoding {
-
         /// <summary>
-        /// Uadp or Binary encoding
+        /// The encoding is binary.
         /// </summary>
         [EnumMember]
-        Uadp = 0x1,
+        Binary = 0x1,
 
         /// <summary>
-        /// Json encoding (default)
+        /// The encoding is based on Json
         /// </summary>
         [EnumMember]
         Json = 0x2,
 
         /// <summary>
+        /// The encoding is based on Xml
+        /// </summary>
+        [EnumMember]
+        Xml = 0x4,
+
+        /// <summary>
+        /// Messages can be decoded to the original data
+        /// </summary>
+        [EnumMember]
+        IsReversible = 0x8,
+
+        /// <summary>
+        /// Uadp
+        /// </summary>
+        [EnumMember]
+        Uadp = Binary | IsReversible,
+
+        /// <summary>
         /// Json reversible encoding
         /// </summary>
         [EnumMember]
-        JsonReversible = Json | 0x10,
+        JsonReversible = Json | IsReversible,
+
+        /// <summary>
+        /// Messages are gzip compressed.
+        /// </summary>
+        IsGzipCompressed = 0x10,
 
         /// <summary>
         /// Json gzip
         /// </summary>
         [EnumMember]
-        JsonGzip = Json | Gzip,
+        JsonGzip = Json | IsGzipCompressed,
 
         /// <summary>
         /// Json reversible
         /// </summary>
         [EnumMember]
-        JsonReversibleGzip = JsonReversible | JsonGzip,
-
-        /// <summary>
-        /// Gzip flag
-        /// </summary>
-        Gzip = 0x20
+        JsonReversibleGzip = JsonGzip | IsReversible,
     }
 }

@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
     /// Default iot hub device event handler implementation
     /// </summary>
     public sealed class DeviceTelemetryEventHandler : IEventProcessingHandler {
-
         /// <summary>
         /// Create processor factory
         /// </summary>
@@ -49,12 +48,11 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
 
             if (properties.TryGetValue(CommonProperties.EventSchemaType, out var schemaType) ||
                 properties.TryGetValue(SystemProperties.MessageSchema, out schemaType)) {
-
                 //  TODO: when handling third party OPC UA PubSub Messages
                 //  the schemaType might not exist
                 if (_handlers.TryGetValue(schemaType.ToLowerInvariant(), out var handler)) {
                     await handler.HandleAsync(deviceId, moduleId?.ToString(), eventData,
-                        properties, checkpoint);
+                        properties, checkpoint).ConfigureAwait(false);
                     _used.Enqueue(handler);
                 }
 
@@ -66,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <inheritdoc/>
         public async Task OnBatchCompleteAsync() {
             while (_used.TryDequeue(out var handler)) {
-                await Try.Async(handler.OnBatchCompleteAsync);
+                await Try.Async(handler.OnBatchCompleteAsync).ConfigureAwait(false);
             }
         }
 

@@ -28,7 +28,6 @@
  * ======================================================================*/
 
 namespace Opc.Ua.Aggregates {
-
     /// <summary>
     /// Creates a new instance of an aggregate factory.
     /// </summary>
@@ -38,7 +37,6 @@ namespace Opc.Ua.Aggregates {
     /// The set of built-in aggregate factories.
     /// </summary>
     public static class Aggregators {
-
         /// <summary>
         /// The default interpolative aggregate factory.
         /// </summary>

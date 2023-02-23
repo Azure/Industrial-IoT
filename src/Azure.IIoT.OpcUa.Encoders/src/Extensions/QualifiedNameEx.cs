@@ -11,7 +11,6 @@ namespace Opc.Ua.Extensions {
     /// Qualified name extensions
     /// </summary>
     public static class QualifiedNameEx {
-
         /// <summary>
         /// Returns a uri that identifies the qualified name uniquely.
         /// </summary>
@@ -31,7 +30,7 @@ namespace Opc.Ua.Extensions {
                     buffer.Append(nsUri);
                     if (!string.IsNullOrEmpty(qn.Name)) {
                         // Append name as fragment
-                        buffer.Append("#");
+                        buffer.Append('#');
                     }
                 }
             }

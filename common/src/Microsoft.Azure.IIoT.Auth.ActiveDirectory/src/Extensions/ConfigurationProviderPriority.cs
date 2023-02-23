@@ -4,13 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Extensions.Configuration {
-
     /// <summary>
     /// Determines where in the configuration providers chain current provider should
     /// be added.
     /// </summary>
     public enum ConfigurationProviderPriority {
-
         /// <summary>
         /// Configuration provider should be added at the end of providers list,
         /// thus having highest priority with all values overriding other providers.

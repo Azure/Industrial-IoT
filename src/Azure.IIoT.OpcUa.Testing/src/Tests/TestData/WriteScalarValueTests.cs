@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Json;
     using Furly.Extensions.Serializers.Newtonsoft;
     using MemoryBuffer;
     using System;
@@ -14,55 +15,51 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Xunit;
 
     public class WriteScalarValueTests<T> {
-
         /// <summary>
         /// Create node services tests
         /// </summary>
-        public WriteScalarValueTests(Func<INodeServices<T>> services, T endpoint,
-            Func<T, string, Task<VariantValue>> readExpected) {
+        public WriteScalarValueTests(Func<INodeServices<T>> services, T connection,
+            Func<T, string, IJsonSerializer, Task<VariantValue>> readExpected) {
             _services = services;
-            _endpoint = endpoint;
+            _connection = connection;
             _readExpected = readExpected;
-            _serializer = new NewtonsoftJsonSerializer();
+            _serializer = new DefaultJsonSerializer();
         }
 
         public async Task NodeWriteStaticScalarBooleanValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10216";
+            const string node = "http://test.org/UA/Data/#i=10216";
 
             VariantValue expected = false;
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Boolean"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
 
             expected = true;
 
             // Act
-            result = await browser.ValueWriteAsync(_endpoint,
+            result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = "ns=2;i=10216",
                     Value = expected,
                     DataType = "Boolean"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest1Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10159"; // Scalar
+            const string node = "http://test.org/UA/Data/#i=10159"; // Scalar
             var path = new[] {
                 ".http://test.org/UA/Data/#BooleanValue"
             };
@@ -70,37 +67,35 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             VariantValue expected = false;
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     BrowsePath = path,
                     Value = expected,
                     DataType = "Boolean"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result);
+            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
 
             expected = true;
 
             // Act
-            result = await browser.ValueWriteAsync(_endpoint,
+            result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = "ns=2;i=10159",
                     BrowsePath = path,
                     Value = expected,
                     DataType = "Boolean"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result);
+            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest2Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10159"; // Scalar
+            const string node = "http://test.org/UA/Data/#i=10159"; // Scalar
             var path = new[] {
                 "http://test.org/UA/Data/#BooleanValue"
             };
@@ -108,35 +103,33 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             VariantValue expected = false;
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     BrowsePath = path,
                     Value = expected,
                     DataType = "Boolean"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result);
+            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
 
             expected = true;
 
             // Act
-            result = await browser.ValueWriteAsync(_endpoint,
+            result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = "ns=2;i=10159",
                     BrowsePath = path,
                     Value = expected,
                     DataType = "Boolean"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result);
+            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest3Async() {
-
             var browser = _services();
             var path = new[] {
                 "Objects",
@@ -149,320 +142,290 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             VariantValue expected = false;
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     BrowsePath = path,
                     Value = expected,
                     DataType = "Boolean"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result);
+            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
 
             expected = true;
 
             // Act
-            result = await browser.ValueWriteAsync(_endpoint,
+            result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     BrowsePath = path,
                     Value = expected,
                     DataType = "Boolean"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result);
+            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarSByteValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10217";
+            const string node = "http://test.org/UA/Data/#i=10217";
 
             var expected = _serializer.Parse("-61");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "SByte"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarByteValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10218";
+            const string node = "http://test.org/UA/Data/#i=10218";
 
             var expected = _serializer.Parse("216");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Byte"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarInt16ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10219";
+            const string node = "http://test.org/UA/Data/#i=10219";
 
             var expected = _serializer.Parse("15373");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int16"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarUInt16ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10220";
+            const string node = "http://test.org/UA/Data/#i=10220";
 
             var expected = _serializer.Parse("52454");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInt16"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarInt32ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10221";
+            const string node = "http://test.org/UA/Data/#i=10221";
 
             var expected = _serializer.Parse(
                 "1966214362");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int32"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarUInt32ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10222";
+            const string node = "http://test.org/UA/Data/#i=10222";
 
             var expected = _serializer.Parse("2235103439");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInt32"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarInt64ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10223";
+            const string node = "http://test.org/UA/Data/#i=10223";
 
             var expected = _serializer.Parse("1485146186671575531");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int64"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarUInt64ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10224";
+            const string node = "http://test.org/UA/Data/#i=10224";
 
             var expected = _serializer.Parse("5415129398295885582");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInt64"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarFloatValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10225";
+            const string node = "http://test.org/UA/Data/#i=10225";
 
             var expected = _serializer.Parse(
                 "1.65278221E-37");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Float"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarDoubleValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10226";
+            const string node = "http://test.org/UA/Data/#i=10226";
 
             var expected = _serializer.Parse("103.27073669433594");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Double"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarStringValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10227";
+            const string node = "http://test.org/UA/Data/#i=10227";
 
             var expected = _serializer.Parse(
                 "\"Red+ Green] Cow^ Purple Horse~ Elephant^ Horse Lime\"");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "String"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarDateTimeValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10228";
+            const string node = "http://test.org/UA/Data/#i=10228";
 
             VariantValue expected = DateTime.UtcNow + TimeSpan.FromDays(11);
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "DateTime"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarGuidValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10229";
+            const string node = "http://test.org/UA/Data/#i=10229";
 
             VariantValue expected = "bdc1d303-2355-6173-9314-1816b7315b96";
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Guid"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarByteStringValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10230";
+            const string node = "http://test.org/UA/Data/#i=10230";
 
             var expected = _serializer.Parse(
                "\"+1q+tSjpWzavev/hDIb4gk/xHLZGD4VscxJEWo2QzUU145zcKKra6WaGpq" +
                "hzgIeNIJNnQD/gruzUUkIWpQA=\"");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "ByteString"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarXmlElementValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10231";
+            const string node = "http://test.org/UA/Data/#i=10231";
 
             var expected = _serializer.FromObject(XmlElementEx.SerializeObject(
                 new MemoryBufferInstance {
@@ -472,165 +435,148 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 }));
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "XmlElement"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarNodeIdValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10232";
+            const string node = "http://test.org/UA/Data/#i=10232";
 
             VariantValue expected = "http://samples.org/UA/memorybuffer#i=2040578002";
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "NodeId"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarExpandedNodeIdValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10233";
+            const string node = "http://test.org/UA/Data/#i=10233";
 
             VariantValue expected = "http://opcfoundation.org/UA/Diagnostics#i=1375605653";
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "ExpandedNodeId"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
-
         public async Task NodeWriteStaticScalarQualifiedNameValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10234";
+            const string node = "http://test.org/UA/Data/#i=10234";
 
             var expected = _serializer.FromObject("http://test.org/UA/Data/#testname");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "QualifiedName"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarLocalizedTextValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10235";
+            const string node = "http://test.org/UA/Data/#i=10235";
 
             var expected = _serializer.Parse(
                 "{\"Text\":\"자주색 들쭉) 망고 고양이\",\"Locale\":\"ko\"}");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "LocalizedText"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarStatusCodeValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10236";
+            const string node = "http://test.org/UA/Data/#i=10236";
 
             var expected = _serializer.Parse("11927552");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "StatusCode"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarVariantValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10237";
+            const string node = "http://test.org/UA/Data/#i=10237";
 
             var expected = _serializer.Parse("-2.5828845095702735E-29");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "BaseDataType"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarEnumerationValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10238";
+            const string node = "http://test.org/UA/Data/#i=10238";
 
             var expected = _serializer.Parse("1137262927");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int32"
                     // TODO: Assert.Equal("Enumeration", result.DataType);
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarStructuredValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10239";
+            const string node = "http://test.org/UA/Data/#i=10239";
 
             var expected = _serializer.Parse(@"
 {
@@ -652,27 +598,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         ""DateTimeValue"": ""2027-02-05T11:29:29.9135123Z"",
         ""GuidValue"": ""64a055c1-1e60-67a1-e801-f996fece3eec"",
         ""ByteStringValue"": ""XmIaOczWGerdvT4+Y1BOuQ=="",
-        ""XmlElementValue"": {
-            ""n0:Mango"": {
-                ""@Monkey"": ""Monkey"",
-                ""@Snake"": ""Cow"",
-                ""@Red"": ""White"",
-                ""@Grape"": ""Lemon"",
-                ""@Banana"": ""Green"",
-                ""@Lime"": ""Sheep"",
-                ""@Strawberry"": ""Mangod"",
-                ""@Elephant"": ""Strawberry"",
-                ""@Purple"": ""Greend"",
-                ""@Sheep"": ""Lemond"",
-                ""@xmlns:n0"": ""http://Peach"",
-                ""n0:Grape"": [ ""Yellow+ Elephant Elephant% Dragon{ Pineapple( Red* Pineapple' White Black? Pig White"", ""Monkey Grape Mango+ Pineapple Snake Dog Red Mango} Pineapple' Pineapple Pig] Elephant"", ""Rat Purple: Strawberry- Peach Black\"" Yellow] Strawberry Black Banana# Horse( Peach?"" ],
-                ""n0:White"": ""Pineapple Blue{ Dog Lemon Cat Lime Pineapple; Black, Rat Mango"",
-                ""n0:Red"": [ ""Pineapple Sheep Banana Mango~ Peach] Green< Black. Green Black. Mango Pineapple Cow; Pineapple Red="", ""White> Banana Black> Purple Snake: Red` Green Blue^ Elephant White Blueberry Cat Sheep"" ],
-                ""n0:Pineapple"": ""Green Yellow Cat Black Purple, Monkey Cow* Lime Purple{ Purple* Pig( Lemon' Banana- Sheep#"",
-                ""n0:Snake"": ""Horse Blueberry> Black White% Horse Red@ Grape$ White Purple"",
-                ""n0:Mango"": ""Lime! Banana> Strawberry Sheep~ Blueberry% Monkey\"" Green/ Sheep Horse^ Snake Red@""
-            }
-        },
+        ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
         ""NodeIdValue"": ""nsu=DataAccess;s=狗绵羊"",
         ""ExpandedNodeIdValue"": ""http://test.org/UA/Data//Instance#b=pQ%3d%3d"",
         ""QualifiedNameValue"": ""http://test.org/UA/Data/#%e3%83%98%e3%83%93"",
@@ -704,83 +630,77 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 ");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "ExtensionObject"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarNumberValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10240";
+            const string node = "http://test.org/UA/Data/#i=10240";
 
             var expected = _serializer.Parse("-44");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "SByte"
                     // Assert.Equal("Number", result.DataType);
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarIntegerValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10241";
+            const string node = "http://test.org/UA/Data/#i=10241";
 
             var expected = _serializer.Parse("94903859");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int32"
                     // Assert.Equal("Integer", result.DataType);
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticScalarUIntegerValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10242";
+            const string node = "http://test.org/UA/Data/#i=10242";
 
             var expected = _serializer.Parse("64817");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInt32"
                     // Assert.Equal("UInteger", result.DataType);
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
         private async Task AssertResultAsync(string node, VariantValue expected,
             ValueWriteResponseModel result) {
-            var value = await _readExpected(_endpoint, node);
+            var value = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
             Assert.NotNull(value);
             Assert.Null(result.ErrorInfo);
 
@@ -788,9 +708,9 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal(expected, value);
         }
 
-        private readonly T _endpoint;
+        private readonly T _connection;
         private readonly IJsonSerializer _serializer;
-        private readonly Func<T, string, Task<VariantValue>> _readExpected;
+        private readonly Func<T, string, IJsonSerializer, Task<VariantValue>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
     }
 }

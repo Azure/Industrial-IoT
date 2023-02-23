@@ -29,10 +29,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     /// be easily referenced here.
     /// </summary>
     public class PublishedNodesJobConverterTests {
-
         [Fact]
         public void PnPlcEmptyTestAsync() {
-            var pn = @"
+            const string pn = @"
 [
 ]
 ";
@@ -51,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetWriterIdTest() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetWriterId"": ""testid"",
@@ -65,7 +64,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -85,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetWriterIdIsNullTest() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -98,7 +96,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -118,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetWriterGroupTest() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetWriterGroup"": ""testgroup"",
@@ -133,7 +130,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -141,10 +137,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
 
-
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
-
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -157,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetFieldId1Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -170,7 +164,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -191,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetFieldId2Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -226,7 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
             Assert.Equal("testfieldid1", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
             Assert.Equal("testfieldid2", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
@@ -234,7 +227,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetFieldIdDuplicateTest() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -251,7 +244,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -270,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
             Assert.Equal("testfieldid", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
             Assert.Equal("testfieldid", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
@@ -278,7 +270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDisplayNameDuplicateTest() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -296,14 +288,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -315,7 +305,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
             Assert.Equal("testdisplayname", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().PublishedVariableDisplayName);
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].PublishedVariableDisplayName);
             Assert.Equal("testdisplayname", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().PublishedVariableDisplayName);
@@ -323,7 +313,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubFullDuplicateTest() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -343,7 +333,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -361,16 +350,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
             Assert.Equal("testfieldid", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
             Assert.Equal("testfieldid", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
         }
 
-
         [Fact]
         public void PnPlcPubSubFullTest() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetWriterGroup"": ""testgroup"",
@@ -391,7 +379,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -405,14 +392,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
             Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters
-                .First().DataSet.DataSetSource.PublishedVariables.PublishedData);
+                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
             Assert.Equal("testfieldid1", jobs
-                .Single().WriterGroup.DataSetWriters
-                .First().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
             Assert.Equal("i=2258", jobs
-                .Single().WriterGroup.DataSetWriters
-                .First().DataSet.DataSetSource.PublishedVariables.PublishedData.First().PublishedVariableNodeId);
+                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].PublishedVariableNodeId);
             Assert.Null(jobs
                 .Single().WriterGroup.DataSetWriters
                 .Last().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
@@ -422,23 +406,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             Assert.Equal("testgroup", jobs
                 .Single().WriterGroup.WriterGroupId);
             Assert.Equal("testgroup", jobs
-                .Single().WriterGroup.DataSetWriters
-                .First().DataSet.DataSetSource.Connection.Group);
+                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.Connection.Group);
             Assert.Equal("testwriterid_($a4ac914c09d7c097fe1f4f96b897e625b6922069)", jobs
-                .Single().WriterGroup.DataSetWriters
-                .First().DataSetWriterName);
+                .Single().WriterGroup.DataSetWriters[0].DataSetWriterName);
             Assert.Equal(2000, jobs
-                .Single().WriterGroup.DataSetWriters
-                .First().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
             Assert.Equal(1000, jobs
                 .Single().WriterGroup.DataSetWriters
                 .Last().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
-
         }
 
         [Fact]
         public void PnPlcPubSubDataSetPublishingInterval1Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -452,7 +432,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -460,10 +439,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
 
-
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
-
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -474,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetPublishingInterval2Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -496,7 +473,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
 
-
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
 
@@ -509,7 +485,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetPublishingInterval3Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -525,7 +501,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -546,7 +521,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetPublishingInterval4Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -564,7 +539,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -578,13 +552,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
             Assert.Equal(2000, jobs
-                .First().WriterGroup.DataSetWriters
-                .First().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+                .First().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
         [Fact]
         public void PnPlcPubSubDataSetPublishingIntervalTimespan1Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
@@ -598,7 +571,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -606,10 +578,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
 
-
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
-
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -620,7 +590,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetPublishingIntervalTimespan2Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
@@ -635,14 +605,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -656,7 +624,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetPublishingIntervalTimespan3Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
@@ -673,7 +641,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -681,10 +648,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
 
-
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
-
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -695,7 +660,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDataSetPublishingIntervalTimespan4Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
@@ -713,7 +678,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -727,14 +691,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
             Assert.Equal(1000, jobs
-                .Single().WriterGroup.DataSetWriters
-                .First().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
-
 
         [Fact]
         public void PnPlcPubSubDisplayName1Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -748,7 +710,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -769,7 +730,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDisplayName2Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -782,7 +743,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -803,7 +763,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDisplayName3Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -818,7 +778,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -839,7 +798,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubDisplayName4Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -853,7 +812,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -874,7 +832,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubPublishedNodeDisplayName1Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -888,7 +846,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -909,7 +866,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubPublishedNodeDisplayName2Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -922,7 +879,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -943,7 +899,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubPublishedNodeDisplayName3Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -958,7 +914,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -979,7 +934,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPubSubPublishedNodeDisplayName4Test() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""DataSetPublishingInterval"": 1000,
@@ -993,7 +948,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -1014,8 +968,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcHeartbeatInterval2Test() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1029,14 +982,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1059,8 +1010,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcHeartbeatIntervalTimespanTest() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1074,14 +1024,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1104,8 +1052,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcHeartbeatSkipSingleTrueTest() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1119,14 +1066,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1143,11 +1088,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
-
         [Fact]
         public void PnPlcHeartbeatSkipSingleFalseTest() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1161,14 +1104,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1184,8 +1125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPublishingInterval2000Test() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1199,14 +1139,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1226,8 +1164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcPublishingIntervalCliTest() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1239,7 +1176,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     }
 ]
 ";
-
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -1266,8 +1202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcSamplingInterval2000Test() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1281,7 +1216,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -1289,10 +1223,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
 
-
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
-
 
             Assert.NotEmpty(jobs);
             var j = Assert.Single(jobs);
@@ -1311,8 +1243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcExpandedNodeIdTest() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1325,7 +1256,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -1333,10 +1263,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
 
-
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
-
 
             Assert.NotEmpty(jobs);
             var j = Assert.Single(jobs);
@@ -1349,11 +1277,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
-
         [Fact]
         public void PnPlcExpandedNodeId2Test() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1380,7 +1306,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -1389,7 +1314,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 engineConfigMock.Object, clientConfignMock.Object);
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
-
 
             Assert.NotEmpty(jobs);
             var j = Assert.Single(jobs);
@@ -1403,8 +1327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcExpandedNodeId3Test() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1423,14 +1346,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1445,11 +1366,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
-
         [Fact]
         public void PnPlcExpandedNodeId4Test() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1489,14 +1408,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1513,8 +1430,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcMultiJob1Test() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost1:50000"",
@@ -1554,7 +1470,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ";
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
@@ -1575,8 +1490,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcMultiJob2Test() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50001"",
@@ -1625,15 +1539,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 "opc.tcp://localhost:50004"
             };
 
-
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1650,8 +1561,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcMultiJob3Test() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1698,15 +1608,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 "opc.tcp://localhost:50001",
             };
 
-
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1723,8 +1630,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcMultiJob4Test() {
-
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
@@ -1769,15 +1675,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 "opc.tcp://localhost:50001",
             };
 
-
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1795,15 +1698,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         [Theory]
         [InlineData("Publisher/publishednodes_with_duplicates.json")]
         public async Task PnWithDuplicatesTest(string publishedNodesJsonFile) {
-
-            var pn = await File.ReadAllTextAsync(publishedNodesJsonFile);
+            var pn = await File.ReadAllTextAsync(publishedNodesJsonFile).ConfigureAwait(false);
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
@@ -1827,10 +1728,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData).Count());
         }
 
-
         [Fact]
         public void PnPlcMultiJobBatching1Test() {
-
             var pn = new StringBuilder(@"
 [
     {
@@ -1851,14 +1750,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ");
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn.ToString());
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
@@ -1884,7 +1781,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcMultiJobBatching2Test() {
-
             var pn = new StringBuilder(@"
 [
     {
@@ -1907,14 +1803,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ]
 ");
 
-
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn.ToString());
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
@@ -1940,8 +1834,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
                     null,
                     null,
                     null
-                }, j.WriterGroup.DataSetWriters.Select(dataSetWriter =>
-                    dataSetWriter.DataSet.DataSetSource.SubscriptionSettings?.PublishingInterval).ToList());
+                }, j.WriterGroup.DataSetWriters.ConvertAll(dataSetWriter =>
+                    dataSetWriter.DataSet.DataSetSource.SubscriptionSettings?.PublishingInterval));
 
             Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.All(
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData,
@@ -2005,7 +1899,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
 
-
             var entries = converter.Read(pn.ToString());
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
 
@@ -2049,7 +1942,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcMultiJob1TestWithDataItemsAndEvents() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost1:50000"",
@@ -2121,7 +2014,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
 
-
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
 
@@ -2171,7 +2063,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcJobTestWithEvents() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
@@ -2312,7 +2204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Fact]
         public void PnPlcJobTestWithConditionHandling() {
-            var pn = @"
+            const string pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
@@ -2360,15 +2252,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             Assert.Equal(30, eventModel.ConditionHandling.SnapshotInterval);
         }
 
-
         private static IPublisherConfiguration GetConfig() {
             var configMock = new Mock<IPublisherConfiguration>();
             configMock.SetupAllProperties();
             configMock.SetupGet(p => p.MaxNodesPerPublishedEndpoint).Returns(1000);
             configMock.SetupGet(p => p.MessagingProfile).Returns(MessagingProfile.Get(
                 MessagingMode.Samples, MessageEncoding.Json));
-            var config = configMock.Object;
-            return config;
+            return configMock.Object;
         }
 
         private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();

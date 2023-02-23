@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
     /// PublishedNodesEntryModel extensions
     /// </summary>
     public static class PublishedNodesEntryModelEx {
-
         /// <summary>
         /// Validates if the entry has same group as the model
         /// </summary>
@@ -25,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
             if (!string.Equals(model.DataSetWriterGroup,
-                that.DataSetWriterGroup, StringComparison.InvariantCulture)) {
+                that.DataSetWriterGroup, StringComparison.Ordinal)) {
                 return false;
             }
             return true;
@@ -76,19 +75,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
             if (!string.Equals(model.OpcAuthenticationUsername ?? string.Empty,
-                that.OpcAuthenticationUsername ?? string.Empty, StringComparison.InvariantCulture)) {
+                that.OpcAuthenticationUsername ?? string.Empty, StringComparison.Ordinal)) {
                 return false;
             }
             if (!string.Equals(model.OpcAuthenticationPassword ?? string.Empty,
-                that.OpcAuthenticationPassword ?? string.Empty, StringComparison.InvariantCulture)) {
+                that.OpcAuthenticationPassword ?? string.Empty, StringComparison.Ordinal)) {
                 return false;
             }
             if (!string.Equals(model.EncryptedAuthUsername ?? string.Empty,
-                that.EncryptedAuthUsername ?? string.Empty, StringComparison.InvariantCulture)) {
+                that.EncryptedAuthUsername ?? string.Empty, StringComparison.Ordinal)) {
                 return false;
             }
             if (!string.Equals(model.EncryptedAuthPassword ?? string.Empty,
-                that.EncryptedAuthPassword ?? string.Empty, StringComparison.InvariantCulture)) {
+                that.EncryptedAuthPassword ?? string.Empty, StringComparison.Ordinal)) {
                 return false;
             }
             return true;
@@ -137,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
         public static bool HasSameDataSet(this PublishedNodesEntryModel model,
             PublishedNodesEntryModel that) {
             if (!string.Equals(model.DataSetWriterId ?? string.Empty,
-                that.DataSetWriterId ?? string.Empty, StringComparison.InvariantCulture)) {
+                that.DataSetWriterId ?? string.Empty, StringComparison.Ordinal)) {
                 return false;
             }
             if (!model.HasSameGroup(that)) {
@@ -147,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
             if (!string.Equals(model.DataSetName ?? string.Empty,
-                that.DataSetName ?? string.Empty, StringComparison.InvariantCulture)) {
+                that.DataSetName ?? string.Empty, StringComparison.Ordinal)) {
                 return false;
             }
             if (model.DataSetClassId != that.DataSetClassId) {
@@ -157,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
             if (!string.Equals(model.MetaDataQueueName ?? string.Empty,
-                that.MetaDataQueueName ?? string.Empty, StringComparison.InvariantCulture)) {
+                that.MetaDataQueueName ?? string.Empty, StringComparison.Ordinal)) {
                 return false;
             }
             if (model.MetaDataUpdateTimeTimespan != that.MetaDataUpdateTimeTimespan) {

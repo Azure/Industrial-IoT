@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Module {
     /// Handles method call invocation
     /// </summary>
     public interface IMethodHandler {
-
         /// <summary>
         /// Method handler
         /// </summary>

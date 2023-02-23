@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Subscription model extensions
     /// </summary>
     public static class SubscriptionConfigurationModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

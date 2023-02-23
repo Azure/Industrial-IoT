@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     /// Json serializer settings extensions
     /// </summary>
     public static class JsonSerializerUtcEx {
-
         /// <summary>
         /// Constant for OpcUa JSON encoded DateTime.MinValue.
         /// </summary>

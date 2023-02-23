@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Request interface
     /// </summary>
     public interface IHttpRequest {
-
         /// <summary>
         /// Id of the target resource
         /// </summary>

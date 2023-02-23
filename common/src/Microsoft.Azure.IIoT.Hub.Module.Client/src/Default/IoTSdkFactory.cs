@@ -25,7 +25,6 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default {
     /// Injectable factory that creates clients
     /// </summary>
     public sealed class IoTSdkFactory : IClientFactory {
-
         /// <inheritdoc />
         public string DeviceId { get; }
 
@@ -95,8 +94,8 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default {
                         _deviceClientCs = IotHubConnectionStringBuilder.Create(
                             config.EdgeHubConnectionString + ";GatewayHostName=" + ehubHost);
 
-                        _logger.LogInformation($"Details of gateway host are added to IoT Hub connection string: " +
-                            $"GatewayHostName={ehubHost}");
+                        _logger.LogInformation("Details of gateway host are added to IoT Hub connection string: " +
+                            "GatewayHostName={Host}", ehubHost);
                     }
                     _timeout = TimeSpan.FromMinutes(5);
                 }
@@ -144,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default {
                 else {
                     _transport = TransportOption.AmqpOverTcp;
                 }
-                _logger.LogInformation("Connecting all clients to {edgeHub} using {transport}.",
+                _logger.LogInformation("Connecting all clients to {EdgeHub} using {Transport}.",
                     ehubHost, _transport);
             }
             else {
@@ -157,7 +156,6 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default {
             Justification = "<Pending>")]
         public async Task<IClient> CreateAsync(string product,
             IMetricsContext metrics, IProcessControl ctrl) {
-
             if (_bypassCertValidation) {
                 _logger.LogWarning("Bypassing certificate validation for client.");
             }
@@ -205,15 +203,15 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default {
                 return await TryAll(transportSettings
                     .Select<ITransportSettings, Func<Task<IClient>>>(t =>
                          () => CreateAdapterAsync(product, () => ctrl?.Reset(), metrics, t))
-                    .ToArray());
+                    .ToArray()).ConfigureAwait(false);
             }
-            return await CreateAdapterAsync(product, () => ctrl?.Reset(), metrics);
+            return await CreateAdapterAsync(product, () => ctrl?.Reset(), metrics).ConfigureAwait(false);
 
             static async Task<T> TryAll<T>(params Func<Task<T>>[] options) {
                 var exceptions = new List<Exception>();
                 foreach (var option in options) {
                     try {
-                        return await option();
+                        return await option().ConfigureAwait(false);
                     }
                     catch (Exception ex) {
                         exceptions.Add(ex);
@@ -259,7 +257,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default {
         private void InstallCert(string certPath) {
             if (!File.Exists(certPath)) {
                 // We cannot proceed further without a proper cert file
-                _logger.LogError("Missing certificate file: {certPath}", certPath);
+                _logger.LogError("Missing certificate file: {CertPath}", certPath);
                 throw new InvalidOperationException("Missing certificate file.");
             }
 
@@ -268,7 +266,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default {
             using (var cert = new X509Certificate2(X509Certificate.CreateFromCertFile(certPath))) {
                 store.Add(cert);
             }
-            _logger.LogInformation("Added Cert: {certPath}", certPath);
+            _logger.LogInformation("Added Cert: {CertPath}", certPath);
             store.Close();
         }
 

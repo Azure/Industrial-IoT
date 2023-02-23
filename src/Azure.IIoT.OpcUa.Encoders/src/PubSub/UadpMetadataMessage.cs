@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
     public class UadpMetaDataMessage : UadpDiscoveryMessage {
-
         /// <summary>
         /// Create metadata message
         /// </summary>

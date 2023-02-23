@@ -39,19 +39,16 @@ namespace MemoryBuffer {
     /// A node manager for a variety of test data.
     /// </summary>
     public class MemoryBufferNodeManager : SampleNodeManager {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         public MemoryBufferNodeManager(IServerInternal server,
             ApplicationConfiguration configuration) :
             base(server) {
-            var namespaceUris = new List<string> {
+            NamespaceUris = new List<string> {
                 Namespaces.MemoryBuffer,
                 Namespaces.MemoryBuffer + "/Instance"
             };
-
-            NamespaceUris = namespaceUris;
 
             // get the configuration for the node manager.
             _configuration = configuration.ParseExtension<MemoryBufferConfiguration>();
@@ -164,7 +161,6 @@ namespace MemoryBuffer {
                     return null;
                 }
 
-
                 if (nodeId.Identifier is string id) {
                     // check for a reference to the buffer.
 
@@ -238,7 +234,6 @@ namespace MemoryBuffer {
             out IMonitoredItem monitoredItem) {
             filterError = null;
             monitoredItem = null;
-
 
             // use default behavoir for non-tag sources.
             if (!(source is MemoryTagState tag)) {

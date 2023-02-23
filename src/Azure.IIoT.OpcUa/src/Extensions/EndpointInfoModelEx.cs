@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Service model extensions for discovery service
     /// </summary>
     public static class EndpointInfoModelEx {
-
         /// <summary>
         /// Create unique endpoint
         /// </summary>
@@ -47,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
             if (string.IsNullOrWhiteSpace(endpointId)) {
                 return false;
             }
-            if (!endpointId.StartsWith("uat")) {
+            if (!endpointId.StartsWith("uat", StringComparison.Ordinal)) {
                 return false;
             }
             return endpointId.Substring(3).IsBase16();

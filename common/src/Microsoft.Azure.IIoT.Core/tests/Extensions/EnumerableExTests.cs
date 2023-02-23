@@ -8,7 +8,6 @@ namespace System.Collections.Generic {
     using Xunit;
 
     public class EnumerableExTests {
-
         [Fact]
         public void SequenceEqualsReturnsFalseWhenListSubjectNull() {
             List<string> test1 = null;
@@ -17,7 +16,6 @@ namespace System.Collections.Generic {
             var result = test1.SequenceEqualsSafe(test2);
             Assert.False(result);
         }
-
 
         [Fact]
         public void SequenceEqualsReturnsFalseWhenListObjectNull() {
@@ -126,6 +124,5 @@ namespace System.Collections.Generic {
             var result = test1.SequenceEqualsSafe(test2);
             Assert.False(result);
         }
-
     }
 }

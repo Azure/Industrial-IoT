@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// resource identified by the resource id.
     /// </summary>
     public interface IHttpHandlerFactory {
-
         /// <summary>
         /// Create message handler
         /// </summary>

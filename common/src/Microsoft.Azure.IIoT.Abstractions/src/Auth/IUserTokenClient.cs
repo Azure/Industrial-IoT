@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     /// Code redemption and user token cache support
     /// </summary>
     public interface IUserTokenClient {
-
         /// <summary>
         /// Provider name
         /// </summary>

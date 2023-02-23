@@ -13,7 +13,6 @@ namespace Plc {
     /// Node manager
     /// </summary>
     public partial class PlcNodeManager : CustomNodeManager2 {
-
         public string ProgramName { get; set; } = "Plc";
 
         public uint RandomUnsignedInt32 {
@@ -126,7 +125,6 @@ namespace Plc {
 
             return folder;
         }
-
 
         /// <summary>
         /// Does any initialization required before the address space can be used.
@@ -301,7 +299,7 @@ namespace Plc {
         private ServiceResult OnResetTrendCall(ISystemContext context, MethodState method,
             IList<object> inputArguments, IList<object> outputArguments) {
             ResetTrendData();
-            Utils.Trace($"ResetTrend method called");
+            Utils.Trace("ResetTrend method called");
             return ServiceResult.Good;
         }
 
@@ -311,7 +309,7 @@ namespace Plc {
         private ServiceResult OnResetStepUpCall(ISystemContext context, MethodState method,
             IList<object> inputArguments, IList<object> outputArguments) {
             ResetStepUpData();
-            Utils.Trace($"ResetStepUp method called");
+            Utils.Trace("ResetStepUp method called");
             return ServiceResult.Good;
         }
 
@@ -321,7 +319,7 @@ namespace Plc {
         private ServiceResult OnStartStepUpCall(ISystemContext context, MethodState method,
             IList<object> inputArguments, IList<object> outputArguments) {
             StartStepUp();
-            Utils.Trace($"StartStepUp method called");
+            Utils.Trace("StartStepUp method called");
             return ServiceResult.Good;
         }
 
@@ -331,7 +329,7 @@ namespace Plc {
         private ServiceResult OnStopStepUpCall(ISystemContext context, MethodState method,
             IList<object> inputArguments, IList<object> outputArguments) {
             StopStepUp();
-            Utils.Trace($"StopStepUp method called");
+            Utils.Trace("StopStepUp method called");
             return ServiceResult.Good;
         }
 

@@ -36,7 +36,6 @@ namespace DataAccess {
     /// This class simulates a block in the system.
     /// </summary>
     public class UnderlyingSystemBlock {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="UnderlyingSystemBlock"/> class.
         /// </summary>
@@ -285,8 +284,6 @@ namespace DataAccess {
             }
         }
 
-
-
         /// <summary>
         /// Finds the tag identified by the name.
         /// </summary>
@@ -310,7 +307,7 @@ namespace DataAccess {
         /// <summary>
         /// Updates the value of an tag.
         /// </summary>
-        private bool UpdateTagValue(
+        private static bool UpdateTagValue(
             UnderlyingSystemTag tag,
             Opc.Ua.Test.TestDataGenerator generator) {
             // don't update writeable tags.
@@ -414,7 +411,7 @@ namespace DataAccess {
         /// <summary>
         /// Updates the metadata for a tag.
         /// </summary>
-        private bool UpdateTagMetadata(
+        private static bool UpdateTagMetadata(
             UnderlyingSystemTag tag,
             Opc.Ua.Test.TestDataGenerator generator) {
             switch (tag.TagType) {

@@ -36,7 +36,6 @@ namespace PerfTest {
     /// A node manager for a server that exposes several variables.
     /// </summary>
     public class PerfTestNodeManager : CustomNodeManager2 {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -85,7 +84,6 @@ namespace PerfTest {
 
                 for (var ii = 0; ii < registers.Count; ii++) {
                     var targetId = ModelUtils.GetRegisterId(registers[ii], NamespaceIndex);
-
 
                     if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references)) {
                         externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
@@ -212,8 +210,9 @@ namespace PerfTest {
             }
         }
 
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly PerfTestServerConfiguration _configuration;
+#pragma warning restore IDE0052 // Remove unread private members
         private readonly UnderlyingSystem _system;
-
     }
 }

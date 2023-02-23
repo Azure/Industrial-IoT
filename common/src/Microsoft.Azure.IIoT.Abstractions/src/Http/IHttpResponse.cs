@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Response interface
     /// </summary>
     public interface IHttpResponse {
-
         /// <summary>
         /// Id of the resource that responded
         /// </summary>

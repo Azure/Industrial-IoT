@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using global::Azure.IIoT.OpcUa;
+    using Azure.IIoT.OpcUa;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class ApplicationsController : ControllerBase {
-
         /// <summary>
         /// Create controller
         /// </summary>
@@ -55,9 +54,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _onboarding.RegisterAsync(request);
+            await _onboarding.RegisterAsync(request).ConfigureAwait(false);
         }
-
 
         /// <summary>
         /// Disable an enabled application.
@@ -70,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{applicationId}/disable")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DisableApplicationAsync(string applicationId) {
-            await _applications.DisableApplicationAsync(applicationId);
+            await _applications.DisableApplicationAsync(applicationId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -84,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{applicationId}/enable")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task EnableApplicationAsync(string applicationId) {
-            await _applications.EnableApplicationAsync(applicationId);
+            await _applications.EnableApplicationAsync(applicationId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -103,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _onboarding.DiscoverAsync(request);
+            await _onboarding.DiscoverAsync(request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -123,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             await _onboarding.CancelAsync(new DiscoveryCancelRequestModel {
                 Id = requestId
                 // TODO: AuthorityId = User.Identity.Name;
-            });
+            }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -146,8 +144,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             }
             var model = request;
             // TODO: applicationServiceModel.AuthorityId = User.Identity.Name;
-            var result = await _applications.RegisterApplicationAsync(model);
-            return result;
+            return await _applications.RegisterApplicationAsync(model).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -158,8 +155,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpGet("{applicationId}")]
         public async Task<ApplicationRegistrationModel> GetApplicationRegistrationAsync(
             string applicationId) {
-            var result = await _applications.GetApplicationAsync(applicationId);
-            return result;
+            return await _applications.GetApplicationAsync(applicationId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -181,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             }
             var model = request;
             // TODO: applicationServiceModel.AuthorityId = User.Identity.Name;
-            await _applications.UpdateApplicationAsync(applicationId, model);
+            await _applications.UpdateApplicationAsync(applicationId, model).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -195,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpDelete("{applicationId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DeleteApplicationAsync(string applicationId) {
-            await _applications.UnregisterApplicationAsync(applicationId);
+            await _applications.UnregisterApplicationAsync(applicationId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -211,7 +207,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task DeleteAllDisabledApplicationsAsync(
             [FromQuery] TimeSpan? notSeenFor) {
             await _applications.PurgeDisabledApplicationsAsync(
-                notSeenFor ?? TimeSpan.FromTicks(0));
+                notSeenFor ?? TimeSpan.FromTicks(0)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -230,7 +226,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task<ApplicationSiteListModel> GetListOfSitesAsync(
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
-
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken]
                     .FirstOrDefault();
@@ -239,9 +234,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _applications.ListSitesAsync(
-                continuationToken, pageSize);
-            return result;
+            return await _applications.ListSitesAsync(
+                continuationToken, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -274,10 +268,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _applications.ListApplicationsAsync(
-                continuationToken, pageSize);
-
-            return result;
+            return await _applications.ListApplicationsAsync(
+                continuationToken, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -298,7 +290,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
             [FromBody][Required] ApplicationRegistrationQueryModel query,
             [FromQuery] int? pageSize) {
-
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
             }
@@ -306,10 +297,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _applications.QueryApplicationsAsync(
-                query, pageSize);
-
-            return result;
+            return await _applications.QueryApplicationsAsync(
+                query, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -329,7 +318,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task<ApplicationInfoListModel> GetFilteredListOfApplicationsAsync(
             [FromBody][Required] ApplicationRegistrationQueryModel query,
             [FromQuery] int? pageSize) {
-
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
             }
@@ -337,10 +325,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _applications.QueryApplicationsAsync(
-                query, pageSize);
-
-            return result;
+            return await _applications.QueryApplicationsAsync(
+                query, pageSize).ConfigureAwait(false);
         }
 
         private readonly IApplicationRegistry _applications;

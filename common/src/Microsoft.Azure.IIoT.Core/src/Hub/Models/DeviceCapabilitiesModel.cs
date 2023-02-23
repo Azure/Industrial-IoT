@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     [DataContract]
     public class DeviceCapabilitiesModel {
-
         /// <summary>
         /// iotedge device
         /// </summary>

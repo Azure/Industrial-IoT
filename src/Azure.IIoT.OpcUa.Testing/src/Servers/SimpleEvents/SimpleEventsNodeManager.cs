@@ -32,6 +32,7 @@ namespace SimpleEvents {
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Reflection;
     using System.Threading;
 
@@ -39,7 +40,6 @@ namespace SimpleEvents {
     /// A node manager for a server that exposes several variables.
     /// </summary>
     public class SimpleEventsNodeManager : CustomNodeManager2 {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -128,15 +128,12 @@ namespace SimpleEvents {
 
                 // check for predefined nodes.
                 if (PredefinedNodes != null) {
-
                     if (PredefinedNodes.TryGetValue(nodeId, out var node)) {
-                        var handle = new NodeHandle {
+                        return new NodeHandle {
                             NodeId = nodeId,
                             Validated = true,
                             Node = node
                         };
-
-                        return handle;
                     }
                 }
 
@@ -191,7 +188,8 @@ namespace SimpleEvents {
 
                     e.SetChildValue(SystemContext, Opc.Ua.BrowseNames.SourceName, "System", false);
                     e.SetChildValue(SystemContext, Opc.Ua.BrowseNames.SourceNode, Opc.Ua.ObjectIds.Server, false);
-                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.CycleId, NamespaceIndex), _cycleId.ToString(), false);
+                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.CycleId, NamespaceIndex),
+                        _cycleId.ToString(CultureInfo.InvariantCulture), false);
 
                     var step = new CycleStepDataType {
                         Name = "Step 1",
@@ -199,7 +197,8 @@ namespace SimpleEvents {
                     };
 
                     e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.CurrentStep, NamespaceIndex), step, false);
-                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.Steps, NamespaceIndex), new CycleStepDataType[] { step, step }, false);
+                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.Steps, NamespaceIndex),
+                        new CycleStepDataType[] { step, step }, false);
 
                     Server.ReportEvent(e);
                 }
@@ -209,7 +208,9 @@ namespace SimpleEvents {
             }
         }
 
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly SimpleEventsServerConfiguration _configuration;
+#pragma warning restore IDE0052 // Remove unread private members
         private Timer _simulationTimer;
         private int _cycleId;
 

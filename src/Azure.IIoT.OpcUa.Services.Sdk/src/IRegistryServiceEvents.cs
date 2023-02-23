@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Registry service events
     /// </summary>
     public interface IRegistryServiceEvents {
-
         /// <summary>
         /// Subscribe to application events
         /// </summary>

@@ -40,7 +40,6 @@ namespace HistoricalEvents {
     /// A node manager for a server that exposes several variables.
     /// </summary>
     public class HistoricalEventsNodeManager : CustomNodeManager2 {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -55,10 +54,9 @@ namespace HistoricalEvents {
             SetNamespaces(namespaceUrls);
 
             // get the configuration for the node manager.
-            _configuration = configuration.ParseExtension<HistoricalEventsServerConfiguration>();
-
             // use suitable defaults if no configuration exists.
-            _configuration ??= new HistoricalEventsServerConfiguration();
+            _configuration = configuration.ParseExtension<HistoricalEventsServerConfiguration>()
+                ?? new HistoricalEventsServerConfiguration();
 
             // initilize the report generator.
             _generator = new ReportGenerator();
@@ -112,10 +110,10 @@ namespace HistoricalEvents {
                 platforms.EventNotifier = EventNotifiers.SubscribeToEvents | EventNotifiers.HistoryRead | EventNotifiers.HistoryWrite;
                 base.AddRootNotifier(platforms);
 
-                foreach (var areaName in _generator.GetAreas()) {
+                foreach (var areaName in ReportGenerator.GetAreas()) {
                     var area = CreateArea(SystemContext, platforms, areaName);
 
-                    foreach (var well in _generator.GetWells(areaName)) {
+                    foreach (var well in ReportGenerator.GetWells(areaName)) {
                         CreateWell(SystemContext, area, well.Id, well.Name);
                     }
                 }
@@ -186,15 +184,12 @@ namespace HistoricalEvents {
 
                 // check for predefined nodes.
                 if (PredefinedNodes != null) {
-
                     if (PredefinedNodes.TryGetValue(nodeId, out var node)) {
-                        var handle = new NodeHandle {
+                        return new NodeHandle {
                             NodeId = nodeId,
                             Validated = true,
                             Node = node
                         };
-
-                        return handle;
                     }
                 }
 
@@ -223,8 +218,6 @@ namespace HistoricalEvents {
 
             return null;
         }
-
-
 
         /// <summary>
         /// Reads history events.
@@ -392,7 +385,6 @@ namespace HistoricalEvents {
             }
         }
 
-
         /// <summary>
         /// Fetches the requested event fields from the event.
         /// </summary>
@@ -498,14 +490,13 @@ namespace HistoricalEvents {
                 }
             }
 
-            var request = new HistoryReadRequest {
+            return new HistoryReadRequest {
                 Events = events,
                 TimeFlowsBackward = details.StartTime == DateTime.MinValue || (details.EndTime != DateTime.MinValue && details.EndTime < details.StartTime),
                 NumValuesPerNode = details.NumValuesPerNode,
                 Filter = details.Filter,
                 FilterContext = filterContext
             };
-            return request;
         }
 
         /// <summary>
@@ -549,7 +540,7 @@ namespace HistoricalEvents {
         /// <summary>
         /// Loads a history continuation point.
         /// </summary>
-        private HistoryReadRequest LoadContinuationPoint(
+        private static HistoryReadRequest LoadContinuationPoint(
             ServerSystemContext context,
             byte[] continuationPoint) {
             var session = context.OperationContext.Session;
@@ -557,7 +548,6 @@ namespace HistoricalEvents {
             if (session == null) {
                 return null;
             }
-
 
             if (!(session.RestoreHistoryContinuationPoint(continuationPoint) is HistoryReadRequest request)) {
                 return null;
@@ -569,7 +559,7 @@ namespace HistoricalEvents {
         /// <summary>
         /// Saves a history continuation point.
         /// </summary>
-        private byte[] SaveContinuationPoint(
+        private static byte[] SaveContinuationPoint(
             ServerSystemContext context,
             HistoryReadRequest request) {
             var session = context.OperationContext.Session;
@@ -583,9 +573,6 @@ namespace HistoricalEvents {
             request.ContinuationPoint = id.ToByteArray();
             return request.ContinuationPoint;
         }
-
-
-
 
         /// <summary>
         /// Does the simulation.
@@ -618,10 +605,10 @@ namespace HistoricalEvents {
             }
         }
 
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly HistoricalEventsServerConfiguration _configuration;
-#pragma warning disable IDE0069 // Disposable fields should be disposed
+#pragma warning restore IDE0052 // Remove unread private members
         private Timer _simulationTimer;
-#pragma warning restore IDE0069 // Disposable fields should be disposed
         private readonly ReportGenerator _generator;
     }
 }

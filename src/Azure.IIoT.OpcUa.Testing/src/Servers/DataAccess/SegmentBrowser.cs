@@ -35,7 +35,6 @@ namespace DataAccess {
     /// Browses the children of a segment.
     /// </summary>
     public class SegmentBrowser : NodeBrowser {
-
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
@@ -71,8 +70,6 @@ namespace DataAccess {
             _source = source;
             _stage = Stage.Begin;
         }
-
-
 
         /// <summary>
         /// Returns the next reference.
@@ -136,8 +133,6 @@ namespace DataAccess {
                 return null;
             }
         }
-
-
 
         /// <summary>
         /// Returns the next child.

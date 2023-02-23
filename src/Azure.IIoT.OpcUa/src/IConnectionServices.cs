@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Connection services
     /// </summary>
     public interface IConnectionServices<T> {
-
         /// <summary>
         /// Connect endpoint
         /// </summary>

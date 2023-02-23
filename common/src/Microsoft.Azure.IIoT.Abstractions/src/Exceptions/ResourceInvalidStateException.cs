@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// expected state for the operation.
     /// </summary>
     public class ResourceInvalidStateException : Exception {
-
         /// <inheritdoc />
         public ResourceInvalidStateException() {
         }

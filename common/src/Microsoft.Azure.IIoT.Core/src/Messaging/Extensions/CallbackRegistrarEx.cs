@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Messaging {
     /// Callback Registrar extensions
     /// </summary>
     public static class CallbackRegistrarEx {
-
         /// <summary>
         /// Register action
         /// </summary>

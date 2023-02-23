@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Client host services
     /// </summary>
     public interface IClientHost : IHostProcess, IAsyncDisposable {
-
         /// <summary>
         /// Add certificate to trust list
         /// </summary>

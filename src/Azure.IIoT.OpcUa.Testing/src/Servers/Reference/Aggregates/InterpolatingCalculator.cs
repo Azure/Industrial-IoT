@@ -27,7 +27,6 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-
 namespace Opc.Ua.Aggregates {
     /// <summary>
     /// Calculates aggregates with interpolation.
@@ -65,9 +64,8 @@ namespace Opc.Ua.Aggregates {
         /// Calculates the status for the time slice.
         /// </summary>
         protected override StatusCode ComputeStatus(IAggregationContext context, int numGood, int numBad, TimeSlice bucket) {
-            var code = (bucket.EarlyBound.Value == null && numGood + numBad == 0) ? // no inital bound, do not extrapolate
+            return (bucket.EarlyBound.Value == null && numGood + numBad == 0) ? // no inital bound, do not extrapolate
                 StatusCodes.BadNoData : base.ComputeStatus(context, numGood, numBad, bucket);
-            return code;
         }
 
         /// <summary>

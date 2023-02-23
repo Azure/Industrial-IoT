@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
     /// </summary>
     [Flags]
     public enum NetworkClass {
-
         /// <summary>
         /// None class
         /// </summary>

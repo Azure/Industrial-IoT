@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Encoder extensions
     /// </summary>
     internal static class EncoderExtensions {
-
         /// <summary>
         /// Test for
         /// </summary>

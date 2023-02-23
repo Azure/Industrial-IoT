@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Server endpoint manager
     /// </summary>
     public interface IEndpointManager {
-
         /// <summary>
         /// Find the endpoint and server application information that
         /// matches the endpoint query and register it in the registry.

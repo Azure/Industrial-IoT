@@ -16,12 +16,11 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Aapplication registration persisted and comparable
     /// </summary>
     public static class ApplicationRegistrationEx {
-
         /// <summary>
         /// Create device twin
         /// </summary>
-        /// <param name="serializer"></param>
         /// <param name="registration"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
         public static DeviceTwinModel ToDeviceTwin(
             this ApplicationRegistration registration, IJsonSerializer serializer) {
@@ -31,12 +30,11 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <summary>
         /// Create patch twin model to upload
         /// </summary>
-        /// <param name="serializer"></param>
         /// <param name="existing"></param>
         /// <param name="update"></param>
+        /// <param name="serializer"></param>
         public static DeviceTwinModel Patch(this ApplicationRegistration existing,
             ApplicationRegistration update, IJsonSerializer serializer) {
-
             var twin = new DeviceTwinModel {
                 Etag = existing?.Etag,
                 Tags = new Dictionary<string, VariantValue>(),
@@ -196,10 +194,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                 applicationType = update?.ApplicationType;
             }
 
-            var applicationId = ApplicationInfoModelEx.CreateApplicationId(
+            twin.Id = ApplicationInfoModelEx.CreateApplicationId(
                 siteOrGatewayId, applicationUri, applicationType);
-
-            twin.Id = applicationId;
 
             if (existing?.DeviceId != twin.Id) {
                 twin.Etag = null; // Force creation of new identity
@@ -346,8 +342,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                 return null;
             }
             var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
-            var registration = new ApplicationRegistration {
-
+            return new ApplicationRegistration {
                 // Device
 
                 DeviceId = twin.Id,
@@ -375,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                 ProductUri =
                     tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.ProductUri), null),
                 DiscovererId =
-                    tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.DiscovererId),
+                    tags.GetValueOrDefault(nameof(ApplicationRegistration.DiscovererId),
                         tags.GetValueOrDefault<string>("SupervisorId", null)),
                 DiscoveryProfileUri =
                     tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.DiscoveryProfileUri), null),
@@ -399,7 +394,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                 UpdateAuthorityId =
                     tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.UpdateAuthorityId), null),
             };
-            return registration;
         }
 #if ZOMBIE
 

@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR {
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class RouteAttribute : Attribute {
-
         /// <summary>
         /// Create attribute
         /// </summary>

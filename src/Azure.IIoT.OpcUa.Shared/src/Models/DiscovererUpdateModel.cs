@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class DiscovererUpdateModel {
-
         /// <summary>
         /// Site the discoverer is part of
         /// </summary>

@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Aggregate filter model extensions
     /// </summary>
     public static class AggregateFilterModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>
@@ -55,5 +54,4 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
             return true;
         }
     }
-
 }

@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class DiscoveryConfigModel {
-
         /// <summary>
         /// Address ranges to scan (null == all wired nics)
         /// </summary>

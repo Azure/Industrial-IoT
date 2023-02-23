@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class HistoryConfigurationModel {
-
         /// <summary>
         /// specifies whether the historical data was
         /// collected in such a manner that it should

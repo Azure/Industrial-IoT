@@ -39,7 +39,6 @@ namespace TestData {
     /// A node manager for a variety of test data.
     /// </summary>
     public class TestDataNodeManager : CustomNodeManager2, ITestDataSystemCallback {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -47,12 +46,10 @@ namespace TestData {
         :
             base(server, configuration) {
             // update the namespaces.
-            var namespaceUris = new List<string> {
+            NamespaceUris = new List<string> {
                 Namespaces.TestData,
                 Namespaces.TestData + "/Instance"
             };
-
-            NamespaceUris = namespaceUris;
 
             // get the configuration for the node manager.
             _configuration = configuration.ParseExtension<TestDataNodeManagerConfiguration>();
@@ -140,7 +137,6 @@ namespace TestData {
                     typeof(NodeState));
 
                 foreach (var node in PredefinedNodes.Values) {
-
                     if (node is ConditionState condition && !ReferenceEquals(condition.Parent, conditionsFolder)) {
                         condition.AddNotifier(SystemContext, null, true, conditionsFolder);
                         conditionsFolder.AddNotifier(SystemContext, null, false, condition);
@@ -175,7 +171,6 @@ namespace TestData {
         /// Replaces the generic node with a node specific to the model.
         /// </summary>
         protected override NodeState AddBehaviourToPredefinedNode(ISystemContext context, NodeState predefinedNode) {
-
             if (!(predefinedNode is BaseObjectState passiveNode)) {
                 return predefinedNode;
             }
@@ -303,7 +298,6 @@ namespace TestData {
                 return null;
             }
 
-
             if (!(context.OperationContext.Session.RestoreHistoryContinuationPoint(continuationPoint) is HistoryDataReader reader)) {
                 return null;
             }
@@ -383,9 +377,7 @@ namespace TestData {
                 }
 
                 // create a reader.
-#pragma warning disable IDE0068 // Use recommended dispose pattern
                 reader = new HistoryDataReader(nodeToRead.NodeId, datasource);
-#pragma warning restore IDE0068 // Use recommended dispose pattern
 
                 // start reading.
                 reader.BeginReadRaw(
@@ -420,7 +412,7 @@ namespace TestData {
         /// <summary>
         /// Returns true if the system must be scanning to provide updates for the monitored item.
         /// </summary>
-        private bool SystemScanRequired(MonitoredNode2 monitoredNode, IDataChangeMonitoredItem2 monitoredItem) {
+        private static bool SystemScanRequired(MonitoredNode2 monitoredNode, IDataChangeMonitoredItem2 monitoredItem) {
             // ingore other types of monitored items.
             if (monitoredItem == null) {
                 return false;
@@ -434,7 +426,6 @@ namespace TestData {
 
             // check for variables that need to be scanned.
             if (monitoredItem.AttributeId == Attributes.Value) {
-
                 if (source.Parent is TestDataObjectState test && test.SimulationActive.Value) {
                     return true;
                 }
@@ -524,7 +515,6 @@ namespace TestData {
                 }
             }
         }
-
 
         /// <summary>
         /// Peridically checks the system state.
@@ -626,9 +616,7 @@ namespace TestData {
         private TestDataSystem _system;
         private long _lastUsedId;
         private Timer _systemStatusTimer;
-#pragma warning disable IDE0069 // Disposable fields should be disposed
         private TestSystemConditionState _systemStatusCondition;
-#pragma warning restore IDE0069 // Disposable fields should be disposed
 
 #if CONDITION_SAMPLES
         private DialogConditionState _dialog;

@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Twin (endpoint) registration extensions
     /// </summary>
     public static class EndpointRegistrationEx {
-
         /// <summary>
         /// Logical comparison of endpoint registrations
         /// </summary>
@@ -42,7 +41,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="serializer"></param>
         public static DeviceTwinModel Patch(this EndpointRegistration existing,
             EndpointRegistration update, IJsonSerializer serializer) {
-
             var twin = new DeviceTwinModel {
                 Etag = existing?.Etag,
                 Tags = new Dictionary<string, VariantValue>(),
@@ -182,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
             var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
 
-            var registration = new EndpointRegistration {
+            return new EndpointRegistration {
                 // Device
 
                 DeviceId = twin.Id,
@@ -226,7 +224,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                 Thumbprint =
                     properties.GetValueOrDefault<string>(nameof(EndpointRegistration.Thumbprint), null)
             };
-            return registration;
         }
 
         /// <summary>
@@ -242,7 +239,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <returns></returns>
         public static EndpointRegistration ToEndpointRegistration(this DeviceTwinModel twin,
             bool onlyServerState) {
-
             if (twin == null) {
                 return null;
             }
@@ -378,7 +374,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// Compares for logical equality
         /// </summary>
         private class LogicalEquality : IEqualityComparer<EndpointRegistration> {
-
             /// <inheritdoc />
             public bool Equals(EndpointRegistration x, EndpointRegistration y) {
                 if (x.EndpointUrlLC != y.EndpointUrlLC) {

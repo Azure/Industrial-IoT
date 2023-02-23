@@ -22,8 +22,6 @@ tab_width = 4
 end_of_line = crlf
 insert_final_newline =true
 
-#### .NET Coding Conventions ####
-
 # Organize usings
 dotnet_separate_import_directive_groups = false
 dotnet_sort_system_directives_first = false
@@ -75,6 +73,36 @@ dotnet_code_quality_unused_parameters = all:suggestion
 dotnet_remove_unnecessary_suppression_exclusions = none
 
 #### C# Coding Conventions ####
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
+dotnet_style_prefer_auto_properties = true:silent
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+dotnet_style_prefer_conditional_expression_over_assignment = true:silent
+dotnet_style_prefer_conditional_expression_over_return = true:silent
+dotnet_style_explicit_tuple_names = true:suggestion
+dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
+dotnet_style_prefer_compound_assignment = true:suggestion
+dotnet_style_prefer_simplified_interpolation = true:suggestion
+dotnet_style_namespace_match_folder = true:suggestion
+dotnet_style_readonly_field = true:warning
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
+dotnet_style_allow_multiple_blank_lines_experimental = true:silent
+dotnet_style_allow_statement_immediately_after_block_experimental = true:silent
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:suggestion
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
 
 # var preferences
 csharp_style_var_elsewhere = true:suggestion
@@ -98,6 +126,18 @@ csharp_style_prefer_not_pattern = true:suggestion
 csharp_style_prefer_pattern_matching = true:silent
 csharp_style_prefer_switch_expression = false:suggestion
 
+csharp_style_prefer_method_group_conversion = true:silent
+csharp_style_prefer_top_level_statements = true:silent
+csharp_style_prefer_null_check_over_type_check = true:suggestion
+csharp_style_prefer_local_over_anonymous_function = true:suggestion
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+csharp_style_prefer_tuple_swap = true:suggestion
+csharp_style_prefer_utf8_string_literals = true:suggestion
+csharp_style_allow_embedded_statements_on_same_line_experimental = true:silent
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true:silent
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true:silent
+csharp_style_prefer_extended_property_pattern = true:suggestion
+
 # Null-checking preferences
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -107,12 +147,12 @@ csharp_preferred_modifier_order = public,private,protected,internal,static,exter
 
 # Code-block preferences
 csharp_prefer_braces = true:suggestion
-csharp_prefer_simple_using_statement = false:suggestion
+csharp_prefer_simple_using_statement = true:silent
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_style_inlined_variable_declaration = false:suggestion
+csharp_style_inlined_variable_declaration = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
 csharp_style_prefer_index_operator = true:suggestion
 csharp_style_prefer_range_operator = true:suggestion
@@ -291,47 +331,112 @@ dotnet_naming_style.begins_with_k.required_suffix =
 dotnet_naming_style.begins_with_k.word_separator =
 dotnet_naming_style.begins_with_k.capitalization = pascal_case
 
-# CA1303: Do not pass literals as localized parameters
-dotnet_diagnostic.CA1303.severity = none
+csharp_style_namespace_declarations= block_scoped:warning
 
-# CA1056: Uri properties should not be strings
-dotnet_diagnostic.CA1056.severity = none
+# IDE0046: Convert to conditional expression
+dotnet_diagnostic.IDE0046.severity = silent
+# IDE0045: Convert to conditional expression
+dotnet_diagnostic.IDE0045.severity = silent
+# IDE0130: Namespace does not match folder structure
+dotnet_diagnostic.IDE0130.severity = none
+# IDE0010: Add missing cases
+dotnet_diagnostic.IDE0010.severity = silent
+# IDE0072: Add missing cases
+dotnet_diagnostic.IDE0072.severity = silent
+
+# RCS1138: Add summary to documentation comment.
+dotnet_diagnostic.RCS1138.severity = silent
+# RCS1163: Unused parameter
+dotnet_diagnostic.RCS1163.severity = silent
+# RCS1180: Inline lazy initialization
+dotnet_diagnostic.RCS1180.severity = silent
+# RCS1194: Implement exception constructors.
+dotnet_diagnostic.RCS1194.severity = silent
+# RCS1073: Convert 'if' to 'return' statement.
+dotnet_diagnostic.RCS1073.severity = silent
+# RCS1112: Combine 'Enumerable.Where' method chain.
+dotnet_diagnostic.RCS1112.severity = silent
+# RCS1237: Use bit shift operator.
+dotnet_diagnostic.RCS1237.severity = silent
+# RCS1135: Declare enum member with zero value (when enum has FlagsAttribute).
+dotnet_diagnostic.RCS1135.severity = silent
+# RCS1079: Throwing of new NotImplementedException.
+dotnet_diagnostic.RCS1079.severity = silent
+# RCS1238: Avoid nested ?: operators.
+dotnet_diagnostic.RCS1238.severity = silent
 
 # CA1062: Variant value validation
 dotnet_code_quality.CA1062.null_check_validation_methods = IsNull|CheckNull
 
+# Default severity for analyzer diagnostics with category 'Naming'
+dotnet_analyzer_diagnostic.category-Naming.severity = suggestion
+# Default severity for analyzer diagnostics with category 'Performance'
+dotnet_analyzer_diagnostic.category-Performance.severity = suggestion
+
+# CA1303: Do not pass literals as localized parameters
+dotnet_diagnostic.CA1303.severity = none
 # CA1031: Do not catch general exception types
 dotnet_diagnostic.CA1031.severity = none
+# CA1062: Validate arguments of public methods
+dotnet_diagnostic.CA1062.severity = silent
+# CA1711: Identifiers should not have incorrect suffix
+dotnet_diagnostic.CA1711.severity = silent
+# CA2225: Operator overloads have named alternates
+dotnet_diagnostic.CA2225.severity = silent
+# CA1848: Use the LoggerMessage delegates
+dotnet_diagnostic.CA1848.severity = silent
+# CA1819: Properties should not return arrays
+dotnet_diagnostic.CA1819.severity = silent
+# CA1055: URI-like return values should not be strings
+dotnet_diagnostic.CA1055.severity = silent
+# CA1056: URI-like properties should not be strings
+dotnet_diagnostic.CA1056.severity = silent
+# CA1054: URI-like parameters should not be strings
+dotnet_diagnostic.CA1054.severity = silent
+dotnet_diagnostic.CA1309.severity=suggestion
+# CA1810: Initialize reference type static fields inline
+dotnet_diagnostic.CA1810.severity = none
+dotnet_diagnostic.CA1032.severity=silent
+dotnet_diagnostic.CA1304.severity=suggestion
+dotnet_diagnostic.CA1305.severity=suggestion
+dotnet_diagnostic.CA1307.severity=suggestion
+dotnet_diagnostic.CA1310.severity=warning
+dotnet_diagnostic.CA1727.severity=warning
+dotnet_diagnostic.CA2201.severity=warning
+dotnet_diagnostic.CA2215.severity=warning
+dotnet_diagnostic.CA5351.severity=warning
+dotnet_diagnostic.CA5350.severity=warning
+dotnet_diagnostic.CA5360.severity=error
+dotnet_diagnostic.CA5359.severity=warning
+dotnet_diagnostic.CA5363.severity=warning
+dotnet_diagnostic.CA5364.severity=warning
+dotnet_diagnostic.CA5365.severity=warning
+dotnet_diagnostic.CA5366.severity=warning
+dotnet_diagnostic.CA5373.severity=warning
+dotnet_diagnostic.CA5379.severity=warning
+dotnet_diagnostic.CA5385.severity=warning
+dotnet_diagnostic.CA5384.severity=warning
+dotnet_diagnostic.CA5397.severity=warning
+dotnet_diagnostic.CA5394.severity=suggestion
+# IDE0066: Convert switch statement to expression
+dotnet_diagnostic.IDE0066.severity = silent
+dotnet_diagnostic.CA1200.severity = suggestion
+dotnet_diagnostic.CA1848.severity = suggestion
+dotnet_diagnostic.CA2011.severity = warning
+dotnet_diagnostic.CA2009.severity = warning
+# Default severity for analyzer diagnostics with category 'Style'
+dotnet_analyzer_diagnostic.category-Style.severity = silent
+dotnet_code_quality_unused_parameters = all:suggestion
+dotnet_diagnostic.RCS1090.severity = warning
 
-# CA1054: Uri parameters should not be strings
-dotnet_diagnostic.CA1054.severity = none
-
-# CA1054: Expression is never 'null'
-dotnet_diagnostic.CA1508.severity = none
-
-# CA1054: Tight coupling
-dotnet_diagnostic.CA1506.severity = none
-
-# Default severity for analyzer diagnostics with category 'Naming'
-dotnet_analyzer_diagnostic.category-Naming.severity = none
-
-# RCS1138: Add summary to documentation comment.
-dotnet_diagnostic.RCS1138.severity = silent
-
-# RCS1194: Implement exception constructors.
-dotnet_diagnostic.RCS1194.severity = silent
-
-# RCS1073: Convert 'if' to 'return' statement.
-dotnet_diagnostic.RCS1073.severity = silent
-
-# RCS1112: Combine 'Enumerable.Where' method chain.
-dotnet_diagnostic.RCS1112.severity = silent
-
-# RCS1237: Use bit shift operator.
-dotnet_diagnostic.RCS1237.severity = silent
-
-# RCS1135: Declare enum member with zero value (when enum has FlagsAttribute).
-dotnet_diagnostic.RCS1135.severity = silent
-
-# RCS1079: Throwing of new NotImplementedException.
-dotnet_diagnostic.RCS1079.severity = silent
+[*.{cs,vb}]
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
+dotnet_style_prefer_auto_properties = true:silent
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+tab_width = 4
+indent_size = 4
+end_of_line = crlf
+dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.CA2007.severity = warning

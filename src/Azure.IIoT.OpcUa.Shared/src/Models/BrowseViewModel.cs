@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class BrowseViewModel {
-
         /// <summary>
         /// Node of the view to browse
         /// </summary>

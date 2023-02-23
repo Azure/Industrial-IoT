@@ -14,7 +14,6 @@ namespace Microsoft.AspNetCore.Mvc.Controllers {
     /// Controller descriptor extensions
     /// </summary>
     public static class ControllerDescriptorEx {
-
         /// <summary>
         /// Retrieve claims from descriptor
         /// </summary>
@@ -74,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.Controllers {
                     .Select(v => v.ToString()))
                 .ToArray();
             return versions.Any(v => $"v{v}" == version) &&
-                (!maps.Any() || maps.Any(v => $"v{v}" == version));
+                (maps.Length == 0 || maps.Any(v => $"v{v}" == version));
         }
 
         /// <summary>

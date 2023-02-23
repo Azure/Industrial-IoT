@@ -20,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
     public class EventsController : ControllerBase {
-
         /// <summary>
         /// Create controller for discovery services
         /// </summary>
@@ -43,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPut("{discovererId}/events")]
         public async Task SubscribeByDiscovererIdAsync(string discovererId,
             [FromBody] string connectionId) {
-            await _events.SubscribeAsync(discovererId, connectionId);
+            await _events.SubscribeAsync(discovererId, connectionId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -60,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPut("requests/{requestId}/events")]
         public async Task SubscribeByRequestIdAsync(string requestId,
             [FromBody] string connectionId) {
-            await _events.SubscribeAsync(requestId, connectionId);
+            await _events.SubscribeAsync(requestId, connectionId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -78,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpDelete("requests/{requestId}/events/{connectionId}")]
         public async Task UnsubscribeByRequestIdAsync(string requestId,
             string connectionId) {
-            await _events.UnsubscribeAsync(requestId, connectionId);
+            await _events.UnsubscribeAsync(requestId, connectionId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -95,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpDelete("{discovererId}/events/{connectionId}")]
         public async Task UnsubscribeByDiscovererIdAsync(string discovererId,
             string connectionId) {
-            await _events.UnsubscribeAsync(discovererId, connectionId);
+            await _events.UnsubscribeAsync(discovererId, connectionId).ConfigureAwait(false);
         }
 
         private readonly IGroupRegistrationT<DiscoverersHub> _events;

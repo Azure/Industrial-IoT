@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.State.Models {
-
     using System.Runtime.Serialization;
 
     /// <summary>

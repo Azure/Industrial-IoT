@@ -40,7 +40,6 @@ namespace Alarms {
     /// convert the information stored in this class into the UA equivalent.
     /// </remarks>
     public class UnderlyingSystemAlarm {
-
         /// <summary>
         /// The source that the alarm belongs to
         /// </summary>

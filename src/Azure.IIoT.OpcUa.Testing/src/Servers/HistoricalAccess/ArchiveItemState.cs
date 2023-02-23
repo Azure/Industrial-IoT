@@ -154,18 +154,14 @@ namespace HistoricalAccess {
                     NewSamples(context);
                 }
             }
-
-
         }
 
-#pragma warning disable RECS0154 // Parameter is never used
 #pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Creates a new sample.
         /// </summary>
         public List<DataValue> NewSamples(ISystemContext context)
 #pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore RECS0154 // Parameter is never used
         {
             var newSamples = new List<DataValue>();
 
@@ -225,7 +221,7 @@ namespace HistoricalAccess {
 
             DataRow row = null;
 
-            var ii = 0;
+            const int ii = 0;
             for (; ii < view.Count;) {
                 if (performUpdateType == PerformUpdateType.Insert) {
                     return StatusCodes.BadEntryExists;
@@ -302,14 +298,12 @@ namespace HistoricalAccess {
             return StatusCodes.Good;
         }
 
-#pragma warning disable RECS0154 // Parameter is never used
 #pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Updates the history.
         /// </summary>
         public uint UpdateAnnotations(SystemContext context, Annotation annotation, DataValue value, PerformUpdateType performUpdateType)
 #pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore RECS0154 // Parameter is never used
         {
             var replaced = false;
 
@@ -422,16 +416,14 @@ namespace HistoricalAccess {
             return StatusCodes.Good;
         }
 
-#pragma warning disable RECS0154 // Parameter is never used
 #pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Deletes a property value from the history.
         /// </summary>
         public uint DeleteAnnotationHistory(SystemContext context, QualifiedName propertyName, DateTime sourceTimestamp)
 #pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore RECS0154 // Parameter is never used
         {
-            var deleted = false;
+            const bool deleted = false;
 
             var filter = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SourceTimestamp = #{0}#", sourceTimestamp);
 
@@ -449,7 +441,7 @@ namespace HistoricalAccess {
                 return StatusCodes.BadNoEntryExists;
             }
 
-            return StatusCodes.Good;
+           // return StatusCodes.Good;
         }
 
         /// <summary>
@@ -517,7 +509,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Creates a modification info record.
         /// </summary>
-        private ModificationInfo GetModificationInfo(SystemContext context, HistoryUpdateType updateType) {
+        private static ModificationInfo GetModificationInfo(SystemContext context, HistoryUpdateType updateType) {
             var info = new ModificationInfo {
                 UpdateType = updateType,
                 ModificationTime = DateTime.UtcNow
@@ -537,14 +529,12 @@ namespace HistoricalAccess {
             return ReadHistory(startTime, endTime, isModified, null);
         }
 
-#pragma warning disable RECS0154 // Parameter is never used
 #pragma warning disable IDE0060 // Parameter is never used
         /// <summary>
         /// Reads the history for the specified time range.
         /// </summary>
         public DataView ReadHistory(DateTime startTime, DateTime endTime, bool isModified, QualifiedName browseName)
 #pragma warning restore IDE0060 // Parameter is never used
-#pragma warning restore RECS0154 // Parameter is never used
         {
             if (isModified) {
                 return ArchiveItem.DataSet.Tables[1].DefaultView;
@@ -560,7 +550,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Finds the value at or before the timestamp.
         /// </summary>
-        public int FindValueAtOrBefore(DataView view, DateTime timestamp, bool ignoreBad, out bool dataIgnored) {
+        public static int FindValueAtOrBefore(DataView view, DateTime timestamp, bool ignoreBad, out bool dataIgnored) {
             dataIgnored = false;
 
             if (view.Count <= 0) {
@@ -632,7 +622,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Returns the next value after the current position.
         /// </summary>
-        public int FindValueAfter(DataView view, int position, bool ignoreBad, out bool dataIgnored) {
+        public static int FindValueAfter(DataView view, int position, bool ignoreBad, out bool dataIgnored) {
             dataIgnored = false;
 
             if (position < 0 || position >= view.Count) {

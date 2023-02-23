@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Messaging.EventHub.Runtime {
     /// Event hub configuration - wraps a configuration root
     /// </summary>
     public class EventHubConsumerConfig : ConfigBase, IEventHubConsumerConfig {
-
         /// <summary>
         /// Event hub configuration
         /// </summary>

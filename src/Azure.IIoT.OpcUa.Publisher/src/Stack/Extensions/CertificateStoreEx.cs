@@ -13,7 +13,6 @@ namespace Opc.Ua {
     /// Certificate store extensions
     /// </summary>
     public static class CertificateStoreEx {
-
         /// <summary>
         /// Add to certificate store
         /// </summary>

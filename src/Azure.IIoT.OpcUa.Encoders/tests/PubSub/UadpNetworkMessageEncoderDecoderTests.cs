@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
     /// Uadp encoder decoder tests
     /// </summary>
     public class UadpNetworkMessageEncoderDecoderTests : IDataSetMetaDataResolver {
-
         public const UadpNetworkMessageContentMask NetworkMessageContentMaskDefault =
             (UadpNetworkMessageContentMask)0x7ff; // All
 
@@ -332,7 +331,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         /// </summary>
         private UadpNetworkMessage CreateNetworkMessage(
             UadpNetworkMessageContentMask contentMask, List<BaseDataSetMessage> messages) {
-            var networkMessage = new UadpNetworkMessage {
+            return new UadpNetworkMessage {
                 Messages = messages,
                 WriterGroupId = 4,
                 Timestamp = DateTime.UtcNow,
@@ -342,7 +341,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
                 PublisherId = "PublisherId",
                 NetworkMessageContentMask = (uint)contentMask
             };
-            return networkMessage;
         }
         private ushort _lastSequenceNumber;
 

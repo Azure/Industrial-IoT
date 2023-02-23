@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
     public class JsonMetaDataMessage : PubSubMessage {
-
         /// <inheritdoc/>
         public override string MessageSchema => MessageSchemaTypes.NetworkMessageJson;
 
@@ -183,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         internal bool TryDecode(IDecoder decoder) {
             MessageId = decoder.ReadString(nameof(MessageId));
             var messageType = decoder.ReadString(nameof(MessageType));
-            if (!messageType.Equals(MessageTypeUaMetadata, StringComparison.InvariantCultureIgnoreCase)) {
+            if (!messageType.Equals(MessageTypeUaMetadata, StringComparison.OrdinalIgnoreCase)) {
                 return false;
             }
             PublisherId = decoder.ReadString(nameof(PublisherId));

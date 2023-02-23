@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Result of bulk request
     /// </summary>
     public sealed record class PublishBulkResponseModel {
-
         /// <summary>
         /// Node to add
         /// </summary>

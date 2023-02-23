@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
-
     /// <summary>
     /// Module configuration
     /// </summary>
     public interface IModuleConfig {
-
         /// <summary>
         /// IoTEdgeHub connection string
         /// </summary>

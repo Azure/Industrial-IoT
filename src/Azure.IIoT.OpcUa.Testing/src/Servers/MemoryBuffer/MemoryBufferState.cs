@@ -36,17 +36,12 @@ namespace MemoryBuffer {
     using System.Threading;
 
     public partial class MemoryBufferState {
-
         /// <summary>
         /// Initializes the buffer from the configuration.
         /// </summary>
         public MemoryBufferState(ISystemContext context, MemoryBufferInstance configuration) :
             base(null) {
-
-#pragma warning disable RECS0021 // Warns about calls to virtual member functions occuring in the constructor
             Initialize(context);
-#pragma warning restore RECS0021 // Warns about calls to virtual member functions occuring in the constructor
-
             var dataType = "UInt32";
             var name = dataType;
             var count = 10;
@@ -111,8 +106,6 @@ namespace MemoryBuffer {
         /// The rate at which the buffer is scanned.
         /// </summary>
         public int MaximumScanRate { get; private set; }
-
-
 
         /// <summary>
         /// Initializes the buffer with enough space to hold the specified number of elements.
@@ -198,19 +191,16 @@ namespace MemoryBuffer {
         /// Handles the read operation for an invidual tag.
         /// </summary>
         public ServiceResult ReadTagValue(
-#pragma warning disable RECS0154 // Parameter is never used
 #pragma warning disable IDE0060 // Remove unused parameter
             ISystemContext context,
 #pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore RECS0154 // Parameter is never used
             NodeState node,
             NumericRange indexRange,
             QualifiedName dataEncoding,
             ref object value,
             ref StatusCode statusCode,
             ref DateTime timestamp) {
-
-            if (!(node is MemoryTagState tag)) {
+            if (node is not MemoryTagState tag) {
                 return StatusCodes.BadNodeIdUnknown;
             }
 
@@ -246,19 +236,16 @@ namespace MemoryBuffer {
         /// Handles a write operation for an individual tag.
         /// </summary>
         public ServiceResult WriteTagValue(
-#pragma warning disable RECS0154 // Parameter is never used
 #pragma warning disable IDE0060 // Remove unused parameter
             ISystemContext context,
 #pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore RECS0154 // Parameter is never used
             NodeState node,
             NumericRange indexRange,
             QualifiedName dataEncoding,
             ref object value,
             ref StatusCode statusCode,
             ref DateTime timestamp) {
-
-            if (!(node is MemoryTagState tag)) {
+            if (node is not MemoryTagState tag) {
                 return StatusCodes.BadNodeIdUnknown;
             }
 
@@ -292,32 +279,24 @@ namespace MemoryBuffer {
 
                 byte[] bytes = null;
 
-                switch (ElementType) {
-                    case BuiltInType.UInt32: {
-                            var valueToWrite = value as uint?;
-
-                            if (valueToWrite == null) {
-                                return StatusCodes.BadTypeMismatch;
-                            }
-
-                            bytes = BitConverter.GetBytes(valueToWrite.Value);
-                            break;
-                        }
-
-                    case BuiltInType.Double: {
-                            var valueToWrite = value as double?;
-
-                            if (valueToWrite == null) {
-                                return StatusCodes.BadTypeMismatch;
-                            }
-
-                            bytes = BitConverter.GetBytes(valueToWrite.Value);
-                            break;
-                        }
-
-                    default: {
-                            return StatusCodes.BadNodeIdUnknown;
-                        }
+                if (ElementType == BuiltInType.UInt32) {
+                    if (value is uint?) {
+                        bytes = BitConverter.GetBytes(((uint?)value).Value);
+                    }
+                    else {
+                        return StatusCodes.BadTypeMismatch;
+                    }
+                }
+                else if (ElementType == BuiltInType.Double) {
+                    if (value is double?) {
+                        bytes = BitConverter.GetBytes(((double?)value).Value);
+                    }
+                    else {
+                        return StatusCodes.BadTypeMismatch;
+                    }
+                }
+                else {
+                    return StatusCodes.BadNodeIdUnknown;
                 }
 
                 for (var ii = 0; ii < bytes.Length; ii++) {
@@ -364,8 +343,6 @@ namespace MemoryBuffer {
                 return Variant.Null;
             }
         }
-
-
 
         /// <summary>
         /// Initializes the instance with the context for the node being monitored.
@@ -438,7 +415,7 @@ namespace MemoryBuffer {
                     _monitoringTable[elementOffet].CopyTo(monitoredItems, 0);
                 }
 
-                monitoredItems[monitoredItems.Length - 1] = monitoredItem;
+                monitoredItems[^1] = monitoredItem;
                 _monitoringTable[elementOffet] = monitoredItems;
                 _itemCount++;
 

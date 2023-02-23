@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// Async disposable extensions
     /// </summary>
     public static class AsyncDisposableEx {
-
         /// <summary>
         /// Create from tasks
         /// </summary>
@@ -22,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         public static async Task<IAsyncDisposable> AsAsyncDisposable(
             this IEnumerable<Task<IAsyncDisposable>> tasks) {
 #pragma warning restore IDE1006 // Naming Styles
-            return new AsyncDisposable(await AsyncDisposable.WhenAll(tasks));
+            return new AsyncDisposable(await AsyncDisposable.WhenAll(tasks).ConfigureAwait(false));
         }
     }
 }

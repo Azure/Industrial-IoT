@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Session provider extensions
     /// </summary>
     public static class SessionProviderEx {
-
         /// <summary>
         /// Read value
         /// </summary>
@@ -25,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="readNode"></param>
         /// <returns></returns>
         public static Task<VariantValue> ReadValueAsync<T>(this ISessionProvider<T> client,
-            T connection, string readNode, CancellationToken ct = default) {
+            T connection, string readNode, IJsonSerializer serializer, CancellationToken ct = default) {
             return client.ExecuteServiceAsync(connection, session => {
                 var nodesToRead = new ReadValueIdCollection {
                     new ReadValueId {
@@ -35,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 };
                 var responseHeader = session.Session.Read(null, 0, TimestampsToReturn.Both,
                     nodesToRead, out var values, out var diagnosticInfos);
-                var result = new JsonVariantEncoder(session.MessageContext, new NewtonsoftJsonSerializer())
+                var result = new JsonVariantEncoder(session.MessageContext, serializer)
                     .Encode(values[0].WrappedValue, out var tmp);
                 return Task.FromResult(result);
             }, ct);

@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
     public class WriteController : ControllerBase {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -48,9 +47,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _nodes.ValueWriteAsync(
-                endpointId, request);
-            return writeResult;
+            return await _nodes.ValueWriteAsync(
+                endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -69,9 +67,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _nodes.WriteAsync(
-                endpointId, request);
-            return writeResult;
+            return await _nodes.WriteAsync(
+                endpointId, request).ConfigureAwait(false);
         }
 
         private readonly INodeServices<string> _nodes;

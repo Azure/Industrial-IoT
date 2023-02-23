@@ -4,11 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-
     /// <summary>
     /// PublishNodes direct method response
     /// </summary>
     public sealed record class PublishedNodesResponseModel {
-
     }
 }

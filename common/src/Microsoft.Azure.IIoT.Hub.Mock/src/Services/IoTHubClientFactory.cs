@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// Injectable factory that creates clients from device sdk
     /// </summary>
     public class IoTHubClientFactory : IClientFactory {
-
         /// <inheritdoc />
         public string DeviceId { get; }
 
@@ -67,7 +66,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// A test client
         /// </summary>
         public sealed class IoTHubClient : IClient, IIoTClientCallback {
-
             /// <summary>
             /// Whether the client is closed
             /// </summary>
@@ -136,7 +134,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// <inheritdoc />
             public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
                 MethodRequest methodRequest, CancellationToken cancellationToken) {
-                return Task.FromResult(IsClosed ? null : Connection.Call(deviceId,
+                return Task.FromResult(IsClosed ? null : Connection.CallMethod(deviceId,
                     string.IsNullOrEmpty(moduleId) ? null : moduleId, methodRequest));
             }
 
@@ -146,7 +144,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc />
-            public MethodResponse Call(MethodRequest methodRequest) {
+            public MethodResponse CallMethod(MethodRequest methodRequest) {
                 var cb = _methods;
                 if (cb == null) {
                     return new MethodResponse(500);
@@ -175,7 +173,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// Message wrapper
             /// </summary>
             internal sealed class TelemetryMessage : ITelemetryEvent {
-
                 /// <inheritdoc/>
                 public DateTime Timestamp { get; set; }
 

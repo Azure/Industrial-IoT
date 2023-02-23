@@ -27,7 +27,6 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-
 namespace HistoricalAccess {
     /// <summary>
     /// Defines constants for namespaces used by the application.

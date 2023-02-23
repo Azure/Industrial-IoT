@@ -19,9 +19,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     /// Implementation of event processor host interface to host event
     /// processors.
     /// </summary>
-    public sealed class EventProcessorHost : IEventProcessingHost,
-        IHostProcess, IAsyncDisposable, IDisposable {
-
+    public sealed class EventProcessorHost : IEventProcessingHost, IAsyncDisposable, IDisposable {
         /// <summary>
         /// Create host wrapper
         /// </summary>
@@ -57,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
 
         /// <inheritdoc/>
         public async ValueTask StartAsync() {
-            await _lock.WaitAsync();
+            await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 if (_host != null) {
                     _logger.LogDebug("Event processor host already running.");
@@ -69,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                 if (string.IsNullOrEmpty(consumerGroup)) {
                     consumerGroup = "$default";
                 }
-                _logger.LogInformation("Using Consumer Group: \"{consumerGroup}\"", consumerGroup);
+                _logger.LogInformation("Using Consumer Group: \"{ConsumerGroup}\"", consumerGroup);
                 if (_lease != null && _checkpoint != null) {
                     _host = new EventHubs.Processor.EventProcessorHost(
                         $"host-{Guid.NewGuid()}", _hub.EventHubPath, consumerGroup,
@@ -98,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                         MaxBatchSize = _config.ReceiveBatchSize,
                         ReceiveTimeout = _config.ReceiveTimeout,
                         InvokeProcessorAfterReceiveTimeout = true
-                    });
+                    }).ConfigureAwait(false);
                 _logger.LogInformation("Event processor host started.");
             }
             catch (Exception ex) {
@@ -113,11 +111,11 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
 
         /// <inheritdoc/>
         public async ValueTask DisposeAsync() {
-            await _lock.WaitAsync();
+            await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 if (_host != null) {
                     _logger.LogDebug("Stopping event processor host...");
-                    await _host.UnregisterEventProcessorAsync();
+                    await _host.UnregisterEventProcessorAsync().ConfigureAwait(false);
                     _host = null;
                     _logger.LogInformation("Event processor host stopped.");
                 }

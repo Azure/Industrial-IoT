@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging.SignalR {
-
     /// <summary>
     /// Signalr client configuration
     /// </summary>
     public interface ISignalRClientConfig {
-
         /// <summary>
         /// Use message pack or json
         /// </summary>

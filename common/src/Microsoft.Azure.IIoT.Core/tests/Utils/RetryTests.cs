@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Utils.Tests {
     /// Tests for Microsoft.Azure.IIoT.Utils.Retry utility.
     /// </summary>
     public class RetryTests {
-
         [Fact]
         public async Task TestWithExponentialBackoffAsync() {
             var loggerMock = new Mock<ILogger>();
@@ -26,46 +25,46 @@ namespace Microsoft.Azure.IIoT.Utils.Tests {
 
             // Lambda just returns, so no exception and single passthrough.
             {
-                var maxRetryCount = 5;
+                const int maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Retry2.WithExponentialBackoff(
+                await Retry2.WithExponentialBackoffAsync(
                     logger,
-                    () => { ++retryCounter; },
+                    () => ++retryCounter,
                     maxRetryCount
-                );
+                ).ConfigureAwait(false);
                 Assert.Equal(1, retryCounter);
             }
             // Lambda throws exception which is not covered by default continuation condition,
             // so the exception is propagated to the caller.
             {
-                var maxRetryCount = 5;
+                const int maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Assert.ThrowsAsync<ArgumentException>(() => Retry2.WithExponentialBackoff(
+                await Assert.ThrowsAsync<ArgumentException>(() => Retry2.WithExponentialBackoffAsync(
                     logger,
                     () => {
                         ++retryCounter;
                         throw new ArgumentException("Test");
                     },
                     maxRetryCount)
-                );
+                ).ConfigureAwait(false);
                 Assert.Equal(1, retryCounter);
             }
             // Lambda throws exception which is covered by default continuation condition,
             // so utility will keep retrying untill it exceeds maxRetryCount.
             {
-                var maxRetryCount = 5;
+                const int maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Assert.ThrowsAsync<HttpTransientException>(() => Retry2.WithExponentialBackoff(
+                await Assert.ThrowsAsync<HttpTransientException>(() => Retry2.WithExponentialBackoffAsync(
                     logger,
                     () => {
                         ++retryCounter;
                         throw new HttpTransientException(HttpStatusCode.InternalServerError);
                     },
                     maxRetryCount)
-                );
+                ).ConfigureAwait(false);
                 Assert.Equal(6, retryCounter);
             }
         }
@@ -78,49 +77,48 @@ namespace Microsoft.Azure.IIoT.Utils.Tests {
             // Normal return will not cause TaskCanceledException.
             {
                 var cts = new CancellationTokenSource();
-                var maxRetryCount = 5;
+                const int maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Retry2.WithExponentialBackoff(
+                await Retry2.WithExponentialBackoffAsync(
                     logger,
-                    cts.Token,
                     () => {
                         ++retryCounter;
                         cts.Cancel();
                     },
+                    cts.Token,
                     maxRetryCount
-                );
+                ).ConfigureAwait(false);
                 Assert.Equal(1, retryCounter);
             }
             // Lambda throws exception which is not covered by default continuation condition,
             // so the exception is propagated to the caller.
             {
                 var cts = new CancellationTokenSource();
-                var maxRetryCount = 5;
+                const int maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Assert.ThrowsAsync<ArgumentException>(() => Retry2.WithExponentialBackoff(
+                await Assert.ThrowsAsync<ArgumentException>(() => Retry2.WithExponentialBackoffAsync(
                     logger,
-                    cts.Token,
                     () => {
                         ++retryCounter;
                         cts.Cancel();
                         throw new ArgumentException("Test");
                     },
+                    cts.Token,
                     maxRetryCount)
-                );
+                ).ConfigureAwait(false);
                 Assert.Equal(1, retryCounter);
             }
             // Lambda throws exception which is covered by default continuation condition,
             // so utility will keep retrying untill cancelation.
             {
                 var cts = new CancellationTokenSource();
-                var maxRetryCount = 5;
+                const int maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Assert.ThrowsAsync<TaskCanceledException>(() => Retry2.WithExponentialBackoff(
+                await Assert.ThrowsAsync<TaskCanceledException>(() => Retry2.WithExponentialBackoffAsync(
                     logger,
-                    cts.Token,
                     () => {
                         ++retryCounter;
                         if (retryCounter == 3) {
@@ -128,8 +126,9 @@ namespace Microsoft.Azure.IIoT.Utils.Tests {
                         }
                         throw new HttpTransientException(HttpStatusCode.InternalServerError);
                     },
+                    cts.Token,
                     maxRetryCount)
-                );
+                ).ConfigureAwait(false);
                 Assert.Equal(3, retryCounter);
             }
         }

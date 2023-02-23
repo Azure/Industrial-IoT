@@ -42,7 +42,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Creates a new data set.
         /// </summary>
-        private DataSet CreateDataSet() {
+        private static DataSet CreateDataSet() {
             var dataset = new DataSet();
 
             dataset.Tables.Add("CurrentData");
@@ -81,14 +81,12 @@ namespace HistoricalAccess {
             return dataset;
         }
 
-#pragma warning disable RECS0154 // Parameter is never used
 #pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Loads the item configuaration.
         /// </summary>
         public bool LoadConfiguration(ISystemContext context, ArchiveItem item)
 #pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore RECS0154 // Parameter is never used
         {
             using (var reader = item.OpenArchive()) {
                 while (!reader.EndOfStream) {
@@ -409,7 +407,6 @@ namespace HistoricalAccess {
 
                     dataset.Tables[0].Rows.Add(row);
                 }
-
                 else if (recordType > 0) {
                     row = dataset.Tables[1].NewRow();
 
@@ -420,16 +417,14 @@ namespace HistoricalAccess {
                     row[4] = (value.TypeInfo != null) ? value.TypeInfo.ValueRank : ValueRanks.Any;
                     row[5] = recordType;
 
-                    var info = new ModificationInfo {
+                    row[6] = new ModificationInfo {
                         UpdateType = (HistoryUpdateType)recordType,
                         ModificationTime = baseline.AddMilliseconds(modificationTimeOffet),
                         UserName = modificationUser
                     };
-                    row[6] = info;
 
                     dataset.Tables[1].Rows.Add(row);
                 }
-
                 else if (recordType < 0) {
                     row = dataset.Tables[2].NewRow();
 
@@ -456,11 +451,10 @@ namespace HistoricalAccess {
             return dataset;
         }
 
-
         /// <summary>
         /// Extracts the next comma seperated field from the line.
         /// </summary>
-        private string ExtractField(ref string line) {
+        private static string ExtractField(ref string line) {
             var field = line;
             var index = field.IndexOf(',');
 
@@ -478,14 +472,12 @@ namespace HistoricalAccess {
             return field;
         }
 
-#pragma warning disable RECS0154 // Parameter is never used
 #pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Extracts an integer value from the line.
         /// </summary>
         private bool ExtractField(int lineCount, ref string line, out string value)
 #pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore RECS0154 // Parameter is never used
         {
             value = string.Empty;
             var field = ExtractField(ref line);
@@ -572,7 +564,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Extracts a BuiltInType value from the line.
         /// </summary>
-        private bool ExtractField(int lineCount, ref string line, ServiceMessageContext context, BuiltInType valueType, out Variant value) {
+        private static bool ExtractField(int lineCount, ref string line, ServiceMessageContext context, BuiltInType valueType, out Variant value) {
             value = Variant.Null;
             var field = line;
 
@@ -610,6 +602,5 @@ namespace HistoricalAccess {
 
             return true;
         }
-
     }
 }

@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Models {
-
     /// <summary>
     /// Cors whitelist
     /// </summary>
     public class CorsWhitelistModel {
-
         /// <summary>
         /// Origins
         /// </summary>

@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class PublishStopRequestModel {
-
         /// <summary>
         /// Node of published item to unpublish
         /// </summary>

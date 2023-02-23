@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class VariableMetadataModel {
-
         /// <summary>
         /// The data type for the variable.
         /// </summary>

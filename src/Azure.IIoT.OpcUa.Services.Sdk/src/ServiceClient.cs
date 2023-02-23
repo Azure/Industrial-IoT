@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Service client
     /// </summary>
     public class ServiceClient : IDisposable {
-
         /// <summary>
         /// Twin API
         /// </summary>
@@ -87,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <param name="configuration"></param>
         /// <param name="useMsgPack"></param>
         /// <returns></returns>
-        private IContainer ConfigureContainer(IConfiguration configuration,
+        private static IContainer ConfigureContainer(IConfiguration configuration,
             bool useMsgPack) {
             var builder = new ContainerBuilder();
             builder.RegisterInstance(configuration)

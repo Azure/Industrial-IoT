@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Tasks {
     /// Injectable task scheduler implementations
     /// </summary>
     public interface ITaskScheduler {
-
         /// <summary>
         /// Task factory
         /// </summary>

@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     /// will be represented in the IConfiguration-instance.
     /// </summary>
     public static class PublisherCliConfigKeys {
-
         /// <summary>
         /// Key for default published nodes file.
         /// </summary>

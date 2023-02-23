@@ -27,7 +27,6 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-
 namespace PerfTest {
     /// <summary>
     /// Defines constants for namespaces used by the application.

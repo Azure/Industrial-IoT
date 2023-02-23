@@ -8,7 +8,6 @@
     [AllowAnonymous]
     [Route("Account")]
     public class AuthStateController : Controller {
-
         [HttpGet("{scheme}/LogIn")]
         public IActionResult LogIn([FromRoute] string scheme) {
             var redirectUri = Url.Content("~/");

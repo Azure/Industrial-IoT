@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class ReadValuesDetailsModel {
-
         /// <summary>
         /// Beginning of period to read. Set to null
         /// if no specific start time is specified.

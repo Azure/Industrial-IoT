@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class ApplicationRegistrationQueryModel {
-
         /// <summary>
         /// Type of application
         /// </summary>
@@ -90,4 +89,3 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         public string? DiscovererId { get; set; }
     }
 }
-

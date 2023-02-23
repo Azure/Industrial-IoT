@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Credential model extensions
     /// </summary>
     public static class CredentialModelEx {
-
         /// <summary>
         /// Equality comparison
         /// </summary>
@@ -29,8 +28,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                     (model.Type ?? CredentialType.None)) {
                 return false;
             }
-            if (VariantValueEx.IsNull(that.Value) || VariantValueEx.IsNull(model.Value)) {
-                if (VariantValueEx.IsNull(that.Value) && VariantValueEx.IsNull(model.Value)) {
+            if (that.Value.IsNull() || model.Value.IsNull()) {
+                if (that.Value.IsNull() && model.Value.IsNull()) {
                     return true;
                 }
                 return false;
@@ -48,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <returns></returns>
         public static string GetPassword(this CredentialModel model) {
             if (model?.Type == CredentialType.UserName &&
-                model.Value != null && model.Value.IsObject &&
+                model.Value?.IsObject == true &&
                 model.Value.TryGetProperty("password", out var password) &&
                 password.IsString) {
                 return (string)password;
@@ -63,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <returns></returns>
         public static string GetUserName(this CredentialModel model) {
             if (model?.Type == CredentialType.UserName &&
-                model.Value != null && model.Value.IsObject &&
+                model.Value?.IsObject == true &&
                 model.Value.TryGetProperty("user", out var user) &&
                 user.IsString) {
                 return (string)user;

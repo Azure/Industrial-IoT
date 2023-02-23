@@ -38,7 +38,6 @@ namespace Vehicles {
     /// A node manager for a server that exposes several variables.
     /// </summary>
     public class VehiclesNodeManager : CustomNodeManager2 {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -115,7 +114,7 @@ namespace Vehicles {
         /// <summary>
         /// Loads the schema from an embedded resource.
         /// </summary>
-        public byte[] LoadSchemaFromResource(string resourcePath, Assembly assembly) {
+        public static byte[] LoadSchemaFromResource(string resourcePath, Assembly assembly) {
             if (resourcePath == null) {
                 throw new ArgumentNullException(nameof(resourcePath));
             }
@@ -236,6 +235,8 @@ namespace Vehicles {
         }
 
         private uint _nextNodeId;
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly VehiclesServerConfiguration _configuration;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }

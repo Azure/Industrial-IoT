@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
     /// Publisher module api
     /// </summary>
     public interface IPublisherApi {
-
         /// <summary>
         /// Add or update publishing endpoints
         /// </summary>

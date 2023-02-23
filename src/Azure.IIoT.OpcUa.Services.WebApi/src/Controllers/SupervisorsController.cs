@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class SupervisorsController : ControllerBase {
-
         /// <summary>
         /// Create controller for supervisor services
         /// </summary>
@@ -50,9 +49,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpGet("{supervisorId}")]
         public async Task<SupervisorModel> GetSupervisorAsync(string supervisorId,
             [FromQuery] bool? onlyServerState) {
-            var result = await _supervisors.GetSupervisorAsync(supervisorId,
-                onlyServerState ?? false);
-            return result;
+            return await _supervisors.GetSupervisorAsync(supervisorId,
+                onlyServerState ?? false).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -73,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 throw new ArgumentNullException(nameof(request));
             }
             await _supervisors.UpdateSupervisorAsync(supervisorId,
-                request);
+                request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -107,9 +105,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _supervisors.ListSupervisorsAsync(
-                continuationToken, onlyServerState ?? false, pageSize);
-            return result;
+            return await _supervisors.ListSupervisorsAsync(
+                continuationToken, onlyServerState ?? false, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -140,12 +137,12 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _supervisors.QuerySupervisorsAsync(
-                query, onlyServerState ?? false, pageSize);
+            
 
             // TODO: Filter results based on RBAC
 
-            return result;
+            return await _supervisors.QuerySupervisorsAsync(
+                query, onlyServerState ?? false, pageSize).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -169,7 +166,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             [FromQuery][Required] SupervisorQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
-
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
             }
@@ -177,12 +173,12 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _supervisors.QuerySupervisorsAsync(
-                query, onlyServerState ?? false, pageSize);
+            
 
             // TODO: Filter results based on RBAC
 
-            return result;
+            return await _supervisors.QuerySupervisorsAsync(
+                query, onlyServerState ?? false, pageSize).ConfigureAwait(false);
         }
 
         private readonly ISupervisorRegistry _supervisors;

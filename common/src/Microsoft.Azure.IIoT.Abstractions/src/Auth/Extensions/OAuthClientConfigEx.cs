@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Auth {
     /// Configuration extensions
     /// </summary>
     public static class OAuthClientConfigEx {
-
         /// <summary>
         /// Get Resource or audience
         /// </summary>

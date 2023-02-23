@@ -55,11 +55,11 @@ namespace Microsoft.Azure.IIoT.App.Validation {
         }
 
         private bool BeAPositiveInteger(string value) {
-            return utils.ShouldUseDefaultValue(value) || int.TryParse(value, out var res) && res > 0;
+            return utils.ShouldUseDefaultValue(value) || (int.TryParse(value, out var res) && res > 0);
         }
 
         private bool BeAValidTimeFormat(string value) {
-            return utils.ShouldUseDefaultValue(value) || TimeSpan.TryParse(value, out var res) && res.TotalMilliseconds > 0;
+            return utils.ShouldUseDefaultValue(value) || (TimeSpan.TryParse(value, out var res) && res.TotalMilliseconds > 0);
         }
 
         private bool BeAValidDiscoveryUrl(List<string> value) {

@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     [DataContract]
     public class ConfigurationMetricsModel {
-
         /// <summary>
         /// Results of the metrics collection queries
         /// </summary>
@@ -25,5 +24,4 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         [DataMember(Name = "queries")]
         public IDictionary<string, string> Queries { get; set; }
     }
-
 }

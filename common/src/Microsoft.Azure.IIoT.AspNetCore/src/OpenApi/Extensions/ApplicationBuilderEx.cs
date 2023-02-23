@@ -19,13 +19,11 @@ namespace Microsoft.OpenApi.Models {
     /// Enable OpenApi
     /// </summary>
     public static class ApplicationBuilderEx {
-
         /// <summary>
         /// Use swagger in application
         /// </summary>
         /// <param name="app"></param>
         public static void UseSwagger(this IApplicationBuilder app) {
-
             var config = app.ApplicationServices.GetRequiredService<IOpenApiConfig>();
             var auth = app.ApplicationServices.GetService<IServerAuthConfig>();
             var server = app.ApplicationServices.GetRequiredService<IServer>();
@@ -99,4 +97,3 @@ namespace Microsoft.OpenApi.Models {
         }
     }
 }
-

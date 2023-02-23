@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
     public class UpsertController : ControllerBase {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -49,8 +48,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryUpsertValuesAsync(endpointId, request);
-            return writeResult;
+            return await _historian.HistoryUpsertValuesAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -70,8 +68,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryUpsertEventsAsync(endpointId, request);
-            return writeResult;
+            return await _historian.HistoryUpsertEventsAsync(endpointId, request).ConfigureAwait(false);
         }
 
         private readonly IHistoryServices<string> _historian;

@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Message setting extensions
     /// </summary>
     public static class DataSetWriterMessageSettingsModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

@@ -3,13 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
     using System;
     using System.Linq;
     using Xunit;
 
     public class PortRangeTests {
-
         [Fact]
         public void TestSimpleRange() {
             var range1 = new PortRange(0, 100);
@@ -153,7 +152,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
 
         [Fact]
         public void TestParseFormatExceptions() {
-
             Assert.Throws<FormatException>(() => PortRange.Parse("0.0.0.0/24;x/2;;"));
             Assert.Throws<FormatException>(() => PortRange.Parse("abf,d"));
             Assert.Throws<FormatException>(() => PortRange.Parse("0-1-2"));

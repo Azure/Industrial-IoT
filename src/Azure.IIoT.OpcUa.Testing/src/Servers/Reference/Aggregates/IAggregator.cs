@@ -27,14 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-
 namespace Opc.Ua.Aggregates {
     /// <summary>
     /// All aggregators implement this interface. It describes the relationship between the
     /// aggregator and any TimeSlice instances processed by it.
     /// </summary>
     public interface IAggregator {
-
         /// <summary>
         /// Compute a processed value from raw values in a slice of time.
         /// </summary>

@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Published data set events extensions
     /// </summary>
     public static class PublishedDataSetEventModelEx {
-
         /// <summary>
         /// Convert to monitored item
         /// </summary>

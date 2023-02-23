@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// Hub interface
     /// </summary>
     public interface IIoTHub {
-
         /// <summary>
         /// The host name the client is talking to
         /// </summary>

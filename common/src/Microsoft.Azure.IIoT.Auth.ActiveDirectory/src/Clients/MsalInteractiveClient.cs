@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// Authenticate using browser
     /// </summary>
     public sealed class MsalInteractiveClient : MsalPublicClientBase {
-
         /// <summary>
         /// Create interactive token provider with callback
         /// </summary>
@@ -31,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             if (!client.IsSystemWebViewAvailable) {
                 return null;
             }
-            var result = await client.AcquireTokenInteractive(scopes).ExecuteAsync();
+            var result = await client.AcquireTokenInteractive(scopes).ExecuteAsync().ConfigureAwait(false);
             return result.ToTokenResult();
         }
 

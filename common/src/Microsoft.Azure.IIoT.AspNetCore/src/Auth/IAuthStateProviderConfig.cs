@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     /// a blazor application.
     /// </summary>
     public interface IAuthStateProviderConfig {
-
         /// <summary>
         /// Revalidation
         /// </summary>

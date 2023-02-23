@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// Adapter for streams
     /// </summary>
     public class StreamAdapter : Stream, IDisposable {
-
         /// <inheritdoc/>
         public override bool CanRead => _inner.CanRead;
 
@@ -166,6 +165,4 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         protected readonly Stream _inner;
     }
-
 }
-

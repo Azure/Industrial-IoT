@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Encoder to encode data set writer messages
     /// </summary>
     public interface IMessageEncoder {
-
         /// <summary>
         /// Encodes the list of notifications into network messages to send
         /// </summary>

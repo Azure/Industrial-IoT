@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.State {
-
     /// <summary>
     /// Configuration of RuntimeStateReporter.
     /// </summary>
     public interface IRuntimeStateReporterConfiguration {
-
         /// <summary>
         /// Configuration flag for enabling/disabling runtime state reporting.
         /// </summary>

@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa {
     /// Application registry change listener
     /// </summary>
     public interface IApplicationRegistryListener {
-
         /// <summary>
         /// Called when application is added
         /// </summary>

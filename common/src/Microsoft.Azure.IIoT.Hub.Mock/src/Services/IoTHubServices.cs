@@ -21,13 +21,13 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Globalization;
 
     /// <summary>
     /// Mock device registry
     /// </summary>
     public sealed class IoTHubServices : IIoTHubTwinServices,
         IEventProcessingHost, IIoTHub {
-
         /// <inheritdoc/>
         public string HostName { get; } = "mock.azure-devices.net";
 
@@ -74,8 +74,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <summary>
         /// Create iot hub services with devices
         /// </summary>
-        /// <param name="serializer"></param>
         /// <param name="devices"></param>
+        /// <param name="serializer"></param>
         public static IoTHubServices Create(
             IEnumerable<(DeviceTwinModel, DeviceModel)> devices,
             IJsonSerializer serializer = null) {
@@ -120,7 +120,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
         }
 
-
         /// <inheritdoc/>
         public Task<DeviceTwinModel> PatchAsync(DeviceTwinModel twin, bool force,
             CancellationToken ct) {
@@ -145,7 +144,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 if (model.Connection == null) {
                     throw new TimeoutException("Timed out waiting for device to connect");
                 }
-                var result = model.Connection.Call(new MethodRequest(parameters.Name,
+                var result = model.Connection.CallMethod(new MethodRequest(parameters.Name,
                     Encoding.UTF8.GetBytes(parameters.JsonPayload),
                     parameters.ResponseTimeout, parameters.ConnectionTimeout));
                 return Task.FromResult(new MethodResultModel {
@@ -217,7 +216,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 var count = Math.Max(0, Math.Min(pageSize.Value, result.Count - index));
 
                 return Task.FromResult(new QueryResultModel {
-                    ContinuationToken = count >= result.Count ? null : count.ToString(),
+                    ContinuationToken = count >= result.Count ? null : count.ToString(CultureInfo.InvariantCulture),
                     Result = _serializer.FromObject(result.Skip(index).Take(count)).Values.ToList()
                 });
             }
@@ -232,7 +231,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <returns></returns>
         private IoTHubDeviceModel GetModel(string deviceId, string moduleId,
             string etag = null) {
-            var model = _devices.FirstOrDefault(
+            var model = _devices.Find(
                 t => t.Device.Id == deviceId && t.Device.ModuleId == moduleId);
             if (model != null && etag != null && model.Device.Etag != etag) {
                 model = null;
@@ -244,7 +243,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// Storage record for device plus twin
         /// </summary>
         public class IoTHubDeviceModel : IIoTHubDevice, IIoTHubConnection {
-
             /// <summary>
             /// Device
             /// </summary>
@@ -306,7 +304,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc/>
-            public MethodResponse Call(string deviceId, string moduleId,
+            public MethodResponse CallMethod(string deviceId, string moduleId,
                 MethodRequest methodRequest) {
                 var response = _outer.CallMethodAsync(deviceId, moduleId,
                     new MethodParameterModel {
@@ -314,7 +312,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                         Name = methodRequest.Name,
                         ConnectionTimeout = methodRequest.ConnectionTimeout,
                         ResponseTimeout = methodRequest.ResponseTimeout
-                    }, CancellationToken.None).Result;
+                    }, default).Result;
                 return new MethodResponse(Encoding.UTF8.GetBytes(
                     response.JsonPayload), response.Status);
             }
@@ -423,7 +421,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             private static Dictionary<string, VariantValue> Merge(
                 Dictionary<string, VariantValue> target,
                 Dictionary<string, VariantValue> source) {
-
                 if (source == null) {
                     return target;
                 }
@@ -434,14 +431,14 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
                 foreach (var item in source) {
                     if (target.ContainsKey(item.Key)) {
-                        if (VariantValueEx.IsNull(item.Value) || VariantValueEx.IsNull(item.Value)) {
+                        if (item.Value.IsNull() || item.Value.IsNull()) {
                             target.Remove(item.Key);
                         }
                         else {
                             target[item.Key] = item.Value;
                         }
                     }
-                    else if (!VariantValueEx.IsNull(item.Value)) {
+                    else if (!item.Value.IsNull()) {
                         target.Add(item.Key, item.Value);
                     }
                 }
@@ -456,7 +453,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// Event messages
         /// </summary>
         public sealed class EventMessage : ITelemetryEvent {
-
             /// <summary>
             /// Default constructor
             /// </summary>

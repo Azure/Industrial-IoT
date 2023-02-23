@@ -37,15 +37,12 @@ namespace Alarms {
     /// An object that provides access to the underlying system.
     /// </summary>
     public class UnderlyingSystem : IDisposable {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="UnderlyingSystem"/> class.
         /// </summary>
         public UnderlyingSystem() {
             _sources = new Dictionary<string, UnderlyingSystemSource>();
         }
-
-
 
         /// <summary>
         /// The finializer implementation.
@@ -73,8 +70,6 @@ namespace Alarms {
                 }
             }
         }
-
-
 
         /// <summary>
         /// Creates a source.
@@ -115,7 +110,6 @@ namespace Alarms {
 
                 _sources.Add(sourcePath, source);
             }
-
 
             // add the alarms based on the source type.
             // note that the source and alarm types used here are types defined by the underlying system.

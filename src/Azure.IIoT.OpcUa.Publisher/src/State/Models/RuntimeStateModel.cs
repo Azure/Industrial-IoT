@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.State.Models {
     /// </summary>
     [DataContract]
     public class RuntimeStateModel {
-
         /// <summary> Defines the message type that is sent. </summary>
         [DataMember(Name = "MessageType", Order = 0, EmitDefaultValue = true)]
         public MessageTypeEnum MessageType { get; set; }

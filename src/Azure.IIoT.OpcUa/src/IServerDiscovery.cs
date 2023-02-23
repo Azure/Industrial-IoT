@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Server discovery interface
     /// </summary>
     public interface IServerDiscovery {
-
         /// <summary>
         /// Find a server using the endpoint url in the query
         /// object. Returns a application registration object only

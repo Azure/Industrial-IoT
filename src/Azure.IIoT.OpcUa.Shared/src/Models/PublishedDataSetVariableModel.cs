@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class PublishedDataSetVariableModel {
-
         /// <summary>
         /// Name of variable in the dataset.
         /// </summary>

@@ -14,8 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
     /// <summary>
     /// Utilities provider for published nodes file.
     /// </summary>
-    public class PublishedNodesProvider : IPublishedNodesProvider, IDisposable {
-
+    public sealed class PublishedNodesProvider : IPublishedNodesProvider, IDisposable {
         private readonly IPublisherConfiguration _config;
         private readonly ILogger _logger;
         private readonly SemaphoreSlim _lock;
@@ -45,7 +44,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
         /// <param name="config"> Publisher configuration with location of published nodes file. </param>
         /// <param name="logger"> Logger </param>
         public PublishedNodesProvider(IPublisherConfiguration config, ILogger logger) {
-
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -91,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                 }
             }
             catch (Exception e) {
-                _logger.LogError(e, "Failed to read content of published nodes file from \"{path}\"",
+                _logger.LogError(e, "Failed to read content of published nodes file from \"{Path}\"",
                     _config.PublishedNodesFile);
                 throw;
             }
@@ -102,7 +100,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
 
         /// <inheritdoc/>
         public void WriteContent(string content, bool disableRaisingEvents = false) {
-
             // Store current state.
             var eventState = _fileSystemWatcher.EnableRaisingEvents;
 
@@ -125,8 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                     }
                 }
                 catch (IOException e) {
-
-                    _logger.LogWarning("Failed to update published nodes file at \"{path}\" with restricted share policies. " +
+                    _logger.LogWarning("Failed to update published nodes file at \"{Path}\" with restricted share policies. " +
                         "Please close any other application that uses this file. " +
                         "Falling back to opening it with more relaxed share policies.",
                         _config.PublishedNodesFile);
@@ -146,13 +142,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                     }
                     catch (Exception) {
                         // Report and raise original exception if fallback also failed.
-                        _logger.LogError(e, "Failed to update published nodes file at \"{path}\"",
+                        _logger.LogError(e, "Failed to update published nodes file at \"{Path}\"",
                             _config.PublishedNodesFile);
 
                         throw e;
                     }
                 }
-
             }
             finally {
                 // Retore state.

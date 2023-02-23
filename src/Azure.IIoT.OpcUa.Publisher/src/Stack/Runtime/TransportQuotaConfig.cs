@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
     /// Transport quota configuration
     /// </summary>
     public class TransportQuotaConfig : ConfigBase, ITransportQuotaConfig {
-
         /// <summary>
         /// Configuration
         /// </summary>

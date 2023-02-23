@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa {
     /// Publisher registry change listener
     /// </summary>
     public interface IPublisherRegistryListener {
-
         /// <summary>
         /// Called when publisher is created
         /// </summary>

@@ -28,7 +28,6 @@
  * ======================================================================*/
 
 namespace DataAccess {
-
     /// <summary>
     /// Defines the possible tag types
     /// </summary>

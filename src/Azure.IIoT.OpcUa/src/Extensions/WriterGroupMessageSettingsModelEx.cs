@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-
     /// <summary>
     /// Message setting extensions
     /// </summary>
     public static class WriterGroupMessageSettingsModelEx {
-
         /// <summary>
         /// Check if same message setting configuration is the same.
         /// </summary>
@@ -18,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <returns></returns>
         public static bool IsSameAs(this WriterGroupMessageSettingsModel model,
             WriterGroupMessageSettingsModel other) {
-
             if (model == null && other == null) {
                 return true;
             }

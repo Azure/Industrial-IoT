@@ -4,12 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT {
-
     /// <summary>
     /// Common runtime environment variables
     /// </summary>
     public static class PcsVariable {
-
+#pragma warning disable CA1707 // Identifiers should not contain underscores
         /// <summary> Service name </summary>
         public const string PCS_SERVICE_NAME =
             "PCS_SERVICE_NAME";
@@ -166,5 +165,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Resource group </summary>
         public const string PCS_RESOURCE_GROUP =
             "PCS_RESOURCE_GROUP";
+#pragma warning restore CA1707 // Identifiers should not contain underscores
     }
 }

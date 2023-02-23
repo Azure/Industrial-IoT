@@ -81,8 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             _pings = CreatePings(local ? _addresses.Count + 1 :
                 maxProbeCount ?? kDefaultMaxProbeCount);
             // Start initial pings
-            _logger.LogInformation("Start scanning {addresses}...",
-                _addresses.Select(a => a.ToString()));
+            _logger.LogInformation("Start scanning {Sddresses}...", _addresses.Select(a => a.ToString()));
             foreach (var ping in _pings.ToList()) {
                 OnNextPing(ping);
             }
@@ -91,7 +90,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Scan completed
         /// </summary>
-        public Task Completion => _completion.Task;
+        public Task WaitToCompleteAsync() {
+            return _completion.Task;
+        }
 
         /// <summary>
         /// Dispose scanner

@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Data change filter model extensions
     /// </summary>
     public static class DataChangeFilterModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

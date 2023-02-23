@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Subscription notification model
     /// </summary>
     public class SubscriptionNotificationModel {
-
         /// <summary>
         /// Sequence number of the message
         /// </summary>

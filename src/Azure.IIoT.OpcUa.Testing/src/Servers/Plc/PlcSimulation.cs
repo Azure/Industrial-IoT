@@ -85,7 +85,7 @@ namespace Plc {
             if (GenerateSpikes && _spikeCycleInPhase == _spikeAnomalyCycle) {
                 // TODO: calculate
                 nextValue = SimulationMaxAmplitude * 10;
-                Utils.Trace($"generate spike anomaly");
+                Utils.Trace("generate spike anomaly");
             }
             else {
                 nextValue = SimulationMaxAmplitude * Math.Sin(2 * Math.PI / SimulationCycleCount * _spikeCycleInPhase);
@@ -110,7 +110,7 @@ namespace Plc {
             double nextValue = 0;
             if (GenerateDips && _dipCycleInPhase == _dipAnomalyCycle) {
                 nextValue = SimulationMaxAmplitude * -10;
-                Utils.Trace($"generate dip anomaly");
+                Utils.Trace("generate dip anomaly");
             }
             else {
                 nextValue = SimulationMaxAmplitude * Math.Sin(2 * Math.PI / SimulationCycleCount * _dipCycleInPhase);
@@ -135,7 +135,7 @@ namespace Plc {
             var nextValue = kTREND_BASEVALUE;
             if (GeneratePosTrend && _posTrendPhase >= _posTrendAnomalyPhase) {
                 nextValue = kTREND_BASEVALUE + ((_posTrendPhase - _posTrendAnomalyPhase) / 10);
-                Utils.Trace($"generate postrend anomaly");
+                Utils.Trace("generate postrend anomaly");
             }
             PosTrendData = nextValue;
 
@@ -156,7 +156,7 @@ namespace Plc {
             var nextValue = kTREND_BASEVALUE;
             if (GenerateNegTrend && _negTrendPhase >= _negTrendAnomalyPhase) {
                 nextValue = kTREND_BASEVALUE - ((_negTrendPhase - _negTrendAnomalyPhase) / 10);
-                Utils.Trace($"generate negtrend anomaly");
+                Utils.Trace("generate negtrend anomaly");
             }
             NegTrendData = nextValue;
 

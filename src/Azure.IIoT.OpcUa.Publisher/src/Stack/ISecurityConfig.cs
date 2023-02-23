@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Security configuration
     /// </summary>
     public interface ISecurityConfig {
-
         /// <summary>
         /// PkiRootPath
         /// </summary>

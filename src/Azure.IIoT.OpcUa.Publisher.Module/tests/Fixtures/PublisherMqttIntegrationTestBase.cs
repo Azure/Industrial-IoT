@@ -45,6 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Globalization;
 
     public readonly record struct JsonMessage(string Topic, JsonElement Message, string ContentType);
 
@@ -52,7 +53,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     /// Base class for integration testing, it connects to the server, runs publisher and injects mocked IoTHub services.
     /// </summary>
     public class PublisherMqttIntegrationTestBase : ISdkConfig {
-
         public PublisherMqttIntegrationTestBase(ReferenceServerFixture serverFixture) {
             _exit = new TaskCompletionSource<bool>();
             _running = new TaskCompletionSource<bool>();
@@ -78,8 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
             string[] arguments = default) {
-
-            await StartPublisherAsync(useMqtt5, publishedNodesFile, arguments);
+            await StartPublisherAsync(useMqtt5, publishedNodesFile, arguments).ConfigureAwait(false);
 
             JsonMessage? metadata = null;
             var messages = WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
@@ -202,14 +201,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <returns></returns>
         protected PublishedNodesEntryModel[] GetEndpointsFromFile(string publishedNodesFile) {
             IJsonSerializer serializer = new NewtonsoftJsonSerializer();
-            var fileContent = File.ReadAllText(publishedNodesFile).Replace("{{Port}}", _serverFixture.Port.ToString());
+            var fileContent = File.ReadAllText(publishedNodesFile).Replace("{{Port}}",
+                _serverFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
             return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }
 
-        /// </summary>
         private BlockingCollection<(string topic, ReadOnlyMemory<byte> buffer, string contentType)> Events { get; }
             = new BlockingCollection<(string topic, ReadOnlyMemory<byte> buffer, string contentType)>();
-
 
         public string DeviceId => null;
         public string ModuleId => null;
@@ -219,20 +217,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// </summary>
         private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile,
             string protocol, string[] arguments) {
-
-            var topicRoot = "/publishers/mypublishertest";
+            const string topicRoot = "/publishers/mypublishertest";
 
             using var broker = await MqttBroker.CreateAsync(protocol, (topic, buffer, contentType) => {
                 Events.Add((topic, buffer, contentType));
                 return Task.CompletedTask;
-            }, topicRoot);
+            }, topicRoot).ConfigureAwait(false);
             broker.UserName = "user";
             broker.Password = "pass";
 
             var publishedNodesFilePath = Path.GetTempFileName();
             if (!string.IsNullOrEmpty(publishedNodesFile)) {
-                File.WriteAllText(publishedNodesFilePath,
-                    File.ReadAllText(publishedNodesFile).Replace("{{Port}}", _serverFixture.Port.ToString()));
+                File.WriteAllText(publishedNodesFilePath, File.ReadAllText(publishedNodesFile).Replace("{{Port}}",
+                    _serverFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal));
             }
             try {
                 arguments = arguments.Concat(
@@ -257,9 +254,9 @@ $"--ttt={topicRoot}",
                 using (var cts = new CancellationTokenSource()) {
                     // Start publisher module
                     var host = Task.Run(() => HostAsync(logger, configuration, broker), cts.Token);
-                    await Task.WhenAny(_exit.Task);
+                    await Task.WhenAny(_exit.Task).ConfigureAwait(false);
                     cts.Cancel();
-                    await host;
+                    await host.ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) {
@@ -285,21 +282,21 @@ $"--ttt={topicRoot}",
 
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
-                        logger.LogInformation("Starting module OpcPublisher version {version}.", version);
+                        logger.LogInformation("Starting module OpcPublisher version {Version}.", version);
                         // Start module
-                        await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
+                        await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null).ConfigureAwait(false);
                         sessionManager = hostScope.Resolve<ISessionProvider<ConnectionModel>>();
 
                         _apiScope = ConfigureContainer(configurationRoot, mqttBroker);
                         _running.TrySetResult(true);
-                        await Task.WhenAny(_exit.Task);
+                        await Task.WhenAny(_exit.Task).ConfigureAwait(false);
                         logger.LogInformation("Module exits...");
                     }
                     catch (Exception ex) {
                         _running.TrySetException(ex);
                     }
                     finally {
-                        await module.StopAsync();
+                        await module.StopAsync().ConfigureAwait(false);
 
                         _apiScope?.Dispose();
                         _apiScope = null;
@@ -391,7 +388,6 @@ $"--ttt={topicRoot}",
         /// Mqtt broker that can serve as event client
         /// </summary>
         internal sealed class MqttBroker : IDisposable, IJsonMethodClient {
-
             /// <summary>
             /// Port number
             /// </summary>
@@ -452,20 +448,20 @@ $"--ttt={topicRoot}",
                     _useMqtt5 ? $"{_topicRoot}/methods/{method}" : $"{_topicRoot}/methods/{method}/?$rid={requestId}",
                     _useMqtt5 ? $"{_topicRoot}/responses/{method}" : null,
                     _useMqtt5 ? requestId.ToByteArray() : null,
-                    payload.AsMemory(), "application/json", ct: ct);
+                    payload.AsMemory(), "application/json", ct: ct).ConfigureAwait(false);
 
-                var result = await _currentCall.callback.Task;
+                var result = await _currentCall.callback.Task.ConfigureAwait(false);
                 var status = 0;
                 if (_useMqtt5) {
                     status = int.Parse(result.Item2.UserProperties
-                        .FirstOrDefault(p => p.Name == "StatusCode")?.Value ?? "500");
+                        .Find(p => p.Name == "StatusCode")?.Value ?? "500", CultureInfo.InvariantCulture);
                     if (!requestId.ToByteArray().SequenceEqual(result.Item2.CorrelationData)) {
                         throw new MethodCallException("Did not get correct correlation data back.");
                     }
                 }
                 else {
-                    var components = result.Item1.Replace($"{_topicRoot}/methods/res/", "").Split('/');
-                    status = int.Parse(components[^2]);
+                    var components = result.Item1.Replace($"{_topicRoot}/methods/res/", "", StringComparison.Ordinal).Split('/');
+                    status = int.Parse(components[^2], CultureInfo.InvariantCulture);
                     if (requestId.ToString() != components[^1]["?$rid=".Length..]) {
                         throw new MethodCallException("Did not get correct request id back.");
                     }
@@ -586,7 +582,7 @@ $"--ttt={topicRoot}",
                 ILogger logger = null) {
                 for (var port = 1883; ; port++) {
                     try {
-                        return await CreateAsync(protocol, subscription, port, topicRoot, logger);
+                        return await CreateAsync(protocol, subscription, port, topicRoot, logger).ConfigureAwait(false);
                     }
                     catch {
                         continue;

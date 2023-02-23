@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
     /// Implementation of twin api.
     /// </summary>
     public sealed class TwinApiClient : ITwinApi {
-
         /// <summary>
         /// Create module client
         /// </summary>
@@ -60,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "Browse_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<BrowseFirstResponseModel>(response);
         }
 
@@ -83,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "BrowseNext_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<BrowseNextResponseModel>(response);
         }
 
@@ -107,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "BrowsePath_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<BrowsePathResponseModel>(response);
         }
 
@@ -130,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "NodeRead_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<ReadResponseModel>(response);
         }
 
@@ -153,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "NodeWrite_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<WriteResponseModel>(response);
         }
 
@@ -173,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "ValueRead_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<ValueReadResponseModel>(response);
         }
 
@@ -196,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "ValueWrite_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<ValueWriteResponseModel>(response);
         }
 
@@ -216,7 +215,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "MethodMetadata_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<MethodMetadataResponseModel>(response);
         }
 
@@ -236,7 +235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "MethodCall_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<MethodCallResponseModel>(response);
         }
 
@@ -250,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "GetServerCapabilities_V2", _serializer.SerializeToString(connection), null, ct);
+                "GetServerCapabilities_V2", _serializer.SerializeToString(connection), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<ServerCapabilitiesModel>(response);
         }
 
@@ -270,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "GetMetadata_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<NodeMetadataResponseModel>(response);
         }
 
@@ -284,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryGetServerCapabilities_V2", _serializer.SerializeToString(connection), null, ct);
+                "HistoryGetServerCapabilities_V2", _serializer.SerializeToString(connection), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryServerCapabilitiesModel>(response);
         }
 
@@ -304,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryGetConfiguration_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryConfigurationResponseModel>(response);
         }
 
@@ -328,7 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryRead_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<VariantValue>>(response);
         }
 
@@ -352,7 +351,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryReadNext_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadNextResponseModel<VariantValue>>(response);
         }
 
@@ -376,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryUpdate_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -389,7 +388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
             await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "Connect_V2", _serializer.SerializeToString(connection), null, ct);
+                "Connect_V2", _serializer.SerializeToString(connection), null, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -401,7 +400,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
             await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "Disconnect_V2", _serializer.SerializeToString(connection), null, ct);
+                "Disconnect_V2", _serializer.SerializeToString(connection), null, ct).ConfigureAwait(false);
         }
 
         private readonly IJsonSerializer _serializer;

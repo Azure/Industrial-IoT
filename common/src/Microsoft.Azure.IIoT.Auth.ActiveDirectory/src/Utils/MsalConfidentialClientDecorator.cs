@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Auth.Storage {
     /// </summary>
     public class MsalConfidentialClientDecorator :
         MsalClientApplicationDecorator<IConfidentialClientApplication> {
-
         /// <summary>
         /// Create token cache
         /// </summary>
@@ -29,8 +28,8 @@ namespace Microsoft.Azure.IIoT.Auth.Storage {
 
         /// <inheritdoc/>
         public override async Task ClearCacheAsync() {
-            await _appTokenCache.ClearAsync();
-            await base.ClearCacheAsync();
+            await _appTokenCache.ClearAsync().ConfigureAwait(false);
+            await base.ClearCacheAsync().ConfigureAwait(false);
         }
 
         private readonly MsalTokenCacheDecorator _appTokenCache;

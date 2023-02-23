@@ -13,7 +13,6 @@ namespace Opc.Ua.Client {
     /// Discovery Client async extensions
     /// </summary>
     public static class DiscoveryClientEx {
-
         /// <summary>
         /// Async find servers service
         /// </summary>

@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
 
     /// <inheritdoc/>
     public class TestConfig : IServiceApiConfig {
-
         /// <summary>
         /// Create test configuration
         /// </summary>

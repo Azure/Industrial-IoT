@@ -11,7 +11,6 @@ namespace Opc.Ua {
     /// Endpoint description extensions
     /// </summary>
     public static class EndpointDescriptionEx {
-
         /// <summary>
         /// Matches model
         /// </summary>

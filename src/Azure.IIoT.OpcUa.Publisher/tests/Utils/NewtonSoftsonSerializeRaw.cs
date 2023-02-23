@@ -13,12 +13,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils {
     /// Newtonsoft json raw serializer
     /// </summary>
     public class NewtonsoftJsonSerializerRaw : NewtonsoftJsonSerializer {
-
         /// <summary>
         /// Json raw converter
         /// </summary>
         public sealed class RawJsonConverter : JsonConverter {
-
             /// <inheritdoc/>
             public override bool CanConvert(Type objectType) {
                 return true;

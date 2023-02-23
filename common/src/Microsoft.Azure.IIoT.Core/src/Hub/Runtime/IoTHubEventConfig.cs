@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
     /// IoT Hub Event processor configuration - wraps a configuration root
     /// </summary>
     public class IoTHubEventConfig : ConfigBase, IEventHubConsumerConfig {
-
         /// <summary>
         /// Event processor configuration
         /// </summary>

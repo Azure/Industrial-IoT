@@ -43,8 +43,7 @@ namespace PerfTest {
         }
 
         public static MemoryRegisterState GetRegister(MemoryRegister register, ushort namespaceIndex) {
-            var node = new MemoryRegisterState(register, namespaceIndex);
-            return node;
+            return new MemoryRegisterState(register, namespaceIndex);
         }
 
         public static BaseDataVariableState GetRegisterVariable(MemoryRegister register, int index, ushort namespaceIndex) {
@@ -92,7 +91,7 @@ namespace PerfTest {
             QualifiedName browseName,
             IEnumerable<IReference> additionalReferences,
             bool internalOnly) {
-            var browser = new MemoryRegisterBrowser(
+            return new MemoryRegisterBrowser(
                 context,
                 view,
                 referenceType,
@@ -102,8 +101,6 @@ namespace PerfTest {
                 additionalReferences,
                 internalOnly,
                 this);
-
-            return browser;
         }
     }
 
@@ -111,7 +108,6 @@ namespace PerfTest {
     /// Browses the children of a segment.
     /// </summary>
     public class MemoryRegisterBrowser : NodeBrowser {
-
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
@@ -138,8 +134,6 @@ namespace PerfTest {
             _parent = parent;
             _stage = Stage.Begin;
         }
-
-
 
         /// <summary>
         /// Returns the next reference.
@@ -184,8 +178,6 @@ namespace PerfTest {
                 return null;
             }
         }
-
-
 
         /// <summary>
         /// Returns the next child.
@@ -245,8 +237,6 @@ namespace PerfTest {
             return null;
         }
 
-
-
         /// <summary>
         /// The stages available in a browse operation.
         /// </summary>
@@ -256,11 +246,8 @@ namespace PerfTest {
             Done
         }
 
-
-
         private Stage _stage;
         private int _position;
         private readonly MemoryRegisterState _parent;
-
     }
 }

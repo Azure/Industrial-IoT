@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
-
     /// <summary>
     /// Role configuration
     /// </summary>
     public interface IRoleConfig {
-
         /// <summary>
         /// Using roles
         /// </summary>

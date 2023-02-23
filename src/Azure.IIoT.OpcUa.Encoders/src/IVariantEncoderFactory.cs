@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     /// Variant codec factory
     /// </summary>
     public interface IVariantEncoderFactory {
-
         /// <summary>
         /// Default encoder
         /// </summary>

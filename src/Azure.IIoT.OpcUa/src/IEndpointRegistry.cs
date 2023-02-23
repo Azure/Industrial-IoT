@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Endpoint registry
     /// </summary>
     public interface IEndpointRegistry {
-
         /// <summary>
         /// Get all endpoints in paged form
         /// </summary>

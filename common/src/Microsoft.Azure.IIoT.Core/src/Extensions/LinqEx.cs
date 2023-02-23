@@ -11,7 +11,6 @@ namespace System.Linq {
     /// Enumerable extensions
     /// </summary>
     public static class LinqEx2 {
-
         /// <summary>
         /// Creates a hash set from enumerable or null if enumerable is null.
         /// </summary>

@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class InstanceDeclarationModel {
-
         /// <summary>
         /// The type that the declaration belongs to.
         /// </summary>

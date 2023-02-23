@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Data set message
     /// </summary>
     public abstract class BaseDataSetMessage {
-
         /// <summary>
         /// Content mask
         /// </summary>

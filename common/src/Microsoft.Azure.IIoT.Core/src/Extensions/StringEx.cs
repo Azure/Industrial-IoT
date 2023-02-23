@@ -12,7 +12,6 @@ namespace System {
     /// String helper extensions
     /// </summary>
     public static class StringEx {
-
         /// <summary>
         /// Yet another case insensitve equals
         /// </summary>

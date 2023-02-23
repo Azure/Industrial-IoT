@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Events {
     /// Supervisor registry event publisher
     /// </summary>
     public class SupervisorEventPublisher<THub> : ISupervisorRegistryListener {
-
         /// <inheritdoc/>
         public SupervisorEventPublisher(ICallbackInvokerT<THub> callback) {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));

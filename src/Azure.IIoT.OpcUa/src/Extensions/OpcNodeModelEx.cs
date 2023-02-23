@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
     /// Dataset source extensions
     /// </summary>
     public static class OpcNodeModelEx {
-
         /// <summary>
         /// Get comparer class for OpcNodeModel objects.
         /// </summary>
@@ -23,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// Check if nodes are equal
         /// </summary>
         public static bool IsSame(this OpcNodeModel model, OpcNodeModel that) {
-
             if (model == that) {
                 return true;
             }
@@ -178,7 +176,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
             this TimeSpan? timespan,
             int? seconds,
             TimeSpan? defaultTimespan = null) {
-
             return timespan.HasValue
                 ? timespan
                 : seconds.HasValue
@@ -194,7 +191,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
             this TimeSpan? timespan,
             int? miliseconds,
             TimeSpan? defaultTimespan = null) {
-
             return timespan.HasValue
                 ? timespan
                 : miliseconds.HasValue
@@ -206,7 +202,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// Equality comparer for OpcNodeModel objects.
         /// </summary>
         private class OpcNodeModelComparer : EqualityComparer<OpcNodeModel> {
-
             /// <inheritdoc/>
             public override bool Equals(OpcNodeModel node1, OpcNodeModel node2) {
                 return node1.IsSame(node2);

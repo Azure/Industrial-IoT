@@ -11,13 +11,11 @@ namespace Azure.IIoT.OpcUa.Services {
     /// Injected event handlers
     /// </summary>
     public sealed class EventHandlers : Module {
-
         /// <summary>
         /// Load the module
         /// </summary>
         /// <param name="builder"></param>
         protected override void Load(ContainerBuilder builder) {
-
             builder.RegisterType<DeviceTelemetryEventHandler>()
                 .AsImplementedInterfaces();
 

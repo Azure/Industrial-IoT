@@ -30,8 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    public class OpcUaClient : IAsyncDisposable, ISessionHandle, IMetricsContext {
-
+    public sealed class OpcUaClient : IAsyncDisposable, ISessionHandle, IMetricsContext {
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityState>? OnConnectionStateChange;
 
@@ -98,7 +97,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         public OpcUaClient(ApplicationConfiguration configuration,
             ConnectionIdentifier connection, IJsonSerializer serializer,
             ILogger logger, IMetricsContext metrics, string? sessionName = null) {
-
             if (connection?.Connection?.Endpoint == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
@@ -130,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             try {
                 _subscriptions.AddOrUpdate(subscription.Name, subscription, (_, _) => subscription);
                 _logger.LogInformation(
-                    "Subscription {subscriptionId} registered/updated in session {id}.",
+                    "Subscription {Subscription} registered/updated in session {Session}.",
                     subscription.Name, id);
             }
             catch (Exception ex) {
@@ -147,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             try {
                 if (_subscriptions.TryRemove(subscription.Name, out _)) {
                     _logger.LogInformation(
-                        "Subscription {subscriptionId} unregistered from session {id}.",
+                        "Subscription {Subscription} unregistered from session {Session}.",
                         subscription.Name, _sessionName);
                 }
             }
@@ -164,13 +162,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <returns></returns>
         public async ValueTask<bool> ConnectAsync(bool reapplySubscriptionState = false,
             CancellationToken ct = default) {
-            if (!await _connecting.WaitAsync(0, ct)) {
+            if (!await _connecting.WaitAsync(0, ct).ConfigureAwait(false)) {
                 // If already connecting
                 return false;
             }
             bool connected;
             try {
-                connected = await ConnectAsyncCore().ConfigureAwait(false);
+                connected = await ConnectInternalAsync().ConfigureAwait(false);
             }
             catch (Exception ex) {
                 // Log Error
@@ -192,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 // Only if the manager task calls connect we should do this.
                 //
                 foreach (var subscription in _subscriptions.Values) {
-                    await subscription.ReapplyToSessionAsync(this);
+                    await subscription.ReapplyToSessionAsync(this).ConfigureAwait(false);
                 }
                 _logger.LogInformation("Reapplied all subscriptions to session {Name}.",
                     _sessionName);
@@ -234,25 +232,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         public async Task<T> RunAsync<T>(Func<ISessionHandle, Task<T>> service,
             CancellationToken ct) {
             while (true) {
-                await _connected.WaitAsync(ct);
+                await _connected.WaitAsync(ct).ConfigureAwait(false);
                 if (_disposed) {
                     throw new ConnectionException(
                         $"Session {_sessionName} was closed.");
                 }
-                if (_session == null || !_session.Connected) {
+                if (_session?.Connected != true) {
                     _logger.LogInformation(
                         "Connected signaled but not connected, retry in 5 seconds...");
                     // Delay and try again
-                    await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                    await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
                     continue;
                 }
                 try {
-                    return await service(this);
+                    return await service(this).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (!_session.Connected) {
                     _logger.LogInformation("Session disconnected during service call " +
-                        "with message {message}, retrying.", ex.Message);
-                    continue;
+                        "with message {Message}, retrying.", ex.Message);
                 }
             }
         }
@@ -265,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             _disposed = true;
             Session? session;
             List<ISubscription>? subscriptions;
-            await _lock.WaitAsync();
+            await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
                 _reconnectHandler?.Dispose();
@@ -300,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     });
                 }
 
-                await session.CloseAsync();
+                await session.CloseAsync().ConfigureAwait(false);
 
                 // Log Session Disconnected event
                 _logger.LogDebug("Session {Name} closed.", _sessionName);
@@ -319,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// Connect client (no lock)
         /// </summary>
         /// <returns></returns>
-        private async ValueTask<bool> ConnectAsyncCore() {
+        private async ValueTask<bool> ConnectInternalAsync() {
             if (IsReconnecting) {
                 // Cannot connect while reconnecting.
                 _logger.LogInformation("Session {Name} is reconnecting. Not connecting.",
@@ -329,8 +326,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
             if (IsConnected) {
                 // Nothing to do but try ensure complex type system is loaded
-                if (_complexTypeSystem != null && !_complexTypeSystem.IsCompleted) {
-                    await _complexTypeSystem;
+                if (_complexTypeSystem?.IsCompleted == false) {
+                    await _complexTypeSystem.ConfigureAwait(false);
                 }
                 return true;
             }
@@ -364,12 +361,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         endpointDescription.SecurityMode == MessageSecurityMode.None) {
                         _logger.LogWarning("Although the use of security was configured, " +
                             "there was no security-enabled endpoint available at url " +
-                            "{endpointUrl}. An endpoint with no security will be used.",
+                            "{EndpointUrl}. An endpoint with no security will be used.",
                             endpointUrl);
                     }
 
                     _logger.LogInformation(
-                        "#{Attempt}: Creating session {Name} for endpoint {endpointUrl}...",
+                        "#{Attempt}: Creating session {Name} for endpoint {EndpointUrl}...",
                         ++attempt, _sessionName, endpointUrl);
                     var userIdentity = _connection.User.ToStackModel()
                         ?? new UserIdentity(new AnonymousIdentityToken());
@@ -382,12 +379,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     // Assign the created session
                     SetSession(session);
                     _logger.LogInformation(
-                        "New Session {Name} created with endpoint {endpointUrl} ({Original}).",
+                        "New Session {Name} created with endpoint {EndpointUrl} ({Original}).",
                         _sessionName, endpointUrl, _connection.Endpoint.Url);
 
                     // Try and load type system - does not throw but logs error
                     Debug.Assert(_complexTypeSystem != null);
-                    await _complexTypeSystem;
+                    await _complexTypeSystem.ConfigureAwait(false);
                     NumberOfConnectRetries++;
                     return true;
                 }
@@ -395,7 +392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     NotifyConnectivityStateChange(ToConnectivityState(ex));
                     NumberOfConnectRetries++;
                     _logger.LogInformation(
-                        "#{Attempt}: Failed to create session {Name} to {endpointUrl}: {message}...",
+                        "#{Attempt}: Failed to create session {Name} to {EndpointUrl}: {Message}...",
                         ++attempt, _sessionName, endpointUrl, ex.Message);
                 }
             }
@@ -404,7 +401,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
         /// <inheritdoc/>
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync() {
-            await _lock.WaitAsync();
+            await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 _complexTypeSystem ??= LoadComplexTypeSystemAsync();
                 return await _complexTypeSystem.ConfigureAwait(false);
@@ -419,6 +416,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
         }
 
+#if ZOMBIE
         /// <summary>
         /// Gets the response
         /// </summary>
@@ -452,9 +450,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
             return result;
         }
+#endif
 
         /// <summary>
-        /// Read operation limits limits
+        /// Read operation limits
         /// </summary>
         /// <param name="header"></param>
         /// <param name="ct"></param>
@@ -501,8 +500,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 };
 
             var values = Enumerable.Empty<DataValue>();
-            var chunks = nodes.Batch((int)maxNodesPerRead);
-            foreach (var chunk in chunks) {
+            foreach (var chunk in nodes.Batch((int)maxNodesPerRead)) {
                 // Group the reads
                 requests = new ReadValueIdCollection(chunk
                     .Select(n => new ReadValueId {
@@ -830,7 +828,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// </summary>
         /// <param name="session"></param>
         private void SetSession(Session session) {
-            if (session == null || !session.Connected) {
+            if (session?.Connected != true) {
                 _logger.LogInformation("Session not connected.");
                 return;
             }
@@ -886,7 +884,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <returns></returns>
         private async Task<ComplexTypeSystem?> LoadComplexTypeSystemAsync() {
             try {
-                if (_session != null && _session.Connected) {
+                if (_session?.Connected == true) {
                     var complexTypeSystem = new ComplexTypeSystem(_session);
                     await complexTypeSystem.Load().ConfigureAwait(false);
                     _logger.LogInformation("Session {Name} complex type system loaded",
@@ -928,7 +926,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 // Do not change state to generic error once we have
                 // a specific error state already set...
                 _logger.LogDebug(
-                    "Error, connection to {endpoint} - leaving state at {previous}.",
+                    "Error, connection to {Endpoint} - leaving state at {Previous}.",
                     _connection.Endpoint!.Url, previous);
                 return;
             }
@@ -941,7 +939,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 _connected.Reset();
             }
             _logger.LogInformation(
-                "Connecting to {endpoint} changed from {previous} to {state}",
+                "Connecting to {Endpoint} changed from {Previous} to {State}",
                 _connection.Endpoint!.Url, previous, state);
             try {
                 OnConnectionStateChange?.Invoke(this, state);
@@ -1004,11 +1002,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                             state = EndpointConnectivityState.Error;
                             break;
                     }
-                    _logger.LogDebug("{result} => {state}", sre.Result, state);
+                    _logger.LogDebug("{Result} => {State}", sre.Result, state);
                     break;
                 default:
                     state = EndpointConnectivityState.Error;
-                    _logger.LogDebug("{message} => {state}", ex.Message, state);
+                    _logger.LogDebug("{Message} => {State}", ex.Message, state);
                     break;
             }
             return state;

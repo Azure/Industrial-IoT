@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         public async Task CanSendDataItemToIoTHubTest() {
             // Arrange
             // Act
-            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(@"./PublishedNodes/DataItems.json",
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json",
                 messageType: "ua-data", arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
 
             // Assert
@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         public async Task CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTest() {
             // Arrange
             // Act
-            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(@"./PublishedNodes/DataItems.json",
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json",
                 arguments: new string[] { "--dm", "--mm=DataSetMessages" }).ConfigureAwait(false);
 
             // Assert
@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         public async Task CanSendDataItemAsDataSetMessagesToIoTHubWithCompliantEncodingTest() {
             // Arrange
             // Act
-            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(@"./PublishedNodes/DataItems.json",
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json",
                 messageType: "ua-deltaframe", arguments: new string[] { "-c", "--mm=DataSetMessages" }).ConfigureAwait(false);
 
             // Assert
@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         public async Task CanSendDataItemAsRawDataSetsToIoTHubWithCompliantEncodingTest() {
             // Arrange
             // Act
-            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(@"./PublishedNodes/DataItems.json",
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json",
                 messageType: "ua-deltaframe", arguments: new string[] { "-c", "--dm=False", "--mm=RawDataSets" }).ConfigureAwait(false);
 
             // Assert
@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Theory]
-        [InlineData(@"./PublishedNodes/SimpleEvents.json")]
+        [InlineData("./PublishedNodes/SimpleEvents.json")]
         public async Task CanEncodeWithoutReversibleEncodingTest(string publishedNodesFile) {
             // Arrange
             // Act
@@ -131,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Theory]
-        [InlineData(@"./PublishedNodes/SimpleEvents.json")]
+        [InlineData("./PublishedNodes/SimpleEvents.json")]
         public async Task CanEncodeWithReversibleEncodingTest(string publishedNodesFile) {
             // Arrange
             // Act
@@ -174,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Theory]
-        [InlineData(@"./PublishedNodes/SimpleEvents.json")]
+        [InlineData("./PublishedNodes/SimpleEvents.json")]
         public async Task CanEncodeEventWithCompliantEncodingTestTest(string publishedNodesFile) {
             // Arrange
             // Act
@@ -211,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Theory]
-        [InlineData(@"./PublishedNodes/SimpleEvents.json")]
+        [InlineData("./PublishedNodes/SimpleEvents.json")]
         public async Task CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestTest(string publishedNodesFile) {
             // Arrange
             // Act
@@ -257,7 +257,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         public async Task CanSendPendingConditionsToIoTHubTest() {
             // Arrange
             // Act
-            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(@"./PublishedNodes/PendingAlarms.json", GetAlarmCondition,
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/PendingAlarms.json", GetAlarmCondition,
                 messageType: "ua-data", arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
 
             // Assert
@@ -279,7 +279,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
                         element.GetProperty("Payload").TryGetProperty("SourceNode", out var node) &&
                             node.TryGetProperty("Value", out node) &&
                                 node.ValueKind != JsonValueKind.Null &&
-                                node.GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a");
+                                node.GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a",
+                                    StringComparison.InvariantCulture);
                 });
         }
 

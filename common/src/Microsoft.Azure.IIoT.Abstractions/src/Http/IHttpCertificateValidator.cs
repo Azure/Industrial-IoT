@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Implement to validate server certificates
     /// </summary>
     public interface IHttpCertificateValidator : IHttpHandler {
-
         /// <summary>
         /// Validate ssl certificate
         /// </summary>

@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Entity registration extensions
     /// </summary>
     public static class EntityRegistrationEx {
-
         /// <summary>
         /// Convert twin to registration information.
         /// </summary>

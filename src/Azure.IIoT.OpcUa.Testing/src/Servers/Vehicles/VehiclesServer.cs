@@ -33,7 +33,6 @@ namespace Vehicles {
 
     /// <inheritdoc/>
     public class VehiclesServer : INodeManagerFactory {
-
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
@@ -43,10 +42,9 @@ namespace Vehicles {
         /// <inheritdoc/>
         public StringCollection NamespacesUris {
             get {
-                var nameSpaces = new StringCollection {
+                return new StringCollection {
                     Namespaces.Vehicles
                 };
-                return nameSpaces;
             }
         }
     }

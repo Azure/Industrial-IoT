@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Publisher service events
     /// </summary>
     public interface IPublisherServiceEvents {
-
         /// <summary>
         /// Subscribe to monitored item messages
         /// </summary>

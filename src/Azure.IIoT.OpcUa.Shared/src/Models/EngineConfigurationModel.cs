@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class EngineConfigurationModel {
-
         /// <summary>
         /// Number of subscription notifications that
 		/// when exceeded trigger the sending of a new

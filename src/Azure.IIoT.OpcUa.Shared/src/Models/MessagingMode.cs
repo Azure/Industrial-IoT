@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public enum MessagingMode {
-
         /// <summary>
         /// Standard pub sub mode cloud message mode (default)
         /// </summary>

@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Messaging {
     /// Telemetry message event to send
     /// </summary>
     public interface ITelemetryEvent : IDisposable {
-
         /// <summary>
         /// Processing timestamp
         /// </summary>

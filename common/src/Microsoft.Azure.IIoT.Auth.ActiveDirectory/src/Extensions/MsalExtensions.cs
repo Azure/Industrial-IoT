@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
     /// Msal extensions
     /// </summary>
     public static class MsalExtensions {
-
         /// <summary>
         /// Gets the Account identifier for an MSAL.NET account from a
         /// <see cref="ClaimsPrincipal"/>

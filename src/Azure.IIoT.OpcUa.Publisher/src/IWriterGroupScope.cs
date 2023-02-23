@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Writer group scope
     /// </summary>
     public interface IWriterGroupScope : IDisposable {
-
         /// <summary>
         /// Resolve writer group
         /// </summary>

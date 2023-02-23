@@ -4,14 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
-
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
+    using System.Globalization;
     using Xunit;
 
     public class OpcNodeModelExTests {
-
         [Fact]
         public void ComparerTest() {
             var comparer = OpcNodeModelEx.Comparer;
@@ -35,9 +34,9 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
 
             static OpcNodeModel NewNode() => new() {
                 Id = "id",
-                OpcPublishingIntervalTimespan = TimeSpan.Parse("00:00:01.5"),
-                OpcSamplingIntervalTimespan = TimeSpan.Parse("00:00:02.500"),
-                HeartbeatIntervalTimespan = TimeSpan.Parse("00:00:35"),
+                OpcPublishingIntervalTimespan = TimeSpan.Parse("00:00:01.5", CultureInfo.InvariantCulture),
+                OpcSamplingIntervalTimespan = TimeSpan.Parse("00:00:02.500", CultureInfo.InvariantCulture),
+                HeartbeatIntervalTimespan = TimeSpan.Parse("00:00:35", CultureInfo.InvariantCulture),
                 SkipFirst = true,
                 QueueSize = 123,
                 DataChangeTrigger = DataChangeTriggerType.StatusValue,

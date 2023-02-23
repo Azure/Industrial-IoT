@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.App.Models {
     using System.Collections.Generic;
 
     public class PagedResult<T> : PagedResultBase where T : class {
-
         public List<T> Results { get; set; }
 
         public PagedResult() {

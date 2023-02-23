@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Hub {
     /// Handles events
     /// </summary>
     public interface IDeviceTelemetryHandler : IHandler {
-
         /// <summary>
         /// Event message schema
         /// </summary>

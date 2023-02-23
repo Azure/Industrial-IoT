@@ -35,7 +35,6 @@ namespace HistoricalAccess {
     /// Browses the references for an archive folder.
     /// </summary>
     public class ArchiveFolderBrowser : NodeBrowser {
-
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
@@ -71,8 +70,6 @@ namespace HistoricalAccess {
             _source = source;
             _stage = Stage.Begin;
         }
-
-
 
         /// <summary>
         /// Returns the next reference.
@@ -150,8 +147,6 @@ namespace HistoricalAccess {
                 return null;
             }
         }
-
-
 
         /// <summary>
         /// Returns the next child.
@@ -243,8 +238,6 @@ namespace HistoricalAccess {
             return null;
         }
 
-
-
         /// <summary>
         /// The stages available in a browse operation.
         /// </summary>
@@ -256,13 +249,10 @@ namespace HistoricalAccess {
             Done
         }
 
-
-
         private Stage _stage;
         private int _position;
         private readonly ArchiveFolderState _source;
         private ArchiveFolder[] _folders;
         private ArchiveItem[] _items;
-
     }
 }

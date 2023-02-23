@@ -4,12 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Abstractions {
-
     /// <summary>
     /// Common IoT Edge runtime environment variables.
     /// </summary>
     public static class IoTEdgeVariables {
-
+#pragma warning disable CA1707 // Identifiers should not contain underscores
         /// <summary> IoT Edge device id </summary>
         public const string IOTEDGE_DEVICEID = "IOTEDGE_DEVICEID";
         /// <summary> IoT Edge module id </summary>
@@ -22,5 +21,6 @@ namespace Microsoft.Azure.IIoT.Abstractions {
         public const string IOTEDGE_MODULEGENERATIONID = "IOTEDGE_MODULEGENERATIONID";
         /// <summary> IoT Edge API version </summary>
         public const string IOTEDGE_APIVERSION = "IOTEDGE_APIVERSION";
+#pragma warning restore CA1707 // Identifiers should not contain underscores
     }
 }

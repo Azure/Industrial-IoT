@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class AttributeWriteRequestModel {
-
         /// <summary>
         /// Node to write to (mandatory)
         /// </summary>

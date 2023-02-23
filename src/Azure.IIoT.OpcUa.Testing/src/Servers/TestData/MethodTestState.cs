@@ -33,7 +33,6 @@ namespace TestData {
     using System.Xml;
 
     public partial class MethodTestState {
-
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
@@ -51,7 +50,6 @@ namespace TestData {
             UserArrayMethod1.OnCall = OnUserArrayValue1;
             UserArrayMethod2.OnCall = OnUserArrayValue2;
         }
-
 
         private ServiceResult OnScalarValue1(
             ISystemContext context,

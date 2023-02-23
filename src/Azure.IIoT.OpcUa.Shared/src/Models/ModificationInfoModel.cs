@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class ModificationInfoModel {
-
         /// <summary>
         /// Modification time
         /// </summary>

@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// memory, queue, or CPU is temporarily exhausted.
     /// </summary>
     public class ResourceExhaustionException : Exception {
-
         /// <inheritdoc />
         public ResourceExhaustionException() {
         }

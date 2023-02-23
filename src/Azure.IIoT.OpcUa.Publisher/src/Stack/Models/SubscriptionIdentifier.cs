@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Subscription identifier
     /// </summary>
     public sealed class SubscriptionIdentifier : IEquatable<SubscriptionIdentifier> {
-
         /// <summary>
         /// Id of the subscription
         /// </summary>
@@ -53,9 +52,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = 2082053542;
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 Connection.CreateConsistentHash();
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Id);
             return hashCode;
         }

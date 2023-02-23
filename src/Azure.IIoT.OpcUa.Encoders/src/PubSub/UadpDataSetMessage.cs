@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Data set message
     /// </summary>
     public class UadpDataSetMessage : BaseDataSetMessage {
-
         /// <summary>
         /// Get and set the configured size of the message
         /// </summary>
@@ -125,7 +124,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
             private set {
                 _dataSetFlags1 = value;
                 if ((value & DataSetFlags1EncodingMask.MessageIsValid) != 0) {
-
                     // DataSetFlags1: Bit range 1-2: Field Encoding
                     if ((value & DataSetFlags1EncodingMask.FieldTypeRawData) != 0) {
                         Payload.DataSetFieldContentMask = (uint)DataSetFieldContentMask.RawData;
@@ -230,7 +228,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
 
         /// <inheritdoc/>
         internal void Encode(BinaryEncoder binaryEncoder, IDataSetMetaDataResolver resolver) {
-
             StartPositionInStream = binaryEncoder.Position;
             if (DataSetOffset > 0 && StartPositionInStream < DataSetOffset) {
                 StartPositionInStream = DataSetOffset;
@@ -430,7 +427,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="binaryEncoder"></param>
         /// <param name="metadata"></param>
         private void WritePayloadKeyFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType metadata) {
-
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
             switch (fieldType) {
                 case 0:
@@ -504,7 +500,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="binaryEncoder"></param>
         /// <param name="metadata"></param>
         private void WritePayloadDeltaFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType metadata) {
-
             // ignore null fields
             var fieldCount = Payload.Count(value => value.Value?.Value != null);
             Debug.Assert(fieldCount <= ushort.MaxValue);
@@ -546,7 +541,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="key"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        private ushort GetFieldIndex(DataSetMetaDataType metadata, string key, int pos) {
+        private static ushort GetFieldIndex(DataSetMetaDataType metadata, string key, int pos) {
             if (metadata?.Fields != null) {
                 for (var i = 0; i < metadata.Fields.Count; i++) {
                     if (metadata.Fields[i].Name == key) {

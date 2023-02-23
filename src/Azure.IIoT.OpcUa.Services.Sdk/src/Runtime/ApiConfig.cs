@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime {
     /// </summary>
     public class ApiConfig : ConfigBase, IServiceApiConfig,
         ISignalRClientConfig {
-
         /// <summary>
         /// Configuration keys
         /// </summary>

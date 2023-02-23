@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Published dataset extensions
     /// </summary>
     public static class PublishedDataSetModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

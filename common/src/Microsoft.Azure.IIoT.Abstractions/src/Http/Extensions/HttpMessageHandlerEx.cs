@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace System.Net.Http {
-
     /// <summary>
     /// Message handler extensions
     /// </summary>
     public static class HttpMessageHandlerEx {
-
         /// <summary>
         /// Get root handler
         /// </summary>
@@ -20,7 +18,7 @@ namespace System.Net.Http {
                         handler = del.InnerHandler;
                         break;
                     case HttpClientHandler cl:
-                        return cl; ;
+                        return cl;
                     default:
                         return null;
                 }

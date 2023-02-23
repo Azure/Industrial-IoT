@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// </summary>
     public class TokenClientSource<T> : ITokenSource
         where T : ITokenClient {
-
         /// <inheritdoc/>
         public string Resource { get; } = Http.Resource.Platform;
 
@@ -31,12 +30,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenAsync(
             IEnumerable<string> scopes = null) {
-            return await Try.Async(() => _client.GetTokenForAsync(Resource, scopes));
+            return await Try.Async(() => _client.GetTokenForAsync(Resource, scopes)).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task InvalidateAsync() {
-            await Try.Async(() => _client.InvalidateAsync(Resource));
+            await Try.Async(() => _client.InvalidateAsync(Resource)).ConfigureAwait(false);
         }
 
         private readonly T _client;

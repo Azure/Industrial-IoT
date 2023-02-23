@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Engine configuration
     /// </summary>
     public interface IEngineConfiguration {
-
         /// <summary>
         /// Batch size
         /// </summary>

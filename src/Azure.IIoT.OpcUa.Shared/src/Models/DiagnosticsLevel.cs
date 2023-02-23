@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public enum DiagnosticsLevel {
-
         /// <summary>
         /// Include no diagnostics in response
         /// </summary>
@@ -19,22 +18,22 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         None = 0,
 
         /// <summary>
-        /// Include only status text as array (default)
+        /// Include status and symbol text (default)
         /// </summary>
         [EnumMember]
         Status = 1,
 
         /// <summary>
-        /// Include status and operations trace.
+        /// Include additional information
         /// </summary>
         [EnumMember]
-        Operations = 10,
+        Information = 10,
 
         /// <summary>
-        /// Include diagnostics
+        /// Include inner diagnostics for tracing
         /// </summary>
         [EnumMember]
-        Diagnostics = 50,
+        Debug = 50,
 
         /// <summary>
         /// Include full diagnostics trace.

@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
     /// Encodable Key DataValue Pair
     /// </summary>
     public class KeyDataValuePair : IEncodeable {
-
         /// <summary>
         /// The default constructor.
         /// </summary>
@@ -26,22 +25,26 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
             Value = value;
         }
 
-        /// <remarks />
+        /// <summary>
+        /// Key
+        /// </summary>
         [DataMember(Name = "Key", IsRequired = true, Order = 1)]
         public string Key { get; set; }
 
-        /// <remarks />
+        /// <summary>
+        /// Value
+        /// </summary>
         [DataMember(Name = "Value", IsRequired = true, Order = 2)]
         public DataValue Value { get; set; }
 
         /// <summary cref="IEncodeable.TypeId" />
-        public virtual ExpandedNodeId TypeId { get; } = null;
+        public virtual ExpandedNodeId TypeId { get; }
 
         /// <summary cref="IEncodeable.BinaryEncodingId" />
-        public virtual ExpandedNodeId BinaryEncodingId { get; } = null;
+        public virtual ExpandedNodeId BinaryEncodingId { get; }
 
         /// <summary cref="IEncodeable.XmlEncodingId" />
-        public virtual ExpandedNodeId XmlEncodingId { get; } = null;
+        public virtual ExpandedNodeId XmlEncodingId { get; }
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
         public virtual void Encode(IEncoder encoder) {
@@ -81,7 +84,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
     /// A collection of KeyDataValuePair objects.
     /// </summary>
     public partial class KeyDataValuePairCollection : List<KeyDataValuePair> {
-
         /// <summary>
         /// Initializes the collection with default values.
         /// </summary>

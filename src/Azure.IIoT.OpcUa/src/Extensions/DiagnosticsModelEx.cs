@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-
     /// <summary>
     /// Diagnostics model extensions
     /// </summary>
     public static class DiagnosticsModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

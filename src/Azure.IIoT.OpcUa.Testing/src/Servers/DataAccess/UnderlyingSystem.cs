@@ -37,7 +37,6 @@ namespace DataAccess {
     /// An object that provides access to the underlying system.
     /// </summary>
     public class UnderlyingSystem : IDisposable {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="UnderlyingSystem"/> class.
         /// </summary>
@@ -177,13 +176,11 @@ namespace DataAccess {
 
                     // segment found - return the info.
                     if (blockPath.StartsWith(segmentPath, StringComparison.Ordinal)) {
-                        var segment = new UnderlyingSystemSegment {
+                        return new UnderlyingSystemSegment {
                             Id = segmentPath,
                             Name = segmentName,
                             SegmentType = null
                         };
-
-                        return segment;
                     }
                 }
 
@@ -308,7 +305,7 @@ namespace DataAccess {
         /// Finds the parent segment for the specified segment.
         /// </summary>
         /// <param name="segmentPath">The segment path.</param>
-        /// <returns>The segment path for the the parent.</returns>
+        /// <returns>The segment path for the parent.</returns>
         public UnderlyingSystemSegment FindParentForSegment(string segmentPath) {
             lock (_lock) {
                 // check for invalid segment.
@@ -339,7 +336,6 @@ namespace DataAccess {
                 else {
                     parent.Name = parent.Id.Substring(0, index);
                 }
-
 
                 return parent;
             }
@@ -390,7 +386,6 @@ namespace DataAccess {
 
                 // create a new block.
                 block = new UnderlyingSystemBlock {
-
                     // create the block.
                     Id = blockId,
                     Name = blockId,
@@ -521,8 +516,6 @@ namespace DataAccess {
                 }
             }
         }
-
-
 
         /// <summary>
         /// Simulates a block by updating the state of the tags belonging to the condition.

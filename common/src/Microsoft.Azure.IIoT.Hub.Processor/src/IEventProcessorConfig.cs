@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Hub.Processor {
     /// Eventprocessor configuration
     /// </summary>
     public interface IEventProcessorConfig : IStorageConfig {
-
         /// <summary>
         /// Set checkpoint interval. null = never.
         /// </summary>

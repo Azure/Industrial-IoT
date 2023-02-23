@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging.EventHub {
-
     /// <summary>
     /// Event hub configuration
     /// </summary>
     public interface IEventHubConfig {
-
         /// <summary>
         /// Event hub connection string
         /// </summary>

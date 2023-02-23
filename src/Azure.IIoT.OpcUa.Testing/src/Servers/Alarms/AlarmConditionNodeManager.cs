@@ -44,7 +44,6 @@ namespace Alarms {
     /// configuration when it is provided the fully qualified path.
     /// </remarks>
     public class AlarmConditionServerNodeManager : CustomNodeManager2 {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -118,8 +117,6 @@ namespace Alarms {
             _sources = new Dictionary<string, SourceState>();
         }
 
-
-
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
@@ -138,8 +135,6 @@ namespace Alarms {
             base.Dispose(disposing);
         }
 
-
-
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
@@ -156,8 +151,6 @@ namespace Alarms {
         public override NodeId New(ISystemContext context, NodeState node) {
             return ModelUtils.ConstructIdForComponent(node, NamespaceIndex);
         }
-
-
 
         /// <summary>
         /// Does any initialization required before the address space can be used.
@@ -229,7 +222,6 @@ namespace Alarms {
             }
         }
 
-
         /// <summary>
         /// Creates and indexes an area defined for the server.
         /// </summary>
@@ -275,7 +267,6 @@ namespace Alarms {
             return area;
         }
 
-
         /// <summary>
         /// Frees any resources allocated for the address space.
         /// </summary>
@@ -300,27 +291,23 @@ namespace Alarms {
                 // check for check for nodes that are being currently monitored.
 
                 if (MonitoredNodes.TryGetValue(nodeId, out var monitoredNode)) {
-                    var handle = new NodeHandle {
+                    return new NodeHandle {
                         NodeId = nodeId,
                         Validated = true,
                         Node = monitoredNode.Node
                     };
-
-                    return handle;
                 }
 
                 // parse the identifier.
                 var parsedNodeId = ParsedNodeId.Parse(nodeId);
 
                 if (parsedNodeId != null) {
-                    var handle = new NodeHandle {
+                    return new NodeHandle {
                         NodeId = nodeId,
                         Validated = false,
                         Node = null,
                         ParsedNodeId = parsedNodeId
                     };
-
-                    return handle;
                 }
 
                 return null;
@@ -372,7 +359,6 @@ namespace Alarms {
 
                 // validate area.
                 if (parsedNodeId.RootType == ModelUtils.Area) {
-
                     if (!_areas.TryGetValue(parsedNodeId.RootId, out var area)) {
                         return null;
                     }
@@ -382,7 +368,6 @@ namespace Alarms {
 
                 // validate soucre.
                 else if (parsedNodeId.RootType == ModelUtils.Source) {
-
                     if (!_sources.TryGetValue(parsedNodeId.RootId, out var source)) {
                         return null;
                     }

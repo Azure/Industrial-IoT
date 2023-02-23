@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class NodeReferenceModel {
-
         /// <summary>
         /// Reference Type id
         /// </summary>
@@ -41,27 +40,5 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         [DataMember(Name = "errorInfo", Order = 3,
             EmitDefaultValue = false)]
         public ServiceResultModel? ErrorInfo { get; set; }
-
-        // Legacy
-
-        /// <ignore/>
-        [IgnoreDataMember]
-        [Obsolete]
-        public string? TypeId => ReferenceTypeId;
-
-        /// <ignore/>
-        [IgnoreDataMember]
-        [Obsolete]
-        public string? BrowseName => Target?.BrowseName;
-
-        /// <ignore/>
-        [IgnoreDataMember]
-        [Obsolete]
-        public string? DisplayName => Target?.DisplayName;
-
-        /// <ignore/>
-        [IgnoreDataMember]
-        [Obsolete]
-        public string? TypeDefinition => Target?.TypeDefinitionId;
     }
 }

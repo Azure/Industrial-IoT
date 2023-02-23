@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Auth {
     /// particular <see cref="Http.Resource"/>.
     /// </summary>
     public interface ITokenSource {
-
         /// <summary>
         /// The token source is enabled
         /// </summary>

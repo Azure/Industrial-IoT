@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
 
     [CollectionDefinition(Name)]
     public class HistoryServerReadCollection : ICollectionFixture<HistoryServerFixture> {
-
         public const string Name = "HistoryServerRead";
     }
 }

@@ -22,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     using Xunit;
 
     public class DiscoveryProcessorTests {
-
         [Fact]
         public void ProcessDiscoveryWithNoResultsAndNoExistingApplications() {
             var found = new List<DiscoveryEventModel>();
@@ -109,7 +108,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 out var found, out var registry, 0);
 
             using (var mock = Setup(registry, out var service)) {
-
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
@@ -126,7 +124,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             found[found.Count / 2].Application.SiteId = "aaaaaaaaaaaa";
 
             using (var mock = Setup(registry, out var service)) {
-
                 // Run
                 var t = service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
@@ -144,7 +141,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 out var found, out var registry, 1);
 
             using (var mock = Setup(registry, out var service)) {
-
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
@@ -170,7 +166,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             // Assert no changes
 
             using (var mock = Setup(registry, out var service)) {
-
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
@@ -194,11 +189,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 });
 
             // Found one item
-            found = new List<DiscoveryEventModel> { found.First() };
+            found = new List<DiscoveryEventModel> { found[0] };
             // Assert there is still the same content as originally
 
             using (var mock = Setup(registry, out var service)) {
-
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
@@ -225,7 +219,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             var count = registry.Devices.Count();
 
             using (var mock = Setup(registry, out var service)) {
-
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
@@ -254,12 +247,11 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 }, true);
 
             // Found one app and endpoint
-            found = new List<DiscoveryEventModel> { found.First() };
+            found = new List<DiscoveryEventModel> { found[0] };
             var count = registry.Devices.Count();
             // Assert disabled items are now enabled
 
             using (var mock = Setup(registry, out var service)) {
-
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
@@ -267,9 +259,9 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 var inreg = ApplicationsIn(registry);
                 Assert.Equal(count, registry.Devices.Count());
                 Assert.False(inreg.IsSameAs(existing));
-                Assert.Equal(discoverer, inreg.First().Application.DiscovererId);
-                Assert.Null(inreg.First().Application.NotSeenSince);
-                Assert.Equal(discoverer, inreg.First().Endpoints.First().DiscovererId);
+                Assert.Equal(discoverer, inreg[0].Application.DiscovererId);
+                Assert.Null(inreg[0].Application.NotSeenSince);
+                Assert.Equal(discoverer, inreg[0].Endpoints[0].DiscovererId);
             }
         }
 
@@ -292,7 +284,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             // Assert there is still the same content as originally
 
             using (var mock = Setup(registry, out var service)) {
-
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
@@ -314,7 +305,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             // Assert there is still the same content as originally but now disabled
 
             using (var mock = Setup(registry, out var service)) {
-
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
@@ -341,7 +331,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             // All applications, but only one endpoint each is enabled
 
             using (var mock = Setup(registry, out var service)) {
-
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 

@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Twin service api extensions
     /// </summary>
     public static class TwinServiceApiEx {
-
         /// <summary>
         /// Browse all references if max references is null and user
         /// wants all. If user has requested maximum to return uses
@@ -31,12 +30,12 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
             this ITwinServiceApi service, string endpoint, BrowseFirstRequestModel request,
             CancellationToken ct = default) {
             if (request.MaxReferencesToReturn != null) {
-                return await service.NodeBrowseFirstAsync(endpoint, request, ct);
+                return await service.NodeBrowseFirstAsync(endpoint, request, ct).ConfigureAwait(false);
             }
             while (true) {
                 // Limit size of batches to a reasonable default to avoid communication timeouts.
                 request.MaxReferencesToReturn = 500;
-                var result = await service.NodeBrowseFirstAsync(endpoint, request, ct);
+                var result = await service.NodeBrowseFirstAsync(endpoint, request, ct).ConfigureAwait(false);
                 var references = result.References?.ToList();
                 while (result.ContinuationToken != null) {
                     Debug.Assert(references != null);
@@ -47,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
                                 Header = request.Header,
                                 ReadVariableValues = request.ReadVariableValues,
                                 TargetNodesOnly = request.TargetNodesOnly
-                            }, ct);
+                            }, ct).ConfigureAwait(false);
                         references.AddRange(next.References);
                         result.ContinuationToken = next.ContinuationToken;
                     }
@@ -56,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
                             new BrowseNextRequestModel {
                                 ContinuationToken = result.ContinuationToken,
                                 Abort = true
-                            }));
+                            })).ConfigureAwait(false);
                         throw;
                     }
                 }

@@ -10,14 +10,14 @@ namespace Microsoft.Azure.IIoT.App.Pages {
     using global::Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Threading.Tasks;
+    using System.Globalization;
 
-    public partial class Supervisors {
-
+    public sealed partial class Supervisors {
         [Parameter]
         public string Page { get; set; } = "1";
 
         public string Status { get; set; }
-        public bool IsOpen { get; set; } = false;
+        public bool IsOpen { get; set; }
         public string SupervisorId { get; set; }
         private PagedResult<SupervisorModel> SupervisorList { get; set; } =
             new PagedResult<SupervisorModel>();
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             SupervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, SupervisorList, ref _pagedSupervisorList, CommonHelper.PageLength);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "supervisors/" + page);
             for (var i = 0; i < _pagedSupervisorList.Results.Count; i++) {
-                _pagedSupervisorList.Results[i] = await RegistryService.GetSupervisorAsync(_pagedSupervisorList.Results[i].Id);
+                _pagedSupervisorList.Results[i] = await RegistryService.GetSupervisorAsync(_pagedSupervisorList.Results[i].Id).ConfigureAwait(false);
             }
             CommonHelper.Spinner = string.Empty;
             StateHasChanged();
@@ -56,19 +56,17 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                await UpdateSupervisorAsync();
+                await UpdateSupervisorAsync().ConfigureAwait(false);
                 CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty<SupervisorModel>(_pagedSupervisorList, ref _tableView, ref _tableEmpty);
+                CommonHelper.CheckErrorOrEmpty(_pagedSupervisorList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
 
                 _supervisorEvent = await RegistryServiceEvents.SubscribeSupervisorEventsAsync(
-                    async data => {
-                        await InvokeAsync(() => SupervisorEvent(data));
-                    });
+                    async data => await InvokeAsync(() => SupervisorEventAsync(data)).ConfigureAwait(false)).ConfigureAwait(false);
             }
         }
 
-        // <summary>
+        /// <summary>
         /// Open then Drawer
         /// </summary>
         /// <param name="OpenDrawer"></param>
@@ -89,9 +87,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// action on Supervisor Event
         /// </summary>
         /// <param name="ev"></param>
-        private Task SupervisorEvent(SupervisorEventModel ev) {
+        private Task SupervisorEventAsync(SupervisorEventModel ev) {
             SupervisorList.Results.Update(ev);
-            _pagedSupervisorList = SupervisorList.GetPaged(int.Parse(Page), CommonHelper.PageLength, SupervisorList.Error);
+            _pagedSupervisorList = SupervisorList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture), CommonHelper.PageLength, SupervisorList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }
@@ -100,18 +98,18 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Update Supervisor list
         /// </summary>
         private async Task UpdateSupervisorAsync() {
-            SupervisorList = await RegistryHelper.GetSupervisorListAsync();
+            SupervisorList = await RegistryHelper.GetSupervisorListAsync().ConfigureAwait(false);
             Page = "1";
-            _pagedSupervisorList = SupervisorList.GetPaged(int.Parse(Page), CommonHelper.PageLength, SupervisorList.Error);
+            _pagedSupervisorList = SupervisorList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture), CommonHelper.PageLength, SupervisorList.Error);
             CommonHelper.Spinner = "";
         }
 
         /// <summary>
         /// Dispose
         /// </summary>
-        public async void Dispose() {
+        public async ValueTask DisposeAsync() {
             if (_supervisorEvent != null) {
-                await _supervisorEvent.DisposeAsync();
+                await _supervisorEvent.DisposeAsync().ConfigureAwait(false);
             }
         }
     }

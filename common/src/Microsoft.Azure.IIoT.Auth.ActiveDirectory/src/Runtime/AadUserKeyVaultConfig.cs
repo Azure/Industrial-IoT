@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     /// User principal to keyvault configuration
     /// </summary>
     public class AadUserKeyVaultConfig : ConfigBase, IOAuthClientConfig {
-
         /// <summary>
         /// Client configuration
         /// </summary>

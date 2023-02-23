@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Auth {
     /// Configuration interface for server authentication
     /// </summary>
     public interface IServerAuthConfig {
-
         /// <summary>
         /// Allow anonymous access
         /// </summary>

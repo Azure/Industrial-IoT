@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
     using System.Linq;
     using System.Net;
     using System.Text;
@@ -155,16 +156,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
                     var highsInt = IPEndPoint.MaxPort;
 
                     if (lows != "*") {
-                        lowsInt = int.Parse(lows);
+                        lowsInt = int.Parse(lows, CultureInfo.InvariantCulture);
                     }
                     if (highs != "*") {
-                        highsInt = int.Parse(highs);
+                        highsInt = int.Parse(highs, CultureInfo.InvariantCulture);
                     }
 
                     if (lowsInt < IPEndPoint.MinPort ||
                         highsInt > IPEndPoint.MaxPort ||
                         lowsInt > highsInt) {
-                        throw new Exception("Port numbers are out of the range");
+                        throw new ArgumentException("Port numbers are out of the range", nameof(value));
                     }
 
                     return new PortRange(lowsInt, highsInt);

@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Events {
     /// Application registry event publisher
     /// </summary>
     public class ApplicationEventPublisher<THub> : IApplicationRegistryListener {
-
         /// <inheritdoc/>
         public ApplicationEventPublisher(ICallbackInvokerT<THub> callback) {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));

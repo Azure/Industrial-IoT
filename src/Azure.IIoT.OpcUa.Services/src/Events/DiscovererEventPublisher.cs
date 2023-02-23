@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Events {
     /// Discoverer event publisher
     /// </summary>
     public class DiscovererEventPublisher<THub> : IDiscovererRegistryListener {
-
         /// <inheritdoc/>
         public DiscovererEventPublisher(ICallbackInvokerT<THub> callback) {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));

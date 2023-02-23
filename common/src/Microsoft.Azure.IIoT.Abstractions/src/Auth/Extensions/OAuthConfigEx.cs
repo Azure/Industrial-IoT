@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Auth {
     /// Configuration extensions
     /// </summary>
     public static class OAuthConfigEx {
-
         /// <summary>
         /// Url of the token issuing instance.  E.g. the JWT bearer
         /// authentication middleware will use this URI as base
@@ -30,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Auth {
                 authorityUrl = kDefaultAuthorityUrl;
             }
             if (provider == AuthProvider.AzureAD) {
-
                 // use v2.0 endpoint of AAD with tenant if set
                 if (string.IsNullOrEmpty(tenantId)) {
                     tenantId = "common";

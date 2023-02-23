@@ -7,7 +7,6 @@ namespace Opc.Ua.Extensions {
     using Xunit;
 
     public class TypeInfoExTests {
-
         [Fact]
         public void ScalarBoolNullTest1() {
             var variant = TypeInfo.Scalars.Boolean.CreateVariant(null);

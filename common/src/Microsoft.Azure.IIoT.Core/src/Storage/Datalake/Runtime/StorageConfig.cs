@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Runtime {
     /// Blob storage configuration
     /// </summary>
     public class StorageConfig : ConfigBase, IStorageConfig {
-
         /// <summary>
         /// Configuration keys
         /// </summary>
@@ -51,6 +50,5 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Runtime {
         public StorageConfig(IConfiguration configuration) :
             base(configuration) {
         }
-
     }
 }

@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Samples message
     /// </summary>
     public class MonitoredItemMessage : JsonDataSetMessage {
-
         /// <summary>
         /// Node Id in string format as configured
         /// </summary>

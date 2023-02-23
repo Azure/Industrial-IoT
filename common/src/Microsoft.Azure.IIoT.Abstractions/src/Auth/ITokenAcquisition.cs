@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Auth {
     /// Injectable token provider implementation
     /// </summary>
     public interface ITokenAcquisition {
-
         /// <summary>
         /// The token provider supports this resource
         /// </summary>

@@ -38,7 +38,7 @@ namespace MemoryBuffer {
     /// Stores an instance of the MemoryTagType VariableType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class MemoryTagState : BaseDataVariableState {
         #region Constructors
         /// <summary>
@@ -170,7 +170,7 @@ namespace MemoryBuffer {
     /// Stores an instance of the MemoryBufferType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class MemoryBufferState : BaseObjectState {
         #region Constructors
         /// <summary>
@@ -316,11 +316,7 @@ namespace MemoryBuffer {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 

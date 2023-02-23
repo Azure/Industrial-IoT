@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Publisher registry
     /// </summary>
     public interface IPublisherRegistry {
-
         /// <summary>
         /// Get all publishers in paged form
         /// </summary>
@@ -41,8 +40,8 @@ namespace Azure.IIoT.OpcUa {
         /// <summary>
         /// Get publisher registration by identifer.
         /// </summary>
-        /// <param name="onlyServerState"></param>
         /// <param name="id"></param>
+        /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<PublisherModel> GetPublisherAsync(
@@ -52,8 +51,8 @@ namespace Azure.IIoT.OpcUa {
         /// <summary>
         /// Update publisher configuration
         /// </summary>
-        /// <param name="request"></param>
         /// <param name="id"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task UpdatePublisherAsync(string id,

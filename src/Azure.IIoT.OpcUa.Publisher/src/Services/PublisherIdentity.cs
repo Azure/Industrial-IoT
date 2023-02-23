@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// Publisher identity
     /// </summary>
     public sealed class PublisherIdentity : IProcessIdentity {
-
         /// <inheritdoc/>
         public string ProcessId => _factory.DeviceId;
         /// <inheritdoc/>

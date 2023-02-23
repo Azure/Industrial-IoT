@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class PublishedDataSetModel {
-
         /// <summary>
         /// Name of the published dataset
         /// </summary>

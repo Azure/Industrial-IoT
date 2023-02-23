@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class FilterOperandModel {
-
         /// <summary>
         /// Element reference in the outer list if
         /// operand is an element operand

@@ -13,8 +13,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Serializers {
     /// <summary>
     /// Output formatter
     /// </summary>
-    public class SerializerOutputFormatter : OutputFormatter {
-
+    public sealed class SerializerOutputFormatter : OutputFormatter {
         /// <summary>
         /// Create formatter
         /// </summary>
@@ -31,7 +30,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Serializers {
                 throw new ArgumentNullException(nameof(context));
             }
             await context.HttpContext.Response.Body.WriteAsync(
-                _serializer.SerializeToBytes(context.Object).ToArray());
+                _serializer.SerializeToMemory(context.Object).ToArray()).ConfigureAwait(false);
         }
 
         private readonly ISerializer _serializer;

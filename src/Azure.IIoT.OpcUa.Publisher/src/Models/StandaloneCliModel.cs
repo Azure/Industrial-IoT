@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
     /// standalone publisher mode.
     /// </summary>
     public class StandaloneCliModel {
-
         /// <summary>
         /// Site of the publisher
         /// </summary>

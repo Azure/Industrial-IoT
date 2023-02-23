@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
     public class ReplaceController : ControllerBase {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -49,8 +48,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryReplaceValuesAsync(endpointId, request);
-            return writeResult;
+            return await _historian.HistoryReplaceValuesAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -70,8 +68,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryReplaceEventsAsync(endpointId, request);
-            return writeResult;
+            return await _historian.HistoryReplaceEventsAsync(endpointId, request).ConfigureAwait(false);
         }
 
         private readonly IHistoryServices<string> _historian;

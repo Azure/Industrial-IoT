@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa {
-
     /// <summary>
     /// Publisher related message schemas
     /// </summary>
     public static class MessageSchemaTypes {
-
         /// <summary>
         /// Monitored item message
         /// </summary>
@@ -27,7 +25,6 @@ namespace Azure.IIoT.OpcUa {
         /// </summary>
         public const string NetworkMessageUadp =
             "application/x-network-message-uadp-v1";
-
 
         /// <summary>
         /// Moniored Item Message Model using json encoding

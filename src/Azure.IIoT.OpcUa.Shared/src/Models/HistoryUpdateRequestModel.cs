@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class HistoryUpdateRequestModel<T> {
-
         /// <summary>
         /// Node to update
         /// </summary>

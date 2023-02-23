@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Writer Group Model extensions
     /// </summary>
     public static class WriterGroupJobModelEx {
-
         /// <summary>
         /// Returns the job Id
         /// </summary>

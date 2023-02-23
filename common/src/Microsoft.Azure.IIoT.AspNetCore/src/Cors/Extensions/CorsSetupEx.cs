@@ -11,7 +11,6 @@ namespace Microsoft.Extensions.DependencyInjection {
     /// Cors setup extensions
     /// </summary>
     public static class CorsSetupEx {
-
         /// <summary>
         /// Configure app to use cors middleware.
         /// Note: Must be before UseMvc!
@@ -19,9 +18,7 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// <param name="app"></param>
         public static void EnableCors(this IApplicationBuilder app) {
             var setup = app.ApplicationServices.GetService<ICorsSetup>();
-            if (setup != null) {
-                setup.UseMiddleware(app);
-            }
+            setup?.UseMiddleware(app);
         }
     }
 }

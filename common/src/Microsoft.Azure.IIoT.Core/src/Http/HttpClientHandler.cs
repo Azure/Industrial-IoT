@@ -3,6 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.Azure.IIoT.Http.Default {
     using Microsoft.Azure.IIoT.Utils;
     using System;
@@ -22,7 +24,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// which does not support anything outside http/https scheme.
     /// </summary>
     internal class HttpClientHandler : System.Net.Http.HttpClientHandler {
-
         /// <inheritdoc/>
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken) {
@@ -40,7 +41,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<HttpResponseMessage> SendOverUnixDomainSocketAsync(string udsPath,
+        private static async Task<HttpResponseMessage> SendOverUnixDomainSocketAsync(string udsPath,
             HttpRequestMessage request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -53,10 +54,9 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 await socket.ConnectAsync(new UdsEndPoint(udsPath)).ConfigureAwait(false);
                 using (var stream = new HttpLineReader(new NetworkStream(socket, true))) {
                     var requestBytes = GetRequestBuffer(request);
-                    await stream.WriteAsync(requestBytes, 0, requestBytes.Length, ct)
-                        .ConfigureAwait(false);
+                    await stream.WriteAsync(requestBytes, ct).ConfigureAwait(false);
                     if (request.Content != null) {
-                        await request.Content.CopyToAsync(stream).ConfigureAwait(false);
+                        await request.Content.CopyToAsync(stream, ct).ConfigureAwait(false);
                     }
                     return await ReadResponseAsync(stream, ct).ConfigureAwait(false);
                 }
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        private byte[] GetRequestBuffer(HttpRequestMessage request) {
+        private static byte[] GetRequestBuffer(HttpRequestMessage request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             builder.Append(kSpace);
             builder.Append(request.RequestUri.PathAndQuery);
             builder.Append(kSpace);
-            builder.Append($"{kProtocol}{kProtoVersionSep}");
+            builder.Append(kProtocol).Append(kProtoVersionSep);
             builder.Append(new Version(1, 1).ToString(2));
             builder.Append(kCR);
             builder.Append(kLF);
@@ -116,7 +116,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="bufferedStream"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<HttpResponseMessage> ReadResponseAsync(
+        private static async Task<HttpResponseMessage> ReadResponseAsync(
             HttpLineReader bufferedStream, CancellationToken ct) {
             var response = new HttpResponseMessage();
 
@@ -159,7 +159,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     // headers end
                     break;
                 }
-                var headerSeparatorPosition = header.IndexOf(kHeaderSeparator);
+                var headerSeparatorPosition = header.IndexOf(kHeaderSeparator, StringComparison.Ordinal);
                 if (headerSeparatorPosition <= 0) {
                     throw new HttpRequestException($"Header is invalid {header}.");
                 }
@@ -185,7 +185,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// Unix endpoint -  TODO: remove when moving to .net standard 3
         /// </summary>
         public sealed class UdsEndPoint : EndPoint {
-
             /// <summary>
             /// Create endopint
             /// </summary>
@@ -254,13 +253,13 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 return _path;
             }
 
-            private static readonly int s_nativePathOffset = 2;
+            private const int s_nativePathOffset = 2;
             // = offsetof(struct sockaddr_un, sun_path). It's the same on Linux and OSX
-            private static readonly int s_nativePathLength = 91;
+            private const int s_nativePathLength = 91;
             // sockaddr_un.sun_path
             // at http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_un.h.html,
             // -1 for terminator
-            private static readonly int s_nativeAddressSize =
+            private const int s_nativeAddressSize =
                 s_nativePathOffset + s_nativePathLength;
 
             private readonly string _path;
@@ -271,7 +270,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// Line reader stream
         /// </summary>
         internal class HttpLineReader : StreamAdapter {
-
             /// <summary>
             /// Create string
             /// </summary>
@@ -286,12 +284,12 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// <param name="ct"></param>
             /// <returns></returns>
             public async Task<string> ReadLineAsync(CancellationToken ct) {
-                var position = 0;
+                const int position = 0;
                 var buffer = new byte[1];
                 var crFound = false;
                 var builder = new StringBuilder();
                 while (true) {
-                    var length = await _inner.ReadAsync(buffer, 0, buffer.Length, ct)
+                    var length = await _inner.ReadAsync(buffer, ct)
                         .ConfigureAwait(false);
                     if (length == 0) {
                         throw new IOException("Unexpected end of stream.");

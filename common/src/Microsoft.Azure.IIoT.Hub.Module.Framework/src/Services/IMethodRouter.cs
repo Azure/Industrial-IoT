@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Services {
     /// Route to the right service
     /// </summary>
     public interface IMethodRouter {
-
         /// <summary>
         /// Invoke method
         /// </summary>

@@ -239,12 +239,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 return result;
             }
             result |= UaDiagnosticsLevel.AdditionalInfo;
-            result |= UaDiagnosticsLevel.InnerStatusCode;
-            if (level == DiagnosticsLevel.Operations) {
+            if (level == DiagnosticsLevel.Information) {
                 return result;
             }
+            result |= UaDiagnosticsLevel.InnerStatusCode;
             result |= UaDiagnosticsLevel.InnerDiagnostics;
-            if (level == DiagnosticsLevel.Diagnostics) {
+            if (level == DiagnosticsLevel.Debug) {
                 return result;
             }
             result |= UaDiagnosticsLevel.All;

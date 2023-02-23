@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class SupervisorModel {
-
         /// <summary>
         /// Identifier of the supervisor
         /// </summary>

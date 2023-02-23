@@ -10,7 +10,6 @@ namespace System.Collections.Generic {
     /// Set extensions
     /// </summary>
     public static class SetEx {
-
         /// <summary>
         /// Merge enumerable b into set a.
         /// </summary>

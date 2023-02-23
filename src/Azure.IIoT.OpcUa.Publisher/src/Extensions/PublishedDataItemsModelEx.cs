@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Published data items extensions
     /// </summary>
     public static class PublishedDataItemsModelEx {
-
         /// <summary>
         /// Convert to monitored items including heartbeat handling.
         /// </summary>

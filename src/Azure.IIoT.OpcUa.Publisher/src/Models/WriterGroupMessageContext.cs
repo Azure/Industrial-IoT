@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
     /// Data set message emitted by writer in a writer group.
     /// </summary>
     public class WriterGroupMessageContext {
-
         /// <summary>
         /// Sequence number inside the writer group and based
         /// on message type

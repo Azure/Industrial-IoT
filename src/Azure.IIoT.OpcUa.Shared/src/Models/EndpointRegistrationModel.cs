@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class EndpointRegistrationModel {
-
         /// <summary>
         /// Endpoint identifier which is hashed from
         /// the supervisor, site and url.

@@ -10,8 +10,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
     using global::Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Threading.Tasks;
+    using System.Globalization;
 
-    public partial class Publishers {
+    public sealed partial class Publishers {
         [Parameter]
         public string Page { get; set; } = "1";
 
@@ -23,7 +24,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
 
-
         /// <summary>
         /// Notify page change
         /// </summary>
@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             PublisherList = CommonHelper.UpdatePage(RegistryHelper.GetPublisherListAsync, page, PublisherList, ref _pagedPublisherList, CommonHelper.PageLengthSmall);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "publishers/" + page);
             for (var i = 0; i < _pagedPublisherList.Results.Count; i++) {
-                _pagedPublisherList.Results[i] = await RegistryService.GetPublisherAsync(_pagedPublisherList.Results[i].Id);
+                _pagedPublisherList.Results[i] = await RegistryService.GetPublisherAsync(_pagedPublisherList.Results[i].Id).ConfigureAwait(false);
             }
             CommonHelper.Spinner = string.Empty;
             StateHasChanged();
@@ -53,27 +53,27 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                PublisherList = await RegistryHelper.GetPublisherListAsync();
+                PublisherList = await RegistryHelper.GetPublisherListAsync().ConfigureAwait(false);
                 Page = "1";
-                _pagedPublisherList = PublisherList.GetPaged(int.Parse(Page), CommonHelper.PageLengthSmall, PublisherList.Error);
+                _pagedPublisherList = PublisherList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture), CommonHelper.PageLengthSmall, PublisherList.Error);
                 CommonHelper.Spinner = string.Empty;
                 CommonHelper.CheckErrorOrEmpty(_pagedPublisherList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
 
                 _publisherEvent = await RegistryServiceEvents.SubscribePublisherEventsAsync(
-                    ev => InvokeAsync(() => PublisherEvent(ev)));
+                    ev => InvokeAsync(() => PublisherEventAsync(ev))).ConfigureAwait(false);
             }
         }
 
-        private Task PublisherEvent(PublisherEventModel ev) {
-            _pagedPublisherList = PublisherList.GetPaged(int.Parse(Page), CommonHelper.PageLengthSmall, PublisherList.Error);
+        private Task PublisherEventAsync(PublisherEventModel ev) {
+            _pagedPublisherList = PublisherList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture), CommonHelper.PageLengthSmall, PublisherList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }
 
-        public async void Dispose() {
+        public async ValueTask DisposeAsync() {
             if (_publisherEvent != null) {
-                await _publisherEvent.DisposeAsync();
+                await _publisherEvent.DisposeAsync().ConfigureAwait(false);
             }
         }
     }

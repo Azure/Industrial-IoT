@@ -44,6 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Globalization;
 
     /// <summary>
     /// Base class for integration testing, it connects to the server, runs
@@ -67,10 +68,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
 
         public PublisherIoTHubIntegrationTestBase(ReferenceServerFixture serverFixture) {
             // This is a fake but correctly formatted connection string.
-            var connectionString = $"HostName=dummy.azure-devices.net;" +
+            var connectionString = "HostName=dummy.azure-devices.net;" +
                 $"DeviceId={DeviceId};" +
-                $"SharedAccessKeyName=iothubowner;" +
-                $"SharedAccessKey=aXRpc25vdGFuYWNjZXNza2V5";
+                "SharedAccessKeyName=iothubowner;" +
+                "SharedAccessKey=aXRpc25vdGFuYWNjZXNza2V5";
             var config = connectionString.ToIoTHubConfig();
 
             _typedConnectionString = ConnectionString.Parse(config.IoTHubConnString);
@@ -104,9 +105,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
             string[] arguments = default) {
-
             var (_, messages) = await ProcessMessagesAndMetadataAsync(publishedNodesFile,
-                messageCollectionTimeout, messageCount, predicate, messageType, arguments);
+                messageCollectionTimeout, messageCount, predicate, messageType, arguments).ConfigureAwait(false);
             return messages;
         }
 
@@ -117,8 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
             string[] arguments = default) {
-
-            await StartPublisherAsync(publishedNodesFile, arguments);
+            await StartPublisherAsync(publishedNodesFile, arguments).ConfigureAwait(false);
 
             JsonElement? metadata = null;
             var messages = WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
@@ -237,7 +236,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <returns></returns>
         protected PublishedNodesEntryModel[] GetEndpointsFromFile(string publishedNodesFile) {
             IJsonSerializer serializer = new NewtonsoftJsonSerializer();
-            var fileContent = File.ReadAllText(publishedNodesFile).Replace("{{Port}}", _serverFixture.Port.ToString());
+            var fileContent = File.ReadAllText(publishedNodesFile).Replace("{{Port}}",
+                _serverFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
             return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }
 
@@ -248,7 +248,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             var publishedNodesFilePath = Path.GetTempFileName();
             if (!string.IsNullOrEmpty(publishedNodesFile)) {
                 File.WriteAllText(publishedNodesFilePath,
-                    File.ReadAllText(publishedNodesFile).Replace("{{Port}}", _serverFixture.Port.ToString()));
+                    File.ReadAllText(publishedNodesFile).Replace("{{Port}}",
+                    _serverFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal));
             }
             try {
                 var config = _typedConnectionString.ToIoTHubConfig();
@@ -275,9 +276,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
                     var host = Task.Run(() =>
                     HostAsync(logger, configuration, new List<(DeviceTwinModel, DeviceModel)>() {
                         (new DeviceTwinModel(), new DeviceModel() { Id = _typedConnectionString.DeviceId }) }), cts.Token);
-                    await Task.WhenAny(_exit.Task);
+                    await Task.WhenAny(_exit.Task).ConfigureAwait(false);
                     cts.Cancel();
-                    await host;
+                    await host.ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) {
@@ -304,20 +305,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
 
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
-                        logger.LogInformation("Starting module OpcPublisher version {version}.", version);
+                        logger.LogInformation("Starting module OpcPublisher version {Version}.", version);
                         // Start module
-                        await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
+                        await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null).ConfigureAwait(false);
 
                         _apiScope = ConfigureContainer(configurationRoot, hostScope.Resolve<IIoTHubTwinServices>());
                         _running.TrySetResult(true);
-                        await Task.WhenAny(_exit.Task);
+                        await Task.WhenAny(_exit.Task).ConfigureAwait(false);
                         logger.LogInformation("Module exits...");
                     }
                     catch (Exception ex) {
                         _running.TrySetException(ex);
                     }
                     finally {
-                        await module.StopAsync();
+                        await module.StopAsync().ConfigureAwait(false);
 
                         Events = null;
                         _apiScope?.Dispose();

@@ -8,7 +8,6 @@ namespace Opc.Ua.Extensions {
     using Xunit;
 
     public class SequenceNumberTests {
-
         [Fact]
         public void TestIncrementSequenceNumber0() {
             uint v = 3234232;
@@ -90,8 +89,8 @@ namespace Opc.Ua.Extensions {
 
         [Fact]
         public void TestGetMissingSequenceNumbers5() {
-            var maxInt = unchecked((uint)int.MaxValue);
-            var minInt = unchecked((uint)int.MinValue);
+            const uint maxInt = unchecked((uint)int.MaxValue);
+            const uint minInt = unchecked((uint)int.MinValue);
             var missing = SequenceNumber.Missing(maxInt - 1, minInt + 1, out var dropped).ToList();
             Assert.Equal(new uint[] { maxInt, minInt }, missing);
             Assert.True(dropped);

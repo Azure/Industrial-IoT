@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class DiagnosticsModel {
-
         /// <summary>
         /// Requested level of response diagnostics.
         /// (default: None)

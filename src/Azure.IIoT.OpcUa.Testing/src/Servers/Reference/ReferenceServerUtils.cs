@@ -38,7 +38,6 @@ namespace Reference {
     /// The interface that a server exposes to objects that it contains.
     /// </summary>
     public static class ServerUtils {
-
         private enum EventType {
             WriteValue,
             CreateItem,
@@ -328,7 +327,6 @@ namespace Reference {
             }
         }
 
-
         /// <summary>
         /// Fills in the diagnostic information after an error.
         /// </summary>
@@ -476,13 +474,11 @@ namespace Reference {
                 translatedError = server.ResourceManager.Translate(context.PreferredLocales, error);
             }
 
-            var diagnosticInfo = new DiagnosticInfo(
+            return new DiagnosticInfo(
                 translatedError,
                 context.DiagnosticsMask,
                 false,
                 context.StringTable);
-
-            return diagnosticInfo;
         }
     }
 }

@@ -8,7 +8,6 @@ namespace System {
     using Xunit;
 
     public class AssemblyExTests {
-
         [Fact]
         public void GetVersionInfoObjectTests() {
             var o = GetType().Assembly.GetVersionInfoObject();
@@ -22,7 +21,7 @@ namespace System {
             var o = GetType().Assembly.GetVersionInfoObject();
             Assert.NotNull(o);
             var v = GetType().Assembly.GetReleaseVersion().ToString();
-            Assert.Equal(v, (string)o.GetValue("AssemblyFileVersion"));
+            Assert.Equal(v, (string)o.GetValue("AssemblyFileVersion", StringComparison.Ordinal));
         }
     }
 }

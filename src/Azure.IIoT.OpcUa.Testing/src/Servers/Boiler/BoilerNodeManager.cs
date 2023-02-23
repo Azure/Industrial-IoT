@@ -37,7 +37,6 @@ namespace Boiler {
     /// A node manager the diagnostic information exposed by the server.
     /// </summary>
     public class BoilerNodeManager : SampleNodeManager {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -148,7 +147,7 @@ namespace Boiler {
         /// <param name="instance">The instance to update.</param>
         /// <param name="unitLabel">The label to apply.</param>
         /// <remarks>This method assumes the DisplayName has the form NameX001 where X0 is the unit label placeholder.</remarks>
-        private void UpdateDisplayName(BaseInstanceState instance, string unitLabel) {
+        private static void UpdateDisplayName(BaseInstanceState instance, string unitLabel) {
             var displayName = instance.DisplayName;
 
             if (displayName != null) {
@@ -180,7 +179,6 @@ namespace Boiler {
         /// Replaces the generic node with a node specific to the model.
         /// </summary>
         protected override NodeState AddBehaviourToPredefinedNode(ISystemContext context, NodeState predefinedNode) {
-
             if (!(predefinedNode is BaseObjectState passiveNode)) {
                 return predefinedNode;
             }

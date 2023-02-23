@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     [Flags]
     [DataContract]
     public enum X509ChainStatus {
-
         /// <summary>
         /// Specifies that the X509 chain has no errors.
         /// </summary>

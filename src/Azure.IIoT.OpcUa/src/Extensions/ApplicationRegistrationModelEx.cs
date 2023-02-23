@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Service model extensions for discovery service
     /// </summary>
     public static class ApplicationRegistrationModelEx {
-
         /// <summary>
         /// Equality comparison
         /// </summary>
@@ -84,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         public static void AddOrUpdate(this List<ApplicationRegistrationModel> discovered,
             ApplicationRegistrationModel server) {
             var actual = discovered
-                .FirstOrDefault(s => s.Application.IsSameAs(server.Application));
+                .Find(s => s.Application.IsSameAs(server.Application));
             if (actual != null) {
                 // Merge server info
                 actual.UnionWith(server);
@@ -101,7 +100,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="server"></param>
         public static void UnionWith(this ApplicationRegistrationModel model,
             ApplicationRegistrationModel server) {
-
             if (model.Application == null) {
                 model.Application = server.Application;
             }

@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// used by http client and client factory
     /// </summary>
     public class HttpHandlerDelegate : DelegatingHandler {
-
         /// <summary>
         /// Create delegating handler
         /// </summary>
@@ -30,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         public HttpHandlerDelegate(HttpMessageHandler next, string resourceId,
             IEnumerable<IHttpHandler> handlers,
             IWebProxy proxy, ILogger logger) : base(next) {
-
             _resourceId = resourceId;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -60,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 .OfType<IHttpCertificateValidator>()
                 .Cast<IHttpCertificateValidator>()
                 .ToList();
-            if (validators.Any()) {
+            if (validators.Count > 0) {
                 root.ServerCertificateCustomValidationCallback =
                     (req, cert, chain, err) => validators.All(
                         v => v.Validate(req.Headers, cert, chain, err));
@@ -90,13 +88,13 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             HttpRequestMessage request, CancellationToken cancellationToken) {
             foreach (var h in _handlers) {
                 await h.OnRequestAsync(_resourceId, request.RequestUri,
-                    request.Headers, request.Content, cancellationToken);
+                    request.Headers, request.Content, cancellationToken).ConfigureAwait(false);
             }
-            var response = await base.SendAsync(request, cancellationToken);
+            var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
             foreach (var h in _handlers) {
                 await h.OnResponseAsync(_resourceId, request.RequestUri,
                     response.StatusCode, response.Headers, response.Content,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
             }
             return response;
         }

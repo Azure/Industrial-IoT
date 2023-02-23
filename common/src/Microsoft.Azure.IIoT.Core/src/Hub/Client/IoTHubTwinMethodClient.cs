@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     /// Method client using twin services
     /// </summary>
     public sealed class IoTHubTwinMethodClient : IJsonMethodClient {
-
         /// <inheritdoc/>
         public int MaxMethodPayloadCharacterCount => 120 * 1024;
 
@@ -32,17 +31,17 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <inheritdoc/>
         public async Task<string> CallMethodAsync(string deviceId, string moduleId,
             string method, string payload, TimeSpan? timeout, CancellationToken ct) {
-            _logger.LogTrace("Call {method} on {device} ({module}) with {payload}... ",
+            _logger.LogTrace("Call {Method} on {DeviceId} ({ModuleId}) with {Payload}... ",
                 method, deviceId, moduleId, payload);
             var result = await _twin.CallMethodAsync(deviceId, moduleId,
                 new MethodParameterModel {
                     Name = method,
                     ResponseTimeout = timeout ?? TimeSpan.FromSeconds(kDefaultMethodTimeout),
                     JsonPayload = payload
-                }, ct);
+                }, ct).ConfigureAwait(false);
             if (result.Status != 200) {
-                _logger.LogDebug("Call {method} on {device} ({module}) with {payload} " +
-                    "returned with error {status}: {result}",
+                _logger.LogDebug("Call {Method} on {DeviceId} ({ModuleId}) with {Payload} " +
+                    "returned with error {Status}: {Result}",
                     method, deviceId, moduleId, payload, result.Status, result.JsonPayload);
                 throw new MethodCallStatusException(result.JsonPayload, result.Status);
             }

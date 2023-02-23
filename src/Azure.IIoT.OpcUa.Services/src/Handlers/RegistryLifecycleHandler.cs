@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
     /// Gateway event handler.
     /// </summary>
     public sealed class RegistryLifecycleHandler : IDeviceTelemetryHandler {
-
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.DeviceLifecycleNotification;
 
@@ -43,7 +42,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
             IEndpointRegistryListener endpoints = null,
             ISupervisorRegistryListener supervisors = null,
             IDiscovererRegistryListener discoverers = null) {
-
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -59,7 +57,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-
             if (!properties.TryGetValue("opType", out var opType) ||
                 !properties.TryGetValue("operationTimestamp", out var ts)) {
                 return;
@@ -67,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
             _ = DateTime.TryParse(ts, out var timestamp);
             if (timestamp + TimeSpan.FromSeconds(10) < DateTime.UtcNow) {
                 // Drop twin events that are too far in our past.
-                _logger.LogDebug("Skipping {event} from {deviceId}({moduleId}) from {ts}.",
+                _logger.LogDebug("Skipping {Event} from {DeviceId}({ModuleId}) from {Ts}.",
                     opType, deviceId, moduleId, timestamp);
                 return;
             }
@@ -80,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
             var type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
             if (string.IsNullOrEmpty(type)) {
                 try {
-                    twin = await _iothub.GetAsync(deviceId, moduleId);
+                    twin = await _iothub.GetAsync(deviceId, moduleId).ConfigureAwait(false);
                     type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
                 }
                 catch (Exception ex) {
@@ -91,11 +88,11 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
             switch (opType) {
                 case "createDeviceIdentity":
                 case "createModuleIdentity":
-                    await HandleCreateAsync(twin, timestamp);
+                    await HandleCreateAsync(twin, timestamp).ConfigureAwait(false);
                     break;
                 case "deleteDeviceIdentity":
                 case "deleteModuleIdentity":
-                    await HandleDeleteAsync(twin, timestamp);
+                    await HandleDeleteAsync(twin, timestamp).ConfigureAwait(false);
                     break;
             }
         }
@@ -113,23 +110,23 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
             };
             switch (type) {
                 case IdentityType.Gateway:
-                    await _gateways?.OnGatewayDeletedAsync(ctx, twin.Id);
+                    await (_gateways?.OnGatewayDeletedAsync(ctx, twin.Id)).ConfigureAwait(false);
                     break;
                 case IdentityType.Endpoint:
-                    await _endpoints?.OnEndpointDeletedAsync(ctx, twin.Id,
-                        twin.ToEndpointRegistration(true).ToServiceModel());
+                    await (_endpoints?.OnEndpointDeletedAsync(ctx, twin.Id,
+                        twin.ToEndpointRegistration(true).ToServiceModel())).ConfigureAwait(false);
                     break;
                 case IdentityType.Application:
-                    await _applications?.OnApplicationDeletedAsync(ctx, twin.Id,
-                        twin.ToApplicationRegistration().ToServiceModel());
+                    await (_applications?.OnApplicationDeletedAsync(ctx, twin.Id,
+                        twin.ToApplicationRegistration().ToServiceModel())).ConfigureAwait(false);
                     break;
                 case IdentityType.Publisher:
-                    await _supervisors?.OnSupervisorDeletedAsync(ctx,
-                        PublisherModelEx.CreatePublisherId(twin.Id, twin.ModuleId));
-                    await _publishers?.OnPublisherDeletedAsync(ctx,
-                        PublisherModelEx.CreatePublisherId(twin.Id, twin.ModuleId));
-                    await _discoverers?.OnDiscovererDeletedAsync(ctx,
-                        PublisherModelEx.CreatePublisherId(twin.Id, twin.ModuleId));
+                    await (_supervisors?.OnSupervisorDeletedAsync(ctx,
+                        PublisherModelEx.CreatePublisherId(twin.Id, twin.ModuleId))).ConfigureAwait(false);
+                    await (_publishers?.OnPublisherDeletedAsync(ctx,
+                        PublisherModelEx.CreatePublisherId(twin.Id, twin.ModuleId))).ConfigureAwait(false);
+                    await (_discoverers?.OnDiscovererDeletedAsync(ctx,
+                        PublisherModelEx.CreatePublisherId(twin.Id, twin.ModuleId))).ConfigureAwait(false);
                     break;
             }
         }
@@ -147,24 +144,24 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
             };
             switch (type) {
                 case IdentityType.Gateway:
-                    await _gateways?.OnGatewayNewAsync(ctx,
-                        twin.ToGatewayRegistration().ToServiceModel());
+                    await (_gateways?.OnGatewayNewAsync(ctx,
+                        twin.ToGatewayRegistration().ToServiceModel())).ConfigureAwait(false);
                     break;
                 case IdentityType.Endpoint:
-                    await _endpoints?.OnEndpointNewAsync(ctx,
-                        twin.ToEndpointRegistration(true).ToServiceModel());
+                    await (_endpoints?.OnEndpointNewAsync(ctx,
+                        twin.ToEndpointRegistration(true).ToServiceModel())).ConfigureAwait(false);
                     break;
                 case IdentityType.Application:
-                    await _applications?.OnApplicationNewAsync(ctx,
-                        twin.ToApplicationRegistration().ToServiceModel());
+                    await (_applications?.OnApplicationNewAsync(ctx,
+                        twin.ToApplicationRegistration().ToServiceModel())).ConfigureAwait(false);
                     break;
                 case IdentityType.Publisher:
-                    await _supervisors?.OnSupervisorNewAsync(ctx,
-                        twin.ToPublisherRegistration(true).ToSupervisorModel());
-                    await _publishers?.OnPublisherNewAsync(ctx,
-                        twin.ToPublisherRegistration(true).ToPublisherModel());
-                    await _discoverers?.OnDiscovererNewAsync(ctx,
-                        twin.ToPublisherRegistration().ToDiscovererModel());
+                    await (_supervisors?.OnSupervisorNewAsync(ctx,
+                        twin.ToPublisherRegistration(true).ToSupervisorModel())).ConfigureAwait(false);
+                    await (_publishers?.OnPublisherNewAsync(ctx,
+                        twin.ToPublisherRegistration(true).ToPublisherModel())).ConfigureAwait(false);
+                    await (_discoverers?.OnDiscovererNewAsync(ctx,
+                        twin.ToPublisherRegistration().ToDiscovererModel())).ConfigureAwait(false);
                     break;
             }
         }

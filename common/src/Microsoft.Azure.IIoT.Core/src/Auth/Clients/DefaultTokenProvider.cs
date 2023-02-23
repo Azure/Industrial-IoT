@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// Enumerates all token sources and provides token from first successful source
     /// </summary>
     public class DefaultTokenProvider : ITokenProvider {
-
         /// <inheritdoc/>
         public DefaultTokenProvider(IEnumerable<ITokenSource> tokenSources) {
             _tokenSources = tokenSources?.Where(s => s.IsEnabled).ToList() ??
@@ -35,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             }
             foreach (var source in _tokenSources.Where(p => p.Resource == resource)) {
                 try {
-                    var token = await source.GetTokenAsync(scopes);
+                    var token = await source.GetTokenAsync(scopes).ConfigureAwait(false);
                     if (token != null) {
                         return token;
                     }
@@ -54,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             }
             await Task.WhenAll(_tokenSources
                 .Where(p => p.Resource == resource)
-                .Select(p => p.InvalidateAsync()));
+                .Select(p => p.InvalidateAsync())).ConfigureAwait(false);
         }
 
         private readonly List<ITokenSource> _tokenSources;

@@ -4,14 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher {
-
     using System.Threading.Tasks;
 
     /// <summary>
     /// Interface for runtime state reporting.
     /// </summary>
     public interface IRuntimeStateReporter {
-
         /// <summary>
         /// Send restart announcement.
         /// </summary>

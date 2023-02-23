@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Module {
     /// Method client extensions
     /// </summary>
     public static class MethodClientEx {
-
         /// <summary>
         /// Call method with json payload.
         /// </summary>
@@ -30,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Module {
             TimeSpan? timeout = null, CancellationToken ct = default) {
             var response = await client.CallMethodAsync(deviceId, moduleId, method,
                 json == null ? null : Encoding.UTF8.GetBytes(json),
-                ContentMimeType.Json, timeout, ct);
+                ContentMimeType.Json, timeout, ct).ConfigureAwait(false);
             return response.Length == 0 ? null : Encoding.UTF8.GetString(response);
         }
     }

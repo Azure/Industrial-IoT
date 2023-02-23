@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// Thrown when serializer fails.
     /// </summary>
     public class SerializerException : Exception {
-
         /// <inheritdoc />
         public SerializerException(string message) : base(message) {
         }

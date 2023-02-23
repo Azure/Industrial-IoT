@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Storage {
     /// Distributed cache implementation
     /// </summary>
     public class DistributedProtectedCache : ICache {
-
         /// <summary>
         /// Create cache using provided distributed cache
         /// </summary>
@@ -37,12 +36,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Storage {
             if (value == null) {
                 throw new ArgumentNullException(nameof(value));
             }
-            await _cache.SetAsync(key, _protector.Protect(value), ct);
+            await _cache.SetAsync(key, _protector.Protect(value), ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<byte[]> GetAsync(string key, CancellationToken ct) {
-            var value = await _cache.GetAsync(key, ct);
+            var value = await _cache.GetAsync(key, ct).ConfigureAwait(false);
             if (string.IsNullOrEmpty(key)) {
                 throw new ArgumentNullException(nameof(key));
             }
@@ -57,7 +56,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Storage {
             if (string.IsNullOrEmpty(key)) {
                 throw new ArgumentNullException(nameof(key));
             }
-            await _cache.RemoveAsync(key, ct);
+            await _cache.RemoveAsync(key, ct).ConfigureAwait(false);
         }
 
         private readonly IDistributedCache _cache;

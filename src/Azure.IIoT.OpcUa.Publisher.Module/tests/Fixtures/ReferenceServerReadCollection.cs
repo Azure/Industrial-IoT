@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
 
     [CollectionDefinition(Name)]
     public class ReferenceServerReadCollection : ICollectionFixture<ReferenceServerFixture> {
-
         public const string Name = "Read";
     }
 }

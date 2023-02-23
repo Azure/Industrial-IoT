@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     /// Configure authorization policies
     /// </summary>
     public static class AuthorizationPoliciesEx {
-
         /// <summary>
         /// Add authorization policies
         /// </summary>
@@ -58,13 +57,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// Add authorization policies
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="policies"></param>
         /// <param name="configure"></param>
+        /// <param name="policies"></param>
         /// <returns></returns>
         internal static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services,
             Func<string, AuthorizationPolicyBuilder, IServiceProvider, AuthorizationPolicyBuilder> configure,
             params string[] policies) {
-
             services.TryAddTransient<IServerAuthConfig, ServiceAuthAggregateConfig>();
             services.AddAuthorization();
 

@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Endpoint discovery services extensions
     /// </summary>
     public interface IEndpointDiscovery {
-
         /// <summary>
         /// Try get unique set of endpoints from all servers found on discovery
         /// server endpoint url, filtered by optional prioritized locale list.

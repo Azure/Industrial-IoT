@@ -3,15 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
+namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils {
     using System.IO;
     using System.Text;
 
     /// <summary>
     /// Utilities for tests.
     /// </summary>
-    public class Utils {
-
+    public static class Utils {
         /// <summary>
         /// Get content of a file as string.
         /// </summary>

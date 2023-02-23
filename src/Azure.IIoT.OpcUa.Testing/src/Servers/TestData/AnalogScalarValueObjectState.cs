@@ -31,7 +31,6 @@ namespace TestData {
     using Opc.Ua;
 
     public partial class AnalogScalarValueObjectState {
-
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
@@ -53,8 +52,6 @@ namespace TestData {
             InitializeVariable(context, UIntegerValue, Variables.AnalogScalarValueObjectType_UIntegerValue);
         }
 
-
-
         /// <summary>
         /// Handles the generate values method.
         /// </summary>
@@ -63,7 +60,6 @@ namespace TestData {
             MethodState method,
             NodeId objectId,
             uint count) {
-
             if (!(context.SystemHandle is TestDataSystem system)) {
                 return StatusCodes.BadOutOfService;
             }

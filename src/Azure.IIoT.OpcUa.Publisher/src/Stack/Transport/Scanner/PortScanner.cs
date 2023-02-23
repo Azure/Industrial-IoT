@@ -103,7 +103,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Scan completed
         /// </summary>
-        public Task Completion => _completion.Task;
+        public Task WaitToCompleteAsync() {
+            return _completion.Task;
+        }
 
         /// <summary>
         /// Dispose scanner
@@ -232,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// </summary>
         private class NullPortProbe : IAsyncProbe, IPortProbe {
             /// <inheritdoc />
-            public bool CompleteAsync(int index, SocketAsyncEventArgs arg,
+            public bool OnComplete(int index, SocketAsyncEventArgs arg,
                 out bool ok, out int timeout) {
                 ok = true;
                 timeout = 0;

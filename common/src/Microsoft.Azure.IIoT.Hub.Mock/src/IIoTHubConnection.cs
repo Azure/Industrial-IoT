@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// Connection
     /// </summary>
     public interface IIoTHubConnection {
-
         /// <summary>
         /// Send an event to hub.
         /// </summary>
@@ -39,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <param name="moduleId"></param>
         /// <param name="methodRequest"></param>
         /// <returns></returns>
-        MethodResponse Call(string deviceId, string moduleId,
+        MethodResponse CallMethod(string deviceId, string moduleId,
             MethodRequest methodRequest);
 
         /// <summary>

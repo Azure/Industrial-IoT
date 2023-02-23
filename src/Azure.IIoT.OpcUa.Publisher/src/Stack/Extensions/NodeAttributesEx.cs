@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack {
-
     /// <summary>
     /// Node attribute extensions
     /// </summary>
     public static class NodeAttributesEx {
-
         /// <summary>
         /// Get attribute
         /// </summary>

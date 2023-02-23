@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Content filter element extensions
     /// </summary>
     public static class ContentFilterElementModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

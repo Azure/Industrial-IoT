@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.App.Models {
     using System.Collections.Generic;
 
     public class DiscovererInfo {
-
         /// <summary>
         /// Discoverer models.
         /// </summary>
@@ -38,7 +37,7 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// is Ad-Hoc Discovery.
         /// </summary>
-        public bool isAdHocDiscovery { get; set; } = false;
+        public bool isAdHocDiscovery { get; set; }
 
         /// <summary>
         /// Id of discovery request

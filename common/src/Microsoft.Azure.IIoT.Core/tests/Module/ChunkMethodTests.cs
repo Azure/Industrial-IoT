@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module {
     using Xunit;
 
     public partial class ChunkMethodTests {
-
         [Theory]
         [InlineData(120 * 1024)]
         [InlineData(100000)]

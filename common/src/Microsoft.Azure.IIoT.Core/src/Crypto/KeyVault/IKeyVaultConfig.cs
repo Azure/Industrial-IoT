@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Crypto.KeyVault {
-
     /// <summary>
     /// Keyvault configuration
     /// </summary>
     public interface IKeyVaultConfig {
-
         /// <summary>
         /// Keyvault base url
         /// </summary>

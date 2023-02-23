@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Create servers
     /// </summary>
     public interface IServerFactory {
-
         /// <summary>
         /// Create server and server configuration for hosting.
         /// </summary>

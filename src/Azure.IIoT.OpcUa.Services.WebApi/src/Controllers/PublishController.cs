@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class PublishController : ControllerBase {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -52,9 +51,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _publisher.NodePublishStartAsync(
-                endpointId, request);
-            return result;
+            return await _publisher.NodePublishStartAsync(
+                endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -73,9 +71,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _publisher.NodePublishBulkAsync(
-                endpointId, request);
-            return result;
+            return await _publisher.NodePublishBulkAsync(
+                endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -95,9 +92,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _publisher.NodePublishStopAsync(
-                endpointId, request);
-            return result;
+            return await _publisher.NodePublishStopAsync(
+                endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -117,9 +113,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _publisher.NodePublishListAsync(
-                endpointId, request);
-            return result;
+            return await _publisher.NodePublishListAsync(
+                endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -140,11 +135,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
             }
-            var result = await _publisher.NodePublishListAsync(endpointId,
+            return await _publisher.NodePublishListAsync(endpointId,
                 new PublishedItemListRequestModel {
                     ContinuationToken = continuationToken
-                });
-            return result;
+                }).ConfigureAwait(false);
         }
 
         private readonly IPublishServices<string> _publisher;

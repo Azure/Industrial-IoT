@@ -4,13 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Exceptions {
-
     /// <summary>
     /// This exception is thrown when method call returned a
     /// status other than 200
     /// </summary>
     public class MethodCallStatusException : MethodCallException {
-
         /// <summary>
         /// Result of method call
         /// </summary>

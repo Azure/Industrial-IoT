@@ -21,14 +21,13 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     /// identity management.
     /// </summary>
     public sealed class DiscovererRegistry : IDiscovererRegistry {
-
         /// <summary>
         /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
-        /// <param name="broker"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="broker"></param>
         public DiscovererRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
             ILogger logger, IDiscovererRegistryListener broker = null) {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -38,18 +37,16 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         }
 
         /// <inheritdoc/>
-        public async Task<DiscovererModel> GetDiscovererAsync(string id,
+        public async Task<DiscovererModel> GetDiscovererAsync(string discovererId,
             CancellationToken ct) {
-            if (string.IsNullOrEmpty(id)) {
-                throw new ArgumentException(nameof(id));
+            if (string.IsNullOrEmpty(discovererId)) {
+                throw new ArgumentException(nameof(discovererId));
             }
-            var deviceId = PublisherModelEx.ParseDeviceId(id, out var moduleId);
-            var device = await _iothub.GetAsync(deviceId, moduleId, ct);
-            var registration = device.ToEntityRegistration()
-                as PublisherRegistration;
-            if (registration == null) {
+            var deviceId = PublisherModelEx.ParseDeviceId(discovererId, out var moduleId);
+            var device = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
+            if (device.ToEntityRegistration() is not PublisherRegistration registration) {
                 throw new ResourceNotFoundException(
-                    $"{id} is not a discoverer registration.");
+                    $"{discovererId} is not a discoverer registration.");
             }
             return registration.ToDiscovererModel();
         }
@@ -69,14 +66,13 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
             while (true) {
                 try {
-                    var twin = await _iothub.GetAsync(deviceId, moduleId, ct);
+                    var twin = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
                     if (twin.Id != deviceId && twin.ModuleId != moduleId) {
                         throw new ArgumentException("Id must be same as twin to patch",
                             nameof(discovererId));
                     }
 
-                    var registration = twin.ToEntityRegistration(true) as PublisherRegistration;
-                    if (registration == null) {
+                    if (!(twin.ToEntityRegistration(true) is PublisherRegistration registration)) {
                         throw new ResourceNotFoundException(
                             $"{discovererId} is not a discoverer registration.");
                     }
@@ -104,11 +100,11 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                     }
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
-                        patched.ToPublisherRegistration(), _serializer), false, ct);
+                        patched.ToPublisherRegistration(), _serializer), false, ct).ConfigureAwait(false);
 
                     // Send update to through broker
                     registration = twin.ToEntityRegistration(true) as PublisherRegistration;
-                    await _events?.OnDiscovererUpdatedAsync(null, registration.ToDiscovererModel());
+                    await (_events?.OnDiscovererUpdatedAsync(null, registration.ToDiscovererModel())).ConfigureAwait(false);
                     return;
                 }
                 catch (ResourceOutOfDateException ex) {
@@ -121,10 +117,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         /// <inheritdoc/>
         public async Task<DiscovererListModel> ListDiscoverersAsync(
             string continuation, int? pageSize, CancellationToken ct) {
-            var query = "SELECT * FROM devices.modules WHERE " +
+            const string query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
-            var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
+            var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
             return new DiscovererListModel {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
@@ -137,7 +133,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         /// <inheritdoc/>
         public async Task<DiscovererListModel> QueryDiscoverersAsync(
             DiscovererQueryModel model, int? pageSize, CancellationToken ct) {
-
             // This is no longer supported, return empty result
             if (model?.Discovery != null && model?.Discovery != DiscoveryMode.Off) {
                 return new DiscovererListModel {
@@ -157,14 +152,14 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             if (model?.Connected != null) {
                 // If flag provided, include it in search
                 if (model.Connected.Value) {
-                    query += $"AND connectionState = 'Connected' ";
+                    query += "AND connectionState = 'Connected' ";
                 }
                 else {
-                    query += $"AND connectionState != 'Connected' ";
+                    query += "AND connectionState != 'Connected' ";
                 }
             }
 
-            var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct);
+            var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct).ConfigureAwait(false);
             return new DiscovererListModel {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items

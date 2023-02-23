@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa {
     /// Import, update or delete applications in bulk
     /// </summary>
     public interface IApplicationBulkProcessor {
-
         /// <summary>
         /// Merge applications and endpoints
         /// </summary>

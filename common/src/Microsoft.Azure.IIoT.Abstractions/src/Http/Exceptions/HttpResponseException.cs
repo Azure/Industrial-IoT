@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Http.Exceptions {
     /// Http request exception
     /// </summary>
     public class HttpResponseException : Exception {
-
         /// <summary>
         /// Create response exception
         /// </summary>

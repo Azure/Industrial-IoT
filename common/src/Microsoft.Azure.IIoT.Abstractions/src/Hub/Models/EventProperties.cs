@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
-
     /// <summary>
     /// Common event hub message properties
     /// </summary>
     public static class EventProperties {
-
         /// <summary>
         /// Content encoding of event
         /// </summary>

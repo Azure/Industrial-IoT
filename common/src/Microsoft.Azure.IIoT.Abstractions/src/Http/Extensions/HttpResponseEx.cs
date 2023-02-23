@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Http response extensions
     /// </summary>
     public static class HttpResponseEx {
-
         /// <summary>
         /// Response content
         /// </summary>

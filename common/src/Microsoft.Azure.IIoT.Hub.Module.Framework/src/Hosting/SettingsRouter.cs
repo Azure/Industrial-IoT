@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     /// Provides set/get routing to controllers
     /// </summary>
     public sealed class SettingsRouter : ISettingsRouter, IDisposable {
-
         /// <summary>
         /// Property Di to prevent circular dependency between host and controller
         /// </summary>
@@ -34,8 +33,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <summary>
         /// Create router
         /// </summary>
-        /// <param name="logger"></param>
         /// <param name="serializer"></param>
+        /// <param name="logger"></param>
         public SettingsRouter(IJsonSerializer serializer, ILogger logger) {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -56,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             // Set all properties
             foreach (var setting in settings) {
                 if (!TryGetInvoker(setting.Key, out var invoker)) {
-                    _logger.LogError("Setting {key}/{value} unsupported",
+                    _logger.LogError("Setting {Key}/{Value} unsupported",
                         setting.Key, setting.Value.ToJson());
                 }
                 else {
@@ -67,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                     }
                     catch (Exception ex) {
-                        _logger.LogError(ex, "Error processing setting {key}/{value}",
+                        _logger.LogError(ex, "Error processing setting {Key}/{Value}",
                             setting.Key, setting.Value.ToJson());
                     }
                 }
@@ -75,14 +74,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             // Apply settings on all affected controllers and return reported
             var reported = new Dictionary<string, VariantValue>();
-            if (controllers.Any()) {
+            if (controllers.Count > 0) {
                 var sw = Stopwatch.StartNew();
-                await _lock.WaitAsync();
+                await _lock.WaitAsync().ConfigureAwait(false);
                 try {
-                    await Task.WhenAll(controllers.Select(c => c.SafeApplyAsync()));
+                    await Task.WhenAll(controllers.Select(c => c.SafeApplyAsync())).ConfigureAwait(false);
                     var invokers = controllers.SelectMany(c => c.Invokers).Distinct();
                     CollectSettingsFromControllers(reported, invokers);
-                    _logger.LogDebug("Applying new settings took {elapsed}...", sw.Elapsed);
+                    _logger.LogDebug("Applying new settings took {Elapsed}...", sw.Elapsed);
                 }
                 finally {
                     _lock.Release();
@@ -93,7 +92,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
         /// <inheritdoc/>
         public async Task<IDictionary<string, VariantValue>> GetSettingsStateAsync() {
-            await _lock.WaitAsync();
+            await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 var reported = new Dictionary<string, VariantValue>();
                 CollectSettingsFromControllers(reported, _calltable.Values);
@@ -139,7 +138,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     }
                 }
                 catch (Exception ex) {
-                    _logger.LogDebug(ex, "Error retrieving controller setting {setting}",
+                    _logger.LogDebug(ex, "Error retrieving controller setting {Setting}",
                         handler.Name);
                 }
             }
@@ -150,7 +149,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// </summary>
         /// <param name="target"></param>
         private void AddToCallTable(object target) {
-
             var versions = target.GetType().GetCustomAttributes<VersionAttribute>(true)
                 .Select(v => v.Numeric)
                 .ToList();
@@ -215,7 +213,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Wraps a controller
         /// </summary>
         private class Controller {
-
             /// <summary>
             /// Attached invokers
             /// </summary>
@@ -248,10 +245,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <returns></returns>
             public async Task SafeApplyAsync() {
                 try {
-                    await ApplyInternalAsync();
+                    await ApplyInternalAsync().ConfigureAwait(false);
                 }
                 catch (Exception e) {
-                    _logger.LogError(e, "Exception applying changes! Continue...",
+                    _logger.LogError(e, "Exception applying changes on {Type} {Name}! Continue...",
                         Target.GetType().Name, _applyMethod.Name);
                 }
             }
@@ -260,15 +257,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// Called to apply changes
             /// </summary>
             /// <returns></returns>
-            public Task ApplyInternalAsync() {
-                try {
-                    if (_applyMethod == null) {
-                        return Task.CompletedTask;
-                    }
-                    return (Task)_applyMethod.Invoke(Target, Array.Empty<object>());
-                }
-                catch (Exception e) {
-                    return Task.FromException(e);
+            public async Task ApplyInternalAsync() {
+                if (_applyMethod != null) {
+                    await ((Task)_applyMethod.Invoke(Target, Array.Empty<object>())).ConfigureAwait(false);
                 }
             }
 
@@ -290,7 +281,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Trys all setters until it can apply the setting.
         /// </summary>
         private class CascadingInvoker {
-
             /// <summary>
             /// Property name
             /// </summary>
@@ -335,7 +325,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     }
                     catch (Exception ex) {
                         // Save last error, and continue
-                        _logger.LogDebug(ex, "Setting '{property}' failed!",
+                        _logger.LogDebug(ex, "Setting '{Property}' failed!",
                             property);
                         e = ex;
                     }
@@ -358,7 +348,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     }
                     catch (Exception ex) {
                         // Save last error, and continue
-                        _logger.LogDebug(ex, "Retrieving '{property}' failed!",
+                        _logger.LogDebug(ex, "Retrieving '{Property}' failed!",
                             property);
                         e = ex;
                     }
@@ -396,7 +386,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Encapsulates applying a property
         /// </summary>
         private class PropertyInvoker {
-
             /// <summary>
             /// Property name
             /// </summary>
@@ -442,7 +431,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
                 catch (Exception e) {
                     _logger.LogWarning(e,
-                        "Exception during setter {controller} {name} invocation",
+                        "Exception during setter {Controller} {Name} invocation",
                         _controller.Target.GetType().Name, _property.Name);
                     throw;
                 }
@@ -473,7 +462,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
                 catch (Exception e) {
                     _logger.LogWarning(e,
-                        "Exception during getter {controller} {name} invocation",
+                        "Exception during getter {Controller} {Name} invocation",
                         _controller.Target.GetType().Name, _property.Name);
                     throw;
                 }
@@ -506,7 +495,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
                 catch (Exception e) {
                     _logger.LogWarning(e,
-                        "Exception collecting all indexed values on {controller}.",
+                        "Exception collecting all indexed values on {Controller}.",
                         _controller.Target.GetType().Name);
                     throw;
                 }

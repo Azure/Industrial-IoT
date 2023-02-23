@@ -28,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     /// Subscription implementation
     /// </summary>
     internal sealed class OpcUaSubscription : ISubscription {
-
         /// <inheritdoc/>
         public string Name => _subscription.Id.Id;
 
@@ -88,21 +87,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// </summary>
         /// <param name="outer"></param>
         /// <param name="config"></param>
-        /// <param name="metrics"></param>
         /// <param name="subscription"></param>
         /// <param name="logger"></param>
+        /// <param name="metrics"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async ValueTask<ISubscription> CreateAsync(
             ISessionProvider<ConnectionModel> outer, IClientServicesConfig config,
             SubscriptionModel subscription, ILogger logger, IMetricsContext metrics,
             CancellationToken ct = default) {
-
             // Create object
             var newSubscription = new OpcUaSubscription(outer, config, logger, metrics);
 
             // Initialize
-            await newSubscription.UpdateAsync(subscription, ct);
+            await newSubscription.UpdateAsync(subscription, ct).ConfigureAwait(false);
 
             return newSubscription;
         }
@@ -149,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 if (subscription == null) {
                     return null;
                 }
-                var message = new SubscriptionNotificationModel {
+                return new SubscriptionNotificationModel {
                     ServiceMessageContext = subscription.Session.MessageContext,
                     ApplicationUri = subscription.Session.Endpoint.Server.ApplicationUri,
                     EndpointUrl = subscription.Session.Endpoint.EndpointUrl,
@@ -159,7 +157,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     SubscriptionId = Id,
                     MessageType = Encoders.PubSub.MessageType.KeepAlive,
                 };
-                return message;
             }
             catch (Exception ex) {
                 _logger.LogError(ex,
@@ -202,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
                 // try to get a session using the provided configuration
                 var session = await _sessions.GetOrCreateSessionAsync(
-                    _subscription.Id.Connection, _metrics, default);
+                    _subscription.Id.Connection, _metrics, default).ConfigureAwait(false);
                 Debug.Assert(session != null);
 
                 try {
@@ -269,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             var subscription = session.Session.Subscriptions.SingleOrDefault(s => s.Handle == this);
             if (subscription != null) {
                 // This does not throw
-                await CloseSubscriptionAsync(subscription);
+                await CloseSubscriptionAsync(subscription).ConfigureAwait(false);
             }
         }
 
@@ -332,11 +329,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         .ConfigureAwait(false);
 
                     if (!rawSubscription.PublishingEnabled || rawSubscription.ChangesPending) {
-                        _logger.LogDebug("Enabling subscription {Name} in session '{sessionId}'...",
+                        _logger.LogDebug("Enabling subscription {Name} in session '{SessionId}'...",
                             Name, Connection.CreateConnectionId());
                         rawSubscription.SetPublishingMode(true);
-                        await rawSubscription.ApplyChangesAsync();
-                        _logger.LogInformation("Subscription {Name} in session '{sessionId}' enabled.",
+                        await rawSubscription.ApplyChangesAsync().ConfigureAwait(false);
+                        _logger.LogInformation("Subscription {Name} in session '{SessionId}' enabled.",
                             Name, Connection.CreateConnectionId());
                     }
                 }
@@ -346,8 +343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 }
             }
             catch (Exception e) {
-                _logger.LogError(e,
-                    "Failed to apply monitored items to Subscription {Name} due to {exception}", Name);
+                _logger.LogError(e, "Failed to apply monitored items to Subscription {Name}.", Name);
             }
         }
 
@@ -358,17 +354,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         private async Task CloseSubscriptionAsync(Subscription subscription) {
             try {
                 _logger.LogInformation(
-                    "Closing subscription '{subscription}' in session '{sessionId}'...",
+                    "Closing subscription '{Name}' in session '{SessionId}'...",
                     Name, Connection.CreateConnectionId());
                 Try.Op(() => subscription.SetPublishingMode(false));
-                await Try.Async(() => subscription.ApplyChangesAsync());
-                await Try.Async(() => subscription.DeleteItemsAsync(default));
-                await Try.Async(() => subscription.ApplyChangesAsync());
-                _logger.LogDebug("Deleted monitored items for '{subscription}'/'{sessionId}'",
+                await Try.Async(() => subscription.ApplyChangesAsync()).ConfigureAwait(false);
+                await Try.Async(() => subscription.DeleteItemsAsync(default)).ConfigureAwait(false);
+                await Try.Async(() => subscription.ApplyChangesAsync()).ConfigureAwait(false);
+                _logger.LogDebug("Deleted monitored items for '{Name}'/'{SessionId}'",
                     Name, Connection.CreateConnectionId());
             }
             catch (Exception e) {
-                _logger.LogError(e, "Failed to close subscription '{subscription}'/'{sessionId}'",
+                _logger.LogError(e, "Failed to close subscription '{Name}'/'{SessionId}'",
                     Name, Connection.CreateConnectionId());
             }
         }
@@ -399,11 +395,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                             return n.StartNodeId.ToNodeId(session.MessageContext);
                         }
                         catch (ServiceResultException sre) {
-                            _logger.LogWarning("Failed to resolve display name for '{monitoredItem}' due to '{message}'",
+                            _logger.LogWarning("Failed to resolve display name for '{MonitoredItem}' due to '{Message}'",
                                 n.StartNodeId, sre.Message);
                         }
                         catch (Exception e) {
-                            _logger.LogError(e, "Failed to resolve display name for '{monitoredItem}'",
+                            _logger.LogError(e, "Failed to resolve display name for '{MonitoredItem}'",
                                 n.StartNodeId);
                             throw;
                         }
@@ -418,7 +414,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         }
                         else {
                             monitoredItem.DisplayName = null;
-                            _logger.LogWarning("Failed to read display name for '{monitoredItem}' due to '{statusCode}'",
+                            _logger.LogWarning("Failed to read display name for '{MonitoredItem}' due to '{StatusCode}'",
                                 monitoredItem.StartNodeId, errors[index].StatusCode);
                         }
                         index++;
@@ -426,7 +422,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 }
             }
             catch (ServiceResultException sre) {
-                _logger.LogWarning("Failed to resolve display names for monitored items due to '{message}'",
+                _logger.LogWarning("Failed to resolve display names for monitored items due to '{Message}'",
                     sre.Message);
             }
             catch (Exception e) {
@@ -440,7 +436,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// </summary>
         private async Task<bool> SetMonitoredItemsAsync(Subscription rawSubscription,
             IEnumerable<BaseMonitoredItemModel> monitoredItems) {
-
             var currentState = rawSubscription.MonitoredItems
                 .Select(m => m.Handle)
                 .OfType<OpcUaMonitoredItem>()
@@ -449,33 +444,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             var noErrorFound = true;
             var count = 0;
             var sessionHandle = _sessions.GetSessionHandle(rawSubscription.Session);
-            if (monitoredItems == null || !monitoredItems.Any()) {
+            if (monitoredItems?.Any() != true) {
                 // cleanup entire subscription
                 var toCleanupList = currentState.Select(t => t.Item);
                 if (toCleanupList.Any()) {
                     // Remove monitored items not in desired state
                     _logger.LogTrace("Remove monitored items in subscription "
-                        + "'{subscription}'/'{sessionId}'...",
+                        + "'{Name}'/'{SessionId}'...",
                         Name, Connection.CreateConnectionId());
                     foreach (var toRemove in toCleanupList) {
-                        _logger.LogTrace("Removing monitored item '{item}'...",
+                        _logger.LogTrace("Removing monitored item '{Item}'...",
                             toRemove.StartNodeId);
                         ((OpcUaMonitoredItem)toRemove.Handle).Destroy();
                         count++;
                     }
                     rawSubscription.RemoveItems(toCleanupList);
-                    _logger.LogInformation("Removed {count} monitored items in subscription "
-                        + "'{subscription}'/'{sessionId}'",
+                    _logger.LogInformation("Removed {Count} monitored items in subscription "
+                        + "'{Name}'/'{SessionId}'",
                         count, Name, Connection.CreateConnectionId());
                 }
                 _currentlyMonitored = ImmutableDictionary<uint, OpcUaMonitoredItem>.Empty;
 
                 // TODO: Set metadata to empty here
-                await rawSubscription.ApplyChangesAsync();
+                await rawSubscription.ApplyChangesAsync().ConfigureAwait(false);
                 rawSubscription.SetPublishingMode(false);
                 if (rawSubscription.MonitoredItemCount != 0) {
-                    _logger.LogWarning("Failed to remove {count} monitored items from subscription "
-                        + "'{subscription}'/'{sessionId}'", rawSubscription.MonitoredItemCount,
+                    _logger.LogWarning("Failed to remove {Count} monitored items from subscription "
+                        + "'{Name}'/'{SessionId}'", rawSubscription.MonitoredItemCount,
                         Name, Connection.CreateConnectionId());
                 }
                 return noErrorFound;
@@ -494,7 +489,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 count = 0;
                 // Remove monitored items not in desired state
                 foreach (var toRemove in toRemoveList) {
-                    _logger.LogTrace("Removing monitored item '{item}'...", toRemove.StartNodeId);
+                    _logger.LogTrace("Removing monitored item '{Item}'...", toRemove.StartNodeId);
                     ((OpcUaMonitoredItem)toRemove.Handle).Destroy();
                     count++;
                 }
@@ -502,16 +497,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 applyChanges = true;
                 metadataChanged = true;
 
-                _logger.LogInformation("Removed {count} monitored items from subscription "
-                    + "'{subscription}'/'{sessionId}'", count, Name, Connection.CreateConnectionId());
+                _logger.LogInformation("Removed {Count} monitored items from subscription "
+                    + "'{Name}'/'{SessionId}'", count, Name, Connection.CreateConnectionId());
             }
 
             // todo re-associate detached handles!?
             var toRemoveDetached = rawSubscription.MonitoredItems.Where(m => m.Status == null);
             if (toRemoveDetached.Any()) {
                 rawSubscription.RemoveItems(toRemoveDetached);
-                _logger.LogInformation("Removed {count} detached monitored items from subscription "
-                    + "'{subscription}'/'{sessionId}'",
+                _logger.LogInformation("Removed {Count} detached monitored items from subscription "
+                    + "'{Name}'/'{SessionId}'",
                     toRemoveDetached.Count(),
                     Name,
                     Connection.CreateConnectionId());
@@ -522,7 +517,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             if (toAddList.Any()) {
                 count = 0;
                 // Add new monitored items not in current state
-                _logger.LogTrace("Add monitored items to subscription '{subscription}'/'{sessionId}'...",
+                _logger.LogTrace("Add monitored items to subscription '{Name}'/'{SessionId}'...",
                     Name, Connection.CreateConnectionId());
                 foreach (var toAdd in toAddList) {
                     // Create monitored item
@@ -533,15 +528,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         }
                         nowMonitored.Add(toAdd);
                         count++;
-                        _logger.LogTrace("Adding new monitored item '{item}'...",
+                        _logger.LogTrace("Adding new monitored item '{Item}'...",
                             toAdd.Item.StartNodeId);
                     }
                     catch (ServiceResultException sre) {
-                        _logger.LogWarning("Failed to add new monitored item '{item}' due to '{message}'",
+                        _logger.LogWarning("Failed to add new monitored item '{Item}' due to '{Message}'",
                             toAdd.Template.StartNodeId, sre.Message);
                     }
                     catch (Exception e) {
-                        _logger.LogError(e, "Failed to add new monitored item '{item}'",
+                        _logger.LogError(e, "Failed to add new monitored item '{Item}'",
                             toAdd.Template.StartNodeId);
                         throw;
                     }
@@ -550,8 +545,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     toAddList.Where(t => t?.Item != null).Select(t => t.Item).ToList());
                 applyChanges = true;
                 metadataChanged = true;
-                _logger.LogInformation("Added {count} monitored items to subscription "
-                    + "'{subscription}'/'{sessionId}'", count, Name, Connection.CreateConnectionId());
+                _logger.LogInformation("Added {Count} monitored items to subscription "
+                    + "'{Name}'/'{SessionId}'", count, Name, Connection.CreateConnectionId());
             }
 
             // Update monitored items that have changed
@@ -562,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 if (toUpdate.MergeWith(rawSubscription.Session?.MessageContext,
                         rawSubscription.Session?.NodeCache, rawSubscription.Session?.TypeTree,
                         sessionHandle.Codec, desiredUpdates[toUpdate], out var metadata)) {
-                    _logger.LogTrace("Updating monitored item '{item}'...", toUpdate);
+                    _logger.LogTrace("Updating monitored item '{Item}'...", toUpdate);
                     count++;
                 }
                 if (metadata) {
@@ -572,8 +567,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
             if (count > 0) {
                 applyChanges = true;
-                _logger.LogInformation("Updated {count} monitored items in subscription "
-                    + "'{subscription}'/'{sessionId}'",
+                _logger.LogInformation("Updated {Count} monitored items in subscription "
+                    + "'{Name}'/'{SessionId}'",
                     count,
                     Name,
                     Connection.CreateConnectionId());
@@ -581,8 +576,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
             var currentlyMonitored = _currentlyMonitored;
             if (applyChanges) {
-
-                await rawSubscription.ApplyChangesAsync();
+                await rawSubscription.ApplyChangesAsync().ConfigureAwait(false);
                 _currentlyMonitored = currentlyMonitored
                     = nowMonitored.ToImmutableDictionary(m => m.Item.ClientHandle, m => m);
 
@@ -590,21 +584,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 foreach (var monitoredItem in currentlyMonitored.Values) {
                     if (monitoredItem.Item.Status.Error != null &&
                         StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode)) {
-                        _logger.LogWarning("Error monitoring node {id} due to {code} in subscription "
-                            + "'{subscription}'/'{sessionId}'", monitoredItem.Item.StartNodeId,
-                            monitoredItem.Item.Status.Error.StatusCode,
-                            Name,
-                            Connection.CreateConnectionId());
+                        _logger.LogWarning("Error monitoring node {Id} due to {Code} in subscription "
+                            + "'{Name}'/'{SessionId}'", monitoredItem.Item.StartNodeId,
+                            monitoredItem.Item.Status.Error.StatusCode, Name, Connection.CreateConnectionId());
                         monitoredItem.Template.MonitoringMode = Shared.Models.MonitoringMode.Disabled;
                         noErrorFound = false;
                     }
                 }
 
                 count = currentlyMonitored.Values.Count(m => m.Item.Status.Error == null);
-                _logger.LogInformation("Now monitoring {count} nodes in subscription "
-                    + "'{subscription}'/'{sessionId}'", count, Name, Connection.CreateConnectionId());
+                _logger.LogInformation("Now monitoring {Count} nodes in subscription "
+                    + "'{Name}'/'{SessionId}'", count, Name, Connection.CreateConnectionId());
                 if (currentlyMonitored.Count != rawSubscription.MonitoredItemCount) {
-                    _logger.LogError("Monitored items mismatch: wrappers: {wrappers} != items: {items} ",
+                    _logger.LogError("Monitored items mismatch: Monitoring: {Existing} != In Subscription: {Items} ",
                         currentlyMonitored.Count, rawSubscription.MonitoredItemCount);
                 }
             }
@@ -614,14 +606,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     if (monitoredItem.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled ||
                         (monitoredItem.Item.Status.Error != null &&
                         StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode))) {
-
                         monitoredItem.Template.MonitoringMode = Shared.Models.MonitoringMode.Disabled;
                         noErrorFound = false;
                         applyChanges = true;
                     }
                 }
                 if (applyChanges) {
-                    await rawSubscription.ApplyChangesAsync();
+                    await rawSubscription.ApplyChangesAsync().ConfigureAwait(false);
                 }
             }
 
@@ -635,11 +626,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 var major = (uint)(metaDataVersion >> 32);
                 var minor = (uint)metaDataVersion;
 
-                _logger.LogInformation("Metadata changed to {major}.{minor} for subscription"
-                    + "'{subscription}'/'{sessionId}'",
+                _logger.LogInformation("Metadata changed to {Major}.{Minor} for subscription"
+                    + "'{Name}'/'{SessionId}'",
                     major, minor, Name, Connection.CreateConnectionId());
 
-                var typeSystem = await sessionHandle.GetComplexTypeSystemAsync();
+                var typeSystem = await sessionHandle.GetComplexTypeSystemAsync().ConfigureAwait(false);
                 var dataTypes = new NodeIdDictionary<DataTypeDescription>();
                 var fields = new FieldMetaDataCollection();
                 foreach (var monitoredItem in currentlyMonitored.Values) {
@@ -672,14 +663,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         continue;
                     }
                     var changeList = change.ToList();
-                    _logger.LogInformation("Set monitoring to {value} for {count} items in subscription "
-                        + "'{subscription}'/'{sessionId}'.",
+                    _logger.LogInformation("Set monitoring to {Value} for {Count} items in subscription "
+                        + "'{Name}'/'{SessionId}'.",
                         change.Key.Value,
                         change.Count(),
                         Name,
                         Connection.CreateConnectionId());
 
-                    var itemsToChange = changeList.Select(t => t.Item).ToList();
+                    var itemsToChange = changeList.ConvertAll(t => t.Item);
                     var results = rawSubscription.SetMonitoringMode(change.Key.Value, itemsToChange);
                     if (results != null) {
                         var erroneousResultsCount = results
@@ -687,16 +678,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
                         // Check the number of erroneous results and log.
                         if (erroneousResultsCount > 0) {
-                            _logger.LogWarning("Failed to set monitoring for {count} items in subscription "
-                                + "'{subscription}'/'{sessionId}'.",
+                            _logger.LogWarning("Failed to set monitoring for {Count} items in subscription "
+                                + "'{Name}'/'{SessionId}'.",
                                 erroneousResultsCount,
                                 Name,
                                 Connection.CreateConnectionId());
 
                             for (var i = 0; i < results.Count && i < itemsToChange.Count; ++i) {
                                 if (StatusCode.IsNotGood(results[i].StatusCode)) {
-                                    _logger.LogWarning("Set monitoring for item '{item}' in subscription "
-                                        + "'{subscription}'/'{sessionId}' failed with '{status}'.",
+                                    _logger.LogWarning("Set monitoring for item '{Item}' in subscription "
+                                        + "'{Name}'/'{SessionId}' failed with '{Status}'.",
                                         itemsToChange[i].StartNodeId,
                                         Name,
                                         Connection.CreateConnectionId(),
@@ -708,28 +699,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                             noErrorFound = false;
                         }
                     }
-                    if (change.Where(x => x.EventTemplate != null).Any()) {
-                        _logger.LogInformation("Now issuing ConditionRefresh for item {item} on subscription " +
-                            "{subscription}", change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
+                    if (change.Any(x => x.EventTemplate != null)) {
+                        _logger.LogInformation("Now issuing ConditionRefresh for item {Item} on subscription " +
+                            "{Name}", change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
                         try {
                             rawSubscription.ConditionRefresh();
                         }
                         catch (ServiceResultException e) {
-                            _logger.LogInformation("ConditionRefresh for item {item} on subscription " +
-                                "{subscription} failed with a ServiceResultException '{message}'",
+                            _logger.LogInformation("ConditionRefresh for item {Item} on subscription " +
+                                "{Name} failed with a ServiceResultException '{Message}'",
                                 change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName, e.Message);
                             noErrorFound = false;
                         }
                         catch (Exception e) {
-                            _logger.LogInformation("ConditionRefresh for item {item} on subscription " +
-                                "{subscription} failed with an exception '{message}'",
+                            _logger.LogInformation("ConditionRefresh for item {Item} on subscription " +
+                                "{Name} failed with an exception '{Message}'",
                                 change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName, e.Message);
                             noErrorFound = false;
-
                         }
                         if (noErrorFound) {
-                            _logger.LogInformation("ConditionRefresh for item {item} on subscription " +
-                                "{subscription} has completed",
+                            _logger.LogInformation("ConditionRefresh for item {Item} on subscription " +
+                                "{Name} has completed",
                                 change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
                         }
                     }
@@ -737,18 +727,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 foreach (var item in validItems) {
                     if (item.Item.SamplingInterval != item.Item.Status.SamplingInterval ||
                         item.Item.QueueSize != item.Item.Status.QueueSize) {
-
-                        var diagInfo = new StringBuilder();
-                        diagInfo.Append("Revised monitored item '{item}' in '{subscription}" +
-                            "'/'{sessionId}' has actual/desired states: ");
-                        diagInfo.Append("SamplingInterval {currentSamplingInterval}/{samplingInterval}, ");
-                        diagInfo.Append("QueueSize {currentQueueSize}/{queueSize}");
-
-                        _logger.LogWarning(diagInfo.ToString(),
-                            item.Item.StartNodeId,
-                            _subscription.Id, _subscription.Id.Connection.CreateConnectionId(),
-                            item.Item.Status.SamplingInterval, item.Item.SamplingInterval,
-                            item.Item.Status.QueueSize, item.Item.QueueSize);
+                        _logger.LogInformation(@"Server has revised '{Item}' in '{Name}'/'{SessionId}' 
+The item's actual/desired states:
+SamplingInterval {CurrentSamplingInterval}/{SamplingInterval},
+QueueSize {CurrentQueueSize}/{QueueSize}", item.Item.StartNodeId, _subscription.Id,
+                            _subscription.Id.Connection.CreateConnectionId(), item.Item.Status.SamplingInterval,
+                            item.Item.SamplingInterval, item.Item.Status.QueueSize, item.Item.QueueSize);
                     }
                 }
             }
@@ -796,7 +780,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <param name="session"></param>
         /// <returns></returns>
         private Subscription GetInnerSubscription(ISession session) {
-
             // TODO propagate the default PublishingInterval currently only avaliable for standalone mode
             var configuredPublishingInterval = (int)(_subscription.Configuration?.PublishingInterval)
                 .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
@@ -804,7 +787,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
             // calculate the KeepAliveCount no matter what, perhaps monitored items were changed
             var revisedKeepAliveCount = (_subscription.Configuration?.KeepAliveCount)
-                .GetValueOrDefault(_config.MaxKeepAliveCount);
+?? _config.MaxKeepAliveCount;
 
             _subscription.MonitoredItems?.ForEach(m => {
                 if (m is DataMonitoredItemModel dataItem) {
@@ -818,10 +801,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
             var configuredMaxNotificationsPerPublish = session.DefaultSubscription.MaxNotificationsPerPublish;
             var configuredLifetimeCount = (_subscription.Configuration?.LifetimeCount)
-                .GetValueOrDefault(session.DefaultSubscription.LifetimeCount);
+?? session.DefaultSubscription.LifetimeCount;
 
             var configuredPriority = (_subscription.Configuration?.Priority)
-                .GetValueOrDefault(session.DefaultSubscription.Priority);
+?? session.DefaultSubscription.Priority;
 
             var subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
             if (subscription == null) {
@@ -844,7 +827,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
                 var result = session.AddSubscription(subscription);
                 if (!result) {
-                    _logger.LogError("Failed to add subscription '{subscription}' to session:'{sessionId}'",
+                    _logger.LogError("Failed to add subscription '{Name}' to session:'{SessionId}'",
                         _subscription.Id,
                         _subscription.Id.Connection.CreateConnectionId());
                     return null;
@@ -852,8 +835,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
                 subscription.Create();
 
-                if (subscription.Created == false) {
-                    _logger.LogError("Failed to create subscription '{subscription}'/'{sessionId}'",
+                if (!subscription.Created) {
+                    _logger.LogError("Failed to create subscription '{Name}'/'{SessionId}'",
                         _subscription.Id, _subscription.Id.Connection.CreateConnectionId());
                     return null;
                 }
@@ -865,7 +848,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
                 if (revisedKeepAliveCount != subscription.KeepAliveCount) {
                     _logger.LogDebug(
-                        "Subscription '{subscription}'/'{sessionId}' change KeepAliveCount to {new}",
+                        "Subscription '{Name}'/'{SessionId}' change KeepAliveCount to {New}",
                         _subscription.Id,
                         _subscription.Id.Connection.CreateConnectionId(),
                         revisedKeepAliveCount);
@@ -875,7 +858,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 }
                 if (subscription.PublishingInterval != configuredPublishingInterval) {
                     _logger.LogDebug(
-                        "Subscription '{subscription}'/'{sessionId}' change publishing interval to {new}",
+                        "Subscription '{Name}'/'{SessionId}' change publishing interval to {New}",
                         _subscription.Id,
                         _subscription.Id.Connection.CreateConnectionId(),
                         configuredPublishingInterval);
@@ -885,7 +868,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
                 if (subscription.MaxNotificationsPerPublish != configuredMaxNotificationsPerPublish) {
                     _logger.LogDebug(
-                        "Subscription '{subscription}'/'{sessionId}' change MaxNotificationsPerPublish to {new}",
+                        "Subscription '{Name}'/'{SessionId}' change MaxNotificationsPerPublish to {New}",
                         _subscription.Id,
                         _subscription.Id.Connection.CreateConnectionId(),
                         configuredMaxNotificationsPerPublish);
@@ -895,7 +878,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
                 if (subscription.LifetimeCount != configuredLifetimeCount) {
                     _logger.LogDebug(
-                        "Subscription '{subscription}'/'{sessionId}' change LifetimeCount to {new}",
+                        "Subscription '{Name}'/'{SessionId}' change LifetimeCount to {New}",
                         _subscription.Id,
                         _subscription.Id.Connection.CreateConnectionId(),
                         configuredLifetimeCount);
@@ -903,7 +886,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     modifySubscription = true;
                 }
                 if (subscription.Priority != configuredPriority) {
-                    _logger.LogDebug("Subscription '{subscription}'/'{sessionId}' change Priority to {new}",
+                    _logger.LogDebug("Subscription '{Name}'/'{SessionId}' change Priority to {New}",
                         _subscription.Id,
                         _subscription.Id.Connection.CreateConnectionId(),
                         configuredPriority);
@@ -924,15 +907,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <param name="subscription"></param>
         /// <param name="created"></param>
         private void LogRevisedValues(Subscription subscription, bool created) {
-            var diagInfo = new StringBuilder();
-            diagInfo.AppendLine("Successfully {Action} subscription '{Subscription}'/'{SessionId}'.");
-            diagInfo.AppendLine("Actual (revised) state/desired state: ");
-            diagInfo.AppendLine("# PublishingEnabled {CurrentPublishingEnabled}/{PublishingEnabled}, ");
-            diagInfo.AppendLine("# PublishingInterval {CurrentPublishingInterval}/{PublishingInterval}, ");
-            diagInfo.AppendLine("# KeepAliveCount {CurrentKeepAliveCount}/{KeepAliveCount}, ");
-            diagInfo.Append("# LifetimeCount {CurrentLifetimeCount}/{LifetimeCount}");
-
-            _logger.LogInformation(diagInfo.ToString(), created ? "created" : "modified",
+            _logger.LogInformation(@"Successfully {Action} subscription '{Subscription}'/'{SessionId}'.
+Actual (revised) state/desired state:
+# PublishingEnabled {CurrentPublishingEnabled}/{PublishingEnabled}
+# PublishingInterval {CurrentPublishingInterval}/{PublishingInterval}
+# KeepAliveCount {CurrentKeepAliveCount}/{KeepAliveCount}
+# LifetimeCount {CurrentLifetimeCount}/{LifetimeCount}", created ? "created" : "modified",
                 _subscription.Id, _subscription.Id.Connection.CreateConnectionId(),
                 subscription.CurrentPublishingEnabled, subscription.PublishingEnabled,
                 subscription.CurrentPublishingInterval, subscription.PublishingInterval,
@@ -974,7 +954,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 return;
             }
             try {
-
                 // check if notification is a keep alive
                 var isKeepAlive = notification.Events[0].ClientHandle == 0
                     && notification.Events[0].Message?.NotificationData?.Count == 0;
@@ -983,8 +962,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     var publishTime = notification.Events[0].Message.PublishTime;
 
                     // in case of a keepalive,the sequence number is not incremented by the servers
-                    _logger.LogInformation("Keep alive for subscription '{subscription}'/'{sessionId}' " +
-                        "with sequenceNumber {sequenceNumber}, publishTime {PublishTime} on Event callback.",
+                    _logger.LogInformation("Keep alive for subscription '{Name}'/'{SessionId}' " +
+                        "with sequenceNumber {SequenceNumber}, publishTime {PublishTime} on Event callback.",
                         Name, Connection.CreateConnectionId(), sequenceNumber, publishTime);
 
                     var message = new SubscriptionNotificationModel {
@@ -1012,9 +991,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
                         if (i == 0 && !SequenceNumber.Validate(sequenceNumber, ref _lastSequenceNumber,
                             out missingSequenceNumbers, out var dropped)) {
-                            _logger.LogWarning("Event for monitored item {clientHandle} subscription " +
-                                "'{subscription}'/'{sessionId}' has unexpected sequenceNumber {sequenceNumber} " +
-                                "missing {expectedSequenceNumber} which were {dropped}, publishTime {PublishTime}",
+                            _logger.LogWarning("Event for monitored item {ClientHandle} subscription " +
+                                "'{Name}'/'{SessionId}' has unexpected sequenceNumber {SequenceNumber} " +
+                                "missing {ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}",
                                 eventNotification.ClientHandle, Name, Connection.CreateConnectionId(), sequenceNumber,
                                 SequenceNumber.ToString(missingSequenceNumbers), dropped ? "dropped" : "already received",
                                 eventNotification.Message.PublishTime);
@@ -1046,9 +1025,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                             }
                         }
                         else {
-                            _logger.LogWarning("Monitored item not found with client handle {clientHandle} " +
-                                "for Event received for subscription '{subscription}'/'{sessionId}' + " +
-                                "{sequenceNumber}, publishTime {PublishTime}",
+                            _logger.LogWarning("Monitored item not found with client handle {ClientHandle} " +
+                                "for Event received for subscription '{Name}'/'{SessionId}' + " +
+                                "{SequenceNumber}, publishTime {PublishTime}",
                                 eventNotification.ClientHandle, Name, Connection.CreateConnectionId(),
                                 sequenceNumber, eventNotification.Message.PublishTime);
                         }
@@ -1077,7 +1056,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
             if (notification?.MonitoredItems == null || notification.MonitoredItems.Count == 0) {
                 _logger.LogWarning(
-                    "DataChange for subscription '{subscription}'/'{sessionId}' has empty notification",
+                    "DataChange for subscription '{Name}'/'{SessionId}' has empty notification",
                     Name, Connection.CreateConnectionId());
                 return;
             }
@@ -1093,8 +1072,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     var publishTime = notification.MonitoredItems[0].Message.PublishTime;
 
                     // in case of a keepalive,the sequence number is not incremented by the servers
-                    _logger.LogInformation("Keep alive for subscription '{subscription}'/'{sessionId}' " +
-                        "with sequenceNumber {sequenceNumber}, publishTime {PublishTime} on data change.",
+                    _logger.LogInformation("Keep alive for subscription '{Name}'/'{SessionId}' " +
+                        "with sequenceNumber {SequenceNumber}, publishTime {PublishTime} on data change.",
                         Name, Connection.CreateConnectionId(), sequenceNumber, publishTime);
 
                     message = new SubscriptionNotificationModel {
@@ -1135,9 +1114,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         // All notifications have the same message and thus sequence number
                         if (i == 0 && !SequenceNumber.Validate(sequenceNumber, ref _lastSequenceNumber,
                             out missingSequenceNumbers, out var dropped)) {
-                            _logger.LogWarning("DataChange for monitored item {clientHandle} subscription " +
-                                "'{subscription}'/'{sessionId}' has unexpected sequenceNumber {sequenceNumber} " +
-                                "missing {expectedSequenceNumber} which were {ropped}, publishTime {PublishTime}",
+                            _logger.LogWarning("DataChange for monitored item {ClientHandle} subscription " +
+                                "'{Name}'/'{SessionId}' has unexpected sequenceNumber {SequenceNumber} " +
+                                "missing {ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}",
                                 item.ClientHandle, Name, Connection.CreateConnectionId(), sequenceNumber,
                                 SequenceNumber.ToString(missingSequenceNumbers),
                                 dropped ? "dropped" : "already received", item.Message.PublishTime);
@@ -1151,9 +1130,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                             wrapper.ProcessMonitoredItemNotification(message, item);
                         }
                         else {
-                            _logger.LogWarning("Monitored item not found with client handle {clientHandle} " +
-                                "for DataChange received for subscription '{subscription}'/'{sessionId}' + " +
-                                "{sequenceNumber}, publishTime {PublishTime}",
+                            _logger.LogWarning("Monitored item not found with client handle {ClientHandle} " +
+                                "for DataChange received for subscription '{Name}'/'{SessionId}' + " +
+                                "{SequenceNumber}, publishTime {PublishTime}",
                                 item.ClientHandle, Name, Connection.CreateConnectionId(),
                                 sequenceNumber, message.Timestamp);
                         }
@@ -1174,11 +1153,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         .ToList();
 
                     if (erroneousNotifications.Count > 0) {
-                        _logger.LogDebug("Found {count} notifications with null value or not good status "
-                            + "code for '{subscription}'/'{sessionId}' subscription.",
-                            erroneousNotifications.Count,
-                            Name,
-                            Connection.CreateConnectionId());
+                        _logger.LogDebug("Found {Count} notifications with null value or not good status "
+                            + "code for '{Subscription}'/'{SessionId}' subscription.",
+                            erroneousNotifications.Count, Name, Connection.CreateConnectionId());
                     }
                 }
 

@@ -29,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// </summary>
     public sealed class PublisherHostService : IPublisherHost, IDisposable,
         IMetricsContext {
-
         /// <inheritdoc/>
         public string PublisherId { get; }
 
@@ -42,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             = DateTime.UtcNow;
 
         /// <inheritdoc/>
-        public int Version => _version;
+        public int Version { get; private set; }
 
         /// <inheritdoc/>
         public TagList TagList { get; }
@@ -114,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     continue;
                 }
                 try {
-                    await ProcessChanges(task, changes, ct);
+                    await ProcessChanges(task, changes, ct).ConfigureAwait(false);
                 }
                 catch (ObjectDisposedException) {
                     task.TrySetCanceled(ct);
@@ -133,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             List<WriterGroupJobModel> changes, CancellationToken ct) {
             // Increment change number
             unchecked {
-                _version++;
+                Version++;
             }
             var exceptions = new List<Exception>();
             foreach (var job in changes) {
@@ -146,11 +145,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 if (job.WriterGroup?.DataSetWriters?.Count > 0) {
                     try {
                         if (_currentJobs.TryGetValue(jobId, out var currentJob)) {
-                            await currentJob.UpdateAsync(_version, job, ct);
+                            await currentJob.UpdateAsync(Version, job, ct).ConfigureAwait(false);
                         }
                         else {
                             // Create new job
-                            currentJob = await JobContext.CreateAsync(this, _version, job, ct);
+                            currentJob = await JobContext.CreateAsync(this, Version, job, ct).ConfigureAwait(false);
                             _currentJobs.Add(currentJob.Id, currentJob);
                         }
                     }
@@ -162,9 +161,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             }
 
             // Anything not having an updated version will be deleted
-            foreach (var delete in _currentJobs.Values.Where(j => j.Version < _version).ToList()) {
+            foreach (var delete in _currentJobs.Values.Where(j => j.Version < Version).ToList()) {
                 try {
-                    await delete.DisposeAsync();
+                    await delete.DisposeAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException) {
                     exceptions.Add(ex);
@@ -197,7 +196,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Job context
         /// </summary>
         private sealed class JobContext : IAsyncDisposable {
-
             /// <summary>
             /// Job identifier
             /// </summary>
@@ -248,12 +246,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 int version, WriterGroupJobModel writerGroup, CancellationToken ct) {
                 var job = new JobContext(outer, version, writerGroup);
                 try {
-                    await job.Source.StartAsync(ct);
+                    await job.Source.StartAsync(ct).ConfigureAwait(false);
                     return job;
                 }
                 catch (Exception ex) {
                     outer._logger.LogError(ex, "Failed to create job {Name}", job.Id);
-                    await job.DisposeAsync();
+                    await job.DisposeAsync().ConfigureAwait(false);
                     throw;
                 }
             }
@@ -268,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             public async ValueTask UpdateAsync(int version, WriterGroupJobModel writerGroup,
                 CancellationToken ct) {
                 try {
-                    await Source.UpdateAsync(writerGroup, ct);
+                    await Source.UpdateAsync(writerGroup, ct).ConfigureAwait(false);
 
                     // Update if successful
                     Job = writerGroup;
@@ -286,7 +284,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// <inheritdoc/>
             public async ValueTask DisposeAsync() {
                 try {
-                    await Source.DisposeAsync();
+                    await Source.DisposeAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex) {
                     _outer._logger.LogError(ex, "Failed to dispose job {Name}", Id);
@@ -308,6 +306,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         private readonly TaskCompletionSource _completedTask;
         private readonly CancellationTokenSource _cts;
         private readonly Channel<(TaskCompletionSource, List<WriterGroupJobModel>)> _changeFeed;
-        private int _version;
     }
 }

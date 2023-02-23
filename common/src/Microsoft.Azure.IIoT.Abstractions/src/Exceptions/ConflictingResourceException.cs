@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// resource has already been created.
     /// </summary>
     public class ConflictingResourceException : Exception {
-
         /// <inheritdoc />
         public ConflictingResourceException() {
         }

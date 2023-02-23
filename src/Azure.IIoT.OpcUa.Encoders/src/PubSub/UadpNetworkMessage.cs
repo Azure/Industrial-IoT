@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
     public class UadpNetworkMessage : BaseNetworkMessage {
-
         /// <inheritdoc/>
         public override string MessageSchema => MessageSchemaTypes.NetworkMessageUadp;
 
@@ -630,7 +629,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="encoder"></param>
         /// <param name="isChunkMessage"></param>
         protected void WriteNetworkMessageHeaderFlags(BinaryEncoder encoder, bool isChunkMessage) {
-
             if (isChunkMessage) {
                 UadpFlags |= UADPFlagsEncodingMask.ExtendedFlags1;
                 ExtendedFlags1 |= ExtendedFlags1EncodingMask.ExtendedFlags2;
@@ -919,7 +917,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <returns></returns>
         protected bool TryWritePayload(BinaryEncoder encoder, int maxMessageSize,
             ref Span<Message> writeSpan, ref Span<Message> remainingChunks, ref bool isChunkMessage) {
-
             const int kChunkHeaderSize =
                   2  // MessageSequenceNumber
                 + 4  // ChunkOffset
@@ -931,7 +928,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
             var available = maxMessageSize - payloadOffset
                     - SecurityFooterSize - (Signature?.Length ?? 0) - kChunkHeaderSize;
             if (available < 0) {
-
                 if (writeSpan.Length <= 1) {
                     // Nothing fits. We should not be here - fail catastrophically...
                     throw ServiceResultException.Create(StatusCodes.BadEncodingError,
@@ -1058,7 +1054,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="encoder"></param>
         protected void WriteSignature(BinaryEncoder encoder) {
             if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0) {
-                if (Signature != null && Signature.Length > 0) {
+                if (Signature?.Length > 0) {
                     encoder.WriteByteArray(null, Signature);
                 }
             }
@@ -1068,7 +1064,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// Track messages
         /// </summary>
         protected sealed class Message {
-
             /// <summary>
             /// Data set writer of the dataset message
             /// </summary>

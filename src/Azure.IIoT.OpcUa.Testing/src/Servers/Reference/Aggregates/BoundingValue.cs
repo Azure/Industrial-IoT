@@ -35,7 +35,6 @@ namespace Opc.Ua.Aggregates {
     /// The bounding value for a timeslice.
     /// </summary>
     public class BoundingValue : AggregateCursor {
-
         /// <summary>
         /// Indicates how the bounding value was obtained.
         /// </summary>
@@ -174,12 +173,10 @@ namespace Opc.Ua.Aggregates {
             }
         }
 
-
-
         /// <summary>
         /// Projects the value to the specified time using the two points.
         /// </summary>
-        private double ProjectedValue(DataValue p1, DataValue p2, DateTime time) {
+        private static double ProjectedValue(DataValue p1, DataValue p2, DateTime time) {
             var ve = Convert.ToDouble(p1.Value, CultureInfo.InvariantCulture);
             var vl = Convert.ToDouble(p2.Value, CultureInfo.InvariantCulture);
             var fraction = (time - p1.SourceTimestamp).TotalMilliseconds / (p2.SourceTimestamp - p1.SourceTimestamp).TotalMilliseconds;

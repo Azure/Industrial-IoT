@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class AggregateConfigurationModel {
-
         /// <summary>
         /// Whether to treat uncertain as bad
         /// </summary>

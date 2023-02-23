@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
-
     /// <summary>
     /// IoT hub Message system property names
     /// </summary>
     public static class SystemProperties {
-
         /// <summary>
         /// Message schema
         /// </summary>

@@ -17,27 +17,25 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Xunit;
 
     public class CallScalarMethodTests<T> {
-
         /// <summary>
         /// Create node services tests
         /// </summary>
         public CallScalarMethodTests(Func<INodeServices<T>> services, T endpoint) {
             _services = services;
-            _endpoint = endpoint;
+            _connection = endpoint;
             _serializer = new NewtonsoftJsonSerializer();
         }
 
         public async Task NodeMethodMetadataStaticScalarMethod1TestAsync() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10756";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10756";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.GetMethodMetadataAsync(_endpoint,
+            var result = await service.GetMethodMetadataAsync(_connection,
                 new MethodMetadataRequestModel {
                     MethodId = methodId
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -265,18 +263,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-
         public async Task NodeMethodMetadataStaticScalarMethod2TestAsync() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10759";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10759";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.GetMethodMetadataAsync(_endpoint,
+            var result = await service.GetMethodMetadataAsync(_connection,
                 new MethodMetadataRequestModel {
                     MethodId = methodId
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -484,18 +480,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-
         public async Task NodeMethodMetadataStaticScalarMethod3TestAsync() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10762";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10762";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.GetMethodMetadataAsync(_endpoint,
+            var result = await service.GetMethodMetadataAsync(_connection,
                 new MethodMetadataRequestModel {
                     MethodId = methodId
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -563,21 +557,19 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-
         public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async() {
-
             var service = _services();
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
             var path = new[] {
                 ".http://test.org/UA/Data/#ScalarMethod3"
             };
 
             // Act
-            var result = await service.GetMethodMetadataAsync(_endpoint,
+            var result = await service.GetMethodMetadataAsync(_connection,
                 new MethodMetadataRequestModel {
                     MethodId = objectId,
                     MethodBrowsePath = path
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -645,9 +637,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-
         public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async() {
-
             var service = _services();
             var path = new[] {
                 "Objects",
@@ -658,10 +648,10 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.GetMethodMetadataAsync(_endpoint,
+            var result = await service.GetMethodMetadataAsync(_connection,
                 new MethodMetadataRequestModel {
                     MethodBrowsePath = path
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("http://test.org/UA/Data/#i=10755", result.ObjectId);
@@ -729,12 +719,10 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-
         public async Task NodeMethodCallStaticScalarMethod1Test1Async() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10756";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10756";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
@@ -784,56 +772,32 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.True((bool)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((sbyte)input[1].Value, (sbyte)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((byte)input[2].Value, (byte)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(short.MinValue, (short)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((ushort)0, (ushort)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(int.MinValue, (int)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(uint.MaxValue, (uint)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((long)input[7].Value, (long)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((ulong)input[8].Value, (ulong)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((float)input[9].Value, (float)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((double)input[10].Value, (double)arg.Value);
-                });
+                arg => Assert.True((bool)arg.Value),
+                arg => Assert.Equal((sbyte)input[1].Value, (sbyte)arg.Value),
+                arg => Assert.Equal((byte)input[2].Value, (byte)arg.Value),
+                arg => Assert.Equal(short.MinValue, (short)arg.Value),
+                arg => Assert.Equal((ushort)0, (ushort)arg.Value),
+                arg => Assert.Equal(int.MinValue, (int)arg.Value),
+                arg => Assert.Equal(uint.MaxValue, (uint)arg.Value),
+                arg => Assert.Equal((long)input[7].Value, (long)arg.Value),
+                arg => Assert.Equal((ulong)input[8].Value, (ulong)arg.Value),
+                arg => Assert.Equal((float)input[9].Value, (float)arg.Value),
+                arg => Assert.Equal((double)input[10].Value, (double)arg.Value));
         }
 
-
         public async Task NodeMethodCallStaticScalarMethod1Test2Async() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10756";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10756";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
@@ -851,158 +815,87 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.False((bool)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((sbyte)input[1].Value, (sbyte)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((byte)input[2].Value, (byte)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((short)0, (short)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((ushort)0, (ushort)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (int)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((uint)0, (uint)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (long)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((ulong)0, (ulong)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (float)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (double)arg.Value);
-                });
+                arg => Assert.False((bool)arg.Value),
+                arg => Assert.Equal((sbyte)input[1].Value, (sbyte)arg.Value),
+                arg => Assert.Equal((byte)input[2].Value, (byte)arg.Value),
+                arg => Assert.Equal((short)0, (short)arg.Value),
+                arg => Assert.Equal((ushort)0, (ushort)arg.Value),
+                arg => Assert.Equal(0, (int)arg.Value),
+                arg => Assert.Equal((uint)0, (uint)arg.Value),
+                arg => Assert.Equal(0, (long)arg.Value),
+                arg => Assert.Equal((ulong)0, (ulong)arg.Value),
+                arg => Assert.Equal(0, (float)arg.Value),
+                arg => Assert.Equal(0, (double)arg.Value));
         }
 
-
         public async Task NodeMethodCallStaticScalarMethod1Test3Async() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10756";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10756";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.False((bool)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((sbyte)0, (sbyte)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((byte)0, (byte)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((short)0, (short)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((ushort)0, (ushort)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (int)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((uint)0, (uint)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (long)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((ulong)0, (ulong)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (float)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (double)arg.Value);
-                });
+                arg => Assert.False((bool)arg.Value),
+                arg => Assert.Equal((sbyte)0, (sbyte)arg.Value),
+                arg => Assert.Equal((byte)0, (byte)arg.Value),
+                arg => Assert.Equal((short)0, (short)arg.Value),
+                arg => Assert.Equal((ushort)0, (ushort)arg.Value),
+                arg => Assert.Equal(0, (int)arg.Value),
+                arg => Assert.Equal((uint)0, (uint)arg.Value),
+                arg => Assert.Equal(0, (long)arg.Value),
+                arg => Assert.Equal((ulong)0, (ulong)arg.Value),
+                arg => Assert.Equal(0, (float)arg.Value),
+                arg => Assert.Equal(0, (double)arg.Value));
         }
 
         public async Task NodeMethodCallStaticScalarMethod1Test4Async() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10756";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10756";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = new List<MethodCallArgumentModel>()
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.False((bool)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((sbyte)0, (sbyte)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((byte)0, (byte)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((short)0, (short)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((ushort)0, (ushort)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (int)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((uint)0, (uint)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (long)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((ulong)0, (ulong)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (float)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (double)arg.Value);
-                });
+                arg => Assert.False((bool)arg.Value),
+                arg => Assert.Equal((sbyte)0, (sbyte)arg.Value),
+                arg => Assert.Equal((byte)0, (byte)arg.Value),
+                arg => Assert.Equal((short)0, (short)arg.Value),
+                arg => Assert.Equal((ushort)0, (ushort)arg.Value),
+                arg => Assert.Equal(0, (int)arg.Value),
+                arg => Assert.Equal((uint)0, (uint)arg.Value),
+                arg => Assert.Equal(0, (long)arg.Value),
+                arg => Assert.Equal((ulong)0, (ulong)arg.Value),
+                arg => Assert.Equal(0, (float)arg.Value),
+                arg => Assert.Equal(0, (double)arg.Value));
         }
 
-
         public async Task NodeMethodCallStaticScalarMethod1Test5Async() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10756";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10756";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
@@ -1031,56 +924,32 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.True((bool)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((sbyte)input[1].Value, (sbyte)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((byte)input[2].Value, (byte)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((short)0, (short)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((ushort)0, (ushort)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (int)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((uint)0, (uint)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (long)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((ulong)0, (ulong)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(0, (float)arg.Value);
-                },
-                arg => {
-                    Assert.Equal((double)input[10].Value, (double)arg.Value);
-                });
+                arg => Assert.True((bool)arg.Value),
+                arg => Assert.Equal((sbyte)input[1].Value, (sbyte)arg.Value),
+                arg => Assert.Equal((byte)input[2].Value, (byte)arg.Value),
+                arg => Assert.Equal((short)0, (short)arg.Value),
+                arg => Assert.Equal((ushort)0, (ushort)arg.Value),
+                arg => Assert.Equal(0, (int)arg.Value),
+                arg => Assert.Equal((uint)0, (uint)arg.Value),
+                arg => Assert.Equal(0, (long)arg.Value),
+                arg => Assert.Equal((ulong)0, (ulong)arg.Value),
+                arg => Assert.Equal(0, (float)arg.Value),
+                arg => Assert.Equal((double)input[10].Value, (double)arg.Value));
         }
 
-
         public async Task NodeMethodCallStaticScalarMethod2Test1Async() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10759";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10759";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
@@ -1134,12 +1003,12 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1186,12 +1055,10 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-
         public async Task NodeMethodCallStaticScalarMethod2Test2Async() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10759";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10759";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var types = new List<string> {
                 "String", "DateTime", "Guid", "ByteString",
@@ -1199,11 +1066,11 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 "QualifiedName","LocalizedText","StatusCode" };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
@@ -1249,12 +1116,10 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                  });
         }
 
-
         public async Task NodeMethodCallStaticScalarMethod3Test1Async() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10762";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10762";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
@@ -1280,33 +1145,27 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.Equal(50u, (uint)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(8, (int)arg.Value);
-                },
+                arg => Assert.Equal(50u, (uint)arg.Value),
+                arg => Assert.Equal(8, (int)arg.Value),
                 arg => {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
-
         public async Task NodeMethodCallStaticScalarMethod3Test2Async() {
-
             var service = _services();
-            var methodId = "http://test.org/UA/Data/#i=10762";
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=10762";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
@@ -1328,29 +1187,21 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.Equal("varianttest", (string)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(9999, (int)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(input[2].Value, arg.Value);
-                });
+                arg => Assert.Equal("varianttest", (string)arg.Value),
+                arg => Assert.Equal(9999, (int)arg.Value),
+                arg => Assert.Equal(input[2].Value, arg.Value));
         }
-
 
         public async Task NodeMethodCallStaticScalarMethod3WithBrowsePathNoIdsTestAsync() {
-
             var service = _services();
             var objectPath = new[] {
                 "Objects",
@@ -1387,32 +1238,26 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodBrowsePath = methodPath,
                     ObjectBrowsePath = objectPath,
                     Arguments = input
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.Equal(50u, (uint)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(8, (int)arg.Value);
-                },
+                arg => Assert.Equal(50u, (uint)arg.Value),
+                arg => Assert.Equal(8, (int)arg.Value),
                 arg => {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
-
 
         public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndBrowsePathTestAsync() {
-
             var service = _services();
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
             var methodPath = new[] {
                 "http://test.org/UA/Data/#ScalarMethod3"
             };
@@ -1441,34 +1286,28 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodBrowsePath = methodPath,
                     ObjectId = objectId,
                     Arguments = input
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.Equal(50u, (uint)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(8, (int)arg.Value);
-                },
+                arg => Assert.Equal(50u, (uint)arg.Value),
+                arg => Assert.Equal(8, (int)arg.Value),
                 arg => {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
-
         public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndMethodIdAndBrowsePathTestAsync() {
-
             var service = _services();
-            var objectId = "http://test.org/UA/Data/#i=10755";
+            const string objectId = "http://test.org/UA/Data/#i=10755";
 
-            var methodId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string methodId = "http://test.org/UA/Data/#i=10157"; // Data
             var methodPath = new[] {
                 "http://test.org/UA/Data/#Static",
                 "http://test.org/UA/Data/#MethodTest",
@@ -1499,31 +1338,25 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodBrowsePath = methodPath,
                     ObjectId = objectId,
                     MethodId = methodId,
                     Arguments = input
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.Equal(50u, (uint)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(8, (int)arg.Value);
-                },
+                arg => Assert.Equal(50u, (uint)arg.Value),
+                arg => Assert.Equal(8, (int)arg.Value),
                 arg => {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
-
         public async Task NodeMethodCallStaticScalarMethod3WithObjectPathAndMethodIdAndBrowsePathTestAsync() {
-
             var service = _services();
             var objectPath = new[] {
                 "Objects",
@@ -1532,7 +1365,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 "http://test.org/UA/Data/#MethodTest"
             };
 
-            var methodId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string methodId = "http://test.org/UA/Data/#i=10157"; // Data
             var methodPath = new[] {
                 "http://test.org/UA/Data/#Static",
                 "http://test.org/UA/Data/#MethodTest",
@@ -1563,39 +1396,33 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodBrowsePath = methodPath,
                     ObjectBrowsePath = objectPath,
                     MethodId = methodId,
                     Arguments = input
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.Equal(50u, (uint)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(8, (int)arg.Value);
-                },
+                arg => Assert.Equal(50u, (uint)arg.Value),
+                arg => Assert.Equal(8, (int)arg.Value),
                 arg => {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
-
         public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndPathAndMethodIdAndPathTestAsync() {
-
             var service = _services();
-            var objectId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string objectId = "http://test.org/UA/Data/#i=10157"; // Data
             var objectPath = new[] {
                 "http://test.org/UA/Data/#Static",
                 "http://test.org/UA/Data/#MethodTest"
             };
 
-            var methodId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string methodId = "http://test.org/UA/Data/#i=10157"; // Data
             var methodPath = new[] {
                 "http://test.org/UA/Data/#Static",
                 "http://test.org/UA/Data/#MethodTest",
@@ -1626,69 +1453,61 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodBrowsePath = methodPath,
                     ObjectBrowsePath = objectPath,
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
-                    Assert.Equal(50u, (uint)arg.Value);
-                },
-                arg => {
-                    Assert.Equal(8, (int)arg.Value);
-                },
+                arg => Assert.Equal(50u, (uint)arg.Value),
+                arg => Assert.Equal(8, (int)arg.Value),
                 arg => {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
-
         public async Task NodeMethodCallBoiler2ResetTestAsync() {
-
             var service = _services();
-            var methodId = "ns=4;i=37";
-            var objectId = "ns=4;i=31";
+            const string methodId = "ns=4;i=37";
+            const string objectId = "ns=4;i=31";
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Empty(result.Results);
             Assert.Null(result.ErrorInfo);
         }
 
-
         public async Task NodeMethodCallBoiler1ResetTestAsync() {
-
             var service = _services();
-            var methodId = "http://opcfoundation.org/UA/Boiler/#i=15022";
-            var objectId = "http://opcfoundation.org/UA/Boiler/#i=1287";
+            const string methodId = "http://opcfoundation.org/UA/Boiler/#i=15022";
+            const string objectId = "http://opcfoundation.org/UA/Boiler/#i=1287";
 
             // Act
-            var result = await service.MethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_connection,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = new List<MethodCallArgumentModel>()
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Empty(result.Results);
             Assert.Null(result.ErrorInfo);
         }
 
-        private readonly T _endpoint;
+        private readonly T _connection;
         private readonly Func<INodeServices<T>> _services;
         private readonly IJsonSerializer _serializer;
     }

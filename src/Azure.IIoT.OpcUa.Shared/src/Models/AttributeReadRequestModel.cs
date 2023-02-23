@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class AttributeReadRequestModel {
-
         /// <summary>
         /// Node to read from or write to (mandatory)
         /// </summary>

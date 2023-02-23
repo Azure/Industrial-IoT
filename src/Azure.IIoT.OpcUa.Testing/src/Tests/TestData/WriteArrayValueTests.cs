@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Json;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using System;
@@ -16,22 +17,20 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Xunit;
 
     public class WriteArrayValueTests<T> {
-
         /// <summary>
         /// Create node services tests
         /// </summary>
-        public WriteArrayValueTests(Func<INodeServices<T>> services, T endpoint,
-            Func<T, string, Task<VariantValue>> readExpected) {
+        public WriteArrayValueTests(Func<INodeServices<T>> services, T connection,
+            Func<T, string, IJsonSerializer, Task<VariantValue>> readExpected) {
             _services = services;
-            _endpoint = endpoint;
-            _serializer = new NewtonsoftJsonSerializer();
+            _connection = connection;
+            _serializer = new DefaultJsonSerializer();
             _readExpected = readExpected;
         }
 
         public async Task NodeWriteStaticArrayBooleanValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10300";
+            const string node = "http://test.org/UA/Data/#i=10300";
 
             var expected = _serializer.Parse(
                 "[true,true,true,false,false,false,true,true,true,false,true," +
@@ -39,22 +38,20 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 "true,true,true,false]");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Boolean"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArraySByteValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10301";
+            const string node = "http://test.org/UA/Data/#i=10301";
 
             var expected = _serializer.Parse(
                 "[-94,94,62,22,-50,36,105,103,-60,56,-102,-14,-59,-83,119,-101," +
@@ -63,166 +60,149 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 "63,-45,-103,2]");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "SByte"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayByteValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10302";
+            const string node = "http://test.org/UA/Data/#i=10302";
 
             var expected = _serializer.Parse(
                 "\"jgYexIAKF3N6c2tgEh6R9j+tdOlOAm43n15OFyGtfjI2VhgVYpis1fYvfL" +
                 "qdeiRVY94AJSUZ\"");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "ByteString"
                     // TODO: Assert.Equal("Byte", result.DataType);
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
-
         public async Task NodeWriteStaticArrayInt16ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10303";
+            const string node = "http://test.org/UA/Data/#i=10303";
 
             var expected = _serializer.FromObject(_generator.GetRandomArray<short>());
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int16"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayUInt16ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10304";
+            const string node = "http://test.org/UA/Data/#i=10304";
 
             var expected = _serializer.FromObject(_generator.GetRandomArray<ushort>());
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInt16"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayInt32ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10305";
+            const string node = "http://test.org/UA/Data/#i=10305";
 
             var expected = _serializer.FromObject(_generator.GetRandomArray<int>());
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int32"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayUInt32ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10306";
+            const string node = "http://test.org/UA/Data/#i=10306";
 
             var expected = _serializer.FromObject(_generator.GetRandomArray<uint>());
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInt32"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayInt64ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10307";
+            const string node = "http://test.org/UA/Data/#i=10307";
 
             var expected = _serializer.FromObject(_generator.GetRandomArray<long>());
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int64"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayUInt64ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10308";
+            const string node = "http://test.org/UA/Data/#i=10308";
 
             var expected = _serializer.FromObject(_generator.GetRandomArray<ulong>());
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInt64"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayFloatValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10309";
+            const string node = "http://test.org/UA/Data/#i=10309";
 
             var expected = _serializer.FromObject(new float[] {
                 float.NaN,
@@ -235,22 +215,20 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             });
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Float"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayDoubleValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10310";
+            const string node = "http://test.org/UA/Data/#i=10310";
 
             var expected = _serializer.FromObject(new double[] {
                 -5.0,
@@ -266,22 +244,20 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             });
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Double"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayStringValueVariableTest1Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10311";
+            const string node = "http://test.org/UA/Data/#i=10311";
 
             var expected = _serializer.FromObject(new string[] {
                 "test",
@@ -293,82 +269,74 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             });
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "String"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayStringValueVariableTest2Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10311";
+            const string node = "http://test.org/UA/Data/#i=10311";
 
             var expected = _serializer.FromObject(_generator.GetRandomArray<string>());
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "String"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayDateTimeValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10312";
+            const string node = "http://test.org/UA/Data/#i=10312";
 
             var expected = _serializer.FromObject(_generator.GetRandomArray<DateTime>());
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "DateTime"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayGuidValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10313";
+            const string node = "http://test.org/UA/Data/#i=10313";
 
             var expected = _serializer.FromObject(_generator.GetRandomArray<Guid>());
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Guid"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayByteStringValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10314";
+            const string node = "http://test.org/UA/Data/#i=10314";
 
             var expected = _serializer.Parse(
                 "[\"y5rM6KSrJ9+U0zDRyN8nPrLz4zyKydoagl0A2Sz0XTeJ0GevE2/tFCMCp" +
@@ -485,42 +453,38 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 "=\"]");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "ByteString"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayXmlElementValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10315";
+            const string node = "http://test.org/UA/Data/#i=10315";
 
             var expected = _serializer.FromObject(_generator.GetRandomArray<XmlElement>());
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "XmlElement"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayNodeIdValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10316";
+            const string node = "http://test.org/UA/Data/#i=10316";
 
             var expected = _serializer.Parse(
                 "[\"s=%eb%85%b9%ec%83%89%ec%9a%a9\"," +
@@ -559,22 +523,20 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 "\"http://test.org/UA/Data/#g=1ad3ae1c-1c15-e1b1-0f18-96aa0c4f3766\"]");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "NodeId"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayExpandedNodeIdValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10317";
+            const string node = "http://test.org/UA/Data/#i=10317";
 
             var expected = _serializer.Parse(
                 "[\"http://samples.org/UA/memorybuffer/Instance#i=2144658193\"," +
@@ -584,22 +546,20 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 "\"http://opcfoundation.org/UA/Boiler/#g=7e12cb12-9cea-2be5-5753-ab5e78b7d3d7\"]");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "ExpandedNodeId"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayQualifiedNameValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10318";
+            const string node = "http://test.org/UA/Data/#i=10318";
 
             var expected = _serializer.FromObject(new string[] {
                 "http://test.org/UA/Data/#afsdff",
@@ -617,22 +577,20 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             });
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "QualifiedName"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayLocalizedTextValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10319";
+            const string node = "http://test.org/UA/Data/#i=10319";
 
             var expected = _serializer.Parse("[" +
                 "{\"Text\":\"복숭아_ 파인애플&quot 황색 말 검정: 황색 고양이 자주색! 파인애플 녹색( 암소& 개 딸기 양 망고 들쭉 뱀 용> 고양이 빨간 파란 빨간@ 들쭉\",\"Locale\":\"ko\"}," +
@@ -661,42 +619,38 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 "{\"Text\":\"白色' 芒果 狗 芒果) 红色 桃子, 桃子; 蛇- 鼠 鼠 草莓 黄色 红色 蓝色* 白色&quot 葡萄%\",\"Locale\":\"zh-CN\"}]");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
             new ValueWriteRequestModel {
                 NodeId = node,
                 Value = expected,
                 DataType = "LocalizedText"
-            });
+            }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayStatusCodeValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10320";
+            const string node = "http://test.org/UA/Data/#i=10320";
 
             var expected = _serializer.Parse("[2555904,9306112]");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "StatusCode"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayVariantValueVariableTest1Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10321";
+            const string node = "http://test.org/UA/Data/#i=10321";
 
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var values = _generator.GetRandomArray<string>();
@@ -710,22 +664,20 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 }));
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Variant"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, _serializer.FromObject(values), result);
+            await AssertResultAsync(node, _serializer.FromObject(values), result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayEnumerationValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10322";
+            const string node = "http://test.org/UA/Data/#i=10322";
 
             var expected = _serializer.Parse(
                 "[213809063,256148911,1403441746,1765077059,1459915248,178083" +
@@ -745,23 +697,21 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 "20264719]");
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int32"
                     // Assert.Equal("Enumeration", result.DataType);
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayStructureValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10323";
+            const string node = "http://test.org/UA/Data/#i=10323";
 
             var expected = _serializer.Parse(@"
 [
@@ -784,20 +734,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             ""DateTimeValue"": ""2071-08-08T14:25:16.7814639Z"",
             ""GuidValue"": ""2f1b64e2-9b6c-9ff9-9bcb-681a5030910b"",
             ""ByteStringValue"": ""XmIaOczWGerdvT4+Y1BOuQ=="",
-            ""XmlElementValue"": {
-                ""n0:緑犬ドラゴン"": {
-                    ""@ブルーベリー"": ""암소말"",
-                    ""@青い"": ""황색개"",
-                    ""@馬馬"": ""암소"",
-                    ""@バナナ"": ""들쭉"",
-                    ""@パイナップル"": ""딸기코끼리"",
-                    ""@象"": ""뱀"",
-                    ""@xmlns:n0"": ""http://猫"",
-                    ""n0:ラット"": ""원숭이) 검정+ 황색= 망고 레몬* 자주색$ 레몬+"",
-                    ""n0:ブルーベリー"": ""바나나 원숭이; 뱀= 양( 양 석회 황색! 파란? 쥐# 뱀 망고@ 바나나 복숭아` 복숭아 양]"",
-                    ""n0:いちご"": ""복숭아 녹색 빨간> 쥐_ 고양이 돼지 녹색' 녹색? 녹색[ 바나나 레몬! 개_ 녹색` 검정 쥐 용> 빨간 뱀& 망고? 포도 레몬 레몬 검정* 망고""
-                }
-            },
+            ""XmlElementValue"": null,
             ""NodeIdValue"": ""http://samples.org/UA/memorybuffer#b=672G6bOkm2X9OQ4V"",
             ""ExpandedNodeIdValue"": ""g=b869d987-396a-5018-7e4d-556d5e591587"",
             ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Diagnostics#Dragon"",
@@ -848,21 +785,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             ""DateTimeValue"": ""2014-01-20T12:32:21.1556352Z"",
             ""GuidValue"": ""252c98f0-ad64-fd43-2056-044339a3fb6e"",
             ""ByteStringValue"": ""E3P8wU/iTsNcmseUhcjHs2z228AvXUXixBcwI448g6SHNFPFKEwN8n/uLZBxf4/6s2ljkAsraA=="",
-            ""XmlElementValue"": {
-                ""n0:복숭아"": {
-                    ""@검정황색"": ""Кот"",
-                    ""@말양"": ""Обезьяна"",
-                    ""@망고들쭉"": ""Овцы"",
-                    ""@석회"": ""Лошадь"",
-                    ""@포도"": ""Зеленыйцвет"",
-                    ""@xmlns:n0"": ""http://돼지말"",
-                    ""n0:암소"": ""Змейка; Собака Корова Свинья) Известка Голубика*"",
-                    ""n0:들쭉"": ""Желтыйцвет` Дракон@ Кот! Зеленыйцвет Виноградина@ Корова Змейка Кот"",
-                    ""n0:백색"": ""Крыса Кот Виноградина Слон. Лимон> Персик Обезьяна: яблоко Свинья- Чернота Виноградина Ананас^ яблоко!"",
-                    ""n0:백색들쭉"": ""Лимон Пурпурово Ананас& Змейка Персик: Дракон Слон Известка% Манго# Дракон)"",
-                    ""n0:검정"": ""Голубика. Крыса Лимон} Желтыйцвет} Банан Кот Корова- Овцы Банан. Виноградина Обезьяна~ Банан~""
-                }
-            },
+            ""XmlElementValue"": null,
             ""NodeIdValue"": ""http://samples.org/UA/memorybuffer/Instance#i=4010681507"",
             ""ExpandedNodeIdValue"": ""http://samples.org/UA/memorybuffer#g=979bd1d7-6e82-4d4e-813c-715d76a51cc9"",
             ""QualifiedNameValue"": ""http://samples.org/UA/memorybuffer#%e8%8a%92%e6%9e%9c"",
@@ -910,19 +833,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             ""DateTimeValue"": ""1923-03-18T00:11:38.731972Z"",
             ""GuidValue"": ""82622490-4f77-4562-6290-1295bf97c2e1"",
             ""ByteStringValue"": ""g6SHNFPFKEwN8n/uLZBxf4/6s2ljkAsraA=="",
-            ""XmlElementValue"": {
-                ""n0:石灰"": {
-                    ""@xmlns:n0"": ""http://狗绵羊"",
-                    ""n0:龙绵羊"": ""猫* ラット< 牛 白い^ ラット 黒' 牛[ 黒~ いちご レモン@ 馬 レモン) マンゴ 石灰[ ブタ[ 石灰) 馬 緑 石灰 ブルーベリー ヘビ マンゴ 紫色/"",
-                    ""n0:桃子"": ""ブドウ マンゴ> 黄色( 猿 パイナップル ドラゴン ドラゴン* ドラゴン@ ドラゴン ヒツジ パイナップル ドラゴン 紫色] パイナップル> パイナップル"",
-                    ""n0:香蕉"": [ ""象? 緑 象) ドラゴン 象 ドラゴン# 牛* レモン ヘビ 馬, 黒( パイナップル 猫% 白い["", ""赤い ブタ ブタ 猫, 牛] ブタ 黒. バナナ' 馬< ヒツジ ヘビ 馬 モモ マンゴ[ 紫色 ブルーベリー^ 犬 パイナップル_"" ],
-                    ""n0:草莓"": ""石灰 猫 猿] 犬 黒 黒 ヘビ[ 黄色~ 黒/ 黄色 ラット( パイナップル 猿] 猫` 石灰 黄色@ ブルーベリー[ ヒツジ 馬: 猫) 牛 黒 レモン("",
-                    ""n0:蓝莓"": ""白い 緑_ ヘビ> 黄色 いちご 猿 牛 猫 ブドウ 犬{ 白い{"",
-                    ""n0:黄色"": ""赤い% 白い\"" 犬 ヘビ> ドラゴン# 紫色 牛 ブルーベリー ヘビ 石灰 バナナ` 犬% ヘビ~ ブドウ 黄色- バナナ@ 石灰{ ブルーベリー ヒツジ ドラゴン 象"",
-                    ""n0:菠萝大象"": ""馬 黄色 ブタ モモ? バナナ;"",
-                    ""n0:红色"": ""青い モモ: ブドウ ヘビ 石灰@ ヒツジ ヘビ] 馬 ラット ブタ 猫 ヒツジ 犬- 黒' モモ_ ヒツジ 青い 紫色%""
-                }
-            },
+            ""XmlElementValue"": null,
             ""NodeIdValue"": ""s=%d0%93%d0%be%d0%bb%d1%83%d0%b1%d0%b8%d0%ba%d0%b0"",
             ""ExpandedNodeIdValue"": ""http://test.org/UA/Data/#s=%e9%a9%ac%e7%b4%ab%e8%89%b2"",
             ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Diagnostics#Elephant"",
@@ -973,22 +884,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             ""DateTimeValue"": ""1949-12-22T18:46:59.3619463Z"",
             ""GuidValue"": ""bfa4b0cc-483b-8dcf-f31c-be1ab6a22373"",
             ""ByteStringValue"": ""5k3/MiwysaJQb0S+h/ZadiHED6kKXOEV505s59Gg"",
-            ""XmlElementValue"": {
-                ""n0:香蕉芒果"": {
-                    ""@芒果"": ""Dog"",
-                    ""@黄色"": ""Cat"",
-                    ""@蛇芒果"": ""Peach"",
-                    ""@菠萝红色"": ""Snake"",
-                    ""@香蕉"": ""Mango"",
-                    ""@草莓紫色"": ""Dog"",
-                    ""@母牛桃子"": ""Horse"",
-                    ""@白色芒果"": ""Sheep"",
-                    ""@xmlns:n0"": ""http://马黑色"",
-                    ""n0:狗石灰"": ""Dog Purple~ Monkey_ Dog) Yellow Lemon/ Cow; Cat Lime?"",
-                    ""n0:马紫色"": ""Blueberry+ Peach~ Purple Banana Blueberry Grape Green, Mango Banana Sheep. Monkey- Yellow'"",
-                    ""n0:芒果"": ""Cow Cow Pineapple` Dog< Horse Cat<""
-                }
-            },
+            ""XmlElementValue"": null,
             ""NodeIdValue"": ""http://opcfoundation.org/UA/Diagnostics#i=407765665"",
             ""ExpandedNodeIdValue"": ""http://opcfoundation.org/UA/Boiler/#g=f16b1f33-7701-a037-4b9b-c936ae51bc40"",
             ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Boiler//Instance#%ec%bd%94%eb%81%bc%eb%a6%ac"",
@@ -1036,24 +932,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             ""DateTimeValue"": ""2034-12-05T15:52:28.675232Z"",
             ""GuidValue"": ""0500899c-1c30-8180-cbc7-333928152ed2"",
             ""ByteStringValue"": ""5xRa2IKDWkNPnQk0znSUOxE="",
-            ""XmlElementValue"": {
-                ""n0:Корова"": {
-                    ""@Желтыйцвет"": ""Strawberry"",
-                    ""@Голубика"": ""Pig"",
-                    ""@Чернота"": ""Yellow"",
-                    ""@Корова"": ""Sheep"",
-                    ""@Овцы"": ""Green"",
-                    ""@яблоко"": ""Blue"",
-                    ""@xmlns:n0"": ""http://Манго"",
-                    ""n0:Красно"": ""Blue Yellow~ Mango Rat Rat Dog Lime; Horse Dog*"",
-                    ""n0:Банан"": ""Black' Cat! Elephant Pineapple~ Snake Pineapple? Blue$ Sheep* Elephant\"" Rat"",
-                    ""n0:Лимон"": ""Pineapple^ Rat Banana> Grape Cow Black# Snake"",
-                    ""n0:Пурпурово"": ""Purple Horse Monkey Strawberry< Elephant{ Strawberry[ White{ Rat^ White` Strawberry?"",
-                    ""n0:Крыса"": ""Mango? Blue; Cow> Lemon Horse# Blue Dragon~ Purple Snake< Purple Yellow^ Lime Rat Grape~"",
-                    ""n0:Кот"": ""Sheep] Horse[ Black' Cat; Strawberry Lime_ Monkey> Sheep Pineapple: Sheep Pig= Red Red% Sheep$"",
-                    ""n0:Голубика"": ""Green~""
-                }
-            },
+            ""XmlElementValue"": null,
             ""NodeIdValue"": ""http://opcfoundation.org/UA/Boiler//Instance#s=%e3%83%98%e3%83%93"",
             ""ExpandedNodeIdValue"": ""http://opcfoundation.org/UA/Boiler/#i=3489247698"",
             ""QualifiedNameValue"": ""DataAccess#%e9%a9%ac"",
@@ -1101,37 +980,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             ""DateTimeValue"": [ ""1916-05-09T17:48:30.6223191Z"" ],
             ""GuidValue"": [ ""842d41a6-6123-30ce-5970-6c26b28dd4de"", ""9aa488f4-bf70-5b49-848a-9197639e0990"", ""63306802-aacd-cf0e-20eb-70b1d72bdbe2"", ""5763cae3-358e-e7ef-f7d1-0098d037cdbb"", ""4924dc67-715c-4910-79d4-7a844f978358"", ""99b3afae-b13b-cc01-7949-6bfbaa75ffe9"", ""fb4ab41e-9107-7285-b919-deb9bb6a975f"", ""20eaa74e-3383-b67f-da57-d01305159e03"" ],
             ""ByteStringValue"": [ ""ZppNiFEdKUHgItJIEQ+yC6wDi99l6zWUIa/Bcm2jetrkKQP9EsZVzPdCU1zjkUbBYPlpm3j1LHtkuGaiXLfUPQ=="", ""+GToC7X45q6+5yOY2bGPaf8RczrfYe79iJhaX7JwP20VteotXbarAYLtuQ0I44s="", ""1jk="", ""pWEDx5Z16oIcnof7Tqe1giTGYgtJZXK38qjg9KUNU4g="", ""FJoMEu1Tt3Mzj2L78Q=="", ""ZVNgZ0B0LhI/7kvV7pX23A9L/oI5DahvNnOqmBbWD7wAPHqgRKUT"", ""SgFaHcYXZSJ8Vn8X/G8xWKvwMMzKlvxp34/UsRpVmGk36zc3soqpHg2HG79W98CRCyL1U3VGSbQF8T43Q7MIJ74="", ""3xA3+aUgRxG/Q3o8EufOQqb4YETz8aKCMsFMcdtZfvQAQBivWhE="", ""1AxjhwY5yd9WaQANEMd6Iu1utMfj1NY1ZcSGO9HPH+iUe4s3kGqbSGni9QjbTG4thh4qQKVKmAA2LSFBs40Nh0kXeZQ7QpKD0mteAd/NWhlVWbWz"", ""3kJK4osBYkhaldvUbb7D0tnxQ4unbTnrlyBo0wjsWQ=="" ],
-            ""XmlElementValue"": [
-                {
-                    ""n0:Elephant"": {
-                        ""@Monkey"": ""원숭이"",
-                        ""@Horse"": ""석회"",
-                        ""@Mango"": ""레몬"",
-                        ""@Black"": ""고양이"",
-                        ""@Grape"": ""들쭉쥐"",
-                        ""@xmlns:n0"": ""http://Black"",
-                        ""n0:Blue"": [ ""쥐 녹색$ 황색~ 코끼리, 개> 원숭이* 코끼리# 원숭이: 망고( 뱀 들쭉- 돼지, 복숭아 뱀 파인애플} 파인애플 쥐. 레몬 뱀 황색- 들쭉 쥐! 용} 말% 복숭아 코끼리} 돼지"", ""개 검정# 들쭉 망고 복숭아 망고$ 녹색 포도> 쥐 석회"" ],
-                        ""n0:Sheep"": ""자주색/ 코끼리 코끼리 돼지 뱀 원숭이 황색{ 녹색& 복숭아 뱀 암소 고양이) 고양이 빨간 말] 복숭아< 고양이 돼지_ 코끼리( 용 코끼리 들쭉 말} 돼지 석회 원숭이'"",
-                        ""n0:Pineapple"": ""암소 돼지} 쥐$ 들쭉- 황색 뱀 고양이 녹색. 바나나# 코끼리? 고양이 말 코끼리* 파란 파인애플"",
-                        ""n0:Dog"": ""파인애플\"" 코끼리 암소 복숭아 포도 석회\"" 말 포도 자주색^ 파인애플` 포도? 고양이 검정* 빨간@ 바나나) 딸기& 들쭉)""
-                    }
-                },
-                {
-                    ""n0:石灰葡萄"": {
-                        ""@蓝色"": ""葡萄马"",
-                        ""@猪龙绿色"": ""母牛"",
-                        ""@猴子"": ""桃子猫"",
-                        ""@马狗"": ""蛇芒果"",
-                        ""@蓝莓"": ""菠萝"",
-                        ""@猪"": ""紫色桃子"",
-                        ""@xmlns:n0"": ""http://菠萝葡萄"",
-                        ""n0:猪芒果"": ""菠萝 蛇* 猪! 香蕉/"",
-                        ""n0:猫"": ""绿色 黄色' 马 鼠 紫色/ 芒果< 绿色% 黑色 黑色? 石灰 柠檬 大象 狗 香蕉 菠萝 香蕉> 大象' 红色*"",
-                        ""n0:芒果红色"": ""石灰,"",
-                        ""n0:紫色绿色"": ""绵羊 桃子{ 桃子""
-                    }
-                }
-            ],
+            ""XmlElementValue"": [],
             ""NodeIdValue"": [ ""http://samples.org/UA/memorybuffer#g=8c9312a3-b893-ea53-91d1-2382907eca95"", ""http://test.org/UA/Data//Instance#b=mZWnGBQiqm%2fQtuce1kejQM%2bdwkrCBDsAWl6ZeX3GfNZshJIz%2fPp%2fauhIgjOqs0w6"", ""nsu=DataAccess;s=파인애플"", ""http://test.org/UA/Data//Instance#s=%e8%9b%87%e7%8c%ab%e9%a6%99%e8%95%89"", ""http://opcfoundation.org/UA/Boiler//Instance#i=272173553"", ""nsu=DataAccess;b=b0PVHldheYEHVqYSX40/y4R9IYv92lU7yuG4V3n6mgH5hHz6JtoB6X4TUlAXoiijsj61kpDGuJXumVN2qSIIDbul"" ],
             ""ExpandedNodeIdValue"": [ ""http://samples.org/UA/memorybuffer/Instance#g=7ca9a545-0c37-87ea-0423-27b914a43b44"", ""i=2349590220"", ""urn:manipc1:OPCFoundation:CoreSampleServer#g=94450a5c-8972-934d-6c99-0c1659b9ce0e"", ""http://test.org/UA/Data//Instance#s=%e6%a1%83%e5%ad%90"", ""http://opcfoundation.org/UA/Diagnostics#g=290ee634-1839-f122-f6b0-df426fb19e6b"", ""urn:manipc1:OPCFoundation:CoreSampleServer#i=2014900536"", ""http://opcfoundation.org/UA/Boiler//Instance#s=%ec%84%9d%ed%9a%8c"", ""http://test.org/UA/Data//Instance#b=4D2jPmkygekkYgnuy3rDjlEURSuQwxxtEVEYAMgjS9Cjxg%3d%3d"", ""http://opcfoundation.org/UA/Diagnostics#g=2005172c-cc4e-6fb5-0e0c-a653cb7c979a"", ""i=405616161"" ],
             ""QualifiedNameValue"": [ ""DataAccess#%eb%b0%94%eb%82%98%eb%82%98"", ""http://samples.org/UA/memorybuffer#%d0%9a%d0%be%d1%80%d0%be%d0%b2%d0%b0"", ""%eb%b0%b1%ec%83%89"", ""http://samples.org/UA/memorybuffer/Instance#%e3%83%90%e3%83%8a%e3%83%8a"", ""DataAccess#%e3%83%91%e3%82%a4%e3%83%8a%e3%83%83%e3%83%97%e3%83%ab"", ""http://opcfoundation.org/UA/Boiler//Instance#Mango"" ],
@@ -1210,20 +1059,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             ""DateTimeValue"": ""1985-11-03T22:42:37.1296614Z"",
             ""GuidValue"": ""5b9f4a59-1a25-042a-e156-e9e08f8eed3d"",
             ""ByteStringValue"": ""wEYr6R2tv2YG6q2Z"",
-            ""XmlElementValue"": {
-                ""n0:绵羊"": {
-                    ""@猫菠萝"": ""馬"",
-                    ""@黑色"": ""猿"",
-                    ""@蓝色"": ""馬緑マンゴ"",
-                    ""@龙大象"": ""バナナ"",
-                    ""@菠萝白色"": ""青い"",
-                    ""@xmlns:n0"": ""http://蓝色"",
-                    ""n0:蛇紫色"": ""いちご\"" 猿 黒< マンゴ 馬 猫: ヘビ? 黒 猫) モモ% ブドウ 象 黄色{ レモン 紫色 ヒツジ; ブドウ 猫( 赤い/ マンゴ' バナナ ブルーベリー"",
-                    ""n0:绿色"": ""石灰 黄色. ドラゴン! ヘビ ブルーベリー ラット< 馬 黒 緑) 馬 ラット 猫 モモ"",
-                    ""n0:柠檬"": ""ブタ: 赤い 石灰# モモ"",
-                    ""n0:马"": ""ラット$ 犬[ 牛 黒{ 青い 黒 緑}""
-                }
-            },
+            ""XmlElementValue"": null,
             ""NodeIdValue"": ""http://test.org/UA/Data//Instance#i=2103396786"",
             ""ExpandedNodeIdValue"": ""http://test.org/UA/Data//Instance#i=577318642"",
             ""QualifiedNameValue"": ""DataAccess#%e7%8a%ac%e3%83%96%e3%82%bf"",
@@ -1255,23 +1091,21 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 ]
 ");
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "ExtensionObject"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
 
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayNumberValueVariableTest1Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10324";
+            const string node = "http://test.org/UA/Data/#i=10324";
 
             var values = _generator.GetRandomArray<sbyte>();
             var expected = _serializer.FromObject(values
@@ -1281,43 +1115,39 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 }));
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Number"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, _serializer.FromObject(values), result);
+            await AssertResultAsync(node, _serializer.FromObject(values), result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayNumberValueVariableTest2Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10324";
+            const string node = "http://test.org/UA/Data/#i=10324";
 
             var values = _generator.GetRandomArray<sbyte>();
             var expected = _serializer.FromObject(values);
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Number"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayIntegerValueVariableTest1Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10325";
+            const string node = "http://test.org/UA/Data/#i=10325";
 
             var values = _generator.GetRandomArray<int>();
             var expected = _serializer.FromObject(values
@@ -1327,43 +1157,39 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 }));
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Integer"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, _serializer.FromObject(values), result);
+            await AssertResultAsync(node, _serializer.FromObject(values), result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayIntegerValueVariableTest2Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10325";
+            const string node = "http://test.org/UA/Data/#i=10325";
 
             var values = _generator.GetRandomArray<int>();
             var expected = _serializer.FromObject(values);
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "Integer"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayUIntegerValueVariableTest1Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10326";
+            const string node = "http://test.org/UA/Data/#i=10326";
 
             var values = _generator.GetRandomArray<ushort>();
             var expected = _serializer.FromObject(values
@@ -1373,52 +1199,49 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 }));
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInteger"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, _serializer.FromObject(values), result);
+            await AssertResultAsync(node, _serializer.FromObject(values), result).ConfigureAwait(false);
         }
 
-
         public async Task NodeWriteStaticArrayUIntegerValueVariableTest2Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10326";
+            const string node = "http://test.org/UA/Data/#i=10326";
 
             var values = _generator.GetRandomArray<ushort>();
             var expected = _serializer.FromObject(values);
 
             // Act
-            var result = await browser.ValueWriteAsync(_endpoint,
+            var result = await browser.ValueWriteAsync(_connection,
                 new ValueWriteRequestModel {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInteger"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
         private async Task AssertResultAsync(string node, VariantValue expected,
             ValueWriteResponseModel result) {
-            var value = await _readExpected(_endpoint, node);
+            var value = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
             Assert.NotNull(value);
             Assert.Null(result.ErrorInfo);
             Assert.True(expected.Equals(value), $"{expected} != {value}");
             Assert.Equal(expected, value);
         }
 
-        private readonly T _endpoint;
-        private readonly Func<T, string, Task<VariantValue>> _readExpected;
+        private readonly T _connection;
+        private readonly Func<T, string, IJsonSerializer, Task<VariantValue>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
         private readonly IJsonSerializer _serializer;
-        private readonly Opc.Ua.Test.TestDataGenerator _generator =
-            new();
+        private readonly Opc.Ua.Test.TestDataGenerator _generator = new();
     }
 }

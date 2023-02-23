@@ -42,7 +42,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     /// Webservice startup
     /// </summary>
     public class Startup {
-
         /// <summary>
         /// Configuration - Initialized in constructor
         /// </summary>
@@ -91,7 +90,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         /// <param name="services"></param>
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
-
             services.AddLogging(o => o.AddConsole().AddDebug());
 
             services.AddHeaderForwarding();
@@ -154,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.LogInformation("{service} web service started with id {id}",
+            log.LogInformation("{Service} web service started with id {Id}",
                 ServiceInfo.Name, ServiceInfo.ProcessId);
         }
 
@@ -163,7 +161,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         /// </summary>
         /// <param name="builder"></param>
         public virtual void ConfigureContainer(ContainerBuilder builder) {
-
             // Register service info and configuration interfaces
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces();

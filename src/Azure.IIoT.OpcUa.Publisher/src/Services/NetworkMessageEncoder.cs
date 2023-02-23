@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// Creates PubSub encoded messages
     /// </summary>
     public class NetworkMessageEncoder : IMessageEncoder {
-
         /// <inheritdoc/>
         public long NotificationsDroppedCount { get; private set; }
 
@@ -47,9 +46,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Create instance of NetworkMessageEncoder.
         /// </summary>
-        /// <param name="logger"> Logger to be used for reporting. </param>
         /// <param name="config"> injected configuration. </param>
         /// <param name="metrics"> Metrics context </param>
+        /// <param name="logger"> Logger to be used for reporting. </param>
         public NetworkMessageEncoder(IEngineConfiguration config,
             IMetricsContext metrics, ILogger logger)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
@@ -60,7 +59,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public IEnumerable<ITelemetryEvent> Encode(Func<ITelemetryEvent> factory,
             IEnumerable<SubscriptionNotificationModel> messages, int maxMessageSize, bool asBatch) {
-
             //
             // by design all messages are generated in the same session context, therefore it is safe to
             // get the first message's context
@@ -90,9 +88,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                         continue;
                     }
                     validChunks++;
-                    AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + body.Length) /
+                    AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + body.Length) /
                         (MessagesProcessedCount + 1);
-                    AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
+                    AvgNotificationsPerMessage = ((AvgNotificationsPerMessage * MessagesProcessedCount) +
                         notificationsPerChunk) / (MessagesProcessedCount + 1);
                     MessagesProcessedCount++;
                 }
@@ -165,7 +163,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     var networkMessageContentMask = messageMask.ToStackType(encoding);
                     foreach (var dataSetClass in groups
                         .GroupBy(m => m.Context.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty)) {
-
                         var dataSetClassId = dataSetClass.Key;
                         var currentMessage = CreateMessage(writerGroup, encoding,
                             networkMessageContentMask, dataSetClassId, publisherId);
@@ -294,7 +291,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                                 PubSubMessage metadataMessage = encoding.HasFlag(MessageEncoding.Json)
                                     ? new JsonMetaDataMessage {
                                         UseAdvancedEncoding = !standardsCompliant,
-                                        UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
+                                        UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
                                         DataSetWriterId = message.Notification.SubscriptionId,
                                         MetaData = message.Notification.MetaData,
                                         MessageId = Guid.NewGuid().ToString(),
@@ -321,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             BaseNetworkMessage currentMessage = encoding.HasFlag(MessageEncoding.Json) ?
                                 new JsonNetworkMessage {
                                     UseAdvancedEncoding = !standardsCompliant,
-                                    UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
+                                    UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
                                     UseArrayEnvelope = !standardsCompliant && isBatched,
                                     MessageId = () => Guid.NewGuid().ToString()
                                 } : new UadpNetworkMessage {
@@ -346,7 +343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         private void Drop(IEnumerable<SubscriptionNotificationModel> messages) {
             var totalNotifications = messages.Sum(m => m?.Notifications?.Count ?? 0);
             NotificationsDroppedCount += totalNotifications;
-            _logger.LogWarning("Dropped {totalNotifications} values", totalNotifications);
+            _logger.LogWarning("Dropped {TotalNotifications} values", totalNotifications);
         }
 
         private static readonly ConfigurationVersionDataType kEmptyConfiguration =

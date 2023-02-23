@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -24,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
     /// Published nodes
     /// </summary>
     public class PublishedNodesJobConverter {
-
         /// <summary>
         /// Create converter
         /// </summary>
@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                 }
 
                 _logger.LogInformation(
-                    "Read {count} entry models from published nodes file in {elapsed}",
+                    "Read {Count} entry models from published nodes file in {Elapsed}",
                     items.Count, sw.Elapsed);
                 return items;
             }
@@ -189,8 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                     .GroupBy(item => item,
                         new FuncCompare<PublishedNodesEntryModel>((x, y) => x.HasSameDataSet(y)))
                     .Select(group => {
-                        var nodes = group.SelectMany(g => g.OpcNodes).ToList();
-                        group.Key.OpcNodes = nodes;
+                        group.Key.OpcNodes = group.SelectMany(g => g.OpcNodes).ToList();
                         return group.Key;
                     });
             }
@@ -198,7 +197,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                 _logger.LogError(ex, "failed to convert the published nodes.");
             }
             finally {
-                _logger.LogInformation("Converted published nodes entry models to jobs in {elapsed}",
+                _logger.LogInformation("Converted published nodes entry models to jobs in {Elapsed}",
                     sw.Elapsed);
                 sw.Stop();
             }
@@ -231,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                 ).ToList();
 
                 var opcNodeModelComparer = new OpcNodeModelComparer();
-                var flattenedEndpoints = endpoints.Select(
+                var flattenedEndpoints = endpoints.ConvertAll(
                     group => group
                     // Flatten all nodes for the same connection and group by publishing interval
                     // then batch in chunks for max 1000 nodes and create data sets from those.
@@ -242,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                         .Distinct(opcNodeModelComparer)
                         .Batch(configuration.MaxNodesPerPublishedEndpoint))
                     .ToList()
-                    .Select(
+                    .ConvertAll(
                         opcNodes => (opcNodes.First().Header, Source: new PublishedDataSetSourceModel {
                             Connection = new ConnectionModel {
                                 Endpoint = group.Key.Endpoint.Clone(),
@@ -295,17 +294,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                                     }).ToList(),
                             },
                         })
-                    ).ToList()
-                ).ToList();
+                    )                );
 
-                if (!flattenedEndpoints.Any()) {
+                if (flattenedEndpoints.Count == 0) {
                     _logger.LogInformation("No OpcNodes after job conversion.");
                     return Enumerable.Empty<WriterGroupJobModel>();
                 }
 
                 var result = flattenedEndpoints
-                    .Where(dataSetBatches => dataSetBatches.Any())
-                    .Select(dataSetBatches => (First: dataSetBatches.First(), Items: dataSetBatches))
+                    .Where(dataSetBatches => dataSetBatches.Count > 0)
+                    .Select(dataSetBatches => (First: dataSetBatches[0], Items: dataSetBatches))
                     .Select(dataSetBatches => new WriterGroupJobModel {
                         Engine = _engineConfig == null ? null : new EngineConfigurationModel {
                             BatchSize = _engineConfig.BatchSize,
@@ -319,7 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                         WriterGroup = new WriterGroupModel {
                             MessageType = configuration.MessagingProfile.MessageEncoding,
                             WriterGroupId = dataSetBatches.First.Source.Connection.Group,
-                            DataSetWriters = dataSetBatches.Items.Select(dataSet => new DataSetWriterModel {
+                            DataSetWriters = dataSetBatches.Items.ConvertAll(dataSet => new DataSetWriterModel {
                                 DataSetWriterName = GetUniqueWriterNameInSet(dataSet.Header.DataSetWriterId,
                                     dataSet.Source, dataSetBatches.Items.Select(a => (a.Header.DataSetWriterId, a.Source))),
                                 MetaDataUpdateTime =
@@ -354,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                                 MessageSettings = new DataSetWriterMessageSettingsModel {
                                     DataSetMessageContentMask = configuration.MessagingProfile.DataSetMessageContentMask
                                 }
-                            }).ToList(),
+                            }),
                             MessageSettings = new WriterGroupMessageSettingsModel {
                                 NetworkMessageContentMask = configuration.MessagingProfile.NetworkMessageContentMask,
                             }
@@ -373,7 +371,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                         foreach (var dataSetWriter in writers) {
                             var count = dataSetWriter.DataSet?.DataSetSource?
                                 .PublishedVariables?.PublishedData?.Count ?? 0;
-                            _logger.LogDebug("writerId: {writer} nodes: {count}",
+                            _logger.LogDebug("writerId: {Writer} nodes: {Count}",
                                 dataSetWriter.DataSetWriterName, count);
                         }
                         var top = group.First();
@@ -386,7 +384,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                 return Enumerable.Empty<WriterGroupJobModel>();
             }
             finally {
-                _logger.LogInformation("Converted published nodes entry models to jobs in {elapsed}",
+                _logger.LogInformation("Converted published nodes entry models to jobs in {Elapsed}",
                     sw.Elapsed);
                 sw.Stop();
             }
@@ -455,32 +453,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
         /// </summary>
         private static string GetUniqueWriterNameInSet(string dataSetWriterId, PublishedDataSetSourceModel source,
             IEnumerable<(string DataSetWriterId, PublishedDataSetSourceModel Source)> set) {
-            var id = dataSetWriterId ?? string.Empty;
+            var writerId = dataSetWriterId ?? string.Empty;
             var subset = set.Where(x => x.DataSetWriterId == dataSetWriterId).ToList();
-            var result = source.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds.ToString();
+            var result = source.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds
+                .ToString(CultureInfo.InvariantCulture);
             if (subset.Count > 1) {
                 if (subset
-                    .Where(x => x.Source.SubscriptionSettings.PublishingInterval == source.SubscriptionSettings.PublishingInterval)
-                    .Count() > 1) {
+                    .Count(x => x.Source.SubscriptionSettings.PublishingInterval == source.SubscriptionSettings.PublishingInterval) > 1) {
                     if (!string.IsNullOrEmpty(source.PublishedVariables?.PublishedData?.First()?.PublishedVariableNodeId)) {
-                        result += $"_{source.PublishedVariables.PublishedData.First().PublishedVariableNodeId}";
+                        result += $"_{source.PublishedVariables.PublishedData[0].PublishedVariableNodeId}";
                     }
                     else if (!string.IsNullOrEmpty(source.PublishedEvents?.PublishedData?.First()?.EventNotifier)) {
-                        result += $"_{source.PublishedEvents.PublishedData.First().EventNotifier}";
+                        result += $"_{source.PublishedEvents.PublishedData[0].EventNotifier}";
                     }
                     else {
                         result += $"_{Guid.NewGuid()}";
                     }
                 }
-                if (string.IsNullOrEmpty(id)) {
+                if (string.IsNullOrEmpty(writerId)) {
                     return $"{Constants.DefaultDataSetWriterId}_(${result.ToSha1Hash()})";
                 }
-                return $"{id}_(${result.ToSha1Hash()})";
+                return $"{writerId}_(${result.ToSha1Hash()})";
             }
-            if (string.IsNullOrEmpty(id)) {
+            if (string.IsNullOrEmpty(writerId)) {
                 return $"{Constants.DefaultDataSetWriterId}_(${result.ToSha1Hash()})";
             }
-            return id;
+            return writerId;
         }
 
         /// <summary>
@@ -488,7 +486,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
         /// </summary>
         private class OpcNodeModelComparer :
             IEqualityComparer<(PublishedNodesEntryModel Header, OpcNodeModel Node)> {
-
             /// <inheritdoc/>
             public bool Equals((PublishedNodesEntryModel Header, OpcNodeModel Node) objA,
                 (PublishedNodesEntryModel Header, OpcNodeModel Node) objB) {
@@ -506,7 +503,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
         /// </summary>
         private static IEnumerable<(PublishedNodesEntryModel Header, OpcNodeModel Node)> GetNodeModels(
             PublishedNodesEntryModel item, int scaleTestCount) {
-
             if (item.OpcNodes != null) {
                 foreach (var node in item.OpcNodes) {
                     if (scaleTestCount <= 1) {
@@ -594,11 +590,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                     if (_cryptoProvider != null) {
                         const string kInitializationVector = "alKGJdfsgidfasdO"; // See previous publisher
                         var userBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                            Convert.FromBase64String(entry.EncryptedAuthUsername));
+                            Convert.FromBase64String(entry.EncryptedAuthUsername)).ConfigureAwait(false);
                         user = Encoding.UTF8.GetString(userBytes);
                         if (entry.EncryptedAuthPassword != null) {
                             var passwordBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                                Convert.FromBase64String(entry.EncryptedAuthPassword));
+                                Convert.FromBase64String(entry.EncryptedAuthPassword)).ConfigureAwait(false);
                             password = Encoding.UTF8.GetString(passwordBytes);
                         }
                     }
@@ -621,19 +617,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
             switch (credential?.Type ?? CredentialType.None) {
                 case CredentialType.UserName:
                     if (!credential.Value.TryGetProperty("user", out var user) ||
-                        !user.TryGetString(out var userString, false)) {
+                        !user.TryGetString(out var userString, false, CultureInfo.InvariantCulture)) {
                         userString = string.Empty;
                     }
                     if (!credential.Value.TryGetProperty("password", out var password) ||
-                        !password.TryGetString(out var passwordString, false)) {
+                        !password.TryGetString(out var passwordString, false, CultureInfo.InvariantCulture)) {
                         passwordString = string.Empty;
                     }
                     if (_cryptoProvider != null) {
                         const string kInitializationVector = "alKGJdfsgidfasdO"; // See previous publisher
                         var userBytes = await _cryptoProvider.EncryptAsync(kInitializationVector,
-                            Encoding.UTF8.GetBytes(userString));
+                            Encoding.UTF8.GetBytes(userString)).ConfigureAwait(false);
                         var passwordBytes = await _cryptoProvider.EncryptAsync(kInitializationVector,
-                            Encoding.UTF8.GetBytes(passwordString));
+                            Encoding.UTF8.GetBytes(passwordString)).ConfigureAwait(false);
 
                         return (Convert.ToBase64String(userBytes), Convert.ToBase64String(passwordBytes), true);
                     }

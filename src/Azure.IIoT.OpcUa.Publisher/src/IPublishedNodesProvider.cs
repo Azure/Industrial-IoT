@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Interface for utilities provider for published nodes file.
     /// </summary>
     public interface IPublishedNodesProvider {
-
         /// <summary>
         /// Occurs when published nodes file is deleted.
         /// </summary>

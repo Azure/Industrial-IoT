@@ -5,13 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework {
     using System;
+    using System.Globalization;
 
     /// <summary>
     /// Attribute to version a controller implementation
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class VersionAttribute : Attribute {
-
         /// <summary>
         /// Create versioning attribute
         /// </summary>
@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
         /// </summary>
         /// <returns></returns>
         private void Set(int major, int? minor, int? revision) {
-            var version = major.ToString();
+            var version = major.ToString(CultureInfo.InvariantCulture);
             var numeric = (uint)major << 32;
             if (minor != null) {
                 version += "." + minor.ToString();

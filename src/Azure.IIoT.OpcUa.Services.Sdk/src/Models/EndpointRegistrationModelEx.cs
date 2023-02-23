@@ -10,12 +10,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Endpoint registration extensions
     /// </summary>
     public static class EndpointRegistrationModelEx {
-
         /// <summary>
         /// Update an endpoint
         /// </summary>
-        /// <param name="endpoint"></param>
         /// <param name="update"></param>
+        /// <param name="endpoint"></param>
         public static EndpointRegistrationModel Patch(this EndpointRegistrationModel update,
             EndpointRegistrationModel endpoint) {
             if (update == null) {

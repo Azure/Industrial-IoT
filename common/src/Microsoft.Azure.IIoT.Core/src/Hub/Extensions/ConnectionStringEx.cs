@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// Connection string extensions
     /// </summary>
     public static class ConnectionStringEx {
-
         /// <summary>
         /// IoTHubOwner connection string to configuration
         /// </summary>
@@ -40,7 +39,6 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Helper class to wrap connection string
         /// </summary>
         private class IoTHubConfig : IIoTHubConfig {
-
             /// <inheritdoc/>
             public string IoTHubConnString { get; set; }
             /// <inheritdoc/>

@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Edge Gateway registry
     /// </summary>
     public interface IGatewayRegistry {
-
         /// <summary>
         /// Get all gateways in paged form
         /// </summary>
@@ -48,8 +47,8 @@ namespace Azure.IIoT.OpcUa {
         /// <summary>
         /// Update gateway
         /// </summary>
-        /// <param name="request"></param>
         /// <param name="id"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task UpdateGatewayAsync(string id, GatewayUpdateModel request,

@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.App.Shared {
         /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                Credential = await GetSecureItemAsync<UsernamePassword>(CommonHelper.CredentialKey);
+                Credential = await GetSecureItemAsync<UsernamePassword>(CommonHelper.CredentialKey).ConfigureAwait(false);
                 StateHasChanged();
             }
         }
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.App.Shared {
         }
 
         private async void HandleLocationChangedAsync(object sender, LocationChangedEventArgs e) {
-            Credential = await GetSecureItemAsync<UsernamePassword>(CommonHelper.CredentialKey);
+            Credential = await GetSecureItemAsync<UsernamePassword>(CommonHelper.CredentialKey).ConfigureAwait(false);
             StateHasChanged();
         }
 
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.App.Shared {
 
         private async Task<T> GetSecureItemAsync<T>(string key) {
             try {
-                var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
+                var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key).ConfigureAwait(false);
                 return secureData.UnprotectDeserialize<T>(serializedProtectedData);
             }
             catch {

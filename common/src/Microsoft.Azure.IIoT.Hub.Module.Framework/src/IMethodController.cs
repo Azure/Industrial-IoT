@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework {
-
     /// <summary>
     /// Tags a controller as method controller
     /// </summary>

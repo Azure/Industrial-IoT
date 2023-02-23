@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-
     /// <summary>
     /// Event target constants
     /// </summary>
     public static class EventTargets {
-
         /// <summary>
         /// Discovery progress event targets
         /// </summary>

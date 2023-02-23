@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Auth {
     /// Configuration interface for client authentication
     /// </summary>
     public interface IClientAuthConfig {
-
         /// <summary>
         /// Supported providers
         /// </summary>

@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class TwinController : ControllerBase {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -48,9 +47,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _nodes.ValueReadAsync(
-                endpointId, request);
-            return readresult;
+            return await _nodes.ValueReadAsync(
+                endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -69,9 +67,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _nodes.ReadAsync(
-                endpointId, request);
-            return readresult;
+            return await _nodes.ReadAsync(
+                endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -91,9 +88,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 throw new ArgumentNullException(nameof(nodeId));
             }
             var request = new ValueReadRequestModel { NodeId = nodeId };
-            var readresult = await _nodes.ValueReadAsync(
-                endpointId, request);
-            return readresult;
+            return await _nodes.ValueReadAsync(
+                endpointId, request).ConfigureAwait(false);
         }
 
         private readonly INodeServices<string> _nodes;

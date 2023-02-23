@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class BrowseController : ControllerBase {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -50,8 +49,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var browseresult = await _browser.BrowseAsync(endpointId, request);
-            return browseresult;
+            return await _browser.BrowseAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -73,8 +71,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request.ContinuationToken == null) {
                 throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
-            var browseresult = await _browser.BrowseNextAsync(endpointId, request);
-            return browseresult;
+            return await _browser.BrowseNextAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -94,8 +91,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var browseresult = await _browser.BrowsePathAsync(endpointId, request);
-            return browseresult;
+            return await _browser.BrowsePathAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -125,8 +121,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 TargetNodesOnly = true,
                 ReadVariableValues = true
             };
-            var browseresult = await _browser.BrowseAsync(endpointId, request);
-            return browseresult;
+            return await _browser.BrowseAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -159,8 +154,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 TargetNodesOnly = true,
                 ReadVariableValues = true
             };
-            var browseresult = await _browser.BrowseNextAsync(endpointId, request);
-            return browseresult;
+            return await _browser.BrowseNextAsync(endpointId, request).ConfigureAwait(false);
         }
 
         private readonly INodeServices<string> _browser;

@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
     [Version("_V2")]
     [ExceptionsFilter]
     public class TwinMethodsController : IMethodController {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -52,9 +51,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _nodes.BrowseFirstAsync(
-                connection, request);
-            return result;
+            return await _nodes.BrowseFirstAsync(
+                connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -71,9 +69,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _nodes.BrowseNextAsync(
-                connection, request);
-            return result;
+            return await _nodes.BrowseNextAsync(
+                connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -90,9 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _nodes.BrowsePathAsync(
-                connection, request);
-            return result;
+            return await _nodes.BrowsePathAsync(
+                connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -109,9 +105,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _nodes.ValueReadAsync(
-                connection, request);
-            return result;
+            return await _nodes.ValueReadAsync(
+                connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -128,9 +123,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _nodes.ValueWriteAsync(
-                connection, request);
-            return result;
+            return await _nodes.ValueWriteAsync(
+                connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -147,9 +141,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _nodes.GetMethodMetadataAsync(
-                connection, request);
-            return result;
+            return await _nodes.GetMethodMetadataAsync(
+                connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -166,9 +159,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _nodes.MethodCallAsync(
-                connection, request);
-            return result;
+            return await _nodes.MethodCallAsync(
+                connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -182,9 +174,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.ReadAsync(
-                connection, request);
-            return result;
+            return await _nodes.ReadAsync(
+                connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -198,9 +189,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.WriteAsync(
-                connection, request);
-            return result;
+            return await _nodes.WriteAsync(
+                connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -214,9 +204,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.HistoryReadAsync(
-               connection, request);
-            return result;
+            return await _nodes.HistoryReadAsync(
+               connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -230,9 +219,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.HistoryReadNextAsync(
-               connection, request);
-            return result;
+            return await _nodes.HistoryReadNextAsync(
+               connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -246,9 +234,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.HistoryUpdateAsync(
-               connection, request);
-            return result;
+            return await _nodes.HistoryUpdateAsync(
+               connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -261,9 +248,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (endpoint == null) {
                 throw new ArgumentNullException(nameof(endpoint));
             }
-            var result = await _discovery.GetEndpointCertificateAsync(
-                endpoint);
-            return result;
+            return await _discovery.GetEndpointCertificateAsync(
+                endpoint).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -275,7 +261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            await _clients.ConnectAsync(connection);
+            await _clients.ConnectAsync(connection).ConfigureAwait(false);
             return true;
         }
 
@@ -288,7 +274,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            await _clients.DisconnectAsync(connection);
+            await _clients.DisconnectAsync(connection).ConfigureAwait(false);
             return true;
         }
 

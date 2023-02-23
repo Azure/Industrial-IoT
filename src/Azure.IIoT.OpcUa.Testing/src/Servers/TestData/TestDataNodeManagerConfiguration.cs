@@ -35,7 +35,6 @@ namespace TestData {
     /// </summary>
     [DataContract(Namespace = Namespaces.TestData)]
     public class TestDataNodeManagerConfiguration {
-
         /// <summary>
         /// The default constructor.
         /// </summary>
@@ -47,10 +46,7 @@ namespace TestData {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-#pragma warning disable RECS0154 // Parameter is never used
-        private void Initialize(StreamingContext context)
-#pragma warning restore RECS0154 // Parameter is never used
-        {
+        private void Initialize(StreamingContext context) {
             Initialize();
         }
 

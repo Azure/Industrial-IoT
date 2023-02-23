@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime {
     /// Forwarded headers processing configuration.
     /// </summary>
     public class ForwardedHeadersConfig : ConfigBase, IForwardedHeadersConfig {
-
         private const string kAspNetCore_ForwardedHeaders_Enabled = "AspNetCore:ForwardedHeaders:Enabled";
         private const string kAspNetCore_ForwardedHeaders_ForwardLimit = "AspNetCore:ForwardedHeaders:ForwardLimit";
 

@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class HistoryReadNextRequestModel {
-
         /// <summary>
         /// Continuation token to continue reading more
         /// results.

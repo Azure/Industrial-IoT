@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Client {
-
     /// <summary>
     /// Configuration for service
     /// </summary>
     public interface IIoTHubConfig {
-
         /// <summary>
         /// Connection string
         /// </summary>

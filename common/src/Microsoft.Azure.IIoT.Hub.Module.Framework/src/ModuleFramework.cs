@@ -16,10 +16,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     /// Injected module framework module
     /// </summary>
     public sealed class ModuleFramework : Module {
-
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
-
             builder.RegisterType<EmptyMetricsContext>()
                 .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));
 

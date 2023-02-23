@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
     /// Security configuration
     /// </summary>
     public class SecurityConfig : ConfigBase, ISecurityConfig {
-
         /// <summary>
         /// Configuration
         /// </summary>
@@ -95,11 +94,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
         /// <summary>
         /// Create configuration
         /// </summary>
-        /// <param name="application"></param>
         /// <param name="configuration"></param>
-        public SecurityConfig(IClientServicesConfig application, IConfiguration configuration) :
+        public SecurityConfig(IConfiguration configuration) :
             base(configuration) {
-            _application = application ?? throw new ArgumentNullException(nameof(application));
             _issuersFolderName = new Lazy<string>(GetIssuersFolder);
         }
 
@@ -113,7 +110,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
             return Directory.Exists(legacyPath) ? legacyPath : $"{PkiRootPath}/issuer";
         }
 
-        private readonly IClientServicesConfig _application;
         private readonly Lazy<string> _issuersFolderName;
     }
 }

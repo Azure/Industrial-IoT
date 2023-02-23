@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa {
     /// Application registry
     /// </summary>
     public interface IApplicationRegistry {
-
         /// <summary>
         /// Register application using the specified information.
         /// </summary>

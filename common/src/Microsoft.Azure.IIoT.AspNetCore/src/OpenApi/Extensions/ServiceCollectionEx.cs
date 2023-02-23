@@ -20,7 +20,6 @@ namespace Microsoft.OpenApi.Models {
     /// Configure OpenApi
     /// </summary>
     public static class ServiceCollectionEx {
-
         /// <summary>
         /// Configure OpenApi
         /// </summary>
@@ -29,7 +28,6 @@ namespace Microsoft.OpenApi.Models {
         /// <param name="description"></param>
         public static IServiceCollection AddSwagger(this IServiceCollection services,
             string title, string description) {
-
             services.AddApiVersioning(o => {
                 o.AssumeDefaultVersionWhenUnspecified = true;
                 o.DefaultApiVersion = new ApiVersion(1, 0);
@@ -110,4 +108,3 @@ namespace Microsoft.OpenApi.Models {
         }
     }
 }
-

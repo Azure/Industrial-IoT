@@ -33,7 +33,6 @@ namespace Microsoft.Azure.IIoT.App {
     /// Webapp startup
     /// </summary>
     public class Startup {
-
         /// <summary>
         /// Configuration - Initialized in constructor
         /// </summary>
@@ -117,13 +116,10 @@ namespace Microsoft.Azure.IIoT.App {
         /// <param name="services"></param>
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
-
             services.AddLogging(o => o.AddConsole());
             services.AddHeaderForwarding();
 
-            services.AddSession(option => {
-                option.Cookie.IsEssential = true;
-            });
+            services.AddSession(option => option.Cookie.IsEssential = true);
 
             services.AddValidatorsFromAssemblyContaining<DiscovererInfoValidator>();
             services.AddValidatorsFromAssemblyContaining<ListNodeValidator>();
@@ -139,9 +135,7 @@ namespace Microsoft.Azure.IIoT.App {
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddAntiforgery(options => {
-                options.Cookie.SameSite = SameSiteMode.Strict;
-            });
+            services.AddAntiforgery(options => options.Cookie.SameSite = SameSiteMode.Strict);
 
             services.AddAuthentication(AuthProvider.AzureAD)
                 .AddOpenIdConnect(AuthProvider.AzureAD)
@@ -169,7 +163,6 @@ namespace Microsoft.Azure.IIoT.App {
         /// </summary>
         /// <param name="builder"></param>
         public void ConfigureContainer(ContainerBuilder builder) {
-
             // Register configuration interfaces and logger
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces().AsSelf().SingleInstance();

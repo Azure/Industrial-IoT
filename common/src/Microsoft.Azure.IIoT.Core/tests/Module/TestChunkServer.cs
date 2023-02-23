@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Module {
     using System.Threading.Tasks;
 
     public class TestChunkServer : IJsonMethodClient, IMethodHandler {
-
         public TestChunkServer(IJsonSerializer serializer,
             int size, Func<string, byte[], string, byte[]> handler) {
             MaxMethodPayloadCharacterCount = size;
@@ -34,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Module {
             CancellationToken ct) {
             var payload = Encoding.UTF8.GetBytes(json);
             var processed = await _server.InvokeAsync(payload,
-                ContentMimeType.Json, this);
+                ContentMimeType.Json, this).ConfigureAwait(false);
             return Encoding.UTF8.GetString(processed);
         }
 

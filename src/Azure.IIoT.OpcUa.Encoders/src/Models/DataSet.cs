@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
     /// Encodable dataset message payload
     /// </summary>
     public class DataSet : Dictionary<string, DataValue> {
-
         /// <summary>
         /// Field mask
         /// </summary>

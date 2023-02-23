@@ -13,13 +13,11 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// Injected mock edge framework module
     /// </summary>
     public sealed class IoTHubMockModule : Module {
-
         /// <summary>
         /// Load the module
         /// </summary>
         /// <param name="builder"></param>
         protected override void Load(ContainerBuilder builder) {
-
             // Module and device client simulation
             builder.RegisterType<IoTHubClientFactory>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();

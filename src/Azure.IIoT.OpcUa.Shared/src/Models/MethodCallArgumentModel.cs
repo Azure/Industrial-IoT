@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class MethodCallArgumentModel {
-
         /// <summary>
         /// Initial value or value to use
         /// </summary>

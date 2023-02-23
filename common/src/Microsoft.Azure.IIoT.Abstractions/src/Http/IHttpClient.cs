@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Client interface
     /// </summary>
     public interface IHttpClient {
-
         /// <summary>
         /// Create new request
         /// </summary>

@@ -35,7 +35,6 @@ namespace Boiler {
     /// A object representing a generic controller.
     /// </summary>
     public partial class GenericControllerState {
-
         /// <summary>
         /// Updates the measurement and calculates the new control output.
         /// </summary>

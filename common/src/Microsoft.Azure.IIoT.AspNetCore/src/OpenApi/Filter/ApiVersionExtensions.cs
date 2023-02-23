@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
     /// Add extensions for autorest to schemas
     /// </summary>
     internal class ApiVersionExtensions : IDocumentFilter {
-
         /// <inheritdoc/>
         public void Apply(OpenApiDocument doc, DocumentFilterContext context) {
             var paths = new OpenApiPaths();
@@ -22,4 +21,3 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
         }
     }
 }
-

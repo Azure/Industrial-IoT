@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
     using Xunit;
 
     public class AddressRangeTests {
-
         [Fact]
         public void TestSubnetRange1() {
             var range = new AddressRange(
@@ -211,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
 
         [Fact]
         public void TestParsing6() {
-            var str = "1.1.1.1/24[abc];2.2.2.2/24[cde];3.3.3.3/24 [efg]";
+            const string str = "1.1.1.1/24[abc];2.2.2.2/24[cde];3.3.3.3/24 [efg]";
             AddressRange.TryParse(str, out var ranges);
 
             var range1 = new AddressRange(16843008, 16843263);
@@ -237,7 +236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
 
         [Fact]
         public void TestParsing7() {
-            var str = "192.168.1.0-192.168.2.9[abc]";
+            const string str = "192.168.1.0-192.168.2.9[abc]";
             AddressRange.TryParse(str, out var ranges);
 
             var range1 = new AddressRange(3232235776, 3232236031);
@@ -264,7 +263,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
 
         [Fact]
         public void TestParseFormatExceptions() {
-
             Assert.Throws<FormatException>(() => AddressRange.Parse("0.0.0.0/24;x/2;;"));
             Assert.Throws<FormatException>(() => AddressRange.Parse("0.0.=0/24"));
             Assert.Throws<FormatException>(() => AddressRange.Parse("0.0.0.0-0..0"));
@@ -278,6 +276,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
             Assert.Throws<FormatException>(() => AddressRange.Parse("0.0.0.0/88[333]"));
             Assert.Throws<FormatException>(() => AddressRange.Parse("0..0/88"));
         }
-
     }
 }

@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
-
     /// <summary>
     /// Certificate store
     /// </summary>
     public class CertificateStore {
-
         /// <summary>
         /// Store type
         /// </summary>

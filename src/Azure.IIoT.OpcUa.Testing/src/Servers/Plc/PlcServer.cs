@@ -9,7 +9,6 @@ namespace Plc {
 
     /// <inheritdoc/>
     public class PlcServer : INodeManagerFactory {
-
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
@@ -19,10 +18,9 @@ namespace Plc {
         /// <inheritdoc/>
         public StringCollection NamespacesUris {
             get {
-                var nameSpaces = new StringCollection {
+                return new StringCollection {
                     Namespaces.OpcPlcApplications
                 };
-                return nameSpaces;
             }
         }
     }

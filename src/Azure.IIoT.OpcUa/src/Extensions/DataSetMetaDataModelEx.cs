@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Dataset metadata extensions
     /// </summary>
     public static class DataSetMetaDataModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

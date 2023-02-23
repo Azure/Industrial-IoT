@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
     /// Implements node services as adapter on top of twin api.
     /// </summary>
     public sealed class PublisherApiAdapter : ICertificateServices<EndpointModel> {
-
         /// <summary>
         /// Create adapter
         /// </summary>
@@ -26,8 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
         /// <inheritdoc/>
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             EndpointModel endpoint, CancellationToken ct) {
-            var result = await _client.GetEndpointCertificateAsync(endpoint, ct);
-            return result;
+            return await _client.GetEndpointCertificateAsync(endpoint, ct).ConfigureAwait(false);
         }
 
         private readonly IDiscoveryApi _client;

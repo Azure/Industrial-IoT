@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// </summary>
     [DataContract]
     public class DataSetMessageModel {
-
         /// <summary>
         /// messageId - from the network message
         /// </summary>

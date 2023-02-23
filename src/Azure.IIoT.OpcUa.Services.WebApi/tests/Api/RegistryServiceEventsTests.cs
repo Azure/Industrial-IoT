@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
 
     [Collection(WebAppCollection.Name)]
     public class RegistryServiceEventsTests {
-
         public RegistryServiceEventsTests(SignalRTestFixture factory) {
             _factory = factory;
         }
@@ -22,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
 
         [Fact]
         public async Task TestPublishPublisherEventAndReceiveAsync() {
-
             var bus = _factory.Resolve<IPublisherRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -35,10 +33,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
             await using (await client.SubscribePublisherEventsAsync(ev => {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            })) {
-
-                await bus.OnPublisherNewAsync(null, expected);
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+            }).ConfigureAwait(false)) {
+                await bus.OnPublisherNewAsync(null, expected).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted);
                 var received = result.Task.Result;
@@ -53,7 +50,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
         [InlineData(100)]
         [InlineData(678)]
         public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total) {
-
             var bus = _factory.Resolve<IPublisherRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -69,20 +65,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            })) {
-
+            }).ConfigureAwait(false)) {
                 for (var i = 0; i < total; i++) {
-                    await bus.OnPublisherUpdatedAsync(null, expected);
+                    await bus.OnPublisherUpdatedAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted);
             }
         }
 
         [Fact]
         public async Task TestPublishDiscovererEventAndReceiveAsync() {
-
             var bus = _factory.Resolve<IDiscovererRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -99,9 +93,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
             await using (await client.SubscribeDiscovererEventsAsync(ev => {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            })) {
-                await bus.OnDiscovererNewAsync(null, expected);
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+            }).ConfigureAwait(false)) {
+                await bus.OnDiscovererNewAsync(null, expected).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted);
                 var received = result.Task.Result;
@@ -119,7 +113,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
         [InlineData(55)]
         [InlineData(375)]
         public async Task TestPublishDiscovererEventAndReceiveMultipleAsync(int total) {
-
             var bus = _factory.Resolve<IDiscovererRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -135,21 +128,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            })) {
-
+            }).ConfigureAwait(false)) {
                 for (var i = 0; i < total; i++) {
-                    await bus.OnDiscovererUpdatedAsync(null, expected);
+                    await bus.OnDiscovererUpdatedAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted);
             }
         }
 
-
         [Fact]
         public async Task TestPublishSupervisorEventAndReceiveAsync() {
-
             var bus = _factory.Resolve<ISupervisorRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -162,10 +152,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
             await using (await client.SubscribeSupervisorEventsAsync(ev => {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            })) {
-
-                await bus.OnSupervisorNewAsync(null, expected);
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+            }).ConfigureAwait(false)) {
+                await bus.OnSupervisorNewAsync(null, expected).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted);
                 var received = result.Task.Result;
@@ -181,7 +170,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
         [InlineData(100)]
         [InlineData(4634)]
         public async Task TestPublishSupervisorEventAndReceiveMultipleAsync(int total) {
-
             var bus = _factory.Resolve<ISupervisorRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -197,21 +185,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            })) {
-
+            }).ConfigureAwait(false)) {
                 for (var i = 0; i < total; i++) {
-                    await bus.OnSupervisorUpdatedAsync(null, expected);
+                    await bus.OnSupervisorUpdatedAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted);
             }
         }
 
-
         [Fact]
         public async Task TestPublishApplicationEventAndReceiveAsync() {
-
             var bus = _factory.Resolve<IApplicationRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -225,10 +210,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
             await using (await client.SubscribeApplicationEventsAsync(ev => {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            })) {
-
-                await bus.OnApplicationNewAsync(null, expected);
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+            }).ConfigureAwait(false)) {
+                await bus.OnApplicationNewAsync(null, expected).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted);
                 var received = result.Task.Result;
@@ -246,7 +230,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
         [InlineData(100)]
         [InlineData(4634)]
         public async Task TestPublishApplicationEventAndReceiveMultipleAsync(int total) {
-
             var bus = _factory.Resolve<IApplicationRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -264,20 +247,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            })) {
-
+            }).ConfigureAwait(false)) {
                 for (var i = 0; i < total; i++) {
-                    await bus.OnApplicationUpdatedAsync(null, expected);
+                    await bus.OnApplicationUpdatedAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted);
             }
         }
 
         [Fact]
         public async Task TestPublishEndpointEventAndReceiveAsync() {
-
             var bus = _factory.Resolve<IEndpointRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -289,10 +270,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
             await using (await client.SubscribeEndpointEventsAsync(ev => {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            })) {
-
-                await bus.OnEndpointNewAsync(null, expected);
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+            }).ConfigureAwait(false)) {
+                await bus.OnEndpointNewAsync(null, expected).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted);
                 var received = result.Task.Result;
@@ -307,7 +287,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
         [InlineData(100)]
         [InlineData(46340)]
         public async Task TestPublishEndpointEventAndReceiveMultipleAsync(int total) {
-
             var bus = _factory.Resolve<IEndpointRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -323,20 +302,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            })) {
-
+            }).ConfigureAwait(false)) {
                 for (var i = 0; i < total; i++) {
-                    await bus.OnEndpointDisabledAsync(null, expected);
+                    await bus.OnEndpointDisabledAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted);
             }
         }
 
         [Fact]
         public async Task TestPublishGatewayEventAndReceiveAsync() {
-
             var bus = _factory.Resolve<IGatewayRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -347,10 +324,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
             await using (await client.SubscribeGatewayEventsAsync(ev => {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            })) {
-
-                await bus.OnGatewayNewAsync(null, expected);
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+            }).ConfigureAwait(false)) {
+                await bus.OnGatewayNewAsync(null, expected).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted);
                 var received = result.Task.Result;
@@ -364,7 +340,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
         [InlineData(10)]
         [InlineData(100)]
         public async Task TestPublishGatewayEventAndReceiveMultipleAsync(int total) {
-
             var bus = _factory.Resolve<IGatewayRegistryListener>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
@@ -379,24 +354,22 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            })) {
-
+            }).ConfigureAwait(false)) {
                 for (var i = 0; i < total; i++) {
-                    await bus.OnGatewayUpdatedAsync(null, expected);
+                    await bus.OnGatewayUpdatedAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted);
             }
         }
 
         [Fact]
         public async Task TestPublishDiscoveryProgressWithDiscovererIdAndReceiveAsync() {
-
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
-            var discovererId = "TestDiscoverer1";
+            const string discovererId = "TestDiscoverer1";
             var expected = new DiscoveryProgressModel {
                 DiscovererId = discovererId,
                 Discovered = 55,
@@ -409,10 +382,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                 discovererId, ev => {
                     result.SetResult(ev);
                     return Task.CompletedTask;
-                })) {
-
-                await bus.OnDiscoveryProgressAsync(expected);
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+                }).ConfigureAwait(false)) {
+                await bus.OnDiscoveryProgressAsync(expected).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted);
                 var received = result.Task.Result;
@@ -427,11 +399,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
 
         [Fact]
         public async Task TestPublishDiscoveryProgressWithRequestIdAndReceiveAsync() {
-
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
-            var requestId = "TestDiscoverer1";
+            const string requestId = "TestDiscoverer1";
             var expected = new DiscoveryProgressModel {
                 Request = new DiscoveryRequestModel {
                     Id = requestId,
@@ -450,10 +421,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                 requestId, ev => {
                     result.SetResult(ev);
                     return Task.CompletedTask;
-                })) {
-
-                await bus.OnDiscoveryProgressAsync(expected);
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+                }).ConfigureAwait(false)) {
+                await bus.OnDiscoveryProgressAsync(expected).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted);
                 var received = result.Task.Result;
@@ -471,11 +441,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
         [InlineData(100)]
         [InlineData(678)]
         public async Task TestPublishDiscoveryProgressAndReceiveMultipleAsync(int total) {
-
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
             var client = _factory.Resolve<IRegistryServiceEvents>();
 
-            var discovererId = "TestDiscoverer1";
+            const string discovererId = "TestDiscoverer1";
             var expected = new DiscoveryProgressModel {
                 DiscovererId = discovererId,
                 Discovered = 55,
@@ -491,16 +460,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                         result.SetResult(true);
                     }
                     return Task.CompletedTask;
-                })) {
-
+                }).ConfigureAwait(false)) {
                 for (var i = 0; i < total; i++) {
-                    await bus.OnDiscoveryProgressAsync(expected);
+                    await bus.OnDiscoveryProgressAsync(expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted);
             }
         }
-
     }
 }

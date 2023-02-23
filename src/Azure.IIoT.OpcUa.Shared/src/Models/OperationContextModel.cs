@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class OperationContextModel {
-
         /// <summary>
         /// User
         /// </summary>
@@ -28,4 +27,3 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         public DateTime Time { get; set; }
     }
 }
-

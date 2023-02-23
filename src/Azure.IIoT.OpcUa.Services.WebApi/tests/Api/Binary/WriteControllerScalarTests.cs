@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
 
     [Collection(WriteBinaryCollection.Name)]
     public class WriteControllerScalarTests : IClassFixture<WebApiTestFixture> {
-
         public WriteControllerScalarTests(WebApiTestFixture factory, TestServerFixture server) {
             _factory = factory;
             _server = server;
@@ -43,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
                 new TwinWebApiAdapter(
                     new TwinServiceClient(new HttpClient(_factory, log),
                     new TestConfig(client.BaseAddress), serializer)),
-                        endpointId, (ep, n) => _server.Client.ReadValueAsync(new ConnectionModel { Endpoint = Endpoint }, n));
+                        endpointId, (ep, n, s) => _server.Client.ReadValueAsync(new ConnectionModel { Endpoint = Endpoint }, n, s));
         }
 
         public EndpointModel Endpoint => new() {
@@ -60,153 +59,152 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
 
         [Fact]
         public async Task NodeWriteStaticScalarBooleanValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarBooleanValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarBooleanValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest1Async() {
-            await GetTests().NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest1Async();
+            await GetTests().NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest1Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest2Async() {
-            await GetTests().NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest2Async();
+            await GetTests().NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest2Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest3Async() {
-            await GetTests().NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest3Async();
+            await GetTests().NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest3Async().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarSByteValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarSByteValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarSByteValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarByteValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarByteValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarByteValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarInt16ValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarInt16ValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarInt16ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarUInt16ValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarUInt16ValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarUInt16ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarInt32ValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarInt32ValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarInt32ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarUInt32ValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarUInt32ValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarUInt32ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarInt64ValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarInt64ValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarInt64ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarUInt64ValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarUInt64ValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarUInt64ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarFloatValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarFloatValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarFloatValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarDoubleValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarDoubleValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarDoubleValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarStringValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarStringValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarStringValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarDateTimeValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarDateTimeValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarDateTimeValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarGuidValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarGuidValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarGuidValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarByteStringValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarByteStringValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarByteStringValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarXmlElementValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarXmlElementValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarXmlElementValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarNodeIdValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarNodeIdValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarNodeIdValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarExpandedNodeIdValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarExpandedNodeIdValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarExpandedNodeIdValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarQualifiedNameValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarQualifiedNameValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarQualifiedNameValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarLocalizedTextValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarLocalizedTextValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarLocalizedTextValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarStatusCodeValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarStatusCodeValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarStatusCodeValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarVariantValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarVariantValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarVariantValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarEnumerationValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarEnumerationValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarEnumerationValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarStructuredValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarStructuredValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarStructuredValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarNumberValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarNumberValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarNumberValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarIntegerValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarIntegerValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarIntegerValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
         public async Task NodeWriteStaticScalarUIntegerValueVariableTestAsync() {
-            await GetTests().NodeWriteStaticScalarUIntegerValueVariableTestAsync();
+            await GetTests().NodeWriteStaticScalarUIntegerValueVariableTestAsync().ConfigureAwait(false);
         }
-
     }
 }

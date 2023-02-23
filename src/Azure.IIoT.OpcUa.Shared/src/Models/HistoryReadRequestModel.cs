@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class HistoryReadRequestModel<T> where T : class {
-
         /// <summary>
         /// Node to read from (mandatory)
         /// </summary>

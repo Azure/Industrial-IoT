@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Writer group Model extensions
     /// </summary>
     public static class WriterGroupModelEx {
-
         /// <summary>
         /// Check if same writer group configuration
         /// Excludes writers.
@@ -20,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <returns></returns>
         public static bool IsSameAs(this WriterGroupModel model,
             WriterGroupModel other) {
-
             if (model == null && other == null) {
                 return true;
             }
@@ -75,8 +73,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
             return new WriterGroupModel {
                 WriterGroupId = model.WriterGroupId,
                 DataSetWriters = model.DataSetWriters
-                    .Select(f => f.Clone())
-                    .ToList(),
+                    .ConvertAll(f => f.Clone())
+,
                 HeaderLayoutUri = model.HeaderLayoutUri,
                 KeepAliveTime = model.KeepAliveTime,
                 LocaleIds = model.LocaleIds?.ToList(),

@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// </summary>
     [DataContract]
     public sealed class GatewayRegistration : EntityRegistration {
-
         /// <inheritdoc/>
         [DataMember]
         public override string DeviceType => IdentityType.Gateway;
@@ -42,8 +41,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
         /// <inheritdoc/>
         public override int GetHashCode() {
-            var hashCode = base.GetHashCode();
-            return hashCode;
+            return base.GetHashCode();
         }
 
         internal bool IsConnected() {

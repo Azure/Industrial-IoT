@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
     /// Discovery progress handling
     /// </summary>
     public sealed class DiscoveryProgressHandler : IDeviceTelemetryHandler {
-
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.DiscoveryMessage;
 
@@ -46,12 +45,12 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                 discovery = _serializer.Deserialize<DiscoveryProgressModel>(payload);
             }
             catch (Exception ex) {
-                _logger.LogError(ex, "Failed to convert discovery message {json}",
+                _logger.LogError(ex, "Failed to convert discovery message {Json}",
                     Encoding.UTF8.GetString(payload));
                 return;
             }
             try {
-                await Task.WhenAll(_handlers.Select(h => h.OnDiscoveryProgressAsync(discovery)));
+                await Task.WhenAll(_handlers.Select(h => h.OnDiscoveryProgressAsync(discovery))).ConfigureAwait(false);
             }
             catch (Exception ex) {
                 _logger.LogError(ex,

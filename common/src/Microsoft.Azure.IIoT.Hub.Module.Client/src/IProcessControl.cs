@@ -4,13 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
-
     /// <summary>
     /// Allows a module to control the hosting
     /// process in a controlled manner.
     /// </summary>
     public interface IProcessControl {
-
         /// <summary>
         /// Reset the host process
         /// </summary>

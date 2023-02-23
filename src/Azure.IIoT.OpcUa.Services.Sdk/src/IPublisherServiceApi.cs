@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Represents OPC twin service api functions
     /// </summary>
     public interface IPublisherServiceApi {
-
         /// <summary>
         /// Returns status of the service
         /// </summary>

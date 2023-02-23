@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
-
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
@@ -21,12 +20,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using System.Security.Authentication;
 
     /// <summary>
     /// Implements basic token management logic
     /// </summary>
     public class OpenIdUserTokenClient : ITokenClient {
-
         /// <summary>
         /// Http client factory
         /// </summary>
@@ -35,11 +34,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <summary>
         /// Create token provider
         /// </summary>
-        /// <param name="clock"></param>
         /// <param name="config"></param>
+        /// <param name="ctx"></param>
         /// <param name="oidc"></param>
         /// <param name="schemes"></param>
-        /// <param name="ctx"></param>
+        /// <param name="clock"></param>
         /// <param name="logger"></param>
         public OpenIdUserTokenClient(IClientAuthConfig config, IHttpContextAccessor ctx,
             IOptionsMonitor<OpenIdConnectOptions> oidc, IAuthenticationSchemeProvider schemes,
@@ -61,13 +60,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-
             var user = _ctx.HttpContext?.User;
             if (user == null) {
                 return null;
             }
 
-            var schemes = await _schemes.GetAllSchemesAsync();
+            var schemes = await _schemes.GetAllSchemesAsync().ConfigureAwait(false);
             if (!schemes.Any(s => s.Name == AuthProvider.AuthService)) {
                 return null;
             }
@@ -79,7 +77,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             var userName = user.FindFirst(JwtClaimTypes.Name)?.Value ??
                 user.FindFirst(JwtClaimTypes.Subject)?.Value ?? "unknown";
 
-            var (accessToken, expiration, refreshToken) = await GetTokenFromCacheAsync();
+            var (accessToken, expiration, refreshToken) = await GetTokenFromCacheAsync().ConfigureAwait(false);
             if (refreshToken == null) {
                 _logger.LogDebug("No token data found in user token store.");
                 return null;
@@ -96,18 +94,18 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             var exceptions = new List<Exception>();
             foreach (var config in _config.Query(resource, AuthProvider.AuthService)) {
                 try {
-                    _logger.LogDebug("Token for user {user} needs refreshing.", userName);
+                    _logger.LogDebug("Token for user {User} needs refreshing.", userName);
                     try {
                         accessToken = await kRequests.GetOrAdd(refreshToken, t => {
                             return new Lazy<Task<string>>(async () => {
-                                var refreshed = await RefreshUserAccessTokenAsync(t, config);
+                                var refreshed = await RefreshUserAccessTokenAsync(t, config).ConfigureAwait(false);
                                 return refreshed.AccessToken;
                             });
-                        }).Value;
+                        }).Value.ConfigureAwait(false);
                         var token = JwtSecurityTokenEx.Parse(accessToken);
                         token.Cached = true;
                         _logger.LogInformation(
-                            "Successfully refreshed token for {resource} with {config}.",
+                            "Successfully refreshed token for {Resource} with {Config}.",
                             resource, config.GetName());
                         return token;
                     }
@@ -116,7 +114,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     }
                 }
                 catch (Exception e) {
-                    _logger.LogDebug(e, "Failed to get token for {resource} with {config}.",
+                    _logger.LogDebug(e, "Failed to get token for {Resource} with {Config}.",
                         resource, config.GetName());
                     exceptions.Add(e);
                     continue;
@@ -130,12 +128,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
         /// <inheritdoc/>
         public async Task InvalidateAsync(string resource) {
-            var (_, _, refreshToken) = await GetTokenFromCacheAsync();
+            var (_, _, refreshToken) = await GetTokenFromCacheAsync().ConfigureAwait(false);
             if (string.IsNullOrEmpty(refreshToken)) {
                 return;
             }
             foreach (var config in _config.Query(resource, AuthProvider.AuthService)) {
-                await RevokeRefreshTokenAsync(refreshToken, config);
+                await RevokeRefreshTokenAsync(refreshToken, config).ConfigureAwait(false);
             }
         }
 
@@ -151,13 +149,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 ClientId = config.ClientId,
                 ClientSecret = config.ClientSecret,
                 RefreshToken = refreshToken
-            });
+            }).ConfigureAwait(false);
             if (!response.IsError) {
                 await StoreTokenAsync(response.AccessToken, response.ExpiresIn,
-                    response.RefreshToken);
+                    response.RefreshToken).ConfigureAwait(false);
             }
             else {
-                _logger.LogError("Error refreshing access token. Error = {error}",
+                _logger.LogError("Error refreshing access token. Error = {Error}",
                     response.Error);
             }
             return response;
@@ -172,10 +170,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private async Task RevokeRefreshTokenAsync(string refreshToken,
             IOAuthClientConfig config) {
             var client = Http.CreateClient("token_client");
-            var configuration = await GetOpenIdConfigurationAsync(config.Provider);
+            var configuration = await GetOpenIdConfigurationAsync(config.Provider).ConfigureAwait(false);
             if (configuration == null) {
                 _logger.LogInformation(
-                    "Failed to revoke token for scheme {schemeName}", config.Provider);
+                    "Failed to revoke token for scheme {SchemeName}", config.Provider);
                 return;
             }
             var response = await client.RevokeTokenAsync(new TokenRevocationRequest {
@@ -185,9 +183,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 ClientSecret = config.ClientSecret,
                 Token = refreshToken,
                 TokenTypeHint = OidcConstants.TokenTypes.RefreshToken
-            });
+            }).ConfigureAwait(false);
             if (response.IsError) {
-                _logger.LogError("Error revoking refresh token. Error = {error}",
+                _logger.LogError("Error revoking refresh token. Error = {Error}",
                     response.Error);
             }
         }
@@ -205,11 +203,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 return null;
             }
             try {
-                return await options.ConfigurationManager.GetConfigurationAsync(default);
+                return await options.ConfigurationManager.GetConfigurationAsync(default).ConfigureAwait(false);
             }
             catch (Exception e) {
                 _logger.LogDebug(e,
-                    "Unable to load OpenID configuration for scheme {schemeName}", schemeName);
+                    "Unable to load OpenID configuration for scheme {SchemeName}", schemeName);
                 return null;
             }
         }
@@ -222,12 +220,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             if (_ctx.HttpContext == null) {
                 return (null, null, null);
             }
-            var result = await _ctx.HttpContext.AuthenticateAsync(AuthProvider.AuthService);
+            var result = await _ctx.HttpContext.AuthenticateAsync(AuthProvider.AuthService).ConfigureAwait(false);
             if (!result.Succeeded) {
                 return (null, null, null);
             }
             var tokens = result.Properties.GetTokens();
-            if (tokens == null || !tokens.Any()) {
+            if (tokens?.Any() != true) {
                 throw new InvalidOperationException("No tokens found.");
             }
             var accessToken = tokens
@@ -260,11 +258,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private async Task StoreTokenAsync(string accessToken, int expiresIn,
             string refreshToken) {
             if (_ctx.HttpContext == null) {
-                throw new Exception("can't store tokens. No context");
+                throw new AuthenticationException("can't store tokens. No context");
             }
-            var result = await _ctx.HttpContext.AuthenticateAsync();
+            var result = await _ctx.HttpContext.AuthenticateAsync().ConfigureAwait(false);
             if (!result.Succeeded) {
-                throw new Exception("can't store tokens. User is anonymous");
+                throw new AuthenticationException("can't store tokens. User is anonymous");
             }
             result.Properties.UpdateTokenValue(
                 OpenIdConnectParameterNames.AccessToken, accessToken);
@@ -276,7 +274,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             result.Properties.UpdateTokenValue("expires_at",
                 newExpiresAt.ToString("o", CultureInfo.InvariantCulture));
 
-            await _ctx.HttpContext.SignInAsync(result.Principal, result.Properties);
+            await _ctx.HttpContext.SignInAsync(result.Principal, result.Properties).ConfigureAwait(false);
         }
 
         static readonly ConcurrentDictionary<string, Lazy<Task<string>>> kRequests = new();

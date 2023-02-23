@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients {
     using Azure.IIoT.OpcUa.Services.Sdk;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
+    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
     using Microsoft.Azure.IIoT.Http;
     using System;
     using System.Threading;
@@ -16,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients {
     /// Implementation of twin service api with extra controller methods.
     /// </summary>
     public sealed class ControllerTestClient : ITwinServiceApi {
-
         /// <summary>
         /// Create test client
         /// </summary>

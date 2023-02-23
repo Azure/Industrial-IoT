@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
-
     /// <summary>
     /// Common IIoT device twin properties
     /// </summary>
     public static class TwinProperty {
-
         /// <summary>
         /// Type property name constant
         /// </summary>

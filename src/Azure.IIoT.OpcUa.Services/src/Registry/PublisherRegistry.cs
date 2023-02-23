@@ -20,14 +20,13 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     /// identity management.
     /// </summary>
     public sealed class PublisherRegistry : IPublisherRegistry {
-
         /// <summary>
         /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
-        /// <param name="events"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="events"></param>
         public PublisherRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
             ILogger logger, IPublisherRegistryListener events = null) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
@@ -37,18 +36,16 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         }
 
         /// <inheritdoc/>
-        public async Task<PublisherModel> GetPublisherAsync(string id,
+        public async Task<PublisherModel> GetPublisherAsync(string publisherId,
             bool onlyServerState, CancellationToken ct) {
-            if (string.IsNullOrEmpty(id)) {
-                throw new ArgumentException(nameof(id));
+            if (string.IsNullOrEmpty(publisherId)) {
+                throw new ArgumentException(nameof(publisherId));
             }
-            var deviceId = PublisherModelEx.ParseDeviceId(id, out var moduleId);
-            var device = await _iothub.GetAsync(deviceId, moduleId, ct);
-            var registration = device.ToEntityRegistration(onlyServerState)
-                as PublisherRegistration;
-            if (registration == null) {
+            var deviceId = PublisherModelEx.ParseDeviceId(publisherId, out var moduleId);
+            var device = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
+            if (!(device.ToEntityRegistration(onlyServerState) is PublisherRegistration registration)) {
                 throw new ResourceNotFoundException(
-                    $"{id} is not a publisher registration.");
+                    $"{publisherId} is not a publisher registration.");
             }
             return registration.ToPublisherModel();
         }
@@ -68,14 +65,13 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
             while (true) {
                 try {
-                    var twin = await _iothub.GetAsync(deviceId, moduleId, ct);
+                    var twin = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
                     if (twin.Id != deviceId && twin.ModuleId != moduleId) {
                         throw new ArgumentException("Id must be same as twin to patch",
                             nameof(publisherId));
                     }
 
-                    var registration = twin.ToEntityRegistration(true) as PublisherRegistration;
-                    if (registration == null) {
+                    if (!(twin.ToEntityRegistration(true) is PublisherRegistration registration)) {
                         throw new ResourceNotFoundException(
                             $"{publisherId} is not a publisher registration.");
                     }
@@ -93,11 +89,11 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
-                        patched.ToPublisherRegistration(), _serializer), false, ct);
+                        patched.ToPublisherRegistration(), _serializer), false, ct).ConfigureAwait(false);
 
                     // Send update to through broker
                     registration = twin.ToEntityRegistration(true) as PublisherRegistration;
-                    await _events?.OnPublisherUpdatedAsync(null, registration.ToPublisherModel());
+                    await (_events?.OnPublisherUpdatedAsync(null, registration.ToPublisherModel())).ConfigureAwait(false);
                     return;
                 }
                 catch (ResourceOutOfDateException ex) {
@@ -110,10 +106,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         /// <inheritdoc/>
         public async Task<PublisherListModel> ListPublishersAsync(
             string continuation, bool onlyServerState, int? pageSize, CancellationToken ct) {
-            var query = "SELECT * FROM devices.modules WHERE " +
+            const string query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
-            var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
+            var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
             return new PublisherListModel {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
@@ -126,7 +122,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         /// <inheritdoc/>
         public async Task<PublisherListModel> QueryPublishersAsync(
             PublisherQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct) {
-
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}'";
 
@@ -140,14 +135,14 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             if (model?.Connected != null) {
                 // If flag provided, include it in search
                 if (model.Connected.Value) {
-                    query += $"AND connectionState = 'Connected' ";
+                    query += "AND connectionState = 'Connected' ";
                 }
                 else {
-                    query += $"AND connectionState != 'Connected' ";
+                    query += "AND connectionState != 'Connected' ";
                 }
             }
 
-            var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct);
+            var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct).ConfigureAwait(false);
             return new PublisherListModel {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items

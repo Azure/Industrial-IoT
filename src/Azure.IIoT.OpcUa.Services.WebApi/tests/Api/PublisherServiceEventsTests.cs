@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
 
     [Collection(WebAppCollection.Name)]
     public class PublisherServiceEventsTests {
-
         public PublisherServiceEventsTests(SignalRTestFixture factory) {
             _factory = factory;
         }
@@ -26,17 +25,16 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
         [Theory]
         [MemberData(nameof(GetScalarValues))]
         public async Task TestPublishTelemetryEventAndReceiveAsync(VariantValue v) {
-
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
             var client = _factory.Resolve<IPublisherServiceEvents>();
 
-            var endpointId = "testid";
+            const string endpointId = "testid";
 
             var result = new TaskCompletionSource<MonitoredItemMessageModel>();
             await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, ev => {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            })) {
+            }).ConfigureAwait(false)) {
                 var expected = new MonitoredItemMessageModel {
                     DataSetWriterId = "testid",
                     EndpointId = endpointId,
@@ -46,8 +44,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                     Timestamp = DateTime.UtcNow,
                     Value = v
                 };
-                await bus.HandleSampleAsync(expected);
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+                await bus.HandleSampleAsync(expected).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted);
                 var received = result.Task.Result;
@@ -68,11 +66,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
         [InlineData(4455)]
         [InlineData(262345)]
         public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total) {
-
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
             var client = _factory.Resolve<IPublisherServiceEvents>();
 
-            var endpointId = "testid";
+            const string endpointId = "testid";
             var expected = new MonitoredItemMessageModel {
                 DataSetWriterId = "testid",
                 EndpointId = endpointId,
@@ -90,13 +87,12 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            })) {
-
+            }).ConfigureAwait(false)) {
                 for (var i = 0; i < total; i++) {
-                    await bus.HandleSampleAsync(expected);
+                    await bus.HandleSampleAsync(expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(10000));
+                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted, $"{counter} received instead of {total}");
             }
         }

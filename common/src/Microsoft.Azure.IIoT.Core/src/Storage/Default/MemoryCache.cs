@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
     /// In memory cache
     /// </summary>
     public sealed class MemoryCache : ICache {
-
         /// <inheritdoc/>
         public Task<byte[]> GetAsync(string key, CancellationToken ct) {
             return Task.FromResult((byte[])_cache.Get(key));

@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Base message handler
     /// </summary>
     public abstract class HttpMessageHandlerBase : IHttpMessageHandler {
-
         /// <inheritdoc/>
         public int Order { get; protected set; }
 

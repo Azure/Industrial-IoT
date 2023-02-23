@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa {
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface ICertificateServices<T> {
-
         /// <summary>
         /// Get endpoint certificate
         /// </summary>

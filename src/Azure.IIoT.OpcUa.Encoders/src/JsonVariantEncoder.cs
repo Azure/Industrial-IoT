@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     /// Variant encoder implementation
     /// </summary>
     public sealed class JsonVariantEncoder : IVariantEncoder {
-
         /// <inheritdoc/>
         public IServiceMessageContext Context { get; }
 
@@ -199,4 +198,3 @@ namespace Azure.IIoT.OpcUa.Encoders {
         private readonly IJsonSerializer _serializer;
     }
 }
-

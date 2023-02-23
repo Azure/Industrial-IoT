@@ -15,7 +15,6 @@ namespace Microsoft.Extensions.DependencyInjection {
     /// SignalR hub extensions
     /// </summary>
     public static class SignalRHubEx {
-
         /// <summary>
         /// Map all hubs
         /// </summary>
@@ -42,7 +41,7 @@ namespace Microsoft.Extensions.DependencyInjection {
             var results = type.GetCustomAttributes<RouteAttribute>(false)
                 .Select(m => m.MapTo.TrimStart('/'))
                 .ToList();
-            if (!results.Any()) {
+            if (results.Count == 0) {
                 results.Add(NameAttribute.GetName(type));
             }
             foreach (var map in results) {

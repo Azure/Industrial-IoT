@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     [DataContract]
     public class DeviceAuthenticationModel {
-
         /// <summary>
         /// Primary sas key
         /// </summary>

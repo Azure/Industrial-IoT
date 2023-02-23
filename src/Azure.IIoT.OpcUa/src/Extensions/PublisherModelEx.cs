@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Service model extensions for discovery service
     /// </summary>
     public static class PublisherModelEx {
-
         /// <summary>
         /// Convert a device id and module to publisher id
         /// </summary>

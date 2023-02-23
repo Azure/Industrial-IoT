@@ -39,7 +39,6 @@ namespace HistoricalAccess {
     /// convert the information stored in this class into the UA equivalent.
     /// </remarks>
     public class UnderlyingSystemTag {
-
         /// <summary>
         /// The block that the tag belongs to
         /// </summary>

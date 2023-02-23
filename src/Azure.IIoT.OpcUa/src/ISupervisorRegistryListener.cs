@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa {
     /// Supervisor registry change listener
     /// </summary>
     public interface ISupervisorRegistryListener {
-
         /// <summary>
         /// Called when supervisor is created
         /// </summary>

@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class ContentFilterElementModel {
-
         /// <summary>
         /// The operator to use on the operands
         /// </summary>

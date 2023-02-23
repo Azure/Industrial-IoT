@@ -35,7 +35,6 @@ namespace DataAccess {
     /// A object which maps a segment to a UA object.
     /// </summary>
     public class SegmentState : FolderState {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="SegmentState"/> class.
         /// </summary>
@@ -110,7 +109,6 @@ namespace DataAccess {
 
             // check if the parent segments need to be returned.
             if (browser.IsRequired(ReferenceTypeIds.Organizes, true)) {
-
                 if (!(context.SystemHandle is UnderlyingSystem system)) {
                     return;
                 }

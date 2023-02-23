@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// Authenticate using device code
     /// </summary>
     public sealed class MsalDeviceCodeClient : MsalPublicClientBase {
-
         /// <summary>
         /// Create console output device code based token provider
         /// </summary>
@@ -46,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                     _prompt.Prompt(deviceCodeCallback.DeviceCode, deviceCodeCallback.ExpiresOn,
                         deviceCodeCallback.Message);
                     return Task.CompletedTask;
-                }).ExecuteAsync();
+                }).ExecuteAsync().ConfigureAwait(false);
             return result.ToTokenResult();
         }
 

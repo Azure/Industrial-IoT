@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     /// Processes the discovery results received from edge application discovery
     /// </summary>
     public sealed class DiscoveryProcessor : IDiscoveryResultProcessor {
-
         /// <summary>
         /// Create registry services
         /// </summary>
@@ -50,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
             // Process discovery events
             await _applications.ProcessDiscoveryEventsAsync(siteId, discovererId,
-                result, events);
+                result, events).ConfigureAwait(false);
         }
 
         private readonly IApplicationBulkProcessor _applications;

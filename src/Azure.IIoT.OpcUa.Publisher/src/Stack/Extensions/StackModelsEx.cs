@@ -279,8 +279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         public static IUserIdentity ToStackModel(this CredentialModel authentication) {
             switch (authentication?.Type ?? CredentialType.None) {
                 case CredentialType.UserName:
-                    if (authentication.Value != null &&
-                        authentication.Value.IsObject &&
+                    if (authentication.Value?.IsObject == true &&
                         authentication.Value.TryGetProperty("user", out var user) &&
                             user.IsString &&
                         authentication.Value.TryGetProperty("password", out var password) &&
@@ -288,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                         return new UserIdentity((string)user, (string)password);
                     }
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
-                        $"User/passord token format is not supported.");
+                        "User/passord token format is not supported.");
                 case CredentialType.X509Certificate:
                     return new UserIdentity(new X509Certificate2(
                         authentication.Value?.ConvertTo<byte[]>()));

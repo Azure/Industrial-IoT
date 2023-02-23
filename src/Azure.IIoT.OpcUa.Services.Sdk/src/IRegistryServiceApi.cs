@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Registry api calls
     /// </summary>
     public interface IRegistryServiceApi {
-
         /// <summary>
         /// Returns status of the service
         /// </summary>

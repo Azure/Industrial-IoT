@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils {
     /// Caches constant identifier definitions of a generated type
     /// </summary>
     public sealed class TypeMaps {
-
         /// <summary>
         /// Data types type map
         /// </summary>
@@ -96,6 +95,5 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils {
             new();
         private readonly SortedDictionary<string, uint> _reverse =
             new();
-
     }
 }

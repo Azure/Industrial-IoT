@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Runtime {
     /// SignalR configuration
     /// </summary>
     public class SignalRServiceConfig : ConfigBase, ISignalRServiceConfig {
-
         private const string kSignalRConnectionStringKey = "SignalR:ConnectionString";
         private const string kSignalRServiceModeKey = "SignalR:ServiceMode";
         private const string kSignalRServerLessMode = "Serverless";

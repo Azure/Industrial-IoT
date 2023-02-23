@@ -34,7 +34,6 @@ namespace Alarms {
     /// Maps an alarm area to a UA object node.
     /// </summary>
     public class AreaState : FolderState {
-
         /// <summary>
         /// Initializes the area.
         /// </summary>

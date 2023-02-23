@@ -14,9 +14,8 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     /// <summary>
     /// Signalr hub for hosting inside Asp.net core host.
     /// </summary>
-    public class SignalRHub<THub> : ICallbackInvokerT<THub>,
+    public sealed class SignalRHub<THub> : ICallbackInvokerT<THub>,
         IGroupRegistrationT<THub> where THub : Hub {
-
         /// <inheritdoc/>
         public string Resource { get; }
 
@@ -39,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }
             try {
                 await _hub.Clients.All.SendCoreAsync(method,
-                    arguments ?? Array.Empty<object>(), ct);
+                    arguments ?? Array.Empty<object>(), ct).ConfigureAwait(false);
             }
             catch (Exception ex) {
                 _logger.LogTrace(ex, "Failed to send broadcast message");
@@ -57,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }
             try {
                 await _hub.Clients.Group(group).SendCoreAsync(method,
-                    arguments ?? Array.Empty<object>(), ct);
+                    arguments ?? Array.Empty<object>(), ct).ConfigureAwait(false);
             }
             catch (Exception ex) {
                 _logger.LogTrace(ex, "Failed to send multicast message");

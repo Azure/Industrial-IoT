@@ -35,7 +35,6 @@ namespace Reference {
     /// </summary>
     [DataContract(Namespace = Namespaces.ReferenceApplications)]
     public class ReferenceServerConfiguration {
-
         /// <summary>
         /// The default constructor.
         /// </summary>
@@ -47,17 +46,14 @@ namespace Reference {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-#pragma warning disable RECS0154 // Parameter is never used
-        private void Initialize(StreamingContext context)
-#pragma warning restore RECS0154 // Parameter is never used
-        {
+        private void Initialize(StreamingContext context) {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private static void Initialize() {
         }
     }
 }

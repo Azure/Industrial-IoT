@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Source model extensions
     /// </summary>
     public static class PublishedDataSetSourceModelEx {
-
         /// <summary>
         /// Create subscription
         /// </summary>

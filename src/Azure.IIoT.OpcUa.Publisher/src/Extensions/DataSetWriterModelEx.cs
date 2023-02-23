@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Data set extensions
     /// </summary>
     public static class DataSetWriterModelEx {
-
         /// <summary>
         /// Create subscription info model from message trigger configuration.
         /// </summary>
@@ -32,16 +31,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
             if (monitoredItems.Count == 0) {
                 throw new ArgumentException(nameof(dataSetWriter.DataSet.DataSetSource));
             }
-            var model = new SubscriptionModel {
+            return new SubscriptionModel {
                 Id = ToSubscriptionId(dataSetWriter, writerGroupId),
                 MonitoredItems = monitoredItems,
                 ExtensionFields = dataSetWriter.DataSet.ExtensionFields,
                 Configuration = dataSetWriter.DataSet.DataSetSource.ToSubscriptionConfigurationModel(
                     dataSetWriter.DataSet.DataSetMetaData, configuration)
             };
-            return model;
         }
-
 
         /// <summary>
         /// Create subscription id.

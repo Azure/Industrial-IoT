@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// Thrown when method call failed
     /// </summary>
     public class MethodCallException : Exception {
-
         /// <summary>
         /// Create exception
         /// </summary>

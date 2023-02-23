@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa {
     using Azure.IIoT.OpcUa.Shared.Models;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -13,7 +14,6 @@ namespace Azure.IIoT.OpcUa {
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IHistoryServices<T> {
-
         /// <summary>
         /// Replace events
         /// </summary>
@@ -198,5 +198,60 @@ namespace Azure.IIoT.OpcUa {
         /// <returns></returns>
         Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
             T id, HistoryReadNextRequestModel request, CancellationToken ct = default);
+
+        /// <summary>
+        /// Stream values
+        /// </summary>
+        /// <param name="connectionId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAsync(
+            T connectionId, HistoryReadRequestModel<ReadValuesDetailsModel> request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Stream modified historic values
+        /// </summary>
+        /// <param name="connectionId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        IAsyncEnumerable<HistoricValueModel> HistoryStreamModifiedValuesAsync(
+            T connectionId, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Stream historic values at times
+        /// </summary>
+        /// <param name="connectionId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAtTimesAsync(
+            T connectionId, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Stream processed historic values
+        /// </summary>
+        /// <param name="connectionId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        IAsyncEnumerable<HistoricValueModel> HistoryStreamProcessedValuesAsync(
+            T connectionId, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Stream modified historic events
+        /// </summary>
+        /// <param name="connectionId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        IAsyncEnumerable<HistoricEventModel> HistoryStreamEventsAsync(
+            T connectionId, HistoryReadRequestModel<ReadEventsDetailsModel> request,
+            CancellationToken ct = default);
     }
 }

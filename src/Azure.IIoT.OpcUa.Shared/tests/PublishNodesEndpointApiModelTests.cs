@@ -6,12 +6,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using System;
     using System.Collections.Generic;
-
     using Xunit;
+    using Xunit.Categories;
 
+    [UnitTest]
     public class PublishedNodesEntryModelTests {
-
         [Fact]
         public void UseSecurityDeserializationTest() {
             var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
@@ -24,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
     }
 }
 ";
-
             var model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.False(model.UseSecurity);
 
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
             };
 
             var modeJson = newtonSoftJsonSerializer.SerializeToString(model);
-            Assert.Contains("\"UseSecurity\":false", modeJson);
+            Assert.Contains("\"UseSecurity\":false", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel {
                 EndpointUrl = "opc.tcp://localhost:50000",
@@ -82,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
             };
 
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);
-            Assert.Contains("\"UseSecurity\":false", modeJson);
+            Assert.Contains("\"UseSecurity\":false", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel {
                 EndpointUrl = "opc.tcp://localhost:50000",
@@ -95,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
             };
 
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);
-            Assert.Contains("\"UseSecurity\":true", modeJson);
+            Assert.Contains("\"UseSecurity\":true", modeJson, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
             };
 
             var modeJson = newtonSoftJsonSerializer.SerializeToString(model);
-            Assert.Contains("\"OpcAuthenticationMode\":\"anonymous\"", modeJson);
+            Assert.Contains("\"OpcAuthenticationMode\":\"anonymous\"", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel {
                 EndpointUrl = "opc.tcp://localhost:50000",
@@ -168,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
             };
 
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);
-            Assert.Contains("\"OpcAuthenticationMode\":\"anonymous\"", modeJson);
+            Assert.Contains("\"OpcAuthenticationMode\":\"anonymous\"", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel {
                 EndpointUrl = "opc.tcp://localhost:50000",
@@ -181,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
             };
 
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);
-            Assert.Contains("\"OpcAuthenticationMode\":\"usernamePassword\"", modeJson);
+            Assert.Contains("\"OpcAuthenticationMode\":\"usernamePassword\"", modeJson, StringComparison.Ordinal);
         }
     }
 }

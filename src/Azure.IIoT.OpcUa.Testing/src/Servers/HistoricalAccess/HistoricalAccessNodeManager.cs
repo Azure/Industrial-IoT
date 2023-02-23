@@ -40,7 +40,6 @@ namespace HistoricalAccess {
     /// A node manager for a server that exposes several variables.
     /// </summary>
     public class HistoricalAccessServerNodeManager : CustomNodeManager2 {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -87,7 +86,6 @@ namespace HistoricalAccess {
         /// Node in a dictionary for later lookup.
         /// </remarks>
         public override NodeId New(ISystemContext context, NodeState node) {
-
             if (node is BaseInstanceState instance && instance.Parent != null) {
                 return NodeTypes.ConstructIdForComponent(instance, instance.Parent.NodeId.NamespaceIndex);
             }
@@ -111,7 +109,6 @@ namespace HistoricalAccess {
             }
 
             lock (Lock) {
-
                 if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references)) {
                     externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
                 }
@@ -181,39 +178,33 @@ namespace HistoricalAccess {
                 // check for check for nodes that are being currently monitored.
 
                 if (MonitoredNodes.TryGetValue(nodeId, out var monitoredNode)) {
-                    var handle = new NodeHandle {
+                    return new NodeHandle {
                         NodeId = nodeId,
                         Validated = true,
                         Node = monitoredNode.Node
                     };
-
-                    return handle;
                 }
 
                 // check for predefined nodes,
 
                 if (PredefinedNodes.TryGetValue(nodeId, out var node)) {
-                    var handle = new NodeHandle {
+                    return new NodeHandle {
                         NodeId = nodeId,
                         Node = node,
                         Validated = true
                     };
-
-                    return handle;
                 }
 
                 // parse the identifier.
                 var parsedNodeId = ParsedNodeId.Parse(nodeId);
 
                 if (parsedNodeId != null) {
-                    var handle = new NodeHandle {
+                    return new NodeHandle {
                         NodeId = nodeId,
                         Validated = false,
                         Node = null,
                         ParsedNodeId = parsedNodeId
                     };
-
-                    return handle;
                 }
 
                 return null;
@@ -279,8 +270,6 @@ namespace HistoricalAccess {
             handle.Validated = true;
             return handle.Node;
         }
-
-
 
         /// <summary>
         /// Validates the nodes and reads the values from the underlying source.
@@ -388,7 +377,6 @@ namespace HistoricalAccess {
                 var root = handle.Node.GetHierarchyRoot();
 
                 if (root != null) {
-
                     if (root is ArchiveItemState item) {
                         _monitoredItems ??= new Dictionary<string, ArchiveItemState>();
 
@@ -501,7 +489,6 @@ namespace HistoricalAccess {
                 var root = handle.Node.GetHierarchyRoot();
 
                 if (root != null) {
-
                     if (root is ArchiveItemState item) {
                         var item2 = root as ArchiveItemState;
 
@@ -523,8 +510,6 @@ namespace HistoricalAccess {
                 }
             }
         }
-
-
 
         /// <summary>
         /// Reads the raw data for an item.
@@ -874,7 +859,6 @@ namespace HistoricalAccess {
 
                     // process each item.
                     for (var jj = 0; jj < nodeToUpdate.UpdateValues.Count; jj++) {
-
                         if (!(ExtensionObject.ToEncodeable(nodeToUpdate.UpdateValues[jj].Value as ExtensionObject) is Annotation annotation)) {
                             result.OperationResults.Add(StatusCodes.BadTypeMismatch);
                             continue;
@@ -983,15 +967,13 @@ namespace HistoricalAccess {
             }
         }
 
-
         /// <summary>
         /// Loads the archive item state from the underlying source.
         /// </summary>
-        private ArchiveItemState Reload(ISystemContext context, NodeHandle handle) {
+        private static ArchiveItemState Reload(ISystemContext context, NodeHandle handle) {
             var item = handle.Node as ArchiveItemState;
 
             if (item == null) {
-
                 if (handle.Node is BaseInstanceState property) {
                     item = property.Parent as ArchiveItemState;
                 }
@@ -1148,13 +1130,12 @@ namespace HistoricalAccess {
                 break;
             }
 
-            var request = new HistoryReadRequest {
+            return new HistoryReadRequest {
                 Values = values,
                 ModificationInfos = modificationInfos,
                 NumValuesPerNode = details.NumValuesPerNode,
                 Filter = null
             };
-            return request;
         }
 
         /// <summary>
@@ -1168,7 +1149,6 @@ namespace HistoricalAccess {
             NodeId aggregateId) {
             var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding);
             var timeFlowsBackward = details.EndTime < details.StartTime;
-
 
             if (!(handle.Node is ArchiveItemState item)) {
                 throw new ServiceResultException(StatusCodes.BadNotSupported);
@@ -1231,24 +1211,22 @@ namespace HistoricalAccess {
                 true,
                 values);
 
-            var request = new HistoryReadRequest {
+            return new HistoryReadRequest {
                 Values = values,
                 NumValuesPerNode = 0,
                 Filter = null
             };
-            return request;
         }
 
         /// <summary>
         /// Creates a new history request.
         /// </summary>
-        private HistoryReadRequest CreateHistoryReadRequest(
+        private static HistoryReadRequest CreateHistoryReadRequest(
             ServerSystemContext context,
             ReadAtTimeDetails details,
             NodeHandle handle,
             HistoryReadValueId nodeToRead) {
             var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding);
-
 
             if (!(handle.Node is ArchiveItemState item)) {
                 throw new ServiceResultException(StatusCodes.BadNotSupported);
@@ -1275,9 +1253,8 @@ namespace HistoricalAccess {
             var values = new LinkedList<DataValue>();
 
             for (var ii = 0; ii < details.ReqTimes.Count; ii++) {
-
                 // find the value at the time.
-                var index = item.FindValueAtOrBefore(view, details.ReqTimes[ii], !details.UseSimpleBounds, out var dataBeforeIgnored);
+                var index = ArchiveItemState.FindValueAtOrBefore(view, details.ReqTimes[ii], !details.UseSimpleBounds, out var dataBeforeIgnored);
 
                 if (index < 0) {
                     values.AddLast(new DataValue(StatusCodes.BadNoData, details.ReqTimes[ii]));
@@ -1294,7 +1271,7 @@ namespace HistoricalAccess {
                 DataValue value;
 
                 // find the value after the time.
-                var afterIndex = item.FindValueAfter(view, index, !details.UseSimpleBounds, out var dataAfterIgnored);
+                var afterIndex = ArchiveItemState.FindValueAfter(view, index, !details.UseSimpleBounds, out var dataAfterIgnored);
 
                 if (afterIndex < 0) {
                     // use stepped interpolation if no end bound exists.
@@ -1327,18 +1304,17 @@ namespace HistoricalAccess {
                 values.AddLast(value);
             }
 
-            var request = new HistoryReadRequest {
+            return new HistoryReadRequest {
                 Values = values,
                 NumValuesPerNode = 0,
                 Filter = null
             };
-            return request;
         }
 
         /// <summary>
         /// Extracts and queues any processed values.
         /// </summary>
-        private void QueueProcessedValues(
+        private static void QueueProcessedValues(
             ServerSystemContext context,
             IAggregateCalculator calculator,
             NumericRange indexRange,
@@ -1372,7 +1348,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Creates a new history request.
         /// </summary>
-        private DataValue RowToDataValue(
+        private static DataValue RowToDataValue(
             ISystemContext context,
             HistoryReadValueId nodeToRead,
             DataRowView row,
@@ -1436,7 +1412,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Loads a history continuation point.
         /// </summary>
-        private HistoryReadRequest LoadContinuationPoint(
+        private static HistoryReadRequest LoadContinuationPoint(
             ServerSystemContext context,
             byte[] continuationPoint) {
             var session = context.OperationContext.Session;
@@ -1444,7 +1420,6 @@ namespace HistoricalAccess {
             if (session == null) {
                 return null;
             }
-
 
             if (!(session.RestoreHistoryContinuationPoint(continuationPoint) is HistoryReadRequest request)) {
                 return null;
@@ -1456,7 +1431,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Saves a history continuation point.
         /// </summary>
-        private byte[] SaveContinuationPoint(
+        private static byte[] SaveContinuationPoint(
             ServerSystemContext context,
             HistoryReadRequest request) {
             var session = context.OperationContext.Session;

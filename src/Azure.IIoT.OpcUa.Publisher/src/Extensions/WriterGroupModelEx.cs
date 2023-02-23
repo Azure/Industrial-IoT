@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Extensions for data set writer
     /// </summary>
     public static class WriterGroupModelEx {
-
         /// <summary>
         /// Convert to message trigger configuration
         /// </summary>

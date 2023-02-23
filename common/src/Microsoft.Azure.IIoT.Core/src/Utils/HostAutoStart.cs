@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// Host auto starter
     /// </summary>
     public class HostAutoStart : IDisposable, IStartable {
-
         /// <summary>
         /// Create host auto starter
         /// </summary>
@@ -30,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         public void Start() {
             try {
                 _logger.LogDebug("Starting all hosts...");
-                Task.WhenAll(_host.Select(async h => await h.StartAsync())).Wait();
+                Task.WhenAll(_host.Select(async h => await h.StartAsync().ConfigureAwait(false))).Wait();
                 _logger.LogInformation("All hosts started.");
             }
             catch (Exception ex) {
@@ -44,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Utils {
             try {
                 _logger.LogDebug("Stopping all hosts...");
                 Task.WhenAll(_host.OfType<IAsyncDisposable>()
-                    .Select(async h => await h.DisposeAsync())).Wait();
+                    .Select(async h => await h.DisposeAsync().ConfigureAwait(false))).Wait();
                 _logger.LogInformation("All hosts stopped.");
             }
             catch (Exception ex) {

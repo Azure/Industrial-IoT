@@ -36,7 +36,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
     /// Publisher module
     /// </summary>
     public class ModuleProcess : IProcessControl {
-
         /// <summary>
         /// Create process
         /// </summary>
@@ -57,16 +56,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
 
         /// <inheritdoc/>
         public void Exit(int exitCode) {
-
             // Shut down gracefully.
             _exitCode = exitCode;
             _exit.TrySetResult(true);
 
             if (Host.IsContainer) {
                 // Set timer to kill the entire process after 5 minutes.
-                _ = new Timer(o => {
-                    Process.GetCurrentProcess().Kill();
-                }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+                _ = new Timer(o => Process.GetCurrentProcess().Kill(), null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
             }
         }
 
@@ -91,14 +87,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
                     var server = new MetricServer(port: kPublisherPrometheusPort);
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
-                        logger.LogInformation("Starting module OpcPublisher version {version}.", version);
+                        logger.LogInformation("Starting module OpcPublisher version {Version}.", version);
                         logger.LogInformation("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
 
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, "OpcPublisher",
                             version, this).ConfigureAwait(false);
-                        await client.StartAsync();
+                        await client.StartAsync().ConfigureAwait(false);
 
                         // Reporting runtime state on restart.
                         // Reporting will happen only in stadalone mode.
@@ -129,14 +125,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
             }
         }
 
-
         /// <summary>
         /// Autofac configuration.
         /// </summary>
         /// <param name="configuration"></param>
         /// <returns></returns>
         private IContainer ConfigureContainer(IConfiguration configuration) {
-
             var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
 

@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
     /// Json encoder decoder tests
     /// </summary>
     public class JsonNetworkMessageEncoderDecoderTests {
-
         public const JsonNetworkMessageContentMask NetworkMessageContentMaskDefault =
             JsonNetworkMessageContentMask.PublisherId |
             JsonNetworkMessageContentMask.NetworkMessageHeader |
@@ -380,7 +379,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         /// </summary>
         private static JsonNetworkMessage CreateNetworkMessage(
             JsonNetworkMessageContentMask contentMask, List<BaseDataSetMessage> messages) {
-            var networkMessage = new JsonNetworkMessage {
+            return new JsonNetworkMessage {
                 MessageId = () => "9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
                 Messages = messages,
                 DataSetWriterGroup = "group",
@@ -388,7 +387,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
                 PublisherId = "PublisherId",
                 NetworkMessageContentMask = (uint)contentMask
             };
-            return networkMessage;
         }
         /// <summary>
         /// Create dataset message

@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     [DataContract]
     public class EventModel {
-
         /// <summary>
         /// Properties of the event
         /// </summary>

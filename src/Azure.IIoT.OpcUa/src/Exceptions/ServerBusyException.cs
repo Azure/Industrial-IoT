@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Exceptions {
     /// Thrown when failing to connect to resource
     /// </summary>
     public class ServerBusyException : ExternalDependencyException {
-
         /// <inheritdoc/>
         public ServerBusyException(string message) :
             base(message) {

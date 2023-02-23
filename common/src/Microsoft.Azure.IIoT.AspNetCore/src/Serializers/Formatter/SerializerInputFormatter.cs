@@ -15,8 +15,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Serializers {
     /// <summary>
     /// Input Formatter
     /// </summary>
-    public class SerializerInputFormatter : InputFormatter {
-
+    public sealed class SerializerInputFormatter : InputFormatter {
         /// <summary>
         /// Create formatter
         /// </summary>
@@ -40,9 +39,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Serializers {
             if (contentLength > 0 && contentLength < memoryThreshold) {
                 memoryThreshold = (int)contentLength;
             }
-            var memory = await request.Body.ReadAsMemoryAsync(memoryThreshold);
+            var memory = await request.Body.ReadAsMemoryAsync(memoryThreshold).ConfigureAwait(false);
             var result = _serializer.Deserialize(memory, context.ModelType);
-            return await InputFormatterResult.SuccessAsync(result);
+            return await InputFormatterResult.SuccessAsync(result).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>

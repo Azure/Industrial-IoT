@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Furly.Exceptions;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Configuration;
@@ -18,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     /// Console host for servers
     /// </summary>
     public class ServerConsoleHost : IServerHost {
-
         /// <inheritdoc/>
         public X509Certificate2 Certificate { get; private set; }
         /// <inheritdoc/>
@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <inheritdoc/>
         public async Task StopAsync() {
             if (_server != null) {
-                await _lock.WaitAsync();
+                await _lock.WaitAsync().ConfigureAwait(false);
                 try {
                     if (_server != null) {
                         _logger.LogInformation("Stopping server.");
@@ -68,10 +68,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <inheritdoc/>
         public async Task StartAsync(IEnumerable<int> ports) {
             if (_server == null) {
-                await _lock.WaitAsync();
+                await _lock.WaitAsync().ConfigureAwait(false);
                 try {
                     if (_server == null) {
-                        await StartServerInternalAsync(ports, PkiRootPath);
+                        await StartServerInternalAsync(ports, PkiRootPath).ConfigureAwait(false);
                         return;
                     }
                 }
@@ -110,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             config = ApplicationInstance.FixupAppConfig(config);
 
             _logger.LogInformation("Validate configuration...");
-            await config.Validate(config.ApplicationType);
+            await config.Validate(config.ApplicationType).ConfigureAwait(false);
 
             _logger.LogInformation("Initialize certificate validation...");
             var application = new ApplicationInstance(config);
@@ -118,21 +118,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             // check the application certificate.
             var hasAppCertificate =
                 await application.CheckApplicationInstanceCertificate(true,
-                    CertificateFactory.DefaultKeySize);
+                    CertificateFactory.DefaultKeySize).ConfigureAwait(false);
             if (!hasAppCertificate) {
                 _logger.LogError("Failed validating own certificate!");
-                throw new Exception("Application instance certificate invalid!");
+                throw new InvalidConfigurationException("Application instance certificate invalid!");
             }
 
             config.CertificateValidator.CertificateValidation += (v, e) => {
                 if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
                     e.Accept = AutoAccept;
-                    _logger.LogInformation((e.Accept ? "Accepted" : "Rejected") +
-                        " Certificate {subject}", e.Certificate.Subject);
+                    _logger.LogInformation("{Action} Certificate {Subject}",
+                        e.Accept ? "Accepted" : "Rejected", e.Certificate.Subject);
                 }
             };
 
-            await config.CertificateValidator.Update(config.SecurityConfiguration);
+            await config.CertificateValidator.Update(config.SecurityConfiguration).ConfigureAwait(false);
 
             // Set Certificate
             try {
@@ -145,10 +145,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
             _logger.LogInformation("Starting server ...");
             // start the server.
-            await application.Start(_server);
+            await application.Start(_server).ConfigureAwait(false);
 
             foreach (var ep in config.ServerConfiguration.BaseAddresses) {
-                _logger.LogInformation("Listening on {ep}", ep);
+                _logger.LogInformation("Listening on {Endpoint}", ep);
             }
             _logger.LogInformation("Server started.");
         }

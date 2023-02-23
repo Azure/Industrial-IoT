@@ -31,7 +31,6 @@ namespace Boiler {
     using Opc.Ua;
 
     public partial class BoilerStateMachineState {
-
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
@@ -58,6 +57,5 @@ namespace Boiler {
             Reset.OnReadExecutable = IsResetExecutable;
             Reset.OnReadUserExecutable = IsResetUserExecutable;
         }
-
     }
 }

@@ -15,19 +15,18 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// Uses developer tool or Az cache as authentication
     /// </summary>
     public class DevAuthenticationClient : AppAuthenticationBase {
-
         /// <inheritdoc/>
         public DevAuthenticationClient(IClientAuthConfig config, ILogger logger) :
             base(logger) {
             _config = config?.Providers?
                 .Where(c => c.Provider == AuthProvider.Msi || c.Provider == AuthProvider.AzureAD)
-                .Where(c => c.Audience != null && Regex.IsMatch(c.Audience, @"^[0-9a-zA-Z-.:/]+$"))
+                .Where(c => c.Audience != null && Regex.IsMatch(c.Audience, "^[0-9a-zA-Z-.:/]+$"))
                 .SelectMany(CreateProvider)
                 .ToList();
         }
 
         /// <inheritdoc/>
-        protected override IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> Get(string resource) {
+        protected override IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> GetProvider(string resource) {
             return _config.Where(c => c.Key == resource).Select(c => c.Value);
         }
 

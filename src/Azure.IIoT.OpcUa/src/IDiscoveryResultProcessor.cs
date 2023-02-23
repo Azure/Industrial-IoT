@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Discovery processing
     /// </summary>
     public interface IDiscoveryResultProcessor {
-
         /// <summary>
         /// Consolidate any existing applications with the
         /// provided discovery events list from the supervisor.

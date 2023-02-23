@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa {
     /// Notified when endpoint registry changes
     /// </summary>
     public interface IEndpointRegistryListener {
-
         /// <summary>
         /// New endpoint
         /// </summary>

@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// inside the publisher during runtime.
     /// </summary>
     public interface IPublisherDiagnosticCollector {
-
         /// <summary>
         /// Remove writer group from collector
         /// </summary>

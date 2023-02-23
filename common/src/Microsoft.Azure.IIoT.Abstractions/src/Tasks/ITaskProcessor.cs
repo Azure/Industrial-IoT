@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Tasks {
     /// scheduler.
     /// </summary>
     public interface ITaskProcessor : IDisposable {
-
         /// <summary>
         /// The processors task scheduler
         /// </summary>

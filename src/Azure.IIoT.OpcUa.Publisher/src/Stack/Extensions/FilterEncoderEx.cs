@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Filter conversion
     /// </summary>
     public static class FilterEncoderEx {
-
         /// <summary>
         /// Gets a default event filter.
         /// </summary>
@@ -61,8 +60,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <summary>
         /// Convert to stack model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="encoder"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
         public static EventFilterModel Encode(this IVariantEncoder encoder, EventFilter model) {
             if (model == null) {
@@ -98,8 +97,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <summary>
         /// Convert to service model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="encoder"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
         public static ContentFilterModel Encode(this IVariantEncoder encoder, ContentFilter model) {
             if (model == null) {
@@ -136,8 +135,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <summary>
         /// Convert to service model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="encoder"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
         public static ContentFilterElementModel Encode(this IVariantEncoder encoder,
             ContentFilterElement model) {

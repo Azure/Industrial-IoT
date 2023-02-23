@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
     /// Discovery progress logger
     /// </summary>
     public class ProgressLogger : IDiscoveryProgress {
-
         /// <summary>
         /// Create listener
         /// </summary>

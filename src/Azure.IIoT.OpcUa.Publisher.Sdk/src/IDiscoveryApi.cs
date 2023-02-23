@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
     /// Discovery api
     /// </summary>
     public interface IDiscoveryApi {
-
         /// <summary>
         /// Kick off onboarding of new server
         /// </summary>

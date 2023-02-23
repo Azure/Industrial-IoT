@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class MethodMetadataResponseModel {
-
         /// <summary>
         /// Id of object that the method is a component of
         /// </summary>

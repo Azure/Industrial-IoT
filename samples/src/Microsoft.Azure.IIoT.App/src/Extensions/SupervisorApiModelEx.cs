@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.App.Extensions {
     /// Handle event
     /// </summary>
     public static class SupervisorModelEx {
-
         /// <summary>
         /// Update a list of supervisors from a received event
         /// </summary>

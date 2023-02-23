@@ -43,7 +43,6 @@ namespace TestData {
     }
 
     public class TestDataSystem : IDisposable {
-
         public TestDataSystem(ITestDataSystemCallback callback,
             NamespaceTable namespaceUris, StringTable serverUris) {
             _callback = callback;

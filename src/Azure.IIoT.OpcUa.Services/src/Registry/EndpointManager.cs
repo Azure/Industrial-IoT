@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     /// registry
     /// </summary>
     public sealed class EndpointManager : IEndpointManager {
-
         /// <summary>
         /// Create endpoint manager
         /// </summary>
@@ -30,11 +29,11 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         /// <summary/>
         public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
             CancellationToken ct = default) {
-            var application = await _discovery.FindServerAsync(query, ct);
+            var application = await _discovery.FindServerAsync(query, ct).ConfigureAwait(false);
             if (application == null) {
                 throw new ResourceNotFoundException("Could not find any endpoint");
             }
-            var registered = await _registry.AddDiscoveredApplicationAsync(application, ct);
+            var registered = await _registry.AddDiscoveredApplicationAsync(application, ct).ConfigureAwait(false);
             return registered.Endpoints.Single().Id;
         }
 

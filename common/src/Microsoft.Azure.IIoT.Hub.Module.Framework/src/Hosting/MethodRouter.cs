@@ -22,7 +22,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     /// Provides request routing to module controllers
     /// </summary>
     public sealed class MethodRouter : IMethodRouter, IMethodHandler {
-
         /// <summary>
         /// Property Di to prevent circular dependency between host and controller
         /// </summary>
@@ -66,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             const int kMaxMessageSize = 127 * 1024;
             try {
                 var result = await InvokeAsync(request.Name, request.Data,
-                    ContentMimeType.Json);
+                    ContentMimeType.Json).ConfigureAwait(false);
                 if (result.Length > kMaxMessageSize) {
                     _logger.LogError("Result (Payload too large => {Length}", result.Length);
                     return new MethodResponse((int)HttpStatusCode.RequestEntityTooLarge);
@@ -90,7 +89,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 throw new NotSupportedException(
                     $"Unknown controller method {method} called.");
             }
-            return await invoker.InvokeAsync(payload, contentType, this);
+            return await invoker.InvokeAsync(payload, contentType, this).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -149,7 +148,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Encapsulates invoking a matching service on the controller
         /// </summary>
         private class DynamicInvoker : IMethodInvoker {
-
             /// <inheritdoc/>
             public string MethodName { get; private set; }
 
@@ -168,7 +166,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="controllerMethod"></param>
             /// <param name="serializer"></param>
             public void Add(object controller, MethodInfo controllerMethod, IJsonSerializer serializer) {
-                _logger.LogTrace("Adding {controller}.{method} method to invoker...",
+                _logger.LogTrace("Adding {Controller}.{Method} method to invoker...",
                     controller.GetType().Name, controllerMethod.Name);
                 _invokers.Add(new JsonMethodInvoker(controller, controllerMethod, serializer, _logger));
                 MethodName = controllerMethod.Name;
@@ -180,7 +178,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 Exception e = null;
                 foreach (var invoker in _invokers) {
                     try {
-                        return await invoker.InvokeAsync(payload, contentType, handler);
+                        return await invoker.InvokeAsync(payload, contentType, handler).ConfigureAwait(false);
                     }
                     catch (Exception ex) {
                         // Save last, and continue
@@ -206,7 +204,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Invokes a method with json payload
         /// </summary>
         private class JsonMethodInvoker : IMethodInvoker {
-
             /// <inheritdoc/>
             public string MethodName => _controllerMethod.Name;
 
@@ -272,7 +269,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     task = Task.FromException(e);
                 }
                 if (_methodTaskContinuation == null) {
-                    return VoidContinuation((Task)task);
+                    return VoidContinuationAsync((Task)task);
                 }
                 return (Task<byte[]>)_methodTaskContinuation.Invoke(this, new[] {
                     task
@@ -290,7 +287,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <typeparam name="T"></typeparam>
             /// <param name="task"></param>
             /// <returns></returns>
-            public Task<byte[]> MethodResultConverterContinuation<T>(Task<T> task) {
+            public Task<byte[]> MethodResultConverterContinuationAsync<T>(Task<T> task) {
                 return task.ContinueWith(tr => {
                     if (tr.IsFaulted || tr.IsCanceled) {
                         var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
@@ -303,7 +300,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         throw new MethodCallStatusException(ex != null ?
                            _serializer.SerializeToString(ex) : null, status);
                     }
-                    return _serializer.SerializeToBytes(tr.Result).ToArray();
+                    return _serializer.SerializeToMemory((object)tr.Result).ToArray();
                 });
             }
 
@@ -313,7 +310,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             /// <param name="task"></param>
             /// <returns></returns>
-            public Task<byte[]> VoidContinuation(Task task) {
+            public Task<byte[]> VoidContinuationAsync(Task task) {
                 return task.ContinueWith(tr => {
                     if (tr.IsFaulted || tr.IsCanceled) {
                         var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
@@ -331,7 +328,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
 
             private static readonly MethodInfo _methodResponseAsContinuation =
-                typeof(JsonMethodInvoker).GetMethod(nameof(MethodResultConverterContinuation),
+                typeof(JsonMethodInvoker).GetMethod(nameof(MethodResultConverterContinuationAsync),
                     BindingFlags.Public | BindingFlags.Instance);
             private readonly IJsonSerializer _serializer;
             private readonly ILogger _logger;

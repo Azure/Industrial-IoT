@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method,
         AllowMultiple = false, Inherited = true)]
     public abstract class ExceptionFilterAttribute : Attribute {
-
         /// <summary>
         /// Default constructor
         /// </summary>

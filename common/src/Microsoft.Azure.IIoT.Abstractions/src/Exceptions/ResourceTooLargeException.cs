@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// storage allocation
     /// </summary>
     public class ResourceTooLargeException : Exception {
-
         /// <summary>
         /// Actual size
         /// </summary>
@@ -30,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// <param name="maxSize"></param>
         public ResourceTooLargeException(string message,
             int size, int maxSize) : base(message) {
-
             Size = size;
             MaxSize = maxSize;
         }

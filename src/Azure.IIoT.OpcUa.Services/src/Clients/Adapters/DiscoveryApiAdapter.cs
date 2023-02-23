@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
     /// </summary>
     public sealed class DiscoveryApiAdapter : IDiscoveryServices,
         IServerDiscovery {
-
         /// <summary>
         /// Create adapter
         /// </summary>
@@ -27,26 +26,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
         /// <inheritdoc/>
         public async Task RegisterAsync(ServerRegistrationRequestModel request,
             CancellationToken ct = default) {
-            await _client.RegisterAsync(request, ct);
+            await _client.RegisterAsync(request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task DiscoverAsync(DiscoveryRequestModel request,
             CancellationToken ct = default) {
-            await _client.DiscoverAsync(request, ct);
+            await _client.DiscoverAsync(request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task CancelAsync(DiscoveryCancelRequestModel request,
             CancellationToken ct = default) {
-            await _client.CancelAsync(request, ct);
+            await _client.CancelAsync(request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationModel> FindServerAsync(
             ServerEndpointQueryModel query, CancellationToken ct = default) {
-            var result = await _client.FindServerAsync(query, ct);
-            return result;
+            return await _client.FindServerAsync(query, ct).ConfigureAwait(false);
         }
 
         private readonly IDiscoveryApi _client;

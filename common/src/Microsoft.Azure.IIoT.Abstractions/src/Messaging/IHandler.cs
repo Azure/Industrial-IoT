@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging {
-
     /// <summary>
     /// Handles things
     /// </summary>

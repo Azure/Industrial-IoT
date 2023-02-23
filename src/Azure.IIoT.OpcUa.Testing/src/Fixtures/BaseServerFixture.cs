@@ -19,12 +19,12 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
     using System.Threading;
     using System.Threading.Tasks;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Furly.Extensions.Serializers.Json;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
     /// </summary>
     public abstract class BaseServerFixture : IDisposable {
-
         /// <summary>
         /// Port server is listening on
         /// </summary>
@@ -59,9 +59,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
             }
             Logger = Log.Console<BaseServerFixture>(LogLevel.Debug);
             _config = new TestClientServicesConfig();
-            _client = new Lazy<OpcUaClientManager>(() => {
-                return new OpcUaClientManager(Logger, _config, new NewtonsoftJsonSerializer());
-            }, false);
+            _client = new Lazy<OpcUaClientManager>(() => new OpcUaClientManager(Logger, _config, new DefaultJsonSerializer()), false);
             PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
                Guid.NewGuid().ToByteArray().ToBase16String());
             var port = Interlocked.Increment(ref _nextPort);
@@ -74,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
                         PkiRootPath = PkiRootPath,
                         AutoAccept = true
                     };
-                    Logger.LogInformation("Starting server host on {port}...",
+                    Logger.LogInformation("Starting server host on {Port}...",
                         port);
                     _serverHost.StartAsync(new int[] { port }).Wait();
                     Port = port;
@@ -82,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
                 }
                 catch (Exception ex) {
                     port = Interlocked.Increment(ref _nextPort);
-                    Logger.LogError(ex, "Failed to start server host, retrying {port}...",
+                    Logger.LogError(ex, "Failed to start server host, retrying {Port}...",
                         port);
                 }
             }

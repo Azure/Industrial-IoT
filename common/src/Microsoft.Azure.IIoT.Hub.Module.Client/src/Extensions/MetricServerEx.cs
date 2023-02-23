@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// Metric Server extensions
     /// </summary>
     public static class MetricServerEx {
-
         /// <summary>
         /// Start metric server
         /// </summary>
@@ -26,12 +25,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 catch (HttpListenerException e) {
                     logger.LogError(e, "Unable to start metric server. For more info, please check troubleshooting guide for edge metrics collection");
                 }
-
             }
             else {
                 logger.LogInformation("Metrics Collection is disabled. Not starting prometheus metric server.");
             }
-
         }
 
         /// <summary>

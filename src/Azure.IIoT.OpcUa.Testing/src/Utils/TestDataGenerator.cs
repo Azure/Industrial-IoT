@@ -41,7 +41,6 @@ namespace Opc.Ua.Test {
     /// is consistent for the use in unit tests.
     /// </summary>
     public class TestDataGenerator {
-
         /// <summary>
         /// Set max array length
         /// </summary>
@@ -96,8 +95,7 @@ namespace Opc.Ua.Test {
             MaxDateTimeValue = new DateTime(2100, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             NamespaceUris = new NamespaceTable();
             ServerUris = new StringTable();
-            _random = random;
-            _random ??= new RandomSource();
+            _random = random ?? new RandomSource();
             _boundaryValues = new SortedDictionary<string, object[]>();
             for (var i = 0; i < kAvailableBoundaryValues.Length; i++) {
                 _boundaryValues[kAvailableBoundaryValues[i].SystemType.Name] =
@@ -128,14 +126,14 @@ namespace Opc.Ua.Test {
             var num = 0;
             switch (valueRank) {
                 case -2:
-                    num = (arrayDimensions == null || arrayDimensions.Count <= 0) ?
+                    num = (arrayDimensions == null || arrayDimensions.Count == 0) ?
                         GetRandomRange(0, 1) : arrayDimensions.Count;
                     break;
                 case -3:
                     num = GetRandomRange(0, 1);
                     break;
                 case 0:
-                    num = (arrayDimensions == null || arrayDimensions.Count <= 0) ?
+                    num = (arrayDimensions == null || arrayDimensions.Count == 0) ?
                         GetRandomRange(1, 1) : arrayDimensions.Count;
                     break;
                 case -1:
@@ -622,7 +620,6 @@ namespace Opc.Ua.Test {
             return GetRandomVariant(builtInType, allowArrays && _random.NextInt32(1) == 1);
         }
 
-
         private bool UseBoundaryValue() {
             if (!_useBoundaryValues) {
                 return false;
@@ -634,7 +631,7 @@ namespace Opc.Ua.Test {
             int length, bool fixedLength) {
             var randomArray = GetRandomArray(builtInType, length, fixedLength);
             var array = new Variant[randomArray.Length];
-            var typeInfo = new Opc.Ua.TypeInfo(builtInType, -1);
+            var typeInfo = new Ua.TypeInfo(builtInType, -1);
             for (var i = 0; i < array.Length; i++) {
                 array[i] = new Variant(randomArray.GetValue(i), typeInfo);
             }
@@ -721,7 +718,7 @@ namespace Opc.Ua.Test {
             try {
                 string text = null;
                 List<string> list = null;
-                var stream = typeof(Opc.Ua.Test.DataGenerator).GetTypeInfo().Assembly.GetManifestResourceStream(resourceName);
+                var stream = typeof(DataGenerator).GetTypeInfo().Assembly.GetManifestResourceStream(resourceName);
                 if (stream == null) {
                     var fileInfo = new FileInfo(resourceName);
                     stream = fileInfo.OpenRead();
@@ -820,7 +817,6 @@ namespace Opc.Ua.Test {
         /// Boundary value holder
         /// </summary>
         private class BoundaryValues {
-
             public Type SystemType { get; set; }
 
             public List<object> Values { get; set; }

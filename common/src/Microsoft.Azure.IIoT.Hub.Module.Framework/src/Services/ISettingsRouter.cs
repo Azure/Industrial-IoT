@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Services {
     /// Route the settings to the right controller implementations
     /// </summary>
     public interface ISettingsRouter {
-
         /// <summary>
         /// Process desired and return reported
         /// </summary>

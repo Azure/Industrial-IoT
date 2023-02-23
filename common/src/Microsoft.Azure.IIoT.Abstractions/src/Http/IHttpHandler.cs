@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Injectable http client handler
     /// </summary>
     public interface IHttpHandler {
-
         /// <summary>
         /// Predicate to filter handlers per resource id.
         /// </summary>

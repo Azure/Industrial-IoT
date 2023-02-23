@@ -37,7 +37,6 @@ namespace TestData {
     /// A class that provides access to archived data.
     /// </summary>
     internal class HistoryArchive : IDisposable {
-
         /// <summary>
         /// Frees any unmanaged resources.
         /// </summary>
@@ -65,7 +64,6 @@ namespace TestData {
                 if (_records == null) {
                     return null;
                 }
-
 
                 if (!_records.TryGetValue(nodeId, out var record)) {
                     return null;
@@ -153,12 +151,9 @@ namespace TestData {
             }
         }
 
-
-
         private readonly object _lock = new();
         private Timer _updateTimer;
         private Dictionary<NodeId, HistoryRecord> _records;
-
     }
 
     /// <summary>

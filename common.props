@@ -15,8 +15,6 @@
     <HighEntropyVA>true</HighEntropyVA>
     <NeutralLanguage>en-US</NeutralLanguage>
     <LangVersion>10.0</LangVersion>
-    <AnalysisLevel>5</AnalysisLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <IsPackable>false</IsPackable>
 
     <Nullable>disable</Nullable>
@@ -37,25 +35,17 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
     <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.119" PrivateAssets="All"/>
   </ItemGroup>
-  <ItemGroup Condition="'$(FX_COP)' != ''">
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0" />
-  </ItemGroup>
-  <PropertyGroup Condition="'$(FX_COP)' != ''">
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
-  </PropertyGroup>
   <PropertyGroup>
     <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>All</AnalysisMode>
+    <AnalysisLevel>preview</AnalysisLevel>
+    <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
   </PropertyGroup>
-  <PropertyGroup>
-    <PrereleaseSuffix>$(PrereleaseVersionNoLeadingHyphen)-$(GitCommitIdShort)</PrereleaseSuffix>
-    <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' != ''">[$(NuGetPackageVersion)]</PrereleaseVersion>
-    <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' == ''">$(VersionPrefix)-$(PrereleaseVersion)*</PrereleaseVersion>
-    <PrereleaseVersion Condition="'$(PublicRelease)' == 'True'">$(VersionPrefix)-*</PrereleaseVersion>
-    <ReleaseVersion Condition="'$(PublicRelease)' == 'True'">$(VersionPrefix)</ReleaseVersion>
-    <ReleaseVersion Condition="'$(PublicRelease)' == 'False'">$(NuGetPackageVersion)</ReleaseVersion>
-  </PropertyGroup>
+  <ItemGroup Condition="$(NO_RCS) == ''">
+    <PackageReference Include="Roslynator.Analyzers" Version="4.1.2" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.1.2" PrivateAssets="All"/>
+  </ItemGroup>
   <!-- only create the SARIF files for the SDL build step in cloud builds -->
   <PropertyGroup Condition="'$(NBGV_NugetPackageVersion)' != ''">
     <ErrorLog>$(MSBuildProjectFullPath).$([System.Guid]::NewGuid().ToString().Substring(0,8)).sarif</ErrorLog>

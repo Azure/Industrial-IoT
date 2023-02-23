@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Publisher registration extensions
     /// </summary>
     public static class PublisherRegistrationEx {
-
         /// <summary>
         /// Create device twin
         /// </summary>
@@ -35,7 +34,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="serializer"></param>
         public static DeviceTwinModel Patch(this PublisherRegistration existing,
             PublisherRegistration update, IJsonSerializer serializer) {
-
             var twin = new DeviceTwinModel {
                 Etag = existing?.Etag,
                 Tags = new Dictionary<string, VariantValue>(),
@@ -89,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
             var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
 
-            var registration = new PublisherRegistration {
+            return new PublisherRegistration {
                 // Device
 
                 DeviceId = twin.Id,
@@ -115,7 +113,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                 Type =
                     properties.GetValueOrDefault<string>(TwinProperty.Type, null)
             };
-            return registration;
         }
 
         /// <summary>
@@ -143,7 +140,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <returns></returns>
         public static PublisherRegistration ToPublisherRegistration(this DeviceTwinModel twin,
             bool onlyServerState, out bool connected) {
-
             if (twin == null) {
                 connected = false;
                 return null;

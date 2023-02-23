@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// Model extensions
     /// </summary>
     public static class DeviceTwinModelEx {
-
         /// <summary>
         /// Check whether twin is connected
         /// </summary>
@@ -69,7 +68,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <returns></returns>
         public static Dictionary<string, VariantValue> GetConsolidatedProperties(
             this DeviceTwinModel model) {
-
             var desired = model.Properties?.Desired;
             var reported = model.Properties?.Reported;
             if (reported == null || desired == null) {
@@ -82,8 +80,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
             // Merge with reported
             foreach (var prop in reported) {
                 if (properties.TryGetValue(prop.Key, out var existing)) {
-                    if (VariantValueEx.IsNull(existing) || VariantValueEx.IsNull(prop.Value)) {
-                        if (VariantValueEx.IsNull(existing) && VariantValueEx.IsNull(prop.Value)) {
+                    if (existing.IsNull() || prop.Value.IsNull()) {
+                        if (existing.IsNull() && prop.Value.IsNull()) {
                             continue;
                         }
                     }

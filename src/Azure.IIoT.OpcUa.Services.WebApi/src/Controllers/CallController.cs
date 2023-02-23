@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
     public class CallController : ControllerBase {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -49,9 +48,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var metadataresult = await _nodes.GetMethodMetadataAsync(
-                endpointId, request);
-            return metadataresult;
+            return await _nodes.GetMethodMetadataAsync(
+                endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -73,8 +71,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
 
             // TODO: Permissions
 
-            var callresult = await _nodes.MethodCallAsync(endpointId, request);
-            return callresult;
+            return await _nodes.MethodCallAsync(endpointId, request).ConfigureAwait(false);
         }
 
         private readonly INodeServices<string> _nodes;

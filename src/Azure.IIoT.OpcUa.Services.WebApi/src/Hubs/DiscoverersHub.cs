@@ -15,6 +15,5 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     [Route("v2/discovery/events")]
     [Authorize(Policy = Policies.CanRead)]
     public class DiscoverersHub : Hub {
-
     }
 }

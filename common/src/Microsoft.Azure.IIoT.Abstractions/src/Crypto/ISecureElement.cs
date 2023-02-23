@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Crypto {
     /// Cryptographic primitives
     /// </summary>
     public interface ISecureElement {
-
         /// <summary>
         /// Decrypt
         /// </summary>

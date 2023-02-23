@@ -22,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
     public class DeleteController : ControllerBase {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -48,8 +47,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryDeleteValuesAtTimesAsync(endpointId, request);
-            return writeResult;
+            return await _historian.HistoryDeleteValuesAtTimesAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -69,8 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryDeleteValuesAsync(endpointId, request);
-            return writeResult;
+            return await _historian.HistoryDeleteValuesAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -90,8 +87,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryDeleteModifiedValuesAsync(endpointId, request);
-            return writeResult;
+            return await _historian.HistoryDeleteModifiedValuesAsync(endpointId, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -111,8 +107,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryDeleteEventsAsync(endpointId, request);
-            return writeResult;
+            return await _historian.HistoryDeleteEventsAsync(endpointId, request).ConfigureAwait(false);
         }
 
         private readonly IHistoryServices<string> _historian;

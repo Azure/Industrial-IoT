@@ -10,12 +10,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
     using Xunit;
 
     public class EncodeableDictionaryTests {
-
         [Fact]
         public void WriteReadKeyDataValuePairs() {
-            var expectedKey1 = "Key1";
-            var expectedKey2 = "Key2";
-            var expectedKey3 = "Key3";
+            const string expectedKey1 = "Key1";
+            const string expectedKey2 = "Key2";
+            const string expectedKey3 = "Key3";
             var expectedValue1 = new DataValue(new Variant(123));
             var expectedValue2 = new DataValue(new Variant(456));
             var expectedValue3 = new DataValue(new Variant(789));
@@ -29,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             byte[] buffer;
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream()) {
-                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.Object)) {
+                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.StartObject)) {
                     encodeableDictionary.Encode(encoder);
                 }
 
@@ -60,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             byte[] buffer;
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream()) {
-                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.Object)) {
+                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.StartObject)) {
                     encodeableDictionary.Encode(encoder);
                 }
 
@@ -91,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             byte[] buffer;
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream()) {
-                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.Object)) {
+                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.StartObject)) {
                     encodeableDictionary.Encode(encoder);
                 }
 
@@ -111,9 +110,9 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void WriteReadNoNullKeyDataValuePairs() {
-            var expectedKey1 = "Key1";
-            var expectedKey2 = "Key2";
-            var expectedKey3 = "Key3";
+            const string expectedKey1 = "Key1";
+            const string expectedKey2 = "Key2";
+            const string expectedKey3 = "Key3";
 
             var encodeableDictionary = new EncodeableDictionary {
                 new KeyDataValuePair { Key = expectedKey1, Value = null },
@@ -124,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             byte[] buffer;
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream()) {
-                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.Object)) {
+                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.StartObject)) {
                     encodeableDictionary.Encode(encoder);
                 }
 

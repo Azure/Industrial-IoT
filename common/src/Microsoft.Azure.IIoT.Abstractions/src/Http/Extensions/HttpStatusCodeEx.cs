@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Http status code extensions
     /// </summary>
     public static class HttpStatusCodeEx {
-
         /// <summary>
         /// True if statusCode is an error
         /// </summary>

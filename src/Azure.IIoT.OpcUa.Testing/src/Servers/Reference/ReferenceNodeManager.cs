@@ -32,6 +32,7 @@ namespace Reference {
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Numerics;
     using System.Threading;
     using System.Xml;
@@ -40,7 +41,6 @@ namespace Reference {
     /// A node manager for a server that exposes several variables.
     /// </summary>
     public class ReferenceNodeManager : CustomNodeManager2 {
-
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -73,9 +73,7 @@ namespace Reference {
         /// Creates the NodeId for the specified node.
         /// </summary>
         public override NodeId New(ISystemContext context, NodeState node) {
-
             if (node is BaseInstanceState instance && instance.Parent != null) {
-
                 if (instance.Parent.NodeId.Identifier is string id) {
                     return new NodeId(id + "_" + instance.SymbolicName, instance.Parent.NodeId.NamespaceIndex);
                 }
@@ -128,8 +126,6 @@ namespace Reference {
             }
         }
 
-
-
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
@@ -140,7 +136,6 @@ namespace Reference {
         /// </remarks>
         public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
             lock (Lock) {
-
                 if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references)) {
                     externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
                 }
@@ -154,7 +149,6 @@ namespace Reference {
                 var variables = new List<BaseDataVariableState>();
 
                 try {
-
                     var scalarFolder = CreateFolder(root, "Scalar", "Scalar");
                     var scalarInstructions = CreateVariable(scalarFolder, "Scalar_Instructions", "Scalar_Instructions", DataTypeIds.String, ValueRanks.Scalar);
                     scalarInstructions.Value = "A library of Read/Write Variables of all supported data-types.";
@@ -191,15 +185,12 @@ namespace Reference {
 
                     var decimalVariable = CreateVariable(staticFolder, scalarStatic + "Decimal", "Decimal", DataTypeIds.DecimalDataType, ValueRanks.Scalar);
                     // Set an arbitrary precision decimal value.
-                    var largeInteger = BigInteger.Parse("1234567890123546789012345678901234567890123456789012345");
-                    var decimalValue = new DecimalDataType {
+                    var largeInteger = BigInteger.Parse("1234567890123546789012345678901234567890123456789012345", CultureInfo.InvariantCulture);
+                    decimalVariable.Value = new DecimalDataType {
                         Scale = 100,
                         Value = largeInteger.ToByteArray()
                     };
-                    decimalVariable.Value = decimalValue;
                     variables.Add(decimalVariable);
-
-
 
                     var arraysFolder = CreateFolder(staticFolder, "Scalar_Static_Arrays", "Arrays");
                     const string staticArrays = "Scalar_Static_Arrays_";
@@ -263,8 +254,6 @@ namespace Reference {
                     variables.Add(CreateVariable(arraysFolder, staticArrays + "Variant", "Variant", BuiltInType.Variant, ValueRanks.OneDimension));
                     variables.Add(CreateVariable(arraysFolder, staticArrays + "XmlElement", "XmlElement", DataTypeIds.XmlElement, ValueRanks.OneDimension));
 
-
-
                     var arrays2DFolder = CreateFolder(staticFolder, "Scalar_Static_Arrays2D", "Arrays2D");
                     const string staticArrays2D = "Scalar_Static_Arrays2D_";
                     variables.Add(CreateVariable(arrays2DFolder, staticArrays2D + "Boolean", "Boolean", DataTypeIds.Boolean, ValueRanks.TwoDimensions));
@@ -293,8 +282,6 @@ namespace Reference {
                     variables.Add(CreateVariable(arrays2DFolder, staticArrays2D + "UtcTime", "UtcTime", DataTypeIds.UtcTime, ValueRanks.TwoDimensions));
                     variables.Add(CreateVariable(arrays2DFolder, staticArrays2D + "Variant", "Variant", BuiltInType.Variant, ValueRanks.TwoDimensions));
                     variables.Add(CreateVariable(arrays2DFolder, staticArrays2D + "XmlElement", "XmlElement", DataTypeIds.XmlElement, ValueRanks.TwoDimensions));
-
-
 
                     var arrayDymnamicFolder = CreateFolder(staticFolder, "Scalar_Static_ArrayDymamic", "ArrayDymamic");
                     const string staticArraysDynamic = "Scalar_Static_ArrayDynamic_";
@@ -325,8 +312,6 @@ namespace Reference {
                     variables.Add(CreateVariable(arrayDymnamicFolder, staticArraysDynamic + "Variant", "Variant", BuiltInType.Variant, ValueRanks.OneOrMoreDimensions));
                     variables.Add(CreateVariable(arrayDymnamicFolder, staticArraysDynamic + "XmlElement", "XmlElement", DataTypeIds.XmlElement, ValueRanks.OneOrMoreDimensions));
 
-
-
                     // create 100 instances of each static scalar type
                     var massFolder = CreateFolder(staticFolder, "Scalar_Static_Mass", "Mass");
                     const string staticMass = "Scalar_Static_Mass_";
@@ -354,8 +339,6 @@ namespace Reference {
                     variables.AddRange(CreateVariables(massFolder, staticMass + "UtcTime", "UtcTime", DataTypeIds.UtcTime, ValueRanks.Scalar, 100));
                     variables.AddRange(CreateVariables(massFolder, staticMass + "Variant", "Variant", BuiltInType.Variant, ValueRanks.Scalar, 100));
                     variables.AddRange(CreateVariables(massFolder, staticMass + "XmlElement", "XmlElement", DataTypeIds.XmlElement, ValueRanks.Scalar, 100));
-
-
 
                     var simulationFolder = CreateFolder(scalarFolder, "Scalar_Simulation", "Simulation");
                     const string scalarSimulation = "Scalar_Simulation_";
@@ -394,8 +377,6 @@ namespace Reference {
                     enabledVariable.Value = _simulationEnabled;
                     enabledVariable.OnSimpleWriteValue = OnWriteEnabled;
 
-
-
                     var arraysSimulationFolder = CreateFolder(simulationFolder, "Scalar_Simulation_Arrays", "Arrays");
                     const string simulationArrays = "Scalar_Simulation_Arrays_";
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "Boolean", "Boolean", DataTypeIds.Boolean, ValueRanks.OneDimension);
@@ -424,8 +405,6 @@ namespace Reference {
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "UtcTime", "UtcTime", DataTypeIds.UtcTime, ValueRanks.OneDimension);
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "Variant", "Variant", BuiltInType.Variant, ValueRanks.OneDimension);
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "XmlElement", "XmlElement", DataTypeIds.XmlElement, ValueRanks.OneDimension);
-
-
 
                     var massSimulationFolder = CreateFolder(simulationFolder, "Scalar_Simulation_Mass", "Mass");
                     const string massSimulation = "Scalar_Simulation_Mass_";
@@ -456,8 +435,6 @@ namespace Reference {
                     CreateDynamicVariables(massSimulationFolder, massSimulation + "Variant", "Variant", BuiltInType.Variant, ValueRanks.Scalar, 100);
                     CreateDynamicVariables(massSimulationFolder, massSimulation + "XmlElement", "XmlElement", DataTypeIds.XmlElement, ValueRanks.Scalar, 100);
 
-
-
                     var daFolder = CreateFolder(root, "DataAccess", "DataAccess");
                     var daInstructions = CreateVariable(daFolder, "DataAccess_Instructions", "Instructions", DataTypeIds.String, ValueRanks.Scalar);
                     daInstructions.Value = "A library of Read/Write Variables of all supported data-types.";
@@ -470,12 +447,10 @@ namespace Reference {
                         var item = CreateDataItemVariable(dataItemFolder, daDataItem + name, name, (BuiltInType)Enum.Parse(typeof(BuiltInType), name), ValueRanks.Scalar);
 
                         // set initial value to String.Empty for String node.
-                        if (name == BuiltInType.String.ToString()) {
+                        if (name == nameof(BuiltInType.String)) {
                             item.Value = string.Empty;
                         }
                     }
-
-
 
                     var analogItemFolder = CreateFolder(daFolder, "DataAccess_AnalogType", "AnalogType");
                     const string daAnalogItem = "DataAccess_AnalogType_";
@@ -497,8 +472,6 @@ namespace Reference {
                             }
                         }
                     }
-
-
 
                     var analogArrayFolder = CreateFolder(analogItemFolder, "DataAccess_AnalogType_Array", "Array");
                     const string daAnalogArray = "DataAccess_AnalogType_Array_";
@@ -531,8 +504,6 @@ namespace Reference {
                     var doc1 = new XmlDocument();
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "XmlElement", "XmlElement", BuiltInType.XmlElement, ValueRanks.OneDimension, new XmlElement[] { doc1.CreateElement("tag1"), doc1.CreateElement("tag2"), doc1.CreateElement("tag3"), doc1.CreateElement("tag4"), doc1.CreateElement("tag5"), doc1.CreateElement("tag6"), doc1.CreateElement("tag7"), doc1.CreateElement("tag8"), doc1.CreateElement("tag9"), doc1.CreateElement("tag10") });
 
-
-
                     var discreteTypeFolder = CreateFolder(daFolder, "DataAccess_DiscreteType", "DiscreteType");
                     var twoStateDiscreteFolder = CreateFolder(discreteTypeFolder, "DataAccess_TwoStateDiscreteType", "TwoStateDiscreteType");
                     const string daTwoStateDiscrete = "DataAccess_TwoStateDiscreteType_";
@@ -554,8 +525,6 @@ namespace Reference {
                     CreateMultiStateDiscreteItemVariable(multiStateDiscreteFolder, daMultiStateDiscrete + "004", "004", "left", "right", "center");
                     CreateMultiStateDiscreteItemVariable(multiStateDiscreteFolder, daMultiStateDiscrete + "005", "005", "circle", "cross", "triangle");
 
-
-
                     var multiStateValueDiscreteFolder = CreateFolder(discreteTypeFolder, "DataAccess_MultiStateValueDiscreteType", "MultiStateValueDiscreteType");
                     const string daMultiStateValueDiscrete = "DataAccess_MultiStateValueDiscreteType_";
 
@@ -575,9 +544,6 @@ namespace Reference {
                     CreateMultiStateValueDiscreteItemVariable(multiStateValueDiscreteFolder, daMultiStateValueDiscrete + "UInt16", "UInt16", DataTypeIds.UInt16, new string[] { "red", "green", "blue", "cyan" });
                     CreateMultiStateValueDiscreteItemVariable(multiStateValueDiscreteFolder, daMultiStateValueDiscrete + "UInt32", "UInt32", DataTypeIds.UInt32, new string[] { "lolo", "lo", "normal", "hi", "hihi" });
                     CreateMultiStateValueDiscreteItemVariable(multiStateValueDiscreteFolder, daMultiStateValueDiscrete + "UInt64", "UInt64", DataTypeIds.UInt64, new string[] { "left", "right", "center" });
-
-
-
 
                     var referencesFolder = CreateFolder(root, "References", "References");
                     const string referencesPrefix = "References_";
@@ -599,7 +565,7 @@ namespace Reference {
                     for (var i = 1; i <= 5; i++) {
                         var referenceString = "Has3ForwardReferences";
                         if (i > 1) {
-                            referenceString += i.ToString();
+                            referenceString += i.ToString(CultureInfo.InvariantCulture);
                         }
                         var has3ForwardReferences = CreateMeshVariable(referencesFolder, referencesPrefix + referenceString, referenceString);
                         has3ForwardReferences.AddReference(ReferenceTypes.HasCause, false, variables[0].NodeId);
@@ -619,8 +585,6 @@ namespace Reference {
 
                     var hasForwardAndInverseReferences = CreateMeshVariable(referencesFolder, referencesPrefix + "HasForwardAndInverseReference", "HasForwardAndInverseReference", hasForwardReference, hasInverseReference, has3InverseReference, has3InverseReferences, variables[0]);
                     variables.Add(hasForwardAndInverseReferences);
-
-
 
                     var folderAccessRights = CreateFolder(root, "AccessRights", "AccessRights");
                     const string accessRights = "AccessRights_";
@@ -700,8 +664,6 @@ namespace Reference {
                     arGroupRW.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
                     variables.Add(arGroupRW);
 
-
-
                     var nodeIdsFolder = CreateFolder(root, "NodeIds", "NodeIds");
                     const string nodeIds = "NodeIds_";
 
@@ -723,8 +685,6 @@ namespace Reference {
                     opaqueNodeId.NodeId = new NodeId(new byte[] { 9, 2, 0, 5 }, NamespaceIndex);
                     variables.Add(opaqueNodeId);
 
-
-
                     var methodsFolder = CreateFolder(root, "Methods", "Methods");
                     const string methods = "Methods_";
 
@@ -734,7 +694,6 @@ namespace Reference {
 
                     var voidMethod = CreateMethod(methodsFolder, methods + "Void", "Void");
                     voidMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnVoidCall);
-
 
                     var addMethod = CreateMethod(methodsFolder, methods + "Add", "Add");
                     // set input arguments
@@ -772,8 +731,6 @@ namespace Reference {
 
                     addMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnAddCall);
 
-
-
                     var multiplyMethod = CreateMethod(methodsFolder, methods + "Multiply", "Multiply");
                     // set input arguments
                     multiplyMethod.InputArguments = new PropertyState<Argument[]>(multiplyMethod) {
@@ -809,8 +766,6 @@ namespace Reference {
                     };
 
                     multiplyMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnMultiplyCall);
-
-
 
                     var divideMethod = CreateMethod(methodsFolder, methods + "Divide", "Divide");
                     // set input arguments
@@ -848,8 +803,6 @@ namespace Reference {
 
                     divideMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnDivideCall);
 
-
-
                     var substractMethod = CreateMethod(methodsFolder, methods + "Substract", "Substract");
                     // set input arguments
                     substractMethod.InputArguments = new PropertyState<Argument[]>(substractMethod) {
@@ -886,8 +839,6 @@ namespace Reference {
 
                     substractMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnSubstractCall);
 
-
-
                     var helloMethod = CreateMethod(methodsFolder, methods + "Hello", "Hello");
                     // set input arguments
                     helloMethod.InputArguments = new PropertyState<Argument[]>(helloMethod) {
@@ -923,8 +874,6 @@ namespace Reference {
 
                     helloMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnHelloCall);
 
-
-
                     var inputMethod = CreateMethod(methodsFolder, methods + "Input", "Input");
                     // set input arguments
                     inputMethod.InputArguments = new PropertyState<Argument[]>(inputMethod) {
@@ -943,8 +892,6 @@ namespace Reference {
                     };
 
                     inputMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnInputCall);
-
-
 
                     var outputMethod = CreateMethod(methodsFolder, methods + "Output", "Output");
 
@@ -966,16 +913,11 @@ namespace Reference {
 
                     outputMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnOutputCall);
 
-
-
-
                     var viewsFolder = CreateFolder(root, "Views", "Views");
                     const string views = "Views_";
 
                     var viewStateOperations = CreateView(viewsFolder, externalReferences, views + "Operations", "Operations");
                     var viewStateEngineering = CreateView(viewsFolder, externalReferences, views + "Engineering", "Engineering");
-
-
 
                     var localesFolder = CreateFolder(root, "Locales", "Locales");
                     const string locales = "Locales_";
@@ -1061,10 +1003,7 @@ namespace Reference {
                     ltKlingonVariable.Value = new LocalizedText("ko", "qo' vIvan");
                     variables.Add(ltKlingonVariable);
 
-
-
                     var folderAttributes = CreateFolder(root, "Attributes", "Attributes");
-
 
                     var folderAttributesAccessAll = CreateFolder(folderAttributes, "Attributes_AccessAll", "AccessAll");
                     const string attributesAccessAll = "Attributes_AccessAll_";
@@ -1180,8 +1119,6 @@ namespace Reference {
                             AttributeWriteMask.UserWriteMask | AttributeWriteMask.ValueForVariableType | AttributeWriteMask.ValueRank | AttributeWriteMask.WriteMask;
                     variables.Add(allAccessLevel);
 
-
-
                     var folderAttributesAccessUser1 = CreateFolder(folderAttributes, "Attributes_AccessUser1", "AccessUser1");
                     const string attributesAccessUser1 = "Attributes_AccessUser1_";
 
@@ -1296,16 +1233,12 @@ namespace Reference {
                             AttributeWriteMask.UserWriteMask | AttributeWriteMask.ValueForVariableType | AttributeWriteMask.ValueRank | AttributeWriteMask.WriteMask;
                     variables.Add(allAccessUser1);
 
-
-
-
                     var myCompanyFolder = CreateFolder(root, "MyCompany", "MyCompany");
                     const string myCompany = "MyCompany_";
 
                     var myCompanyInstructions = CreateVariable(myCompanyFolder, myCompany + "Instructions", "Instructions", DataTypeIds.String, ValueRanks.Scalar);
                     myCompanyInstructions.Value = "A place for the vendor to describe their address-space.";
                     variables.Add(myCompanyInstructions);
-
                 }
                 catch (Exception e) {
                     Utils.Trace(e, "Error creating the address space.");
@@ -1497,19 +1430,9 @@ namespace Reference {
             newRange.Low = Math.Max(newRange.Low, -10);
             variable.InstrumentRange.Value = newRange;
 
-            if (customRange != null) {
-                variable.EURange.Value = customRange;
-            }
-            else {
-                variable.EURange.Value = new Opc.Ua.Range(100, 0);
-            }
+            variable.EURange.Value = customRange ?? new Opc.Ua.Range(100, 0);
 
-            if (initialValues == null) {
-                variable.Value = TypeInfo.GetDefaultValue(dataType, valueRank, Server.TypeTree);
-            }
-            else {
-                variable.Value = initialValues;
-            }
+            variable.Value = initialValues ?? TypeInfo.GetDefaultValue(dataType, valueRank, Server.TypeTree);
 
             variable.StatusCode = StatusCodes.Good;
             variable.Timestamp = DateTime.UtcNow;
@@ -1717,9 +1640,9 @@ namespace Reference {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
-            var number = Convert.ToDouble(value);
+            var number = Convert.ToDouble(value, CultureInfo.InvariantCulture);
 
-            if (number >= variable.EnumStrings.Value.Length | number < 0) {
+            if (number >= variable.EnumStrings.Value.Length || number < 0) {
                 return StatusCodes.BadOutOfRange;
             }
 
@@ -1734,7 +1657,6 @@ namespace Reference {
             ref object value,
             ref StatusCode statusCode,
             ref DateTime timestamp) {
-
             var typeInfo = TypeInfo.Construct(value);
 
             if (!(node is MultiStateValueDiscreteState variable) ||
@@ -1748,7 +1670,7 @@ namespace Reference {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
-            var number = Convert.ToInt32(value);
+            var number = Convert.ToInt32(value, CultureInfo.InvariantCulture);
             if (number >= variable.EnumValues.Value.Length || number < 0) {
                 return StatusCodes.BadOutOfRange;
             }
@@ -1804,7 +1726,7 @@ namespace Reference {
                     return StatusCodes.BadIndexRangeInvalid;
                 }
 
-                var number = Convert.ToDouble(value);
+                var number = Convert.ToDouble(value, CultureInfo.InvariantCulture);
 
                 if (variable.InstrumentRange != null && (number < variable.InstrumentRange.Value.Low || number > variable.InstrumentRange.Value.High)) {
                     return StatusCodes.BadOutOfRange;
@@ -1905,8 +1827,8 @@ namespace Reference {
             var itemsCreated = new List<BaseDataVariableState>();
             // now to create the remaining NUMBERED items
             for (uint i = 0; i < numVariables; i++) {
-                var newName = string.Format("{0}_{1}", name, i.ToString("00"));
-                var newPath = string.Format("{0}_{1}", path, newName);
+                var newName = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", name, i.ToString("00", CultureInfo.InvariantCulture));
+                var newPath = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", path, newName);
                 itemsCreated.Add(CreateVariable(newParentFolder, newPath, newName, dataType, valueRank));
             }
             return itemsCreated.ToArray();
@@ -1930,7 +1852,6 @@ namespace Reference {
 
         private BaseDataVariableState[] CreateDynamicVariables(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, uint numVariables) {
             return CreateDynamicVariables(parent, path, name, (uint)dataType, valueRank, numVariables);
-
         }
 
         private BaseDataVariableState[] CreateDynamicVariables(NodeState parent, string path, string name, NodeId dataType, int valueRank, uint numVariables) {
@@ -1940,8 +1861,8 @@ namespace Reference {
             var itemsCreated = new List<BaseDataVariableState>();
             // now to create the remaining NUMBERED items
             for (uint i = 0; i < numVariables; i++) {
-                var newName = string.Format("{0}_{1}", name, i.ToString("00"));
-                var newPath = string.Format("{0}_{1}", path, newName);
+                var newName = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", name, i.ToString("00", CultureInfo.InvariantCulture));
+                var newPath = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", path, newName);
                 itemsCreated.Add(CreateDynamicVariable(newParentFolder, newPath, newName, dataType, valueRank));
             }//for i
             return itemsCreated.ToArray();
@@ -1960,7 +1881,6 @@ namespace Reference {
             type.WriteMask = AttributeWriteMask.None;
             type.UserWriteMask = AttributeWriteMask.None;
             type.ContainsNoLoops = true;
-
 
             if (!externalReferences.TryGetValue(ObjectIds.ViewsFolder, out var references)) {
                 externalReferences[ObjectIds.ViewsFolder] = references = new List<IReference>();
@@ -2012,7 +1932,6 @@ namespace Reference {
             MethodState method,
             IList<object> inputArguments,
             IList<object> outputArguments) {
-
             // all arguments must be provided.
             if (inputArguments.Count < 2) {
                 return StatusCodes.BadArgumentsMissing;
@@ -2036,7 +1955,6 @@ namespace Reference {
             MethodState method,
             IList<object> inputArguments,
             IList<object> outputArguments) {
-
             // all arguments must be provided.
             if (inputArguments.Count < 2) {
                 return StatusCodes.BadArgumentsMissing;
@@ -2060,7 +1978,6 @@ namespace Reference {
             MethodState method,
             IList<object> inputArguments,
             IList<object> outputArguments) {
-
             // all arguments must be provided.
             if (inputArguments.Count < 2) {
                 return StatusCodes.BadArgumentsMissing;
@@ -2084,7 +2001,6 @@ namespace Reference {
             MethodState method,
             IList<object> inputArguments,
             IList<object> outputArguments) {
-
             // all arguments must be provided.
             if (inputArguments.Count < 2) {
                 return StatusCodes.BadArgumentsMissing;
@@ -2108,7 +2024,6 @@ namespace Reference {
             MethodState method,
             IList<object> inputArguments,
             IList<object> outputArguments) {
-
             // all arguments must be provided.
             if (inputArguments.Count < 1) {
                 return StatusCodes.BadArgumentsMissing;
@@ -2131,7 +2046,6 @@ namespace Reference {
             MethodState method,
             IList<object> inputArguments,
             IList<object> outputArguments) {
-
             // all arguments must be provided.
             if (inputArguments.Count < 1) {
                 return StatusCodes.BadArgumentsMissing;
@@ -2162,12 +2076,9 @@ namespace Reference {
             };
 
             object value = null;
-            var retryCount = 0;
-
-            while (value == null && retryCount < 10) {
+            for (var retryCount = 0; value == null && retryCount < 10; retryCount++) {
                 value = _generator.GetRandom(variable.DataType, variable.ValueRank,
                     new uint[] { 10 }, Server.TypeTree);
-                retryCount++;
             }
 
             return value;
@@ -2208,18 +2119,15 @@ namespace Reference {
                     return null;
                 }
 
-
                 if (!PredefinedNodes.TryGetValue(nodeId, out var node)) {
                     return null;
                 }
 
-                var handle = new NodeHandle {
+                return new NodeHandle {
                     NodeId = nodeId,
                     Node = node,
                     Validated = true
                 };
-
-                return handle;
             }
         }
 
@@ -2245,7 +2153,9 @@ namespace Reference {
             return null;
         }
 
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly ReferenceServerConfiguration _configuration;
+#pragma warning restore IDE0052 // Remove unread private members
         private Opc.Ua.Test.TestDataGenerator _generator;
         private Timer _simulationTimer;
         private ushort _simulationInterval = 1000;

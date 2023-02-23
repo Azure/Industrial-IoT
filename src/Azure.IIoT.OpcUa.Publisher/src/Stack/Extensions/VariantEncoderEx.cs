@@ -13,8 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Variant encoder extensions
     /// </summary>
     public static class VariantEncoderEx {
-
-
         /// <summary>
         /// Decode with data type as string
         /// </summary>

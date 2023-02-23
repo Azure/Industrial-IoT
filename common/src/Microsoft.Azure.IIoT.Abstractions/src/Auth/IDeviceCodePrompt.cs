@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.Auth {
     /// Device code prompt
     /// </summary>
     public interface IDeviceCodePrompt {
-
         /// <summary>
         /// Prompt device code and message
         /// </summary>

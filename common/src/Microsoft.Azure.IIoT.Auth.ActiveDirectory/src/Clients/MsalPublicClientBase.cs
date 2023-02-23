@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// Authenticate using device code
     /// </summary>
     public abstract class MsalPublicClientBase : ITokenClient {
-
         /// <summary>
         /// Create device code provider with callback
         /// </summary>
@@ -46,13 +45,13 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 var config = client.config;
 
                 // there should ever only be one account in the cache if we authenticated before...
-                var accounts = await decorator.Client.GetAccountsAsync();
+                var accounts = await decorator.Client.GetAccountsAsync().ConfigureAwait(false);
                 scopes = GetScopes(config, scopes);
                 if (accounts.Any()) {
                     try {
                         // Attempt to get a token from the cache (or refresh it silently if needed)
                         var result = await decorator.Client.AcquireTokenSilent(
-                            scopes, accounts.FirstOrDefault()).ExecuteAsync();
+                            scopes, accounts.FirstOrDefault()).ExecuteAsync().ConfigureAwait(false);
 
                         return result.ToTokenResult();
                     }
@@ -60,29 +59,29 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                         // Expected if not in cache - continue down
                     }
                     catch (Exception ex) {
-                        _logger.LogDebug(ex, "Failed to get token for {resource} from cache...",
+                        _logger.LogDebug(ex, "Failed to get token for {Resource} from cache...",
                             resource);
                         exceptions.Add(ex);
                         continue;
                     }
                 }
                 try {
-                    var token = await GetTokenAsync(decorator.Client, resource, scopes);
+                    var token = await GetTokenAsync(decorator.Client, resource, scopes).ConfigureAwait(false);
                     if (token != null) {
                         _logger.LogInformation(
-                           "Successfully acquired token for {resource} with {config}.",
+                           "Successfully acquired token for {Resource} with {Config}.",
                            resource, config.GetName());
                         return token;
                     }
                 }
                 catch (MsalException ex) {
-                    _logger.LogDebug(ex, "Failed to get token for {resource} with {config} " +
-                        "- error: {error}",
+                    _logger.LogDebug(ex, "Failed to get token for {Resource} with {Config} " +
+                        "- error: {Error}",
                         resource, config.GetName(), ex.ErrorCode);
                     exceptions.Add(ex);
                 }
                 catch (Exception e) {
-                    _logger.LogDebug(e, "Failed to get token for {resource} with {config}.",
+                    _logger.LogDebug(e, "Failed to get token for {Resource} with {Config}.",
                         resource, config.GetName());
                     exceptions.Add(e);
                 }
@@ -139,7 +138,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="config"></param>
         /// <param name="scopes"></param>
         /// <returns></returns>
-        private IEnumerable<string> GetScopes(IOAuthClientConfig config,
+        private static IEnumerable<string> GetScopes(IOAuthClientConfig config,
             IEnumerable<string> scopes) {
             var requestedScopes = new HashSet<string>();
             if (scopes != null) {

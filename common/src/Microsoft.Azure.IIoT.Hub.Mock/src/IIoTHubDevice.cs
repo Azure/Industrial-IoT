@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// Storage record for device plus twin
     /// </summary>
     public interface IIoTHubDevice {
-
         /// <summary>
         /// Device
         /// </summary>

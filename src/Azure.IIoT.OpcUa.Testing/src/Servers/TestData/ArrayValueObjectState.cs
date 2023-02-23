@@ -31,7 +31,6 @@ namespace TestData {
     using Opc.Ua;
 
     public partial class ArrayValueObjectState {
-
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
@@ -75,7 +74,6 @@ namespace TestData {
             MethodState method,
             NodeId objectId,
             uint count) {
-
             if (!(context.SystemHandle is TestDataSystem system)) {
                 return StatusCodes.BadOutOfService;
             }

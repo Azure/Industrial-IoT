@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State {
     using Xunit;
 
     public class RuntimeStateReporterTests {
-
         [Fact]
         public async Task ReportingDisabledTest() {
             var _client = new Mock<IClient>();

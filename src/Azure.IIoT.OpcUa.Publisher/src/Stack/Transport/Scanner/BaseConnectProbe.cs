@@ -132,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                         continue;
                     }
                     catch (Exception ex) {
-                        _logger.LogError(ex, "Error getting endpoint for probe {index}",
+                        _logger.LogError(ex, "Error getting endpoint for probe {Index}",
                             _index);
                         exit = true;
                         break;
@@ -172,14 +172,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                                 // Otherwise retry...
                             }
                             else {
-                                _logger.LogError(sex, "{code} in connect of probe {index}...",
+                                _logger.LogError(sex, "{Code} in connect of probe {Index}...",
                                     sex.SocketErrorCode, _index);
                             }
                         }
                         catch (Exception ex) {
                             // Unexpected - shut probe down
                             _logger.LogError(ex,
-                                "Probe {index} has unexpected exception during connect.",
+                                "Probe {Index} has unexpected exception during connect.",
                                 _index);
                             exit = true;
                             break;
@@ -334,7 +334,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                     _timer.Change(Timeout.Infinite, Timeout.Infinite);
                 }
                 catch (Exception ex) {
-                    _outer._logger.LogDebug(ex, "Error during completion of probe {index}",
+                    _outer._logger.LogDebug(ex, "Error during completion of probe {Index}",
                         _outer._index);
                 }
                 finally {
@@ -372,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                         case State.Begin:
                         // Unexpected.
                         default:
-                            throw new SystemException("Unexpected");
+                            throw new InvalidProgramException("Unexpected");
                     }
                 }
                 catch {
@@ -396,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// </summary>
             /// <returns></returns>
             private bool OnProbeNoLock() {
-                var completed = _outer._probe.CompleteAsync(_outer._index, _arg,
+                var completed = _outer._probe.OnComplete(_outer._index, _arg,
                     out var ok, out var timeout);
                 if (completed) {
                     if (_arg.RemoteEndPoint is IPEndPoint ep) {
@@ -440,7 +440,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                             _arg.SocketError = SocketError.TimedOut;
                             return;
                         case State.Probe:
-                            _outer._logger.LogDebug("Probe {index} {remoteEp} timed out...",
+                            _outer._logger.LogDebug("Probe {Index} {RemoteEp} timed out...",
                                 _outer._index, _arg.RemoteEndPoint);
                             _arg.SocketError = SocketError.TimedOut;
                             _state = State.Timeout;
@@ -454,7 +454,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                             // This will close the socket and reconnect a new one.
                             //
                             _outer._logger.LogInformation(
-                                "Probe {index} not cancelled - try restart...",
+                                "Probe {Index} not cancelled - try restart...",
                                 _outer._index);
                             _state = State.Begin;
                             _outer.OnBegin();
@@ -463,7 +463,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                 }
                 catch (Exception ex) {
                     _outer._logger.LogDebug(ex,
-                        "Error during timeout of probe {index}", _outer._index);
+                        "Error during timeout of probe {Index}", _outer._index);
                 }
                 finally {
                     _lock.Release();

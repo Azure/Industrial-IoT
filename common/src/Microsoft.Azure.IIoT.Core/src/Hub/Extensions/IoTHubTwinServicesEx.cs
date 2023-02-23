@@ -17,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Hub {
     /// Twin services extensions
     /// </summary>
     public static class IoTHubTwinServicesEx {
-
         /// <summary>
         /// Returns module connection string
         /// </summary>
@@ -30,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         public static async Task<ConnectionString> GetConnectionStringAsync(
             this IIoTHubTwinServices service, string deviceId, string moduleId,
             bool primary = true, CancellationToken ct = default) {
-            var model = await service.GetRegistrationAsync(deviceId, moduleId, ct);
+            var model = await service.GetRegistrationAsync(deviceId, moduleId, ct).ConfigureAwait(false);
             if (model == null) {
                 throw new ResourceNotFoundException("Could not find " + moduleId);
             }
@@ -51,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         public static async Task<DeviceTwinListModel> QueryDeviceTwinsAsync(
             this IIoTHubTwinServices service, string query, string continuation,
             int? pageSize = null, CancellationToken ct = default) {
-            var response = await service.QueryAsync(query, continuation, pageSize, ct);
+            var response = await service.QueryAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
             return new DeviceTwinListModel {
                 ContinuationToken = response.ContinuationToken,
                 Items = response.Result
@@ -72,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Hub {
             var result = new List<DeviceTwinModel>();
             string continuation = null;
             do {
-                var response = await service.QueryDeviceTwinsAsync(query, continuation, null, ct);
+                var response = await service.QueryDeviceTwinsAsync(query, continuation, null, ct).ConfigureAwait(false);
                 result.AddRange(response.Items);
                 continuation = response.ContinuationToken;
             }

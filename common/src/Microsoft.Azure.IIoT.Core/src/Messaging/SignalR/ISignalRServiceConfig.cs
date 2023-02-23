@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging.SignalR {
-
     /// <summary>
     /// SignalR service configuration
     /// </summary>
     public interface ISignalRServiceConfig {
-
         /// <summary>
         /// SignalR connection string
         /// </summary>

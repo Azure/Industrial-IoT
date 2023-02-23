@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
-
     /// <summary>
     /// OpenApi / Swagger configuration
     /// </summary>
     public interface IOpenApiConfig {
-
         /// <summary>
         /// Whether openapi should be enabled
         /// </summary>

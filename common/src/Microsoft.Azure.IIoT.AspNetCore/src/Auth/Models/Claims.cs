@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
-
     /// <summary>
     /// Common claim types
     /// </summary>
     public static class Claims {
-
         /// <summary>
         /// Can execute
         /// </summary>

@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.App.Extensions {
     /// Handle event
     /// </summary>
     public static class GatewayModelEx {
-
         /// <summary>
         /// Update a list of gateways from a received event
         /// </summary>

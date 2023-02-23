@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.App.Models {
     /// Endpoint info wrapper
     /// </summary>
     public class EndpointInfo {
-
         /// <summary>
         /// Model
         /// </summary>

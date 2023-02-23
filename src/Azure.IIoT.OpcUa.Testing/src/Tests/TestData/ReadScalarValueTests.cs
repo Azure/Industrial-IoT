@@ -6,27 +6,28 @@
 namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Json;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using System.Xml;
     using Xunit;
 
     public class ReadScalarValueTests<T> {
-
         /// <summary>
         /// Create node services tests
         /// </summary>
-        public ReadScalarValueTests(Func<INodeServices<T>> services, T endpoint,
-            Func<T, string, Task<VariantValue>> readExpected) {
+        public ReadScalarValueTests(Func<INodeServices<T>> services, T connection,
+            Func<T, string, IJsonSerializer, Task<VariantValue>> readExpected) {
             _services = services;
-            _endpoint = endpoint;
+            _connection = connection;
+            _serializer = new DefaultJsonSerializer();
             _readExpected = readExpected;
         }
 
         public async Task NodeReadAllStaticScalarVariableNodeClassTest1Async() {
-
             var browser = _services();
-            var expected = Opc.Ua.NodeClass.Variable;
+            const Opc.Ua.NodeClass expected = Opc.Ua.NodeClass.Variable;
 
             var attributes = new List<AttributeReadRequestModel>();
             for (var i = 10216; i < 10243; i++) {
@@ -37,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             }
 
             // Act
-            var result = await browser.ReadAsync(_endpoint,
+            var result = await browser.ReadAsync(_connection,
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -46,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                         }
                     },
                     Attributes = attributes
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -56,10 +57,10 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.All(result.Results, r => Assert.Equal((int)expected, (int)r.Value));
         }
 
-
         public async Task NodeReadAllStaticScalarVariableAccessLevelTest1Async() {
-
             var browser = _services();
+            const byte expected = Opc.Ua.AccessLevels.CurrentReadOrWrite;
+
             var attributes = new List<AttributeReadRequestModel>();
             for (var i = 10216; i < 10243; i++) {
                 attributes.Add(new AttributeReadRequestModel {
@@ -69,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             }
 
             // Act
-            var result = await browser.ReadAsync(_endpoint,
+            var result = await browser.ReadAsync(_connection,
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -78,19 +79,17 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                         }
                     },
                     Attributes = attributes
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
             Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
-            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value));
+            Assert.All(result.Results, r => Assert.Equal((int)expected, (int)r.Value));
         }
 
-
         public async Task NodeReadAllStaticScalarVariableWriteMaskTest1Async() {
-
             var browser = _services();
 
             var attributes = new List<AttributeReadRequestModel>();
@@ -102,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             }
 
             // Act
-            var result = await browser.ReadAsync(_endpoint,
+            var result = await browser.ReadAsync(_connection,
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -111,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                         }
                     },
                     Attributes = attributes
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -121,9 +120,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value));
         }
 
-
         public async Task NodeReadAllStaticScalarVariableWriteMaskTest2Async() {
-
             var browser = _services();
 
             var attributes = new List<AttributeReadRequestModel>();
@@ -135,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             }
 
             // Act
-            var result = await browser.ReadAsync(_endpoint,
+            var result = await browser.ReadAsync(_connection,
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -144,7 +141,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                         }
                     },
                     Attributes = attributes
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -154,15 +151,13 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value));
         }
 
-
         public async Task NodeReadStaticScalarBooleanValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10216";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10216";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -171,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                         }
                     },
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -184,19 +179,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("Boolean", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest1Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10159"; // Scalar
+            const string node = "http://test.org/UA/Data/#i=10159"; // Scalar
             var path = new[] {
                 ".http://test.org/UA/Data/#BooleanValue"
             };
-            var expected = await _readExpected(_endpoint,
-                "http://test.org/UA/Data/#i=10216");
+            var expected = await _readExpected(_connection, "http://test.org/UA/Data/#i=10216", _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -206,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     },
                     NodeId = node,
                     BrowsePath = path
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -218,17 +210,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest2Async() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10159"; // Scalar
+            const string node = "http://test.org/UA/Data/#i=10159"; // Scalar
             var path = new[] {
                 "http://test.org/UA/Data/#BooleanValue"
             };
-            var expected = await _readExpected(_endpoint,
-                "http://test.org/UA/Data/#i=10216");
+            var expected = await _readExpected(_connection, "http://test.org/UA/Data/#i=10216", _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -238,7 +228,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     },
                     NodeId = node,
                     BrowsePath = path
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -249,9 +239,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("Boolean", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest3Async() {
-
             var browser = _services();
             var path = new[] {
                 "Objects",
@@ -260,11 +248,10 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 "http://test.org/UA/Data/#Scalar",
                 "http://test.org/UA/Data/#BooleanValue"
             };
-            var expected = await _readExpected(_endpoint,
-                "http://test.org/UA/Data/#i=10216");
+            var expected = await _readExpected(_connection, "http://test.org/UA/Data/#i=10216", _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -273,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                         }
                     },
                     BrowsePath = path
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -284,18 +271,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("Boolean", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarSByteValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10217";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10217";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -306,18 +291,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("SByte", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarByteValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10218";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10218";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -328,18 +311,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("Byte", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarInt16ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10219";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10219";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -350,15 +331,13 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("Int16", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarUInt16ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10220";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10220";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -367,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                         }
                     },
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -378,18 +357,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("UInt16", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarInt32ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10221";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10221";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -400,18 +377,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("Int32", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarUInt32ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10222";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10222";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -422,18 +397,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("UInt32", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarInt64ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10223";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10223";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -445,16 +418,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarUInt64ValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10224";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10224";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -466,16 +438,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarFloatValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10225";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10225";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -487,16 +458,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarDoubleValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10226";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10226";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -508,16 +478,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarStringValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10227";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10227";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -528,18 +497,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("String", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarDateTimeValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10228";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10228";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -550,18 +517,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("DateTime", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarGuidValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10229";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10229";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -572,18 +537,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("Guid", result.DataType);
         }
 
-
         public async Task NodeReadStaticScalarByteStringValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10230";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10230";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result.SourceTimestamp);
@@ -594,40 +557,39 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             // TODO : Assert.Equal(VariantValueType.String, result.Value.Type);
         }
 
-
         public async Task NodeReadStaticScalarXmlElementValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10231";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10231";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
-            Assert.True(result.Value.IsObject);
+            Assert.True(result.Value.IsBytes);
             AssertEqualValue(expected, result.Value);
             Assert.Equal("XmlElement", result.DataType);
+            var s = result.Value.ToString(null);
+            var xml = result.Value.ConvertTo<XmlElement>();
+            Assert.NotNull(xml);
         }
 
-
         public async Task NodeReadStaticScalarNodeIdValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10232";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10232";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             // Assert.NotNull(result);
@@ -639,16 +601,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarExpandedNodeIdValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10233";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10233";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -660,16 +621,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarQualifiedNameValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10234";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10234";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -681,16 +641,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarLocalizedTextValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10235";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10235";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -702,16 +661,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarStatusCodeValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10236";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10236";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -725,16 +683,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarVariantValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10237";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10237";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -745,16 +702,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarEnumerationValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10238";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10238";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -767,16 +723,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarStructuredValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10239";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10239";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -789,16 +744,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarNumberValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10240";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10240";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -809,16 +763,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarIntegerValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10241";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10241";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -829,16 +782,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         public async Task NodeReadStaticScalarUIntegerValueVariableTestAsync() {
-
             var browser = _services();
-            var node = "http://test.org/UA/Data/#i=10242";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "http://test.org/UA/Data/#i=10242";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -848,18 +800,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             // Assert.Equal("UInteger", result.DataType);
         }
 
-
         public async Task NodeReadDataAccessMeasurementFloatValueTestAsync() {
-
             var browser = _services();
-            var node = "nsu=DataAccess;s=1:FC1001?Measurement";
-            var expected = await _readExpected(_endpoint, node);
+            const string node = "nsu=DataAccess;s=1:FC1001?Measurement";
+            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
 
             // Act
-            var result = await browser.ValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     NodeId = node
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
@@ -869,13 +819,11 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("Float", result.DataType);
         }
 
-
         public async Task NodeReadDiagnosticsNoneTestAsync() {
-
             var browser = _services();
 
             // Act
-            var results = await browser.ValueReadAsync(_endpoint,
+            var results = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -884,19 +832,17 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                         }
                     },
                     NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
             Assert.Null(results.ErrorInfo?.ErrorMessage);
         }
 
-
         public async Task NodeReadDiagnosticsStatusTestAsync() {
-
             var browser = _services();
 
             // Act
-            var results = await browser.ValueReadAsync(_endpoint,
+            var results = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -905,56 +851,46 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                         }
                     },
                     NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            Assert.NotNull(results.ErrorInfo.ErrorMessage);
+            Assert.NotNull(results.ErrorInfo);
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
-            // TODO Assert.True(results.ErrorInfo.Diagnostics.IsListOfValues);
-            // TODO Assert.Collection(results.ErrorInfo.Diagnostics.Values, j => {
-            // TODO     Assert.True(j.IsString);
-            // TODO     Assert.Equal("BadNodeIdUnknown", (string)j);
-            // TODO });
+            Assert.Equal("BadNodeIdUnknown", results.ErrorInfo.SymbolicId);
+            Assert.Null(results.ErrorInfo.AdditionalInfo);
+            Assert.Null(results.ErrorInfo.Inner);
+            Assert.Null(results.ErrorInfo.ErrorMessage);
         }
 
-
-        public async Task NodeReadDiagnosticsOperationsTestAsync() {
-
+        public async Task NodeReadDiagnosticsDebugTestAsync() {
             var browser = _services();
 
             // Act
-            var results = await browser.ValueReadAsync(_endpoint,
+            var results = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
-                            AuditId = nameof(NodeReadDiagnosticsOperationsTestAsync),
-                            Level = DiagnosticsLevel.Operations
+                            AuditId = nameof(NodeReadDiagnosticsDebugTestAsync),
+                            Level = DiagnosticsLevel.Information
                         }
                     },
                     NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            Assert.NotNull(results.ErrorInfo.ErrorMessage);
+            Assert.NotNull(results.ErrorInfo);
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
-
-            // TODO Assert.NotNull(results.ErrorInfo.Diagnostics);
-            // TODO Assert.True(results.ErrorInfo.Diagnostics.IsObject);
-            // TODO results.ErrorInfo.Diagnostics.TryGetProperty("BadNodeIdUnknown", out var item);
-            // TODO Assert.NotNull(item);
-            // TODO Assert.True(item.IsListOfValues);
-            // TODO Assert.NotEqual(0, item.Count);
-            // TODO Assert.NotEmpty(item.Values);
-            // TODO Assert.Equal("ReadValue_ns=9;s=unknown", (string)item[0]);
+            Assert.Equal("BadNodeIdUnknown", results.ErrorInfo.SymbolicId);
+            Assert.NotNull(results.ErrorInfo.AdditionalInfo);
+            Assert.NotNull(results.ErrorInfo.Inner);
+            Assert.Null(results.ErrorInfo.ErrorMessage);
         }
 
-
         public async Task NodeReadDiagnosticsVerboseTestAsync() {
-
             var browser = _services();
 
             // Act
-            var results = await browser.ValueReadAsync(_endpoint,
+            var results = await browser.ValueReadAsync(_connection,
                 new ValueReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -963,14 +899,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                         }
                     },
                     NodeId = "http://opcfoundation.org/UA/Boiler/#s=unknown"
-                });
+                }).ConfigureAwait(false);
 
             // Assert
-            Assert.NotNull(results.ErrorInfo.ErrorMessage);
+            Assert.NotNull(results.ErrorInfo);
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
-            //
-            // TODO:: Assert.NotNull(results.ErrorInfo.Diagnostics);
-            // TODO:: Assert.True(results.ErrorInfo.Diagnostics.IsListOfValues);
+            Assert.Equal("BadNodeIdUnknown", results.ErrorInfo.SymbolicId);
+            Assert.NotNull(results.ErrorInfo.AdditionalInfo);
+            Assert.NotNull(results.ErrorInfo.Inner);
+            Assert.Null(results.ErrorInfo.ErrorMessage);
         }
 
         /// <summary>
@@ -983,8 +920,9 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 $"Expected: {expected} != Actual: {value}");
         }
 
-        private readonly T _endpoint;
-        private readonly Func<T, string, Task<VariantValue>> _readExpected;
+        private readonly T _connection;
+        private readonly DefaultJsonSerializer _serializer;
+        private readonly Func<T, string, IJsonSerializer, Task<VariantValue>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
     }
 }

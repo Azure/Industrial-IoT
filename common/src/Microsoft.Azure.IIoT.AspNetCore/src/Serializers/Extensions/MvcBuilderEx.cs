@@ -18,7 +18,6 @@ namespace Microsoft.Extensions.DependencyInjection {
     /// Mvc setup extensions
     /// </summary>
     public static class MvcBuilderEx {
-
         /// <summary>
         /// Add MessagePack serializer
         /// </summary>
@@ -51,7 +50,6 @@ namespace Microsoft.Extensions.DependencyInjection {
                 }));
             return builder;
         }
-
 
         /// <summary>
         /// Add json serializer

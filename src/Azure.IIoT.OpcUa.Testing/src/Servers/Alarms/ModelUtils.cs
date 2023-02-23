@@ -36,7 +36,6 @@ namespace Alarms {
     /// Defines constants and methods used by all classes in the information model.
     /// </summary>
     public static class ModelUtils {
-
         /// <summary>
         /// The RootType for a Area node identfier.
         /// </summary>

@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Edge gateway registration extensions
     /// </summary>
     public static class GatewayRegistrationEx {
-
         /// <summary>
         /// Create device twin
         /// </summary>
@@ -32,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="update"></param>
         public static DeviceTwinModel Patch(this GatewayRegistration existing,
             GatewayRegistration update) {
-
             var twin = new DeviceTwinModel {
                 Etag = existing?.Etag,
                 Tags = new Dictionary<string, VariantValue>(),
@@ -73,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
             var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
 
-            var registration = new GatewayRegistration {
+            return new GatewayRegistration {
                 // Device
 
                 DeviceId = twin.Id,
@@ -96,7 +94,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                 // Properties
 
             };
-            return registration;
         }
 
         /// <summary>
@@ -120,7 +117,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <returns></returns>
         public static GatewayRegistration ToGatewayRegistration(this DeviceTwinModel twin,
             out bool connected) {
-
             if (twin == null) {
                 connected = false;
                 return null;

@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Discovery services
     /// </summary>
     public interface IDiscoveryServices {
-
         /// <summary>
         /// Register server from discovery url.
         /// </summary>

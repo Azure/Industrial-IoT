@@ -34,7 +34,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Runtime {
         ICorsConfig, IOpenApiConfig, ISignalRServiceConfig, IIoTHubConfig,
         IEventProcessorConfig, IEventHubConsumerConfig, IForwardedHeadersConfig,
         IEventProcessorHostConfig, IRoleConfig {
-
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
@@ -114,14 +113,12 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Runtime {
         /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
-
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
         public Config(IConfiguration configuration) :
             base(configuration) {
-
             _openApi = new OpenApiConfig(configuration);
             _host = new WebHostConfig(configuration);
             _cors = new CorsConfig(configuration);

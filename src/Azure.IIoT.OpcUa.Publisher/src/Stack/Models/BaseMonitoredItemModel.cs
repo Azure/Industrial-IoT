@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Base monitored item
     /// </summary>
     public abstract class BaseMonitoredItemModel {
-
         /// <summary>
         /// Identifier for this monitored item
         /// Prio 1: Id = DataSetFieldId - if already configured

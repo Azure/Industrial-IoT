@@ -31,7 +31,6 @@ namespace MemoryBuffer {
     using Opc.Ua;
 
     public partial class MemoryTagState {
-
         /// <summary>
         /// Initializes a memory tag for a buffer.
         /// </summary>

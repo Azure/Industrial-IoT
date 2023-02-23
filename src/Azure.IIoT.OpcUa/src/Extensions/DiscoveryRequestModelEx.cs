@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-
     /// <summary>
     /// Discovery request model extensions
     /// </summary>
     public static class DiscoveryRequestModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

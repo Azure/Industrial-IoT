@@ -10,9 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
     /// <summary>
     /// Default client configuration
     /// </summary>
-    public class ClientServicesConfig : ConfigBase, IClientServicesConfig,
-        ISecurityConfig, ITransportQuotaConfig {
-
+    public class ClientServicesConfig : ConfigBase, IClientServicesConfig, ITransportQuotaConfig {
         /// <summary>
         /// Configuration
         /// </summary>
@@ -87,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
 
         /// <inheritdoc/>
         public ClientServicesConfig(IConfiguration configuration) : base(configuration) {
-            _security = new SecurityConfig(this, configuration);
+            _security = new SecurityConfig(configuration);
             _transport = new TransportQuotaConfig(configuration);
         }
 

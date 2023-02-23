@@ -30,7 +30,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     /// Add data protection using azure blob storage and keyvault
     /// </summary>
     public static class DataProtectionBuilderEx {
-
         /// <summary>
         /// Add azure data protection
         /// </summary>
@@ -74,7 +73,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="configuration"></param>
         public static IDataProtectionBuilder AddAzureBlobKeyStorage(
             this IDataProtectionBuilder builder, IConfiguration configuration) {
-
             var storage = new DataProtectionConfig(configuration);
             var containerName = storage.BlobStorageContainerDataProtection;
             var connectionString = storage.GetStorageConnString();
@@ -103,7 +101,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             KeyVaultClient keyVaultClient, string vaultUri, string keyName) {
             try {
                 try {
-                    var key = await keyVaultClient.GetKeyAsync(vaultUri, keyName);
+                    var key = await keyVaultClient.GetKeyAsync(vaultUri, keyName).ConfigureAwait(false);
                 }
                 catch {
                     // Try create key
@@ -113,13 +111,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                         KeyOps = new List<string> {
                             JsonWebKeyOperation.Wrap, JsonWebKeyOperation.Unwrap
                         }
-                    });
+                    }).ConfigureAwait(false);
                 }
                 // Worked - we have a working keyvault client.
                 return true;
             }
             catch (Exception ex) {
-                Log.Console<DataProtectionConfig>().LogDebug(ex, "Failed to authenticate to keyvault {url}.",
+                Log.Console<DataProtectionConfig>().LogDebug(ex, "Failed to authenticate to keyvault {Url}.",
                     vaultUri);
                 return false;
             }
@@ -129,7 +127,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// Data protection default configuration
         /// </summary>
         internal sealed class DataProtectionConfig : ConfigBase, IKeyVaultConfig, IStorageConfig {
-
             private const string kKeyVaultKeyDataProtectionDefault = "dataprotection";
             private const string kBlobStorageContainerDataProtectionDefault = "dataprotection";
 

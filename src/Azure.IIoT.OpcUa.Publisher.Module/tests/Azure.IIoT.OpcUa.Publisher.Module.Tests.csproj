@@ -4,6 +4,22 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <Content Remove="Controller\DmApiPayloadCollection.json" />
+    <Content Remove="Controller\DmApiPayloadTwoEndpoints.json" />
+    <Content Remove="Controller\empty_pn.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Controller\DmApiPayloadCollection.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Controller\DmApiPayloadTwoEndpoints.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Controller\empty_pn.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Json.More.Net" Version="1.7.0" />
     <PackageReference Include="FluentAssertions" Version="6.10.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
@@ -39,6 +55,15 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="PublishedNodes\SimpleEvents.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Controller\DmApiPayloadTwoEndpoints.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</None>
+	<None Update="Controller\DmApiPayloadCollection.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</None>
+    <None Update="Controller\empty_pn.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

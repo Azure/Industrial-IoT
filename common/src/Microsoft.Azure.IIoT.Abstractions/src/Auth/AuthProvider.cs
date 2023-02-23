@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth {
-
     /// <summary>
     /// Industrial IoT defined auth providers
     /// </summary>
     public static class AuthProvider {
-
         /// <summary>
         /// Unknown provider
         /// </summary>

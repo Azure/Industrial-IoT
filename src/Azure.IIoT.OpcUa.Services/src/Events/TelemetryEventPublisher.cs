@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients {
     /// Telemetry message publishing
     /// </summary>
     public sealed class TelemetryEventPublisher<THub> : ISubscriberMessageProcessor {
-
         /// <summary>
         /// Create publisher
         /// </summary>
@@ -29,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients {
             if (!string.IsNullOrEmpty(sample.EndpointId)) {
                 // Send to endpoint listeners
                 await _callback.MulticastAsync(sample.EndpointId,
-                    EventTargets.PublisherSampleTarget, arguments);
+                    EventTargets.PublisherSampleTarget, arguments).ConfigureAwait(false);
             }
         }
         /// <inheritdoc/>
@@ -56,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients {
                 if (!string.IsNullOrEmpty(message.DataSetWriterId)) {
                     // Send to endpoint listeners
                     await _callback.MulticastAsync(message.DataSetWriterId,
-                        EventTargets.PublisherSampleTarget, arguments);
+                        EventTargets.PublisherSampleTarget, arguments).ConfigureAwait(false);
                 }
             }
         }

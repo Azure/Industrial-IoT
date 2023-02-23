@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http {
-
     /// <summary>
     /// Custom header values
     /// </summary>
     public static class HttpHeader {
-
         // Common
 
         /// <summary>

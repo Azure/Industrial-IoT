@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module.Models {
     /// </summary>
     [DataContract]
     public class MethodChunkModel {
-
         /// <summary>
         /// Invocation handle - null on first request
         /// and last response, assigned by server for the

@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     /// Managed service identity configuration
     /// </summary>
     public class MsiKeyVaultClientConfig : ConfigBase, IOAuthClientConfig {
-
         /// <summary>
         /// Client configuration
         /// </summary>
@@ -38,7 +37,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         public string InstanceUrl => null;
         /// <inheritdoc/>
         public string ClientSecret => null;
-
 
         /// <summary>
         /// Configuration constructor

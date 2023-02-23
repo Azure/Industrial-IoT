@@ -10,10 +10,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     /// Register default authentication providers
     /// </summary>
     public class DefaultServiceAuthProviders : Module {
-
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
-
             builder.RegisterType<ServiceAuthAggregateConfig>()
                 .AsImplementedInterfaces();
             builder.RegisterType<ClientAuthAggregateConfig>()

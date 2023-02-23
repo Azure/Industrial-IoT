@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
     /// Messaging profiles supported by OPC Publisher
     /// </summary>
     public class MessagingProfile {
-
         /// <summary>
         /// Messaging mode
         /// </summary>
@@ -166,7 +165,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         }
 
         static MessagingProfile() {
-
             //
             // New message profiles supported in 2.5
             //
@@ -269,7 +267,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         public static string GetAllAsMarkdownTable() {
             var builder = new StringBuilder();
             builder.Append(
-$@"| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata supported | KeyFrames supported |
+@"| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata supported | KeyFrames supported |
    |--------------------------|----------------------------|---------------------------|---------------------------|-------------------------|--------------------|---------------------|
 ");
             foreach (var profile in kProfiles) {

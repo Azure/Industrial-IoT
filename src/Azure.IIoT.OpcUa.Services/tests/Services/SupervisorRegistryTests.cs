@@ -22,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     using Xunit;
 
     public class SupervisorRegistryTests {
-
         [Fact]
         public void GetSupervisorThatDoesNotExist() {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
@@ -58,10 +57,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var result = service.GetSupervisorAsync(supervisors.First().Id, false).Result;
+                var result = service.GetSupervisorAsync(supervisors[0].Id, false).Result;
 
                 // Assert
-                Assert.True(result.IsSameAs(supervisors.First()));
+                Assert.True(result.IsSameAs(supervisors[0]));
             }
         }
 
@@ -148,7 +147,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 Assert.True(records.Items.Count == 0);
             }
         }
-
 
         /// <summary>
         /// Helper to create app fixtures

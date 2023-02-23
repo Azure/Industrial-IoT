@@ -16,8 +16,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
     /// A task (or job) processor build on top of an in memory
     /// BlockingCollection
     /// </summary>
-    public sealed class TaskProcessor : ITaskProcessor, IDisposable {
-
+    public sealed class TaskProcessor : ITaskProcessor{
         /// <summary>
         /// The processors task scheduler
         /// </summary>
@@ -83,7 +82,6 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         }
 
         private sealed class ProcessorWorker {
-
             internal BlockingCollection<Work> Queue { get; }
 
             /// <summary>
@@ -132,12 +130,11 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                         item.Retries--;
                         _processor.TrySchedule(item);
                     }
-                    await Try.Async(item.Checkpoint);
+                    await Try.Async(item.Checkpoint).ConfigureAwait(false);
                 }
             }
 
             internal sealed class Work {
-
                 /// <summary>
                 /// Number of retries
                 /// </summary>

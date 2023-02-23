@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     /// Metrics context
     /// </summary>
     public interface IMetricsContext {
-
         /// <summary>
         /// Tag list
         /// </summary>

@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.App.Extensions {
     /// Handle event
     /// </summary>
     public static class ApplicationInfoModelEx {
-
         /// <summary>
         /// Update a list of applications from a received event
         /// </summary>

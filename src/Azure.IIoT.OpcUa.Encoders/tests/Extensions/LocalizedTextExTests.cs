@@ -7,7 +7,6 @@ namespace Opc.Ua.Extensions {
     using Xunit;
 
     public class LocalizedTextExTests {
-
         [Fact]
         public void DecodeLocalizedTextWithLocale() {
             var context = new ServiceMessageContext();

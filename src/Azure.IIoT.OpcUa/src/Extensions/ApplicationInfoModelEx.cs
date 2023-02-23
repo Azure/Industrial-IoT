@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Service model extensions for discovery service
     /// </summary>
     public static class ApplicationInfoModelEx {
-
         /// <summary>
         /// Get logical equality comparer
         /// </summary>
@@ -275,7 +274,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// have the same uri, type, and site location or supervisor that registered.
         /// </summary>
         private class LogicalComparer : IEqualityComparer<ApplicationInfoModel> {
-
             /// <inheritdoc />
             public bool Equals(ApplicationInfoModel x, ApplicationInfoModel y) {
                 if (x.GetSiteOrGatewayId() != y.GetSiteOrGatewayId()) {

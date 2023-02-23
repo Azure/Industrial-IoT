@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Attribute operand extensions
     /// </summary>
     public static class SimpleAttributeOperandModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>

@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Sdk {
-
     /// <summary>
     /// Configuration for service api
     /// </summary>
     public interface IServiceApiConfig {
-
         /// <summary>
         /// Web service url
         /// </summary>

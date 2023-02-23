@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.App.Shared {
     public partial class TSILink {
-        private string TsiLink { get; set; } = null;
+        private string TsiLink { get; set; }
 
         /// <summary>
         /// OnInitialized

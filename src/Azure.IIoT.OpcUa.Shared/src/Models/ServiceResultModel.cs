@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class ServiceResultModel {
-
         /// <summary>
         /// Error code - if null operation succeeded.
         /// </summary>
@@ -25,7 +24,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         [DataMember(Name = "errorMessage", Order = 1,
             EmitDefaultValue = false)]
         public string? ErrorMessage { get; set; }
-
 
         /// <summary>
         /// Symbolic identifier

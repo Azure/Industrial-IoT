@@ -38,7 +38,7 @@ namespace Boiler {
     /// Stores an instance of the GenericControllerType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class GenericControllerState : BaseObjectState {
         #region Constructors
         /// <summary>
@@ -224,11 +224,7 @@ namespace Boiler {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 
@@ -1144,7 +1140,7 @@ namespace Boiler {
     /// Stores an instance of the BoilerStateMachineType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class BoilerStateMachineState : ProgramStateMachineState {
         #region Constructors
         /// <summary>
@@ -1454,11 +1450,7 @@ namespace Boiler {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 
@@ -1930,7 +1922,7 @@ namespace Boiler {
     /// Stores an instance of the BoilerType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class BoilerState : BaseObjectState {
         #region Constructors
         /// <summary>
@@ -2306,11 +2298,7 @@ namespace Boiler {
                     }
             }
 
-            if (instance != null) {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
+            return instance ?? base.FindChild(context, browseName, createOrReplace, replacement);
         }
         #endregion
 

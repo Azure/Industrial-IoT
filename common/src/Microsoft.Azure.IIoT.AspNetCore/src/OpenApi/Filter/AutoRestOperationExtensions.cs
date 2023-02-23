@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
     /// Add autorest operation extensions
     /// </summary>
     internal class AutoRestOperationExtensions : IOperationFilter {
-
         /// <inheritdoc/>
         public virtual void Apply(OpenApiOperation operation, OperationFilterContext context) {
             var versionParameter = operation.Parameters.SingleOrDefault(p => p.Name == "version");
@@ -69,4 +68,3 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
         }
     }
 }
-

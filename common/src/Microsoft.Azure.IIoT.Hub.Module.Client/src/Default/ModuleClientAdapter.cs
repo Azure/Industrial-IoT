@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// Adapts module client to interface
     /// </summary>
     public sealed class ModuleClientAdapter : IClient {
-
         /// <summary>
         /// Whether the client is closed
         /// </summary>
@@ -61,7 +60,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             bool enableOutputRouting, ITransportSettings transportSetting,
             TimeSpan timeout, IRetryPolicy retry, Action onConnectionLost, ILogger logger,
             IMetricsContext metrics) {
-
             if (cs == null) {
                 logger.LogInformation("Running in iotedge context.");
             }
@@ -69,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 logger.LogInformation("Running outside iotedge context.");
             }
 
-            var client = await CreateAsync(cs, transportSetting);
+            var client = await CreateAsync(cs, transportSetting).ConfigureAwait(false);
             var adapter = new ModuleClientAdapter(client, enableOutputRouting, metrics);
 
             // Configure
@@ -81,7 +79,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 client.SetRetryPolicy(retry);
             }
             client.ProductInfo = product;
-            await client.OpenAsync();
+            await client.OpenAsync().ConfigureAwait(false);
             return adapter;
         }
 
@@ -93,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             _client.OperationTimeoutInMilliseconds = 3000;
             _client.SetRetryPolicy(new NoRetry());
             IsClosed = true;
-            await _client.CloseAsync();
+            await _client.CloseAsync().ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -117,18 +115,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             try {
                 if (!_enableOutputRouting || string.IsNullOrEmpty(msg.OutputName)) {
                     if (messages.Count == 1) {
-                        await _client.SendEventAsync(messages[0]);
+                        await _client.SendEventAsync(messages[0]).ConfigureAwait(false);
                     }
                     else {
-                        await _client.SendEventBatchAsync(messages);
+                        await _client.SendEventBatchAsync(messages).ConfigureAwait(false);
                     }
                 }
                 else {
                     if (messages.Count == 1) {
-                        await _client.SendEventAsync(msg.OutputName, messages[0]);
+                        await _client.SendEventAsync(msg.OutputName, messages[0]).ConfigureAwait(false);
                     }
                     else {
-                        await _client.SendEventBatchAsync(msg.OutputName, messages);
+                        await _client.SendEventBatchAsync(msg.OutputName, messages).ConfigureAwait(false);
                     }
                 }
             }
@@ -161,7 +159,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             if (IsClosed) {
                 return;
             }
-            await _client.UpdateReportedPropertiesAsync(reportedProperties);
+            await _client.UpdateReportedPropertiesAsync(reportedProperties).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -190,13 +188,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             _status = status;
             _reason = reason;
             if (status == ConnectionStatus.Connected) {
-                logger.LogInformation("{counter}: Module {deviceId}_{moduleId} reconnected " +
-                    "due to {reason}.", _reconnectCounter, deviceId, moduleId, reason);
+                logger.LogInformation("{Counter}: Module {DeviceId}_{ModuleId} reconnected " +
+                    "due to {Reason}.", _reconnectCounter, deviceId, moduleId, reason);
                 _reconnectCounter++;
                 return;
             }
-            logger.LogInformation("{counter}: Module {deviceId}_{moduleId} disconnected " +
-                "due to {reason} - now {status}...", _reconnectCounter, deviceId, moduleId,
+            logger.LogInformation("{Counter}: Module {DeviceId}_{ModuleId} disconnected " +
+                "due to {Reason} - now {Status}...", _reconnectCounter, deviceId, moduleId,
                     reason, status);
             if (IsClosed) {
                 // Already closed - nothing to do
@@ -220,13 +218,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             ITransportSettings transportSetting) {
             if (transportSetting == null) {
                 if (cs == null) {
-                    return await ModuleClient.CreateFromEnvironmentAsync();
+                    return await ModuleClient.CreateFromEnvironmentAsync().ConfigureAwait(false);
                 }
                 return ModuleClient.CreateFromConnectionString(cs.ToString());
             }
             var ts = new ITransportSettings[] { transportSetting };
             if (cs == null) {
-                return await ModuleClient.CreateFromEnvironmentAsync(ts);
+                return await ModuleClient.CreateFromEnvironmentAsync(ts).ConfigureAwait(false);
             }
             return ModuleClient.CreateFromConnectionString(cs.ToString(), ts);
         }

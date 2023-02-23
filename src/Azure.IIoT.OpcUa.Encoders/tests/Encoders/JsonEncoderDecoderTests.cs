@@ -11,10 +11,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
     using Xunit;
 
     public class JsonEncoderDecoderTests {
-
         [Fact]
         public void ReadWriteProgramDiagnostic2DataTypeStream() {
-
             // Create dummy type
             var expected = new ProgramDiagnostic2DataType {
                 CreateClientName = "Testname",
@@ -61,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
             };
 
-            var count = 100;
+            const int count = 100;
             byte[] buffer;
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream()) {
@@ -87,10 +85,9 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void ReadWriteDataValueWithIntStream() {
-
             // Create dummy
             var expected = new DataValue(new Variant(12345));
-            var count = 10000;
+            const int count = 10000;
             byte[] buffer;
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream()) {
@@ -116,11 +113,10 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void ReadWriteDataValueWithStringStream() {
-
             // Create dummy
             var expected = new DataValue(new Variant("TestTestTestTest"
                 + Guid.NewGuid()));
-            var count = 10000;
+            const int count = 10000;
             byte[] buffer;
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream()) {
@@ -146,7 +142,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void ReadWriteDataSetArrayTest() {
-
             // Create dummy
             var expected = new DataSet {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
@@ -157,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 ["..."] = new DataValue(new Variant("imbricated")),
             };
 
-            var count = 10000;
+            const int count = 10000;
             byte[] buffer;
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream()) {

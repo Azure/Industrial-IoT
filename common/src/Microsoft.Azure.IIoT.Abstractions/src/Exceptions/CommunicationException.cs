@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// Thrown when failing to connect to resource
     /// </summary>
     public class CommunicationException : Exception {
-
         /// <inheritdoc />
         public CommunicationException(string message) :
             base(message) {

@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// Use msi to get token
     /// </summary>
     public class MsiAuthenticationClient : AppAuthenticationBase {
-
         /// <inheritdoc/>
         public MsiAuthenticationClient(IClientAuthConfig config, ILogger logger) : base(logger) {
             _config = config?.Providers?
@@ -21,13 +20,13 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 .Where(c => !string.IsNullOrEmpty(c.ClientId))
                 .Select(c => CreateProvider(c, logger))
                 .ToList();
-            if (!_config.Any()) {
+            if (_config.Count == 0) {
                 logger.LogInformation("No managed service identity configured for this service.");
             }
         }
 
         /// <inheritdoc/>
-        protected override IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> Get(string resource) {
+        protected override IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> GetProvider(string resource) {
             return _config.Where(c => c.Key == resource).Select(c => c.Value);
         }
 
@@ -42,7 +41,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 cs += $";TenantId={config.TenantId}";
             }
             var provider = new AzureServiceTokenProvider(cs, config.GetAuthorityUrl(true));
-            logger.LogInformation("Managed service identity {clientId} in {tenant} registered.",
+            logger.LogInformation("Managed service identity {ClientId} in {Tenant} registered.",
                 config.ClientId, config.TenantId);
             return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform, (config, provider));
         }

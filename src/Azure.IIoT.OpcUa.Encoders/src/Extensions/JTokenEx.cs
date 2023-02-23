@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     /// Json token extensions
     /// </summary>
     public static class JTokenEx {
-
         /// <summary>
         /// Returns dimensions of the multi dimensional array assuming
         /// it is not jagged.

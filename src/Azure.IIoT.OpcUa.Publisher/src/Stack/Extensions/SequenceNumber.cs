@@ -13,7 +13,6 @@ namespace Opc.Ua {
     /// A sequence number
     /// </summary>
     public static class SequenceNumber {
-
         /// <summary>
         /// Increment sequence number
         /// </summary>

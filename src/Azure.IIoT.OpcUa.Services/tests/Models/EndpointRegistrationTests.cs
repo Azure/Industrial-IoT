@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     using Xunit;
 
     public class EndpointRegistrationTests {
-
         [Fact]
         public void TestEqualIsEqual() {
             var r1 = CreateRegistration();
@@ -89,7 +88,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             Assert.False(r1 == r2);
         }
 
-
         [Fact]
         public void TestEqualIsEqualWithDeviceModel() {
             var r1 = CreateRegistration();
@@ -122,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// Helper to create registration
         /// </summary>
         /// <returns></returns>
-        private EndpointRegistration CreateRegistration() {
+        private static EndpointRegistration CreateRegistration() {
             var fix = new Fixture();
 
             fix.Customizations.Add(new TypeRelay(typeof(VariantValue), typeof(VariantValue)));
@@ -132,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
             var cert = fix.CreateMany<byte>(1000).ToArray();
             var urls = fix.CreateMany<Uri>(4).ToList();
-            var r1 = fix.Build<EndpointRegistration>()
+            return fix.Build<EndpointRegistration>()
                 .With(x => x.Thumbprint, cert.ToThumbprint())
                 .With(x => x.AlternativeUrls,
                     fix.CreateMany<Uri>(4)
@@ -144,7 +142,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)
                 .Create();
-            return r1;
         }
 
         private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();

@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class ConnectionModel {
-
         /// <summary>
         /// Endpoint information
         /// </summary>
@@ -33,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         public DiagnosticsModel? Diagnostics { get; set; }
 
         /// <summary>
-        /// Group Id of the data set associated to the 
+        /// Group Id of the data set associated to the
 		/// connection that the stram belongs to.
         /// </summary>
         [DataMember(Name = "group", Order = 3)]

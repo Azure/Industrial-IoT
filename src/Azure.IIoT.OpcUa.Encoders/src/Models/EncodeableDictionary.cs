@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
         public ExpandedNodeId XmlEncodingId =>
             nameof(EncodeableDictionary) + "_Encoding_DefaultXml";
 
-
         /// <summary>
         /// Initializes the dictionary with default values.
         /// </summary>
@@ -46,10 +45,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
         public virtual void Encode(IEncoder encoder) {
             // Get valid dictionary for encoding.
             var dictionary = this
-                .Where(x => !string.IsNullOrEmpty(x.Key))
-                .Where(x => x.Value != null)
-                .Where(x => x.Value.Value != null)
-                .Where(x => !(x.Value.Value is LocalizedText lt) || lt.Locale != null || lt.Text != null)
+                .Where(x => !string.IsNullOrEmpty(x.Key) &&
+                    x.Value?.Value != null &&
+                    (!(x.Value.Value is LocalizedText lt) || lt.Locale != null || lt.Text != null))
                 .ToDictionary(x => x.Key, x => x.Value);
 
             foreach (var keyValuePair in dictionary) {
@@ -61,10 +59,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
         public virtual void Decode(IDecoder decoder) {
             // Only JSON decoder that can decode a dictionary is supported.
             if (!(decoder is JsonDecoderEx jsonDecoder)) {
-                throw new Exception($"Cannot decode using the decoder: {decoder.GetType()}.");
+                throw new FormatException($"Cannot decode using the decoder: {decoder.GetType()}.");
             }
-            var dictionary = jsonDecoder.ReadDataSet(null);
-            foreach (var keyValuePair in dictionary) {
+            foreach (var keyValuePair in jsonDecoder.ReadDataSet(null)) {
                 Add(new KeyDataValuePair {
                     Key = keyValuePair.Key,
                     Value = keyValuePair.Value

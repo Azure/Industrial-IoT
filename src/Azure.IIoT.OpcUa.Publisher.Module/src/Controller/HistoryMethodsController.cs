@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
     [Version("_V2")]
     [ExceptionsFilter]
     public class HistoryMethodsController : IMethodController {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -38,8 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryReplaceEventsAsync(connection, request);
-            return result;
+            return await _history.HistoryReplaceEventsAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -53,8 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryInsertEventsAsync(connection, request);
-            return result;
+            return await _history.HistoryInsertEventsAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -68,8 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryUpsertEventsAsync(connection, request);
-            return result;
+            return await _history.HistoryUpsertEventsAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -83,8 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryDeleteEventsAsync(connection, request);
-            return result;
+            return await _history.HistoryDeleteEventsAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -98,8 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryDeleteValuesAtTimesAsync(connection, request);
-            return result;
+            return await _history.HistoryDeleteValuesAtTimesAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -113,8 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryDeleteModifiedValuesAsync(connection, request);
-            return result;
+            return await _history.HistoryDeleteModifiedValuesAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -128,8 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryDeleteValuesAsync(connection, request);
-            return result;
+            return await _history.HistoryDeleteValuesAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -143,8 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryReplaceValuesAsync(connection, request);
-            return result;
+            return await _history.HistoryReplaceValuesAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -158,8 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryInsertValuesAsync(connection, request);
-            return result;
+            return await _history.HistoryInsertValuesAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -173,8 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryUpsertValuesAsync(connection, request);
-            return result;
+            return await _history.HistoryUpsertValuesAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -188,8 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryReadEventsAsync(connection, request);
-            return result;
+            return await _history.HistoryReadEventsAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -203,8 +191,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryReadEventsNextAsync(connection, request);
-            return result;
+            return await _history.HistoryReadEventsNextAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -218,8 +205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryReadValuesAsync(connection, request);
-            return result;
+            return await _history.HistoryReadValuesAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -233,8 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryReadValuesAtTimesAsync(connection, request);
-            return result;
+            return await _history.HistoryReadValuesAtTimesAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -248,8 +233,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryReadProcessedValuesAsync(connection, request);
-            return result;
+            return await _history.HistoryReadProcessedValuesAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -263,8 +247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryReadModifiedValuesAsync(connection, request);
-            return result;
+            return await _history.HistoryReadModifiedValuesAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -278,8 +261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _history.HistoryReadValuesNextAsync(connection, request);
-            return result;
+            return await _history.HistoryReadValuesNextAsync(connection, request).ConfigureAwait(false);
         }
 
         private readonly IHistoryServices<ConnectionModel> _history;

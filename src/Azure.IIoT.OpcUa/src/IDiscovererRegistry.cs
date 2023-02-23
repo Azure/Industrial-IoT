@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa {
     /// Discoverer registry
     /// </summary>
     public interface IDiscovererRegistry {
-
         /// <summary>
         /// Get all discoverers in paged form
         /// </summary>
@@ -47,8 +46,8 @@ namespace Azure.IIoT.OpcUa {
         /// <summary>
         /// Update discoverer, e.g. set discovery mode
         /// </summary>
-        /// <param name="request"></param>
         /// <param name="id"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task UpdateDiscovererAsync(string id,

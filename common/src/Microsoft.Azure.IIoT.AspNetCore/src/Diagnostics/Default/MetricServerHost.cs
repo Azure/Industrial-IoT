@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default {
     /// Start and stop metric server
     /// </summary>
     public class MetricServerHost : IHostProcess, IAsyncDisposable {
-
         /// <summary>
         /// Auto registers metric server
         /// </summary>
@@ -34,7 +33,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default {
 
         /// <inheritdoc/>
         public async ValueTask DisposeAsync() {
-            await _metricServer.StopAsync();
+            await _metricServer.StopAsync().ConfigureAwait(false);
             _logger.LogInformation("Metric server stopped.");
         }
 

@@ -12,18 +12,16 @@ namespace Microsoft.Azure.IIoT.Http.Default {
 
     /// <summary>
     /// Implementation of a client factory that is a slightly less fancy version
-    /// of the the one implemented in asp.net core and uses a handler builder
+    /// of the one implemented in asp.net core and uses a handler builder
     /// instead of the asp.net builder.
     /// </summary>
     public sealed class HttpClientFactory : IHttpClientFactory {
-
         /// <summary>
         /// Create factory
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="logger"></param>
         public HttpClientFactory(IHttpHandlerFactory factory, ILogger logger) {
-
             _factory = factory ?? new HttpHandlerFactory(logger);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -54,7 +52,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// Immutable entry in expired queue
         /// </summary>
         private class ExpiredHandlerEntry : IDisposable {
-
             /// <summary>
             /// Create entry
             /// </summary>
@@ -88,7 +85,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// Immutable entry in active handler queue
         /// </summary>
         private class ActiveHandlerEntry : DelegatingHandler {
-
             /// <summary>
             /// Create entry
             /// </summary>
@@ -115,9 +111,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// <returns></returns>
             public static ActiveHandlerEntry Create(IHttpHandlerFactory factory,
                 string name, Action<ActiveHandlerEntry> expirationCallback) {
-#pragma warning disable IDE0067 // Dispose objects before losing scope
                 var lifetime = factory.Create(name, out var handler);
-#pragma warning restore IDE0067 // Dispose objects before losing scope
                 return new ActiveHandlerEntry(name, handler, lifetime, expirationCallback);
             }
 
@@ -144,7 +138,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             private readonly Action<ActiveHandlerEntry> _expired;
         }
 
-
         /// <summary>
         /// Called when handler entry expired.  Removes from active list
         /// and adds weak reference to expiry queue.  When garbage collected
@@ -152,10 +145,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// </summary>
         /// <param name="active"></param>
         private void OnHandlerExpired(ActiveHandlerEntry active) {
-#pragma warning disable IDE0067 // Dispose objects before losing scope
             _activeHandlers.TryRemove(active.Name, out _);
             _expiredHandlers.Enqueue(new ExpiredHandlerEntry(active));
-#pragma warning restore IDE0067 // Dispose objects before losing scope
             StartCleanupTimer();
         }
 
@@ -192,15 +183,13 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 try {
                     var initialCount = _expiredHandlers.Count;
                     for (var i = 0; i < initialCount; i++) {
-#pragma warning disable IDE0068 // Use recommended dispose pattern
                         _expiredHandlers.TryDequeue(out var entry);
-#pragma warning restore IDE0068 // Use recommended dispose pattern
                         if (entry.CanDispose) {
                             try {
                                 entry.Dispose();
                             }
                             catch (Exception ex) {
-                                _logger.LogError(ex, "Failed to cleanup handler {name}",
+                                _logger.LogError(ex, "Failed to cleanup handler {Name}",
                                     entry.Name);
                             }
                         }

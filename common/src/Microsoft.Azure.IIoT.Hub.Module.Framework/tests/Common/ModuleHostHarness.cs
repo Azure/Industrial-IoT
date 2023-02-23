@@ -18,19 +18,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Threading.Tasks;
     using Xunit;
 
-    public class ModuleHostHarness {
-
+    public static class ModuleHostHarness {
         /// <summary>
         /// Module test harness
         /// </summary>
         /// <param name="controllers"></param>
         /// <param name="test"></param>
         /// <returns></returns>
-        public async Task RunTestAsync(
+        public static async Task RunTestAsync(
             IEnumerable<object> controllers, Func<string, string, IContainer, Task> test) {
-
-            var deviceId = "TestDevice";
-            var moduleId = "TestModule";
+            const string deviceId = "TestDevice";
+            const string moduleId = "TestModule";
 
             using (var hubContainer = CreateHubContainer()) {
                 var services = hubContainer.Resolve<IIoTHubTwinServices>();
@@ -39,9 +37,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var twin = await services.CreateOrUpdateAsync(new DeviceTwinModel {
                     Id = "TestDevice",
                     ModuleId = "TestModule"
-                });
+                }).ConfigureAwait(false);
                 var etag = twin.Etag;
-                var device = await services.GetRegistrationAsync(twin.Id, twin.ModuleId);
+                var device = await services.GetRegistrationAsync(twin.Id, twin.ModuleId).ConfigureAwait(false);
 
                 // Create module host with controller
                 using (var moduleContainer = CreateModuleContainer(services, device,
@@ -49,8 +47,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     var edge = moduleContainer.Resolve<IModuleHost>();
 
                     // Act
-                    await edge.StartAsync("testType", "MS", "1.2.3", null);
-                    twin = await services.GetAsync(deviceId, moduleId);
+                    await edge.StartAsync("testType", "MS", "1.2.3", null).ConfigureAwait(false);
+                    twin = await services.GetAsync(deviceId, moduleId).ConfigureAwait(false);
 
                     // Assert
                     Assert.NotEqual(etag, twin.Etag);
@@ -58,15 +56,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     Assert.Equal("testType", twin.Properties.Reported[TwinProperty.Type]);
                     etag = twin.Etag;
 
-                    await test(deviceId, moduleId, hubContainer);
+                    await test(deviceId, moduleId, hubContainer).ConfigureAwait(false);
 
-                    twin = await services.GetAsync(deviceId, moduleId);
+                    twin = await services.GetAsync(deviceId, moduleId).ConfigureAwait(false);
                     Assert.True(twin.Properties.Reported[TwinProperty.Type] == "testType");
                     etag = twin.Etag;
 
                     // Act
-                    await edge.StopAsync();
-                    twin = await services.GetAsync(deviceId, moduleId);
+                    await edge.StopAsync().ConfigureAwait(false);
+                    twin = await services.GetAsync(deviceId, moduleId).ConfigureAwait(false);
 
                     // TODO : Fix cleanup!!!
 
@@ -84,7 +82,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         public class TestModuleConfig : IModuleConfig {
-
             public TestModuleConfig(DeviceModel device) {
                 _device = device;
             }

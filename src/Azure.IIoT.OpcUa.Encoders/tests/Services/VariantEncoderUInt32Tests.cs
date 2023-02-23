@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     using Xunit;
 
     public class VariantEncoderUInt32Tests {
-
         [Fact]
         public void DecodeEncodeUInt32FromJValue() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
@@ -58,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32FromString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "123";
+            const string str = "123";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt32);
             var expected = new Variant(123u);
             var encoded = codec.Encode(variant);
@@ -69,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "123, 124, 125";
+            const string str = "123, 124, 125";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt32);
             var expected = new Variant(new uint[] { 123u, 124u, 125u });
             var encoded = codec.Encode(variant);
@@ -80,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[123, 124, 125]";
+            const string str = "[123, 124, 125]";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt32);
             var expected = new Variant(new uint[] { 123u, 124u, 125u });
             var encoded = codec.Encode(variant);
@@ -91,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromString3() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[]";
+            const string str = "[]";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt32);
             var expected = new Variant(System.Array.Empty<uint>());
             var encoded = codec.Encode(variant);
@@ -102,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32FromStringTypeIntegerIsInt64() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "123";
+            const string str = "123";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Integer);
             var expected = new Variant(123L);
             var encoded = codec.Encode(variant);
@@ -113,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromStringTypeIntegerIsInt641() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[123, 124, 125]";
+            const string str = "[123, 124, 125]";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Integer);
             var expected = new Variant(new Variant[] {
                 new Variant(123L), new Variant(124L), new Variant(125L)
@@ -126,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromStringTypeIntegerIsInt642() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[]";
+            const string str = "[]";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Integer);
             var expected = new Variant(System.Array.Empty<Variant>());
             var encoded = codec.Encode(variant);
@@ -137,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32FromStringTypeNumberIsInt64() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "123";
+            const string str = "123";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Number);
             var expected = new Variant(123L);
             var encoded = codec.Encode(variant);
@@ -148,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromStringTypeNumberIsInt641() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[123, 124, 125]";
+            const string str = "[123, 124, 125]";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Number);
             var expected = new Variant(new Variant[] {
                 new Variant(123L), new Variant(124L), new Variant(125L)
@@ -161,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromStringTypeNumberIsInt642() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[]";
+            const string str = "[]";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Number);
             var expected = new Variant(System.Array.Empty<Variant>());
             var encoded = codec.Encode(variant);
@@ -172,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32FromStringTypeNullIsInt64() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "123";
+            const string str = "123";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
             var expected = new Variant(123L);
             var encoded = codec.Encode(variant);
@@ -182,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromStringTypeNullIsInt64() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "123, 124, 125";
+            const string str = "123, 124, 125";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
             var expected = new Variant(new long[] { 123u, 124u, 125u });
             var encoded = codec.Encode(variant);
@@ -193,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromStringTypeNullIsInt642() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[123, 124, 125]";
+            const string str = "[123, 124, 125]";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
             var expected = new Variant(new long[] { 123u, 124u, 125u });
             var encoded = codec.Encode(variant);
@@ -204,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromStringTypeNullIsNull() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "[]";
+            const string str = "[]";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
             var expected = Variant.Null;
             var encoded = codec.Encode(variant);
@@ -214,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32FromQuotedString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "\"123\"";
+            const string str = "\"123\"";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt32);
             var expected = new Variant(123u);
             var encoded = codec.Encode(variant);
@@ -225,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32FromSinglyQuotedString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "  '123'";
+            const string str = "  '123'";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt32);
             var expected = new Variant(123u);
             var encoded = codec.Encode(variant);
@@ -236,7 +235,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromQuotedString() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = "\"123\",'124',\"125\"";
+            const string str = "\"123\",'124',\"125\"";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt32);
             var expected = new Variant(new uint[] { 123u, 124u, 125u });
             var encoded = codec.Encode(variant);
@@ -247,7 +246,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         [Fact]
         public void DecodeEncodeUInt32ArrayFromQuotedString2() {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = " [\"123\",'124',\"125\"] ";
+            const string str = " [\"123\",'124',\"125\"] ";
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt32);
             var expected = new Variant(new uint[] { 123u, 124u, 125u });
             var encoded = codec.Encode(variant);
@@ -303,7 +302,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             var str = _serializer.SerializeToString(new {
                 Type = "UInt32",
                 Body = 123u
-            }).ToString();
+            });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Variant);
             var expected = new Variant(123u);
             var encoded = codec.Encode(variant);
@@ -317,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             var str = _serializer.SerializeToString(new {
                 Type = "UInt32",
                 Body = new uint[] { 123u, 124u, 125u }
-            }).ToString();
+            });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Variant);
             var expected = new Variant(new uint[] { 123u, 124u, 125u });
             var encoded = codec.Encode(variant);
@@ -373,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             var str = _serializer.SerializeToString(new {
                 Type = "uint32",
                 Body = 123u
-            }).ToString();
+            });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
             var expected = new Variant(123u);
             var encoded = codec.Encode(variant);
@@ -387,7 +386,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             var str = _serializer.SerializeToString(new {
                 type = "UInt32",
                 body = new uint[] { 123u, 124u, 125u }
-            }).ToString();
+            });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
             var expected = new Variant(new uint[] { 123u, 124u, 125u });
             var encoded = codec.Encode(variant);
@@ -415,7 +414,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             var str = _serializer.SerializeToString(new {
                 DataType = "UInt32",
                 Value = 123u
-            }).ToString();
+            });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Variant);
             var expected = new Variant(123u);
             var encoded = codec.Encode(variant);
@@ -445,7 +444,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                 { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                 { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } }
-            }).ToString();
+            });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt32);
             var expected = new Variant(new uint[,,] {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
@@ -471,7 +470,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } }
                 }
-            }).ToString();
+            });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Variant);
             var expected = new Variant(new uint[,,] {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
@@ -497,7 +496,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } }
                 }
-            }).ToString();
+            });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Variant);
             var expected = new Variant(new uint[,,] {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
@@ -523,7 +522,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } }
                 }
-            }).ToString();
+            });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
             var expected = new Variant(new uint[,,] {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
@@ -549,7 +548,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } }
                 }
-            }).ToString();
+            });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
             var expected = new Variant(new uint[,,] {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },

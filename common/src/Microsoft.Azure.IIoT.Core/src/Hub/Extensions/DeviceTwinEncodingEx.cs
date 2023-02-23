@@ -17,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Hub {
     /// the max field size and more.
     /// </summary>
     public static class DeviceTwinEncodingEx {
-
         /// <summary>
         /// Convert list to dictionary
         /// </summary>

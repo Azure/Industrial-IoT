@@ -12,12 +12,11 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class EndpointModel {
-
         /// <summary>
         /// Endpoint url to use to connect with
         /// </summary>
         [DataMember(Name = "url", Order = 0)]
-        public string? Url { get; set; } = null!;
+        public string? Url { get; set; }
 
         /// <summary>
         /// Alternative endpoint urls that can be used for

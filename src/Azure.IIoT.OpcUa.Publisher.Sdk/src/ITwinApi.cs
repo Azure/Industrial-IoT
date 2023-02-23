@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
     /// Represents Twin api
     /// </summary>
     public interface ITwinApi {
-
         /// <summary>
         /// Connect client. Optional but can be used
         /// to test connectivity.

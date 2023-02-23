@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Tasks {
     /// Task processor extensions
     /// </summary>
     public static class TaskProcessorEx {
-
         /// <summary>
         /// Try enqueue task
         /// </summary>

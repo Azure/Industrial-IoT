@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using System;
 
     public class SecureData {
-
         /// <summary>
         /// Create SecureData
         /// </summary>
@@ -46,4 +45,3 @@ namespace Microsoft.Azure.IIoT.App.Services {
         private readonly IDataProtectionProvider _provider;
     }
 }
-

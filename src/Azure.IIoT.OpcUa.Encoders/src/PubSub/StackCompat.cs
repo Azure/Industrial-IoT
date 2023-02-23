@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Missing data set flags. TODO: Remove when moving to 1.05
     /// </summary>
     public static class JsonDataSetMessageContentMask2 {
-
         /// <summary>
         /// Missing definition in stack (1.05)
         /// </summary>

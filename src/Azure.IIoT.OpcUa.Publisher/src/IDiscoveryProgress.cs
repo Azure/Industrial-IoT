@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Discovery progress listener
     /// </summary>
     public interface IDiscoveryProgress {
-
         /// <summary>
         /// Pending requests ahead of this one.
         /// </summary>
@@ -147,9 +146,9 @@ namespace Azure.IIoT.OpcUa.Publisher {
         /// <param name="workers"></param>
         /// <param name="progress"></param>
         /// <param name="total"></param>
+        /// <param name="discovered"></param>
         /// <param name="url"></param>
         /// <param name="address"></param>
-        /// <param name="discovered"></param>
         /// <param name="endpoints"></param>
         void OnFindEndpointsFinished(DiscoveryRequestModel request,
             int workers, int progress, int total, int discovered,

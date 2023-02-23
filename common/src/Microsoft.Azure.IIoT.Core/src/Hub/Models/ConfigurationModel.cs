@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// </summary>
     [DataContract]
     public class ConfigurationModel {
-
         /// <summary>
         /// Configuration Identifier
         /// </summary>

@@ -34,7 +34,6 @@ namespace Boiler {
     using System.Threading;
 
     public partial class BoilerState {
-
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
@@ -124,7 +123,7 @@ namespace Boiler {
                 offsetToApply = Math.Floor(offset);
 
                 if (offsetToApply.Equals(offset)) {
-                    offsetToApply -= 1;
+                    offsetToApply--;
                 }
             }
 
@@ -144,7 +143,7 @@ namespace Boiler {
         /// <summary>
         /// Moves the value towards the target.
         /// </summary>
-        private double Adjust(double value, double target, double step, Opc.Ua.Range range) {
+        private static double Adjust(double value, double target, double step, Opc.Ua.Range range) {
             // convert percentage step to an absolute step if range is specified.
             if (range != null) {
                 step *= range.Magnitude;
@@ -173,7 +172,7 @@ namespace Boiler {
         /// <summary>
         /// Returns the value as a percentage of the range.
         /// </summary>
-        private double GetPercentage(AnalogItemState<double> value) {
+        private static double GetPercentage(AnalogItemState<double> value) {
             var percentage = value.Value;
             var range = value.EURange.Value;
 
@@ -191,7 +190,7 @@ namespace Boiler {
         /// <summary>
         /// Returns the value as a percentage of the range.
         /// </summary>
-        private double GetValue(double value, Opc.Ua.Range range) {
+        private static double GetValue(double value, Opc.Ua.Range range) {
             if (range != null) {
                 return value * range.Magnitude;
             }

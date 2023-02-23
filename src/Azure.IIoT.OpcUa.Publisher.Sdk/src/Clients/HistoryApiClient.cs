@@ -16,14 +16,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
     /// Implementation of history api.
     /// </summary>
     public sealed class HistoryApiClient : IHistoryApi {
-
         /// <summary>
         /// Create module client
         /// </summary>
         /// <param name="methodClient"></param>
-        /// <param name="serializer"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
+        /// <param name="serializer"></param>
         public HistoryApiClient(IMethodClient methodClient, string deviceId,
             string moduleId = null, ISerializer serializer = null) {
             _serializer = serializer ?? new NewtonsoftJsonSerializer();
@@ -63,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryReadValues_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -87,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryReadModifiedValues_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -111,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryReadValuesAtTimes_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -135,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryReadProcessedValues_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -158,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryReadValuesNext_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadNextResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -181,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryReplaceValues_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -204,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryInsertValues_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -227,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryUpsertValues_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -250,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryDeleteValues_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -274,7 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryDeleteModifiedValues_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -298,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryDeleteValuesAtTimes_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -322,7 +321,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryReadEvents_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<HistoricEventModel[]>>(response);
         }
 
@@ -345,7 +344,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryReadEventsNext_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadNextResponseModel<HistoricEventModel[]>>(response);
         }
 
@@ -368,7 +367,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryReplaceEvents_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -391,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryInsertEvents_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -414,7 +413,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryUpsertEvents_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -437,7 +436,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 "HistoryDeleteEvents_V2", _serializer.SerializeToString(new {
                     connection,
                     request
-                }), null, ct);
+                }), null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 

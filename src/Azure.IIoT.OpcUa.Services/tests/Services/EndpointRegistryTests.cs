@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     using Xunit;
 
     public class EndpointRegistryTests {
-
         [Fact]
         public void GetTwinThatDoesNotExist() {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
@@ -49,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         [Fact]
         public void GetTwinThatExists() {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
-            var first = endpoints.First();
+            var first = endpoints[0];
             var id = EndpointInfoModelEx.CreateEndpointId(first.ApplicationId,
                 first.Registration.EndpointUrl, first.Registration.Endpoint.SecurityMode,
                 first.Registration.Endpoint.SecurityPolicy);
@@ -66,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 var result = service.GetEndpointAsync(id, false).Result;
 
                 // Assert
-                Assert.True(result.IsSameAs(endpoints.First()));
+                Assert.True(result.IsSameAs(endpoints[0]));
             }
         }
 
@@ -147,12 +146,12 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
                 // Run
                 var records = service.QueryEndpointsAsync(new EndpointRegistrationQueryModel {
-                    SecurityPolicy = endpoints.First().Registration.Endpoint.SecurityPolicy
+                    SecurityPolicy = endpoints[0].Registration.Endpoint.SecurityPolicy
                 }, false, null).Result;
 
                 // Assert
                 Assert.True(records.Items.Count >= 1);
-                Assert.True(records.Items.First().IsSameAs(endpoints.First()));
+                Assert.True(records.Items[0].IsSameAs(endpoints[0]));
             }
         }
 
@@ -170,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
                 // Run
                 var records = service.QueryEndpointsAsync(new EndpointRegistrationQueryModel {
-                    SecurityPolicy = endpoints.First().Registration.Endpoint.SecurityPolicy.ToUpperInvariant()
+                    SecurityPolicy = endpoints[0].Registration.Endpoint.SecurityPolicy.ToUpperInvariant()
                 }, false, null).Result;
 
                 // Assert
@@ -192,12 +191,12 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
                 // Run
                 var records = service.QueryEndpointsAsync(new EndpointRegistrationQueryModel {
-                    Url = endpoints.First().Registration.Endpoint.Url.ToUpperInvariant()
+                    Url = endpoints[0].Registration.Endpoint.Url.ToUpperInvariant()
                 }, false, null).Result;
 
                 // Assert
                 Assert.True(records.Items.Count >= 1);
-                Assert.True(records.Items.First().IsSameAs(endpoints.First()));
+                Assert.True(records.Items[0].IsSameAs(endpoints[0]));
             }
         }
 

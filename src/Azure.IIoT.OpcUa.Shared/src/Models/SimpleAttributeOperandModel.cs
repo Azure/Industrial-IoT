@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class SimpleAttributeOperandModel {
-
         /// <summary>
         /// Type definition node id if operand is
         /// simple or full attribute operand.

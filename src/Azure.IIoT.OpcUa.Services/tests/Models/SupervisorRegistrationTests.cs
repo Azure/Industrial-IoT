@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     using Xunit;
 
     public class SupervisorRegistrationTests {
-
         [Fact]
         public void TestEqualIsEqual() {
             var fix = new Fixture();
@@ -44,7 +43,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
         [Fact]
         public void TestEqualIsEqualWithServiceModelConversion() {
-
             var r1 = CreateRegistration();
             var m = r1;
             var r2 = m.ToSupervisorModel().ToPublisherRegistration();
@@ -104,13 +102,12 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         private static PublisherRegistration CreateRegistration() {
             var fix = new Fixture();
             var cert = fix.CreateMany<byte>(1000).ToArray();
-            var r = fix.Build<PublisherRegistration>()
+            return fix.Build<PublisherRegistration>()
                 .FromFactory(() => new PublisherRegistration(
                     fix.Create<string>(), fix.Create<string>()))
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)
                 .Create();
-            return r;
         }
 
         private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.App.Shared {
     public partial class WorkbookLink {
-        private string Link { get; set; } = null;
+        private string Link { get; set; }
 
         /// <summary>
         /// OnInitialized

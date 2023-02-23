@@ -35,7 +35,6 @@ namespace HistoricalAccess {
     /// </summary>
     [DataContract(Namespace = Namespaces.HistoricalAccess)]
     public class HistoricalAccessServerConfiguration {
-
         /// <summary>
         /// The default constructor.
         /// </summary>
@@ -47,20 +46,15 @@ namespace HistoricalAccess {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-#pragma warning disable RECS0154 // Parameter is never used
-        private void Initialize(StreamingContext context)
-#pragma warning restore RECS0154 // Parameter is never used
-        {
+        private void Initialize(StreamingContext context) {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private static void Initialize() {
         }
-
-
 
         /// <summary>
         /// The root of the archive.

@@ -13,12 +13,12 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using System.Net;
     using System.Security.Cryptography;
     using System.Text;
+    using System.Globalization;
 
     /// <summary>
     /// Messaging service client
     /// </summary>
     public abstract class IoTHubHttpClientBase {
-
         /// <summary>
         /// Hub connection string to use
         /// </summary>
@@ -63,9 +63,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 Path = path,
                 Query = "api-version=" + kApiVersion
             }.Uri);
-            request.Headers.Add(HttpRequestHeader.Authorization.ToString(),
+            request.Headers.Add(nameof(HttpRequestHeader.Authorization),
                 CreateSasToken(HubConnectionString, 3600));
-            request.Headers.Add(HttpRequestHeader.UserAgent.ToString(), kClientId);
+            request.Headers.Add(nameof(HttpRequestHeader.UserAgent), kClientId);
             return request;
         }
 
@@ -90,8 +90,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             // http://msdn.microsoft.com/en-us/library/azure/dn170477.aspx
             // signature is computed from joined encoded request Uri string and expiry string
             var expiryTime = DateTime.UtcNow + TimeSpan.FromSeconds(validityPeriodInSeconds);
-            var expiry = ((long)(expiryTime -
-                new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds).ToString();
+            var expiry = ((long)(expiryTime - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc))
+                .TotalSeconds).ToString(CultureInfo.InvariantCulture);
             var encodedScope = Uri.EscapeDataString(connectionString.HostName);
             // the connection string signature is base64 encoded
             var key = connectionString.SharedAccessKey.DecodeAsBase64();

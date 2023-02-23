@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Status flags
     /// </summary>
     public static class X509ChainStatusEx {
-
         /// <summary>
         /// To service model
         /// </summary>

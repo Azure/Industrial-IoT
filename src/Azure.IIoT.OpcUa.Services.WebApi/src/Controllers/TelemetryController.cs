@@ -20,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
     public class TelemetryController : ControllerBase {
-
         /// <summary>
         /// Create controller with service
         /// </summary>
@@ -42,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPut("{endpointId}/samples")]
         public async Task SubscribeAsync(string endpointId,
             [FromBody] string connectionId) {
-            await _events.SubscribeAsync(endpointId, connectionId);
+            await _events.SubscribeAsync(endpointId, connectionId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -58,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns></returns>
         [HttpDelete("{endpointId}/samples/{connectionId}")]
         public async Task UnsubscribeAsync(string endpointId, string connectionId) {
-            await _events.UnsubscribeAsync(endpointId, connectionId);
+            await _events.UnsubscribeAsync(endpointId, connectionId).ConfigureAwait(false);
         }
 
         private readonly IGroupRegistrationT<PublishersHub> _events;

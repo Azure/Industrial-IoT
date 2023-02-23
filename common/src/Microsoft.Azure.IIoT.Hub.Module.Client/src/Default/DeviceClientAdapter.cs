@@ -21,7 +21,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// Adapts device client to interface
     /// </summary>
     public sealed class DeviceClientAdapter : IClient {
-
         /// <summary>
         /// Whether the client is closed
         /// </summary>
@@ -34,13 +33,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Create client
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="logger"></param>
         /// <param name="metrics"></param>
-        internal DeviceClientAdapter(DeviceClient client, ILogger logger,
-            IMetricsContext metrics)
+        ///
+        internal DeviceClientAdapter(DeviceClient client, IMetricsContext metrics)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -62,7 +59,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             IRetryPolicy retry, Action onConnectionLost, ILogger logger,
             IMetricsContext metrics) {
             var client = Create(cs, transportSetting);
-            var adapter = new DeviceClientAdapter(client, logger, metrics);
+            var adapter = new DeviceClientAdapter(client, metrics);
 
             // Configure
             client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
@@ -73,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
             client.ProductInfo = product;
 
-            await client.OpenAsync();
+            await client.OpenAsync().ConfigureAwait(false);
             return adapter;
         }
 
@@ -85,7 +82,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             _client.OperationTimeoutInMilliseconds = 3000;
             _client.SetRetryPolicy(new NoRetry());
             IsClosed = true;
-            await _client.CloseAsync();
+            await _client.CloseAsync().ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -101,9 +98,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             var messages = ((DeviceMessage)message).AsMessages();
             try {
                 if (messages.Count == 1) {
-                    await _client.SendEventAsync(messages[0]);
+                    await _client.SendEventAsync(messages[0]).ConfigureAwait(false);
                 }
-                await _client.SendEventBatchAsync(messages);
+                await _client.SendEventBatchAsync(messages).ConfigureAwait(false);
             }
             finally {
                 foreach (var hubMessage in messages) {
@@ -132,7 +129,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             if (IsClosed) {
                 return;
             }
-            await _client.UpdateReportedPropertiesAsync(reportedProperties);
+            await _client.UpdateReportedPropertiesAsync(reportedProperties).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -158,17 +155,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private void OnConnectionStatusChange(string deviceId,
             Action onConnectionLost, ILogger logger, ConnectionStatus status,
             ConnectionStatusChangeReason reason) {
-
             _status = status;
             _reason = reason;
             if (status == ConnectionStatus.Connected) {
-                logger.LogInformation("{counter}: Device {deviceId} reconnected " +
-                    "due to {reason}.", _reconnectCounter, deviceId, reason);
+                logger.LogInformation("{Counter}: Device {DeviceId} reconnected " +
+                    "due to {Reason}.", _reconnectCounter, deviceId, reason);
                 _reconnectCounter++;
                 return;
             }
-            logger.LogInformation("{counter}: Device {deviceId} disconnected " +
-                "due to {reason} - now {status}...", _reconnectCounter, deviceId,
+            logger.LogInformation("{Counter}: Device {DeviceId} disconnected " +
+                "due to {Reason} - now {Status}...", _reconnectCounter, deviceId,
                     reason, status);
             if (IsClosed) {
                 // Already closed - nothing to do
@@ -200,12 +196,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             return DeviceClient.CreateFromConnectionString(cs.ToString());
         }
 
-
         /// <summary>
         /// Message wrapper
         /// </summary>
         internal sealed class DeviceMessage : ITelemetryEvent {
-
             /// <summary>
             /// Build message
             /// </summary>
@@ -313,7 +307,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private ConnectionStatus _status;
         private ConnectionStatusChangeReason _reason;
         private readonly DeviceClient _client;
-        private readonly ILogger _logger;
         private int _reconnectCounter;
     }
 }

@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
     /// Sample server fixture
     /// </summary>
     public class HistoryServerFixture : BaseServerFixture {
-
         /// <summary>
         /// Sample server nodes
         /// </summary>

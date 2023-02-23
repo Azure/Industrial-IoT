@@ -149,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     ReturnBounds = details.ReturnBounds ?? false,
                     NumValuesPerNode = details.NumValues ?? 0
                 });
-            }, DecodeValues, ct);
+            }, DecodeValues, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -492,7 +492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             var dataType = dataTypes.FirstOrDefault();
 #if DEBUG
             if (dataType != null &&
-                !dataTypes.All(v => string.Equals(v, dataType))) {
+                !dataTypes.All(v => string.Equals(v, dataType, StringComparison.Ordinal))) {
                 throw new ArgumentException(
                     $"All values must have no or data type {dataType}.");
             }

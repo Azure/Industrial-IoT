@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     /// Client auth configuration
     /// </summary>
     public class ClientAuthAggregateConfig : IClientAuthConfig {
-
         /// <inheritdoc/>
         public IEnumerable<IOAuthClientConfig> Providers { get; }
 

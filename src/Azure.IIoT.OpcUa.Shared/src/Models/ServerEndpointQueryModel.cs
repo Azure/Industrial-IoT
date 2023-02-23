@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class ServerEndpointQueryModel {
-
         /// <summary>
         /// Discovery url to use to query
         /// </summary>

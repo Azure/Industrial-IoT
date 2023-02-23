@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Connection endpoint model extensions
     /// </summary>
     public static class ConnectionModelEx {
-
         /// <summary>
         /// Equality comparison
         /// </summary>

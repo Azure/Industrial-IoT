@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
 
     /// <inheritdoc/>
     public class AppAuthenticationClient : AppAuthenticationBase {
-
         /// <inheritdoc/>
         public AppAuthenticationClient(IClientAuthConfig config, ILogger logger) :
             base(logger) {
@@ -24,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         }
 
         /// <inheritdoc/>
-        protected override IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> Get(string resource) {
+        protected override IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> GetProvider(string resource) {
             return _config.Where(c => c.Key == resource).Select(c => c.Value);
         }
 

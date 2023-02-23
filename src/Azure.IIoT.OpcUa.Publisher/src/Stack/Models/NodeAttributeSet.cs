@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Represents a node in the form of its attributes
     /// </summary>
     public class NodeAttributeSet : INodeAttributes, INode {
-
         /// <summary>
         /// Constructor
         /// </summary>
@@ -94,12 +93,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// Whether this is a historic node
         /// </summary>
         public bool IsHistorizedNode =>
-            EventNotifier.HasValue &&
+            (EventNotifier.HasValue &&
                 (EventNotifier.Value &
-                    EventNotifiers.HistoryRead) != 0 ||
-            AccessLevel.HasValue &&
+                    EventNotifiers.HistoryRead) != 0) ||
+            (AccessLevel.HasValue &&
                 ((AccessLevelType)AccessLevel.Value &
-                    AccessLevelType.HistoryRead) != 0;
+                    AccessLevelType.HistoryRead) != 0);
 
         /// <inheritdoc/>
         public QualifiedName BrowseName {
@@ -331,8 +330,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             if (_attributes.SequenceEqual(node._attributes)) {
                 return true;
             }
-            var attributes = AttributeMap.GetNodeClassAttributes(NodeClass);
-            foreach (var attributeId in attributes) {
+            foreach (var attributeId in AttributeMap.GetNodeClassAttributes(NodeClass)) {
                 var defaultObject = AttributeMap.GetDefaultValue(
                     NodeClass, attributeId, false);
                 object o1 = null;
@@ -394,7 +392,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         public override string ToString() {
             return $"{NodeId} ({BrowseName})";
         }
-
 
         /// <summary>Namespaces to use in derived classes</summary>
         protected readonly NamespaceTable _namespaces;

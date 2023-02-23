@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
     /// Implement the discovery services through all registered publishers
     /// </summary>
     public sealed class DiscoveryServicesClient : IDiscoveryServices, IServerDiscovery {
-
         /// <summary>
         /// Create endpoint registry
         /// </summary>
@@ -41,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                 var deviceId = PublisherModelEx.ParseDeviceId(publisher.Id, out var moduleId);
                 var client = new DiscoveryApiClient(_client, deviceId, moduleId, _serializer);
                 try {
-                    await client.CancelAsync(request, ct);
+                    await client.CancelAsync(request, ct).ConfigureAwait(false);
                     // If we got here we have cancelled the request with the id
                     return;
                 }
@@ -60,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                 var deviceId = PublisherModelEx.ParseDeviceId(publisher.Id, out var moduleId);
                 var client = new DiscoveryApiClient(_client, deviceId, moduleId, _serializer);
                 try {
-                    return await client.FindServerAsync(query, ct);
+                    return await client.FindServerAsync(query, ct).ConfigureAwait(false);
                 }
                 catch (Exception ex) {
                     _logger.LogTrace(ex, "Failed to find server on publisher {Id}", publisher.Id);
@@ -78,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                 var client = new DiscoveryApiClient(_client, deviceId, moduleId, _serializer);
                 try {
                     // We call discovery on all publishers
-                    await client.DiscoverAsync(request, ct);
+                    await client.DiscoverAsync(request, ct).ConfigureAwait(false);
                 }
                 catch (Exception ex) {
                     _logger.LogDebug(ex, "Failed to call discovery on publisher {Id}", publisher.Id);
@@ -93,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                 var deviceId = PublisherModelEx.ParseDeviceId(publisher.Id, out var moduleId);
                 var client = new DiscoveryApiClient(_client, deviceId, moduleId, _serializer);
                 try {
-                    await client.RegisterAsync(request, ct);
+                    await client.RegisterAsync(request, ct).ConfigureAwait(false);
                     // If we got here we have registered the server
                     return;
                 }
@@ -113,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
             [EnumeratorCancellation] CancellationToken ct = default) {
             string continuationToken = null;
             do {
-                var result = await _publishers.ListPublishersAsync(continuationToken, false, null, ct);
+                var result = await _publishers.ListPublishersAsync(continuationToken, false, null, ct).ConfigureAwait(false);
                 foreach (var item in result.Items) {
                     yield return item;
                 }

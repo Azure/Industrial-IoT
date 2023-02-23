@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Registry Event controller api
     /// </summary>
     public interface IRegistryEventApi {
-
         /// <summary>
         /// Subscribe client to discovery progress from discoverer
         /// </summary>

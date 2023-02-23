@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Events {
     /// Discoverer progress processor
     /// </summary>
     public class DiscoveryProgressPublisher<THub> : IDiscoveryProgressProcessor {
-
         /// <inheritdoc/>
         public DiscoveryProgressPublisher(ICallbackInvokerT<THub> callback) {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
@@ -30,12 +29,12 @@ namespace Azure.IIoT.OpcUa.Services.Events {
             if (!string.IsNullOrEmpty(requestId)) {
                 // Send to user
                 await _callback.MulticastAsync(requestId,
-                    EventTargets.DiscoveryProgressTarget, arguments);
+                    EventTargets.DiscoveryProgressTarget, arguments).ConfigureAwait(false);
             }
             if (!string.IsNullOrEmpty(message.DiscovererId)) {
                 // Send to discovery listeners
                 await _callback.MulticastAsync(message.DiscovererId,
-                    EventTargets.DiscoveryProgressTarget, arguments);
+                    EventTargets.DiscoveryProgressTarget, arguments).ConfigureAwait(false);
             }
         }
 

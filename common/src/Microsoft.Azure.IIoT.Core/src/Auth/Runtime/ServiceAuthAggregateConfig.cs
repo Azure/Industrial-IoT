@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     /// Service auth configuration
     /// </summary>
     public class ServiceAuthAggregateConfig : ConfigBase, IServerAuthConfig {
-
         /// <summary>
         /// Auth configuration
         /// </summary>

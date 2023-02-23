@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     public sealed record class PublishedEventItemsModel {
-
         /// <summary>
         /// Published data variables
         /// </summary>

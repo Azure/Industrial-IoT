@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Subscription manager
     /// </summary>
     public interface ISubscriptionManager {
-
         /// <summary>
         /// Get or create new subscription
         /// </summary>

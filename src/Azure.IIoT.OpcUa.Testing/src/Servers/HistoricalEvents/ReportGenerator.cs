@@ -123,7 +123,6 @@ namespace HistoricalEvents {
             "other"
         };
 
-
         private int GetRandom(int min, int max) {
             return (int)Math.Truncate((_random.NextDouble() * (max - min + 1)) + min);
         }
@@ -132,7 +131,7 @@ namespace HistoricalEvents {
             return values[GetRandom(0, values.Length - 1)];
         }
 
-        public string[] GetAreas() {
+        public static string[] GetAreas() {
             var area = new List<string>();
 
             for (var ii = 0; ii < kWellNames.Length; ii++) {
@@ -150,7 +149,7 @@ namespace HistoricalEvents {
             return area.ToArray();
         }
 
-        public WellInfo[] GetWells(string areaName) {
+        public static WellInfo[] GetWells(string areaName) {
             var wells = new List<WellInfo>();
 
             for (var ii = 0; ii < kWellUIDs.Length; ii++) {
@@ -308,13 +307,11 @@ namespace HistoricalEvents {
             }
 
             lock (_dataset) {
-                var view = new DataView(
+                return new DataView(
                 _dataset.Tables[(int)reportType],
                 filter.ToString(),
                 Opc.Ua.BrowseNames.Time,
                 DataViewRowState.CurrentRows);
-
-                return view;
             }
         }
 
@@ -354,7 +351,6 @@ namespace HistoricalEvents {
             // override event id and time.
             e.EventId.Value = new Guid((string)row[Opc.Ua.BrowseNames.EventId]).ToByteArray();
             e.Time.Value = (DateTime)row[Opc.Ua.BrowseNames.Time];
-
 
             var nameWell = (string)row[BrowseNames.NameWell];
             var uidWell = (string)row[BrowseNames.UidWell];
@@ -398,7 +394,7 @@ namespace HistoricalEvents {
             }
         }
 
-        public DataRow UpdateeInjectionTestReport(DataRow row, IList<SimpleAttributeOperand> fields, IList<Variant> values) {
+        public static DataRow UpdateeInjectionTestReport(DataRow row, IList<SimpleAttributeOperand> fields, IList<Variant> values) {
             System.Diagnostics.Contracts.Contract.Assume(fields != null);
             System.Diagnostics.Contracts.Contract.Assume(values != null);
             return row;

@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -14,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
     /// Adapts historian services to historic access services
     /// </summary>
     public sealed class HistoryApiAdapter : IHistoryServices<ConnectionModel> {
-
         /// <summary>
         /// Create service
         /// </summary>
@@ -96,50 +96,82 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
         public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadEventsDetailsModel> request,
             CancellationToken ct) {
-            var results = await _client.HistoryReadEventsAsync(connection, request, ct);
-            return results;
+            return await _client.HistoryReadEventsAsync(connection, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request, CancellationToken ct) {
-            var results = await _client.HistoryReadEventsNextAsync(connection, request, ct);
-            return results;
+            return await _client.HistoryReadEventsNextAsync(connection, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
-            ConnectionModel connection, HistoryReadRequestModel<ReadValuesDetailsModel> request, CancellationToken ct) {
-            var results = await _client.HistoryReadValuesAsync(connection, request, ct);
-            return results;
+            ConnectionModel connection, HistoryReadRequestModel<ReadValuesDetailsModel> request,
+            CancellationToken ct) {
+            return await _client.HistoryReadValuesAsync(connection, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
-            ConnectionModel connection, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request, CancellationToken ct) {
-            var results = await _client.HistoryReadValuesAtTimesAsync(connection, request, ct);
-            return results;
+            ConnectionModel connection, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
+            CancellationToken ct) {
+            return await _client.HistoryReadValuesAtTimesAsync(connection, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
-            ConnectionModel connection, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request, CancellationToken ct) {
-            var results = await _client.HistoryReadProcessedValuesAsync(connection, request, ct);
-            return results;
+            ConnectionModel connection, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
+            CancellationToken ct) {
+            return await _client.HistoryReadProcessedValuesAsync(connection, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
-            ConnectionModel connection, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request, CancellationToken ct) {
-            var results = await _client.HistoryReadModifiedValuesAsync(connection, request, ct);
-            return results;
+            ConnectionModel connection, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
+            CancellationToken ct) {
+            return await _client.HistoryReadModifiedValuesAsync(connection, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request, CancellationToken ct) {
-            var results = await _client.HistoryReadValuesNextAsync(connection, request, ct);
-            return results;
+            return await _client.HistoryReadValuesNextAsync(connection, request, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAsync(ConnectionModel connectionId,
+            HistoryReadRequestModel<ReadValuesDetailsModel> request, CancellationToken ct) {
+            // TODO:
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public IAsyncEnumerable<HistoricValueModel> HistoryStreamModifiedValuesAsync(ConnectionModel connectionId,
+            HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request, CancellationToken ct) {
+            // TODO:
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAtTimesAsync(ConnectionModel connectionId,
+            HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request, CancellationToken ct) {
+            // TODO:
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public IAsyncEnumerable<HistoricValueModel> HistoryStreamProcessedValuesAsync(ConnectionModel connectionId,
+            HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request, CancellationToken ct) {
+            // TODO:
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public IAsyncEnumerable<HistoricEventModel> HistoryStreamEventsAsync(ConnectionModel connectionId,
+            HistoryReadRequestModel<ReadEventsDetailsModel> request, CancellationToken ct) {
+            // TODO:
+            throw new NotImplementedException();
         }
 
         private readonly IHistoryApi _client;

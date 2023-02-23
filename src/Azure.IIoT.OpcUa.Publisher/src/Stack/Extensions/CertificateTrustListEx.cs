@@ -12,7 +12,6 @@ namespace Opc.Ua {
     /// Certificate trust list extensions
     /// </summary>
     public static class CertificateTrustListEx {
-
         /// <summary>
         /// Remove certficates
         /// </summary>
@@ -31,7 +30,6 @@ namespace Opc.Ua {
                 }
             }
         }
-
 
         /// <summary>
         /// Add to trust list

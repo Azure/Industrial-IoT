@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Autofac {
-
     /// <summary>
     /// Inject extra components
     /// </summary>
     public interface IInjector {
-
         /// <summary>
         /// Injects extra components into the container
         /// </summary>

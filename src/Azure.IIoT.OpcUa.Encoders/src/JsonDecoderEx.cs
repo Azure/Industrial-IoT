@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-
+#nullable enable
 namespace Azure.IIoT.OpcUa.Encoders {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Newtonsoft.Json;
@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -20,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     /// Reads objects from reader or string
     /// </summary>
     public class JsonDecoderEx : IDecoder, IDisposable {
-
         /// <inheritdoc/>
         public EncodingType EncodingType => EncodingType.Json;
 
@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <param name="stream"></param>
         /// <param name="context"></param>
         /// <param name="useJsonLoader"></param>
-        public JsonDecoderEx(Stream stream, IServiceMessageContext context = null,
+        public JsonDecoderEx(Stream stream, IServiceMessageContext? context = null,
             bool useJsonLoader = true) :
             this(new JsonTextReader(new StreamReader(stream)) {
                 FloatParseHandling = FloatParseHandling.Double
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <param name="reader"></param>
         /// <param name="context"></param>
         /// <param name="useJsonLoader"></param>
-        internal JsonDecoderEx(JsonReader reader, IServiceMessageContext context,
+        internal JsonDecoderEx(JsonReader reader, IServiceMessageContext? context,
             bool useJsonLoader = true) {
             Context = context ?? new ServiceMessageContext();
             _reader = !useJsonLoader ? reader : new JsonLoader(
@@ -76,117 +76,117 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public bool ReadBoolean(string property) {
+        public bool ReadBoolean(string? property) {
             return TryGetToken(property, out var value) && (bool)value;
         }
 
         /// <inheritdoc/>
-        public sbyte ReadSByte(string property) {
+        public sbyte ReadSByte(string? property) {
             return ReadValue<sbyte>(property,
-                v => v < sbyte.MinValue || v > sbyte.MaxValue ? (sbyte)0 : v);
+                v => (sbyte)(v < sbyte.MinValue || v > sbyte.MaxValue ? 0 : v));
         }
 
         /// <inheritdoc/>
-        public byte ReadByte(string property) {
+        public byte ReadByte(string? property) {
             return ReadValue<byte>(property,
-            v => (byte)(v < byte.MinValue || v > byte.MaxValue ? 0 : v));
+            	v => (byte)(v < byte.MinValue || v > byte.MaxValue ? 0 : v));
         }
 
         /// <inheritdoc/>
-        public short ReadInt16(string property) {
+        public short ReadInt16(string? property) {
             return ReadValue<short>(property,
                 v => (short)(v < short.MinValue || v > short.MaxValue ? 0 : v));
         }
 
         /// <inheritdoc/>
-        public ushort ReadUInt16(string property) {
+        public ushort ReadUInt16(string? property) {
             return ReadValue<ushort>(property,
                 v => (ushort)(v < ushort.MinValue || v > ushort.MaxValue ? 0 : v));
         }
 
         /// <inheritdoc/>
-        public int ReadInt32(string property) {
+        public int ReadInt32(string? property) {
             return ReadValue<int>(property,
                 v => v < int.MinValue || v > int.MaxValue ? 0 : v);
         }
 
         /// <inheritdoc/>
-        public uint ReadUInt32(string property) {
+        public uint ReadUInt32(string? property) {
             return ReadValue<uint>(property,
                 v => v < uint.MinValue || v > uint.MaxValue ? 0 : v);
         }
 
         /// <inheritdoc/>
-        public long ReadInt64(string property) {
+        public long ReadInt64(string? property) {
             return ReadValue<long>(property,
                 v => v);
         }
 
         /// <inheritdoc/>
-        public ulong ReadUInt64(string property) {
+        public ulong ReadUInt64(string? property) {
             return ReadValue<ulong>(property,
                 v => v);
         }
 
         /// <inheritdoc/>
-        public float ReadFloat(string property) {
+        public float ReadFloat(string? property) {
             return ReadValue<float>(property,
                 v => v < float.MinValue || v > float.MaxValue ? 0 : v);
         }
 
         /// <inheritdoc/>
-        public double ReadDouble(string property) {
+        public double ReadDouble(string? property) {
             return ReadValue<double>(property,
                 v => v);
         }
 
         /// <inheritdoc/>
-        public byte[] ReadByteString(string property) {
-            return TryReadValue(property,
-                t => ((string)t).DecodeAsBase64());
+        public byte[]? ReadByteString(string? property) {
+            return ReadValue<byte[]>(property, v => v);
         }
 
         /// <inheritdoc/>
-        public string ReadString(string property) {
+        public string? ReadString(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
             if (token.Type == JTokenType.String) {
-                return (string)token;
+                return (string?)token;
             }
             return token.ToString(); // Return json string of token.
         }
 
         /// <inheritdoc/>
-        public Uuid ReadGuid(string property) {
+        public Uuid ReadGuid(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return Uuid.Empty;
             }
             switch (token.Type) {
                 case JTokenType.String:
-                    if (Guid.TryParse((string)token, out var guid)) {
+                    if (Guid.TryParse((string?)token, out var guid)) {
                         return new Uuid(guid);
                     }
-                    return new Uuid((string)token);
+                    return new Uuid((string?)token);
                 case JTokenType.Guid:
                     return new Uuid((Guid)token);
                 case JTokenType.Bytes:
-                    var bytes = (byte[])token;
-                    if (bytes.Length != 16) {
+                    var bytes = (byte[]?)token;
+                    if (bytes == null || bytes.Length != 16) {
                         break;
                     }
-                    return new Uuid(new Guid((byte[])token));
+                    return new Uuid(new Guid(bytes));
             }
             return Uuid.Empty;
         }
 
         /// <inheritdoc/>
-        public DateTime ReadDateTime(string property) {
+        public DateTime ReadDateTime(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return DateTime.MinValue;
             }
             if (token.Type == JTokenType.String) {
-                return XmlConvert.ToDateTime((string)token,
+                var dateTimeString = (string?)token;
+                return XmlConvert.ToDateTime(dateTimeString!,
                     XmlDateTimeSerializationMode.Utc).ToOpcUaUniversalTime();
             }
             var value = token.ToObject<DateTime?>();
@@ -197,21 +197,24 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public XmlElement ReadXmlElement(string property) {
-            return TryReadValue(property, t => {
-                var bytes = t.ToObject<byte[]>();
-                if (bytes != null && bytes.Length > 0) {
-                    var document = new XmlDocument {
-                        InnerXml = Encoding.UTF8.GetString(bytes)
-                    };
-                    return document.DocumentElement;
-                }
-                return null;
-            });
+        public XmlElement? ReadXmlElement(string? property) {
+            var bytes = ReadByteString(property);
+            if (bytes?.Length > 0) {
+                var document = new XmlDocument {
+                    InnerXml = Encoding.UTF8.GetString(bytes)
+                };
+                return document.DocumentElement;
+            }
+
+            // Fallback
+            if (TryGetToken(property, out var token)) {
+                return token.ToObject<XmlElement>();
+            }
+            return null;
         }
 
         /// <inheritdoc/>
-        public NodeId ReadNodeId(string property) {
+        public NodeId? ReadNodeId(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
@@ -219,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 _stack.Push(o);
                 // Read non reversable encoding
                 ushort namespaceIndex = 0;
-                NodeId nodeId = null;
+                NodeId? nodeId = null;
                 if (TryGetToken("Namespace", out var namespaceToken)) {
                     switch (namespaceToken.Type) {
                         case JTokenType.String:
@@ -233,8 +236,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                             break;
                     }
                 }
-                var idType = (IdType)ReadByte("IdType");
-                switch (idType) {
+                switch ((IdType)ReadByte("IdType")) {
                     case IdType.Numeric:
                         nodeId = new NodeId(ReadUInt32("Id"), namespaceIndex);
                         break;
@@ -261,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 return nodeId;
             }
             if (token.Type == JTokenType.String) {
-                var id = (string)token;
+                var id = (string?)token;
                 var nodeId = id.ToNodeId(Context);
                 if (!NodeId.IsNull(nodeId)) {
                     return nodeId;
@@ -272,7 +274,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public ExpandedNodeId ReadExpandedNodeId(string property) {
+        public ExpandedNodeId? ReadExpandedNodeId(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
@@ -280,7 +282,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 _stack.Push(o);
                 // Read non reversable encoding
                 ushort namespaceIndex = 0;
-                string namespaceUri = null;
+                string? namespaceUri = null;
                 if (TryGetToken("Namespace", out var namespaceToken)) {
                     switch (namespaceToken.Type) {
                         case JTokenType.String:
@@ -309,7 +311,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     }
                 }
                 var idType = (IdType)ReadByte("IdType");
-                NodeId nodeId = null;
+                NodeId? nodeId = null;
                 switch (idType) {
                     case IdType.Numeric:
                         nodeId = new NodeId(ReadUInt32("Id"), namespaceIndex);
@@ -337,7 +339,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 return new ExpandedNodeId(nodeId, namespaceUri, serverIndex);
             }
             if (token.Type == JTokenType.String) {
-                var id = (string)token;
+                var id = (string?)token;
                 var nodeId = id.ToExpandedNodeId(Context);
                 if (!NodeId.IsNull(nodeId)) {
                     return nodeId;
@@ -348,7 +350,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public StatusCode ReadStatusCode(string property) {
+        public StatusCode ReadStatusCode(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return 0;
             }
@@ -365,7 +367,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public DiagnosticInfo ReadDiagnosticInfo(string property) {
+        public DiagnosticInfo? ReadDiagnosticInfo(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
@@ -394,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public QualifiedName ReadQualifiedName(string property) {
+        public QualifiedName? ReadQualifiedName(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
@@ -413,7 +415,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                         else if (uri.Type == JTokenType.String) {
                             // Reversible
                             index = Context.NamespaceUris
-                                .GetIndexOrAppend((string)uri);
+                                .GetIndexOrAppend((string?)uri);
                         }
                         else {
                             // Bad uri
@@ -430,7 +432,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 }
             }
             if (token.Type == JTokenType.String) {
-                var id = (string)token;
+                var id = (string?)token;
                 var qn = id.ToQualifiedName(Context);
                 if (!QualifiedName.IsNull(qn)) {
                     return qn;
@@ -441,7 +443,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public LocalizedText ReadLocalizedText(string property) {
+        public LocalizedText? ReadLocalizedText(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
@@ -453,7 +455,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 return new LocalizedText(locale, text);
             }
             if (token.Type == JTokenType.String) {
-                var text = (string)token;
+                var text = (string?)token;
                 if (!string.IsNullOrEmpty(text)) {
                     return text.ToLocalizedText();
                 }
@@ -462,18 +464,18 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public Variant ReadVariant(string property) {
+        public Variant ReadVariant(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return Variant.Null;
             }
             if (token is JObject o) {
-                return TryReadVariant(o, out var tmp);
+                return TryReadVariant(o, out _);
             }
             return ReadVariantFromToken(token);
         }
 
         /// <inheritdoc/>
-        public DataValue ReadDataValue(string property) {
+        public DataValue? ReadDataValue(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
@@ -491,12 +493,14 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     _stack.Pop();
                     return dv;
                 }
-                var objectVariant = TryReadVariant(o, out var tmp);
+
+                var objectVariant = TryReadVariant(o, out _);
                 if (objectVariant != Variant.Null) {
                     return new DataValue(objectVariant);
                 }
                 return null;
             }
+
             var tokenVariant = ReadVariantFromToken(token);
             if (tokenVariant == Variant.Null) {
                 return null;
@@ -505,7 +509,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public ExtensionObject ReadExtensionObject(string property) {
+        public ExtensionObject? ReadExtensionObject(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
@@ -524,15 +528,15 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public IEncodeable ReadEncodeable(string property, Type systemType,
-            ExpandedNodeId encodeableTypeId = null) {
+        public IEncodeable? ReadEncodeable(string? property, Type systemType,
+            ExpandedNodeId? encodeableTypeId = null) {
             if (systemType == null) {
                 throw new ArgumentNullException(nameof(systemType));
             }
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
-            if (!(Activator.CreateInstance(systemType) is IEncodeable value)) {
+            if (Activator.CreateInstance(systemType) is not IEncodeable value) {
                 return null;
             }
             if (token is JObject o) {
@@ -545,7 +549,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public Enum ReadEnumerated(string property, Type enumType) {
+        public Enum? ReadEnumerated(string? property, Type enumType) {
             if (enumType == null) {
                 throw new ArgumentNullException(nameof(enumType));
             }
@@ -556,13 +560,16 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 return (Enum)Enum.ToObject(enumType, 0); // or null?
             }
             if (token.Type == JTokenType.String) {
-                var val = (string)token;
-                var index = val.LastIndexOf('_');
-                if (index != -1 && int.TryParse(val.AsSpan(index + 1),
+                var val = (string?)token;
+                var index = val?.LastIndexOf('_') ?? -1;
+                if (index != -1 && int.TryParse(val![(index + 1)..],
                     out var numeric)) {
                     return (Enum)Enum.ToObject(enumType, numeric);
                 }
-                return (Enum)Enum.Parse(enumType, val, true);
+                if (Enum.TryParse(enumType, val, true, out var o)) {
+                    return o as Enum;
+                }
+                return null;
             }
             if (token.Type == JTokenType.Integer) {
                 return (Enum)Enum.ToObject(enumType, (int)token);
@@ -571,8 +578,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public Array ReadArray(string property, int valueRank, BuiltInType builtInType,
-            Type systemType, ExpandedNodeId nodeId) {
+        public Array? ReadArray(string? property, int valueRank, BuiltInType builtInType,
+            Type? systemType, ExpandedNodeId? nodeId) {
             if (valueRank == ValueRanks.OneDimension) {
                 switch (builtInType) {
                     case BuiltInType.Boolean:
@@ -628,15 +635,12 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     case BuiltInType.DiagnosticInfo:
                         return ReadDiagnosticInfoArray(property).ToArray();
                     default:
-                        throw new ServiceResultException(
-                            StatusCodes.BadDecodingError,
+                        throw new ServiceResultException(StatusCodes.BadDecodingError,
                             $"Cannot decode unknown type in Array object with BuiltInType: {builtInType}.");
-
                 }
             }
             else if (valueRank > ValueRanks.OneDimension) {
-                List<object> array;
-                if (!ReadArrayField(property, out array)) {
+                if (!ReadArrayField(property, out var array)) {
                     return null;
                 }
                 var elements = new List<object>();
@@ -702,122 +706,122 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public BooleanCollection ReadBooleanArray(string property) {
+        public BooleanCollection ReadBooleanArray(string? property) {
             return ReadArray(property, () => ReadBoolean(null));
         }
 
         /// <inheritdoc/>
-        public Int16Collection ReadInt16Array(string property) {
+        public Int16Collection ReadInt16Array(string? property) {
             return ReadArray(property, () => ReadInt16(null));
         }
 
         /// <inheritdoc/>
-        public UInt16Collection ReadUInt16Array(string property) {
+        public UInt16Collection ReadUInt16Array(string? property) {
             return ReadArray(property, () => ReadUInt16(null));
         }
 
         /// <inheritdoc/>
-        public Int32Collection ReadInt32Array(string property) {
+        public Int32Collection ReadInt32Array(string? property) {
             return ReadArray(property, () => ReadInt32(null));
         }
 
         /// <inheritdoc/>
-        public UInt32Collection ReadUInt32Array(string property) {
+        public UInt32Collection ReadUInt32Array(string? property) {
             return ReadArray(property, () => ReadUInt32(null));
         }
 
         /// <inheritdoc/>
-        public Int64Collection ReadInt64Array(string property) {
+        public Int64Collection ReadInt64Array(string? property) {
             return ReadArray(property, () => ReadInt64(null));
         }
 
         /// <inheritdoc/>
-        public UInt64Collection ReadUInt64Array(string property) {
+        public UInt64Collection ReadUInt64Array(string? property) {
             return ReadArray(property, () => ReadUInt64(null));
         }
 
         /// <inheritdoc/>
-        public FloatCollection ReadFloatArray(string property) {
+        public FloatCollection ReadFloatArray(string? property) {
             return ReadArray(property, () => ReadFloat(null));
         }
 
         /// <inheritdoc/>
-        public DoubleCollection ReadDoubleArray(string property) {
+        public DoubleCollection ReadDoubleArray(string? property) {
             return ReadArray(property, () => ReadDouble(null));
         }
 
         /// <inheritdoc/>
-        public StringCollection ReadStringArray(string property) {
+        public StringCollection ReadStringArray(string? property) {
             return ReadArray(property, () => ReadString(null));
         }
 
         /// <inheritdoc/>
-        public IDictionary<string, string> ReadStringDictionary(string property) {
+        public IDictionary<string, string?>? ReadStringDictionary(string? property) {
             return ReadDictionary(property, () => ReadString(null));
         }
 
         /// <inheritdoc/>
-        public DateTimeCollection ReadDateTimeArray(string property) {
+        public DateTimeCollection ReadDateTimeArray(string? property) {
             return ReadArray(property, () => ReadDateTime(null));
         }
 
         /// <inheritdoc/>
-        public UuidCollection ReadGuidArray(string property) {
+        public UuidCollection ReadGuidArray(string? property) {
             return ReadArray(property, () => ReadGuid(null));
         }
 
         /// <inheritdoc/>
-        public ByteStringCollection ReadByteStringArray(string property) {
+        public ByteStringCollection ReadByteStringArray(string? property) {
             return ReadArray(property, () => ReadByteString(null));
         }
 
         /// <inheritdoc/>
-        public XmlElementCollection ReadXmlElementArray(string property) {
+        public XmlElementCollection ReadXmlElementArray(string? property) {
             return ReadArray(property, () => ReadXmlElement(null));
         }
 
         /// <inheritdoc/>
-        public NodeIdCollection ReadNodeIdArray(string property) {
+        public NodeIdCollection ReadNodeIdArray(string? property) {
             return ReadArray(property, () => ReadNodeId(null));
         }
 
         /// <inheritdoc/>
-        public ExpandedNodeIdCollection ReadExpandedNodeIdArray(string property) {
+        public ExpandedNodeIdCollection ReadExpandedNodeIdArray(string? property) {
             return ReadArray(property, () => ReadExpandedNodeId(null));
         }
 
         /// <inheritdoc/>
-        public StatusCodeCollection ReadStatusCodeArray(string property) {
+        public StatusCodeCollection ReadStatusCodeArray(string? property) {
             return ReadArray(property, () => ReadStatusCode(null));
         }
 
         /// <inheritdoc/>
-        public DiagnosticInfoCollection ReadDiagnosticInfoArray(string property) {
+        public DiagnosticInfoCollection ReadDiagnosticInfoArray(string? property) {
             return ReadArray(property, () => ReadDiagnosticInfo(null));
         }
 
         /// <inheritdoc/>
-        public QualifiedNameCollection ReadQualifiedNameArray(string property) {
+        public QualifiedNameCollection ReadQualifiedNameArray(string? property) {
             return ReadArray(property, () => ReadQualifiedName(null));
         }
 
         /// <inheritdoc/>
-        public LocalizedTextCollection ReadLocalizedTextArray(string property) {
+        public LocalizedTextCollection ReadLocalizedTextArray(string? property) {
             return ReadArray(property, () => ReadLocalizedText(null));
         }
 
         /// <inheritdoc/>
-        public VariantCollection ReadVariantArray(string property) {
+        public VariantCollection ReadVariantArray(string? property) {
             return ReadArray(property, () => ReadVariant(null));
         }
 
         /// <inheritdoc/>
-        public DataValueCollection ReadDataValueArray(string property) {
+        public DataValueCollection ReadDataValueArray(string? property) {
             return ReadArray(property, () => ReadDataValue(null));
         }
 
         /// <inheritdoc/>
-        public DataSet ReadDataSet(string property) {
+        public DataSet? ReadDataSet(string? property) {
             var fieldMask = 0u;
             var couldBeRawData = false;
             var dictionary = ReadDictionary(property, () => {
@@ -846,24 +850,28 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 }
                 return ReadDataValue(null);
             });
-            return dictionary == null ? null : new DataSet(dictionary,
-                fieldMask != 0 || !couldBeRawData ? fieldMask :
+            return dictionary == null ? null :
+                new DataSet(dictionary, fieldMask != 0 || !couldBeRawData ? fieldMask :
                     (uint)DataSetFieldContentMask.RawData);
         }
 
         /// <inheritdoc/>
-        public ExtensionObjectCollection ReadExtensionObjectArray(string property) {
+        public ExtensionObjectCollection ReadExtensionObjectArray(string? property) {
             return ReadArray(property, () => ReadExtensionObject(null));
         }
 
         /// <inheritdoc/>
-        public ByteCollection ReadByteArray(string property) {
+        public ByteCollection ReadByteArray(string? property) {
             if (!TryGetToken(property, out var token)) {
-                return null;
+                return new ByteCollection();
             }
             if (token.Type == JTokenType.Bytes ||
                 token.Type == JTokenType.String) {
-                return ((string)token).DecodeAsBase64();
+                var s = (string?)token;
+                if (s == null) {
+                    return new ByteCollection();
+                }
+                return Convert.FromBase64String(s);
             }
             if (token is JArray a) {
                 return a.Select(t => ReadToken(t,
@@ -875,13 +883,17 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public SByteCollection ReadSByteArray(string property) {
+        public SByteCollection ReadSByteArray(string? property) {
             if (!TryGetToken(property, out var token)) {
-                return null;
+                return new SByteCollection();
             }
             if (token.Type == JTokenType.Bytes ||
                 token.Type == JTokenType.String) {
-                return ((string)token).DecodeAsBase64()
+                var s = (string?)token;
+                if (s == null) {
+                    return new SByteCollection();
+                }
+                return Convert.FromBase64String(s)
                     .Select(b => (sbyte)b).ToArray();
             }
             if (token is JArray a) {
@@ -894,8 +906,10 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public Array ReadEncodeableArray(string property, Type systemType, ExpandedNodeId encodeableTypeId = null) {
-            var values = ReadArray(property, () => ReadEncodeable(null, systemType, encodeableTypeId))?
+        public Array ReadEncodeableArray(string? property, Type systemType,
+            ExpandedNodeId? encodeableTypeId = null) {
+            var values = ReadArray(property, () => ReadEncodeable(
+                null, systemType, encodeableTypeId))?
                 .ToList();
             if (values == null) {
                 return Array.CreateInstance(systemType, 0);
@@ -906,7 +920,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <inheritdoc/>
-        public Array ReadEnumeratedArray(string property, Type enumType) {
+        public Array? ReadEnumeratedArray(string? property, Type enumType) {
             var values = ReadArray(property, () => ReadEnumerated(null, enumType))?
                 .ToList();
             if (values == null) {
@@ -922,7 +936,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public VariantCollection ReadIntegerArray(string property) {
+        public VariantCollection ReadIntegerArray(string? property) {
             return ReadArray(property, () => ReadInteger(null));
         }
 
@@ -931,20 +945,20 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Variant ReadInteger(string property) {
+        public Variant ReadInteger(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return Variant.Null;
             }
             Variant number;
             if (token is JObject o) {
-                number = TryReadVariant(o, out var tmp);
+                number = TryReadVariant(o, out _);
             }
             else {
                 number = ReadVariantFromToken(token, false);
             }
             var builtInType = number.TypeInfo.BuiltInType;
-            if (builtInType >= BuiltInType.SByte &&
-                 builtInType <= BuiltInType.UInt64 ||
+            if ((builtInType >= BuiltInType.SByte &&
+                 builtInType <= BuiltInType.UInt64) ||
                 builtInType == BuiltInType.Integer) {
                 return number;
             }
@@ -959,7 +973,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public VariantCollection ReadUIntegerArray(string property) {
+        public VariantCollection ReadUIntegerArray(string? property) {
             return ReadArray(property, () => ReadUInteger(null));
         }
 
@@ -968,20 +982,20 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Variant ReadUInteger(string property) {
+        public Variant ReadUInteger(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return Variant.Null;
             }
             Variant number;
             if (token is JObject o) {
-                number = TryReadVariant(o, out var tmp);
+                number = TryReadVariant(o, out _);
             }
             else {
                 number = ReadVariantFromToken(token, true);
             }
             var builtInType = number.TypeInfo.BuiltInType;
-            if (builtInType >= BuiltInType.Byte &&
-                 builtInType <= BuiltInType.UInt64 ||
+            if ((builtInType >= BuiltInType.Byte &&
+                 builtInType <= BuiltInType.UInt64) ||
                  builtInType == BuiltInType.UInteger) {
                 return number;
             }
@@ -996,7 +1010,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public VariantCollection ReadNumberArray(string property) {
+        public VariantCollection ReadNumberArray(string? property) {
             return ReadArray(property, () => ReadNumber(null));
         }
 
@@ -1005,13 +1019,13 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Variant ReadNumber(string property) {
+        public Variant ReadNumber(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return Variant.Null;
             }
             Variant number;
             if (token is JObject o) {
-                number = TryReadVariant(o, out var tmp);
+                number = TryReadVariant(o, out _);
             }
             else {
                 number = ReadVariantFromToken(token);
@@ -1026,40 +1040,21 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <summary>
-        /// Read a dictionary
-        /// </summary>
-        /// <param name="fieldName">The name of the field.</param>
-        /// <param name="token">The returned object token of the field.</param>
-        private bool ReadField(string fieldName, out object token) {
-            token = null;
-
-            if (string.IsNullOrEmpty(fieldName)) {
-                token = _stack.Peek();
-                return true;
-            }
-
-            var context = _stack.Peek().ToObject<Dictionary<string, object>>();
-            if (context == null || !context.TryGetValue(fieldName, out token)) {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// Read extension object body
         /// </summary>
         /// <param name="property"></param>
         /// <param name="encoding"></param>
         /// <param name="typeId"></param>
         /// <returns></returns>
-        private ExtensionObject ReadExtensionObjectBody(string property,
-            ExtensionObjectEncoding encoding, ExpandedNodeId typeId) {
+        private ExtensionObject? ReadExtensionObjectBody(string? property,
+            ExtensionObjectEncoding encoding, ExpandedNodeId? typeId) {
             if (!TryGetToken(property, out var body)) {
                 return null;
             }
             var nextEncoding = encoding;
-            var systemType = Context.Factory.GetSystemType(typeId);
+            var systemType = Context.Factory.GetSystemType(typeId) ??
+                TypeInfo.GetSystemType(typeId.ToNodeId(Context.NamespaceUris),
+                    Context.Factory);
             while (true) {
                 switch (nextEncoding) {
                     case ExtensionObjectEncoding.Json:
@@ -1070,57 +1065,81 @@ namespace Azure.IIoT.OpcUa.Encoders {
                             }
                             return new ExtensionObject(typeId, encodeable);
                         }
+
+                        if (encoding != ExtensionObjectEncoding.Json) {
+                            break;
+                        }
                         //
-                        // TODO:
-                        // Need a wrapper for now. Remove once stack supports
-                        // json extension objects.
+                        // Return json token, update once stack supports json extension objects.
                         //
+                        // var json = body.ToString();
+                        // return new ExtensionObject(NodeId.IsNull(typeId) ?
+                        //     DataTypeIds.String : typeId, json);
                         var wrapper = new EncodeableJToken(body);
                         return new ExtensionObject(NodeId.IsNull(typeId) ?
                             wrapper.TypeId : typeId, wrapper);
                     case ExtensionObjectEncoding.Binary:
                         var bytes = ReadByteString(property);
-                        if (bytes == null) {
-                            break;
-                        }
-                        if (systemType != null) {
-                            var encodeable = bytes.ToEncodeable(typeId, Context);
-                            if (encodeable == null) {
-                                break;
+                        if (bytes != null) {
+                            if (systemType != null) {
+                                using (var decoder = new BinaryDecoder(bytes, Context)) {
+                                    var encodeable = decoder.ReadEncodeable(null, systemType);
+                                    if (encodeable == null) {
+                                        break;
+                                    }
+                                    return new ExtensionObject(typeId, encodeable);
+                                }
                             }
-                            return new ExtensionObject(typeId, encodeable);
                         }
+                        //
+                        // Unknown type, or empty then return raw bytes.
+                        //
                         return new ExtensionObject(NodeId.IsNull(typeId) ?
                             DataTypeIds.ByteString : typeId, bytes);
                     default:
                         nextEncoding = ExtensionObjectEncoding.Xml;
-                        if (body.Type != JTokenType.Object) {
-                            break;
-                        }
-                        XmlElement xml;
-                        try {
-                            xml = body.ToObject<XmlElement>();
-                            if (xml == null) {
-                                break;
+                        var encoded = ReadByteString(property);
+                        if (encoded != null) {
+                            var xml = Encoding.UTF8.GetString(encoded);
+                            if (xml != null) {
+                                try {
+                                    if (systemType != null) {
+                                        using (var stringReader = new StringReader(xml))
+                                        using (var reader = XmlReader.Create(stringReader))
+                                        using (var decoder = new XmlDecoder(systemType, reader, Context)) {
+                                            var encodeable = decoder.ReadEncodeable(null, systemType);
+                                            if (encodeable == null) {
+                                                break;
+                                            }
+                                            return new ExtensionObject(typeId, encodeable);
+                                        }
+                                    }
+                                    //
+                                    // Unknown type, return as xmlelement
+                                    //
+                                    else if (encoding == ExtensionObjectEncoding.Xml) {
+                                        var doc = new XmlDocument();
+                                        doc.LoadXml(xml);
+                                        return new ExtensionObject(NodeId.IsNull(typeId) ?
+                                            DataTypeIds.XmlElement : typeId, doc.DocumentElement);
+                                    }
+                                }
+                                catch {
+                                    if (encoding != ExtensionObjectEncoding.Xml) {
+                                        break;
+                                    }
+                                }
                             }
                         }
-                        catch {
+                        if (encoding != ExtensionObjectEncoding.Xml) {
                             break;
                         }
-                        if (systemType != null) {
-                            var encodeable = xml.ToEncodeable(typeId, Context);
-                            if (encodeable == null) {
-                                break;
-                            }
-                            return new ExtensionObject(typeId, encodeable);
-                        }
-                        return new ExtensionObject(NodeId.IsNull(typeId) ?
-                            DataTypeIds.XmlElement : typeId, xml);
+                        //
+                        // Encoding was set as xml, but we could not decode to xmlelement
+                        //
+                        return null;
                 }
-                if (encoding == nextEncoding) {
-                    // Honor defined encoding
-                    return null;
-                }
+
                 switch (nextEncoding) {
                     case ExtensionObjectEncoding.Json:
                         // Try xml next
@@ -1158,7 +1177,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     case JTokenType.Boolean:
                         return new Variant((bool)token);
                     case JTokenType.Bytes:
-                        return new Variant((byte[])token);
+                        return new Variant((byte[]?)token);
                     case JTokenType.Date:
                         return new Variant((DateTime)token);
                     case JTokenType.TimeSpan:
@@ -1168,7 +1187,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     case JTokenType.Guid:
                         return new Variant((Guid)token);
                     case JTokenType.String:
-                        return new Variant((string)token);
+                        return new Variant((string?)token);
                     case JTokenType.Object:
                         var variant = TryReadVariant((JObject)token, out var found);
                         if (found) {
@@ -1254,7 +1273,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                                 .ToArray());
                         case JTokenType.Bytes:
                             return new Variant(array
-                                .Select(t => (byte[])t)
+                                .Select(t => (byte[]?)t)
                                 .ToArray());
                         case JTokenType.Date:
                             return new Variant(array
@@ -1274,7 +1293,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                                 .ToArray());
                         case JTokenType.String:
                             return new Variant(array
-                                .Select(t => (string)t)
+                                .Select(t => (string?)t)
                                 .ToArray());
                     }
                 }
@@ -1286,7 +1305,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             var result = array
                 .Select(t => ReadVariantFromToken(t, unsigned))
                 .ToArray();
-            var validBuiltInType = result.FirstOrDefault(v => v.TypeInfo?.BuiltInType != null).TypeInfo?.BuiltInType;
+            var validBuiltInType = Array.Find(result, v => v.TypeInfo?.BuiltInType != null).TypeInfo?.BuiltInType;
             if (validBuiltInType == null) {
                 return Variant.Null;
             }
@@ -1330,7 +1349,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <param name="property"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        private Variant ReadVariantBody(string property, BuiltInType type) {
+        private Variant ReadVariantBody(string? property, BuiltInType type) {
             if (!TryGetToken(property, out var token)) {
                 return Variant.Null;
             }
@@ -1567,7 +1586,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <param name="property"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        private Variant ReadVariantArrayBody(string property, BuiltInType type) {
+        private Variant ReadVariantArrayBody(string? property, BuiltInType type) {
             switch (type) {
                 case BuiltInType.Boolean:
                     return new Variant(ReadBooleanArray(property),
@@ -1660,7 +1679,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <param name="property"></param>
         /// <param name="check"></param>
         /// <returns></returns>
-        private T ReadValue<T>(string property, Func<T, T> check) {
+        private T? ReadValue<T>(string? property, Func<T?, T?> check) {
             if (!TryGetToken(property, out var token)) {
                 return default;
             }
@@ -1673,40 +1692,16 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <summary>
-        /// Read value with conversion fallback
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="property"></param>
-        /// <param name="fallback"></param>
-        /// <returns></returns>
-        private T TryReadValue<T>(string property, Func<JToken, T> fallback)
-            where T : class {
-            if (!TryGetToken(property, out var token)) {
-                return default;
-            }
-            try {
-                var value = token.ToObject<T>();
-                if (value != null) {
-                    return value;
-                }
-                return fallback(token);
-            }
-            catch {
-                return default;
-            }
-        }
-
-        /// <summary>
         /// Read built in type value
         /// </summary>
         /// <returns></returns>
-        private bool TryReadBuiltInType(string property, out BuiltInType type) {
+        private bool TryReadBuiltInType(string? property, out BuiltInType type) {
             type = BuiltInType.Null;
             if (!TryGetToken(property, out var token)) {
                 return false;
             }
             if (token.Type == JTokenType.String) {
-                return Enum.TryParse((string)token, true, out type);
+                return Enum.TryParse((string?)token, true, out type);
             }
             try {
                 type = (BuiltInType)token.ToObject<byte>();
@@ -1721,12 +1716,12 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// Read encoding value
         /// </summary>
         /// <returns></returns>
-        private ExtensionObjectEncoding ReadEncoding(string property) {
+        private ExtensionObjectEncoding ReadEncoding(string? property) {
             if (!TryGetToken(property, out var token)) {
                 return ExtensionObjectEncoding.None;
             }
             if (token.Type == JTokenType.String) {
-                if (Enum.TryParse<ExtensionObjectEncoding>((string)token,
+                if (Enum.TryParse<ExtensionObjectEncoding>((string?)token,
                     true, out var encoding)) {
                     return encoding;
                 }
@@ -1746,7 +1741,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <param name="property"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
-        internal T[] ReadArray<T>(string property, Func<T> reader) {
+        internal T[]? ReadArray<T>(string? property, Func<T> reader) {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
@@ -1763,12 +1758,12 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <param name="property"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
-        private IDictionary<string, T> ReadDictionary<T>(string property,
-            Func<T> reader) {
-            if (!TryGetToken(property, out var token) || !(token is JObject o)) {
+        private IDictionary<string, T?>? ReadDictionary<T>(string? property,
+            Func<T?> reader) {
+            if (!TryGetToken(property, out var token) || token is not JObject o) {
                 return null;
             }
-            var dictionary = new Dictionary<string, T>();
+            var dictionary = new Dictionary<string, T?>();
             foreach (var p in o.Properties()) {
                 dictionary[p.Name] = ReadToken(p.Value, reader);
             }
@@ -1782,7 +1777,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <param name="token"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
-        internal T ReadToken<T>(JToken token, Func<T> reader) {
+        private T ReadToken<T>(JToken token, Func<T> reader) {
             try {
                 _stack.Push(token);
                 return reader();
@@ -1793,7 +1788,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         /// <summary>
-        /// Test whether the object contains any of the the properties
+        /// Test whether the object contains any of the properties
         /// </summary>
         /// <param name="o"></param>
         /// <param name="properties"></param>
@@ -1814,8 +1809,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <param name="property"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        internal bool TryGetToken(string property, out JToken token) {
-            JToken top;
+        internal bool TryGetToken(string? property, [NotNullWhen(true)] out JToken? token) {
+            JToken? top;
             if (_stack.Count == 0) {
                 top = ReadNextToken();
                 //
@@ -1824,7 +1819,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 // are reading from an array of object so we do not push
                 // which means our stack will reset to 0.
                 //
-                if (top != null && (property != null || !(_reader is JsonLoader))) {
+                if (top != null && (property != null || _reader is not JsonLoader)) {
                     _stack.Push(top);
                 }
             }
@@ -1868,7 +1863,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// Read next root token from reader
         /// </summary>
         /// <returns></returns>
-        private JToken ReadNextToken() {
+        private JToken? ReadNextToken() {
             if (_reader == null) {
                 return null;
             }
@@ -1880,12 +1875,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 loader.Reset();
             }
 
-            var root = JToken.ReadFrom(_reader,
+            return JToken.ReadFrom(_reader,
                 new JsonLoadSettings {
                     CommentHandling = CommentHandling.Ignore,
                     LineInfoHandling = LineInfoHandling.Ignore
                 });
-            return root;
         }
 
         /// <summary>
@@ -1894,13 +1888,18 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <param name="fieldName"></param>
         /// <param name="array"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
-        private bool ReadArrayField(string fieldName, out List<object> array) {
-            array = null;
-            object token;
-
-            if (!ReadField(fieldName, out token)) {
-                return false;
+        private bool ReadArrayField(string? fieldName,
+            [NotNullWhen(true)] out List<object>? array) {
+            object? token;
+            if (!string.IsNullOrEmpty(fieldName)) {
+                var context = _stack.Peek().ToObject<Dictionary<string, object>>();
+                if (context == null || !context.TryGetValue(fieldName, out token)) {
+                    array = null;
+                    return false;
+                }
+            }
+            else {
+                token = _stack.Peek();
             }
             array = token as List<object>;
             if (array == null) {
@@ -1915,23 +1914,25 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <summary>
         /// Read the Matrix part (simple array or array of arrays)
         /// </summary>
-        private void ReadMatrixPart(string fieldName, List<object> currentArray, BuiltInType builtInType, ref List<object> elements, ref List<int> dimensions, int level) {
+        private void ReadMatrixPart(string? fieldName, List<object>? currentArray,
+            BuiltInType builtInType, ref List<object> elements, ref List<int> dimensions, int level) {
             try {
                 if (currentArray?.Count > 0) {
                     var hasInnerArray = false;
-                    for (var ii = 0; ii < currentArray.Count; ii++) {
-                        if (ii == 0 && dimensions.Count <= level) {
+                    for (var i = 0; i < currentArray.Count; i++) {
+                        if (i == 0 && dimensions.Count <= level) {
                             // remember dimension length
                             dimensions.Add(currentArray.Count);
                         }
-                        if (currentArray[ii] is List<object>) {
+                        if (currentArray[i] is List<object>) {
                             hasInnerArray = true;
 
                             if (!TryGetToken(fieldName, out var token)) {
                                 return;
                             }
                             _stack.Push(token);
-                            ReadMatrixPart(null, currentArray[ii] as List<object>, builtInType, ref elements, ref dimensions, level + 1);
+                            ReadMatrixPart(null, currentArray[i] as List<object>,
+                                builtInType, ref elements, ref dimensions, level + 1);
                             _stack.Pop();
                         }
                         else {
@@ -1940,7 +1941,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     }
                     if (!hasInnerArray) {
                         // read array from one dimension
-                        if (ReadArray(null, ValueRanks.OneDimension, builtInType, null, null) is System.Collections.IList part && part.Count > 0) {
+                        if (ReadArray(null, ValueRanks.OneDimension, builtInType, null, null)
+                            is System.Collections.IList part && part.Count > 0) {
                             // add part elements to final list
                             foreach (var item in part) {
                                 elements.Add(item);
@@ -1957,13 +1959,12 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <summary>
         /// Works around missing object endings, etc.
         /// </summary>
-        private class JsonLoader : JsonReader, IDisposable {
-
+        private class JsonLoader : JsonReader{
             /// <inheritdoc/>
             public override string Path => _reader.Path;
 
             /// <inheritdoc/>
-            public override object Value => _reader.Value;
+            public override object? Value => _reader.Value;
 
             /// <inheritdoc/>
             public override JsonToken TokenType {
@@ -2012,8 +2013,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
                 // Handle streaming
                 if (_reader.Depth == 0 &&
-                   (_inArray && _reader.TokenType == JsonToken.EndArray ||
-                   !_inArray && _reader.TokenType == JsonToken.StartArray)) {
+                   ((_inArray && _reader.TokenType == JsonToken.EndArray) ||
+                   (!_inArray && _reader.TokenType == JsonToken.StartArray))) {
                     _inArray = !_inArray;
                     _eos |= !_inArray && _reset;
                     // Skip to start object
@@ -2044,7 +2045,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             private bool _eos;
         }
 
-        private readonly JsonReader _reader;
+        private readonly JsonReader? _reader;
         private readonly Stack<JToken> _stack = new();
     }
 }

@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Data set message
     /// </summary>
     public class JsonDataSetMessage : BaseDataSetMessage {
-
         /// <summary>
         /// Compatibility with 2.8 when encoding and decoding
         /// </summary>
@@ -221,19 +220,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                     dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.MessageType;
 
                     if (messageType != null) {
-                        if (messageType.Equals("ua-deltaframe")) {
+                        if (messageType.Equals("ua-deltaframe", StringComparison.Ordinal)) {
                             MessageType = MessageType.DeltaFrame;
                         }
-                        else if (messageType.Equals("ua-event")) {
+                        else if (messageType.Equals("ua-event", StringComparison.Ordinal)) {
                             MessageType = MessageType.Event;
                         }
-                        else if (messageType.Equals("ua-keepalive")) {
+                        else if (messageType.Equals("ua-keepalive", StringComparison.Ordinal)) {
                             MessageType = MessageType.KeepAlive;
                         }
-                        else if (messageType.Equals("ua-condition")) {
+                        else if (messageType.Equals("ua-condition", StringComparison.Ordinal)) {
                             MessageType = MessageType.Condition;
                         }
-                        else if (messageType.Equals("ua-keyframe")) {
+                        else if (messageType.Equals("ua-keyframe", StringComparison.Ordinal)) {
                             MessageType = MessageType.KeyFrame;
                         }
                         else {

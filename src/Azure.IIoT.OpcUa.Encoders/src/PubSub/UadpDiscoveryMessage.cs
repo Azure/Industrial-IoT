@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
     public class UadpDiscoveryMessage : UadpNetworkMessage {
-
         /// <summary>
         /// Whether this is a discovery probe
         /// </summary>

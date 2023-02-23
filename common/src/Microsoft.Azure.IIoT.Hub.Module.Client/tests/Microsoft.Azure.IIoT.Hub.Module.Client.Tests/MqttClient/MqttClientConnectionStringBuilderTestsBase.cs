@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
     public class MqttClientConnectionStringBuilderTestsBase : IDisposable {
         private static readonly TimeSpan kIoTHubRootCertificateValidity = TimeSpan.FromDays(1);
 
-        protected string IoTHubRootCertificateFile { get; private set; }
+        protected string IoTHubRootCertificateFile { get; }
 
         public MqttClientConnectionStringBuilderTestsBase() {
             IoTHubRootCertificateFile = $"./IoTHubRootCertificateFile-{Guid.NewGuid()}.pem";

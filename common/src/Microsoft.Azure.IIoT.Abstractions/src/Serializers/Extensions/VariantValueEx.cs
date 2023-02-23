@@ -11,7 +11,6 @@ namespace Furly.Extensions.Serializers {
     /// Variant extensions
     /// </summary>
     public static class VariantValueEx2 {
-
         /// <summary>
         /// Helper to get values from token dictionary
         /// </summary>
@@ -83,7 +82,7 @@ namespace Furly.Extensions.Serializers {
             string key, Func<T> defaultValue) {
             if (t.IsObject &&
                 t.TryGetProperty(key, out var value) &&
-                !(value is null)) {
+                value is not null) {
                 try {
                     return value.ConvertTo<T>();
                 }

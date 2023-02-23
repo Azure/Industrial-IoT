@@ -3,7 +3,6 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-
 namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
@@ -12,13 +11,12 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// Callback
     /// </summary>
     public interface IIoTClientCallback {
-
         /// <summary>
         /// Call method on client
         /// </summary>
         /// <param name="methodRequest"></param>
         /// <returns></returns>
-        MethodResponse Call(MethodRequest methodRequest);
+        MethodResponse CallMethod(MethodRequest methodRequest);
 
         /// <summary>
         /// Set properties on client

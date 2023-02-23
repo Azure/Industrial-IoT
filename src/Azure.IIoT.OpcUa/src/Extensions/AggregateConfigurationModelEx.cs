@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-
     /// <summary>
     /// Aggregate configuration model extensions
     /// </summary>
     public static class AggregateConfigurationModelEx {
-
         /// <summary>
         /// Clone
         /// </summary>
@@ -56,5 +54,4 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
             return true;
         }
     }
-
 }

@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Endpoint information returned from discover
     /// </summary>
     public class DiscoveredEndpointModel {
-
         /// <summary>
         /// Endpoint
         /// </summary>

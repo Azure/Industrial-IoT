@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// Network message sink
     /// </summary>
     public class NetworkMessageSink : IMessageSink {
-
         /// <inheritdoc/>
         public int MaxMessageSize => _clientAccessor.Client.MaxEventBufferSize;
 
@@ -29,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <param name="logger"></param>
         public NetworkMessageSink(IClientAccessor clientAccessor, IMetricsContext metrics,
             ILogger logger) : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
-
             _clientAccessor = clientAccessor
                 ?? throw new ArgumentNullException(nameof(clientAccessor));
             _logger = logger

@@ -24,6 +24,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport {
         /// <summary>
         /// Task that completes when scan is done.
         /// </summary>
-        Task Completion { get; }
+        Task WaitToCompleteAsync();
     }
 }

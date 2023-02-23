@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
-
     /// <summary>
     /// Common IIoT IoT Hub properties
     /// </summary>
     public static class CommonProperties {
-
         /// <summary>
         /// Device id of sender
         /// </summary>

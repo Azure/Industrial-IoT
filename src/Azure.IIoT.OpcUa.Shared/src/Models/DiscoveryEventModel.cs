@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// One of n events with the discovered application info
     /// </summary>
     public sealed record class DiscoveryEventModel {
-
         /// <summary>
         /// Timestamp of the discovery sweep.
         /// </summary>

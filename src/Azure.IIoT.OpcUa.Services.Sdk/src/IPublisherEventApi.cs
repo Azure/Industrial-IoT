@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// Publisher Event controller api
     /// </summary>
     public interface IPublisherEventApi {
-
         /// <summary>
         /// Subscribe client to receive published samples
         /// </summary>

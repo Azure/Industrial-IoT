@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Module {
     /// module or device identity
     /// </summary>
     public interface IEventEmitter : IEventClient {
-
         /// <summary>
         /// Send property changed notification
         /// </summary>
