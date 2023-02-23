@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Default client configuration
     /// </summary>
-    public class ClientServicesConfig : ConfigBase, IClientServicesConfig, ITransportQuotaConfig {
+    public class ClientServicesConfig : ConfigBase, IClientServicesConfig, ITransportQuotaConfig
+    {
         /// <summary>
         /// Configuration
         /// </summary>
@@ -84,7 +86,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
         public int SecurityTokenLifetime => _transport.SecurityTokenLifetime;
 
         /// <inheritdoc/>
-        public ClientServicesConfig(IConfiguration configuration) : base(configuration) {
+        public ClientServicesConfig(IConfiguration configuration) : base(configuration)
+        {
             _security = new SecurityConfig(configuration);
             _transport = new TransportQuotaConfig(configuration);
         }

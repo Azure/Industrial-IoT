@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services {
+namespace Azure.IIoT.OpcUa.Publisher.Services
+{
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using System;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// <summary>
     /// Publisher identity
     /// </summary>
-    public sealed class PublisherIdentity : IProcessIdentity {
+    public sealed class PublisherIdentity : IProcessIdentity
+    {
         /// <inheritdoc/>
         public string ProcessId => _factory.DeviceId;
         /// <inheritdoc/>
@@ -27,7 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <param name="factory"></param>
         /// <param name="config"></param>
         public PublisherIdentity(IClientFactory factory,
-            IPublisherConfiguration config = null) {
+            IPublisherConfiguration config = null)
+        {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _config = config;
         }

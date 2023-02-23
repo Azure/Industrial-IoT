@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Handlers {
+namespace Azure.IIoT.OpcUa.Services.Handlers
+{
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Shared.Models;
@@ -19,7 +20,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
     /// <summary>
     /// Publisher message handling
     /// </summary>
-    public sealed class MonitoredItemMessageHandler : IDeviceTelemetryHandler {
+    public sealed class MonitoredItemMessageHandler : IDeviceTelemetryHandler
+    {
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.MonitoredItemMessageJson;
 
@@ -30,7 +32,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
         public MonitoredItemMessageHandler(IVariantEncoderFactory encoder,
-            IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
+            IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger)
+        {
             _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
@@ -38,21 +41,26 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
 
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-            try {
+            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint)
+        {
+            try
+            {
                 var context = new ServiceMessageContext();
                 var pubSubMessage = PubSubMessage.Decode(payload, ContentMimeType.Json,
                     context, null, MessageSchema);
-                if (pubSubMessage is not BaseNetworkMessage networkMessage) {
+                if (pubSubMessage is not BaseNetworkMessage networkMessage)
+                {
                     _logger.LogInformation("Received non network message.");
                     return;
                 }
 
-                foreach (MonitoredItemMessage message in networkMessage.Messages) {
+                foreach (MonitoredItemMessage message in networkMessage.Messages)
+                {
                     var type = BuiltInType.Null;
                     var codec = _encoder.Create(context);
                     var extensionFields = message.ExtensionFields.ToDictionary(k => k.Key, v => v.Value);
-                    var sample = new MonitoredItemMessageModel {
+                    var sample = new MonitoredItemMessageModel
+                    {
                         PublisherId = (message.ExtensionFields != null &&
                             extensionFields.TryGetValue("PublisherId", out var publisherId))
                                 ? publisherId : message.ApplicationUri ?? message.EndpointUrl,
@@ -84,13 +92,15 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                     await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample))).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Publishing messages failed - skip");
             }
         }
 
         /// <inheritdoc/>
-        public Task OnBatchCompleteAsync() {
+        public Task OnBatchCompleteAsync()
+        {
             return Task.CompletedTask;
         }
 

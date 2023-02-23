@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
+namespace Microsoft.Azure.IIoT.Hub.Client.Runtime
+{
     using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
@@ -12,7 +13,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
     /// <summary>
     /// IoT Hub Event processor configuration - wraps a configuration root
     /// </summary>
-    public class IoTHubEventConfig : ConfigBase, IEventHubConsumerConfig {
+    public class IoTHubEventConfig : ConfigBase, IEventHubConsumerConfig
+    {
         /// <summary>
         /// Event processor configuration
         /// </summary>
@@ -24,25 +26,31 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
         private const string kUseWebsocketsKey = "UseWebsockets";
 
         /// <summary> Event hub connection string </summary>
-        public string EventHubConnString {
-            get {
+        public string EventHubConnString
+        {
+            get
+            {
                 var ep = GetStringOrDefault(PcsVariable.PCS_IOTHUB_EVENTHUBENDPOINT,
                     () => GetStringOrDefault("PCS_IOTHUBREACT_HUB_ENDPOINT",
                     () => null));
-                if (string.IsNullOrEmpty(ep)) {
+                if (string.IsNullOrEmpty(ep))
+                {
                     var cs = GetStringOrDefault(kEventHubConnStringKey,
                         () => GetStringOrDefault(_serviceId + "_EH_CS",
                         () => GetStringOrDefault("_EH_CS",
                         () => null)))?.Trim();
-                    if (string.IsNullOrEmpty(cs)) {
+                    if (string.IsNullOrEmpty(cs))
+                    {
                         return null;
                     }
                     return cs;
                 }
-                if (!ConnectionString.TryParse(IoTHubConnString, out var iothub)) {
+                if (!ConnectionString.TryParse(IoTHubConnString, out var iothub))
+                {
                     return null;
                 }
-                if (ep.StartsWith("Endpoint=", StringComparison.InvariantCultureIgnoreCase)) {
+                if (ep.StartsWith("Endpoint=", StringComparison.InvariantCultureIgnoreCase))
+                {
                     ep = ep.Remove(0, "Endpoint=".Length);
                 }
                 return ConnectionString.CreateEventHubConnectionString(ep,
@@ -68,16 +76,21 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
                () => GetStringOrDefault(PcsVariable.PCS_IOTHUB_CONNSTRING,
                    () => GetStringOrDefault("_HUB_CS", () => null))));
         /// <summary>Hub name</summary>
-        public string IoTHubName {
-            get {
+        public string IoTHubName
+        {
+            get
+            {
                 var name = GetStringOrDefault("PCS_IOTHUBREACT_HUB_NAME", () => null);
-                if (!string.IsNullOrEmpty(name)) {
+                if (!string.IsNullOrEmpty(name))
+                {
                     return name;
                 }
-                try {
+                try
+                {
                     return ConnectionString.Parse(IoTHubConnString).HubName;
                 }
-                catch {
+                catch
+                {
                     return null;
                 }
             }
@@ -89,7 +102,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
         /// <param name="configuration"></param>
         /// <param name="serviceId"></param>
         public IoTHubEventConfig(IConfiguration configuration, string serviceId = "") :
-            base(configuration) {
+            base(configuration)
+        {
             _serviceId = serviceId ?? throw new ArgumentNullException(nameof(serviceId));
         }
 

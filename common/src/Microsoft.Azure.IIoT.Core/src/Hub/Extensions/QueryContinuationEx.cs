@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Models {
+namespace Microsoft.Azure.IIoT.Hub.Models
+{
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
     using System;
@@ -13,7 +14,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// <summary>
     /// Query continuation token extensions
     /// </summary>
-    public static class QueryContinuationEx {
+    public static class QueryContinuationEx
+    {
         /// <summary>
         /// Convert to continuation token string
         /// </summary>
@@ -21,9 +23,12 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="continuation"></param>
         /// <returns></returns>
         public static string SerializeContinuationToken(this ISerializer serializer,
-            QueryContinuation continuation) {
-            using (var result = new MemoryStream()) {
-                using (var gs = new GZipStream(result, CompressionMode.Compress)) {
+            QueryContinuation continuation)
+        {
+            using (var result = new MemoryStream())
+            {
+                using (var gs = new GZipStream(result, CompressionMode.Compress))
+                {
                     gs.Write(serializer.SerializeToMemory((object)continuation).Span);
                 }
                 return result.ToArray().ToBase64String();
@@ -39,8 +44,10 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         public static string SerializeContinuationToken(this ISerializer serializer,
-            string query, string continuationToken, int? pageSize) {
-            return SerializeContinuationToken(serializer, new QueryContinuation {
+            string query, string continuationToken, int? pageSize)
+        {
+            return SerializeContinuationToken(serializer, new QueryContinuation
+            {
                 PageSize = pageSize,
                 Query = query,
                 Token = continuationToken
@@ -54,15 +61,19 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="continuationToken"></param>
         /// <returns></returns>
         public static QueryContinuation DeserializeContinuationToken(this ISerializer serializer,
-            string continuationToken) {
-            try {
+            string continuationToken)
+        {
+            try
+            {
                 using (var input = new MemoryStream(continuationToken.DecodeAsBase64()))
                 using (var gs = new GZipStream(input, CompressionMode.Decompress))
-                using (var reader = new StreamReader(gs)) {
+                using (var reader = new StreamReader(gs))
+                {
                     return serializer.Deserialize<QueryContinuation>(reader);
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 throw new ArgumentException("Malformed continuation token",
                     nameof(continuationToken), ex);
             }
@@ -78,7 +89,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="pageSize"></param>
         /// <returns></returns>
         public static void DeserializeContinuationToken(this ISerializer serializer,
-            string token, out string query, out string continuationToken, out int? pageSize) {
+            string token, out string query, out string continuationToken, out int? pageSize)
+        {
             var result = DeserializeContinuationToken(serializer, token);
             query = result.Query; continuationToken = result.Token; pageSize = result.PageSize;
         }

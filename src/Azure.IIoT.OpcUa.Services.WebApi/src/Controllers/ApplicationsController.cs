@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
+    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Azure.IIoT.OpcUa;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
@@ -25,14 +26,16 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
-    public class ApplicationsController : ControllerBase {
+    public class ApplicationsController : ControllerBase
+    {
         /// <summary>
         /// Create controller
         /// </summary>
         /// <param name="applications"></param>
         /// <param name="onboarding"></param>
         public ApplicationsController(IApplicationRegistry applications,
-            IDiscoveryServices onboarding) {
+            IDiscoveryServices onboarding)
+        {
             _applications = applications;
             _onboarding = onboarding;
         }
@@ -50,8 +53,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task RegisterServerAsync(
-            [FromBody][Required] ServerRegistrationRequestModel request) {
-            if (request == null) {
+            [FromBody][Required] ServerRegistrationRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             await _onboarding.RegisterAsync(request).ConfigureAwait(false);
@@ -67,7 +72,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns></returns>
         [HttpPost("{applicationId}/disable")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task DisableApplicationAsync(string applicationId) {
+        public async Task DisableApplicationAsync(string applicationId)
+        {
             await _applications.DisableApplicationAsync(applicationId).ConfigureAwait(false);
         }
 
@@ -81,7 +87,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns></returns>
         [HttpPost("{applicationId}/enable")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task EnableApplicationAsync(string applicationId) {
+        public async Task EnableApplicationAsync(string applicationId)
+        {
             await _applications.EnableApplicationAsync(applicationId).ConfigureAwait(false);
         }
 
@@ -97,8 +104,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("discover")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DiscoverServerAsync(
-            [FromBody][Required] DiscoveryRequestModel request) {
-            if (request == null) {
+            [FromBody][Required] DiscoveryRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             await _onboarding.DiscoverAsync(request).ConfigureAwait(false);
@@ -114,11 +123,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns></returns>
         [HttpDelete("discover/{requestId}")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task CancelAsync(string requestId) {
-            if (string.IsNullOrEmpty(requestId)) {
+        public async Task CancelAsync(string requestId)
+        {
+            if (string.IsNullOrEmpty(requestId))
+            {
                 throw new ArgumentNullException(nameof(requestId));
             }
-            await _onboarding.CancelAsync(new DiscoveryCancelRequestModel {
+            await _onboarding.CancelAsync(new DiscoveryCancelRequestModel
+            {
                 Id = requestId
                 // TODO: AuthorityId = User.Identity.Name;
             }).ConfigureAwait(false);
@@ -138,8 +150,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPut]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task<ApplicationRegistrationResponseModel> CreateApplicationAsync(
-            [FromBody][Required] ApplicationRegistrationRequestModel request) {
-            if (request == null) {
+            [FromBody][Required] ApplicationRegistrationRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var model = request;
@@ -154,7 +168,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Application registration</returns>
         [HttpGet("{applicationId}")]
         public async Task<ApplicationRegistrationModel> GetApplicationRegistrationAsync(
-            string applicationId) {
+            string applicationId)
+        {
             return await _applications.GetApplicationAsync(applicationId).ConfigureAwait(false);
         }
 
@@ -171,8 +186,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPatch("{applicationId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateApplicationRegistrationAsync(string applicationId,
-            [FromBody][Required] ApplicationRegistrationUpdateModel request) {
-            if (request == null) {
+            [FromBody][Required] ApplicationRegistrationUpdateModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var model = request;
@@ -190,7 +207,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns></returns>
         [HttpDelete("{applicationId}")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task DeleteApplicationAsync(string applicationId) {
+        public async Task DeleteApplicationAsync(string applicationId)
+        {
             await _applications.UnregisterApplicationAsync(applicationId).ConfigureAwait(false);
         }
 
@@ -205,7 +223,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpDelete]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DeleteAllDisabledApplicationsAsync(
-            [FromQuery] TimeSpan? notSeenFor) {
+            [FromQuery] TimeSpan? notSeenFor)
+        {
             await _applications.PurgeDisabledApplicationsAsync(
                 notSeenFor ?? TimeSpan.FromTicks(0)).ConfigureAwait(false);
         }
@@ -225,12 +244,15 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<ApplicationSiteListModel> GetListOfSitesAsync(
             [FromQuery] string continuationToken,
-            [FromQuery] int? pageSize) {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
+            [FromQuery] int? pageSize)
+        {
+            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken]
                     .FirstOrDefault();
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount)) {
+            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
@@ -259,12 +281,15 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<ApplicationInfoListModel> GetListOfApplicationsAsync(
             [FromQuery] string continuationToken,
-            [FromQuery] int? pageSize) {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
+            [FromQuery] int? pageSize)
+        {
+            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken]
                     .FirstOrDefault();
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount)) {
+            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
@@ -289,11 +314,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("query")]
         public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
             [FromBody][Required] ApplicationRegistrationQueryModel query,
-            [FromQuery] int? pageSize) {
-            if (query == null) {
+            [FromQuery] int? pageSize)
+        {
+            if (query == null)
+            {
                 throw new ArgumentNullException(nameof(query));
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount)) {
+            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
@@ -317,11 +345,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpGet("query")]
         public async Task<ApplicationInfoListModel> GetFilteredListOfApplicationsAsync(
             [FromBody][Required] ApplicationRegistrationQueryModel query,
-            [FromQuery] int? pageSize) {
-            if (query == null) {
+            [FromQuery] int? pageSize)
+        {
+            if (query == null)
+            {
                 throw new ArgumentNullException(nameof(query));
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount)) {
+            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }

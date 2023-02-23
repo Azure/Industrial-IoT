@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
+    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
-    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -22,12 +23,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
-    public class UpsertController : ControllerBase {
+    public class UpsertController : ControllerBase
+    {
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="historian"></param>
-        public UpsertController(IHistoryServices<string> historian) {
+        public UpsertController(IHistoryServices<string> historian)
+        {
             _historian = historian ?? throw new ArgumentNullException(nameof(historian));
         }
 
@@ -44,8 +47,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(
             string endpointId,
-            [FromBody][Required] HistoryUpdateRequestModel<UpdateValuesDetailsModel> request) {
-            if (request == null) {
+            [FromBody][Required] HistoryUpdateRequestModel<UpdateValuesDetailsModel> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryUpsertValuesAsync(endpointId, request).ConfigureAwait(false);
@@ -64,8 +69,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(
             string endpointId,
-            [FromBody][Required] HistoryUpdateRequestModel<UpdateEventsDetailsModel> request) {
-            if (request == null) {
+            [FromBody][Required] HistoryUpdateRequestModel<UpdateEventsDetailsModel> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryUpsertEventsAsync(endpointId, request).ConfigureAwait(false);

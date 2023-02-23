@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     using Microsoft.Azure.IIoT;
     using Microsoft.IO;
     using Opc.Ua;
@@ -14,7 +15,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Encodeable PubSub messages
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
-    public abstract class PubSubMessage {
+    public abstract class PubSubMessage
+    {
         /// <summary>
         /// Message schema
         /// </summary>
@@ -77,7 +79,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <returns></returns>
         public static PubSubMessage Decode(byte[] buffer, string contentType,
             IServiceMessageContext context, IDataSetMetaDataResolver resolver = null,
-            string messageSchema = null) {
+            string messageSchema = null)
+        {
             var reader = new Queue<byte[]>();
             reader.Enqueue(buffer);
             return DecodeOne(reader, contentType, context, resolver, messageSchema);
@@ -94,13 +97,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <returns></returns>
         public static IEnumerable<PubSubMessage> Decode(Queue<byte[]> reader, string contentType,
             IServiceMessageContext context, IDataSetMetaDataResolver resolver,
-            string messageSchema = null) {
-            while (true) {
+            string messageSchema = null)
+        {
+            while (true)
+            {
                 var message = DecodeOne(reader, contentType, context, resolver, messageSchema);
-                if (message == null) {
+                if (message == null)
+                {
                     yield break;
                 }
-                else {
+                else
+                {
                     yield return message;
                 }
             }
@@ -117,44 +124,54 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <returns></returns>
         internal static PubSubMessage DecodeOne(Queue<byte[]> reader, string contentType,
             IServiceMessageContext context, IDataSetMetaDataResolver resolver,
-            string messageSchema = null) {
-            if (reader.Count == 0) {
+            string messageSchema = null)
+        {
+            if (reader.Count == 0)
+            {
                 return null;
             }
             PubSubMessage message;
-            switch (contentType.ToLowerInvariant()) {
+            switch (contentType.ToLowerInvariant())
+            {
                 case ContentMimeType.JsonGzip:
                 case ContentMimeType.Json:
                 case ContentMimeType.UaJson:
                 case ContentMimeType.UaLegacyPublisher:
                 case ContentMimeType.UaNonReversibleJson:
-                    message = new JsonNetworkMessage {
+                    message = new JsonNetworkMessage
+                    {
                         MessageSchemaToUse = messageSchema,
                         UseGzipCompression = contentType.Equals(
                             ContentMimeType.JsonGzip, StringComparison.OrdinalIgnoreCase)
                     };
-                    if (message.TryDecode(context, reader, resolver)) {
+                    if (message.TryDecode(context, reader, resolver))
+                    {
                         return message;
                     }
-                    if (reader.Count == 0) {
+                    if (reader.Count == 0)
+                    {
                         return null;
                     }
                     message = new JsonMetaDataMessage();
-                    if (message.TryDecode(context, reader, resolver)) {
+                    if (message.TryDecode(context, reader, resolver))
+                    {
                         return message;
                     }
                     break;
                 case ContentMimeType.Binary:
                 case ContentMimeType.Uadp:
                     message = new UadpNetworkMessage();
-                    if (message.TryDecode(context, reader, resolver)) {
+                    if (message.TryDecode(context, reader, resolver))
+                    {
                         return message;
                     }
-                    if (reader.Count == 0) {
+                    if (reader.Count == 0)
+                    {
                         return null;
                     }
                     message = new UadpDiscoveryMessage();
-                    if (message.TryDecode(context, reader, resolver)) {
+                    if (message.TryDecode(context, reader, resolver))
+                    {
                         return message;
                     }
                     break;
@@ -166,21 +183,26 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object value) {
-            if (ReferenceEquals(this, value)) {
+        public override bool Equals(object value)
+        {
+            if (ReferenceEquals(this, value))
+            {
                 return true;
             }
-            if (!(value is PubSubMessage wrapper)) {
+            if (!(value is PubSubMessage wrapper))
+            {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.PublisherId, PublisherId)) {
+            if (!Utils.IsEqual(wrapper.PublisherId, PublisherId))
+            {
                 return false;
             }
             return true;
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hash = new HashCode();
             hash.Add(PublisherId);
             return hash.ToHashCode();

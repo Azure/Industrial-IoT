@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http.Ssl {
+namespace Microsoft.Azure.IIoT.Http.Ssl
+{
     using System;
     using System.Net.Http.Headers;
     using System.Net.Security;
@@ -12,13 +13,15 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
     /// <summary>
     /// No ssl validation
     /// </summary>
-    public class NoOpCertValidator : IHttpCertificateValidator {
+    public class NoOpCertValidator : IHttpCertificateValidator
+    {
         /// <inheritdoc/>
         public Func<string, bool> IsFor { get; set; }
 
         /// <inheritdoc/>
         public virtual bool Validate(HttpRequestHeaders headers,
-            X509Certificate2 cert, X509Chain chain, SslPolicyErrors? errors) {
+            X509Certificate2 cert, X509Chain chain, SslPolicyErrors? errors)
+        {
             return true;
         }
     }

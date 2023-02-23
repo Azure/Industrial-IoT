@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace TestData {
+namespace TestData
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -36,20 +37,25 @@ namespace TestData {
     /// <summary>
     /// A class that provides access to archived data.
     /// </summary>
-    internal class HistoryArchive : IDisposable {
+    internal class HistoryArchive : IDisposable
+    {
         /// <summary>
         /// Frees any unmanaged resources.
         /// </summary>
-        public void Dispose() {
+        public void Dispose()
+        {
             Dispose(true);
         }
 
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected virtual void Dispose(bool disposing) {
-            if (disposing) {
-                if (_updateTimer != null) {
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_updateTimer != null)
+                {
                     _updateTimer.Dispose();
                     _updateTimer = null;
                 }
@@ -59,13 +65,17 @@ namespace TestData {
         /// <summary>
         /// Returns an object that can be used to browse the archive.
         /// </summary>
-        public HistoryFile GetHistoryFile(NodeId nodeId) {
-            lock (_lock) {
-                if (_records == null) {
+        public HistoryFile GetHistoryFile(NodeId nodeId)
+        {
+            lock (_lock)
+            {
+                if (_records == null)
+                {
                     return null;
                 }
 
-                if (!_records.TryGetValue(nodeId, out var record)) {
+                if (!_records.TryGetValue(nodeId, out var record))
+                {
                     return null;
                 }
 
@@ -76,9 +86,12 @@ namespace TestData {
         /// <summary>
         /// Creates a new record in the archive.
         /// </summary>
-        public void CreateRecord(NodeId nodeId, BuiltInType dataType) {
-            lock (_lock) {
-                var record = new HistoryRecord {
+        public void CreateRecord(NodeId nodeId, BuiltInType dataType)
+        {
+            lock (_lock)
+            {
+                var record = new HistoryRecord
+                {
                     RawData = new List<HistoryEntry>(),
                     Historizing = true,
                     DataType = dataType
@@ -86,17 +99,22 @@ namespace TestData {
 
                 var now = DateTime.UtcNow;
 
-                for (var ii = 1000; ii >= 0; ii--) {
-                    var entry = new HistoryEntry {
-                        Value = new DataValue {
+                for (var ii = 1000; ii >= 0; ii--)
+                {
+                    var entry = new HistoryEntry
+                    {
+                        Value = new DataValue
+                        {
                             ServerTimestamp = now.AddSeconds(-(ii * 10))
                         }
                     };
                     entry.Value.SourceTimestamp = entry.Value.ServerTimestamp.AddMilliseconds(1234);
                     entry.IsModified = false;
 
-                    switch (dataType) {
-                        case BuiltInType.Int32: {
+                    switch (dataType)
+                    {
+                        case BuiltInType.Int32:
+                            {
                                 entry.Value.Value = ii;
                                 break;
                             }
@@ -116,26 +134,35 @@ namespace TestData {
         /// <summary>
         /// Periodically adds new values into the archive.
         /// </summary>
-        private void OnUpdate(object state) {
-            try {
+        private void OnUpdate(object state)
+        {
+            try
+            {
                 var now = DateTime.UtcNow;
 
-                lock (_lock) {
-                    foreach (var record in _records.Values) {
-                        if (!record.Historizing || record.RawData.Count >= 2000) {
+                lock (_lock)
+                {
+                    foreach (var record in _records.Values)
+                    {
+                        if (!record.Historizing || record.RawData.Count >= 2000)
+                        {
                             continue;
                         }
 
-                        var entry = new HistoryEntry {
-                            Value = new DataValue {
+                        var entry = new HistoryEntry
+                        {
+                            Value = new DataValue
+                            {
                                 ServerTimestamp = now
                             }
                         };
                         entry.Value.SourceTimestamp = entry.Value.ServerTimestamp.AddMilliseconds(-4567);
                         entry.IsModified = false;
 
-                        switch (record.DataType) {
-                            case BuiltInType.Int32: {
+                        switch (record.DataType)
+                        {
+                            case BuiltInType.Int32:
+                                {
                                     var lastValue = (int)record.RawData[record.RawData.Count - 1].Value.Value;
                                     entry.Value.Value = lastValue + 1;
                                     break;
@@ -146,7 +173,8 @@ namespace TestData {
                     }
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Unexpected error updating history.");
             }
         }
@@ -159,7 +187,8 @@ namespace TestData {
     /// <summary>
     /// A single entry in the archive.
     /// </summary>
-    internal sealed class HistoryEntry {
+    internal sealed class HistoryEntry
+    {
         public DataValue Value;
         public bool IsModified;
     }
@@ -167,7 +196,8 @@ namespace TestData {
     /// <summary>
     /// A record in the archive.
     /// </summary>
-    internal sealed class HistoryRecord {
+    internal sealed class HistoryRecord
+    {
         public List<HistoryEntry> RawData;
         public bool Historizing;
         public BuiltInType DataType;

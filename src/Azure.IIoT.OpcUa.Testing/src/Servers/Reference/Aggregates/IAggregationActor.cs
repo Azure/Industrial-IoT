@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     using System.Collections.Generic;
 
     /// <summary>
     /// An interface that allows new processed data points to be generated as a response to
     /// new raw data
     /// </summary>
-    public interface IAggregationActor {
+    public interface IAggregationActor
+    {
         /// <summary>
         /// Causes the derivation of 0 or more new processed data points from the given raw
         /// data point and the current state of the aggregator.

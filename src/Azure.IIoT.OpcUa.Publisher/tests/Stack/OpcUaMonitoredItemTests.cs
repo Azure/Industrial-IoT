@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Opc.Ua;
@@ -12,10 +13,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
     using System.Linq;
     using Xunit;
 
-    public class OpcUaMonitoredItemTests : EventTestsBase {
+    public class OpcUaMonitoredItemTests : EventTestsBase
+    {
         [Fact]
-        public void SetDefaultValuesWhenPropertiesAreNullInBaseTemplate() {
-            var template = new DataMonitoredItemModel {
+        public void SetDefaultValuesWhenPropertiesAreNullInBaseTemplate()
+        {
+            var template = new DataMonitoredItemModel
+            {
                 AttributeId = null,
                 MonitoringMode = null,
                 SamplingInterval = null,
@@ -31,8 +35,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
         }
 
         [Fact]
-        public void SetSkipFirstBeforeFirstNotificationProcessedSucceedsTests() {
-            var template = new DataMonitoredItemModel {
+        public void SetSkipFirstBeforeFirstNotificationProcessedSucceedsTests()
+        {
+            var template = new DataMonitoredItemModel
+            {
                 AttributeId = null,
                 MonitoringMode = null,
                 SamplingInterval = null,
@@ -53,8 +59,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
         }
 
         [Fact]
-        public void SetSkipFirstAfterFirstNotificationProcessedFailsTests() {
-            var template = new DataMonitoredItemModel {
+        public void SetSkipFirstAfterFirstNotificationProcessedFailsTests()
+        {
+            var template = new DataMonitoredItemModel
+            {
                 AttributeId = null,
                 MonitoringMode = null,
                 SamplingInterval = null,
@@ -73,8 +81,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
         }
 
         [Fact]
-        public void NotsetSkipFirstAfterFirstNotificationProcessedFailsSettingTests() {
-            var template = new DataMonitoredItemModel {
+        public void NotsetSkipFirstAfterFirstNotificationProcessedFailsSettingTests()
+        {
+            var template = new DataMonitoredItemModel
+            {
                 AttributeId = null,
                 MonitoringMode = null,
                 SamplingInterval = null,
@@ -87,8 +97,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
         }
 
         [Fact]
-        public void SetBaseValuesWhenPropertiesAreSetInBaseTemplate() {
-            var template = new DataMonitoredItemModel {
+        public void SetBaseValuesWhenPropertiesAreSetInBaseTemplate()
+        {
+            var template = new DataMonitoredItemModel
+            {
                 Id = "i=2258",
                 DisplayName = "DisplayName",
                 AttributeId = (NodeAttribute)Attributes.Value,
@@ -118,9 +130,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
         }
 
         [Fact]
-        public void SetDataChangeFilterWhenBaseTemplateIsDataTemplate() {
-            var template = new DataMonitoredItemModel {
-                DataChangeFilter = new DataChangeFilterModel {
+        public void SetDataChangeFilterWhenBaseTemplateIsDataTemplate()
+        {
+            var template = new DataMonitoredItemModel
+            {
+                DataChangeFilter = new DataChangeFilterModel
+                {
                     DataChangeTrigger = Shared.Models.DataChangeTriggerType.StatusValue,
                     DeadbandType = Shared.Models.DeadbandType.Percent,
                     DeadbandValue = 10.0
@@ -138,16 +153,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
         }
 
         [Fact]
-        public void SetEventFilterWhenBaseTemplateIsEventTemplate() {
-            var template = new EventMonitoredItemModel {
-                EventFilter = new EventFilterModel {
+        public void SetEventFilterWhenBaseTemplateIsEventTemplate()
+        {
+            var template = new EventMonitoredItemModel
+            {
+                EventFilter = new EventFilterModel
+                {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
                         new SimpleAttributeOperandModel {
                             TypeDefinitionId = "i=2041",
                             BrowsePath = new []{ "EventId" }
                         },
                     },
-                    WhereClause = new ContentFilterModel {
+                    WhereClause = new ContentFilterModel
+                    {
                         Elements = new List<ContentFilterElementModel> {
                             new ContentFilterElementModel {
                                 FilterOperator = FilterOperatorType.OfType,
@@ -181,9 +200,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
         }
 
         [Fact]
-        public void AddConditionTypeSelectClausesWhenPendingAlarmsIsSetInEventTemplate() {
-            var template = new EventMonitoredItemModel {
-                ConditionHandling = new ConditionHandlingOptionsModel {
+        public void AddConditionTypeSelectClausesWhenPendingAlarmsIsSetInEventTemplate()
+        {
+            var template = new EventMonitoredItemModel
+            {
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
                     SnapshotInterval = 10,
                     UpdateInterval = 20
                 }
@@ -205,9 +227,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
         }
 
         [Fact]
-        public void SetupFieldNameWithNamespaceNameWhenNamespaceIndexIsUsed() {
-            var template = new EventMonitoredItemModel {
-                EventFilter = new EventFilterModel {
+        public void SetupFieldNameWithNamespaceNameWhenNamespaceIndexIsUsed()
+        {
+            var template = new EventMonitoredItemModel
+            {
+                EventFilter = new EventFilterModel
+                {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
                         new SimpleAttributeOperandModel {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
@@ -218,7 +243,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
                             BrowsePath = new []{ "2:CurrentStep" }
                         },
                     },
-                    WhereClause = new ContentFilterModel {
+                    WhereClause = new ContentFilterModel
+                    {
                         Elements = new List<ContentFilterElementModel> {
                             new ContentFilterElementModel {
                                 FilterOperator = FilterOperatorType.OfType,
@@ -249,9 +275,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
         }
 
         [Fact(Skip = "This test relied on relaxed validation. Now this will throw as ns=2 cannot be resolved.")]
-        public void UseDefaultFieldNameWhenNamespaceTableIsEmpty() {
-            var template = new EventMonitoredItemModel {
-                EventFilter = new EventFilterModel {
+        public void UseDefaultFieldNameWhenNamespaceTableIsEmpty()
+        {
+            var template = new EventMonitoredItemModel
+            {
+                EventFilter = new EventFilterModel
+                {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
                         new SimpleAttributeOperandModel {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
@@ -262,7 +291,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
                             BrowsePath = new []{ "2:CurrentStep" }
                         },
                     },
-                    WhereClause = new ContentFilterModel {
+                    WhereClause = new ContentFilterModel
+                    {
                         Elements = new List<ContentFilterElementModel> {
                             new ContentFilterElementModel {
                                 FilterOperator = FilterOperatorType.OfType,

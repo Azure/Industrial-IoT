@@ -27,13 +27,14 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using Opc.Ua;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using Opc.Ua;
 using Vehicles.Types;
 
-namespace Vehicles.Instances {
+namespace Vehicles.Instances
+{
     #region ParkingLotType Enumeration
 #if (!OPCUA_EXCLUDE_ParkingLotType)
     /// <summary>
@@ -42,7 +43,8 @@ namespace Vehicles.Instances {
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = Vehicles.Instances.Namespaces.VehiclesInstances)]
-    public enum ParkingLotType {
+    public enum ParkingLotType
+    {
         /// <remarks />
         [EnumMember(Value = "Open_1")]
         Open = 1,
@@ -86,8 +88,10 @@ namespace Vehicles.Instances {
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>
-        public static implicit operator ParkingLotTypeCollection(ParkingLotType[] values) {
-            if (values != null) {
+        public static implicit operator ParkingLotTypeCollection(ParkingLotType[] values)
+        {
+            if (values != null)
+            {
                 return new ParkingLotTypeCollection(values);
             }
 
@@ -97,8 +101,10 @@ namespace Vehicles.Instances {
         /// <summary>
         /// Converts a collection to an array.
         /// </summary>
-        public static explicit operator ParkingLotType[](ParkingLotTypeCollection values) {
-            if (values != null) {
+        public static explicit operator ParkingLotType[](ParkingLotTypeCollection values)
+        {
+            if (values != null)
+            {
                 return values.ToArray();
             }
 
@@ -111,17 +117,20 @@ namespace Vehicles.Instances {
         /// <summary>
         /// Creates a deep copy of the collection.
         /// </summary>
-        public object Clone() {
+        public object Clone()
+        {
             return (ParkingLotTypeCollection)this.MemberwiseClone();
         }
         #endregion
 #endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone() {
+        public new object MemberwiseClone()
+        {
             ParkingLotTypeCollection clone = new ParkingLotTypeCollection(this.Count);
 
-            for (int ii = 0; ii < this.Count; ii++) {
+            for (int ii = 0; ii < this.Count; ii++)
+            {
                 clone.Add((ParkingLotType)Utils.Clone(this[ii]));
             }
 
@@ -140,12 +149,14 @@ namespace Vehicles.Instances {
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = Vehicles.Instances.Namespaces.VehiclesInstances)]
-    public partial class BicycleType : VehicleType {
+    public partial class BicycleType : VehicleType
+    {
         #region Constructors
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public BicycleType() {
+        public BicycleType()
+        {
             Initialize();
         }
 
@@ -153,14 +164,16 @@ namespace Vehicles.Instances {
         /// Called by the .NET framework during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private void Initialize()
+        {
             m_noOfGears = (uint)0;
             m_manufacterName = null;
         }
@@ -169,14 +182,16 @@ namespace Vehicles.Instances {
         #region Public Properties
         /// <remarks />
         [DataMember(Name = "NoOfGears", IsRequired = false, Order = 1)]
-        public uint NoOfGears {
+        public uint NoOfGears
+        {
             get { return m_noOfGears; }
             set { m_noOfGears = value; }
         }
 
         /// <remarks />
         [DataMember(Name = "ManufacterName", IsRequired = false, Order = 2)]
-        public QualifiedName ManufacterName {
+        public QualifiedName ManufacterName
+        {
             get { return m_manufacterName; }
             set { m_manufacterName = value; }
         }
@@ -184,22 +199,26 @@ namespace Vehicles.Instances {
 
         #region IEncodeable Members
         /// <summary cref="IEncodeable.TypeId" />
-        public override ExpandedNodeId TypeId {
+        public override ExpandedNodeId TypeId
+        {
             get { return DataTypeIds.BicycleType; }
         }
 
         /// <summary cref="IEncodeable.BinaryEncodingId" />
-        public override ExpandedNodeId BinaryEncodingId {
+        public override ExpandedNodeId BinaryEncodingId
+        {
             get { return ObjectIds.BicycleType_Encoding_DefaultBinary; }
         }
 
         /// <summary cref="IEncodeable.XmlEncodingId" />
-        public override ExpandedNodeId XmlEncodingId {
+        public override ExpandedNodeId XmlEncodingId
+        {
             get { return ObjectIds.BicycleType_Encoding_DefaultXml; }
         }
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
-        public override void Encode(IEncoder encoder) {
+        public override void Encode(IEncoder encoder)
+        {
             base.Encode(encoder);
 
             encoder.PushNamespace(Vehicles.Instances.Namespaces.VehiclesInstances);
@@ -211,7 +230,8 @@ namespace Vehicles.Instances {
         }
 
         /// <summary cref="IEncodeable.Decode(IDecoder)" />
-        public override void Decode(IDecoder decoder) {
+        public override void Decode(IDecoder decoder)
+        {
             base.Decode(decoder);
 
             decoder.PushNamespace(Vehicles.Instances.Namespaces.VehiclesInstances);
@@ -223,14 +243,17 @@ namespace Vehicles.Instances {
         }
 
         /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
-        public override bool IsEqual(IEncodeable encodeable) {
-            if (Object.ReferenceEquals(this, encodeable)) {
+        public override bool IsEqual(IEncodeable encodeable)
+        {
+            if (Object.ReferenceEquals(this, encodeable))
+            {
                 return true;
             }
 
             BicycleType value = encodeable as BicycleType;
 
-            if (value == null) {
+            if (value == null)
+            {
                 return false;
             }
 
@@ -243,13 +266,15 @@ namespace Vehicles.Instances {
 
 #if !NET_STANDARD
         /// <summary cref="ICloneable.Clone" />
-        public override object Clone() {
+        public override object Clone()
+        {
             return (BicycleType)this.MemberwiseClone();
         }
 #endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone() {
+        public new object MemberwiseClone()
+        {
             BicycleType clone = (BicycleType)base.MemberwiseClone();
 
             clone.m_noOfGears = (uint)Utils.Clone(this.m_noOfGears);
@@ -299,8 +324,10 @@ namespace Vehicles.Instances {
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>
-        public static implicit operator BicycleTypeCollection(BicycleType[] values) {
-            if (values != null) {
+        public static implicit operator BicycleTypeCollection(BicycleType[] values)
+        {
+            if (values != null)
+            {
                 return new BicycleTypeCollection(values);
             }
 
@@ -310,8 +337,10 @@ namespace Vehicles.Instances {
         /// <summary>
         /// Converts a collection to an array.
         /// </summary>
-        public static explicit operator BicycleType[](BicycleTypeCollection values) {
-            if (values != null) {
+        public static explicit operator BicycleType[](BicycleTypeCollection values)
+        {
+            if (values != null)
+            {
                 return values.ToArray();
             }
 
@@ -324,17 +353,20 @@ namespace Vehicles.Instances {
         /// <summary>
         /// Creates a deep copy of the collection.
         /// </summary>
-        public object Clone() {
+        public object Clone()
+        {
             return (BicycleTypeCollection)this.MemberwiseClone();
         }
         #endregion
 #endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone() {
+        public new object MemberwiseClone()
+        {
             BicycleTypeCollection clone = new BicycleTypeCollection(this.Count);
 
-            for (int ii = 0; ii < this.Count; ii++) {
+            for (int ii = 0; ii < this.Count; ii++)
+            {
                 clone.Add((BicycleType)Utils.Clone(this[ii]));
             }
 

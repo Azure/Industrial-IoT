@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http {
+namespace Microsoft.Azure.IIoT.Http
+{
     using System;
     using System.Net;
     using System.Net.Http;
@@ -15,7 +16,8 @@ namespace Microsoft.Azure.IIoT.Http {
     /// Handles requests and responses in the client chain, but
     /// injectable using dependency injection, e.g Autofac.
     /// </summary>
-    public interface IHttpMessageHandler : IHttpHandler {
+    public interface IHttpMessageHandler : IHttpHandler
+    {
         /// <summary>
         /// Relative order to other handlers
         /// </summary>

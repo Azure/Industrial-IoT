@@ -3,21 +3,26 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     /// <summary>
     /// Dataset metadata extensions
     /// </summary>
-    public static class DataSetMetaDataModelEx {
+    public static class DataSetMetaDataModelEx
+    {
         /// <summary>
         /// Clone
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DataSetMetaDataModel Clone(this DataSetMetaDataModel model) {
-            if (model == null) {
+        public static DataSetMetaDataModel Clone(this DataSetMetaDataModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new DataSetMetaDataModel {
+            return new DataSetMetaDataModel
+            {
                 Name = model.Name,
                 DataSetClassId = model.DataSetClassId,
                 Description = model.Description,
@@ -31,20 +36,26 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="other"></param>
         /// <returns></returns>
         public static bool IsSameAs(this DataSetMetaDataModel model,
-            DataSetMetaDataModel other) {
-            if (model == null && other == null) {
+            DataSetMetaDataModel other)
+        {
+            if (model == null && other == null)
+            {
                 return true;
             }
-            if (model == null || other == null) {
+            if (model == null || other == null)
+            {
                 return false;
             }
-            if (model.Name != other.Name) {
+            if (model.Name != other.Name)
+            {
                 return false;
             }
-            if (model.DataSetClassId != other.DataSetClassId) {
+            if (model.DataSetClassId != other.DataSetClassId)
+            {
                 return false;
             }
-            if (model.Description != other.Description) {
+            if (model.Description != other.Description)
+            {
                 return false;
             }
             return true;

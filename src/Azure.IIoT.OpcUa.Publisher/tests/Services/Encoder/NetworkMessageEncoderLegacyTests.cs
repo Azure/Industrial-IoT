@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
+{
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
@@ -17,16 +18,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
     using System.Linq;
     using Xunit;
 
-    public class NetworkMessageEncoderLegacyTests {
+    public class NetworkMessageEncoderLegacyTests
+    {
         /// <summary>
         /// Create legacy encoder
         /// </summary>
         /// <returns></returns>
-        private static NetworkMessageEncoder GetEncoder() {
+        private static NetworkMessageEncoder GetEncoder()
+        {
             var loggerMock = new Mock<ILogger>();
             var metricsMock = new Mock<IMetricsContext>();
             metricsMock.SetupGet(m => m.TagList).Returns(new TagList());
-            return new NetworkMessageEncoder(new WriterGroupJobConfig {
+            return new NetworkMessageEncoder(new WriterGroupJobConfig
+            {
                 UseStandardsCompliantEncoding = false
             }, metricsMock.Object, loggerMock.Object);
         }
@@ -34,7 +38,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void EmptyMessagesTest(bool encodeBatchFlag) {
+        public void EmptyMessagesTest(bool encodeBatchFlag)
+        {
             const int maxMessageSize = 256 * 1024;
             var messages = new List<SubscriptionNotificationModel>();
 
@@ -50,7 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void EmptyDataSetMessageModelTest(bool encodeBatchFlag) {
+        public void EmptyDataSetMessageModelTest(bool encodeBatchFlag)
+        {
             const int maxMessageSize = 256 * 1024;
             var messages = new[] { new SubscriptionNotificationModel() };
 
@@ -66,7 +72,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void EncodeTooBigJsonMessageTest(bool encodeBatchFlag) {
+        public void EncodeTooBigJsonMessageTest(bool encodeBatchFlag)
+        {
             const int maxMessageSize = 100;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(3, false, MessageEncoding.Json);
 
@@ -82,7 +89,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void EncodeJsonTest(bool encodeBatchFlag) {
+        public void EncodeJsonTest(bool encodeBatchFlag)
+        {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Json);
 
@@ -103,7 +111,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void EncodeChunkTest(bool encodeBatchFlag) {
+        public void EncodeChunkTest(bool encodeBatchFlag)
+        {
             const int maxMessageSize = 8 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(500, false, MessageEncoding.Json);
 
@@ -119,7 +128,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         }
 
         [Fact]
-        public void EncodeJsonSingleMessageTest() {
+        public void EncodeJsonSingleMessageTest()
+        {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Json,
                 NetworkMessageContentMask.SingleDataSetMessage);
@@ -137,7 +147,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void EncodeEventsJsonTest(bool encodeBatchFlag) {
+        public void EncodeEventsJsonTest(bool encodeBatchFlag)
+        {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, true, MessageEncoding.Json);
 
@@ -152,7 +163,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         }
 
         [Fact]
-        public void EncodeEventsSingleMessageJsonTest() {
+        public void EncodeEventsSingleMessageJsonTest()
+        {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, true, MessageEncoding.Json,
                 NetworkMessageContentMask.SingleDataSetMessage);
@@ -171,11 +183,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void EncodeMetadataJsonTest(bool encodeBatchFlag) {
+        public void EncodeMetadataJsonTest(bool encodeBatchFlag)
+        {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Json);
             messages[10].MessageType = Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.Metadata; // Emit metadata
-            messages[10].MetaData = new DataSetMetaDataType {
+            messages[10].MetaData = new DataSetMetaDataType
+            {
                 Name = "test",
                 Fields = new FieldMetaDataCollection {
                     new FieldMetaData {
@@ -197,7 +211,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void EncodeNothingTest(bool encodeBatchFlag) {
+        public void EncodeNothingTest(bool encodeBatchFlag)
+        {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Json);
             messages[0].MessageType = Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.KeepAlive;

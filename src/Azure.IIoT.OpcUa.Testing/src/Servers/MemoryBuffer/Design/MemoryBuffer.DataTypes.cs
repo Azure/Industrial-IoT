@@ -27,5 +27,6 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace MemoryBuffer {
+namespace MemoryBuffer
+{
 }

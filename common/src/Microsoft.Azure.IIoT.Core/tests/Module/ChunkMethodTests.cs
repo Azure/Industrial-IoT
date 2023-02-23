@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module {
+namespace Microsoft.Azure.IIoT.Module
+{
     using AutoFixture;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Module {
     using System.Text;
     using Xunit;
 
-    public partial class ChunkMethodTests {
+    public partial class ChunkMethodTests
+    {
         [Theory]
         [InlineData(120 * 1024)]
         [InlineData(100000)]
@@ -19,20 +21,24 @@ namespace Microsoft.Azure.IIoT.Module {
         [InlineData(13)]
         [InlineData(1)]
         [InlineData(0)]
-        public void SendReceiveJsonTestWithVariousChunkSizes(int chunkSize) {
+        public void SendReceiveJsonTestWithVariousChunkSizes(int chunkSize)
+        {
             var fixture = new Fixture();
 
             var expectedMethod = fixture.Create<string>();
             var expectedContentType = fixture.Create<string>();
-            var expectedRequest = _serializer.SerializeToString(new {
+            var expectedRequest = _serializer.SerializeToString(new
+            {
                 test1 = fixture.Create<string>(),
                 test2 = fixture.Create<long>()
             });
-            var expectedResponse = _serializer.SerializeToString(new {
+            var expectedResponse = _serializer.SerializeToString(new
+            {
                 test1 = fixture.Create<byte[]>(),
                 test2 = fixture.Create<string>()
             });
-            var server = new TestChunkServer(_serializer, chunkSize, (method, buffer, type) => {
+            var server = new TestChunkServer(_serializer, chunkSize, (method, buffer, type) =>
+            {
                 Assert.Equal(expectedMethod, method);
                 Assert.Equal(expectedContentType, type);
                 Assert.Equal(expectedRequest, Encoding.UTF8.GetString(buffer));
@@ -55,7 +61,8 @@ namespace Microsoft.Azure.IIoT.Module {
         [InlineData(13)]
         [InlineData(20)]
         [InlineData(0)]
-        public void SendReceiveLargeBufferTestWithVariousChunkSizes(int chunkSize) {
+        public void SendReceiveLargeBufferTestWithVariousChunkSizes(int chunkSize)
+        {
             var fixture = new Fixture();
 
             var expectedMethod = fixture.Create<string>();
@@ -66,7 +73,8 @@ namespace Microsoft.Azure.IIoT.Module {
             var expectedResponse = new byte[300000];
             kR.NextBytes(expectedResponse);
 
-            var server = new TestChunkServer(_serializer, chunkSize, (method, buffer, type) => {
+            var server = new TestChunkServer(_serializer, chunkSize, (method, buffer, type) =>
+            {
                 Assert.Equal(expectedMethod, method);
                 Assert.Equal(expectedContentType, type);
                 Assert.Equal(expectedRequest, buffer);

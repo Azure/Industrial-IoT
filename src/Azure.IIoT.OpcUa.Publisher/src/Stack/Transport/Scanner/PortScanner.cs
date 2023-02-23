@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
+{
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
     /// <summary>
     /// Scans port ranges
     /// </summary>
-    public sealed class PortScanner : IScanner {
+    public sealed class PortScanner : IScanner
+    {
         /// <summary>
         /// Number of items scanned
         /// </summary>
@@ -38,7 +40,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <param name="ct"></param>
         public PortScanner(ILogger logger, IEnumerable<IPEndPoint> source,
             Action<PortScanner, IPEndPoint> target, CancellationToken ct) :
-            this(logger, source, target, null, ct) {
+            this(logger, source, target, null, ct)
+        {
         }
 
         /// <summary>
@@ -51,7 +54,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <param name="ct"></param>
         public PortScanner(ILogger logger, IEnumerable<IPEndPoint> source,
             Action<PortScanner, IPEndPoint> target, IPortProbe? portProbe, CancellationToken ct) :
-            this(logger, source, target, portProbe, null, null, null, ct) {
+            this(logger, source, target, portProbe, null, null, null, ct)
+        {
         }
 
         /// <summary>
@@ -67,7 +71,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <param name="ct"></param>
         public PortScanner(ILogger logger, IEnumerable<IPEndPoint> source,
             Action<PortScanner, IPEndPoint> target, IPortProbe? portProbe, int? maxProbeCount,
-            int? minProbePercent, TimeSpan? timeout, CancellationToken ct) {
+            int? minProbePercent, TimeSpan? timeout, CancellationToken ct)
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _source = source?.GetEnumerator() ??
                 throw new ArgumentNullException(nameof(source));
@@ -89,12 +94,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             _completion = new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             _active = _maxProbeCount;
-            foreach (var probe in _probePool) {
+            foreach (var probe in _probePool)
+            {
                 probe.Start();
             }
 
-            static IEnumerable<T> Repeat<T>(Func<int, T> factory, int count) {
-                for (var i = 0; i < count; i++) {
+            static IEnumerable<T> Repeat<T>(Func<int, T> factory, int count)
+            {
+                for (var i = 0; i < count; i++)
+                {
                     yield return factory(i);
                 }
             }
@@ -103,19 +111,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Scan completed
         /// </summary>
-        public Task WaitToCompleteAsync() {
+        public Task WaitToCompleteAsync()
+        {
             return _completion.Task;
         }
 
         /// <summary>
         /// Dispose scanner
         /// </summary>
-        public void Dispose() {
+        public void Dispose()
+        {
             // Kill producer
             _cts.Cancel();
             // Clean up all probes
             _active = 0;
-            foreach (var probe in _probePool) {
+            foreach (var probe in _probePool)
+            {
                 probe.Dispose();
             }
             _probePool.Clear();
@@ -126,13 +137,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Return next from source.
         /// </summary>
-        private bool Next([NotNullWhen(true)] out IPEndPoint? ep) {
-            if (_cts.IsCancellationRequested) {
+        private bool Next([NotNullWhen(true)] out IPEndPoint? ep)
+        {
+            if (_cts.IsCancellationRequested)
+            {
                 ep = null;
                 return false;
             }
-            lock (_source) {
-                if (!_source.MoveNext()) {
+            lock (_source)
+            {
+                if (!_source.MoveNext())
+                {
                     ep = null;
                     return false;
                 }
@@ -144,13 +159,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Exit probe and if last propagate target complete
         /// </summary>
-        private void OnProbeExit() {
-            if (Interlocked.Decrement(ref _active) == 0) {
+        private void OnProbeExit()
+        {
+            if (Interlocked.Decrement(ref _active) == 0)
+            {
                 // All probes drained - propagate target complete...
-                if (_cts.IsCancellationRequested) {
+                if (_cts.IsCancellationRequested)
+                {
                     _completion.TrySetCanceled();
                 }
-                else {
+                else
+                {
                     _completion.TrySetResult(true);
                 }
             }
@@ -166,14 +185,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Port connect probe
         /// </summary>
-        private sealed class ConnectProbe : BaseConnectProbe {
+        private sealed class ConnectProbe : BaseConnectProbe
+        {
             /// <summary>
             /// Create probe
             /// </summary>
             /// <param name="scanner"></param>
             /// <param name="index"></param>
             public ConnectProbe(PortScanner scanner, int index) :
-                base(index, scanner._portProbe.Create(), scanner._logger) {
+                base(index, scanner._portProbe.Create(), scanner._logger)
+            {
                 _scanner = scanner;
             }
 
@@ -184,8 +205,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// <param name="timeout"></param>
             /// <returns></returns>
             protected override bool GetNext(
-                [NotNullWhen(true)] out IPEndPoint? ep, out int timeout) {
-                if (!_scanner.Next(out ep)) {
+                [NotNullWhen(true)] out IPEndPoint? ep, out int timeout)
+            {
+                if (!_scanner.Next(out ep))
+                {
                     timeout = 0;
                     return false;
                 }
@@ -198,7 +221,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// Called on error
             /// </summary>
             /// <returns></returns>
-            protected override bool ShouldGiveUp() {
+            protected override bool ShouldGiveUp()
+            {
                 return _scanner._active > _scanner._minProbeCount;
             }
 
@@ -206,7 +230,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// Called when endpoint probe failed for some reason
             /// </summary>
             /// <param name="ep"></param>
-            protected override void OnFail(IPEndPoint ep) {
+            protected override void OnFail(IPEndPoint ep)
+            {
                 _scanner._requeued.Enqueue(ep);
                 Interlocked.Decrement(ref _scanner._scanCount);
             }
@@ -215,14 +240,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// Called on success
             /// </summary>
             /// <param name="ep"></param>
-            protected override void OnSuccess(IPEndPoint ep) {
+            protected override void OnSuccess(IPEndPoint ep)
+            {
                 _scanner._target(_scanner, ep);
             }
 
             /// <summary>
             /// Called when probe terminates
             /// </summary>
-            protected override void OnExit() {
+            protected override void OnExit()
+            {
                 _scanner.OnProbeExit();
             }
 
@@ -232,10 +259,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Null port probe
         /// </summary>
-        private class NullPortProbe : IAsyncProbe, IPortProbe {
+        private class NullPortProbe : IAsyncProbe, IPortProbe
+        {
             /// <inheritdoc />
             public bool OnComplete(int index, SocketAsyncEventArgs arg,
-                out bool ok, out int timeout) {
+                out bool ok, out int timeout)
+            {
                 ok = true;
                 timeout = 0;
                 return true;
@@ -245,12 +274,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             public void Dispose() { }
 
             /// <inheritdoc />
-            public bool Reset() {
+            public bool Reset()
+            {
                 return false;
             }
 
             /// <inheritdoc />
-            public IAsyncProbe Create() {
+            public IAsyncProbe Create()
+            {
                 return this;
             }
         }

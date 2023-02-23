@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -15,7 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// <summary>
     /// Session provider extensions
     /// </summary>
-    public static class SessionProviderEx {
+    public static class SessionProviderEx
+    {
         /// <summary>
         /// Read value
         /// </summary>
@@ -24,8 +26,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="readNode"></param>
         /// <returns></returns>
         public static Task<VariantValue> ReadValueAsync<T>(this ISessionProvider<T> client,
-            T connection, string readNode, IJsonSerializer serializer, CancellationToken ct = default) {
-            return client.ExecuteServiceAsync(connection, session => {
+            T connection, string readNode, IJsonSerializer serializer, CancellationToken ct = default)
+        {
+            return client.ExecuteServiceAsync(connection, session =>
+            {
                 var nodesToRead = new ReadValueIdCollection {
                     new ReadValueId {
                         NodeId = readNode.ToNodeId(session.MessageContext),

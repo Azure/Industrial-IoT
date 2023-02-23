@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Models {
+namespace Microsoft.Azure.IIoT.App.Models
+{
     using global::Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Collections.Generic;
 
-    public class DiscovererInfo {
+    public class DiscovererInfo
+    {
         /// <summary>
         /// Discoverer models.
         /// </summary>
@@ -49,7 +51,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// Network probe timeout
         /// </summary>
-        public string EffectiveNetworkProbeTimeout {
+        public string EffectiveNetworkProbeTimeout
+        {
             get => (DiscovererModel.DiscoveryConfig?.NetworkProbeTimeout ?? TimeSpan.MinValue)
                 == TimeSpan.MinValue ?
                 null : DiscovererModel.DiscoveryConfig.NetworkProbeTimeout.ToString();
@@ -58,7 +61,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// Max network probes that should ever run.
         /// </summary>
-        public string EffectiveMaxNetworkProbes {
+        public string EffectiveMaxNetworkProbes
+        {
             get => (DiscovererModel.DiscoveryConfig?.MaxNetworkProbes ?? -1) < 0 ?
                 null : DiscovererModel.DiscoveryConfig.MaxNetworkProbes.ToString();
         }
@@ -66,7 +70,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// Port probe timeout
         /// </summary>
-        public string EffectivePortProbeTimeout {
+        public string EffectivePortProbeTimeout
+        {
             get => (DiscovererModel.DiscoveryConfig?.PortProbeTimeout ?? TimeSpan.MinValue)
                 == TimeSpan.MinValue ?
                 null : DiscovererModel.DiscoveryConfig.PortProbeTimeout.ToString();
@@ -75,7 +80,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// Max port probes that should ever run.
         /// </summary>
-        public string EffectiveMaxPortProbes {
+        public string EffectiveMaxPortProbes
+        {
             get => (DiscovererModel.DiscoveryConfig?.MaxPortProbes ?? -1) < 0 ?
                 null : DiscovererModel.DiscoveryConfig.MaxPortProbes.ToString();
         }
@@ -83,7 +89,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// Delay time between discovery sweeps in seconds
         /// </summary>
-        public string EffectiveIdleTimeBetweenScans {
+        public string EffectiveIdleTimeBetweenScans
+        {
             get => (DiscovererModel.DiscoveryConfig?.IdleTimeBetweenScans ?? TimeSpan.MinValue)
                 == TimeSpan.MinValue ?
                 null : DiscovererModel.DiscoveryConfig.IdleTimeBetweenScans.ToString();
@@ -92,7 +99,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// Address ranges to scan (null == all wired nics)
         /// </summary>
-        public string EffectiveAddressRangesToScan {
+        public string EffectiveAddressRangesToScan
+        {
             get => string.IsNullOrEmpty(DiscovererModel.DiscoveryConfig?.AddressRangesToScan) ?
                 null : DiscovererModel.DiscoveryConfig.AddressRangesToScan;
         }
@@ -100,7 +108,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// Port ranges to scan (null == all unassigned)
         /// </summary>
-        public string EffectivePortRangesToScan {
+        public string EffectivePortRangesToScan
+        {
             get => string.IsNullOrEmpty(DiscovererModel.DiscoveryConfig?.PortRangesToScan) ?
                 null : DiscovererModel.DiscoveryConfig.PortRangesToScan;
         }
@@ -108,13 +117,16 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// List of preset discovery urls to use
         /// </summary>
-        public List<string> EffectiveDiscoveryUrls {
+        public List<string> EffectiveDiscoveryUrls
+        {
             get => DiscovererModel.DiscoveryConfig?.DiscoveryUrls == null ?
                 new List<string>() : DiscovererModel.DiscoveryConfig.DiscoveryUrls;
         }
 
-        public bool TryUpdateData(DiscovererInfoRequested input) {
-            try {
+        public bool TryUpdateData(DiscovererInfoRequested input)
+        {
+            try
+            {
                 DiscovererModel.RequestedConfig ??= new DiscoveryConfigModel();
 
                 Patch.NetworkProbeTimeout = DiscovererModel.RequestedConfig.NetworkProbeTimeout =
@@ -153,7 +165,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
 
                 return true;
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 return false;
             }
         }

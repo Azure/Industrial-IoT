@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Runtime {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Runtime
+{
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
@@ -33,7 +34,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Runtime {
     public class Config : ConfigBase, IWebHostConfig,
         ICorsConfig, IOpenApiConfig, ISignalRServiceConfig, IIoTHubConfig,
         IEventProcessorConfig, IEventHubConsumerConfig, IForwardedHeadersConfig,
-        IEventProcessorHostConfig, IRoleConfig {
+        IEventProcessorHostConfig, IRoleConfig
+    {
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
@@ -118,7 +120,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public Config(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
             _openApi = new OpenApiConfig(configuration);
             _host = new WebHostConfig(configuration);
             _cors = new CorsConfig(configuration);

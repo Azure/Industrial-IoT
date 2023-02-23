@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Runtime {
+namespace Microsoft.Azure.IIoT.Auth.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Managed service identity configuration
     /// </summary>
-    public class MsiKeyVaultClientConfig : ConfigBase, IOAuthClientConfig {
+    public class MsiKeyVaultClientConfig : ConfigBase, IOAuthClientConfig
+    {
         /// <summary>
         /// Client configuration
         /// </summary>
@@ -43,7 +45,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public MsiKeyVaultClientConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

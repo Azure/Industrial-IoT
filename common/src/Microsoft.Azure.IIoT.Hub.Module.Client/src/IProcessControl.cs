@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client
+{
     /// <summary>
     /// Allows a module to control the hosting
     /// process in a controlled manner.
     /// </summary>
-    public interface IProcessControl {
+    public interface IProcessControl
+    {
         /// <summary>
         /// Reset the host process
         /// </summary>

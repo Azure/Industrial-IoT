@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using Microsoft.Azure.IIoT;
     using System;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// <summary>
     /// Client host services
     /// </summary>
-    public interface IClientHost : IHostProcess, IAsyncDisposable {
+    public interface IClientHost : IHostProcess, IAsyncDisposable
+    {
         /// <summary>
         /// Add certificate to trust list
         /// </summary>

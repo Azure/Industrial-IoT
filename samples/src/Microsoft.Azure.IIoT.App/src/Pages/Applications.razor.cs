@@ -3,17 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Pages {
+namespace Microsoft.Azure.IIoT.App.Pages
+{
+    using global::Azure.IIoT.OpcUa.Shared.Models;
+    using Microsoft.AspNetCore.Components;
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.AspNetCore.Components;
-    using global::Azure.IIoT.OpcUa.Shared.Models;
     using System;
+    using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Globalization;
 
-    public sealed partial class Applications {
+    public sealed partial class Applications
+    {
         [Parameter]
         public string Page { get; set; } = "1";
 
@@ -32,12 +34,14 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Notify page change
         /// </summary>
         /// <param name="page"></param>
-        public async Task PagerPageChangedAsync(int page) {
+        public async Task PagerPageChangedAsync(int page)
+        {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
             ApplicationList = CommonHelper.UpdatePage(RegistryHelper.GetApplicationListAsync, page, ApplicationList, ref _pagedApplicationList, CommonHelper.PageLength);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "applications/" + page);
-            for (var i = 0; i < _pagedApplicationList.Results.Count; i++) {
+            for (var i = 0; i < _pagedApplicationList.Results.Count; i++)
+            {
                 _pagedApplicationList.Results[i] = (await RegistryService.GetApplicationAsync(_pagedApplicationList.Results[i].ApplicationId).ConfigureAwait(false)).Application;
             }
             CommonHelper.Spinner = string.Empty;
@@ -47,7 +51,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// OnInitialized
         /// </summary>
-        protected override void OnInitialized() {
+        protected override void OnInitialized()
+        {
             CommonHelper.Spinner = "loader-big";
         }
 
@@ -55,8 +60,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// OnAfterRenderAsync
         /// </summary>
         /// <param name="firstRender"></param>
-        protected override async Task OnAfterRenderAsync(bool firstRender) {
-            if (firstRender) {
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
                 await UpdateApplicationAsync().ConfigureAwait(false);
                 StateHasChanged();
 
@@ -69,7 +76,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Unregister application and remove it from UI
         /// </summary>
         /// <param name="applicationId"></param>
-        private async Task UnregisterApplicationUIAsync(string applicationId) {
+        private async Task UnregisterApplicationUIAsync(string applicationId)
+        {
             var index = ApplicationList.Results.ConvertAll(t => t.ApplicationId).IndexOf(applicationId);
             ApplicationList.Results.RemoveAt(index);
             _pagedApplicationList = ApplicationList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
@@ -83,7 +91,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Open then Drawer
         /// </summary>
         /// <param name="OpenDrawer"></param>
-        private void OpenDrawer(ApplicationInfoModel application) {
+        private void OpenDrawer(ApplicationInfoModel application)
+        {
             IsOpen = true;
             ApplicationData = application;
         }
@@ -91,7 +100,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// Close the Drawer
         /// </summary>
-        private void CloseDrawer() {
+        private void CloseDrawer()
+        {
             IsOpen = false;
             StateHasChanged();
         }
@@ -100,7 +110,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Action on ApplicationEvent
         /// </summary>
         /// <param name="ev"></param>
-        private Task ApplicationEventAsync(ApplicationEventModel ev) {
+        private Task ApplicationEventAsync(ApplicationEventModel ev)
+        {
             ApplicationList.Results.Update(ev);
             _pagedApplicationList = ApplicationList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
                 CommonHelper.PageLength, ApplicationList.Error);
@@ -112,7 +123,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// Update application list
         /// </summary>
-        private async Task UpdateApplicationAsync() {
+        private async Task UpdateApplicationAsync()
+        {
             ApplicationList = await RegistryHelper.GetApplicationListAsync().ConfigureAwait(false);
             Page = "1";
             _pagedApplicationList = ApplicationList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
@@ -124,8 +136,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// Dispose
         /// </summary>
-        public async ValueTask DisposeAsync() {
-            if (_applicationEvent != null) {
+        public async ValueTask DisposeAsync()
+        {
+            if (_applicationEvent != null)
+            {
                 await _applicationEvent.DisposeAsync().ConfigureAwait(false);
             }
         }

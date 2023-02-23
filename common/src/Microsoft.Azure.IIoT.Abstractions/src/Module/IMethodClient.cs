@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module {
+namespace Microsoft.Azure.IIoT.Module
+{
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Module {
     /// <summary>
     /// Call method with buffer and content type as payload
     /// </summary>
-    public interface IMethodClient {
+    public interface IMethodClient
+    {
         /// <summary>
         /// Call method with buffer and return payload buffer.
         /// </summary>

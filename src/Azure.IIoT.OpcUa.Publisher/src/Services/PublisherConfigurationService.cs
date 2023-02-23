@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services {
+namespace Azure.IIoT.OpcUa.Publisher.Services
+{
+    using Autofac;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Autofac;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -30,14 +31,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// configuration update or api services.
     /// </summary>
     public sealed class PublisherConfigurationService : IPublisherConfigurationServices,
-        IHostProcess, IAsyncDisposable, IDisposable {
+        IHostProcess, IAsyncDisposable, IDisposable
+    {
         /// <summary>
         /// Create publisher configuration services
         /// </summary>
         public PublisherConfigurationService(PublishedNodesJobConverter publishedNodesJobConverter,
             IPublisherConfiguration configuration, IPublisherHost publisherHost,
             ILogger logger, IPublishedNodesProvider publishedNodesProvider,
-            IJsonSerializer jsonSerializer, IPublisherDiagnosticCollector diagnostics = null) {
+            IJsonSerializer jsonSerializer, IPublisherDiagnosticCollector diagnostics = null)
+        {
             _publishedNodesJobConverter = publishedNodesJobConverter ??
                 throw new ArgumentNullException(nameof(publishedNodesJobConverter));
             _configuration = configuration ??
@@ -60,10 +63,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<PublishStartResponseModel> NodePublishStartAsync(ConnectionModel id,
-            PublishStartRequestModel request, CancellationToken ct = default) {
+            PublishStartRequestModel request, CancellationToken ct = default)
+        {
             _logger.LogInformation("{Method} method triggered ... ", nameof(NodePublishStartAsync));
             var sw = Stopwatch.StartNew();
-            if (request?.Item is null) {
+            if (request?.Item is null)
+            {
                 var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(NodePublishStartAsync), sw.Elapsed);
@@ -71,7 +76,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 var entry = id.ToPublishedNodesEntry();
                 var currentNodes = GetCurrentPublishedNodes().ToList();
                 AddItem(currentNodes, entry, request.Item);
@@ -81,10 +87,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishStartResponseModel();
             }
-            catch (Exception e) when (e is not MethodCallStatusException) {
+            catch (Exception e) when (e is not MethodCallStatusException)
+            {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
-            finally {
+            finally
+            {
                 _api.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(NodePublishStartAsync), sw.Elapsed);
@@ -93,15 +101,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         }
 
         private static void AddItem(List<PublishedNodesEntryModel> currentNodes,
-            PublishedNodesEntryModel entry, PublishedItemModel item) {
+            PublishedNodesEntryModel entry, PublishedItemModel item)
+        {
             var found = currentNodes.Find(n => n.HasSameDataSet(entry));
-            if (found == null) {
+            if (found == null)
+            {
                 currentNodes.Add(entry);
                 found = entry;
             }
             var node = found.OpcNodes.Find(n => n.Id == item.NodeId);
-            if (node == null) {
-                found.OpcNodes.Add(new OpcNodeModel {
+            if (node == null)
+            {
+                found.OpcNodes.Add(new OpcNodeModel
+                {
                     DisplayName = item.DisplayName,
                     Id = item.NodeId,
                     OpcSamplingIntervalTimespan = item.SamplingInterval,
@@ -109,7 +121,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     OpcPublishingIntervalTimespan = item.PublishingInterval
                 });
             }
-            else {
+            else
+            {
                 node.DisplayName = item.DisplayName;
                 node.OpcSamplingIntervalTimespan = item.SamplingInterval;
                 node.HeartbeatIntervalTimespan = item.HeartbeatInterval;
@@ -119,10 +132,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<PublishStopResponseModel> NodePublishStopAsync(ConnectionModel id,
-            PublishStopRequestModel request, CancellationToken ct = default) {
+            PublishStopRequestModel request, CancellationToken ct = default)
+        {
             _logger.LogInformation("{Method} method triggered ... ", nameof(NodePublishStopAsync));
             var sw = Stopwatch.StartNew();
-            if (request?.NodeId is null) {
+            if (request?.NodeId is null)
+            {
                 var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(NodePublishStopAsync), sw.Elapsed);
@@ -130,10 +145,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 var currentNodes = GetCurrentPublishedNodes();
                 var entry = id.ToPublishedNodesEntry();
-                foreach (var nodeset in currentNodes.Where(n => n.HasSameDataSet(entry))) {
+                foreach (var nodeset in currentNodes.Where(n => n.HasSameDataSet(entry)))
+                {
                     nodeset.OpcNodes.RemoveAll(n => n.Id == request.NodeId);
                 }
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
@@ -142,10 +159,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishStopResponseModel();
             }
-            catch (Exception e) when (e is not MethodCallStatusException) {
+            catch (Exception e) when (e is not MethodCallStatusException)
+            {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
-            finally {
+            finally
+            {
                 _api.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(NodePublishStopAsync), sw.Elapsed);
@@ -155,10 +174,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<PublishBulkResponseModel> NodePublishBulkAsync(ConnectionModel id,
-            PublishBulkRequestModel request, CancellationToken ct = default) {
+            PublishBulkRequestModel request, CancellationToken ct = default)
+        {
             _logger.LogInformation("{Method} method triggered ... ", nameof(NodePublishBulkAsync));
             var sw = Stopwatch.StartNew();
-            if (request?.NodesToAdd is null && request?.NodesToRemove is null) {
+            if (request?.NodesToAdd is null && request?.NodesToRemove is null)
+            {
                 var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(NodePublishBulkAsync), sw.Elapsed);
@@ -166,17 +187,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 var currentNodes = GetCurrentPublishedNodes().ToList();
                 var entry = id.ToPublishedNodesEntry();
                 // Remove all nodes
-                if (request.NodesToRemove != null) {
-                    foreach (var nodeset in currentNodes.Where(n => n.HasSameDataSet(entry))) {
+                if (request.NodesToRemove != null)
+                {
+                    foreach (var nodeset in currentNodes.Where(n => n.HasSameDataSet(entry)))
+                    {
                         nodeset.OpcNodes.RemoveAll(n => request.NodesToRemove.Contains(n.Id));
                     }
                 }
-                if (request.NodesToAdd != null) {
-                    foreach (var item in request.NodesToAdd) {
+                if (request.NodesToAdd != null)
+                {
+                    foreach (var item in request.NodesToAdd)
+                    {
                         AddItem(currentNodes, entry, item);
                     }
                 }
@@ -186,10 +212,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishBulkResponseModel();
             }
-            catch (Exception e) when (e is not MethodCallStatusException) {
+            catch (Exception e) when (e is not MethodCallStatusException)
+            {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
-            finally {
+            finally
+            {
                 _api.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(NodePublishBulkAsync), sw.Elapsed);
@@ -199,10 +227,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<PublishedItemListResponseModel> NodePublishListAsync(ConnectionModel id,
-            PublishedItemListRequestModel request, CancellationToken ct = default) {
+            PublishedItemListRequestModel request, CancellationToken ct = default)
+        {
             _logger.LogInformation("{Method} method triggered ... ", nameof(NodePublishListAsync));
             var sw = Stopwatch.StartNew();
-            if (request is null) {
+            if (request is null)
+            {
                 var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(NodePublishListAsync), sw.Elapsed);
@@ -210,15 +240,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 var entry = id.ToPublishedNodesEntry();
                 var existingGroups = new List<PublishedNodesEntryModel>();
-                return new PublishedItemListResponseModel {
+                return new PublishedItemListResponseModel
+                {
                     Items = GetCurrentPublishedNodes()
                         .Where(n => n.HasSameDataSet(entry))
                         .SelectMany(n => n.OpcNodes)
                         .Where(n => n.EventFilter == null) // Exclude event filtering
-                        .Select(n => new PublishedItemModel {
+                        .Select(n => new PublishedItemModel
+                        {
                             NodeId = n.Id,
                             DisplayName = n.DisplayName,
                             HeartbeatInterval = n.HeartbeatIntervalTimespan,
@@ -228,10 +261,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                         .ToList()
                 };
             }
-            catch (Exception e) when (e is not MethodCallStatusException) {
+            catch (Exception e) when (e is not MethodCallStatusException)
+            {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
-            finally {
+            finally
+            {
                 _api.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(NodePublishListAsync), sw.Elapsed);
@@ -241,10 +276,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task PublishNodesAsync(PublishedNodesEntryModel request,
-            CancellationToken ct = default) {
+            CancellationToken ct = default)
+        {
             _logger.LogInformation("{Method} method triggered ... ", nameof(PublishNodesAsync));
             var sw = Stopwatch.StartNew();
-            if (request is null || request.OpcNodes is null || request.OpcNodes.Count == 0) {
+            if (request is null || request.OpcNodes is null || request.OpcNodes.Count == 0)
+            {
                 var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(PublishNodesAsync), sw.Elapsed);
@@ -253,24 +290,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             }
             request.PropagatePublishingIntervalToNodes();
             await _api.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 var dataSetFound = false;
                 var existingGroups = new List<PublishedNodesEntryModel>();
-                foreach (var entry in GetCurrentPublishedNodes()) {
-                    if (entry.HasSameGroup(request)) {
+                foreach (var entry in GetCurrentPublishedNodes())
+                {
+                    if (entry.HasSameGroup(request))
+                    {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will add nodes only if the whole DataSet definition matches.
-                        if (entry.HasSameDataSet(request)) {
+                        if (entry.HasSameDataSet(request))
+                        {
                             // Create HashSet of nodes for this entry.
                             var existingNodesSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
                             existingNodesSet.UnionWith(entry.OpcNodes);
 
-                            foreach (var nodeToAdd in request.OpcNodes) {
-                                if (!existingNodesSet.Contains(nodeToAdd)) {
+                            foreach (var nodeToAdd in request.OpcNodes)
+                            {
+                                if (!existingNodesSet.Contains(nodeToAdd))
+                                {
                                     entry.OpcNodes.Add(nodeToAdd);
                                     existingNodesSet.Add(nodeToAdd);
                                 }
-                                else {
+                                else
+                                {
                                     _logger.LogDebug("Node \"{Node}\" is already present " +
                                         "for entry with \"{Endpoint}\" endpoint.",
                                         nodeToAdd.Id, entry.EndpointUrl);
@@ -281,7 +325,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                         existingGroups.Add(entry);
                     }
                 }
-                if (!dataSetFound) {
+                if (!dataSetFound)
+                {
                     existingGroups.Add(request);
                 }
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups,
@@ -289,10 +334,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
-            catch (Exception e) when (e is not MethodCallStatusException) {
+            catch (Exception e) when (e is not MethodCallStatusException)
+            {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
-            finally {
+            finally
+            {
                 _api.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(PublishNodesAsync), sw.Elapsed);
@@ -302,10 +349,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task UnpublishNodesAsync(PublishedNodesEntryModel request,
-            CancellationToken ct = default) {
+            CancellationToken ct = default)
+        {
             _logger.LogInformation("{Method} method triggered ...", nameof(UnpublishNodesAsync));
             var sw = Stopwatch.StartNew();
-            if (request is null) {
+            if (request is null)
+            {
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(UnpublishNodesAsync), sw.Elapsed);
                 sw.Stop();
@@ -321,21 +370,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             request.PropagatePublishingIntervalToNodes();
             var purgeDataSet = request.OpcNodes is null || request.OpcNodes.Count == 0;
             await _api.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 // Create HashSet of nodes to remove.
                 var nodesToRemoveSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
-                if (!purgeDataSet) {
+                if (!purgeDataSet)
+                {
                     nodesToRemoveSet.UnionWith(request.OpcNodes);
                 }
                 var currentNodes = GetCurrentPublishedNodes();
                 // Perform first pass to determine if we can find all nodes to remove.
                 var matchingGroups = new List<PublishedNodesEntryModel>();
-                foreach (var entry in currentNodes) {
+                foreach (var entry in currentNodes)
+                {
                     // We may have several entries with the same DataSetGroup definition,
                     // so we will remove nodes only if the whole DataSet definition matches.
-                    if (entry.HasSameDataSet(request)) {
-                        foreach (var node in entry.OpcNodes) {
-                            if (nodesToRemoveSet.Contains(node)) {
+                    if (entry.HasSameDataSet(request))
+                    {
+                        foreach (var node in entry.OpcNodes)
+                        {
+                            if (nodesToRemoveSet.Contains(node))
+                            {
                                 // Found a node. Remove it from hash set.
                                 nodesToRemoveSet.Remove(node);
                             }
@@ -345,13 +400,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 }
 
                 // Report error if no matching endpoint was found.
-                if (matchingGroups.Count == 0) {
+                if (matchingGroups.Count == 0)
+                {
                     throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
                         $"Endpoint not found: {request.EndpointUrl}");
                 }
 
                 // Report error if there were entries that we were not able to find.
-                if (nodesToRemoveSet.Count != 0) {
+                if (nodesToRemoveSet.Count != 0)
+                {
                     request.OpcNodes = nodesToRemoveSet.ToList();
                     var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
                     throw new MethodCallStatusException(entriesNotFoundJson,
@@ -360,32 +417,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
                 // Create HashSet of nodes to remove again for the second pass.
                 nodesToRemoveSet.Clear();
-                if (!purgeDataSet) {
+                if (!purgeDataSet)
+                {
                     nodesToRemoveSet.UnionWith(request.OpcNodes);
                 }
 
                 // Perform second pass and remove entries this time.
                 var existingGroups = new List<PublishedNodesEntryModel>();
-                foreach (var entry in currentNodes) {
+                foreach (var entry in currentNodes)
+                {
                     // We may have several entries with the same DataSetGroup definition,
                     // so we will remove nodes only if the whole DataSet definition matches.
-                    if (entry.HasSameDataSet(request)) {
-                        if (!purgeDataSet) {
+                    if (entry.HasSameDataSet(request))
+                    {
+                        if (!purgeDataSet)
+                        {
                             var updatedNodes = new List<OpcNodeModel>();
 
-                            foreach (var node in entry.OpcNodes) {
-                                if (nodesToRemoveSet.Contains(node)) {
+                            foreach (var node in entry.OpcNodes)
+                            {
+                                if (nodesToRemoveSet.Contains(node))
+                                {
                                     // Found a node. Remove it from hash set.
                                     nodesToRemoveSet.Remove(node);
                                 }
-                                else {
+                                else
+                                {
                                     updatedNodes.Add(node);
                                 }
                             }
 
                             entry.OpcNodes = updatedNodes;
                         }
-                        else {
+                        else
+                        {
                             entry.OpcNodes.Clear();
                         }
                     }
@@ -400,10 +465,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
-            catch (Exception e) when (e is not MethodCallStatusException) {
+            catch (Exception e) when (e is not MethodCallStatusException)
+            {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
-            finally {
+            finally
+            {
                 _api.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(UnpublishNodesAsync), sw.Elapsed);
@@ -413,7 +480,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task UnpublishAllNodesAsync(PublishedNodesEntryModel request,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             _logger.LogInformation("{Method} method triggered", nameof(UnpublishAllNodesAsync));
             //
             // when no endpoint is specified remove all the configuration
@@ -424,17 +492,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             request.PropagatePublishingIntervalToNodes();
             var sw = Stopwatch.StartNew();
             await _api.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 var currentNodes = GetCurrentPublishedNodes();
-                if (!purge) {
+                if (!purge)
+                {
                     var found = false;
                     // Perform pass to determine existing groups
                     var matchingGroups = new List<PublishedNodesEntryModel>();
-                    foreach (var entry in currentNodes) {
-                        if (entry.HasSameGroup(request)) {
+                    foreach (var entry in currentNodes)
+                    {
+                        if (entry.HasSameGroup(request))
+                        {
                             // We may have several entries with the same DataSetGroup definition,
                             // so we will remove nodes only if the whole DataSet definition matches.
-                            if (entry.HasSameDataSet(request)) {
+                            if (entry.HasSameDataSet(request))
+                            {
                                 entry.OpcNodes.Clear();
                                 found = true;
                             }
@@ -443,7 +516,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     }
 
                     // Report error if there were entries that did not have any nodes
-                    if (!found) {
+                    if (!found)
+                    {
                         throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
                             $"Endpoint or node not found: {request.EndpointUrl}");
                     }
@@ -452,15 +526,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                         _configuration);
                     await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 }
-                else {
+                else
+                {
                     await _publisherHost.UpdateAsync(Enumerable.Empty<WriterGroupJobModel>()).ConfigureAwait(false);
                 }
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
-            catch (Exception e) when (e is not MethodCallStatusException) {
+            catch (Exception e) when (e is not MethodCallStatusException)
+            {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
-            finally {
+            finally
+            {
                 _api.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(UnpublishAllNodesAsync), sw.Elapsed);
@@ -470,12 +547,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task AddOrUpdateEndpointsAsync(List<PublishedNodesEntryModel> request,
-            CancellationToken ct = default) {
+            CancellationToken ct = default)
+        {
             const string methodName = nameof(AddOrUpdateEndpointsAsync);
             _logger.LogInformation("{Method} method triggered ... ", methodName);
             var sw = Stopwatch.StartNew();
 
-            if (request is null) {
+            if (request is null)
+            {
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     methodName, sw.Elapsed);
                 sw.Stop();
@@ -484,12 +563,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             }
 
             // First, let's check that there are no 2 entries for the same endpoint in the request.
-            if (request.Count > 0) {
+            if (request.Count > 0)
+            {
                 request[0].PropagatePublishingIntervalToNodes();
-                for (var itemIndex = 1; itemIndex < request.Count; itemIndex++) {
-                    for (var prevItemIndex = 0; prevItemIndex < itemIndex; prevItemIndex++) {
+                for (var itemIndex = 1; itemIndex < request.Count; itemIndex++)
+                {
+                    for (var prevItemIndex = 0; prevItemIndex < itemIndex; prevItemIndex++)
+                    {
                         request[itemIndex].PropagatePublishingIntervalToNodes();
-                        if (request[itemIndex].HasSameDataSet(request[prevItemIndex])) {
+                        if (request[itemIndex].HasSameDataSet(request[prevItemIndex]))
+                        {
                             throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
                                 "Request contains two entries for the same endpoint " +
                                 $"at index {prevItemIndex} and {itemIndex}");
@@ -499,25 +582,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             }
 
             await _api.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 var currentNodes = GetCurrentPublishedNodes().ToHashSet();
                 // Check that endpoints that we are asked to remove exist.
-                foreach (var removeRequest in request.Where(e => (e.OpcNodes?.Count ?? 0) == 0)) {
+                foreach (var removeRequest in request.Where(e => (e.OpcNodes?.Count ?? 0) == 0))
+                {
                     var removed = currentNodes.RemoveWhere(entry => entry.HasSameDataSet(removeRequest));
-                    if (removed == 0) {
+                    if (removed == 0)
+                    {
                         throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
                             $"Endpoint not found: {removeRequest.EndpointUrl}");
                     }
                 }
-                foreach (var updateRequest in request.Where(e => e.OpcNodes?.Count > 0)) {
+                foreach (var updateRequest in request.Where(e => e.OpcNodes?.Count > 0))
+                {
                     // We will add the update request entry and clean up anything else matching.
                     var found = currentNodes.FirstOrDefault(entry => entry.HasSameDataSet(updateRequest));
-                    if (found != null) {
+                    if (found != null)
+                    {
                         currentNodes.RemoveWhere(entry => entry.HasSameDataSet(updateRequest));
                         found.OpcNodes = updateRequest.OpcNodes;
                         currentNodes.Add(found);
                     }
-                    else {
+                    else
+                    {
                         // Nothing matching add here
                         currentNodes.Add(updateRequest);
                     }
@@ -527,7 +616,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
-            finally {
+            finally
+            {
                 _api.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     methodName, sw.Elapsed);
@@ -537,21 +627,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(
-            CancellationToken ct = default) {
+            CancellationToken ct = default)
+        {
             const string methodName = nameof(GetConfiguredEndpointsAsync);
             _logger.LogInformation("{Method} method triggered", methodName);
             var sw = Stopwatch.StartNew();
 
             var currentNodes = GetCurrentPublishedNodes();
             var endpoints = new List<PublishedNodesEntryModel>();
-            try {
+            try
+            {
                 endpoints = currentNodes.Select(e => e.ToDataSetEntry()).ToList();
             }
-            catch (Exception e) when (e is not MethodCallStatusException) {
+            catch (Exception e) when (e is not MethodCallStatusException)
+            {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
                     e.Message);
             }
-            finally {
+            finally
+            {
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     methodName, sw.Elapsed);
                 sw.Stop();
@@ -561,12 +655,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
-            PublishedNodesEntryModel request, CancellationToken ct = default) {
+            PublishedNodesEntryModel request, CancellationToken ct = default)
+        {
             _logger.LogInformation("{Method} method triggered",
                 nameof(GetConfiguredNodesOnEndpointAsync));
             var sw = Stopwatch.StartNew();
 
-            if (request is null) {
+            if (request is null)
+            {
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
                 sw.Stop();
@@ -576,27 +672,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
             request.PropagatePublishingIntervalToNodes();
             var response = new List<OpcNodeModel>();
-            try {
+            try
+            {
                 var endpointFound = false;
-                foreach (var entry in GetCurrentPublishedNodes()) {
-                    if (entry.HasSameDataSet(request)) {
+                foreach (var entry in GetCurrentPublishedNodes())
+                {
+                    if (entry.HasSameDataSet(request))
+                    {
                         endpointFound = true;
-                        if (entry.OpcNodes != null) {
+                        if (entry.OpcNodes != null)
+                        {
                             response.AddRange(entry.OpcNodes);
                         }
                     }
                 }
 
-                if (!endpointFound) {
+                if (!endpointFound)
+                {
                     throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
                         $"Endpoint not found: {request.EndpointUrl}");
                 }
             }
-            catch (Exception e) when (e is not MethodCallStatusException) {
+            catch (Exception e) when (e is not MethodCallStatusException)
+            {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
                     e.Message);
             }
-            finally {
+            finally
+            {
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
                 sw.Stop();
@@ -606,23 +709,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(
-            CancellationToken ct = default) {
+            CancellationToken ct = default)
+        {
             _logger.LogInformation("{Method} method triggered", nameof(GetDiagnosticInfoAsync));
             var sw = Stopwatch.StartNew();
             await _file.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 var result = new List<PublishDiagnosticInfoModel>();
-                if (_diagnostics == null) {
+                if (_diagnostics == null)
+                {
                     // Diagnostics disabled
                     throw new MethodCallStatusException((int)HttpStatusCode.ServiceUnavailable,
                         "Diagnostics service is disabled.");
                 }
-                foreach (var nodes in GetCurrentPublishedNodes()) {
+                foreach (var nodes in GetCurrentPublishedNodes())
+                {
                     if (!_diagnostics.TryGetDiagnosticsForWriterGroup(nodes.DataSetWriterGroup,
-                        out var model)) {
+                        out var model))
+                    {
                         continue;
                     }
-                    result.Add(new PublishDiagnosticInfoModel {
+                    result.Add(new PublishDiagnosticInfoModel
+                    {
                         Endpoint = nodes,
                         SentMessagesPerSec = model.SentMessagesPerSec,
                         IngestionDuration = DateTime.UtcNow - model.IngestionStart,
@@ -652,10 +761,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 }
                 return result;
             }
-            catch (Exception e) when (e is not MethodCallStatusException) {
+            catch (Exception e) when (e is not MethodCallStatusException)
+            {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
-            finally {
+            finally
+            {
                 _file.Release();
                 _logger.LogInformation("{Method} method finished in {Elapsed}",
                     nameof(GetDiagnosticInfoAsync), sw.Elapsed);
@@ -666,9 +777,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Persist Published nodes to published nodes file.
         /// </summary>
-        private async Task PersistPublishedNodesAsync() {
+        private async Task PersistPublishedNodesAsync()
+        {
             await _file.WaitAsync().ConfigureAwait(false);
-            try {
+            try
+            {
                 var currentNodes = GetCurrentPublishedNodes(preferTimespan: false);
                 var updatedContent = _jsonSerializer.SerializeToString(currentNodes,
                     SerializeOption.Indented);
@@ -676,7 +789,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 // Update _lastKnownFileHash
                 _lastKnownFileHash = GetChecksum(updatedContent);
             }
-            finally {
+            finally
+            {
                 _file.Release();
             }
         }
@@ -687,7 +801,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <param name="preferTimespan"></param>
         /// <returns></returns>
         private IEnumerable<PublishedNodesEntryModel> GetCurrentPublishedNodes(
-            bool preferTimespan = true) {
+            bool preferTimespan = true)
+        {
             return _publishedNodesJobConverter
                 .ToPublishedNodes(_publisherHost.Version, _publisherHost.LastChange,
                     _publisherHost.WriterGroups, preferTimespan)
@@ -695,31 +810,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         }
 
         /// <inheritdoc/>
-        public async ValueTask StartAsync() {
-            if (_started != null) {
+        public async ValueTask StartAsync()
+        {
+            if (_started != null)
+            {
                 await _started.Task.ConfigureAwait(false);
             }
         }
 
         /// <inheritdoc/>
-        public async ValueTask DisposeAsync() {
-            try {
-                if (_started != null) {
+        public async ValueTask DisposeAsync()
+        {
+            try
+            {
+                if (_started != null)
+                {
                     _fileChanges.Writer.TryComplete();
                     await _fileChangeProcessor.ConfigureAwait(false);
                 }
             }
-            finally {
+            finally
+            {
                 _started = null;
             }
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
-            try {
+        public void Dispose()
+        {
+            try
+            {
                 DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
-            finally {
+            finally
+            {
                 _api.Dispose();
                 _file.Dispose();
             }
@@ -728,7 +852,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Handle file changes
         /// </summary>
-        private void OnChanged(object sender, FileSystemEventArgs e) {
+        private void OnChanged(object sender, FileSystemEventArgs e)
+        {
             _logger.LogDebug("File {PublishedNodesFile} changed. Triggering file refresh ...",
                 _configuration.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(false);
@@ -737,7 +862,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Handle creation of file
         /// </summary>
-        private void OnCreated(object sender, FileSystemEventArgs e) {
+        private void OnCreated(object sender, FileSystemEventArgs e)
+        {
             _logger.LogDebug("File {PublishedNodesFile} created. Triggering file refresh ...",
                 _configuration.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(false);
@@ -746,7 +872,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Handle removal of file
         /// </summary>
-        private void OnRenamed(object sender, FileSystemEventArgs e) {
+        private void OnRenamed(object sender, FileSystemEventArgs e)
+        {
             _logger.LogDebug("File {PublishedNodesFile} renamed. Triggering file refresh ...",
                 _configuration.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(false);
@@ -755,7 +882,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Handle deletion of the file
         /// </summary>
-        private void OnDeleted(object sender, FileSystemEventArgs e) {
+        private void OnDeleted(object sender, FileSystemEventArgs e)
+        {
             _logger.LogDebug("File {PublishedNodesFile} deleted. Clearing configuration ...",
                 _configuration.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(true);
@@ -765,8 +893,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Refresh processor
         /// </summary>
         /// <returns></returns>
-        private async Task ProcessFileChangesAsync() {
-            try {
+        private async Task ProcessFileChangesAsync()
+        {
+            try
+            {
                 _publishedNodesProvider.Changed += OnChanged;
                 _publishedNodesProvider.Created += OnCreated;
                 _publishedNodesProvider.Renamed += OnRenamed;
@@ -774,19 +904,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 _publishedNodesProvider.EnableRaisingEvents = true;
 
                 var retryCount = 0;
-                await foreach (var clear in _fileChanges.Reader.ReadAllAsync()) {
+                await foreach (var clear in _fileChanges.Reader.ReadAllAsync())
+                {
                     await _file.WaitAsync().ConfigureAwait(false);
-                    try {
+                    try
+                    {
                         var lastWriteTime = _publishedNodesProvider.GetLastWriteTime();
-                        try {
+                        try
+                        {
                             // Force empty content when clearing but dont touch the deleted file
                             var content = clear ? string.Empty : _publishedNodesProvider.ReadContent();
                             var lastValidFileHash = _lastKnownFileHash;
                             var currentFileHash = GetChecksum(content);
 
-                            if (currentFileHash != _lastKnownFileHash) {
+                            if (currentFileHash != _lastKnownFileHash)
+                            {
                                 var jobs = Enumerable.Empty<WriterGroupJobModel>();
-                                if (!clear && !string.IsNullOrEmpty(content)) {
+                                if (!clear && !string.IsNullOrEmpty(content))
+                                {
                                     _logger.LogInformation("File {PublishedNodesFile} has changed, " +
                                         "last known hash {LastHash}, new hash {NewHash}, reloading...",
                                         _configuration.PublishedNodesFile, _lastKnownFileHash,
@@ -797,23 +932,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                                     jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries,
                                         _configuration);
                                 }
-                                try {
+                                try
+                                {
                                     await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                                     _lastKnownFileHash = currentFileHash;
                                     // Mark as started
                                     _started.TrySetResult();
                                 }
-                                catch (Exception ex) when (_started.Task.IsCompletedSuccessfully) {
-                                    if (_publisherHost.TryUpdate(jobs)) {
+                                catch (Exception ex) when (_started.Task.IsCompletedSuccessfully)
+                                {
+                                    if (_publisherHost.TryUpdate(jobs))
+                                    {
                                         _logger.LogDebug(ex, "Not initializing, update without waiting.");
                                         _lastKnownFileHash = currentFileHash;
                                     }
                                 }
                                 // Otherwise throw and retry
                             }
-                            else {
+                            else
+                            {
                                 // avoid double events from FileSystemWatcher
-                                if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10)) {
+                                if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10))
+                                {
                                     _logger.LogInformation("File {PublishedNodesFile} has changed and " +
                                         "content-hash is equal to last one, nothing to do...",
                                         _configuration.PublishedNodesFile);
@@ -825,8 +965,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             retryCount = 0;
                             // Success
                         }
-                        catch (IOException ex) {
-                            if (++retryCount <= 3) {
+                        catch (IOException ex)
+                        {
+                            if (++retryCount <= 3)
+                            {
                                 Debug.Assert(!clear);
                                 _logger.LogWarning(ex,
                                     "Error while loading job from file. Attempt #{Count}...",
@@ -840,13 +982,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             _logger.LogError(ex,
                                 "Error while loading job from file. Retry expired, giving up.");
                         }
-                        catch (SerializerException sx) {
+                        catch (SerializerException sx)
+                        {
                             Debug.Assert(!clear);
                             _logger.LogError(sx, "SerializerException while loading job from file.");
                             retryCount = 0;
                             _started.TrySetResult();
                         }
-                        catch (Exception ex) {
+                        catch (Exception ex)
+                        {
                             _logger.LogError(ex,
                                 "Error during publisher {Action}. Retrying...",
                                 clear ? "Reset" : "Update");
@@ -855,12 +999,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             _started.TrySetResult();
                         }
                     }
-                    finally {
+                    finally
+                    {
                         _file.Release();
                     }
                 }
             }
-            finally {
+            finally
+            {
                 _publishedNodesProvider.EnableRaisingEvents = false;
 
                 _publishedNodesProvider.Changed -= OnChanged;
@@ -876,22 +1022,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Transforms legacy entries that use NodeId into ones using OpcNodes.
         /// The transformation will happen in-place.
         /// </summary>
-        private static void TransformFromLegacyNodeId(List<PublishedNodesEntryModel> entries) {
-            if (entries == null) {
+        private static void TransformFromLegacyNodeId(List<PublishedNodesEntryModel> entries)
+        {
+            if (entries == null)
+            {
                 return;
             }
-            foreach (var entry in entries) {
-                if (!string.IsNullOrEmpty(entry.NodeId?.Identifier)) {
+            foreach (var entry in entries)
+            {
+                if (!string.IsNullOrEmpty(entry.NodeId?.Identifier))
+                {
                     entry.OpcNodes ??= new List<OpcNodeModel>();
 
-                    if (entry.OpcNodes.Count != 0) {
+                    if (entry.OpcNodes.Count != 0)
+                    {
                         throw new SerializerException(
                             "Published nodes file contains DataSetWriter entry which " +
                             $"defines both {nameof(entry.OpcNodes)} and {nameof(entry.NodeId)}." +
                             "This is not supported. Please fix published nodes file.");
                     }
 
-                    entry.OpcNodes.Add(new OpcNodeModel {
+                    entry.OpcNodes.Add(new OpcNodeModel
+                    {
                         Id = entry.NodeId.Identifier,
                     });
                     entry.NodeId = null;
@@ -904,8 +1056,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        private static string GetChecksum(string content) {
-            if (string.IsNullOrEmpty(content)) {
+        private static string GetChecksum(string content)
+        {
+            if (string.IsNullOrEmpty(content))
+            {
                 return null;
             }
             var checksum = SHA256.HashData(Encoding.UTF8.GetBytes(content));

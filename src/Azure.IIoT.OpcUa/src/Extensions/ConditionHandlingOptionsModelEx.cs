@@ -3,21 +3,26 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     /// <summary>
     /// Condition options extensions
     /// </summary>
-    public static class ConditionHandlingOptionsModelEx {
+    public static class ConditionHandlingOptionsModelEx
+    {
         /// <summary>
         /// Clone
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ConditionHandlingOptionsModel Clone(this ConditionHandlingOptionsModel model) {
-            if (model == null) {
+        public static ConditionHandlingOptionsModel Clone(this ConditionHandlingOptionsModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new ConditionHandlingOptionsModel {
+            return new ConditionHandlingOptionsModel
+            {
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval,
             };
@@ -28,8 +33,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static bool IsDisabled(this ConditionHandlingOptionsModel model) {
-            if (model == null) {
+        public static bool IsDisabled(this ConditionHandlingOptionsModel model)
+        {
+            if (model == null)
+            {
                 return true;
             }
             return
@@ -43,11 +50,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this ConditionHandlingOptionsModel model, ConditionHandlingOptionsModel other) {
-            if (model == null && other == null) {
+        public static bool IsSameAs(this ConditionHandlingOptionsModel model, ConditionHandlingOptionsModel other)
+        {
+            if (model == null && other == null)
+            {
                 return true;
             }
-            if (model == null || other == null) {
+            if (model == null || other == null)
+            {
                 return false;
             }
             return

@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher
+{
     using System;
 
     /// <summary>
     /// Engine configuration
     /// </summary>
-    public interface IEngineConfiguration {
+    public interface IEngineConfiguration
+    {
         /// <summary>
         /// Batch size
         /// </summary>

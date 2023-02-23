@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Services {
+namespace Azure.IIoT.OpcUa.Publisher.Services
+{
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Opc.Ua;
@@ -21,25 +22,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// <summary>
     /// Implments history services on top of core services
     /// </summary>
-    public sealed class HistoryServices<T> : IHistoryServices<T> {
+    public sealed class HistoryServices<T> : IHistoryServices<T>
+    {
         /// <summary>
         /// Create service
         /// </summary>
         /// <param name="services"></param>
-        public HistoryServices(INodeServicesInternal<T> services) {
+        public HistoryServices(INodeServicesInternal<T> services)
+        {
             _services = services ?? throw new ArgumentNullException(nameof(services));
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(
             T connectionId, HistoryUpdateRequestModel<DeleteEventsDetailsModel> request,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             return _services.HistoryUpdateAsync(connectionId, request,
-                (nodeId, details, _) => {
-                    if (details.EventIds == null || details.EventIds.Count == 0) {
+                (nodeId, details, _) =>
+                {
+                    if (details.EventIds == null || details.EventIds.Count == 0)
+                    {
                         throw new ArgumentException("Bad events", nameof(details));
                     }
-                    return Task.FromResult(new ExtensionObject(new DeleteEventDetails {
+                    return Task.FromResult(new ExtensionObject(new DeleteEventDetails
+                    {
                         NodeId = nodeId,
                         EventIds = new ByteStringCollection(details.EventIds)
                     }));
@@ -49,13 +56,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(
             T connectionId, HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             return _services.HistoryUpdateAsync(connectionId, request,
-                (nodeId, details, _) => {
-                    if (details.ReqTimes == null || details.ReqTimes.Length == 0) {
+                (nodeId, details, _) =>
+                {
+                    if (details.ReqTimes == null || details.ReqTimes.Length == 0)
+                    {
                         throw new ArgumentException("Bad requested times", nameof(details));
                     }
-                    return Task.FromResult(new ExtensionObject(new DeleteAtTimeDetails {
+                    return Task.FromResult(new ExtensionObject(new DeleteAtTimeDetails
+                    {
                         NodeId = nodeId,
                         ReqTimes = new DateTimeCollection(details.ReqTimes)
                     }));
@@ -65,14 +76,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
             T connectionId, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             return _services.HistoryUpdateAsync(connectionId, request,
-                (nodeId, details, _) => {
-                    if (details.EndTime == null && details.StartTime == null) {
+                (nodeId, details, _) =>
+                {
+                    if (details.EndTime == null && details.StartTime == null)
+                    {
                         throw new ArgumentException("Start time and end time cannot both be null",
                             nameof(details));
                     }
-                    return Task.FromResult(new ExtensionObject(new DeleteRawModifiedDetails {
+                    return Task.FromResult(new ExtensionObject(new DeleteRawModifiedDetails
+                    {
                         NodeId = nodeId,
                         EndTime = details.EndTime ?? DateTime.MinValue,
                         StartTime = details.StartTime ?? DateTime.MinValue,
@@ -84,13 +99,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(
             T connectionId, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
-            CancellationToken ct) {
-            return _services.HistoryUpdateAsync(connectionId, request, (nodeId, details, _) => {
-                if (details.EndTime == null && details.StartTime == null) {
+            CancellationToken ct)
+        {
+            return _services.HistoryUpdateAsync(connectionId, request, (nodeId, details, _) =>
+            {
+                if (details.EndTime == null && details.StartTime == null)
+                {
                     throw new ArgumentException("Start time and end time cannot both be null",
                         nameof(details));
                 }
-                return Task.FromResult(new ExtensionObject(new DeleteRawModifiedDetails {
+                return Task.FromResult(new ExtensionObject(new DeleteRawModifiedDetails
+                {
                     NodeId = nodeId,
                     EndTime = details.EndTime ?? DateTime.MinValue,
                     StartTime = details.StartTime ?? DateTime.MinValue,
@@ -102,18 +121,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
             T connectionId, HistoryReadRequestModel<ReadEventsDetailsModel> request,
-            CancellationToken ct) {
-            return _services.HistoryReadAsync(connectionId, request, (details, session) => {
-                if (details.EndTime == null && details.StartTime == null) {
+            CancellationToken ct)
+        {
+            return _services.HistoryReadAsync(connectionId, request, (details, session) =>
+            {
+                if (details.EndTime == null && details.StartTime == null)
+                {
                     throw new ArgumentException("Start time and end time cannot both be null",
                         nameof(details));
                 }
                 if ((details.StartTime == null || details.EndTime == null) &&
-                    ((details.NumEvents ?? 0) == 0)) {
+                    ((details.NumEvents ?? 0) == 0))
+                {
                     throw new ArgumentException("Value bound must be set",
                         nameof(details));
                 }
-                return new ExtensionObject(new ReadEventDetails {
+                return new ExtensionObject(new ReadEventDetails
+                {
                     EndTime = details.EndTime ?? DateTime.MinValue,
                     StartTime = details.StartTime ?? DateTime.MinValue,
                     Filter = session.Codec.Decode(details.Filter),
@@ -124,25 +148,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
-            T connectionId, HistoryReadNextRequestModel request, CancellationToken ct) {
+            T connectionId, HistoryReadNextRequestModel request, CancellationToken ct)
+        {
             return _services.HistoryReadNextAsync(connectionId, request, DecodeEvents, ct);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
             T connectionId, HistoryReadRequestModel<ReadValuesDetailsModel> request,
-            CancellationToken ct) {
-            return await _services.HistoryReadAsync(connectionId, request, (details, _) => {
-                if (details.EndTime == null && details.StartTime == null) {
+            CancellationToken ct)
+        {
+            return await _services.HistoryReadAsync(connectionId, request, (details, _) =>
+            {
+                if (details.EndTime == null && details.StartTime == null)
+                {
                     throw new ArgumentException("Start time and end time cannot both be null",
                         nameof(details));
                 }
                 if ((details.StartTime == null || details.EndTime == null) &&
-                    ((details.NumValues ?? 0) == 0)) {
+                    ((details.NumValues ?? 0) == 0))
+                {
                     throw new ArgumentException("Value bound must be set",
                         nameof(details));
                 }
-                return new ExtensionObject(new ReadRawModifiedDetails {
+                return new ExtensionObject(new ReadRawModifiedDetails
+                {
                     EndTime = details.EndTime ?? DateTime.MinValue,
                     StartTime = details.StartTime ?? DateTime.MinValue,
                     IsReadModified = false,
@@ -155,12 +185,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
             T connectionId, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
-            CancellationToken ct) {
-            return _services.HistoryReadAsync(connectionId, request, (details, _) => {
-                if (details.ReqTimes == null || details.ReqTimes.Length == 0) {
+            CancellationToken ct)
+        {
+            return _services.HistoryReadAsync(connectionId, request, (details, _) =>
+            {
+                if (details.ReqTimes == null || details.ReqTimes.Length == 0)
+                {
                     throw new ArgumentException(nameof(details.ReqTimes));
                 }
-                return new ExtensionObject(new ReadAtTimeDetails {
+                return new ExtensionObject(new ReadAtTimeDetails
+                {
                     ReqTimes = new DateTimeCollection(details.ReqTimes),
                     UseSimpleBounds = details.UseSimpleBounds ?? false
                 });
@@ -170,22 +204,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
             T connectionId, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
-            CancellationToken ct) {
-            return _services.HistoryReadAsync(connectionId, request, (details, session) => {
-                if (details.EndTime == null && details.StartTime == null) {
+            CancellationToken ct)
+        {
+            return _services.HistoryReadAsync(connectionId, request, (details, session) =>
+            {
+                if (details.EndTime == null && details.StartTime == null)
+                {
                     throw new ArgumentException("Start time and end time cannot both be null",
                         nameof(details));
                 }
                 var aggregateType = details.AggregateType;
-                if (aggregateType != null) {
+                if (aggregateType != null)
+                {
                     var capabilities = session.GetHistoryCapabilitiesAsync(ct).Result;
                     if (capabilities?.AggregateFunctions != null &&
-                        capabilities.AggregateFunctions.TryGetValue(aggregateType, out var id)) {
+                        capabilities.AggregateFunctions.TryGetValue(aggregateType, out var id))
+                    {
                         aggregateType = id;
                     }
                 }
                 var aggregateId = aggregateType?.ToNodeId(session.MessageContext);
-                return new ExtensionObject(new ReadProcessedDetails {
+                return new ExtensionObject(new ReadProcessedDetails
+                {
                     EndTime = details.EndTime ?? DateTime.MinValue,
                     StartTime = details.StartTime ?? DateTime.MinValue,
                     AggregateType = aggregateId == null ? null :
@@ -200,18 +240,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
             T connectionId, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
-            CancellationToken ct) {
-            return _services.HistoryReadAsync(connectionId, request, (details, _) => {
-                if (details.EndTime == null && details.StartTime == null) {
+            CancellationToken ct)
+        {
+            return _services.HistoryReadAsync(connectionId, request, (details, _) =>
+            {
+                if (details.EndTime == null && details.StartTime == null)
+                {
                     throw new ArgumentException("Start time and end time cannot both be null",
                         nameof(details));
                 }
                 if ((details.StartTime == null || details.EndTime == null) &&
-                    ((details.NumValues ?? 0) == 0)) {
+                    ((details.NumValues ?? 0) == 0))
+                {
                     throw new ArgumentException("Value bound must be set",
                         nameof(details));
                 }
-                return new ExtensionObject(new ReadRawModifiedDetails {
+                return new ExtensionObject(new ReadRawModifiedDetails
+                {
                     EndTime = details.EndTime ?? DateTime.MinValue,
                     StartTime = details.StartTime ?? DateTime.MinValue,
                     IsReadModified = true,
@@ -222,57 +267,67 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
-            T connectionId, HistoryReadNextRequestModel request, CancellationToken ct) {
+            T connectionId, HistoryReadNextRequestModel request, CancellationToken ct)
+        {
             return _services.HistoryReadNextAsync(connectionId, request, DecodeValues, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(T connectionId,
-            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct) {
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
+        {
             return HistoryUpdateEventsAsync(connectionId, request, PerformUpdateType.Replace, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(T connectionId,
-            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
+        {
             return HistoryUpdateValuesAsync(connectionId, request, PerformUpdateType.Replace, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(T connectionId,
-            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct) {
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
+        {
             return HistoryUpdateEventsAsync(connectionId, request, PerformUpdateType.Insert, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(T connectionId,
-            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
+        {
             return HistoryUpdateValuesAsync(connectionId, request, PerformUpdateType.Insert, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(T connectionId,
-            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct) {
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
+        {
             return HistoryUpdateEventsAsync(connectionId, request, PerformUpdateType.Update, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(T connectionId,
-            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
+        {
             return HistoryUpdateValuesAsync(connectionId, request, PerformUpdateType.Update, ct);
         }
 
         /// <inheritdoc/>
         public async IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAsync(
             T connectionId, HistoryReadRequestModel<ReadValuesDetailsModel> request,
-            [EnumeratorCancellation] CancellationToken ct) {
+            [EnumeratorCancellation] CancellationToken ct)
+        {
             var result = await HistoryReadValuesAsync(connectionId, request,
                 ct).ConfigureAwait(false);
-            foreach (var item in result.History) {
+            foreach (var item in result.History)
+            {
                 yield return item;
             }
             await foreach (var item in HistoryStreamRemainingValuesAsync(
-                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false)) {
+                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
+            {
                 yield return item;
             }
         }
@@ -280,14 +335,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public async IAsyncEnumerable<HistoricValueModel> HistoryStreamModifiedValuesAsync(
             T connectionId, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
-            [EnumeratorCancellation] CancellationToken ct) {
+            [EnumeratorCancellation] CancellationToken ct)
+        {
             var result = await HistoryReadModifiedValuesAsync(connectionId, request,
                 ct).ConfigureAwait(false);
-            foreach (var item in result.History) {
+            foreach (var item in result.History)
+            {
                 yield return item;
             }
             await foreach (var item in HistoryStreamRemainingValuesAsync(
-                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false)) {
+                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
+            {
                 yield return item;
             }
         }
@@ -295,14 +353,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public async IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAtTimesAsync(
             T connectionId, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
-            [EnumeratorCancellation] CancellationToken ct) {
+            [EnumeratorCancellation] CancellationToken ct)
+        {
             var result = await HistoryReadValuesAtTimesAsync(connectionId, request,
                 ct).ConfigureAwait(false);
-            foreach (var item in result.History) {
+            foreach (var item in result.History)
+            {
                 yield return item;
             }
             await foreach (var item in HistoryStreamRemainingValuesAsync(
-                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false)) {
+                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
+            {
                 yield return item;
             }
         }
@@ -310,14 +371,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public async IAsyncEnumerable<HistoricValueModel> HistoryStreamProcessedValuesAsync(
             T connectionId, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
-            [EnumeratorCancellation] CancellationToken ct) {
+            [EnumeratorCancellation] CancellationToken ct)
+        {
             var result = await HistoryReadProcessedValuesAsync(connectionId, request,
                 ct).ConfigureAwait(false);
-            foreach (var item in result.History) {
+            foreach (var item in result.History)
+            {
                 yield return item;
             }
             await foreach (var item in HistoryStreamRemainingValuesAsync(
-                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false)) {
+                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
+            {
                 yield return item;
             }
         }
@@ -325,14 +389,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public async IAsyncEnumerable<HistoricEventModel> HistoryStreamEventsAsync(
             T connectionId, HistoryReadRequestModel<ReadEventsDetailsModel> request,
-            [EnumeratorCancellation] CancellationToken ct) {
+            [EnumeratorCancellation] CancellationToken ct)
+        {
             var result = await HistoryReadEventsAsync(connectionId, request,
                 ct).ConfigureAwait(false);
-            foreach (var item in result.History) {
+            foreach (var item in result.History)
+            {
                 yield return item;
             }
             await foreach (var item in HistoryStreamRemainingEventsAsync(
-                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false)) {
+                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
+            {
                 yield return item;
             }
         }
@@ -347,15 +414,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <returns></returns>
         private async IAsyncEnumerable<HistoricValueModel> HistoryStreamRemainingValuesAsync(
             T connectionId, RequestHeaderModel? header, string? continuationToken,
-            [EnumeratorCancellation] CancellationToken ct) {
-            while (continuationToken != null) {
+            [EnumeratorCancellation] CancellationToken ct)
+        {
+            while (continuationToken != null)
+            {
                 var response = await HistoryReadValuesNextAsync(connectionId,
-                    new HistoryReadNextRequestModel {
+                    new HistoryReadNextRequestModel
+                    {
                         ContinuationToken = continuationToken,
                         Header = header
                     }, ct).ConfigureAwait(false);
                 continuationToken = response.ContinuationToken;
-                foreach (var item in response.History) {
+                foreach (var item in response.History)
+                {
                     yield return item;
                 }
             }
@@ -371,15 +442,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <returns></returns>
         private async IAsyncEnumerable<HistoricEventModel> HistoryStreamRemainingEventsAsync(
             T connectionId, RequestHeaderModel? header,
-            string? continuationToken, [EnumeratorCancellation] CancellationToken ct) {
-            while (continuationToken != null) {
+            string? continuationToken, [EnumeratorCancellation] CancellationToken ct)
+        {
+            while (continuationToken != null)
+            {
                 var response = await HistoryReadEventsNextAsync(connectionId,
-                    new HistoryReadNextRequestModel {
+                    new HistoryReadNextRequestModel
+                    {
                         ContinuationToken = continuationToken,
                         Header = header
                     }, ct).ConfigureAwait(false);
                 continuationToken = response.ContinuationToken;
-                foreach (var item in response.History) {
+                foreach (var item in response.History)
+                {
                     yield return item;
                 }
             }
@@ -396,18 +471,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <exception cref="ArgumentException"></exception>
         public Task<HistoryUpdateResponseModel> HistoryUpdateEventsAsync(
             T connectionId, HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
-            PerformUpdateType action, CancellationToken ct) {
+            PerformUpdateType action, CancellationToken ct)
+        {
             return _services.HistoryUpdateAsync(connectionId, request,
-                (nodeId, details, session) => {
-                    if (details.Events == null || details.Events.Count == 0) {
+                (nodeId, details, session) =>
+                {
+                    if (details.Events == null || details.Events.Count == 0)
+                    {
                         throw new ArgumentException("Bad events", nameof(details));
                     }
-                    return Task.FromResult(new ExtensionObject(new UpdateEventDetails {
+                    return Task.FromResult(new ExtensionObject(new UpdateEventDetails
+                    {
                         NodeId = nodeId,
                         PerformInsertReplace = action,
                         Filter = session.Codec.Decode(details.Filter),
                         EventData = new HistoryEventFieldListCollection(details.Events
-                            .Select(d => new HistoryEventFieldList {
+                            .Select(d => new HistoryEventFieldList
+                            {
                                 EventFields = new VariantCollection(d.EventFields
                                     .Select(f => session.Codec.Decode(f, BuiltInType.Variant)))
                             }))
@@ -426,19 +506,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <exception cref="ArgumentException"></exception>
         public Task<HistoryUpdateResponseModel> HistoryUpdateValuesAsync(
             T connectionId, HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
-            PerformUpdateType action, CancellationToken ct) {
+            PerformUpdateType action, CancellationToken ct)
+        {
             return _services.HistoryUpdateAsync(connectionId, request,
-                async (nodeId, details, session) => {
-                    if (details.Values == null || details.Values.Count == 0) {
+                async (nodeId, details, session) =>
+                {
+                    if (details.Values == null || details.Values.Count == 0)
+                    {
                         throw new ArgumentException("Bad values", nameof(details));
                     }
                     var builtinType = await GetDataTypeAsync(session, request.Header,
                         nodeId, details.Values, ct).ConfigureAwait(false);
-                    return new ExtensionObject(new UpdateDataDetails {
+                    return new ExtensionObject(new UpdateDataDetails
+                    {
                         NodeId = nodeId,
                         PerformInsertReplace = action,
                         UpdateValues = new DataValueCollection(details.Values
-                            .Select(d => new DataValue {
+                            .Select(d => new DataValue
+                            {
                                 ServerPicoseconds = d.ServerPicoseconds ?? 0,
                                 SourcePicoseconds = d.SourcePicoseconds ?? 0,
                                 ServerTimestamp = d.ServerTimestamp ?? DateTime.MinValue,
@@ -458,9 +543,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <param name="session"></param>
         /// <returns></returns>
         private static HistoricEventModel[] DecodeEvents(ExtensionObject extensionObject,
-            ISessionHandle session) {
-            if (extensionObject.Body is HistoryEvent ev) {
-                return ev.Events.Select(d => new HistoricEventModel {
+            ISessionHandle session)
+        {
+            if (extensionObject.Body is HistoryEvent ev)
+            {
+                return ev.Events.Select(d => new HistoricEventModel
+                {
                     EventFields = d.EventFields
                         .Select(v => v == Variant.Null ?
                             VariantValue.Null : session.Codec.Encode(v, out var builtInType))
@@ -484,7 +572,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         private static async Task<BuiltInType> GetDataTypeAsync(
             ISessionHandle session, RequestHeaderModel? requestHeader,
             NodeId nodeId, IEnumerable<HistoricValueModel> values,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             // Get data type
             var dataTypes = values
                 .Select(v => v.DataType)
@@ -492,18 +581,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             var dataType = dataTypes.FirstOrDefault();
 #if DEBUG
             if (dataType != null &&
-                !dataTypes.All(v => string.Equals(v, dataType, StringComparison.Ordinal))) {
+                !dataTypes.All(v => string.Equals(v, dataType, StringComparison.Ordinal)))
+            {
                 throw new ArgumentException(
                     $"All values must have no or data type {dataType}.");
             }
 #endif
             var dataTypeId = dataType.ToNodeId(session.MessageContext);
-            if (NodeId.IsNull(dataTypeId)) {
+            if (NodeId.IsNull(dataTypeId))
+            {
                 // Read data type
                 (dataTypeId, _) = await session.ReadAttributeAsync<NodeId?>(
                     requestHeader.ToRequestHeader(), nodeId,
                     Attributes.DataType, ct).ConfigureAwait(false);
-                if (NodeId.IsNull(dataTypeId)) {
+                if (NodeId.IsNull(dataTypeId))
+                {
                     throw new ArgumentException(
                         $"{nodeId} does not have a data type to fall back on.");
                 }
@@ -519,11 +611,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <returns></returns>
         /// <exception cref="FormatException"></exception>
         private static HistoricValueModel[] DecodeValues(ExtensionObject extensionObject,
-            ISessionHandle session) {
-            if (extensionObject.Body is HistoryData data) {
+            ISessionHandle session)
+        {
+            if (extensionObject.Body is HistoryData data)
+            {
                 var modificationInfos = new List<ModificationInfoModel>();
-                if (extensionObject.Body is HistoryModifiedData modified) {
-                    if (modified.ModificationInfos.Count != data.DataValues.Count) {
+                if (extensionObject.Body is HistoryModifiedData modified)
+                {
+                    if (modified.ModificationInfos.Count != data.DataValues.Count)
+                    {
                         throw new FormatException(
                             "Modification infos and data value count is not the same");
                     }
@@ -539,9 +635,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             return Array.Empty<HistoricValueModel>();
 
             static HistoricValueModel EncodeDataValue(IVariantEncoder codec,
-                DataValue dataValue, ModificationInfo? modification) {
+                DataValue dataValue, ModificationInfo? modification)
+            {
                 var builtInType = BuiltInType.Null;
-                return new HistoricValueModel {
+                return new HistoricValueModel
+                {
                     ServerPicoseconds = dataValue.ServerPicoseconds == 0 ? null :
                         dataValue.ServerPicoseconds,
                     SourcePicoseconds = dataValue.SourcePicoseconds == 0 ? null :
@@ -555,7 +653,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                          dataValue.StatusCode.CreateResultModel(),
                     DataLocation = dataValue.StatusCode.AggregateBits.ToDataLocation(),
                     AdditionalData = dataValue.StatusCode.AggregateBits.ToAdditionalData(),
-                    ModificationInfo = modification == null ? null : new ModificationInfoModel {
+                    ModificationInfo = modification == null ? null : new ModificationInfoModel
+                    {
                         ModificationTime = modification.ModificationTime == DateTime.MinValue ?
                             null : modification.ModificationTime,
                         UpdateType = (HistoryUpdateOperation)modification.UpdateType,

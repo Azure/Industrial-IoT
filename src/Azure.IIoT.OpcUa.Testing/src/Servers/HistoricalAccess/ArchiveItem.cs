@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalAccess {
+namespace HistoricalAccess
+{
     using Opc.Ua;
     using System;
     using System.Data;
@@ -38,21 +39,25 @@ namespace HistoricalAccess {
     /// <summary>
     /// Stores the metadata for a node representing a folder on a file system.
     /// </summary>
-    public class ArchiveItem {
+    public class ArchiveItem
+    {
         /// <summary>
         /// Creates a new instance.
         /// </summary>
-        public ArchiveItem(string uniquePath, FileInfo file) {
+        public ArchiveItem(string uniquePath, FileInfo file)
+        {
             UniquePath = uniquePath;
             FileInfo = file;
             Name = string.Empty;
 
-            if (FileInfo != null) {
+            if (FileInfo != null)
+            {
                 Name = FileInfo.Name;
 
                 var index = Name.LastIndexOf('.');
 
-                if (index > 0) {
+                if (index > 0)
+                {
                     Name = Name.Substring(0, index);
                 }
             }
@@ -61,7 +66,8 @@ namespace HistoricalAccess {
         /// <summary>
         /// Creates a new instance.
         /// </summary>
-        public ArchiveItem(string uniquePath, Assembly assembly, string resourcePath) {
+        public ArchiveItem(string uniquePath, Assembly assembly, string resourcePath)
+        {
             UniquePath = uniquePath;
             ResourceInfo = new ResourceInfoType { Assembly = assembly, ResourcePath = resourcePath };
             Name = string.Empty;
@@ -70,13 +76,15 @@ namespace HistoricalAccess {
 
             var index = Name.LastIndexOf('.');
 
-            if (index > 0) {
+            if (index > 0)
+            {
                 Name = Name.Substring(0, index);
             }
 
             index = Name.LastIndexOf('.');
 
-            if (index > 0) {
+            if (index > 0)
+            {
                 Name = Name.Substring(index + 1);
             }
         }
@@ -84,20 +92,24 @@ namespace HistoricalAccess {
         /// <summary>
         /// Returns the parent folder.
         /// </summary>
-        public ArchiveFolder GetParentFolder() {
+        public ArchiveFolder GetParentFolder()
+        {
             var parentPath = string.Empty;
 
-            if (FileInfo == null) {
+            if (FileInfo == null)
+            {
                 return new ArchiveFolder(parentPath, null);
             }
 
-            if (!FileInfo.Exists) {
+            if (!FileInfo.Exists)
+            {
                 return null;
             }
 
             var index = UniquePath.LastIndexOf('/');
 
-            if (index > 0) {
+            if (index > 0)
+            {
                 parentPath = UniquePath.Substring(0, index);
             }
 
@@ -107,12 +119,15 @@ namespace HistoricalAccess {
         /// <summary>
         /// Returns a stream that can be used to read the archive.
         /// </summary>
-        public StreamReader OpenArchive() {
-            if (FileInfo != null) {
+        public StreamReader OpenArchive()
+        {
+            if (FileInfo != null)
+            {
                 return new StreamReader(FileInfo.FullName, Encoding.UTF8);
             }
 
-            if (ResourceInfo.Assembly != null) {
+            if (ResourceInfo.Assembly != null)
+            {
                 return new StreamReader(ResourceInfo.Assembly.GetManifestResourceStream(ResourceInfo.ResourcePath), Encoding.UTF8);
             }
 
@@ -202,7 +217,8 @@ namespace HistoricalAccess {
         /// <summary>
         /// Stores information about an embedded resource.
         /// </summary>
-        private struct ResourceInfoType {
+        private struct ResourceInfoType
+        {
             public Assembly Assembly { get; set; }
             public string ResourcePath { get; set; }
         }

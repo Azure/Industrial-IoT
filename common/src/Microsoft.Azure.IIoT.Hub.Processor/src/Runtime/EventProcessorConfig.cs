@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
+namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime
+{
     using Microsoft.Azure.IIoT.Storage.Datalake.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -12,7 +13,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
     /// Event processor configuration - wraps a configuration root
     /// </summary>
     public class EventProcessorConfig : StorageConfig, IEventProcessorHostConfig,
-        IEventProcessorConfig {
+        IEventProcessorConfig
+    {
         /// <summary>
         /// Event processor configuration
         /// </summary>
@@ -51,7 +53,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public EventProcessorConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

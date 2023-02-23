@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// <summary>
     /// Publisher service api extensions
     /// </summary>
-    public static class PublisherServiceApiEx {
+    public static class PublisherServiceApiEx
+    {
         /// <summary>
         /// Get list of published nodes
         /// </summary>
@@ -19,11 +21,13 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <param name="endpointId"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<PublishedItemModel>> NodePublishListAllAsync(
-            this IPublisherServiceApi service, string endpointId) {
+            this IPublisherServiceApi service, string endpointId)
+        {
             var nodes = new List<PublishedItemModel>();
             var result = await service.NodePublishListAsync(endpointId).ConfigureAwait(false);
             nodes.AddRange(result.Items);
-            while (result.ContinuationToken != null) {
+            while (result.ContinuationToken != null)
+            {
                 result = await service.NodePublishListAsync(endpointId,
                     result.ContinuationToken).ConfigureAwait(false);
                 nodes.AddRange(result.Items);
@@ -39,8 +43,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <param name="continuation"></param>
         /// <returns></returns>
         public static Task<PublishedItemListResponseModel> NodePublishListAsync(
-            this IPublisherServiceApi service, string endpointId, string continuation = null) {
-            return service.NodePublishListAsync(endpointId, new PublishedItemListRequestModel {
+            this IPublisherServiceApi service, string endpointId, string continuation = null)
+        {
+            return service.NodePublishListAsync(endpointId, new PublishedItemListRequestModel
+            {
                 ContinuationToken = continuation
             });
         }

@@ -27,31 +27,39 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace PerfTest {
+namespace PerfTest
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
 
-    public static class ModelUtils {
-        public static NodeId GetRegisterId(MemoryRegister register, ushort namespaceIndex) {
+    public static class ModelUtils
+    {
+        public static NodeId GetRegisterId(MemoryRegister register, ushort namespaceIndex)
+        {
             return new NodeId((uint)register.Id, namespaceIndex);
         }
 
-        public static NodeId GetRegisterVariableId(MemoryRegister register, int index, ushort namespaceIndex) {
+        public static NodeId GetRegisterVariableId(MemoryRegister register, int index, ushort namespaceIndex)
+        {
             var id = (uint)(register.Id << 24) + (uint)index;
             return new NodeId(id, namespaceIndex);
         }
 
-        public static MemoryRegisterState GetRegister(MemoryRegister register, ushort namespaceIndex) {
+        public static MemoryRegisterState GetRegister(MemoryRegister register, ushort namespaceIndex)
+        {
             return new MemoryRegisterState(register, namespaceIndex);
         }
 
-        public static BaseDataVariableState GetRegisterVariable(MemoryRegister register, int index, ushort namespaceIndex) {
-            if (index < 0 || index >= register.Size) {
+        public static BaseDataVariableState GetRegisterVariable(MemoryRegister register, int index, ushort namespaceIndex)
+        {
+            if (index < 0 || index >= register.Size)
+            {
                 return null;
             }
 
-            var variable = new BaseDataVariableState<int>(null) {
+            var variable = new BaseDataVariableState<int>(null)
+            {
                 NodeId = GetRegisterVariableId(register, index, namespaceIndex),
                 BrowseName = new QualifiedName(Utils.Format("{0:000000}", index), namespaceIndex)
             };
@@ -69,8 +77,10 @@ namespace PerfTest {
         }
     }
 
-    public class MemoryRegisterState : FolderState {
-        public MemoryRegisterState(MemoryRegister register, ushort namespaceIndex) : base(null) {
+    public class MemoryRegisterState : FolderState
+    {
+        public MemoryRegisterState(MemoryRegister register, ushort namespaceIndex) : base(null)
+        {
             Register = register;
 
             NodeId = new NodeId((uint)register.Id, namespaceIndex);
@@ -90,7 +100,8 @@ namespace PerfTest {
             BrowseDirection browseDirection,
             QualifiedName browseName,
             IEnumerable<IReference> additionalReferences,
-            bool internalOnly) {
+            bool internalOnly)
+        {
             return new MemoryRegisterBrowser(
                 context,
                 view,
@@ -107,7 +118,8 @@ namespace PerfTest {
     /// <summary>
     /// Browses the children of a segment.
     /// </summary>
-    public class MemoryRegisterBrowser : NodeBrowser {
+    public class MemoryRegisterBrowser : NodeBrowser
+    {
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
@@ -130,7 +142,8 @@ namespace PerfTest {
                 browseDirection,
                 browseName,
                 additionalReferences,
-                internalOnly) {
+                internalOnly)
+        {
             _parent = parent;
             _stage = Stage.Begin;
         }
@@ -139,36 +152,44 @@ namespace PerfTest {
         /// Returns the next reference.
         /// </summary>
         /// <returns>The next reference that meets the browse criteria.</returns>
-        public override IReference Next() {
+        public override IReference Next()
+        {
             var system = (UnderlyingSystem)SystemContext.SystemHandle;
 
-            lock (DataLock) {
+            lock (DataLock)
+            {
                 IReference reference = null;
 
                 // enumerate pre-defined references.
                 // always call first to ensure any pushed-back references are returned first.
                 reference = base.Next();
 
-                if (reference != null) {
+                if (reference != null)
+                {
                     return reference;
                 }
 
-                if (_stage == Stage.Begin) {
+                if (_stage == Stage.Begin)
+                {
                     _stage = Stage.Tags;
                     _position = 0;
                 }
 
                 // don't start browsing huge number of references when only internal references are requested.
-                if (InternalOnly) {
+                if (InternalOnly)
+                {
                     return null;
                 }
 
                 // enumerate tags.
-                if (_stage == Stage.Tags) {
-                    if (IsRequired(ReferenceTypeIds.Organizes, false)) {
+                if (_stage == Stage.Tags)
+                {
+                    if (IsRequired(ReferenceTypeIds.Organizes, false))
+                    {
                         reference = NextChild();
 
-                        if (reference != null) {
+                        if (reference != null)
+                        {
                             return reference;
                         }
                     }
@@ -182,25 +203,30 @@ namespace PerfTest {
         /// <summary>
         /// Returns the next child.
         /// </summary>
-        private IReference NextChild() {
+        private IReference NextChild()
+        {
             var system = (UnderlyingSystem)SystemContext.SystemHandle;
 
             NodeId targetId = null;
 
             // check if a specific browse name is requested.
-            if (!QualifiedName.IsNull(BrowseName)) {
+            if (!QualifiedName.IsNull(BrowseName))
+            {
                 // browse name must be qualified by the correct namespace.
-                if (_parent.BrowseName.NamespaceIndex != BrowseName.NamespaceIndex) {
+                if (_parent.BrowseName.NamespaceIndex != BrowseName.NamespaceIndex)
+                {
                     return null;
                 }
 
                 // parse the browse name.
                 var index = 0;
 
-                for (var ii = 0; ii < BrowseName.Name.Length; ii++) {
+                for (var ii = 0; ii < BrowseName.Name.Length; ii++)
+                {
                     var ch = BrowseName.Name[ii];
 
-                    if (!char.IsDigit(ch)) {
+                    if (!char.IsDigit(ch))
+                    {
                         return null;
                     }
 
@@ -209,7 +235,8 @@ namespace PerfTest {
                 }
 
                 // check for valid browse name.
-                if (index < 0 || index > _parent.Register.Size) {
+                if (index < 0 || index > _parent.Register.Size)
+                {
                     return null;
                 }
 
@@ -218,9 +245,11 @@ namespace PerfTest {
             }
 
             // return the child at the next position.
-            else {
+            else
+            {
                 // look for next segment.
-                if (_position >= _parent.Register.Size) {
+                if (_position >= _parent.Register.Size)
+                {
                     return null;
                 }
 
@@ -230,7 +259,8 @@ namespace PerfTest {
             }
 
             // create reference.
-            if (targetId != null) {
+            if (targetId != null)
+            {
                 return new NodeStateReference(ReferenceTypeIds.Organizes, false, targetId);
             }
 
@@ -240,7 +270,8 @@ namespace PerfTest {
         /// <summary>
         /// The stages available in a browse operation.
         /// </summary>
-        private enum Stage {
+        private enum Stage
+        {
             Begin,
             Tags,
             Done

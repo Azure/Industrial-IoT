@@ -3,18 +3,22 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders {
+namespace Azure.IIoT.OpcUa.Encoders
+{
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Opc.Ua;
     using System;
     using System.IO;
     using Xunit;
 
-    public class JsonEncoderDecoderTests {
+    public class JsonEncoderDecoderTests
+    {
         [Fact]
-        public void ReadWriteProgramDiagnostic2DataTypeStream() {
+        public void ReadWriteProgramDiagnostic2DataTypeStream()
+        {
             // Create dummy type
-            var expected = new ProgramDiagnostic2DataType {
+            var expected = new ProgramDiagnostic2DataType
+            {
                 CreateClientName = "Testname",
                 CreateSessionId = new NodeId(Guid.NewGuid()),
                 InvocationCreationTime = DateTime.UtcNow,
@@ -62,18 +66,24 @@ namespace Azure.IIoT.OpcUa.Encoders {
             const int count = 100;
             byte[] buffer;
             var context = new ServiceMessageContext();
-            using (var stream = new MemoryStream()) {
+            using (var stream = new MemoryStream())
+            {
                 using (var encoder = new JsonEncoderEx(stream, context,
-                        JsonEncoderEx.JsonEncoding.Array)) {
-                    for (var i = 0; i < count; i++) {
+                        JsonEncoderEx.JsonEncoding.Array))
+                {
+                    for (var i = 0; i < count; i++)
+                    {
                         encoder.WriteEncodeable(null, expected, expected.GetType());
                     }
                 }
                 buffer = stream.ToArray();
             }
-            using (var stream = new MemoryStream(buffer)) {
-                using (var decoder = new JsonDecoderEx(stream, context)) {
-                    for (var i = 0; i < count; i++) {
+            using (var stream = new MemoryStream(buffer))
+            {
+                using (var decoder = new JsonDecoderEx(stream, context))
+                {
+                    for (var i = 0; i < count; i++)
+                    {
                         var result = decoder.ReadEncodeable(null, expected.GetType());
                         Assert.True(result.IsEqual(expected));
                     }
@@ -84,24 +94,31 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void ReadWriteDataValueWithIntStream() {
+        public void ReadWriteDataValueWithIntStream()
+        {
             // Create dummy
             var expected = new DataValue(new Variant(12345));
             const int count = 10000;
             byte[] buffer;
             var context = new ServiceMessageContext();
-            using (var stream = new MemoryStream()) {
+            using (var stream = new MemoryStream())
+            {
                 using (var encoder = new JsonEncoderEx(stream, context,
-                        JsonEncoderEx.JsonEncoding.Array)) {
-                    for (var i = 0; i < count; i++) {
+                        JsonEncoderEx.JsonEncoding.Array))
+                {
+                    for (var i = 0; i < count; i++)
+                    {
                         encoder.WriteDataValue(null, expected);
                     }
                 }
                 buffer = stream.ToArray();
             }
-            using (var stream = new MemoryStream(buffer)) {
-                using (var decoder = new JsonDecoderEx(stream, context)) {
-                    for (var i = 0; i < count; i++) {
+            using (var stream = new MemoryStream(buffer))
+            {
+                using (var decoder = new JsonDecoderEx(stream, context))
+                {
+                    for (var i = 0; i < count; i++)
+                    {
                         var result = decoder.ReadDataValue(null);
                         Assert.Equal(expected, result);
                     }
@@ -112,25 +129,32 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void ReadWriteDataValueWithStringStream() {
+        public void ReadWriteDataValueWithStringStream()
+        {
             // Create dummy
             var expected = new DataValue(new Variant("TestTestTestTest"
                 + Guid.NewGuid()));
             const int count = 10000;
             byte[] buffer;
             var context = new ServiceMessageContext();
-            using (var stream = new MemoryStream()) {
+            using (var stream = new MemoryStream())
+            {
                 using (var encoder = new JsonEncoderEx(stream, context,
-                        JsonEncoderEx.JsonEncoding.Array)) {
-                    for (var i = 0; i < count; i++) {
+                        JsonEncoderEx.JsonEncoding.Array))
+                {
+                    for (var i = 0; i < count; i++)
+                    {
                         encoder.WriteDataValue(null, expected);
                     }
                 }
                 buffer = stream.ToArray();
             }
-            using (var stream = new MemoryStream(buffer)) {
-                using (var decoder = new JsonDecoderEx(stream, context)) {
-                    for (var i = 0; i < count; i++) {
+            using (var stream = new MemoryStream(buffer))
+            {
+                using (var decoder = new JsonDecoderEx(stream, context))
+                {
+                    for (var i = 0; i < count; i++)
+                    {
                         var result = decoder.ReadDataValue(null);
                         Assert.Equal(expected, result);
                     }
@@ -141,9 +165,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void ReadWriteDataSetArrayTest() {
+        public void ReadWriteDataSetArrayTest()
+        {
             // Create dummy
-            var expected = new DataSet {
+            var expected = new DataSet
+            {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
                 ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
                 ["1111111111111111111111111"] = new DataValue(new Variant(false), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
@@ -155,18 +181,24 @@ namespace Azure.IIoT.OpcUa.Encoders {
             const int count = 10000;
             byte[] buffer;
             var context = new ServiceMessageContext();
-            using (var stream = new MemoryStream()) {
+            using (var stream = new MemoryStream())
+            {
                 using (var encoder = new JsonEncoderEx(stream, context,
-                        JsonEncoderEx.JsonEncoding.Array)) {
-                    for (var i = 0; i < count; i++) {
+                        JsonEncoderEx.JsonEncoding.Array))
+                {
+                    for (var i = 0; i < count; i++)
+                    {
                         encoder.WriteDataSet(null, expected);
                     }
                 }
                 buffer = stream.ToArray();
             }
-            using (var stream = new MemoryStream(buffer)) {
-                using (var decoder = new JsonDecoderEx(stream, context)) {
-                    for (var i = 0; i < count; i++) {
+            using (var stream = new MemoryStream(buffer))
+            {
+                using (var decoder = new JsonDecoderEx(stream, context))
+                {
+                    for (var i = 0; i < count; i++)
+                    {
                         var result = decoder.ReadDataSet(null);
                         Assert.Equal(expected, result);
                     }

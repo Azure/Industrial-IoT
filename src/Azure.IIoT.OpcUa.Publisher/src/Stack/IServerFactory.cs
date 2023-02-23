@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using Opc.Ua;
     using System.Collections.Generic;
 
     /// <summary>
     /// Create servers
     /// </summary>
-    public interface IServerFactory {
+    public interface IServerFactory
+    {
         /// <summary>
         /// Create server and server configuration for hosting.
         /// </summary>

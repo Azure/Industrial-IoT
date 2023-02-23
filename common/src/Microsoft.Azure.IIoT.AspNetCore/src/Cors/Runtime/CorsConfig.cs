@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime {
+namespace Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Cors configuration
     /// </summary>
-    public class CorsConfig : ConfigBase, ICorsConfig {
+    public class CorsConfig : ConfigBase, ICorsConfig
+    {
         /// <summary>
         /// Cors configuration
         /// </summary>
@@ -28,7 +30,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public CorsConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

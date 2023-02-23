@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Plc {
+namespace Plc
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -12,75 +13,92 @@ namespace Plc {
     /// <summary>
     /// Node manager
     /// </summary>
-    public partial class PlcNodeManager : CustomNodeManager2 {
+    public partial class PlcNodeManager : CustomNodeManager2
+    {
         public string ProgramName { get; set; } = "Plc";
 
-        public uint RandomUnsignedInt32 {
+        public uint RandomUnsignedInt32
+        {
             get => (uint)_randomUnsignedInt32.Value;
-            set {
+            set
+            {
                 _randomUnsignedInt32.Value = value;
                 _randomUnsignedInt32.Timestamp = DateTime.Now;
                 _randomUnsignedInt32.ClearChangeMasks(SystemContext, false);
             }
         }
 
-        public int RandomSignedInt32 {
+        public int RandomSignedInt32
+        {
             get => (int)_randomSignedInt32.Value;
-            set {
+            set
+            {
                 _randomSignedInt32.Value = value;
                 _randomSignedInt32.Timestamp = DateTime.Now;
                 _randomSignedInt32.ClearChangeMasks(SystemContext, false);
             }
         }
 
-        public double SpikeData {
+        public double SpikeData
+        {
             get => (double)_spikeData.Value;
-            set {
+            set
+            {
                 _spikeData.Value = value;
                 _spikeData.Timestamp = DateTime.Now;
                 _spikeData.ClearChangeMasks(SystemContext, false);
             }
         }
 
-        public double DipData {
+        public double DipData
+        {
             get => (double)_dipData.Value;
-            set {
+            set
+            {
                 _dipData.Value = value;
                 _dipData.Timestamp = DateTime.Now;
                 _dipData.ClearChangeMasks(SystemContext, false);
             }
         }
 
-        public double PosTrendData {
+        public double PosTrendData
+        {
             get => (double)_posTrendData.Value;
-            set {
+            set
+            {
                 _posTrendData.Value = value;
                 _posTrendData.Timestamp = DateTime.Now;
                 _posTrendData.ClearChangeMasks(SystemContext, false);
             }
         }
 
-        public double NegTrendData {
+        public double NegTrendData
+        {
             get => (double)_negTrendData.Value;
-            set {
+            set
+            {
                 _negTrendData.Value = value;
                 _negTrendData.Timestamp = DateTime.Now;
                 _negTrendData.ClearChangeMasks(SystemContext, false);
             }
         }
 
-        public bool AlternatingBoolean {
+        public bool AlternatingBoolean
+        {
             get => (bool)_alternatingBoolean.Value;
-            set {
+            set
+            {
                 _alternatingBoolean.Value = value;
                 _alternatingBoolean.Timestamp = DateTime.Now;
                 _alternatingBoolean.ClearChangeMasks(SystemContext, false);
             }
         }
 
-        public uint StepUp {
+        public uint StepUp
+        {
             get => (uint)_step.Value;
-            set {
+            set
+            {
                 _step.Value = value;
                 _step.Timestamp = DateTime.Now;
                 _step.ClearChangeMasks(SystemContext, false);
@@ -88,7 +106,8 @@ namespace Plc {
         }
 
         public PlcNodeManager(IServerInternal server, ApplicationConfiguration configuration)
-            : base(server, configuration, Namespaces.OpcPlcApplications) {
+            : base(server, configuration, Namespaces.OpcPlcApplications)
+        {
             SystemContext.NodeIdFactory = this;
             Initialize();
         }
@@ -96,9 +115,11 @@ namespace Plc {
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        public override NodeId New(ISystemContext context, NodeState node) {
+        public override NodeId New(ISystemContext context, NodeState node)
+        {
             if (node is BaseInstanceState instance &&
-                instance.Parent?.NodeId.Identifier is string id) {
+                instance.Parent?.NodeId.Identifier is string id)
+            {
                 return new NodeId(id + "_" + instance.SymbolicName,
                     instance.Parent.NodeId.NamespaceIndex);
             }
@@ -108,8 +129,10 @@ namespace Plc {
         /// <summary>
         /// Creates a new folder.
         /// </summary>
-        private FolderState CreateFolder(NodeState parent, string path, string name) {
-            var folder = new FolderState(parent) {
+        private FolderState CreateFolder(NodeState parent, string path, string name)
+        {
+            var folder = new FolderState(parent)
+            {
                 SymbolicName = name,
                 ReferenceTypeId = ReferenceTypes.Organizes,
                 TypeDefinitionId = ObjectTypeIds.FolderType,
@@ -134,11 +157,14 @@ namespace Plc {
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
         /// should have a reference to the root folder node(s) exposed by this node manager.
         /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Lock) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Lock)
+            {
                 IList<IReference> references = null;
 
-                if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out references)) {
+                if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out references))
+                {
                     externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
                 }
 
@@ -148,7 +174,8 @@ namespace Plc {
                 root.EventNotifier = EventNotifiers.SubscribeToEvents;
                 AddRootNotifier(root);
 
-                try {
+                try
+                {
                     var dataFolder = CreateFolder(root, "Telemetry", "Telemetry");
 
                     _step = CreateBaseVariable(dataFolder, "StepUp", "StepUp", BuiltInType.UInt32,
@@ -189,7 +216,8 @@ namespace Plc {
                         "StopStepUp", "Stops the StepUp counter");
                     SetStopStepUpMethodProperties(ref stopStepUpMethod);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     Utils.Trace(e, "Error creating the address space.");
                 }
 
@@ -200,28 +228,32 @@ namespace Plc {
         /// <summary>
         /// Sets properies of the ResetTrend method.
         /// </summary>
-        private void SetResetTrendMethodProperties(ref MethodState method) {
+        private void SetResetTrendMethodProperties(ref MethodState method)
+        {
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnResetTrendCall);
         }
 
         /// <summary>
         /// Sets properies of the ResetStepUp method.
         /// </summary>
-        private void SetResetStepUpMethodProperties(ref MethodState method) {
+        private void SetResetStepUpMethodProperties(ref MethodState method)
+        {
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnResetStepUpCall);
         }
 
         /// <summary>
         /// Sets properies of the StartStepUp method.
         /// </summary>
-        private void SetStartStepUpMethodProperties(ref MethodState method) {
+        private void SetStartStepUpMethodProperties(ref MethodState method)
+        {
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnStartStepUpCall);
         }
 
         /// <summary>
         /// Sets properies of the StopStepUp method.
         /// </summary>
-        private void SetStopStepUpMethodProperties(ref MethodState method) {
+        private void SetStopStepUpMethodProperties(ref MethodState method)
+        {
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnStopStepUpCall);
         }
 
@@ -229,7 +261,8 @@ namespace Plc {
         /// Creates a new variable.
         /// </summary>
         private BaseDataVariableState CreateBaseVariable(NodeState parent, string path,
-            string name, BuiltInType dataType, int valueRank, byte accessLevel, string description) {
+            string name, BuiltInType dataType, int valueRank, byte accessLevel, string description)
+        {
             return CreateBaseVariable(parent, path, name, (uint)dataType, valueRank, accessLevel, description);
         }
 
@@ -237,8 +270,10 @@ namespace Plc {
         /// Creates a new variable.
         /// </summary>
         private BaseDataVariableState CreateBaseVariable(NodeState parent, string path,
-            string name, NodeId dataType, int valueRank, byte accessLevel, string description) {
-            var variable = new BaseDataVariableState(parent) {
+            string name, NodeId dataType, int valueRank, byte accessLevel, string description)
+        {
+            var variable = new BaseDataVariableState(parent)
+            {
                 SymbolicName = name,
                 ReferenceTypeId = ReferenceTypes.Organizes,
                 TypeDefinitionId = VariableTypeIds.BaseDataVariableType,
@@ -258,10 +293,12 @@ namespace Plc {
                 Description = new LocalizedText(description)
             };
 
-            if (valueRank == ValueRanks.OneDimension) {
+            if (valueRank == ValueRanks.OneDimension)
+            {
                 variable.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0 });
             }
-            else if (valueRank == ValueRanks.TwoDimensions) {
+            else if (valueRank == ValueRanks.TwoDimensions)
+            {
                 variable.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0, 0 });
             }
 
@@ -274,8 +311,10 @@ namespace Plc {
         /// Creates a new method.
         /// </summary>
         private MethodState CreateMethod(NodeState parent, string path, string name,
-            string description) {
-            var method = new MethodState(parent) {
+            string description)
+        {
+            var method = new MethodState(parent)
+            {
                 SymbolicName = name,
                 ReferenceTypeId = ReferenceTypeIds.HasComponent,
                 NodeId = new NodeId(path, NamespaceIndex),
@@ -297,7 +336,8 @@ namespace Plc {
         /// Method to reset the trend values. Executes synchronously.
         /// </summary>
         private ServiceResult OnResetTrendCall(ISystemContext context, MethodState method,
-            IList<object> inputArguments, IList<object> outputArguments) {
+            IList<object> inputArguments, IList<object> outputArguments)
+        {
             ResetTrendData();
             Utils.Trace("ResetTrend method called");
             return ServiceResult.Good;
@@ -307,7 +347,8 @@ namespace Plc {
         /// Method to reset the stepup value. Executes synchronously.
         /// </summary>
         private ServiceResult OnResetStepUpCall(ISystemContext context, MethodState method,
-            IList<object> inputArguments, IList<object> outputArguments) {
+            IList<object> inputArguments, IList<object> outputArguments)
+        {
             ResetStepUpData();
             Utils.Trace("ResetStepUp method called");
             return ServiceResult.Good;
@@ -317,7 +358,8 @@ namespace Plc {
         /// Method to start the stepup value. Executes synchronously.
         /// </summary>
         private ServiceResult OnStartStepUpCall(ISystemContext context, MethodState method,
-            IList<object> inputArguments, IList<object> outputArguments) {
+            IList<object> inputArguments, IList<object> outputArguments)
+        {
             StartStepUp();
             Utils.Trace("StartStepUp method called");
             return ServiceResult.Good;
@@ -327,7 +369,8 @@ namespace Plc {
         /// Method to stop the stepup value. Executes synchronously.
         /// </summary>
         private ServiceResult OnStopStepUpCall(ISystemContext context, MethodState method,
-            IList<object> inputArguments, IList<object> outputArguments) {
+            IList<object> inputArguments, IList<object> outputArguments)
+        {
             StopStepUp();
             Utils.Trace("StopStepUp method called");
             return ServiceResult.Good;

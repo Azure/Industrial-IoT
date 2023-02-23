@@ -3,15 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client {
-    using Microsoft.Azure.IIoT.Diagnostics;
+namespace Microsoft.Azure.IIoT.Module.Framework.Client
+{
     using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Client factory interface
     /// </summary>
-    public interface IClientFactory {
+    public interface IClientFactory
+    {
         /// <summary>
         /// Device id
         /// </summary>

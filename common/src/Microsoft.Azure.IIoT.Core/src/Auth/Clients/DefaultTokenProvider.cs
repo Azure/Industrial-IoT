@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients {
+namespace Microsoft.Azure.IIoT.Auth.Clients
+{
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using System;
@@ -14,32 +15,41 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// <summary>
     /// Enumerates all token sources and provides token from first successful source
     /// </summary>
-    public class DefaultTokenProvider : ITokenProvider {
+    public class DefaultTokenProvider : ITokenProvider
+    {
         /// <inheritdoc/>
-        public DefaultTokenProvider(IEnumerable<ITokenSource> tokenSources) {
+        public DefaultTokenProvider(IEnumerable<ITokenSource> tokenSources)
+        {
             _tokenSources = tokenSources?.Where(s => s.IsEnabled).ToList() ??
                 throw new ArgumentNullException(nameof(tokenSources));
         }
 
         /// <inheritdoc/>
-        public bool Supports(string resource) {
+        public bool Supports(string resource)
+        {
             return _tokenSources.Any(p => p.Resource == resource);
         }
 
         /// <inheritdoc/>
         public virtual async Task<TokenResultModel> GetTokenForAsync(
-            string resource, IEnumerable<string> scopes = null) {
-            if (string.IsNullOrEmpty(resource)) {
+            string resource, IEnumerable<string> scopes = null)
+        {
+            if (string.IsNullOrEmpty(resource))
+            {
                 resource = Http.Resource.Platform;
             }
-            foreach (var source in _tokenSources.Where(p => p.Resource == resource)) {
-                try {
+            foreach (var source in _tokenSources.Where(p => p.Resource == resource))
+            {
+                try
+                {
                     var token = await source.GetTokenAsync(scopes).ConfigureAwait(false);
-                    if (token != null) {
+                    if (token != null)
+                    {
                         return token;
                     }
                 }
-                catch {
+                catch
+                {
                     continue;
                 }
             }
@@ -47,8 +57,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         }
 
         /// <inheritdoc/>
-        public virtual async Task InvalidateAsync(string resource) {
-            if (string.IsNullOrEmpty(resource)) {
+        public virtual async Task InvalidateAsync(string resource)
+        {
+            if (string.IsNullOrEmpty(resource))
+            {
                 resource = Http.Resource.Platform;
             }
             await Task.WhenAll(_tokenSources

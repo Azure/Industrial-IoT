@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http.Default {
+namespace Microsoft.Azure.IIoT.Http.Default
+{
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
@@ -15,13 +16,15 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// of the one implemented in asp.net core and uses a handler builder
     /// instead of the asp.net builder.
     /// </summary>
-    public sealed class HttpClientFactory : IHttpClientFactory {
+    public sealed class HttpClientFactory : IHttpClientFactory
+    {
         /// <summary>
         /// Create factory
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="logger"></param>
-        public HttpClientFactory(IHttpHandlerFactory factory, ILogger logger) {
+        public HttpClientFactory(IHttpHandlerFactory factory, ILogger logger)
+        {
             _factory = factory ?? new HttpHandlerFactory(logger);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -37,8 +40,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         public HttpClientFactory(ILogger logger) : this(null, logger) { }
 
         /// <inheritdoc/>
-        public System.Net.Http.HttpClient CreateClient(string resourceId) {
-            if (resourceId == null) {
+        public System.Net.Http.HttpClient CreateClient(string resourceId)
+        {
+            if (resourceId == null)
+            {
                 throw new ArgumentNullException(nameof(resourceId));
             }
             // Get handler entry for client
@@ -51,12 +56,14 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Immutable entry in expired queue
         /// </summary>
-        private class ExpiredHandlerEntry : IDisposable {
+        private class ExpiredHandlerEntry : IDisposable
+        {
             /// <summary>
             /// Create entry
             /// </summary>
             /// <param name="other"></param>
-            public ExpiredHandlerEntry(ActiveHandlerEntry other) {
+            public ExpiredHandlerEntry(ActiveHandlerEntry other)
+            {
                 Name = other.Name;
                 _livenessTracker = new WeakReference(other);
                 _innerHandler = other.InnerHandler;
@@ -73,7 +80,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             public string Name { get; }
 
             /// <inheritdoc/>
-            public void Dispose() {
+            public void Dispose()
+            {
                 _innerHandler.Dispose();
             }
 
@@ -84,7 +92,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Immutable entry in active handler queue
         /// </summary>
-        private class ActiveHandlerEntry : DelegatingHandler {
+        private class ActiveHandlerEntry : DelegatingHandler
+        {
             /// <summary>
             /// Create entry
             /// </summary>
@@ -94,10 +103,12 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// <param name="expirationCallback"></param>
             private ActiveHandlerEntry(string name, HttpMessageHandler handler,
                 TimeSpan lifetime, Action<ActiveHandlerEntry> expirationCallback) :
-                base(handler) {
+                base(handler)
+            {
                 Name = name;
                 _expired = expirationCallback;
-                if (lifetime != Timeout.InfiniteTimeSpan) {
+                if (lifetime != Timeout.InfiniteTimeSpan)
+                {
                     _timer = new Timer(OnTimer, null, lifetime, Timeout.InfiniteTimeSpan);
                 }
             }
@@ -110,7 +121,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// <param name="expirationCallback"></param>
             /// <returns></returns>
             public static ActiveHandlerEntry Create(IHttpHandlerFactory factory,
-                string name, Action<ActiveHandlerEntry> expirationCallback) {
+                string name, Action<ActiveHandlerEntry> expirationCallback)
+            {
                 var lifetime = factory.Create(name, out var handler);
                 return new ActiveHandlerEntry(name, handler, lifetime, expirationCallback);
             }
@@ -120,16 +132,19 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// </summary>
             public string Name { get; }
 
-            private void OnTimer(object state) {
+            private void OnTimer(object state)
+            {
                 _timer.Dispose();
                 _timer = null;
                 _expired(this);
             }
 
             /// <inheritdoc/>
-            protected override void Dispose(bool disposing) {
+            protected override void Dispose(bool disposing)
+            {
                 base.Dispose(disposing);
-                if (disposing) {
+                if (disposing)
+                {
                     _timer?.Dispose();
                 }
             }
@@ -144,7 +159,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// expired handlers are cleaned up.
         /// </summary>
         /// <param name="active"></param>
-        private void OnHandlerExpired(ActiveHandlerEntry active) {
+        private void OnHandlerExpired(ActiveHandlerEntry active)
+        {
             _activeHandlers.TryRemove(active.Name, out _);
             _expiredHandlers.Enqueue(new ExpiredHandlerEntry(active));
             StartCleanupTimer();
@@ -153,9 +169,12 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Cleanup every 10 seconds
         /// </summary>
-        private void StartCleanupTimer() {
-            lock (_cleanupTimerLock) {
-                if (_cleanupTimer != null) {
+        private void StartCleanupTimer()
+        {
+            lock (_cleanupTimerLock)
+            {
+                if (_cleanupTimer != null)
+                {
                     return;
                 }
                 _cleanupTimer = new Timer(OnCleanup, null,
@@ -166,8 +185,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Stop cleanup
         /// </summary>
-        private void StopCleanupTimer() {
-            lock (_cleanupTimerLock) {
+        private void StopCleanupTimer()
+        {
+            lock (_cleanupTimerLock)
+            {
                 _cleanupTimer.Dispose();
                 _cleanupTimer = null;
             }
@@ -177,34 +198,44 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// Clean up expired handlers
         /// </summary>
         /// <param name="state"></param>
-        private void OnCleanup(object state) {
+        private void OnCleanup(object state)
+        {
             StopCleanupTimer();
-            if (Monitor.TryEnter(_cleanupActiveLock)) {
-                try {
+            if (Monitor.TryEnter(_cleanupActiveLock))
+            {
+                try
+                {
                     var initialCount = _expiredHandlers.Count;
-                    for (var i = 0; i < initialCount; i++) {
+                    for (var i = 0; i < initialCount; i++)
+                    {
                         _expiredHandlers.TryDequeue(out var entry);
-                        if (entry.CanDispose) {
-                            try {
+                        if (entry.CanDispose)
+                        {
+                            try
+                            {
                                 entry.Dispose();
                             }
-                            catch (Exception ex) {
+                            catch (Exception ex)
+                            {
                                 _logger.LogError(ex, "Failed to cleanup handler {Name}",
                                     entry.Name);
                             }
                         }
-                        else {
+                        else
+                        {
                             // If the entry is still live, put it back in the
                             // queue so we can process it during the next cycle.
                             _expiredHandlers.Enqueue(entry);
                         }
                     }
                 }
-                finally {
+                finally
+                {
                     Monitor.Exit(_cleanupActiveLock);
                 }
             }
-            if (_expiredHandlers.Count > 0) {
+            if (_expiredHandlers.Count > 0)
+            {
                 StartCleanupTimer();
             }
         }

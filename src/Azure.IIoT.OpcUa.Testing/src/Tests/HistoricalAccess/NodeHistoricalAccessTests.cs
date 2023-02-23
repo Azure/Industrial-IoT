@@ -3,24 +3,28 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Tests {
+namespace Azure.IIoT.OpcUa.Testing.Tests
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Threading.Tasks;
     using Xunit;
 
-    public class NodeHistoricalAccessTests<T> {
+    public class NodeHistoricalAccessTests<T>
+    {
         /// <summary>
         /// Create history services tests
         /// </summary>
         /// <param name="services"></param>
         /// <param name="connection"></param>
-        public NodeHistoricalAccessTests(Func<INodeServices<T>> services, T connection) {
+        public NodeHistoricalAccessTests(Func<INodeServices<T>> services, T connection)
+        {
             _services = services;
             _connection = connection;
         }
 
-        public async Task GetServerCapabilitiesTestAsync() {
+        public async Task GetServerCapabilitiesTestAsync()
+        {
             var services = _services();
 
             var results = await services.GetServerCapabilitiesAsync(
@@ -54,7 +58,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Null(results.ModellingRules);
         }
 
-        public async Task HistoryGetServerCapabilitiesTestAsync() {
+        public async Task HistoryGetServerCapabilitiesTestAsync()
+        {
             var services = _services();
 
             var results = await services.HistoryGetServerCapabilitiesAsync(
@@ -81,12 +86,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Null(results.MaxReturnEventValues);
         }
 
-        public async Task HistoryGetInt16NodeHistoryConfigurationAsync() {
+        public async Task HistoryGetInt16NodeHistoryConfigurationAsync()
+        {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int16.txt";
 
             var results = await services.HistoryGetConfigurationAsync(_connection,
-                new HistoryConfigurationRequestModel {
+                new HistoryConfigurationRequestModel
+                {
                     NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples
                 }).ConfigureAwait(false);
 
@@ -110,12 +117,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Null(results.ErrorInfo);
         }
 
-        public async Task HistoryGetInt64NodeHistoryConfigurationAsync() {
+        public async Task HistoryGetInt64NodeHistoryConfigurationAsync()
+        {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
 
             var results = await services.HistoryGetConfigurationAsync(_connection,
-                new HistoryConfigurationRequestModel {
+                new HistoryConfigurationRequestModel
+                {
                     NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples
                 }).ConfigureAwait(false);
 
@@ -139,12 +148,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Null(results.ErrorInfo);
         }
 
-        public async Task HistoryGetNodeHistoryConfigurationFromBadNodeAsync() {
+        public async Task HistoryGetNodeHistoryConfigurationFromBadNodeAsync()
+        {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Unknown.txt";
 
             var results = await services.HistoryGetConfigurationAsync(_connection,
-                new HistoryConfigurationRequestModel {
+                new HistoryConfigurationRequestModel
+                {
                     NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples
                 }).ConfigureAwait(false);
 

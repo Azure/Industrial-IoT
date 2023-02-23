@@ -3,33 +3,39 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Models {
-    using Microsoft.Azure.Devices.Shared;
+namespace Microsoft.Azure.IIoT.Hub.Models
+{
     using Furly.Extensions.Serializers;
+    using Microsoft.Azure.Devices.Shared;
     using System.Collections.Generic;
 
     /// <summary>
     /// Device twin model extensions
     /// </summary>
-    public static class DeviceTwinModelEx {
+    public static class DeviceTwinModelEx
+    {
         /// <summary>
         /// Convert twin to twin
         /// </summary>
         /// <param name="twin"></param>
         /// <param name="isPatch"></param>
         /// <returns></returns>
-        public static Twin ToTwin(this DeviceTwinModel twin, bool isPatch) {
-            if (twin == null) {
+        public static Twin ToTwin(this DeviceTwinModel twin, bool isPatch)
+        {
+            if (twin == null)
+            {
                 return null;
             }
-            return new Twin(twin.Id) {
+            return new Twin(twin.Id)
+            {
                 ETag = twin.Etag,
                 ModuleId = twin.ModuleId,
                 DeviceId = twin.Id,
                 Tags = twin.Tags?.ToTwinCollection(),
                 Capabilities = null, // r/o
                 Version = null, // r/o
-                Properties = new TwinProperties {
+                Properties = new TwinProperties
+                {
                     Desired =
                         twin.Properties?.Desired?.ToTwinCollection(),
                     Reported = isPatch ? null :
@@ -44,9 +50,11 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="props"></param>
         /// <returns></returns>
         private static TwinCollection ToTwinCollection(
-            this Dictionary<string, VariantValue> props) {
+            this Dictionary<string, VariantValue> props)
+        {
             var collection = new TwinCollection();
-            foreach (var item in props) {
+            foreach (var item in props)
+            {
                 collection[item.Key] = item.Value.IsListOfValues ? item.Value.Values : item.Value.Value;
             }
             return collection;
@@ -59,12 +67,15 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="props"></param>
         /// <returns></returns>
         public static Dictionary<string, VariantValue> DeserializeTwinProperties(
-            this IJsonSerializer serializer, TwinCollection props) {
-            if (props == null) {
+            this IJsonSerializer serializer, TwinCollection props)
+        {
+            if (props == null)
+            {
                 return null;
             }
             var model = new Dictionary<string, VariantValue>();
-            foreach (KeyValuePair<string, dynamic> item in props) {
+            foreach (KeyValuePair<string, dynamic> item in props)
+            {
                 model.AddOrUpdate(item.Key, (VariantValue)serializer.FromObject(item.Value));
             }
             return model;

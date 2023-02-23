@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Opc.Ua;
     using System;
@@ -16,13 +17,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// Helper to manage request and responses
     /// </summary>
     internal class ServiceResponse<TRequest, TResult> :
-        IReadOnlyList<ServiceResponse<TRequest, TResult>.Operation> {
+        IReadOnlyList<ServiceResponse<TRequest, TResult>.Operation>
+    {
         /// <summary>
         /// Error info
         /// </summary>
-        public ServiceResultModel? ErrorInfo {
-            get {
-                if (StatusCode == StatusCodes.Good) {
+        public ServiceResultModel? ErrorInfo
+        {
+            get
+            {
+                if (StatusCode == StatusCodes.Good)
+                {
                     return null;
                 }
                 return ResultInfo;
@@ -32,8 +37,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// <summary>
         /// Result info
         /// </summary>
-        public ServiceResultModel ResultInfo {
-            get {
+        public ServiceResultModel ResultInfo
+        {
+            get
+            {
                 var diagnostics = _response.ResponseHeader.ServiceDiagnostics;
                 var stringTable = _response.ResponseHeader.StringTable;
                 return StatusCode.CreateResultModel(diagnostics, stringTable);
@@ -62,53 +69,68 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         internal ServiceResponse(IServiceResponse response,
             IEnumerable<TResult>? results, Func<TResult, StatusCode> statusCode,
             DiagnosticInfoCollection? diagnostics = null,
-            IEnumerable<TRequest>? requested = null) {
+            IEnumerable<TRequest>? requested = null)
+        {
             _response = response;
             Debug.Assert(_response.ResponseHeader != null,
                 "Response header should have been checked by ValidateResponse.");
             _statusCode = statusCode;
-            if (results == null) {
-                if (!StatusCode.IsBad(response.ResponseHeader.ServiceResult)) {
+            if (results == null)
+            {
+                if (!StatusCode.IsBad(response.ResponseHeader.ServiceResult))
+                {
                     response.ResponseHeader.ServiceResult = StatusCodes.BadUnexpectedError;
-                    response.ResponseHeader.ServiceDiagnostics = new DiagnosticInfo {
+                    response.ResponseHeader.ServiceDiagnostics = new DiagnosticInfo
+                    {
                         AdditionalInfo = "Response was good, but results were missing."
                     };
                 }
                 _results = Array.Empty<TResult>();
             }
-            else {
+            else
+            {
                 _results = results.ToArray();
             }
-            if (requested == null) {
+            if (requested == null)
+            {
                 _requests = _results.Length == 0 ?
                     Array.Empty<TRequest>() :
                     new TRequest[_results.Length];
             }
-            else {
+            else
+            {
                 _requests = requested.ToArray();
             }
-            if (_results.Length != _requests.Length) {
-                if (!StatusCode.IsBad(response.ResponseHeader.ServiceResult)) {
+            if (_results.Length != _requests.Length)
+            {
+                if (!StatusCode.IsBad(response.ResponseHeader.ServiceResult))
+                {
                     response.ResponseHeader.ServiceResult = StatusCodes.BadUnexpectedError;
-                    response.ResponseHeader.ServiceDiagnostics = new DiagnosticInfo {
+                    response.ResponseHeader.ServiceDiagnostics = new DiagnosticInfo
+                    {
                         AdditionalInfo = $"The server returned {_results.Length} results" +
                             $" but {_requests.Length} elements were expected."
                     };
                 }
                 _results = new TResult[_requests.Length];
             }
-            if (diagnostics == null || diagnostics.Count == 0) {
+            if (diagnostics == null || diagnostics.Count == 0)
+            {
                 _diagnostics = _results.Length == 0 ?
                     Array.Empty<DiagnosticInfo>() :
                     new DiagnosticInfo[_results.Length];
             }
-            else {
+            else
+            {
                 _diagnostics = diagnostics.ToArray();
             }
-            if (_diagnostics.Length != _results.Length) {
-                if (!StatusCode.IsBad(response.ResponseHeader.ServiceResult)) {
+            if (_diagnostics.Length != _results.Length)
+            {
+                if (!StatusCode.IsBad(response.ResponseHeader.ServiceResult))
+                {
                     response.ResponseHeader.ServiceResult = StatusCodes.BadUnexpectedError;
-                    response.ResponseHeader.ServiceDiagnostics = new DiagnosticInfo {
+                    response.ResponseHeader.ServiceDiagnostics = new DiagnosticInfo
+                    {
                         AdditionalInfo = $"The server returned {_results.Length} diagnostic" +
                             $" infos but {_requests.Length} were expected."
                     };
@@ -116,12 +138,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
                 _diagnostics = new DiagnosticInfo[_results.Length];
             }
             Activity.Current?.AddTag("Response", ErrorInfo);
-            if (_results.Length > 0) {
+            if (_results.Length > 0)
+            {
                 _operations = Enumerable.Range(0, _results.Length)
                     .Select(i => new Operation(this, i))
                     .ToArray();
             }
-            else {
+            else
+            {
                 _operations = Array.Empty<Operation>();
             }
         }
@@ -130,8 +154,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// Throw if error response
         /// </summary>
         /// <exception cref="ServiceResultException"></exception>
-        public void ThrowIfError() {
-            if (StatusCode.IsBad(StatusCode)) {
+        public void ThrowIfError()
+        {
+            if (StatusCode.IsBad(StatusCode))
+            {
                 throw new ServiceResultException(new ServiceResult(
                     StatusCode,
                     _response.ResponseHeader.ServiceDiagnostics,
@@ -140,19 +166,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public IEnumerator<Operation> GetEnumerator() {
+        public IEnumerator<Operation> GetEnumerator()
+        {
             return ((IEnumerable<Operation>)_operations).GetEnumerator();
         }
 
         /// <inheritdoc/>
-        IEnumerator IEnumerable.GetEnumerator() {
+        IEnumerator IEnumerable.GetEnumerator()
+        {
             return _operations.GetEnumerator();
         }
 
         /// <summary>
         /// Service operation
         /// </summary>
-        internal class Operation {
+        internal class Operation
+        {
             /// <summary>
             /// Index
             /// </summary>
@@ -181,9 +210,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             /// <summary>
             /// Error info
             /// </summary>
-            public ServiceResultModel? ErrorInfo {
-                get {
-                    if (StatusCode == StatusCodes.Good) {
+            public ServiceResultModel? ErrorInfo
+            {
+                get
+                {
+                    if (StatusCode == StatusCodes.Good)
+                    {
                         return null;
                     }
                     return ResultInfo;
@@ -193,14 +225,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             /// <summary>
             /// Result info
             /// </summary>
-            public ServiceResultModel ResultInfo {
-                get {
+            public ServiceResultModel ResultInfo
+            {
+                get
+                {
                     var stringTable = _outer._response.ResponseHeader.StringTable;
                     return StatusCode.CreateResultModel(DiagnosticInfo, stringTable);
                 }
             }
 
-            internal Operation(ServiceResponse<TRequest, TResult> outer, int i) {
+            internal Operation(ServiceResponse<TRequest, TResult> outer, int i)
+            {
                 _outer = outer;
                 Index = i;
 

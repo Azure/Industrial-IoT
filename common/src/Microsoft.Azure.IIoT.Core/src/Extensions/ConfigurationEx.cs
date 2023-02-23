@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Extensions.Configuration {
+namespace Microsoft.Extensions.Configuration
+{
     using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Extension methods
     /// </summary>
-    public static class ConfigurationEx {
+    public static class ConfigurationEx
+    {
         /// <summary>
         /// Add environment variables
         /// </summary>
@@ -19,7 +21,8 @@ namespace Microsoft.Extensions.Configuration {
         /// <returns></returns>
         public static IConfigurationBuilder AddEnvironmentVariables(
             this IConfigurationBuilder configurationBuilder,
-            EnvironmentVariableTarget environmentVariableTarget) {
+            EnvironmentVariableTarget environmentVariableTarget)
+        {
             configurationBuilder.AddInMemoryCollection(Environment.GetEnvironmentVariables(
                 environmentVariableTarget).ToKeyValuePairs<string, string>());
             return configurationBuilder;

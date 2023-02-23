@@ -3,16 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Pages {
+namespace Microsoft.Azure.IIoT.App.Pages
+{
+    using global::Azure.IIoT.OpcUa.Shared.Models;
+    using Microsoft.AspNetCore.Components;
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.AspNetCore.Components;
-    using global::Azure.IIoT.OpcUa.Shared.Models;
     using System;
-    using System.Threading.Tasks;
     using System.Globalization;
+    using System.Threading.Tasks;
 
-    public sealed partial class Publishers {
+    public sealed partial class Publishers
+    {
         [Parameter]
         public string Page { get; set; } = "1";
 
@@ -28,12 +30,14 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Notify page change
         /// </summary>
         /// <param name="page"></param>
-        public async Task PagerPageChangedAsync(int page) {
+        public async Task PagerPageChangedAsync(int page)
+        {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
             PublisherList = CommonHelper.UpdatePage(RegistryHelper.GetPublisherListAsync, page, PublisherList, ref _pagedPublisherList, CommonHelper.PageLengthSmall);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "publishers/" + page);
-            for (var i = 0; i < _pagedPublisherList.Results.Count; i++) {
+            for (var i = 0; i < _pagedPublisherList.Results.Count; i++)
+            {
                 _pagedPublisherList.Results[i] = await RegistryService.GetPublisherAsync(_pagedPublisherList.Results[i].Id).ConfigureAwait(false);
             }
             CommonHelper.Spinner = string.Empty;
@@ -43,7 +47,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// OnInitialized
         /// </summary>
-        protected override void OnInitialized() {
+        protected override void OnInitialized()
+        {
             CommonHelper.Spinner = "loader-big";
         }
 
@@ -51,8 +56,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// OnAfterRenderAsync
         /// </summary>
         /// <param name="firstRender"></param>
-        protected override async Task OnAfterRenderAsync(bool firstRender) {
-            if (firstRender) {
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
                 PublisherList = await RegistryHelper.GetPublisherListAsync().ConfigureAwait(false);
                 Page = "1";
                 _pagedPublisherList = PublisherList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture), CommonHelper.PageLengthSmall, PublisherList.Error);
@@ -65,14 +72,17 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             }
         }
 
-        private Task PublisherEventAsync(PublisherEventModel ev) {
+        private Task PublisherEventAsync(PublisherEventModel ev)
+        {
             _pagedPublisherList = PublisherList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture), CommonHelper.PageLengthSmall, PublisherList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }
 
-        public async ValueTask DisposeAsync() {
-            if (_publisherEvent != null) {
+        public async ValueTask DisposeAsync()
+        {
+            if (_publisherEvent != null)
+            {
                 await _publisherEvent.DisposeAsync().ConfigureAwait(false);
             }
         }

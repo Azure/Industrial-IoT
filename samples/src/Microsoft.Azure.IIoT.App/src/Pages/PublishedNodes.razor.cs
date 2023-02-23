@@ -3,16 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Pages {
+namespace Microsoft.Azure.IIoT.App.Pages
+{
+    using global::Azure.IIoT.OpcUa.Shared.Models;
+    using Microsoft.AspNetCore.Components;
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.AspNetCore.Components;
-    using global::Azure.IIoT.OpcUa.Shared.Models;
     using System;
-    using System.Threading.Tasks;
     using System.Globalization;
+    using System.Threading.Tasks;
 
-    public sealed partial class PublishedNodes {
+    public sealed partial class PublishedNodes
+    {
         [Parameter]
         public string Page { get; set; } = "1";
 
@@ -42,10 +44,12 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Notify page change
         /// </summary>
         /// <param name="page"></param>
-        public async Task PagerPageChangedAsync(int page) {
+        public async Task PagerPageChangedAsync(int page)
+        {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
-            if (!string.IsNullOrEmpty(NodeList.ContinuationToken) && page > PagedNodeList.PageCount) {
+            if (!string.IsNullOrEmpty(NodeList.ContinuationToken) && page > PagedNodeList.PageCount)
+            {
                 NodeList = await PublisherHelper.PublishedAsync(EndpointId, true).ConfigureAwait(false);
             }
             PagedNodeList = NodeList.GetPaged(page, CommonHelper.PageLength, null);
@@ -57,7 +61,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// OnInitialized
         /// </summary>
-        protected override void OnInitialized() {
+        protected override void OnInitialized()
+        {
             CommonHelper.Spinner = "loader-big";
         }
 
@@ -65,8 +70,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// OnAfterRenderAsync
         /// </summary>
         /// <param name="firstRender"></param>
-        protected override async Task OnAfterRenderAsync(bool firstRender) {
-            if (firstRender) {
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
                 NodeList = await PublisherHelper.PublishedAsync(EndpointId, true).ConfigureAwait(false);
                 Page = "1";
                 PagedNodeList = NodeList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
@@ -79,7 +86,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             }
         }
 
-        private static bool IsIdGiven(string id) {
+        private static bool IsIdGiven(string id)
+        {
             return !string.IsNullOrEmpty(id);
         }
 
@@ -87,9 +95,12 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// GetPublishedNodeData
         /// </summary>
         /// <param name="samples"></param>
-        private Task GetPublishedNodeDataAsync(MonitoredItemMessageModel samples) {
-            foreach (var node in PagedNodeList.Results) {
-                if (node.PublishedItem.NodeId == samples.NodeId) {
+        private Task GetPublishedNodeDataAsync(MonitoredItemMessageModel samples)
+        {
+            foreach (var node in PagedNodeList.Results)
+            {
+                if (node.PublishedItem.NodeId == samples.NodeId)
+                {
                     node.Value = samples.Value?.ToJson()?.TrimQuotes();
                     node.Status = string.IsNullOrEmpty(samples.Status) ? _valueGood : samples.Status;
                     node.Timestamp = samples.Timestamp.Value.ToLocalTime().ToString(CultureInfo.InvariantCulture);
@@ -102,8 +113,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// Dispose
         /// </summary>
-        public async ValueTask DisposeAsync() {
-            if (PublishEvent != null) {
+        public async ValueTask DisposeAsync()
+        {
+            if (PublishEvent != null)
+            {
                 await PublishEvent.DisposeAsync().ConfigureAwait(false);
             }
         }

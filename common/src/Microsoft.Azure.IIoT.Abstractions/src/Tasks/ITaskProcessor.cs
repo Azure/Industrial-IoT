@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Tasks {
+namespace Microsoft.Azure.IIoT.Tasks
+{
     using System;
     using System.Threading.Tasks;
 
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Tasks {
     /// A task processor schedules processing of tasks using a
     /// scheduler.
     /// </summary>
-    public interface ITaskProcessor : IDisposable {
+    public interface ITaskProcessor : IDisposable
+    {
         /// <summary>
         /// The processors task scheduler
         /// </summary>

@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     /// <summary>
     /// Client services configuration
     /// </summary>
-    public interface IClientServicesConfig : ITransportQuotaConfig, ISecurityConfig {
+    public interface IClientServicesConfig : ITransportQuotaConfig, ISecurityConfig
+    {
         /// <summary>
         /// Application name
         /// </summary>

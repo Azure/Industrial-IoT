@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Reference {
+namespace Reference
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -40,12 +41,14 @@ namespace Reference {
     /// <summary>
     /// A node manager for a server that exposes several variables.
     /// </summary>
-    public class ReferenceNodeManager : CustomNodeManager2 {
+    public class ReferenceNodeManager : CustomNodeManager2
+    {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         public ReferenceNodeManager(IServerInternal server, ApplicationConfiguration configuration) :
-            base(server, configuration, Namespaces.ReferenceApplications) {
+            base(server, configuration, Namespaces.ReferenceApplications)
+        {
             SystemContext.NodeIdFactory = this;
 
             // get the configuration for the node manager.
@@ -60,9 +63,12 @@ namespace Reference {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
-                if (_simulationTimer != null) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_simulationTimer != null)
+                {
                     _simulationTimer.Dispose();
                     _simulationTimer = null;
                 }
@@ -72,9 +78,12 @@ namespace Reference {
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        public override NodeId New(ISystemContext context, NodeState node) {
-            if (node is BaseInstanceState instance && instance.Parent != null) {
-                if (instance.Parent.NodeId.Identifier is string id) {
+        public override NodeId New(ISystemContext context, NodeState node)
+        {
+            if (node is BaseInstanceState instance && instance.Parent != null)
+            {
+                if (instance.Parent.NodeId.Identifier is string id)
+                {
                     return new NodeId(id + "_" + instance.SymbolicName, instance.Parent.NodeId.NamespaceIndex);
                 }
             }
@@ -82,8 +91,10 @@ namespace Reference {
             return node.NodeId;
         }
 
-        private static bool IsAnalogType(BuiltInType builtInType) {
-            switch (builtInType) {
+        private static bool IsAnalogType(BuiltInType builtInType)
+        {
+            switch (builtInType)
+            {
                 case BuiltInType.Byte:
                 case BuiltInType.UInt16:
                 case BuiltInType.UInt32:
@@ -99,8 +110,10 @@ namespace Reference {
             return false;
         }
 
-        private static Opc.Ua.Range GetAnalogRange(BuiltInType builtInType) {
-            switch (builtInType) {
+        private static Opc.Ua.Range GetAnalogRange(BuiltInType builtInType)
+        {
+            switch (builtInType)
+            {
                 case BuiltInType.UInt16:
                     return new Opc.Ua.Range(ushort.MaxValue, ushort.MinValue);
                 case BuiltInType.UInt32:
@@ -134,9 +147,12 @@ namespace Reference {
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
         /// should have a reference to the root folder node(s) exposed by this node manager.
         /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Lock) {
-                if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references)) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Lock)
+            {
+                if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references))
+                {
                     externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
                 }
 
@@ -148,7 +164,8 @@ namespace Reference {
 
                 var variables = new List<BaseDataVariableState>();
 
-                try {
+                try
+                {
                     var scalarFolder = CreateFolder(root, "Scalar", "Scalar");
                     var scalarInstructions = CreateVariable(scalarFolder, "Scalar_Instructions", "Scalar_Instructions", DataTypeIds.String, ValueRanks.Scalar);
                     scalarInstructions.Value = "A library of Read/Write Variables of all supported data-types.";
@@ -186,7 +203,8 @@ namespace Reference {
                     var decimalVariable = CreateVariable(staticFolder, scalarStatic + "Decimal", "Decimal", DataTypeIds.DecimalDataType, ValueRanks.Scalar);
                     // Set an arbitrary precision decimal value.
                     var largeInteger = BigInteger.Parse("1234567890123546789012345678901234567890123456789012345", CultureInfo.InvariantCulture);
-                    decimalVariable.Value = new DecimalDataType {
+                    decimalVariable.Value = new DecimalDataType
+                    {
                         Scale = 100,
                         Value = largeInteger.ToByteArray()
                     };
@@ -443,11 +461,13 @@ namespace Reference {
                     var dataItemFolder = CreateFolder(daFolder, "DataAccess_DataItem", "DataItem");
                     const string daDataItem = "DataAccess_DataIte_";
 
-                    foreach (var name in Enum.GetNames(typeof(BuiltInType))) {
+                    foreach (var name in Enum.GetNames(typeof(BuiltInType)))
+                    {
                         var item = CreateDataItemVariable(dataItemFolder, daDataItem + name, name, (BuiltInType)Enum.Parse(typeof(BuiltInType), name), ValueRanks.Scalar);
 
                         // set initial value to String.Empty for String node.
-                        if (name == nameof(BuiltInType.String)) {
+                        if (name == nameof(BuiltInType.String))
+                        {
                             item.Value = string.Empty;
                         }
                     }
@@ -455,18 +475,22 @@ namespace Reference {
                     var analogItemFolder = CreateFolder(daFolder, "DataAccess_AnalogType", "AnalogType");
                     const string daAnalogItem = "DataAccess_AnalogType_";
 
-                    foreach (var name in Enum.GetNames(typeof(BuiltInType))) {
+                    foreach (var name in Enum.GetNames(typeof(BuiltInType)))
+                    {
                         var builtInType = (BuiltInType)Enum.Parse(typeof(BuiltInType), name);
-                        if (IsAnalogType(builtInType)) {
+                        if (IsAnalogType(builtInType))
+                        {
                             var item = CreateAnalogItemVariable(analogItemFolder, daAnalogItem + name, name, builtInType, ValueRanks.Scalar);
 
                             if (builtInType == BuiltInType.Int64 ||
-                                builtInType == BuiltInType.UInt64) {
+                                builtInType == BuiltInType.UInt64)
+                            {
                                 // make test case without optional ranges
                                 item.EngineeringUnits = null;
                                 item.InstrumentRange = null;
                             }
-                            else if (builtInType == BuiltInType.Float) {
+                            else if (builtInType == BuiltInType.Float)
+                            {
                                 item.EURange.Value.High = 0;
                                 item.EURange.Value.Low = 0;
                             }
@@ -562,16 +586,19 @@ namespace Reference {
                     variables.Add(hasInverseReference);
 
                     BaseDataVariableState has3InverseReference = null;
-                    for (var i = 1; i <= 5; i++) {
+                    for (var i = 1; i <= 5; i++)
+                    {
                         var referenceString = "Has3ForwardReferences";
-                        if (i > 1) {
+                        if (i > 1)
+                        {
                             referenceString += i.ToString(CultureInfo.InvariantCulture);
                         }
                         var has3ForwardReferences = CreateMeshVariable(referencesFolder, referencesPrefix + referenceString, referenceString);
                         has3ForwardReferences.AddReference(ReferenceTypes.HasCause, false, variables[0].NodeId);
                         has3ForwardReferences.AddReference(ReferenceTypes.HasCause, false, variables[1].NodeId);
                         has3ForwardReferences.AddReference(ReferenceTypes.HasCause, false, variables[2].NodeId);
-                        if (i == 1) {
+                        if (i == 1)
+                        {
                             has3InverseReference = has3ForwardReferences;
                         }
                         variables.Add(has3ForwardReferences);
@@ -697,7 +724,8 @@ namespace Reference {
 
                     var addMethod = CreateMethod(methodsFolder, methods + "Add", "Add");
                     // set input arguments
-                    addMethod.InputArguments = new PropertyState<Argument[]>(addMethod) {
+                    addMethod.InputArguments = new PropertyState<Argument[]>(addMethod)
+                    {
                         NodeId = new NodeId(addMethod.BrowseName.Name + "InArgs", NamespaceIndex),
                         BrowseName = BrowseNames.InputArguments
                     };
@@ -714,7 +742,8 @@ namespace Reference {
                     };
 
                     // set output arguments
-                    addMethod.OutputArguments = new PropertyState<Argument[]>(addMethod) {
+                    addMethod.OutputArguments = new PropertyState<Argument[]>(addMethod)
+                    {
                         NodeId = new NodeId(addMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
                         BrowseName = BrowseNames.OutputArguments
                     };
@@ -733,7 +762,8 @@ namespace Reference {
 
                     var multiplyMethod = CreateMethod(methodsFolder, methods + "Multiply", "Multiply");
                     // set input arguments
-                    multiplyMethod.InputArguments = new PropertyState<Argument[]>(multiplyMethod) {
+                    multiplyMethod.InputArguments = new PropertyState<Argument[]>(multiplyMethod)
+                    {
                         NodeId = new NodeId(multiplyMethod.BrowseName.Name + "InArgs", NamespaceIndex),
                         BrowseName = BrowseNames.InputArguments
                     };
@@ -750,7 +780,8 @@ namespace Reference {
                     };
 
                     // set output arguments
-                    multiplyMethod.OutputArguments = new PropertyState<Argument[]>(multiplyMethod) {
+                    multiplyMethod.OutputArguments = new PropertyState<Argument[]>(multiplyMethod)
+                    {
                         NodeId = new NodeId(multiplyMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
                         BrowseName = BrowseNames.OutputArguments
                     };
@@ -769,7 +800,8 @@ namespace Reference {
 
                     var divideMethod = CreateMethod(methodsFolder, methods + "Divide", "Divide");
                     // set input arguments
-                    divideMethod.InputArguments = new PropertyState<Argument[]>(divideMethod) {
+                    divideMethod.InputArguments = new PropertyState<Argument[]>(divideMethod)
+                    {
                         NodeId = new NodeId(divideMethod.BrowseName.Name + "InArgs", NamespaceIndex),
                         BrowseName = BrowseNames.InputArguments
                     };
@@ -786,7 +818,8 @@ namespace Reference {
                     };
 
                     // set output arguments
-                    divideMethod.OutputArguments = new PropertyState<Argument[]>(divideMethod) {
+                    divideMethod.OutputArguments = new PropertyState<Argument[]>(divideMethod)
+                    {
                         NodeId = new NodeId(divideMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
                         BrowseName = BrowseNames.OutputArguments
                     };
@@ -805,7 +838,8 @@ namespace Reference {
 
                     var substractMethod = CreateMethod(methodsFolder, methods + "Substract", "Substract");
                     // set input arguments
-                    substractMethod.InputArguments = new PropertyState<Argument[]>(substractMethod) {
+                    substractMethod.InputArguments = new PropertyState<Argument[]>(substractMethod)
+                    {
                         NodeId = new NodeId(substractMethod.BrowseName.Name + "InArgs", NamespaceIndex),
                         BrowseName = BrowseNames.InputArguments
                     };
@@ -822,7 +856,8 @@ namespace Reference {
                     };
 
                     // set output arguments
-                    substractMethod.OutputArguments = new PropertyState<Argument[]>(substractMethod) {
+                    substractMethod.OutputArguments = new PropertyState<Argument[]>(substractMethod)
+                    {
                         NodeId = new NodeId(substractMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
                         BrowseName = BrowseNames.OutputArguments
                     };
@@ -841,7 +876,8 @@ namespace Reference {
 
                     var helloMethod = CreateMethod(methodsFolder, methods + "Hello", "Hello");
                     // set input arguments
-                    helloMethod.InputArguments = new PropertyState<Argument[]>(helloMethod) {
+                    helloMethod.InputArguments = new PropertyState<Argument[]>(helloMethod)
+                    {
                         NodeId = new NodeId(helloMethod.BrowseName.Name + "InArgs", NamespaceIndex),
                         BrowseName = BrowseNames.InputArguments
                     };
@@ -857,7 +893,8 @@ namespace Reference {
                     };
 
                     // set output arguments
-                    helloMethod.OutputArguments = new PropertyState<Argument[]>(helloMethod) {
+                    helloMethod.OutputArguments = new PropertyState<Argument[]>(helloMethod)
+                    {
                         NodeId = new NodeId(helloMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
                         BrowseName = BrowseNames.OutputArguments
                     };
@@ -876,7 +913,8 @@ namespace Reference {
 
                     var inputMethod = CreateMethod(methodsFolder, methods + "Input", "Input");
                     // set input arguments
-                    inputMethod.InputArguments = new PropertyState<Argument[]>(inputMethod) {
+                    inputMethod.InputArguments = new PropertyState<Argument[]>(inputMethod)
+                    {
                         NodeId = new NodeId(inputMethod.BrowseName.Name + "InArgs", NamespaceIndex),
                         BrowseName = BrowseNames.InputArguments
                     };
@@ -896,7 +934,8 @@ namespace Reference {
                     var outputMethod = CreateMethod(methodsFolder, methods + "Output", "Output");
 
                     // set output arguments
-                    outputMethod.OutputArguments = new PropertyState<Argument[]>(helloMethod) {
+                    outputMethod.OutputArguments = new PropertyState<Argument[]>(helloMethod)
+                    {
                         NodeId = new NodeId(helloMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
                         BrowseName = BrowseNames.OutputArguments
                     };
@@ -1240,7 +1279,8 @@ namespace Reference {
                     myCompanyInstructions.Value = "A place for the vendor to describe their address-space.";
                     variables.Add(myCompanyInstructions);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     Utils.Trace(e, "Error creating the address space.");
                 }
 
@@ -1249,36 +1289,45 @@ namespace Reference {
             }
         }
 
-        private ServiceResult OnWriteInterval(ISystemContext context, NodeState node, ref object value) {
-            try {
+        private ServiceResult OnWriteInterval(ISystemContext context, NodeState node, ref object value)
+        {
+            try
+            {
                 _simulationInterval = (ushort)value;
 
-                if (_simulationEnabled) {
+                if (_simulationEnabled)
+                {
                     _simulationTimer.Change(100, _simulationInterval);
                 }
 
                 return ServiceResult.Good;
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Error writing Interval variable.");
                 return ServiceResult.Create(e, StatusCodes.Bad, "Error writing Interval variable.");
             }
         }
 
-        private ServiceResult OnWriteEnabled(ISystemContext context, NodeState node, ref object value) {
-            try {
+        private ServiceResult OnWriteEnabled(ISystemContext context, NodeState node, ref object value)
+        {
+            try
+            {
                 _simulationEnabled = (bool)value;
 
-                if (_simulationEnabled) {
+                if (_simulationEnabled)
+                {
                     _simulationTimer.Change(100, _simulationInterval);
                 }
-                else {
+                else
+                {
                     _simulationTimer.Change(100, 0);
                 }
 
                 return ServiceResult.Good;
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Error writing Enabled variable.");
                 return ServiceResult.Create(e, StatusCodes.Bad, "Error writing Enabled variable.");
             }
@@ -1287,8 +1336,10 @@ namespace Reference {
         /// <summary>
         /// Creates a new folder.
         /// </summary>
-        private FolderState CreateFolder(NodeState parent, string path, string name) {
-            var folder = new FolderState(parent) {
+        private FolderState CreateFolder(NodeState parent, string path, string name)
+        {
+            var folder = new FolderState(parent)
+            {
                 SymbolicName = name,
                 ReferenceTypeId = ReferenceTypes.Organizes,
                 TypeDefinitionId = ObjectTypeIds.FolderType,
@@ -1308,11 +1359,14 @@ namespace Reference {
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        private BaseDataVariableState CreateMeshVariable(NodeState parent, string path, string name, params NodeState[] peers) {
+        private BaseDataVariableState CreateMeshVariable(NodeState parent, string path, string name, params NodeState[] peers)
+        {
             var variable = CreateVariable(parent, path, name, BuiltInType.Double, ValueRanks.Scalar);
 
-            if (peers != null) {
-                foreach (var peer in peers) {
+            if (peers != null)
+            {
+                foreach (var peer in peers)
+                {
                     peer.AddReference(ReferenceTypes.HasCause, false, variable.NodeId);
                     variable.AddReference(ReferenceTypes.HasCause, true, peer.NodeId);
                     peer.AddReference(ReferenceTypes.HasEffect, true, variable.NodeId);
@@ -1326,7 +1380,8 @@ namespace Reference {
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        private DataItemState CreateDataItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank) {
+        private DataItemState CreateDataItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
+        {
             var variable = new DataItemState(parent);
             variable.ValuePrecision = new PropertyState<double>(variable);
             variable.Definition = new PropertyState<string>(variable);
@@ -1354,10 +1409,12 @@ namespace Reference {
             variable.StatusCode = StatusCodes.Good;
             variable.Timestamp = DateTime.UtcNow;
 
-            if (valueRank == ValueRanks.OneDimension) {
+            if (valueRank == ValueRanks.OneDimension)
+            {
                 variable.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0 });
             }
-            else if (valueRank == ValueRanks.TwoDimensions) {
+            else if (valueRank == ValueRanks.TwoDimensions)
+            {
                 variable.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0, 0 });
             }
 
@@ -1376,20 +1433,25 @@ namespace Reference {
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank) {
+        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
+        {
             return CreateAnalogItemVariable(parent, path, name, dataType, valueRank, null);
         }
 
-        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, object initialValues) {
+        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, object initialValues)
+        {
             return CreateAnalogItemVariable(parent, path, name, dataType, valueRank, initialValues, null);
         }
 
-        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, object initialValues, Opc.Ua.Range customRange) {
+        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, object initialValues, Opc.Ua.Range customRange)
+        {
             return CreateAnalogItemVariable(parent, path, name, (uint)dataType, valueRank, initialValues, customRange);
         }
 
-        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank, object initialValues, Opc.Ua.Range customRange) {
-            var variable = new AnalogItemState(parent) {
+        private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank, object initialValues, Opc.Ua.Range customRange)
+        {
+            var variable = new AnalogItemState(parent)
+            {
                 BrowseName = new QualifiedName(path, NamespaceIndex)
             };
             variable.EngineeringUnits = new PropertyState<EUInformation>(variable);
@@ -1414,10 +1476,12 @@ namespace Reference {
             variable.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.Historizing = false;
 
-            if (valueRank == ValueRanks.OneDimension) {
+            if (valueRank == ValueRanks.OneDimension)
+            {
                 variable.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0 });
             }
-            else if (valueRank == ValueRanks.TwoDimensions) {
+            else if (valueRank == ValueRanks.TwoDimensions)
+            {
                 variable.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0, 0 });
             }
 
@@ -1438,7 +1502,8 @@ namespace Reference {
             variable.Timestamp = DateTime.UtcNow;
             // The latest UNECE version (Rev 11, published in 2015) is available here:
             // http://www.opcfoundation.org/UA/EngineeringUnits/UNECE/rec20_latest_08052015.zip
-            variable.EngineeringUnits.Value = new EUInformation("mV", "millivolt", "http://www.opcfoundation.org/UA/units/un/cefact") {
+            variable.EngineeringUnits.Value = new EUInformation("mV", "millivolt", "http://www.opcfoundation.org/UA/units/un/cefact")
+            {
                 // The mapping of the UNECE codes to OPC UA(EUInformation.unitId) is available here:
                 // http://www.opcfoundation.org/UA/EngineeringUnits/UNECE/UNECE_to_OPCUA.csv
                 UnitId = 12890 // "2Z"
@@ -1461,8 +1526,10 @@ namespace Reference {
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        private DataItemState CreateTwoStateDiscreteItemVariable(NodeState parent, string path, string name, string trueState, string falseState) {
-            var variable = new TwoStateDiscreteState(parent) {
+        private DataItemState CreateTwoStateDiscreteItemVariable(NodeState parent, string path, string name, string trueState, string falseState)
+        {
+            var variable = new TwoStateDiscreteState(parent)
+            {
                 NodeId = new NodeId(path, NamespaceIndex),
                 BrowseName = new QualifiedName(path, NamespaceIndex),
                 DisplayName = new LocalizedText("en", name),
@@ -1504,8 +1571,10 @@ namespace Reference {
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        private DataItemState CreateMultiStateDiscreteItemVariable(NodeState parent, string path, string name, params string[] values) {
-            var variable = new MultiStateDiscreteState(parent) {
+        private DataItemState CreateMultiStateDiscreteItemVariable(NodeState parent, string path, string name, params string[] values)
+        {
+            var variable = new MultiStateDiscreteState(parent)
+            {
                 NodeId = new NodeId(path, NamespaceIndex),
                 BrowseName = new QualifiedName(path, NamespaceIndex),
                 DisplayName = new LocalizedText("en", name),
@@ -1534,7 +1603,8 @@ namespace Reference {
 
             var strings = new LocalizedText[values.Length];
 
-            for (var ii = 0; ii < strings.Length; ii++) {
+            for (var ii = 0; ii < strings.Length; ii++)
+            {
                 strings[ii] = values[ii];
             }
 
@@ -1550,15 +1620,18 @@ namespace Reference {
         /// <summary>
         /// Creates a new UInt32 variable.
         /// </summary>
-        private DataItemState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, params string[] enumNames) {
+        private DataItemState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, params string[] enumNames)
+        {
             return CreateMultiStateValueDiscreteItemVariable(parent, path, name, null, enumNames);
         }
 
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        private DataItemState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, NodeId nodeId, params string[] enumNames) {
-            var variable = new MultiStateValueDiscreteState(parent) {
+        private DataItemState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, NodeId nodeId, params string[] enumNames)
+        {
+            var variable = new MultiStateValueDiscreteState(parent)
+            {
                 NodeId = new NodeId(path, NamespaceIndex),
                 BrowseName = new QualifiedName(path, NamespaceIndex),
                 DisplayName = new LocalizedText("en", name),
@@ -1591,14 +1664,17 @@ namespace Reference {
 
             // set the enumerated strings
             var strings = new LocalizedText[enumNames.Length];
-            for (var ii = 0; ii < strings.Length; ii++) {
+            for (var ii = 0; ii < strings.Length; ii++)
+            {
                 strings[ii] = enumNames[ii];
             }
 
             // set the enumerated values
             var values = new EnumValueType[enumNames.Length];
-            for (var ii = 0; ii < values.Length; ii++) {
-                values[ii] = new EnumValueType {
+            for (var ii = 0; ii < values.Length; ii++)
+            {
+                values[ii] = new EnumValueType
+                {
                     Value = ii,
                     Description = strings[ii],
                     DisplayName = strings[ii]
@@ -1621,7 +1697,8 @@ namespace Reference {
             QualifiedName dataEncoding,
             ref object value,
             ref StatusCode statusCode,
-            ref DateTime timestamp) {
+            ref DateTime timestamp)
+        {
             var variable = node as MultiStateDiscreteState;
 
             // verify data type.
@@ -1632,17 +1709,20 @@ namespace Reference {
                 context.NamespaceUris,
                 context.TypeTable);
 
-            if (typeInfo == null || typeInfo == TypeInfo.Unknown) {
+            if (typeInfo == null || typeInfo == TypeInfo.Unknown)
+            {
                 return StatusCodes.BadTypeMismatch;
             }
 
-            if (indexRange != NumericRange.Empty) {
+            if (indexRange != NumericRange.Empty)
+            {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
             var number = Convert.ToDouble(value, CultureInfo.InvariantCulture);
 
-            if (number >= variable.EnumStrings.Value.Length || number < 0) {
+            if (number >= variable.EnumStrings.Value.Length || number < 0)
+            {
                 return StatusCodes.BadOutOfRange;
             }
 
@@ -1656,26 +1736,31 @@ namespace Reference {
             QualifiedName dataEncoding,
             ref object value,
             ref StatusCode statusCode,
-            ref DateTime timestamp) {
+            ref DateTime timestamp)
+        {
             var typeInfo = TypeInfo.Construct(value);
 
             if (!(node is MultiStateValueDiscreteState variable) ||
                 typeInfo == null ||
                 typeInfo == Opc.Ua.TypeInfo.Unknown ||
-                !TypeInfo.IsNumericType(typeInfo.BuiltInType)) {
+                !TypeInfo.IsNumericType(typeInfo.BuiltInType))
+            {
                 return StatusCodes.BadTypeMismatch;
             }
 
-            if (indexRange != NumericRange.Empty) {
+            if (indexRange != NumericRange.Empty)
+            {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
             var number = Convert.ToInt32(value, CultureInfo.InvariantCulture);
-            if (number >= variable.EnumValues.Value.Length || number < 0) {
+            if (number >= variable.EnumValues.Value.Length || number < 0)
+            {
                 return StatusCodes.BadOutOfRange;
             }
 
-            if (!node.SetChildValue(context, BrowseNames.ValueAsText, variable.EnumValues.Value[number].DisplayName, true)) {
+            if (!node.SetChildValue(context, BrowseNames.ValueAsText, variable.EnumValues.Value[number].DisplayName, true))
+            {
                 return StatusCodes.BadOutOfRange;
             }
 
@@ -1691,7 +1776,8 @@ namespace Reference {
             QualifiedName dataEncoding,
             ref object value,
             ref StatusCode statusCode,
-            ref DateTime timestamp) {
+            ref DateTime timestamp)
+        {
             var variable = node as AnalogItemState;
 
             // verify data type.
@@ -1702,17 +1788,21 @@ namespace Reference {
                 context.NamespaceUris,
                 context.TypeTable);
 
-            if (typeInfo == null || typeInfo == TypeInfo.Unknown) {
+            if (typeInfo == null || typeInfo == TypeInfo.Unknown)
+            {
                 return StatusCodes.BadTypeMismatch;
             }
 
             // check index range.
-            if (variable.ValueRank >= 0) {
-                if (indexRange != NumericRange.Empty) {
+            if (variable.ValueRank >= 0)
+            {
+                if (indexRange != NumericRange.Empty)
+                {
                     var target = variable.Value;
                     ServiceResult result = indexRange.UpdateRange(ref target, value);
 
-                    if (ServiceResult.IsBad(result)) {
+                    if (ServiceResult.IsBad(result))
+                    {
                         return result;
                     }
 
@@ -1721,14 +1811,17 @@ namespace Reference {
             }
 
             // check instrument range.
-            else {
-                if (indexRange != NumericRange.Empty) {
+            else
+            {
+                if (indexRange != NumericRange.Empty)
+                {
                     return StatusCodes.BadIndexRangeInvalid;
                 }
 
                 var number = Convert.ToDouble(value, CultureInfo.InvariantCulture);
 
-                if (variable.InstrumentRange != null && (number < variable.InstrumentRange.Value.Low || number > variable.InstrumentRange.Value.High)) {
+                if (variable.InstrumentRange != null && (number < variable.InstrumentRange.Value.Low || number > variable.InstrumentRange.Value.High))
+                {
                     return StatusCodes.BadOutOfRange;
                 }
             }
@@ -1743,29 +1836,34 @@ namespace Reference {
             QualifiedName dataEncoding,
             ref object value,
             ref StatusCode statusCode,
-            ref DateTime timestamp) {
+            ref DateTime timestamp)
+        {
             var typeInfo = TypeInfo.Construct(value);
 
             if (!(node is PropertyState<Opc.Ua.Range> variable) ||
                 !(value is ExtensionObject extensionObject) ||
                 typeInfo == null ||
-                typeInfo == Opc.Ua.TypeInfo.Unknown) {
+                typeInfo == Opc.Ua.TypeInfo.Unknown)
+            {
                 return StatusCodes.BadTypeMismatch;
             }
 
             if (!(extensionObject.Body is Opc.Ua.Range newRange) ||
-                !(variable.Parent is AnalogItemState parent)) {
+                !(variable.Parent is AnalogItemState parent))
+            {
                 return StatusCodes.BadTypeMismatch;
             }
 
-            if (indexRange != NumericRange.Empty) {
+            if (indexRange != NumericRange.Empty)
+            {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
             var parentTypeInfo = TypeInfo.Construct(parent.Value);
             var parentRange = GetAnalogRange(parentTypeInfo.BuiltInType);
             if (parentRange.High < newRange.High ||
-                parentRange.Low > newRange.Low) {
+                parentRange.Low > newRange.Low)
+            {
                 return StatusCodes.BadOutOfRange;
             }
 
@@ -1777,15 +1875,18 @@ namespace Reference {
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        private BaseDataVariableState CreateVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank) {
+        private BaseDataVariableState CreateVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
+        {
             return CreateVariable(parent, path, name, (uint)dataType, valueRank);
         }
 
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        private BaseDataVariableState CreateVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank) {
-            var variable = new BaseDataVariableState(parent) {
+        private BaseDataVariableState CreateVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank)
+        {
+            var variable = new BaseDataVariableState(parent)
+            {
                 SymbolicName = name,
                 ReferenceTypeId = ReferenceTypes.Organizes,
                 TypeDefinitionId = VariableTypeIds.BaseDataVariableType,
@@ -1804,10 +1905,12 @@ namespace Reference {
             variable.StatusCode = StatusCodes.Good;
             variable.Timestamp = DateTime.UtcNow;
 
-            if (valueRank == ValueRanks.OneDimension) {
+            if (valueRank == ValueRanks.OneDimension)
+            {
                 variable.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0 });
             }
-            else if (valueRank == ValueRanks.TwoDimensions) {
+            else if (valueRank == ValueRanks.TwoDimensions)
+            {
                 variable.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0, 0 });
             }
 
@@ -1816,17 +1919,20 @@ namespace Reference {
             return variable;
         }
 
-        private BaseDataVariableState[] CreateVariables(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, ushort numVariables) {
+        private BaseDataVariableState[] CreateVariables(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, ushort numVariables)
+        {
             return CreateVariables(parent, path, name, (uint)dataType, valueRank, numVariables);
         }
 
-        private BaseDataVariableState[] CreateVariables(NodeState parent, string path, string name, NodeId dataType, int valueRank, ushort numVariables) {
+        private BaseDataVariableState[] CreateVariables(NodeState parent, string path, string name, NodeId dataType, int valueRank, ushort numVariables)
+        {
             // first, create a new Parent folder for this data-type
             var newParentFolder = CreateFolder(parent, path, name);
 
             var itemsCreated = new List<BaseDataVariableState>();
             // now to create the remaining NUMBERED items
-            for (uint i = 0; i < numVariables; i++) {
+            for (uint i = 0; i < numVariables; i++)
+            {
                 var newName = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", name, i.ToString("00", CultureInfo.InvariantCulture));
                 var newPath = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", path, newName);
                 itemsCreated.Add(CreateVariable(newParentFolder, newPath, newName, dataType, valueRank));
@@ -1837,30 +1943,35 @@ namespace Reference {
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        private BaseDataVariableState CreateDynamicVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank) {
+        private BaseDataVariableState CreateDynamicVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
+        {
             return CreateDynamicVariable(parent, path, name, (uint)dataType, valueRank);
         }
 
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        private BaseDataVariableState CreateDynamicVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank) {
+        private BaseDataVariableState CreateDynamicVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank)
+        {
             var variable = CreateVariable(parent, path, name, dataType, valueRank);
             _dynamicNodes.Add(variable);
             return variable;
         }
 
-        private BaseDataVariableState[] CreateDynamicVariables(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, uint numVariables) {
+        private BaseDataVariableState[] CreateDynamicVariables(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, uint numVariables)
+        {
             return CreateDynamicVariables(parent, path, name, (uint)dataType, valueRank, numVariables);
         }
 
-        private BaseDataVariableState[] CreateDynamicVariables(NodeState parent, string path, string name, NodeId dataType, int valueRank, uint numVariables) {
+        private BaseDataVariableState[] CreateDynamicVariables(NodeState parent, string path, string name, NodeId dataType, int valueRank, uint numVariables)
+        {
             // first, create a new Parent folder for this data-type
             var newParentFolder = CreateFolder(parent, path, name);
 
             var itemsCreated = new List<BaseDataVariableState>();
             // now to create the remaining NUMBERED items
-            for (uint i = 0; i < numVariables; i++) {
+            for (uint i = 0; i < numVariables; i++)
+            {
                 var newName = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", name, i.ToString("00", CultureInfo.InvariantCulture));
                 var newPath = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", path, newName);
                 itemsCreated.Add(CreateDynamicVariable(newParentFolder, newPath, newName, dataType, valueRank));
@@ -1871,8 +1982,10 @@ namespace Reference {
         /// <summary>
         /// Creates a new view.
         /// </summary>
-        private ViewState CreateView(NodeState parent, IDictionary<NodeId, IList<IReference>> externalReferences, string path, string name) {
-            var type = new ViewState {
+        private ViewState CreateView(NodeState parent, IDictionary<NodeId, IList<IReference>> externalReferences, string path, string name)
+        {
+            var type = new ViewState
+            {
                 SymbolicName = name,
                 NodeId = new NodeId(path, NamespaceIndex),
                 BrowseName = new QualifiedName(name, NamespaceIndex)
@@ -1882,14 +1995,16 @@ namespace Reference {
             type.UserWriteMask = AttributeWriteMask.None;
             type.ContainsNoLoops = true;
 
-            if (!externalReferences.TryGetValue(ObjectIds.ViewsFolder, out var references)) {
+            if (!externalReferences.TryGetValue(ObjectIds.ViewsFolder, out var references))
+            {
                 externalReferences[ObjectIds.ViewsFolder] = references = new List<IReference>();
             }
 
             type.AddReference(ReferenceTypeIds.Organizes, true, ObjectIds.ViewsFolder);
             references.Add(new NodeStateReference(ReferenceTypeIds.Organizes, false, type.NodeId));
 
-            if (parent != null) {
+            if (parent != null)
+            {
                 parent.AddReference(ReferenceTypes.Organizes, false, type.NodeId);
                 type.AddReference(ReferenceTypes.Organizes, true, parent.NodeId);
             }
@@ -1901,8 +2016,10 @@ namespace Reference {
         /// <summary>
         /// Creates a new method.
         /// </summary>
-        private MethodState CreateMethod(NodeState parent, string path, string name) {
-            var method = new MethodState(parent) {
+        private MethodState CreateMethod(NodeState parent, string path, string name)
+        {
+            var method = new MethodState(parent)
+            {
                 SymbolicName = name,
                 ReferenceTypeId = ReferenceTypeIds.HasComponent,
                 NodeId = new NodeId(path, NamespaceIndex),
@@ -1923,7 +2040,8 @@ namespace Reference {
             ISystemContext context,
             MethodState method,
             IList<object> inputArguments,
-            IList<object> outputArguments) {
+            IList<object> outputArguments)
+        {
             return ServiceResult.Good;
         }
 
@@ -1931,13 +2049,16 @@ namespace Reference {
             ISystemContext context,
             MethodState method,
             IList<object> inputArguments,
-            IList<object> outputArguments) {
+            IList<object> outputArguments)
+        {
             // all arguments must be provided.
-            if (inputArguments.Count < 2) {
+            if (inputArguments.Count < 2)
+            {
                 return StatusCodes.BadArgumentsMissing;
             }
 
-            try {
+            try
+            {
                 var floatValue = (float)inputArguments[0];
                 var uintValue = (uint)inputArguments[1];
 
@@ -1945,7 +2066,8 @@ namespace Reference {
                 outputArguments[0] = floatValue + uintValue;
                 return ServiceResult.Good;
             }
-            catch {
+            catch
+            {
                 return new ServiceResult(StatusCodes.BadInvalidArgument);
             }
         }
@@ -1954,13 +2076,16 @@ namespace Reference {
             ISystemContext context,
             MethodState method,
             IList<object> inputArguments,
-            IList<object> outputArguments) {
+            IList<object> outputArguments)
+        {
             // all arguments must be provided.
-            if (inputArguments.Count < 2) {
+            if (inputArguments.Count < 2)
+            {
                 return StatusCodes.BadArgumentsMissing;
             }
 
-            try {
+            try
+            {
                 var op1 = (short)inputArguments[0];
                 var op2 = (ushort)inputArguments[1];
 
@@ -1968,7 +2093,8 @@ namespace Reference {
                 outputArguments[0] = op1 * op2;
                 return ServiceResult.Good;
             }
-            catch {
+            catch
+            {
                 return new ServiceResult(StatusCodes.BadInvalidArgument);
             }
         }
@@ -1977,13 +2103,16 @@ namespace Reference {
             ISystemContext context,
             MethodState method,
             IList<object> inputArguments,
-            IList<object> outputArguments) {
+            IList<object> outputArguments)
+        {
             // all arguments must be provided.
-            if (inputArguments.Count < 2) {
+            if (inputArguments.Count < 2)
+            {
                 return StatusCodes.BadArgumentsMissing;
             }
 
-            try {
+            try
+            {
                 var op1 = (int)inputArguments[0];
                 var op2 = (ushort)inputArguments[1];
 
@@ -1991,7 +2120,8 @@ namespace Reference {
                 outputArguments[0] = op1 / (float)op2;
                 return ServiceResult.Good;
             }
-            catch {
+            catch
+            {
                 return new ServiceResult(StatusCodes.BadInvalidArgument);
             }
         }
@@ -2000,13 +2130,16 @@ namespace Reference {
             ISystemContext context,
             MethodState method,
             IList<object> inputArguments,
-            IList<object> outputArguments) {
+            IList<object> outputArguments)
+        {
             // all arguments must be provided.
-            if (inputArguments.Count < 2) {
+            if (inputArguments.Count < 2)
+            {
                 return StatusCodes.BadArgumentsMissing;
             }
 
-            try {
+            try
+            {
                 var op1 = (short)inputArguments[0];
                 var op2 = (byte)inputArguments[1];
 
@@ -2014,7 +2147,8 @@ namespace Reference {
                 outputArguments[0] = (short)(op1 - op2);
                 return ServiceResult.Good;
             }
-            catch {
+            catch
+            {
                 return new ServiceResult(StatusCodes.BadInvalidArgument);
             }
         }
@@ -2023,20 +2157,24 @@ namespace Reference {
             ISystemContext context,
             MethodState method,
             IList<object> inputArguments,
-            IList<object> outputArguments) {
+            IList<object> outputArguments)
+        {
             // all arguments must be provided.
-            if (inputArguments.Count < 1) {
+            if (inputArguments.Count < 1)
+            {
                 return StatusCodes.BadArgumentsMissing;
             }
 
-            try {
+            try
+            {
                 var op1 = (string)inputArguments[0];
 
                 // set output parameter
                 outputArguments[0] = "hello " + op1;
                 return ServiceResult.Good;
             }
-            catch {
+            catch
+            {
                 return new ServiceResult(StatusCodes.BadInvalidArgument);
             }
         }
@@ -2045,9 +2183,11 @@ namespace Reference {
             ISystemContext context,
             MethodState method,
             IList<object> inputArguments,
-            IList<object> outputArguments) {
+            IList<object> outputArguments)
+        {
             // all arguments must be provided.
-            if (inputArguments.Count < 1) {
+            if (inputArguments.Count < 1)
+            {
                 return StatusCodes.BadArgumentsMissing;
             }
 
@@ -2058,25 +2198,31 @@ namespace Reference {
             ISystemContext context,
             MethodState method,
             IList<object> inputArguments,
-            IList<object> outputArguments) {
+            IList<object> outputArguments)
+        {
             // all arguments must be provided.
-            try {
+            try
+            {
                 // set output parameter
                 outputArguments[0] = "Output";
                 return ServiceResult.Good;
             }
-            catch {
+            catch
+            {
                 return new ServiceResult(StatusCodes.BadInvalidArgument);
             }
         }
 
-        private object GetNewValue(BaseVariableState variable) {
-            _generator ??= new Opc.Ua.Test.TestDataGenerator() {
+        private object GetNewValue(BaseVariableState variable)
+        {
+            _generator ??= new Opc.Ua.Test.TestDataGenerator()
+            {
                 BoundaryValueFrequency = 0
             };
 
             object value = null;
-            for (var retryCount = 0; value == null && retryCount < 10; retryCount++) {
+            for (var retryCount = 0; value == null && retryCount < 10; retryCount++)
+            {
                 value = _generator.GetRandom(variable.DataType, variable.ValueRank,
                     new uint[] { 10 }, Server.TypeTree);
             }
@@ -2084,17 +2230,22 @@ namespace Reference {
             return value;
         }
 
-        private void DoSimulation(object state) {
-            try {
-                lock (Lock) {
-                    foreach (var variable in _dynamicNodes) {
+        private void DoSimulation(object state)
+        {
+            try
+            {
+                lock (Lock)
+                {
+                    foreach (var variable in _dynamicNodes)
+                    {
                         variable.Value = GetNewValue(variable);
                         variable.Timestamp = DateTime.UtcNow;
                         variable.ClearChangeMasks(SystemContext, false);
                     }
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Unexpected error doing simulation.");
             }
         }
@@ -2102,8 +2253,10 @@ namespace Reference {
         /// <summary>
         /// Frees any resources allocated for the address space.
         /// </summary>
-        public override void DeleteAddressSpace() {
-            lock (Lock) {
+        public override void DeleteAddressSpace()
+        {
+            lock (Lock)
+            {
                 // TBD
             }
         }
@@ -2112,18 +2265,23 @@ namespace Reference {
         /// Returns a unique handle for the node.
         /// </summary>
         protected override NodeHandle GetManagerHandle(ServerSystemContext context,
-            NodeId nodeId, IDictionary<NodeId, NodeState> cache) {
-            lock (Lock) {
+            NodeId nodeId, IDictionary<NodeId, NodeState> cache)
+        {
+            lock (Lock)
+            {
                 // quickly exclude nodes that are not in the namespace.
-                if (!IsNodeIdInNamespace(nodeId)) {
+                if (!IsNodeIdInNamespace(nodeId))
+                {
                     return null;
                 }
 
-                if (!PredefinedNodes.TryGetValue(nodeId, out var node)) {
+                if (!PredefinedNodes.TryGetValue(nodeId, out var node))
+                {
                     return null;
                 }
 
-                return new NodeHandle {
+                return new NodeHandle
+                {
                     NodeId = nodeId,
                     Node = node,
                     Validated = true
@@ -2137,14 +2295,17 @@ namespace Reference {
         protected override NodeState ValidateNode(
            ServerSystemContext context,
            NodeHandle handle,
-           IDictionary<NodeId, NodeState> cache) {
+           IDictionary<NodeId, NodeState> cache)
+        {
             // not valid if no root.
-            if (handle == null) {
+            if (handle == null)
+            {
                 return null;
             }
 
             // check if previously validated.
-            if (handle.Validated) {
+            if (handle.Validated)
+            {
                 return handle.Node;
             }
 

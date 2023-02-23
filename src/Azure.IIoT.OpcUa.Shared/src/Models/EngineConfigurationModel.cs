@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Publisher processing engine configuration
     /// </summary>
     [DataContract]
-    public sealed record class EngineConfigurationModel {
+    public sealed record class EngineConfigurationModel
+    {
         /// <summary>
         /// Number of subscription notifications that
 		/// when exceeded trigger the sending of a new

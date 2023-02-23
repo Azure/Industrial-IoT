@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
+namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -16,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
     /// <summary>
     /// Implementation of registry service api.
     /// </summary>
-    public sealed class RegistryServiceClient : IRegistryServiceApi {
+    public sealed class RegistryServiceClient : IRegistryServiceApi
+    {
         /// <summary>
         /// Create service client
         /// </summary>
@@ -25,7 +27,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serializer"></param>
         public RegistryServiceClient(IHttpClient httpClient, IServiceApiConfig config,
             ISerializer serializer) :
-            this(httpClient, config?.ServiceUrl, serializer) {
+            this(httpClient, config?.ServiceUrl, serializer)
+        {
         }
 
         /// <summary>
@@ -35,8 +38,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serviceUri"></param>
         /// <param name="serializer"></param>
         public RegistryServiceClient(IHttpClient httpClient, string serviceUri,
-            ISerializer serializer = null) {
-            if (string.IsNullOrWhiteSpace(serviceUri)) {
+            ISerializer serializer = null)
+        {
+            if (string.IsNullOrWhiteSpace(serviceUri))
+            {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the registry micro service.");
             }
@@ -46,26 +51,32 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<string> GetServiceStatusAsync(CancellationToken ct) {
+        public async Task<string> GetServiceStatusAsync(CancellationToken ct)
+        {
             var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
                 Resource.Platform);
-            try {
+            try
+            {
                 var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
                 return response.GetContentAsString();
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return ex.Message;
             }
         }
 
         /// <inheritdoc/>
         public async Task UpdateDiscovererAsync(string discovererId,
-            DiscovererUpdateModel content, CancellationToken ct) {
-            if (content == null) {
+            DiscovererUpdateModel content, CancellationToken ct)
+        {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(discovererId)) {
+            if (string.IsNullOrEmpty(discovererId))
+            {
                 throw new ArgumentNullException(nameof(discovererId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/discovery/{discovererId}",
@@ -77,13 +88,16 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<DiscovererListModel> ListDiscoverersAsync(
-            string continuation, int? pageSize, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct)
+        {
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery");
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (continuation != null) {
+            if (continuation != null)
+            {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SetAcceptHeaders(request);
@@ -95,10 +109,12 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <inheritdoc/>
         public async Task<DiscovererListModel> QueryDiscoverersAsync(
             DiscovererQueryModel query, int? pageSize,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery/query");
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SerializeToRequest(request, query);
@@ -109,8 +125,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<DiscovererModel> GetDiscovererAsync(
-            string discovererId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(discovererId)) {
+            string discovererId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(discovererId))
+            {
                 throw new ArgumentNullException(nameof(discovererId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}");
@@ -123,11 +141,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task SetDiscoveryModeAsync(string discovererId,
-            DiscoveryMode mode, DiscoveryConfigModel config, CancellationToken ct) {
-            if (string.IsNullOrEmpty(discovererId)) {
+            DiscoveryMode mode, DiscoveryConfigModel config, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(discovererId))
+            {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}") {
+            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}")
+            {
                 Query = $"mode={mode}"
             };
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
@@ -138,11 +159,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task UpdateSupervisorAsync(string supervisorId,
-            SupervisorUpdateModel content, CancellationToken ct) {
-            if (content == null) {
+            SupervisorUpdateModel content, CancellationToken ct)
+        {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(supervisorId)) {
+            if (string.IsNullOrEmpty(supervisorId))
+            {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/supervisors/{supervisorId}",
@@ -154,16 +178,20 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<SupervisorListModel> ListSupervisorsAsync(
-            string continuation, bool? onlyServerState, int? pageSize, CancellationToken ct) {
+            string continuation, bool? onlyServerState, int? pageSize, CancellationToken ct)
+        {
             var uri = new UriBuilder($"{_serviceUri}/v2/supervisors");
-            if (onlyServerState ?? false) {
+            if (onlyServerState ?? false)
+            {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (continuation != null) {
+            if (continuation != null)
+            {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SetAcceptHeaders(request);
@@ -175,13 +203,16 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <inheritdoc/>
         public async Task<SupervisorListModel> QuerySupervisorsAsync(
             SupervisorQueryModel query, bool? onlyServerState, int? pageSize,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             var uri = new UriBuilder($"{_serviceUri}/v2/supervisors/query");
-            if (onlyServerState ?? false) {
+            if (onlyServerState ?? false)
+            {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SerializeToRequest(request, query);
@@ -192,12 +223,15 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<SupervisorModel> GetSupervisorAsync(
-            string supervisorId, bool? onlyServerState, CancellationToken ct) {
-            if (string.IsNullOrEmpty(supervisorId)) {
+            string supervisorId, bool? onlyServerState, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(supervisorId))
+            {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/supervisors/{supervisorId}");
-            if (onlyServerState ?? false) {
+            if (onlyServerState ?? false)
+            {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
@@ -209,17 +243,21 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task RegisterAsync(ServerRegistrationRequestModel content,
-            CancellationToken ct) {
-            if (content == null) {
+            CancellationToken ct)
+        {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.DiscoveryUrl == null) {
+            if (content.DiscoveryUrl == null)
+            {
                 throw new ArgumentNullException(nameof(content.DiscoveryUrl));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
                 Resource.Platform);
             _serializer.SerializeToRequest(request, content);
-            if (request.Options.Timeout == null) {
+            if (request.Options.Timeout == null)
+            {
                 request.Options.Timeout = TimeSpan.FromMinutes(3);
             }
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
@@ -227,14 +265,17 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task DiscoverAsync(DiscoveryRequestModel content, CancellationToken ct) {
-            if (content == null) {
+        public async Task DiscoverAsync(DiscoveryRequestModel content, CancellationToken ct)
+        {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/discover",
                 Resource.Platform);
             _serializer.SerializeToRequest(request, content);
-            if (request.Options.Timeout == null) {
+            if (request.Options.Timeout == null)
+            {
                 request.Options.Timeout = TimeSpan.FromMinutes(3);
             }
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
@@ -242,8 +283,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task CancelAsync(DiscoveryCancelRequestModel content, CancellationToken ct) {
-            if (content?.Id == null) {
+        public async Task CancelAsync(DiscoveryCancelRequestModel content, CancellationToken ct)
+        {
+            if (content?.Id == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -254,11 +297,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationResponseModel> RegisterAsync(
-            ApplicationRegistrationRequestModel content, CancellationToken ct) {
-            if (content == null) {
+            ApplicationRegistrationRequestModel content, CancellationToken ct)
+        {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(content.ApplicationUri)) {
+            if (string.IsNullOrEmpty(content.ApplicationUri))
+            {
                 throw new ArgumentNullException(nameof(content.ApplicationUri));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
@@ -270,8 +316,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task EnableApplicationAsync(string applicationId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(applicationId)) {
+        public async Task EnableApplicationAsync(string applicationId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(applicationId))
+            {
                 throw new ArgumentNullException(nameof(applicationId));
             }
             var uri = $"{_serviceUri}/v2/applications/{applicationId}/enable";
@@ -281,8 +329,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task DisableApplicationAsync(string applicationId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(applicationId)) {
+        public async Task DisableApplicationAsync(string applicationId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(applicationId))
+            {
                 throw new ArgumentNullException(nameof(applicationId));
             }
             var uri = $"{_serviceUri}/v2/applications/{applicationId}/disable";
@@ -293,11 +343,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task UpdateApplicationAsync(string applicationId,
-            ApplicationRegistrationUpdateModel content, CancellationToken ct) {
-            if (content == null) {
+            ApplicationRegistrationUpdateModel content, CancellationToken ct)
+        {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(applicationId)) {
+            if (string.IsNullOrEmpty(applicationId))
+            {
                 throw new ArgumentNullException(nameof(applicationId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
@@ -309,8 +362,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationModel> GetApplicationAsync(
-            string applicationId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(applicationId)) {
+            string applicationId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(applicationId))
+            {
                 throw new ArgumentNullException(nameof(applicationId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
@@ -323,10 +378,12 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
-            ApplicationRegistrationQueryModel query, int? pageSize, CancellationToken ct) {
+            ApplicationRegistrationQueryModel query, int? pageSize, CancellationToken ct)
+        {
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/query",
                 Resource.Platform);
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SerializeToRequest(request, query);
@@ -337,13 +394,16 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> ListApplicationsAsync(
-            string continuation, int? pageSize, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct)
+        {
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
                 Resource.Platform);
-            if (continuation != null) {
+            if (continuation != null)
+            {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SetAcceptHeaders(request);
@@ -354,13 +414,16 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<ApplicationSiteListModel> ListSitesAsync(
-            string continuation, int? pageSize, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct)
+        {
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/sites",
                 Resource.Platform);
-            if (continuation != null) {
+            if (continuation != null)
+            {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SetAcceptHeaders(request);
@@ -370,8 +433,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task UnregisterApplicationAsync(string applicationId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(applicationId)) {
+        public async Task UnregisterApplicationAsync(string applicationId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(applicationId))
+            {
                 throw new ArgumentNullException(nameof(applicationId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
@@ -382,7 +447,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task PurgeDisabledApplicationsAsync(TimeSpan notSeenFor,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             var request = _httpClient.NewRequest(
                 $"{_serviceUri}/v2/applications?notSeenFor={notSeenFor}", Resource.Platform);
             var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
@@ -391,7 +457,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             var request = _httpClient.NewRequest(
                 $"{_serviceUri}/v2/endpoints", Resource.Platform);
 
@@ -403,16 +470,20 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<EndpointInfoListModel> ListEndpointsAsync(string continuation,
-            bool? onlyServerState, int? pageSize, CancellationToken ct) {
+            bool? onlyServerState, int? pageSize, CancellationToken ct)
+        {
             var uri = new UriBuilder($"{_serviceUri}/v2/endpoints");
-            if (onlyServerState ?? false) {
+            if (onlyServerState ?? false)
+            {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (continuation != null) {
+            if (continuation != null)
+            {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SetAcceptHeaders(request);
@@ -424,13 +495,16 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <inheritdoc/>
         public async Task<EndpointInfoListModel> QueryEndpointsAsync(
             EndpointRegistrationQueryModel query, bool? onlyServerState, int? pageSize,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             var uri = new UriBuilder($"{_serviceUri}/v2/endpoints/query");
-            if (onlyServerState ?? false) {
+            if (onlyServerState ?? false)
+            {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SerializeToRequest(request, query);
@@ -441,12 +515,15 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<EndpointInfoModel> GetEndpointAsync(string endpointId,
-            bool? onlyServerState, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            bool? onlyServerState, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/endpoints/{endpointId}");
-            if (onlyServerState ?? false) {
+            if (onlyServerState ?? false)
+            {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
@@ -458,8 +535,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
-            string endpointId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            string endpointId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/endpoints/{endpointId}/certificate");
@@ -471,8 +550,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task ConnectAsync(string endpointId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+        public async Task ConnectAsync(string endpointId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest(
@@ -482,8 +563,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task DisconnectAsync(string endpointId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+        public async Task DisconnectAsync(string endpointId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest(
@@ -494,16 +577,20 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublisherListModel> ListPublishersAsync(
-            string continuation, bool? onlyServerState, int? pageSize, CancellationToken ct) {
+            string continuation, bool? onlyServerState, int? pageSize, CancellationToken ct)
+        {
             var uri = new UriBuilder($"{_serviceUri}/v2/publishers");
-            if (onlyServerState ?? false) {
+            if (onlyServerState ?? false)
+            {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (continuation != null) {
+            if (continuation != null)
+            {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SetAcceptHeaders(request);
@@ -514,11 +601,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task UpdatePublisherAsync(string publisherId,
-            PublisherUpdateModel content, CancellationToken ct) {
-            if (content == null) {
+            PublisherUpdateModel content, CancellationToken ct)
+        {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(publisherId)) {
+            if (string.IsNullOrEmpty(publisherId))
+            {
                 throw new ArgumentNullException(nameof(publisherId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/publishers/{publisherId}",
@@ -531,13 +621,16 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <inheritdoc/>
         public async Task<PublisherListModel> QueryPublishersAsync(
             PublisherQueryModel query, bool? onlyServerState, int? pageSize,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             var uri = new UriBuilder($"{_serviceUri}/v2/publishers/query");
-            if (onlyServerState ?? false) {
+            if (onlyServerState ?? false)
+            {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SerializeToRequest(request, query);
@@ -548,12 +641,15 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublisherModel> GetPublisherAsync(
-            string publisherId, bool? onlyServerState, CancellationToken ct) {
-            if (string.IsNullOrEmpty(publisherId)) {
+            string publisherId, bool? onlyServerState, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(publisherId))
+            {
                 throw new ArgumentNullException(nameof(publisherId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/publishers/{publisherId}");
-            if (onlyServerState ?? false) {
+            if (onlyServerState ?? false)
+            {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
@@ -565,13 +661,16 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<GatewayListModel> ListGatewaysAsync(
-            string continuation, int? pageSize, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct)
+        {
             var uri = new UriBuilder($"{_serviceUri}/v2/gateways");
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (continuation != null) {
+            if (continuation != null)
+            {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SetAcceptHeaders(request);
@@ -582,11 +681,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task UpdateGatewayAsync(string gatewayId,
-            GatewayUpdateModel content, CancellationToken ct) {
-            if (content == null) {
+            GatewayUpdateModel content, CancellationToken ct)
+        {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(gatewayId)) {
+            if (string.IsNullOrEmpty(gatewayId))
+            {
                 throw new ArgumentNullException(nameof(gatewayId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/gateways/{gatewayId}",
@@ -598,10 +700,12 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<GatewayListModel> QueryGatewaysAsync(
-            GatewayQueryModel query, int? pageSize, CancellationToken ct) {
+            GatewayQueryModel query, int? pageSize, CancellationToken ct)
+        {
             var uri = new UriBuilder($"{_serviceUri}/v2/gateways/query");
             var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (pageSize != null) {
+            if (pageSize != null)
+            {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
             _serializer.SerializeToRequest(request, query);
@@ -612,8 +716,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<GatewayInfoModel> GetGatewayAsync(string gatewayId,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(gatewayId)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(gatewayId))
+            {
                 throw new ArgumentNullException(nameof(gatewayId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/gateways/{gatewayId}");

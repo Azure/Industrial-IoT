@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients {
+namespace Microsoft.Azure.IIoT.Auth.Clients
+{
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
-    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -15,7 +16,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// Use token client as token source
     /// </summary>
     public class TokenClientSource<T> : ITokenSource
-        where T : ITokenClient {
+        where T : ITokenClient
+    {
         /// <inheritdoc/>
         public string Resource { get; } = Http.Resource.Platform;
 
@@ -23,18 +25,21 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         public bool IsEnabled => _client.Supports(Resource);
 
         /// <inheritdoc/>
-        public TokenClientSource(T client) {
+        public TokenClientSource(T client)
+        {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenAsync(
-            IEnumerable<string> scopes = null) {
+            IEnumerable<string> scopes = null)
+        {
             return await Try.Async(() => _client.GetTokenForAsync(Resource, scopes)).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task InvalidateAsync() {
+        public async Task InvalidateAsync()
+        {
             await Try.Async(() => _client.InvalidateAsync(Resource)).ConfigureAwait(false);
         }
 

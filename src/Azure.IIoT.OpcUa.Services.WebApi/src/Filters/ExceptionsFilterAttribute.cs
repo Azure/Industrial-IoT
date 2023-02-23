@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Filters {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Filters
+{
     using Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Filters;
@@ -23,23 +24,30 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters {
     /// for an easier parsing.
     /// @see https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/filters
     /// </summary>
-    public class ExceptionsFilterAttribute : ExceptionFilterAttribute {
+    public class ExceptionsFilterAttribute : ExceptionFilterAttribute
+    {
         /// <inheritdoc />
-        public override void OnException(ExceptionContext context) {
-            if (context.Exception == null) {
+        public override void OnException(ExceptionContext context)
+        {
+            if (context.Exception == null)
+            {
                 base.OnException(context);
                 return;
             }
-            if (context.Exception is AggregateException ae) {
+            if (context.Exception is AggregateException ae)
+            {
                 var root = ae.GetBaseException();
-                if (root is AggregateException) {
+                if (root is AggregateException)
+                {
                     context.Exception = ae.InnerExceptions[0];
                 }
-                else {
+                else
+                {
                     context.Exception = root;
                 }
             }
-            switch (context.Exception) {
+            switch (context.Exception)
+            {
                 case ResourceNotFoundException re:
                     context.Result = GetResponse(HttpStatusCode.NotFound,
                         context.Exception);
@@ -121,12 +129,15 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters {
         }
 
         /// <inheritdoc />
-        public override Task OnExceptionAsync(ExceptionContext context) {
-            try {
+        public override Task OnExceptionAsync(ExceptionContext context)
+        {
+            try
+            {
                 OnException(context);
                 return Task.CompletedTask;
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 return base.OnExceptionAsync(context);
             }
         }
@@ -137,8 +148,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters {
         /// <param name="code"></param>
         /// <param name="exception"></param>
         /// <returns></returns>
-        private static ObjectResult GetResponse(HttpStatusCode code, Exception exception) {
-            return new ObjectResult(exception) {
+        private static ObjectResult GetResponse(HttpStatusCode code, Exception exception)
+        {
+            return new ObjectResult(exception)
+            {
                 StatusCode = (int)code
             };
         }

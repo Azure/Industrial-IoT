@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Encodeable Network message
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
-    public abstract class BaseNetworkMessage : PubSubMessage {
+    public abstract class BaseNetworkMessage : PubSubMessage
+    {
         /// <summary>
         /// Message content
         /// </summary>
@@ -29,25 +31,31 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         public List<BaseDataSetMessage> Messages { get; set; } = new List<BaseDataSetMessage>();
 
         /// <inheritdoc/>
-        public override bool Equals(object value) {
-            if (ReferenceEquals(this, value)) {
+        public override bool Equals(object value)
+        {
+            if (ReferenceEquals(this, value))
+            {
                 return true;
             }
-            if (!(value is BaseNetworkMessage wrapper)) {
+            if (!(value is BaseNetworkMessage wrapper))
+            {
                 return false;
             }
-            if (!base.Equals(value)) {
+            if (!base.Equals(value))
+            {
                 return false;
             }
             if (!Utils.IsEqual(wrapper.DataSetClassId, DataSetClassId) ||
-                !Utils.IsEqual(wrapper.Messages, Messages)) {
+                !Utils.IsEqual(wrapper.Messages, Messages))
+            {
                 return false;
             }
             return true;
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
             hash.Add(DataSetClassId);

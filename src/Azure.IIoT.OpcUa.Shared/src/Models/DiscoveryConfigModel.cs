@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Discovery configuration api model
     /// </summary>
     [DataContract]
-    public sealed record class DiscoveryConfigModel {
+    public sealed record class DiscoveryConfigModel
+    {
         /// <summary>
         /// Address ranges to scan (null == all wired nics)
         /// </summary>
@@ -25,7 +27,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [IgnoreDataMember]
         [Obsolete("Use NetworkProbeTimeout")]
-        public int? NetworkProbeTimeoutMs {
+        public int? NetworkProbeTimeoutMs
+        {
             get => (int?)NetworkProbeTimeout?.TotalMilliseconds;
             set => NetworkProbeTimeout = value != null ?
                 TimeSpan.FromMilliseconds(value.Value) : null;
@@ -57,7 +60,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [IgnoreDataMember]
         [Obsolete("Use PortProbeTimeout")]
-        public int? PortProbeTimeoutMs {
+        public int? PortProbeTimeoutMs
+        {
             get => (int?)PortProbeTimeout?.TotalMilliseconds;
             set => PortProbeTimeout = value != null ?
                 TimeSpan.FromMilliseconds(value.Value) : null;
@@ -89,7 +93,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [IgnoreDataMember]
         [Obsolete("Use IdleTimeBetweenScans")]
-        public int? IdleTimeBetweenScansSec {
+        public int? IdleTimeBetweenScansSec
+        {
             get => (int?)IdleTimeBetweenScans?.TotalSeconds;
             set => IdleTimeBetweenScans = value != null ?
                 TimeSpan.FromSeconds(value.Value) : null;

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Writer group message configuration
     /// </summary>
     [DataContract]
-    public sealed record class WriterGroupMessageSettingsModel {
+    public sealed record class WriterGroupMessageSettingsModel
+    {
         /// <summary>
         /// Network message content
         /// </summary>

@@ -2,7 +2,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
+namespace Azure.IIoT.OpcUa.Shared.Models.Tests
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Collections.Generic;
@@ -13,14 +14,17 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
     /// <summary>
     /// Helper
     /// </summary>
-    public static class TypeFixture {
-        public static IEnumerable<object[]> GetDataContractTypes() {
+    public static class TypeFixture
+    {
+        public static IEnumerable<object[]> GetDataContractTypes()
+        {
             return GetAllModelTypes<BrowseDirection>()
                 .Distinct()
                 .Select(t => new object[] { t });
         }
 
-        public static IEnumerable<Type> GetAllModelTypes<T>() {
+        public static IEnumerable<Type> GetAllModelTypes<T>()
+        {
             return typeof(T).Assembly.GetExportedTypes()
                 .Where(t => t.GetCustomAttribute<DataContractAttribute>() != null
                     && t.GetGenericArguments().Length == 0);

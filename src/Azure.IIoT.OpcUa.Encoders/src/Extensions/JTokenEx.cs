@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders {
+namespace Azure.IIoT.OpcUa.Encoders
+{
     using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
 
     /// <summary>
     /// Json token extensions
     /// </summary>
-    public static class JTokenEx {
+    public static class JTokenEx
+    {
         /// <summary>
         /// Returns dimensions of the multi dimensional array assuming
         /// it is not jagged.
@@ -18,11 +20,14 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <param name="array"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static int[] GetDimensions(this JArray array, out JTokenType type) {
+        public static int[] GetDimensions(this JArray array, out JTokenType type)
+        {
             var dimensions = new List<int>();
             type = JTokenType.Undefined;
-            while (true) {
-                if (array == null || array.Count == 0) {
+            while (true)
+            {
+                if (array == null || array.Count == 0)
+                {
                     break;
                 }
                 dimensions.Add(array.Count);

@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub {
+namespace Microsoft.Azure.IIoT.Hub
+{
     /// <summary>
     /// Industrial IoT identity types
     /// </summary>
-    public static class IdentityType {
+    public static class IdentityType
+    {
         /// <summary>
         /// Gateway identity
         /// </summary>

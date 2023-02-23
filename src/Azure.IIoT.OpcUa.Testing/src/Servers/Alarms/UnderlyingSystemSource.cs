@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Alarms {
+namespace Alarms
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -35,11 +36,13 @@ namespace Alarms {
     /// <summary>
     /// This class simulates a source in the system.
     /// </summary>
-    public class UnderlyingSystemSource {
+    public class UnderlyingSystemSource
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="UnderlyingSystemSource"/> class.
         /// </summary>
-        public UnderlyingSystemSource() {
+        public UnderlyingSystemSource()
+        {
             _alarms = new List<UnderlyingSystemAlarm>();
             _archive = new Dictionary<uint, UnderlyingSystemAlarm>();
         }
@@ -72,8 +75,10 @@ namespace Alarms {
         /// </summary>
         /// <param name="alarmName">Name of the alarm.</param>
         /// <param name="alarmType">Type of the alarm.</param>
-        public void CreateAlarm(string alarmName, string alarmType) {
-            var alarm = new UnderlyingSystemAlarm {
+        public void CreateAlarm(string alarmName, string alarmType)
+        {
+            var alarm = new UnderlyingSystemAlarm
+            {
                 Source = this,
                 Name = alarmName,
                 AlarmType = alarmType,
@@ -88,21 +93,25 @@ namespace Alarms {
                 ActiveTime = DateTime.UtcNow
             };
 
-            switch (alarmType) {
-                case "HighAlarm": {
+            switch (alarmType)
+            {
+                case "HighAlarm":
+                    {
                         alarm.Limits = new double[] { 80 };
                         alarm.State |= UnderlyingSystemAlarmStates.High;
                         break;
                     }
 
-                case "HighLowAlarm": {
+                case "HighLowAlarm":
+                    {
                         alarm.Limits = new double[] { 90, 70, 30, 10 };
                         alarm.State |= UnderlyingSystemAlarmStates.High;
                         break;
                     }
             }
 
-            lock (_alarms) {
+            lock (_alarms)
+            {
                 _alarms.Add(alarm);
             }
         }
@@ -112,27 +121,34 @@ namespace Alarms {
         /// </summary>
         /// <param name="alarmName">Name of the alarm.</param>
         /// <param name="enabling">if set to <c>true</c> the alarm is enabled.</param>
-        public void EnableAlarm(string alarmName, bool enabling) {
+        public void EnableAlarm(string alarmName, bool enabling)
+        {
             var snapshots = new List<UnderlyingSystemAlarm>();
 
-            lock (_alarms) {
+            lock (_alarms)
+            {
                 var alarm = FindAlarm(alarmName, 0);
 
-                if (alarm != null) {
+                if (alarm != null)
+                {
                     // enable/disable the alarm.
-                    if (alarm.SetStateBits(UnderlyingSystemAlarmStates.Enabled, enabling)) {
+                    if (alarm.SetStateBits(UnderlyingSystemAlarmStates.Enabled, enabling))
+                    {
                         alarm.Time = alarm.EnableTime = DateTime.UtcNow;
                         alarm.Reason = "The alarm was " + (enabling ? "enabled." : "disabled.");
                         snapshots.Add(alarm.CreateSnapshot());
                     }
 
                     // enable/disable any archived records for the alarm.
-                    foreach (var record in _archive.Values) {
-                        if (record.Name != alarmName) {
+                    foreach (var record in _archive.Values)
+                    {
+                        if (record.Name != alarmName)
+                        {
                             continue;
                         }
 
-                        if (record.SetStateBits(UnderlyingSystemAlarmStates.Enabled, enabling)) {
+                        if (record.SetStateBits(UnderlyingSystemAlarmStates.Enabled, enabling))
+                        {
                             record.Time = alarm.EnableTime = DateTime.UtcNow;
                             record.Reason = "The alarm was " + (enabling ? "enabled." : "disabled.");
                             snapshots.Add(alarm.CreateSnapshot());
@@ -142,7 +158,8 @@ namespace Alarms {
             }
 
             // report any alarm changes after releasing the lock.
-            for (var ii = 0; ii < snapshots.Count; ii++) {
+            for (var ii = 0; ii < snapshots.Count; ii++)
+            {
                 ReportAlarmChange(snapshots[ii]);
             }
         }
@@ -154,19 +171,23 @@ namespace Alarms {
         /// <param name="recordNumber">The record number.</param>
         /// <param name="comment">The comment.</param>
         /// <param name="userName">Name of the user.</param>
-        public void CommentAlarm(string alarmName, uint recordNumber, LocalizedText comment, string userName) {
+        public void CommentAlarm(string alarmName, uint recordNumber, LocalizedText comment, string userName)
+        {
             UnderlyingSystemAlarm snapshot = null;
 
-            lock (_alarms) {
+            lock (_alarms)
+            {
                 var alarm = FindAlarm(alarmName, recordNumber);
 
-                if (alarm != null) {
+                if (alarm != null)
+                {
                     alarm.Time = DateTime.UtcNow;
                     alarm.Reason = "A comment was added.";
                     alarm.UserName = userName;
 
                     // only change the comment if a non-null comment was provided.
-                    if (comment != null && (!string.IsNullOrEmpty(comment.Text) || !string.IsNullOrEmpty(comment.Locale))) {
+                    if (comment != null && (!string.IsNullOrEmpty(comment.Text) || !string.IsNullOrEmpty(comment.Locale)))
+                    {
                         alarm.Comment = Utils.Format("{0}", comment);
                     }
 
@@ -174,7 +195,8 @@ namespace Alarms {
                 }
             }
 
-            if (snapshot != null) {
+            if (snapshot != null)
+            {
                 ReportAlarmChange(snapshot);
             }
         }
@@ -186,14 +208,18 @@ namespace Alarms {
         /// <param name="recordNumber">The record number.</param>
         /// <param name="comment">The comment.</param>
         /// <param name="userName">Name of the user.</param>
-        public void AcknowledgeAlarm(string alarmName, uint recordNumber, LocalizedText comment, string userName) {
+        public void AcknowledgeAlarm(string alarmName, uint recordNumber, LocalizedText comment, string userName)
+        {
             UnderlyingSystemAlarm snapshot = null;
 
-            lock (_alarms) {
+            lock (_alarms)
+            {
                 var alarm = FindAlarm(alarmName, recordNumber);
 
-                if (alarm != null) {
-                    if (alarm.SetStateBits(UnderlyingSystemAlarmStates.Acknowledged, true)) {
+                if (alarm != null)
+                {
+                    if (alarm.SetStateBits(UnderlyingSystemAlarmStates.Acknowledged, true))
+                    {
                         alarm.Time = DateTime.UtcNow;
                         alarm.Reason = "The alarm was acknoweledged.";
                         alarm.Comment = Utils.Format("{0}", comment);
@@ -206,7 +232,8 @@ namespace Alarms {
                 }
             }
 
-            if (snapshot != null) {
+            if (snapshot != null)
+            {
                 ReportAlarmChange(snapshot);
             }
         }
@@ -218,27 +245,33 @@ namespace Alarms {
         /// <param name="recordNumber">The record number.</param>
         /// <param name="comment">The comment.</param>
         /// <param name="userName">Name of the user.</param>
-        public void ConfirmAlarm(string alarmName, uint recordNumber, LocalizedText comment, string userName) {
+        public void ConfirmAlarm(string alarmName, uint recordNumber, LocalizedText comment, string userName)
+        {
             UnderlyingSystemAlarm snapshot = null;
 
-            lock (_alarms) {
+            lock (_alarms)
+            {
                 var alarm = FindAlarm(alarmName, recordNumber);
 
-                if (alarm != null) {
-                    if (alarm.SetStateBits(UnderlyingSystemAlarmStates.Confirmed, true)) {
+                if (alarm != null)
+                {
+                    if (alarm.SetStateBits(UnderlyingSystemAlarmStates.Confirmed, true))
+                    {
                         alarm.Time = DateTime.UtcNow;
                         alarm.Reason = "The alarm was confirmed.";
                         alarm.Comment = Utils.Format("{0}", comment);
                         alarm.UserName = userName;
 
                         // remove branch.
-                        if (recordNumber != 0) {
+                        if (recordNumber != 0)
+                        {
                             _archive.Remove(recordNumber);
                             alarm.SetStateBits(UnderlyingSystemAlarmStates.Deleted, true);
                         }
 
                         // de-activate alarm.
-                        else {
+                        else
+                        {
                             alarm.SetStateBits(UnderlyingSystemAlarmStates.Active, false);
                         }
                     }
@@ -247,7 +280,8 @@ namespace Alarms {
                 }
             }
 
-            if (snapshot != null) {
+            if (snapshot != null)
+            {
                 ReportAlarmChange(snapshot);
             }
         }
@@ -255,18 +289,22 @@ namespace Alarms {
         /// <summary>
         /// Reports the current state of all conditions.
         /// </summary>
-        public void Refresh() {
+        public void Refresh()
+        {
             var snapshots = new List<UnderlyingSystemAlarm>();
 
-            lock (_alarms) {
-                for (var ii = 0; ii < _alarms.Count; ii++) {
+            lock (_alarms)
+            {
+                for (var ii = 0; ii < _alarms.Count; ii++)
+                {
                     var alarm = _alarms[ii];
                     snapshots.Add(alarm.CreateSnapshot());
                 }
             }
 
             // report any alarm changes after releasing the lock.
-            for (var ii = 0; ii < snapshots.Count; ii++) {
+            for (var ii = 0; ii < snapshots.Count; ii++)
+            {
                 ReportAlarmChange(snapshots[ii]);
             }
         }
@@ -275,20 +313,25 @@ namespace Alarms {
         /// Sets the state of the source (surpresses any active alarms).
         /// </summary>
         /// <param name="offline">if set to <c>true</c> the source is offline.</param>
-        public void SetOfflineState(bool offline) {
+        public void SetOfflineState(bool offline)
+        {
             IsOffline = offline;
             var snapshots = new List<UnderlyingSystemAlarm>();
 
-            lock (_alarms) {
-                for (var ii = 0; ii < _alarms.Count; ii++) {
+            lock (_alarms)
+            {
+                for (var ii = 0; ii < _alarms.Count; ii++)
+                {
                     var alarm = _alarms[ii];
 
-                    if (alarm.SetStateBits(UnderlyingSystemAlarmStates.Suppressed, offline)) {
+                    if (alarm.SetStateBits(UnderlyingSystemAlarmStates.Suppressed, offline))
+                    {
                         alarm.Time = alarm.EnableTime = DateTime.UtcNow;
                         alarm.Reason = "The alarm was " + (offline ? "suppressed." : "unsuppressed.");
 
                         // check if the alarm change should be reported.
-                        if ((alarm.State & UnderlyingSystemAlarmStates.Enabled) != 0) {
+                        if ((alarm.State & UnderlyingSystemAlarmStates.Enabled) != 0)
+                        {
                             snapshots.Add(alarm.CreateSnapshot());
                         }
                     }
@@ -296,7 +339,8 @@ namespace Alarms {
             }
 
             // report any alarm changes after releasing the lock.
-            for (var ii = 0; ii < snapshots.Count; ii++) {
+            for (var ii = 0; ii < snapshots.Count; ii++)
+            {
                 ReportAlarmChange(snapshots[ii]);
             }
         }
@@ -317,23 +361,29 @@ namespace Alarms {
         /// </summary>
         /// <param name="counter">The number of simulation cycles that have elapsed.</param>
         /// <param name="index">The index of the source within the system.</param>
-        public void DoSimulation(long counter, int index) {
-            try {
+        public void DoSimulation(long counter, int index)
+        {
+            try
+            {
                 var snapshots = new List<UnderlyingSystemAlarm>();
 
                 // update the alarms.
-                lock (_alarms) {
-                    for (var ii = 0; ii < _alarms.Count; ii++) {
+                lock (_alarms)
+                {
+                    for (var ii = 0; ii < _alarms.Count; ii++)
+                    {
                         UpdateAlarm(_alarms[ii], counter, ii + index, snapshots);
                     }
                 }
 
                 // report any alarm changes after releasing the lock.
-                for (var ii = 0; ii < snapshots.Count; ii++) {
+                for (var ii = 0; ii < snapshots.Count; ii++)
+                {
                     ReportAlarmChange(snapshots[ii]);
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Unexpected error running simulation for source {0}", SourcePath);
             }
         }
@@ -344,11 +394,15 @@ namespace Alarms {
         /// <param name="alarmName">Name of the alarm.</param>
         /// <param name="recordNumber">The record number associated with the alarm.</param>
         /// <returns>The alarm if null; otherwise null.</returns>
-        private UnderlyingSystemAlarm FindAlarm(string alarmName, uint recordNumber) {
-            lock (_alarms) {
+        private UnderlyingSystemAlarm FindAlarm(string alarmName, uint recordNumber)
+        {
+            lock (_alarms)
+            {
                 // look up archived alarm.
-                if (recordNumber != 0) {
-                    if (!_archive.TryGetValue(recordNumber, out var alarm)) {
+                if (recordNumber != 0)
+                {
+                    if (!_archive.TryGetValue(recordNumber, out var alarm))
+                    {
                         return null;
                     }
 
@@ -356,10 +410,12 @@ namespace Alarms {
                 }
 
                 // look up alarm.
-                for (var ii = 0; ii < _alarms.Count; ii++) {
+                for (var ii = 0; ii < _alarms.Count; ii++)
+                {
                     var alarm = _alarms[ii];
 
-                    if (alarm.Name == alarmName) {
+                    if (alarm.Name == alarmName)
+                    {
                         return alarm;
                     }
                 }
@@ -372,12 +428,16 @@ namespace Alarms {
         /// Reports a change to an alarm record.
         /// </summary>
         /// <param name="alarm">The alarm.</param>
-        private void ReportAlarmChange(UnderlyingSystemAlarm alarm) {
-            if (OnAlarmChanged != null) {
-                try {
+        private void ReportAlarmChange(UnderlyingSystemAlarm alarm)
+        {
+            if (OnAlarmChanged != null)
+            {
+                try
+                {
                     OnAlarmChanged(alarm);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     Utils.Trace(e, "Unexpected error reporting change to an Alarm for Source {0}.", SourcePath);
                 }
             }
@@ -386,18 +446,22 @@ namespace Alarms {
         /// <summary>
         /// Updates the state of an alarm.
         /// </summary>
-        private void UpdateAlarm(UnderlyingSystemAlarm alarm, long counter, int index, List<UnderlyingSystemAlarm> snapshots) {
+        private void UpdateAlarm(UnderlyingSystemAlarm alarm, long counter, int index, List<UnderlyingSystemAlarm> snapshots)
+        {
             string reason = null;
 
             // ignore disabled alarms.
-            if ((alarm.State & UnderlyingSystemAlarmStates.Enabled) == 0) {
+            if ((alarm.State & UnderlyingSystemAlarmStates.Enabled) == 0)
+            {
                 return;
             }
 
             // check if the alarm needs to be updated this cycle.
-            if (counter % (8 + (index % 4)) == 0) {
+            if (counter % (8 + (index % 4)) == 0)
+            {
                 // check if it is time to activate.
-                if ((alarm.State & UnderlyingSystemAlarmStates.Active) == 0) {
+                if ((alarm.State & UnderlyingSystemAlarmStates.Active) == 0)
+                {
                     reason = "The alarm is active.";
 
                     alarm.SetStateBits(UnderlyingSystemAlarmStates.Active, true);
@@ -405,14 +469,17 @@ namespace Alarms {
                     alarm.Severity = EventSeverity.Low;
                     alarm.ActiveTime = DateTime.UtcNow;
 
-                    switch (alarm.AlarmType) {
-                        case "HighAlarm": {
+                    switch (alarm.AlarmType)
+                    {
+                        case "HighAlarm":
+                            {
                                 alarm.SetStateBits(UnderlyingSystemAlarmStates.Limits, false);
                                 alarm.SetStateBits(UnderlyingSystemAlarmStates.High, true);
                                 break;
                             }
 
-                        case "HighLowAlarm": {
+                        case "HighLowAlarm":
+                            {
                                 alarm.SetStateBits(UnderlyingSystemAlarmStates.Limits, false);
                                 alarm.SetStateBits(UnderlyingSystemAlarmStates.Low, true);
                                 break;
@@ -421,24 +488,31 @@ namespace Alarms {
                 }
 
                 // bump the severity.
-                else if ((alarm.State & UnderlyingSystemAlarmStates.Acknowledged) == 0) {
-                    if (alarm.Severity < EventSeverity.High) {
+                else if ((alarm.State & UnderlyingSystemAlarmStates.Acknowledged) == 0)
+                {
+                    if (alarm.Severity < EventSeverity.High)
+                    {
                         reason = "The alarm severity has increased.";
 
                         var values = Enum.GetValues(typeof(EventSeverity));
 
-                        for (var ii = 0; ii < values.Length; ii++) {
+                        for (var ii = 0; ii < values.Length; ii++)
+                        {
                             var severity = (EventSeverity)values.GetValue(ii);
 
-                            if (severity > alarm.Severity) {
+                            if (severity > alarm.Severity)
+                            {
                                 alarm.Severity = severity;
                                 break;
                             }
                         }
 
-                        if (alarm.Severity > EventSeverity.Medium) {
-                            switch (alarm.AlarmType) {
-                                case "HighLowAlarm": {
+                        if (alarm.Severity > EventSeverity.Medium)
+                        {
+                            switch (alarm.AlarmType)
+                            {
+                                case "HighLowAlarm":
+                                    {
                                         alarm.SetStateBits(UnderlyingSystemAlarmStates.Limits, false);
                                         alarm.SetStateBits(UnderlyingSystemAlarmStates.LowLow, true);
                                         break;
@@ -448,19 +522,24 @@ namespace Alarms {
                     }
 
                     // give up on the alarm.
-                    else {
+                    else
+                    {
                         // create an archived state that needs to be acknowledged.
-                        if (alarm.AlarmType == "TripAlarm") {
+                        if (alarm.AlarmType == "TripAlarm")
+                        {
                             // check the number of archived states.
                             var count = 0;
 
-                            foreach (var record in _archive.Values) {
-                                if (record.Name == alarm.Name) {
+                            foreach (var record in _archive.Values)
+                            {
+                                if (record.Name == alarm.Name)
+                                {
                                     count++;
                                 }
                             }
                             // limit the number of archived states to avoid filling up the display.
-                            if (count < 2) {
+                            if (count < 2)
+                            {
                                 // archive the current state.
                                 var snapshot = alarm.CreateSnapshot();
                                 snapshot.RecordNumber = ++_nextRecordNumber;
@@ -479,7 +558,8 @@ namespace Alarms {
             }
 
             // update the reason.
-            if (reason != null) {
+            if (reason != null)
+            {
                 alarm.Time = DateTime.UtcNow;
                 alarm.Reason = reason;
 

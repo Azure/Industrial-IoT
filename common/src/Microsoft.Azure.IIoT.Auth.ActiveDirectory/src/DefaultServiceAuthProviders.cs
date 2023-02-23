@@ -3,15 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Runtime {
+namespace Microsoft.Azure.IIoT.Auth.Runtime
+{
     using Autofac;
 
     /// <summary>
     /// Register default authentication providers
     /// </summary>
-    public class DefaultServiceAuthProviders : Module {
+    public class DefaultServiceAuthProviders : Module
+    {
         /// <inheritdoc/>
-        protected override void Load(ContainerBuilder builder) {
+        protected override void Load(ContainerBuilder builder)
+        {
             builder.RegisterType<ServiceAuthAggregateConfig>()
                 .AsImplementedInterfaces();
             builder.RegisterType<ClientAuthAggregateConfig>()

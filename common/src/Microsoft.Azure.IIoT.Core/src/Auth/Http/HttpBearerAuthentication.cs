@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http.Auth {
+namespace Microsoft.Azure.IIoT.Http.Auth
+{
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Extensions.Logging;
     using System;
@@ -17,24 +18,29 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
     /// <summary>
     /// Bearer authentication handler
     /// </summary>
-    public class HttpBearerAuthentication : HttpMessageHandlerBase {
+    public class HttpBearerAuthentication : HttpMessageHandlerBase
+    {
         /// <summary>
         /// Create bearer auth handler
         /// </summary>
         /// <param name="provider"></param>
         /// <param name="logger"></param>
-        public HttpBearerAuthentication(ITokenProvider provider, ILogger logger) {
+        public HttpBearerAuthentication(ITokenProvider provider, ILogger logger)
+        {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public override async Task OnRequestAsync(string resourceId, Uri requestUri,
-            HttpRequestHeaders headers, HttpContent content, CancellationToken ct) {
-            if (headers == null) {
+            HttpRequestHeaders headers, HttpContent content, CancellationToken ct)
+        {
+            if (headers == null)
+            {
                 throw new ArgumentNullException(nameof(headers));
             }
-            if (!string.IsNullOrEmpty(resourceId)) {
+            if (!string.IsNullOrEmpty(resourceId))
+            {
                 //
                 // TODO: Eventually we also need scopes/desired permissions
                 // for the token, e.g. read, read/write, etc.
@@ -47,11 +53,13 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
                 var result = await _provider.GetTokenForAsync(resourceId,
                     desiredPermissions).ConfigureAwait(false);
 
-                if (result?.RawToken != null) {
+                if (result?.RawToken != null)
+                {
                     headers.Authorization = new AuthenticationHeaderValue(
                         "Bearer", result.RawToken);
                 }
-                else {
+                else
+                {
                     _logger.LogError("Failed to aquire token calling " +
                         "{Request} ({Resource}) - calling without...",
                         requestUri, resourceId);
@@ -62,13 +70,17 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
         /// <inheritdoc/>
         public override async Task OnResponseAsync(string resourceId, Uri requestUri,
             HttpStatusCode statusCode, HttpResponseHeaders headers, HttpContent content,
-            CancellationToken ct) {
-            if (headers == null) {
+            CancellationToken ct)
+        {
+            if (headers == null)
+            {
                 throw new ArgumentNullException(nameof(headers));
             }
 
-            if (resourceId != null) {
-                if (statusCode == HttpStatusCode.Unauthorized) {
+            if (resourceId != null)
+            {
+                if (statusCode == HttpStatusCode.Unauthorized)
+                {
                     await _provider.InvalidateAsync(resourceId).ConfigureAwait(false);
                 }
             }

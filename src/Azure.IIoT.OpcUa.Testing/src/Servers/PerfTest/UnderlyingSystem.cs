@@ -27,27 +27,33 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace PerfTest {
+namespace PerfTest
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
     using System.Threading;
 
-    public class UnderlyingSystem {
-        public void Initialize() {
+    public class UnderlyingSystem
+    {
+        public void Initialize()
+        {
             _registers = new List<MemoryRegister>();
             var register1 = new MemoryRegister();
             register1.Initialize(1, "R1", 50000);
             _registers.Add(register1);
         }
 
-        public IList<MemoryRegister> GetRegisters() {
+        public IList<MemoryRegister> GetRegisters()
+        {
             return _registers;
         }
 
-        public MemoryRegister GetRegister(int id) {
-            if (id > 0 && id <= _registers.Count) {
+        public MemoryRegister GetRegister(int id)
+        {
+            if (id > 0 && id <= _registers.Count)
+            {
                 return _registers[id - 1];
             }
 
@@ -57,45 +63,56 @@ namespace PerfTest {
         private List<MemoryRegister> _registers;
     }
 
-    public class MemoryRegister {
+    public class MemoryRegister
+    {
         public int Id { get; private set; }
 
         public string Name { get; private set; }
 
         public int Size => _values.Length;
 
-        public void Initialize(int id, string name, int size) {
+        public void Initialize(int id, string name, int size)
+        {
             Id = id;
             Name = name;
             _values = new int[size];
             _monitoredItems = new IDataChangeMonitoredItem2[size][];
         }
 
-        public int Read(int index) {
-            if (index >= 0 && index < _values.Length) {
+        public int Read(int index)
+        {
+            if (index >= 0 && index < _values.Length)
+            {
                 return _values[index];
             }
 
             return 0;
         }
 
-        public void Write(int index, int value) {
-            if (index >= 0 && index < _values.Length) {
+        public void Write(int index, int value)
+        {
+            if (index >= 0 && index < _values.Length)
+            {
                 _values[index] = value;
             }
         }
 
-        public void Subscribe(int index, IDataChangeMonitoredItem2 monitoredItem) {
-            lock (_lock) {
+        public void Subscribe(int index, IDataChangeMonitoredItem2 monitoredItem)
+        {
+            lock (_lock)
+            {
                 _timer ??= new Timer(OnUpdate, null, 45, 45);
 
-                if (index >= 0 && index < _values.Length) {
+                if (index >= 0 && index < _values.Length)
+                {
                     var monitoredItems = _monitoredItems[index];
 
-                    if (monitoredItems == null) {
+                    if (monitoredItems == null)
+                    {
                         _monitoredItems[index] = monitoredItems = new IDataChangeMonitoredItem2[1];
                     }
-                    else {
+                    else
+                    {
                         _monitoredItems[index] = new IDataChangeMonitoredItem2[monitoredItems.Length + 1];
                         Array.Copy(monitoredItems, _monitoredItems[index], monitoredItems.Length);
                         monitoredItems = _monitoredItems[index];
@@ -106,21 +123,29 @@ namespace PerfTest {
             }
         }
 
-        public void Unsubscribe(int index, IDataChangeMonitoredItem2 monitoredItem) {
-            lock (_lock) {
-                if (index >= 0 && index < _values.Length) {
+        public void Unsubscribe(int index, IDataChangeMonitoredItem2 monitoredItem)
+        {
+            lock (_lock)
+            {
+                if (index >= 0 && index < _values.Length)
+                {
                     var monitoredItems = _monitoredItems[index];
 
-                    if (monitoredItems != null) {
-                        for (var ii = 0; ii < monitoredItems.Length; ii++) {
-                            if (ReferenceEquals(monitoredItems[ii], monitoredItem)) {
+                    if (monitoredItems != null)
+                    {
+                        for (var ii = 0; ii < monitoredItems.Length; ii++)
+                        {
+                            if (ReferenceEquals(monitoredItems[ii], monitoredItem))
+                            {
                                 _monitoredItems[index] = new IDataChangeMonitoredItem2[monitoredItems.Length - 1];
 
-                                if (ii > 0) {
+                                if (ii > 0)
+                                {
                                     Array.Copy(monitoredItems, _monitoredItems[index], ii);
                                 }
 
-                                if (ii < monitoredItems.Length - 1) {
+                                if (ii < monitoredItems.Length - 1)
+                                {
                                     Array.Copy(monitoredItems, ii + 1, _monitoredItems[index], 0, monitoredItems.Length - ii - 1);
                                 }
 
@@ -133,26 +158,33 @@ namespace PerfTest {
             }
         }
 
-        private void OnUpdate(object state) {
-            try {
-                lock (_lock) {
+        private void OnUpdate(object state)
+        {
+            try
+            {
+                lock (_lock)
+                {
                     var start = HiResClock.UtcNow;
                     var delta = _values.Length / 2;
 
-                    var value = new DataValue {
+                    var value = new DataValue
+                    {
                         ServerTimestamp = DateTime.UtcNow,
                         SourceTimestamp = DateTime.UtcNow
                     };
 
-                    for (var ii = _start; ii < delta + _start && ii < _values.Length; ii++) {
+                    for (var ii = _start; ii < delta + _start && ii < _values.Length; ii++)
+                    {
                         _values[ii] += ii + 1;
 
                         var monitoredItems = _monitoredItems[ii];
 
-                        if (monitoredItems != null) {
+                        if (monitoredItems != null)
+                        {
                             value.WrappedValue = new Variant(_values[ii]);
 
-                            for (var jj = 0; jj < monitoredItems.Length; jj++) {
+                            for (var jj = 0; jj < monitoredItems.Length; jj++)
+                            {
                                 monitoredItems[jj].QueueValue(value, null, true);
                             }
                         }
@@ -160,16 +192,19 @@ namespace PerfTest {
 
                     _start += delta;
 
-                    if (_start >= _values.Length) {
+                    if (_start >= _values.Length)
+                    {
                         _start = 0;
                     }
 
-                    if ((HiResClock.UtcNow - start).TotalMilliseconds > 50) {
+                    if ((HiResClock.UtcNow - start).TotalMilliseconds > 50)
+                    {
                         Utils.Trace("Update took {0}ms.", (HiResClock.UtcNow - start).TotalMilliseconds);
                     }
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Unexpected error updating items.");
             }
         }

@@ -3,13 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Extensions {
+namespace Opc.Ua.Extensions
+{
     using System;
     using Xunit;
 
-    public class QualifiedNameExTests {
+    public class QualifiedNameExTests
+    {
         [Fact]
-        public void DecodeQnFromStringNoUri() {
+        public void DecodeQnFromStringNoUri()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             var result = expected.ToQualifiedName(context);
@@ -17,7 +20,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeQnFromStringUrlEncodedNoUri() {
+        public void DecodeQnFromStringUrlEncodedNoUri()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             var result = expected.UrlEncode().ToQualifiedName(context);
@@ -25,7 +29,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeQnFromString() {
+        public void DecodeQnFromString()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "http://contosos.com/UA";
@@ -36,7 +41,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeQnFromStringUrlEncoded() {
+        public void DecodeQnFromStringUrlEncoded()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "http://contosos.com/UA";
@@ -47,7 +53,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeQnFromStringUrlEncodedBadNamespaceUri() {
+        public void DecodeQnFromStringUrlEncodedBadNamespaceUri()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "contosos";
@@ -58,7 +65,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeQnFromStringUrnNamespaceUri() {
+        public void DecodeQnFromStringUrnNamespaceUri()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "urn:contosos";
@@ -69,7 +77,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeQnFromStringUrlEncodedUrnNamespaceUri() {
+        public void DecodeQnFromStringUrlEncodedUrnNamespaceUri()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "urn:contosos";
@@ -80,7 +89,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeQualifiedName() {
+        public void EncodeDecodeQualifiedName()
+        {
             var context = new ServiceMessageContext();
             var expected = new QualifiedName("   space    tests /(%)§;#;;#;()§$\"))\"\")(§",
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
@@ -96,7 +106,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeQualifiedNameDefaultUri() {
+        public void EncodeDecodeQualifiedNameDefaultUri()
+        {
             var context = new ServiceMessageContext();
             var expected = new QualifiedName("   space    tests /(%)§;#;;#;()§$\"))\"\")(§", 0);
 
@@ -111,7 +122,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeQualifiedNameWithEmptyString() {
+        public void EncodeDecodeQualifiedNameWithEmptyString()
+        {
             var context = new ServiceMessageContext();
             var expected = new QualifiedName("",
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
@@ -132,7 +144,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeQualifiedNameWithEmptyStringDefaultUri() {
+        public void EncodeDecodeQualifiedNameWithEmptyStringDefaultUri()
+        {
             var context = new ServiceMessageContext();
             var expected = new QualifiedName("", 0);
 
@@ -152,7 +165,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeQualifiedNameWithNullString() {
+        public void EncodeDecodeQualifiedNameWithNullString()
+        {
             var context = new ServiceMessageContext();
             var expected = new QualifiedName(null,
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
@@ -173,7 +187,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeQualifiedNameWithNullStringDefaultUri() {
+        public void EncodeDecodeQualifiedNameWithNullStringDefaultUri()
+        {
             var context = new ServiceMessageContext();
             var expected = new QualifiedName(null, 0);
 
@@ -193,7 +208,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeNullQualifiedName() {
+        public void EncodeDecodeNullQualifiedName()
+        {
             var context = new ServiceMessageContext();
             var expected = QualifiedName.Null;
 

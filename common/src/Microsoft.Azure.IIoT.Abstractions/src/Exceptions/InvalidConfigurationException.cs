@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Exceptions {
+namespace Microsoft.Azure.IIoT.Exceptions
+{
     using System;
 
     /// <summary>
@@ -11,19 +12,23 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// In order to recover, the service owner should fix the configuration
     /// and re-deploy the service.
     /// </summary>
-    public class InvalidConfigurationException : Exception {
+    public class InvalidConfigurationException : Exception
+    {
         /// <inheritdoc />
-        public InvalidConfigurationException() {
+        public InvalidConfigurationException()
+        {
         }
 
         /// <inheritdoc />
         public InvalidConfigurationException(string message) :
-            base(message) {
+            base(message)
+        {
         }
 
         /// <inheritdoc />
         public InvalidConfigurationException(string message, Exception innerException) :
-            base(message, innerException) {
+            base(message, innerException)
+        {
         }
     }
 }

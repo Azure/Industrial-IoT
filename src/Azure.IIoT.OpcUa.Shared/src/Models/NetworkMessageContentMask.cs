@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.Runtime.Serialization;
 
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [DataContract]
     [Flags]
-    public enum NetworkMessageContentMask {
+    public enum NetworkMessageContentMask
+    {
         /// <summary>
         /// Publisher id
         /// </summary>

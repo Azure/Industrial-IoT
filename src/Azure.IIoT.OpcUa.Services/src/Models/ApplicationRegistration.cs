@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models {
+namespace Azure.IIoT.OpcUa.Services.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Hub;
     using System;
@@ -14,7 +15,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Aapplication registration persisted and comparable
     /// </summary>
     [DataContract]
-    public sealed class ApplicationRegistration : EntityRegistration {
+    public sealed class ApplicationRegistration : EntityRegistration
+    {
         /// <inheritdoc/>
         [DataMember]
         public override string DeviceType => IdentityType.Application;
@@ -165,63 +167,82 @@ namespace Azure.IIoT.OpcUa.Services.Models {
              SiteOrGatewayId, ApplicationUri, ApplicationType);
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) {
-            if (obj is not ApplicationRegistration registration) {
+        public override bool Equals(object obj)
+        {
+            if (obj is not ApplicationRegistration registration)
+            {
                 return false;
             }
-            if (!base.Equals(registration)) {
+            if (!base.Equals(registration))
+            {
                 return false;
             }
-            if (DiscovererId != registration.DiscovererId) {
+            if (DiscovererId != registration.DiscovererId)
+            {
                 return false;
             }
-            if (ApplicationId != registration.ApplicationId) {
+            if (ApplicationId != registration.ApplicationId)
+            {
                 return false;
             }
-            if (ApplicationType != registration.ApplicationType) {
+            if (ApplicationType != registration.ApplicationType)
+            {
                 return false;
             }
-            if (ApplicationUriLC != registration.ApplicationUriLC) {
+            if (ApplicationUriLC != registration.ApplicationUriLC)
+            {
                 return false;
             }
-            if (DiscoveryProfileUri != registration.DiscoveryProfileUri) {
+            if (DiscoveryProfileUri != registration.DiscoveryProfileUri)
+            {
                 return false;
             }
-            if (UpdateTime != registration.UpdateTime) {
+            if (UpdateTime != registration.UpdateTime)
+            {
                 return false;
             }
-            if (UpdateAuthorityId != registration.UpdateAuthorityId) {
+            if (UpdateAuthorityId != registration.UpdateAuthorityId)
+            {
                 return false;
             }
-            if (CreateAuthorityId != registration.CreateAuthorityId) {
+            if (CreateAuthorityId != registration.CreateAuthorityId)
+            {
                 return false;
             }
-            if (CreateTime != registration.CreateTime) {
+            if (CreateTime != registration.CreateTime)
+            {
                 return false;
             }
-            if (GatewayServerUri != registration.GatewayServerUri) {
+            if (GatewayServerUri != registration.GatewayServerUri)
+            {
                 return false;
             }
-            if (ProductUri != registration.ProductUri) {
+            if (ProductUri != registration.ProductUri)
+            {
                 return false;
             }
             if (!HostAddresses.DecodeAsList().SequenceEqualsSafe(
-               registration.HostAddresses.DecodeAsList())) {
+               registration.HostAddresses.DecodeAsList()))
+            {
                 return false;
             }
-            if (ApplicationName != registration.ApplicationName) {
+            if (ApplicationName != registration.ApplicationName)
+            {
                 return false;
             }
             if (!LocalizedNames.DictionaryEqualsSafe(
-                registration.LocalizedNames)) {
+                registration.LocalizedNames))
+            {
                 return false;
             }
             if (!Capabilities.DecodeAsSet().SetEqualsSafe(
-                registration.Capabilities.DecodeAsSet())) {
+                registration.Capabilities.DecodeAsSet()))
+            {
                 return false;
             }
             if (!DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                registration.DiscoveryUrls.DecodeAsList())) {
+                registration.DiscoveryUrls.DecodeAsList()))
+            {
                 return false;
             }
             return true;
@@ -236,7 +257,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             ApplicationRegistration r2) => !(r1 == r2);
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hashCode = base.GetHashCode();
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(DiscovererId);

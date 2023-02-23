@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module {
+namespace Azure.IIoT.OpcUa.Publisher.Module
+{
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -15,12 +16,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
     /// <summary>
     /// Module
     /// </summary>
-    public static class Program {
+    public static class Program
+    {
         /// <summary>
         /// Main entry point
         /// </summary>
         /// <param name="args"></param>
-        public static void Main(string[] args) {
+        public static void Main(string[] args)
+        {
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
@@ -34,9 +37,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
 
 #if DEBUG
             if (args.Any(a => a.Contains("wfd", StringComparison.InvariantCultureIgnoreCase) ||
-                    a.Contains("waitfordebugger", StringComparison.InvariantCultureIgnoreCase))) {
+                    a.Contains("waitfordebugger", StringComparison.InvariantCultureIgnoreCase)))
+            {
                 Console.WriteLine("Waiting for debugger being attached...");
-                while (!Debugger.IsAttached) {
+                while (!Debugger.IsAttached)
+                {
                     Thread.Sleep(1000);
                 }
                 Console.WriteLine("Debugger attached.");

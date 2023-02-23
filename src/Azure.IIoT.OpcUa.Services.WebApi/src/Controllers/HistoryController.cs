@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Azure.IIoT.OpcUa.Shared.Models;
@@ -22,12 +23,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
-    public class HistoryController : ControllerBase {
+    public class HistoryController : ControllerBase
+    {
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="client"></param>
-        public HistoryController(INodeServices<string> client) {
+        public HistoryController(INodeServices<string> client)
+        {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
@@ -44,8 +47,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The history read response</returns>
         [HttpPost("read/{endpointId}")]
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadRawAsync(
-            string endpointId, [FromBody][Required] HistoryReadRequestModel<VariantValue> request) {
-            if (request == null) {
+            string endpointId, [FromBody][Required] HistoryReadRequestModel<VariantValue> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _client.HistoryReadAsync(endpointId, request).ConfigureAwait(false);
@@ -64,8 +69,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The history read response</returns>
         [HttpPost("read/{endpointId}/next")]
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadRawNextAsync(
-            string endpointId, [FromBody][Required] HistoryReadNextRequestModel request) {
-            if (request == null) {
+            string endpointId, [FromBody][Required] HistoryReadNextRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _client.HistoryReadNextAsync(endpointId, request).ConfigureAwait(false);
@@ -85,8 +92,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("update/{endpointId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task<HistoryUpdateResponseModel> HistoryUpdateRawAsync(
-            string endpointId, [FromBody][Required] HistoryUpdateRequestModel<VariantValue> request) {
-            if (request == null) {
+            string endpointId, [FromBody][Required] HistoryUpdateRequestModel<VariantValue> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _client.HistoryUpdateAsync(endpointId, request).ConfigureAwait(false);

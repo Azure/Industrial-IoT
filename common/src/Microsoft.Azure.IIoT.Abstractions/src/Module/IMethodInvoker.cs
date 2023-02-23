@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module {
+namespace Microsoft.Azure.IIoT.Module
+{
     using System;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a method invoker
     /// </summary>
-    public interface IMethodInvoker : IDisposable {
+    public interface IMethodInvoker : IDisposable
+    {
         /// <summary>
         /// Name of method to handle
         /// </summary>

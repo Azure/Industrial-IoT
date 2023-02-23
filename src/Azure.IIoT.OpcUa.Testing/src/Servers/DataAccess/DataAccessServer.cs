@@ -27,21 +27,26 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace DataAccess {
+namespace DataAccess
+{
     using Opc.Ua;
     using Opc.Ua.Server;
 
     /// <inheritdoc/>
-    public class DataAccessServer : INodeManagerFactory {
+    public class DataAccessServer : INodeManagerFactory
+    {
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
-            ApplicationConfiguration configuration) {
+            ApplicationConfiguration configuration)
+        {
             return new DataAccessNodeManager(server, configuration);
         }
 
         /// <inheritdoc/>
-        public StringCollection NamespacesUris {
-            get {
+        public StringCollection NamespacesUris
+        {
+            get
+            {
                 return new StringCollection {
                     Namespaces.DataAccess
                 };

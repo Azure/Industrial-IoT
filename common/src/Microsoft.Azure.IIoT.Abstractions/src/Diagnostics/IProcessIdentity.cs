@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Diagnostics {
+namespace Microsoft.Azure.IIoT.Diagnostics
+{
     /// <summary>
     /// Process info
     /// </summary>
-    public interface IProcessIdentity {
+    public interface IProcessIdentity
+    {
         /// <summary>
         /// Process identity
         /// </summary>

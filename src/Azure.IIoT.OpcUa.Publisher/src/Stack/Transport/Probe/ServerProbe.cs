@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
@@ -17,7 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
     /// <summary>
     /// Opc ua secure channel probe factory
     /// </summary>
-    public class ServerProbe : IPortProbe {
+    public class ServerProbe : IPortProbe
+    {
         /// <summary>
         /// Operation timeout
         /// </summary>
@@ -27,7 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
         /// Create server probe
         /// </summary>
         /// <param name="logger"></param>
-        public ServerProbe(ILogger logger) {
+        public ServerProbe(ILogger logger)
+        {
             _logger = logger;
         }
 
@@ -35,20 +38,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
         /// Create probe
         /// </summary>
         /// <returns></returns>
-        public IAsyncProbe Create() {
+        public IAsyncProbe Create()
+        {
             return new ServerHelloAsyncProbe(_logger, (int)Timeout.TotalMilliseconds);
         }
 
         /// <summary>
         /// Async probe that sends a hello and validates the returned ack.
         /// </summary>
-        private class ServerHelloAsyncProbe : IAsyncProbe {
+        private class ServerHelloAsyncProbe : IAsyncProbe
+        {
             /// <summary>
             /// Create opc ua server probe
             /// </summary>
             /// <param name="logger"></param>
             /// <param name="timeout"></param>
-            public ServerHelloAsyncProbe(ILogger logger, int timeout) {
+            public ServerHelloAsyncProbe(ILogger logger, int timeout)
+            {
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
                 _timeout = timeout;
                 _buffer = new byte[256];
@@ -57,9 +63,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
             /// <summary>
             /// Reset probe
             /// </summary>
-            public bool Reset() {
+            public bool Reset()
+            {
                 var closed = false;
-                if (_socket != null) {
+                if (_socket != null)
+                {
                     // If connected, close will cause a call to the completion port
                     closed = _socket.Connected;
                     _socket.SafeDispose();
@@ -78,19 +86,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
             /// <param name="timeout"></param>
             /// <returns>true if completed, false to be called again</returns>
             public bool OnComplete(int index, SocketAsyncEventArgs arg,
-                out bool ok, out int timeout) {
+                out bool ok, out int timeout)
+            {
                 ok = false;
                 timeout = _timeout;
-                if (arg.SocketError != SocketError.Success) {
+                if (arg.SocketError != SocketError.Success)
+                {
                     _logger.LogDebug("Probe {Index} : {RemoteEp} found no opc server. {Error}",
                         index, _socket?.RemoteEndPoint, arg.SocketError);
                     _state = State.BeginProbe;
                     return true;
                 }
-                while (true) {
-                    switch (_state) {
+                while (true)
+                {
+                    switch (_state)
+                    {
                         case State.BeginProbe:
-                            if (arg.ConnectSocket == null) {
+                            if (arg.ConnectSocket == null)
+                            {
                                 _logger.LogError("Probe {Index} : Called without connected socket!",
                                     index);
                                 return true;
@@ -99,7 +112,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
                             var ep = _socket.RemoteEndPoint?.TryResolve();
                             using (var ostrm = new MemoryStream(_buffer, 0, _buffer.Length))
                             using (var encoder = new BinaryEncoder(ostrm,
-                                    ServiceMessageContext.GlobalContext)) {
+                                    ServiceMessageContext.GlobalContext))
+                            {
                                 encoder.WriteUInt32(null, TcpMessageType.Hello);
                                 encoder.WriteUInt32(null, 0);
                                 encoder.WriteUInt32(null, 0); // ProtocolVersion
@@ -119,42 +133,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
                             _logger.LogDebug("Probe {Index} : {Endpoint} ({RemoteEp})...", index,
                                 "opc.tcp://" + ep, _socket.RemoteEndPoint);
                             _state = State.SendHello;
-                            if (!_socket.SendAsync(arg)) {
+                            if (!_socket.SendAsync(arg))
+                            {
                                 break;
                             }
                             return false;
                         case State.SendHello:
                             _len += arg.Count;
                             System.Diagnostics.Debug.Assert(_socket != null);
-                            if (_len >= _size) {
+                            if (_len >= _size)
+                            {
                                 _len = 0;
                                 _size = TcpMessageLimits.MessageTypeAndSize;
                                 _state = State.ReceiveSize;
                                 arg.SetBuffer(0, _size);
                                 // Start read size
-                                if (!_socket.ReceiveAsync(arg)) {
+                                if (!_socket.ReceiveAsync(arg))
+                                {
                                     break;
                                 }
                                 return false;
                             }
                             // Continue to send reset
                             arg.SetBuffer(_len, _size - _len);
-                            if (!_socket.SendAsync(arg)) {
+                            if (!_socket.SendAsync(arg))
+                            {
                                 break;
                             }
                             return false;
                         case State.ReceiveSize:
                             _len += arg.Count;
                             System.Diagnostics.Debug.Assert(_socket != null);
-                            if (_len >= _size) {
+                            if (_len >= _size)
+                            {
                                 var type = BitConverter.ToUInt32(_buffer, 0);
-                                if (type != TcpMessageType.Acknowledge) {
-                                    if (TcpMessageType.IsValid(type)) {
+                                if (type != TcpMessageType.Acknowledge)
+                                {
+                                    if (TcpMessageType.IsValid(type))
+                                    {
                                         _logger.LogDebug("Probe {Index} : {RemoteEp} " +
                                             "returned message type {Type} != Ack.",
                                             index, _socket.RemoteEndPoint, type);
                                     }
-                                    else {
+                                    else
+                                    {
                                         _logger.LogTrace("Probe {Index} : {RemoteEp} " +
                                             "returned invalid message type {Type}.",
                                             index, _socket.RemoteEndPoint, type);
@@ -163,7 +185,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
                                     return true;
                                 }
                                 _size = (int)BitConverter.ToUInt32(_buffer, 4);
-                                if (_size > _buffer.Length) {
+                                if (_size > _buffer.Length)
+                                {
                                     _logger.LogDebug("Probe {Index} : {RemoteEp} " +
                                         "returned invalid message length {Size}.",
                                         index, _socket.RemoteEndPoint, _size);
@@ -176,19 +199,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
                             }
                             // Continue to read rest of type and size
                             arg.SetBuffer(_len, _size - _len);
-                            if (!_socket.ReceiveAsync(arg)) {
+                            if (!_socket.ReceiveAsync(arg))
+                            {
                                 break;
                             }
                             return false;
                         case State.ReceiveAck:
                             _len += arg.Count;
                             System.Diagnostics.Debug.Assert(_socket != null);
-                            if (_len >= _size) {
+                            if (_len >= _size)
+                            {
                                 _state = State.BeginProbe;
                                 // Validate message
                                 using (var istrm = new MemoryStream(_buffer, 0, _size))
                                 using (var decoder = new BinaryDecoder(istrm,
-                                    ServiceMessageContext.GlobalContext)) {
+                                    ServiceMessageContext.GlobalContext))
+                                {
                                     var protocolVersion = decoder.ReadUInt32(null);
                                     var sendBufferSize = (int)decoder.ReadUInt32(null);
                                     var receiveBufferSize = (int)decoder.ReadUInt32(null);
@@ -200,7 +226,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
                                         index, _socket.RemoteEndPoint, protocolVersion);
 
                                     if (sendBufferSize < TcpMessageLimits.MinBufferSize ||
-                                        receiveBufferSize < TcpMessageLimits.MinBufferSize) {
+                                        receiveBufferSize < TcpMessageLimits.MinBufferSize)
+                                    {
                                         _logger.LogWarning("Probe {Index} : Bad size value read " +
                                             "{SendBufferSize} or {ReceiveBufferSize} from opc " +
                                             "server at {RemoteEndPoint}.", index,
@@ -212,7 +239,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
                             }
                             // Continue to read rest
                             arg.SetBuffer(_len, _size - _len);
-                            if (!_socket.ReceiveAsync(arg)) {
+                            if (!_socket.ReceiveAsync(arg))
+                            {
                                 break;
                             }
                             return false;
@@ -225,11 +253,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe {
             /// <summary>
             /// Dispose handler
             /// </summary>
-            public void Dispose() {
+            public void Dispose()
+            {
                 Reset();
             }
 
-            private enum State {
+            private enum State
+            {
                 BeginProbe,
                 SendHello,
                 ReceiveSize,

@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     using Opc.Ua;
 
     /// <summary>
     /// Samples message extension flags
     /// </summary>
-    public static class JsonDataSetMessageContentMaskEx {
+    public static class JsonDataSetMessageContentMaskEx
+    {
         /// <summary>
         /// Extra fields included
         /// </summary>

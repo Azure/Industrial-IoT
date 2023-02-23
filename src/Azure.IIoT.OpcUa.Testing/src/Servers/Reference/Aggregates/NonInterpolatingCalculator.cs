@@ -27,18 +27,23 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     /// <summary>
     /// Allows aggregates to be calculated without interpolation.
     /// </summary>
-    public abstract class NonInterpolatingCalculator : BaseAggregateCalculator {
+    public abstract class NonInterpolatingCalculator : BaseAggregateCalculator
+    {
         /// <summary>
         /// Returns true if more data is required for the next interval.
         /// </summary>
-        public override bool WaitForMoreData(TimeSlice bucket, AggregateState state) {
+        public override bool WaitForMoreData(TimeSlice bucket, AggregateState state)
+        {
             var wait = false;
-            if (!state.HasTerminated) {
-                if (bucket.ContainsTime(state.LatestTimestamp)) {
+            if (!state.HasTerminated)
+            {
+                if (bucket.ContainsTime(state.LatestTimestamp))
+                {
                     wait = true;
                 }
             }
@@ -48,7 +53,8 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Updates the bounding values for the time slice.
         /// </summary>
-        public override void UpdateBoundingValues(TimeSlice bucket, AggregateState state) {
+        public override void UpdateBoundingValues(TimeSlice bucket, AggregateState state)
+        {
         }
     }
 }

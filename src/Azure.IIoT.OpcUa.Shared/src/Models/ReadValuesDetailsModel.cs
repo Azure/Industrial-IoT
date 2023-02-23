@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Read historic values
     /// </summary>
     [DataContract]
-    public sealed record class ReadValuesDetailsModel {
+    public sealed record class ReadValuesDetailsModel
+    {
         /// <summary>
         /// Beginning of period to read. Set to null
         /// if no specific start time is specified.

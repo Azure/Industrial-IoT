@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Sdk {
+namespace Azure.IIoT.OpcUa.Publisher.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System.Collections.Generic;
     using System.Threading;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
     /// <summary>
     /// Publisher module api
     /// </summary>
-    public interface IPublisherApi {
+    public interface IPublisherApi
+    {
         /// <summary>
         /// Add or update publishing endpoints
         /// </summary>

@@ -3,19 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Fixtures {
+namespace Azure.IIoT.OpcUa.Testing.Fixtures
+{
     using Opc.Ua.Server;
     using System.Collections.Generic;
 
     /// <summary>
     /// Sample server fixture
     /// </summary>
-    public class HistoryServerFixture : BaseServerFixture {
+    public class HistoryServerFixture : BaseServerFixture
+    {
         /// <summary>
         /// Sample server nodes
         /// </summary>
-        public static IEnumerable<INodeManagerFactory> SampleServer {
-            get {
+        public static IEnumerable<INodeManagerFactory> SampleServer
+        {
+            get
+            {
                 yield return new HistoricalAccess.HistoricalAccessServer();
                 yield return new HistoricalEvents.HistoricalEventsServer();
             }
@@ -23,7 +27,8 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
 
         /// <inheritdoc/>
         public HistoryServerFixture() :
-            base(SampleServer) {
+            base(SampleServer)
+        {
         }
     }
 }

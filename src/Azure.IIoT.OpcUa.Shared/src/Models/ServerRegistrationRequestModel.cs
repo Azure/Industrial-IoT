@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Server registration request
     /// </summary>
     [DataContract]
-    public sealed record class ServerRegistrationRequestModel {
+    public sealed record class ServerRegistrationRequestModel
+    {
         /// <summary>
         /// Discovery url to use for registration
         /// </summary>

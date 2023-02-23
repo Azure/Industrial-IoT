@@ -3,21 +3,26 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     /// <summary>
     /// Aggregate filter model extensions
     /// </summary>
-    public static class AggregateFilterModelEx {
+    public static class AggregateFilterModelEx
+    {
         /// <summary>
         /// Clone
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static AggregateFilterModel Clone(this AggregateFilterModel model) {
-            if (model == null) {
+        public static AggregateFilterModel Clone(this AggregateFilterModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new AggregateFilterModel {
+            return new AggregateFilterModel
+            {
                 AggregateTypeId = model.AggregateTypeId,
                 AggregateConfiguration = model.AggregateConfiguration.Clone(),
                 ProcessingInterval = model.ProcessingInterval,
@@ -32,23 +37,30 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="other"></param>
         /// <returns></returns>
         public static bool IsSameAs(this AggregateFilterModel model,
-            AggregateFilterModel other) {
-            if (model == null && other == null) {
+            AggregateFilterModel other)
+        {
+            if (model == null && other == null)
+            {
                 return true;
             }
-            if (model == null || other == null) {
+            if (model == null || other == null)
+            {
                 return false;
             }
-            if (model.AggregateTypeId != other.AggregateTypeId) {
+            if (model.AggregateTypeId != other.AggregateTypeId)
+            {
                 return false;
             }
-            if (model.ProcessingInterval != other.ProcessingInterval) {
+            if (model.ProcessingInterval != other.ProcessingInterval)
+            {
                 return false;
             }
-            if (model.StartTime != other.StartTime) {
+            if (model.StartTime != other.StartTime)
+            {
                 return false;
             }
-            if (!model.AggregateConfiguration.IsSameAs(other.AggregateConfiguration)) {
+            if (!model.AggregateConfiguration.IsSameAs(other.AggregateConfiguration))
+            {
                 return false;
             }
             return true;

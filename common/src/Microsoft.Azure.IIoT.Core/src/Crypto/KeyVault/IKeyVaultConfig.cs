@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Crypto.KeyVault {
+namespace Microsoft.Azure.IIoT.Crypto.KeyVault
+{
     /// <summary>
     /// Keyvault configuration
     /// </summary>
-    public interface IKeyVaultConfig {
+    public interface IKeyVaultConfig
+    {
         /// <summary>
         /// Keyvault base url
         /// </summary>

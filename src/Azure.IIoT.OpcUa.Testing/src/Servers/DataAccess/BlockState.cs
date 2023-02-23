@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace DataAccess {
+namespace DataAccess
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System.Collections.Generic;
@@ -35,7 +36,8 @@ namespace DataAccess {
     /// <summary>
     /// A object which maps a block to a UA object.
     /// </summary>
-    public class BlockState : BaseObjectState {
+    public class BlockState : BaseObjectState
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="BlockState"/> class.
         /// </summary>
@@ -45,7 +47,8 @@ namespace DataAccess {
         public BlockState(
             DataAccessNodeManager nodeManager,
             NodeId nodeId,
-            UnderlyingSystemBlock block) : base(null) {
+            UnderlyingSystemBlock block) : base(null)
+        {
             _blockId = block.Id;
             _nodeManager = nodeManager;
 
@@ -58,10 +61,12 @@ namespace DataAccess {
             UserWriteMask = 0;
             EventNotifier = EventNotifiers.None;
 
-            if (nodeManager.SystemContext.SystemHandle is UnderlyingSystem system) {
+            if (nodeManager.SystemContext.SystemHandle is UnderlyingSystem system)
+            {
                 var tags = block.GetTags();
 
-                for (var ii = 0; ii < tags.Count; ii++) {
+                for (var ii = 0; ii < tags.Count; ii++)
+                {
                     var variable = CreateVariable(nodeManager.SystemContext, tags[ii]);
                     AddChild(variable);
                     variable.OnSimpleWriteValue = OnWriteTagValue;
@@ -73,9 +78,12 @@ namespace DataAccess {
         /// Starts the monitoring the block.
         /// </summary>
         /// <param name="context">The context.</param>
-        public void StartMonitoring(ServerSystemContext context) {
-            if (_monitoringCount == 0) {
-                if (context.SystemHandle is UnderlyingSystem system) {
+        public void StartMonitoring(ServerSystemContext context)
+        {
+            if (_monitoringCount == 0)
+            {
+                if (context.SystemHandle is UnderlyingSystem system)
+                {
                     var block = system.FindBlock(_blockId);
 
                     block?.StartMonitoring(OnTagsChanged);
@@ -89,11 +97,14 @@ namespace DataAccess {
         /// Stop the monitoring the block.
         /// </summary>
         /// <param name="context">The context.</param>
-        public bool StopMonitoring(ServerSystemContext context) {
+        public bool StopMonitoring(ServerSystemContext context)
+        {
             _monitoringCount--;
 
-            if (_monitoringCount == 0) {
-                if (context.SystemHandle is UnderlyingSystem system) {
+            if (_monitoringCount == 0)
+            {
+                if (context.SystemHandle is UnderlyingSystem system)
+                {
                     var block = system.FindBlock(_blockId);
 
                     block?.StopMonitoring();
@@ -109,20 +120,24 @@ namespace DataAccess {
         public ServiceResult OnWriteTagValue(
             ISystemContext context,
             NodeState node,
-            ref object value) {
-            if (!(context.SystemHandle is UnderlyingSystem system)) {
+            ref object value)
+        {
+            if (!(context.SystemHandle is UnderlyingSystem system))
+            {
                 return StatusCodes.BadCommunicationError;
             }
 
             var block = system.FindBlock(_blockId);
 
-            if (block == null) {
+            if (block == null)
+            {
                 return StatusCodes.BadNodeIdUnknown;
             }
 
             var error = block.WriteTagValue(node.SymbolicName, value);
 
-            if (error != 0) {
+            if (error != 0)
+            {
                 // the simulator uses UA status codes so there is no need for a mapping table.
                 return error;
             }
@@ -134,10 +149,14 @@ namespace DataAccess {
         /// Called when one or more tags changes.
         /// </summary>
         /// <param name="tags">The tags.</param>
-        private void OnTagsChanged(IList<UnderlyingSystemTag> tags) {
-            lock (_nodeManager.Lock) {
-                for (var ii = 0; ii < tags.Count; ii++) {
-                    if (FindChildBySymbolicName(_nodeManager.SystemContext, tags[ii].Name) is BaseVariableState variable) {
+        private void OnTagsChanged(IList<UnderlyingSystemTag> tags)
+        {
+            lock (_nodeManager.Lock)
+            {
+                for (var ii = 0; ii < tags.Count; ii++)
+                {
+                    if (FindChildBySymbolicName(_nodeManager.SystemContext, tags[ii].Name) is BaseVariableState variable)
+                    {
                         UpdateVariable(_nodeManager.SystemContext, tags[ii], variable);
                     }
                 }
@@ -151,19 +170,23 @@ namespace DataAccess {
         /// </summary>
         /// <param name="context">The context for the system being accessed.</param>
         /// <param name="browser">The browser to populate.</param>
-        protected override void PopulateBrowser(ISystemContext context, NodeBrowser browser) {
+        protected override void PopulateBrowser(ISystemContext context, NodeBrowser browser)
+        {
             base.PopulateBrowser(context, browser);
 
             // check if the parent segments need to be returned.
-            if (browser.IsRequired(ReferenceTypeIds.Organizes, true)) {
-                if (!(context.SystemHandle is UnderlyingSystem system)) {
+            if (browser.IsRequired(ReferenceTypeIds.Organizes, true))
+            {
+                if (!(context.SystemHandle is UnderlyingSystem system))
+                {
                     return;
                 }
 
                 // add reference for each segment.
                 var segments = system.FindSegmentsForBlock(_blockId);
 
-                for (var ii = 0; ii < segments.Count; ii++) {
+                for (var ii = 0; ii < segments.Count; ii++)
+                {
                     browser.Add(ReferenceTypeIds.Organizes, true, ModelUtils.ConstructIdForSegment(segments[ii].Id, NodeId.NamespaceIndex));
                 }
             }
@@ -175,19 +198,24 @@ namespace DataAccess {
         /// <param name="context">The context.</param>
         /// <param name="tag">The tag.</param>
         /// <returns>The variable that represents the tag.</returns>
-        private BaseVariableState CreateVariable(ISystemContext context, UnderlyingSystemTag tag) {
+        private BaseVariableState CreateVariable(ISystemContext context, UnderlyingSystemTag tag)
+        {
             // create the variable type based on the tag type.
             BaseDataVariableState variable = null;
 
-            switch (tag.TagType) {
-                case UnderlyingSystemTagType.Analog: {
+            switch (tag.TagType)
+            {
+                case UnderlyingSystemTagType.Analog:
+                    {
                         var node = new AnalogItemState(this);
 
-                        if (tag.EngineeringUnits != null) {
+                        if (tag.EngineeringUnits != null)
+                        {
                             node.EngineeringUnits = new PropertyState<EUInformation>(node);
                         }
 
-                        if (tag.EuRange.Length >= 4) {
+                        if (tag.EuRange.Length >= 4)
+                        {
                             node.InstrumentRange = new PropertyState<Range>(node);
                         }
 
@@ -195,15 +223,18 @@ namespace DataAccess {
                         break;
                     }
 
-                case UnderlyingSystemTagType.Digital: {
+                case UnderlyingSystemTagType.Digital:
+                    {
                         variable = new TwoStateDiscreteState(this);
                         break;
                     }
 
-                case UnderlyingSystemTagType.Enumerated: {
+                case UnderlyingSystemTagType.Enumerated:
+                    {
                         var node = new MultiStateDiscreteState(this);
 
-                        if (tag.Labels != null) {
+                        if (tag.Labels != null)
+                        {
                             node.EnumStrings = new PropertyState<LocalizedText[]>(node);
                         }
 
@@ -211,7 +242,8 @@ namespace DataAccess {
                         break;
                     }
 
-                default: {
+                default:
+                    {
                         variable = new DataItemState(this);
                         break;
                     }
@@ -241,13 +273,15 @@ namespace DataAccess {
         /// <param name="context">The context.</param>
         /// <param name="tag">The tag.</param>
         /// <param name="variable">The variable to update.</param>
-        private static void UpdateVariable(ISystemContext context, UnderlyingSystemTag tag, BaseVariableState variable) {
+        private static void UpdateVariable(ISystemContext context, UnderlyingSystemTag tag, BaseVariableState variable)
+        {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
             variable.Description = tag.Description;
             variable.Value = tag.Value;
             variable.Timestamp = tag.Timestamp;
 
-            switch (tag.DataType) {
+            switch (tag.DataType)
+            {
                 case UnderlyingSystemDataType.Integer1: { variable.DataType = DataTypes.SByte; break; }
                 case UnderlyingSystemDataType.Integer2: { variable.DataType = DataTypes.Int16; break; }
                 case UnderlyingSystemDataType.Integer4: { variable.DataType = DataTypes.Int32; break; }
@@ -258,11 +292,13 @@ namespace DataAccess {
             variable.ValueRank = ValueRanks.Scalar;
             variable.ArrayDimensions = null;
 
-            if (tag.IsWriteable) {
+            if (tag.IsWriteable)
+            {
                 variable.AccessLevel = AccessLevels.CurrentReadOrWrite;
                 variable.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
             }
-            else {
+            else
+            {
                 variable.AccessLevel = AccessLevels.CurrentRead;
                 variable.UserAccessLevel = AccessLevels.CurrentRead;
             }
@@ -270,24 +306,31 @@ namespace DataAccess {
             variable.MinimumSamplingInterval = MinimumSamplingIntervals.Continuous;
             variable.Historizing = false;
 
-            switch (tag.TagType) {
-                case UnderlyingSystemTagType.Analog: {
+            switch (tag.TagType)
+            {
+                case UnderlyingSystemTagType.Analog:
+                    {
                         var node = variable as AnalogItemState;
 
-                        if (tag.EuRange != null) {
-                            if (tag.EuRange.Length >= 2 && node.EURange != null) {
+                        if (tag.EuRange != null)
+                        {
+                            if (tag.EuRange.Length >= 2 && node.EURange != null)
+                            {
                                 node.EURange.Value = new Range(tag.EuRange[0], tag.EuRange[1]);
                                 node.EURange.Timestamp = tag.Block.Timestamp;
                             }
 
-                            if (tag.EuRange.Length >= 4 && node.InstrumentRange != null) {
+                            if (tag.EuRange.Length >= 4 && node.InstrumentRange != null)
+                            {
                                 node.InstrumentRange.Value = new Range(tag.EuRange[2], tag.EuRange[3]);
                                 node.InstrumentRange.Timestamp = tag.Block.Timestamp;
                             }
                         }
 
-                        if (!string.IsNullOrEmpty(tag.EngineeringUnits) && node.EngineeringUnits != null) {
-                            node.EngineeringUnits.Value = new EUInformation {
+                        if (!string.IsNullOrEmpty(tag.EngineeringUnits) && node.EngineeringUnits != null)
+                        {
+                            node.EngineeringUnits.Value = new EUInformation
+                            {
                                 DisplayName = tag.EngineeringUnits,
                                 NamespaceUri = Namespaces.DataAccess
                             };
@@ -297,11 +340,14 @@ namespace DataAccess {
                         break;
                     }
 
-                case UnderlyingSystemTagType.Digital: {
+                case UnderlyingSystemTagType.Digital:
+                    {
                         var node = variable as TwoStateDiscreteState;
 
-                        if (tag.Labels != null && node.TrueState != null && node.FalseState != null) {
-                            if (tag.Labels.Length >= 2) {
+                        if (tag.Labels != null && node.TrueState != null && node.FalseState != null)
+                        {
+                            if (tag.Labels.Length >= 2)
+                            {
                                 node.TrueState.Value = new LocalizedText(tag.Labels[0]);
                                 node.TrueState.Timestamp = tag.Block.Timestamp;
                                 node.FalseState.Value = new LocalizedText(tag.Labels[1]);
@@ -312,13 +358,16 @@ namespace DataAccess {
                         break;
                     }
 
-                case UnderlyingSystemTagType.Enumerated: {
+                case UnderlyingSystemTagType.Enumerated:
+                    {
                         var node = variable as MultiStateDiscreteState;
 
-                        if (tag.Labels != null) {
+                        if (tag.Labels != null)
+                        {
                             var strings = new LocalizedText[tag.Labels.Length];
 
-                            for (var ii = 0; ii < tag.Labels.Length; ii++) {
+                            for (var ii = 0; ii < tag.Labels.Length; ii++)
+                            {
                                 strings[ii] = new LocalizedText(tag.Labels[ii]);
                             }
 

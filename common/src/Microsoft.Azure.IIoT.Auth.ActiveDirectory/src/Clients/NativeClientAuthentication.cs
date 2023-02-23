@@ -3,20 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
+namespace Microsoft.Azure.IIoT.Auth.Clients.Default
+{
+    using Autofac;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Extensions.Logging;
-    using Autofac;
     using System.Collections.Generic;
 
     /// <summary>
     /// Public native console client authentication
     /// </summary>
-    public class NativeClientAuthentication : Module {
+    public class NativeClientAuthentication : Module
+    {
         /// <inheritdoc/>
-        protected override void Load(ContainerBuilder builder) {
+        protected override void Load(ContainerBuilder builder)
+        {
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ClientAuthAggregateConfig>()
@@ -45,12 +48,14 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <summary>
         /// Authenticate with device token after trying app and developer authentication.
         /// </summary>
-        internal class NativeClientTokenSource : TokenClientAggregateSource{
+        internal class NativeClientTokenSource : TokenClientAggregateSource
+        {
             /// <inheritdoc/>
             public NativeClientTokenSource(DevAuthenticationClient ld, AppAuthenticationClient aa,
                 MsalInteractiveClient ic, MsalDeviceCodeClient dc,
                     IEnumerable<ITokenClient> providers, ILogger logger)
-                    : base(providers, Http.Resource.Platform, logger, ld, aa, ic, dc) {
+                    : base(providers, Http.Resource.Platform, logger, ld, aa, ic, dc)
+            {
             }
         }
     }

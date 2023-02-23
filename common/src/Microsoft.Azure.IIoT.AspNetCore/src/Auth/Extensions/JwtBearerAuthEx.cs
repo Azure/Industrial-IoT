@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
+namespace Microsoft.Azure.IIoT.AspNetCore.Auth
+{
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Options;
@@ -23,13 +24,15 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     /// <summary>
     /// Configure JWT bearer authentication
     /// </summary>
-    public static class JwtBearerAuthEx {
+    public static class JwtBearerAuthEx
+    {
         /// <summary>
         /// Use jwt bearer auth
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public static IApplicationBuilder UseJwtBearerAuthentication(this IApplicationBuilder app) {
+        public static IApplicationBuilder UseJwtBearerAuthentication(this IApplicationBuilder app)
+        {
             return app.UseAuthentication();
         }
 
@@ -39,20 +42,24 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="builder"></param>
         /// <param name="provider"></param>
         public static AuthenticationBuilder AddJwtBearerProvider(this AuthenticationBuilder builder,
-            string provider) {
+            string provider)
+        {
             builder.Services.TryAddTransient<IServerAuthConfig, ServiceAuthAggregateConfig>();
             // Allow access to context from within token providers and other client auth
             builder.Services.AddHttpContextAccessor();
 
             // Add provider configuration
-            builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>>(services => {
+            builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>>(services =>
+            {
                 var auth = services.GetRequiredService<IServerAuthConfig>();
                 var environment = services.GetRequiredService<IWebHostEnvironment>();
-                return new ConfigureNamedOptions<JwtBearerOptions>(provider, options => {
+                return new ConfigureNamedOptions<JwtBearerOptions>(provider, options =>
+                {
                     // Find whether the scheme is configurable
                     var config = auth.JwtBearerProviders?
                         .FirstOrDefault(s => s.GetProviderName() == provider);
-                    if (config == null) {
+                    if (config == null)
+                    {
                         // Not configurable - this is ok as this might not be enabled
                         // Will not be enabled for authorization
                         return;
@@ -62,7 +69,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                     options.RequireHttpsMetadata =
                        !new Uri(options.Authority).DnsSafeHost.EqualsIgnoreCase("localhost");
 
-                    options.TokenValidationParameters = new TokenValidationParameters {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
                         ClockSkew = config.AllowedClockSkew,
                         ValidateIssuer = true,
                         IssuerValidator = (iss, t, p) => ValidateIssuer(iss, config),
@@ -70,10 +78,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                         ValidAudience = config.Audience
                     };
                     options.MetadataAddress = config.GetAuthorityUrl() + "/.well-known/openid-configuration";
-                    options.Events = new JwtBearerEvents {
-                        OnTokenValidated = ctx => {
-                            if (ctx.SecurityToken is JwtSecurityToken accessToken) {
-                                if (ctx.Principal.Identity is ClaimsIdentity identity) {
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = ctx =>
+                        {
+                            if (ctx.SecurityToken is JwtSecurityToken accessToken)
+                            {
+                                if (ctx.Principal.Identity is ClaimsIdentity identity)
+                                {
                                     identity.AddClaim(new Claim("access_token",
                                         accessToken.RawData));
                                 }
@@ -96,29 +108,35 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="issuer">Issuer to validate (will be tenanted)</param>
         /// <param name="config">Authentication configuration</param>
         /// <returns>The <c>issuer</c> if it's valid</returns>
-        private static string ValidateIssuer(string issuer, IOAuthServerConfig config) {
+        private static string ValidateIssuer(string issuer, IOAuthServerConfig config)
+        {
             var uri = new Uri(issuer);
             var trustedIssuer = new Uri(string.IsNullOrEmpty(config?.TrustedIssuer) ?
                 kDefaultIssuerUri : config.TrustedIssuer);
-            if (uri == trustedIssuer) {
+            if (uri == trustedIssuer)
+            {
                 return issuer; // Configured issuer correct.
             }
             if (uri.Scheme != trustedIssuer.Scheme ||
-                uri.Authority != trustedIssuer.Authority) {
+                uri.Authority != trustedIssuer.Authority)
+            {
                 throw new SecurityTokenInvalidIssuerException(
                     "Issuer has wrong authority.");
             }
             var parts = uri.AbsolutePath.Split(new char[] { '/' },
                 StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 0) {
+            if (parts.Length == 0)
+            {
                 throw new SecurityTokenInvalidIssuerException(
                     "Issuer is not tenanted.");
             }
-            if (parts.Length >= 1 && !Guid.TryParse(parts[0], out _)) {
+            if (parts.Length >= 1 && !Guid.TryParse(parts[0], out _))
+            {
                 throw new SecurityTokenInvalidIssuerException(
                     "No valid tenant Id for the issuer.");
             }
-            if (parts.Length > 1 && parts[2] != "v2.0") {
+            if (parts.Length > 1 && parts[2] != "v2.0")
+            {
                 throw new SecurityTokenInvalidIssuerException(
                     "Only accepted protocol versions are AAD v1.0 or V2.0");
             }

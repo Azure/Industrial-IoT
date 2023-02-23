@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
+namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
     /// <summary>
     /// Publisher service events
     /// </summary>
-    public class PublisherServiceEvents : IPublisherServiceEvents, IPublisherEventApi {
+    public class PublisherServiceEvents : IPublisherServiceEvents, IPublisherEventApi
+    {
         /// <summary>
         /// Event client
         /// </summary>
@@ -28,7 +30,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serializer"></param>
         public PublisherServiceEvents(IHttpClient httpClient, ICallbackClient client,
             IServiceApiConfig config, ISerializer serializer) :
-            this(httpClient, client, config?.ServiceUrl, serializer) {
+            this(httpClient, client, config?.ServiceUrl, serializer)
+        {
         }
 
         /// <summary>
@@ -39,8 +42,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serviceUri"></param>
         /// <param name="serializer"></param>
         public PublisherServiceEvents(IHttpClient httpClient, ICallbackClient client,
-            string serviceUri, ISerializer serializer = null) {
-            if (string.IsNullOrWhiteSpace(serviceUri)) {
+            string serviceUri, ISerializer serializer = null)
+        {
+            if (string.IsNullOrWhiteSpace(serviceUri))
+            {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the events micro service.");
             }
@@ -52,20 +57,24 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(string endpointId,
-            Func<MonitoredItemMessageModel, Task> callback) {
-            if (callback == null) {
+            Func<MonitoredItemMessageModel, Task> callback)
+        {
+            if (callback == null)
+            {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events", Resource.Platform).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.PublisherSampleTarget, callback);
-            try {
+            try
+            {
                 await NodePublishSubscribeByEndpointAsync(endpointId, hub.ConnectionId,
                     default).ConfigureAwait(false);
                 return new AsyncDisposable(registration,
                     () => NodePublishUnsubscribeByEndpointAsync(endpointId,
                         hub.ConnectionId, default));
             }
-            catch {
+            catch
+            {
                 registration.Dispose();
                 throw;
             }
@@ -73,11 +82,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task NodePublishSubscribeByEndpointAsync(string endpointId, string connectionId,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (string.IsNullOrEmpty(connectionId)) {
+            if (string.IsNullOrEmpty(connectionId))
+            {
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var request = _httpClient.NewRequest(
@@ -89,11 +101,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task NodePublishUnsubscribeByEndpointAsync(string endpointId, string connectionId,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (string.IsNullOrEmpty(connectionId)) {
+            if (string.IsNullOrEmpty(connectionId))
+            {
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var request = _httpClient.NewRequest(

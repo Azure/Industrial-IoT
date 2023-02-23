@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging {
+namespace Microsoft.Azure.IIoT.Messaging
+{
     using System;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Callback Registrar extensions
     /// </summary>
-    public static class CallbackRegistrarEx {
+    public static class CallbackRegistrarEx
+    {
         /// <summary>
         /// Register action
         /// </summary>
@@ -18,8 +20,10 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <param name="method"></param>
         /// <param name="action"></param>
         public static IDisposable Register<T0>(this ICallbackRegistrar registrar,
-            string method, Func<T0, Task> action) {
-            return registrar.Register((args, _) => {
+            string method, Func<T0, Task> action)
+        {
+            return registrar.Register((args, _) =>
+            {
                 return action.Invoke(
                     (T0)args[0]
                 );

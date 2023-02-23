@@ -3,15 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders {
+namespace Azure.IIoT.OpcUa.Encoders
+{
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using Xunit;
 
-    public class VariantEncoderFloatTests {
+    public class VariantEncoderFloatTests
+    {
         [Fact]
-        public void DecodeEncodeFloatFromJValue() {
+        public void DecodeEncodeFloatFromJValue()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromObject(-123.123f);
             var variant = codec.Decode(str, BuiltInType.Float);
@@ -23,7 +26,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromJArray() {
+        public void DecodeEncodeFloatArrayFromJArray()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromArray(-123.123f, 124.124f, 0.0f);
             var variant = codec.Decode(str, BuiltInType.Float);
@@ -35,7 +39,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromJArrayTypeNullIsDouble() {
+        public void DecodeEncodeFloatArrayFromJArrayTypeNullIsDouble()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromArray(-123.123f, 124.124f, 0.0f);
             var variant = codec.Decode(str, BuiltInType.Null);
@@ -47,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromString1() {
+        public void DecodeEncodeFloatFromString1()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "-123.123";
             var variant = codec.Decode(str, BuiltInType.Float);
@@ -59,7 +65,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromString2() {
+        public void DecodeEncodeFloatFromString2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "-123";
             var variant = codec.Decode(str, BuiltInType.Float);
@@ -71,7 +78,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromString() {
+        public void DecodeEncodeFloatArrayFromString()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "-123.123, 124.124, 0.0";
             var variant = codec.Decode(str, BuiltInType.Float);
@@ -83,7 +91,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromString2() {
+        public void DecodeEncodeFloatArrayFromString2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Float);
@@ -95,7 +104,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromString3() {
+        public void DecodeEncodeFloatArrayFromString3()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.Float);
@@ -106,7 +116,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromStringTypeNumberIsDouble() {
+        public void DecodeEncodeFloatFromStringTypeNumberIsDouble()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "-123.123";
             var variant = codec.Decode(str, BuiltInType.Number);
@@ -118,7 +129,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromStringTypeNumberIsDouble1() {
+        public void DecodeEncodeFloatArrayFromStringTypeNumberIsDouble1()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Number);
@@ -132,7 +144,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromStringTypeNumberIsDouble2() {
+        public void DecodeEncodeFloatArrayFromStringTypeNumberIsDouble2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.Number);
@@ -143,7 +156,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromStringTypeNullIsDouble() {
+        public void DecodeEncodeFloatFromStringTypeNullIsDouble()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "-123.123";
             var variant = codec.Decode(str, BuiltInType.Null);
@@ -154,7 +168,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
                 encoded);
         }
         [Fact]
-        public void DecodeEncodeFloatArrayFromStringTypeNullIsDouble() {
+        public void DecodeEncodeFloatArrayFromStringTypeNullIsDouble()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "-123.123, 124.124, 0.0";
             var variant = codec.Decode(str, BuiltInType.Null);
@@ -166,7 +181,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromStringTypeNullIsDouble2() {
+        public void DecodeEncodeFloatArrayFromStringTypeNullIsDouble2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Null);
@@ -178,7 +194,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromStringTypeNullIsNull() {
+        public void DecodeEncodeFloatArrayFromStringTypeNullIsNull()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.Null);
@@ -188,7 +205,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromQuotedString() {
+        public void DecodeEncodeFloatFromQuotedString()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "\"-123.123\"";
             var variant = codec.Decode(str, BuiltInType.Float);
@@ -200,7 +218,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromSinglyQuotedString() {
+        public void DecodeEncodeFloatFromSinglyQuotedString()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "  '-123.123'";
             var variant = codec.Decode(str, BuiltInType.Float);
@@ -212,7 +231,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromQuotedString() {
+        public void DecodeEncodeFloatArrayFromQuotedString()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "\"-123.123\",'124.124',\"0.0\"";
             var variant = codec.Decode(str, BuiltInType.Float);
@@ -224,7 +244,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromQuotedString2() {
+        public void DecodeEncodeFloatArrayFromQuotedString2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = " [\"-123.123\",'124.124',\"0.0\"] ";
             var variant = codec.Decode(str, BuiltInType.Float);
@@ -236,9 +257,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromVariantJsonTokenTypeVariant() {
+        public void DecodeEncodeFloatFromVariantJsonTokenTypeVariant()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new {
+            var str = _serializer.FromObject(new
+            {
                 Type = "Float",
                 Body = -123.123f
             });
@@ -251,9 +274,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromVariantJsonTokenTypeVariant1() {
+        public void DecodeEncodeFloatArrayFromVariantJsonTokenTypeVariant1()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new {
+            var str = _serializer.FromObject(new
+            {
                 Type = "Float",
                 Body = new float[] { -123.123f, 124.124f, 0.0f }
             });
@@ -266,9 +291,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromVariantJsonTokenTypeVariant2() {
+        public void DecodeEncodeFloatArrayFromVariantJsonTokenTypeVariant2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new {
+            var str = _serializer.FromObject(new
+            {
                 Type = "Float",
                 Body = System.Array.Empty<float>()
             });
@@ -280,9 +307,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromVariantJsonStringTypeVariant() {
+        public void DecodeEncodeFloatFromVariantJsonStringTypeVariant()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.SerializeToString(new {
+            var str = _serializer.SerializeToString(new
+            {
                 Type = "Float",
                 Body = -123.123f
             });
@@ -295,9 +324,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromVariantJsonStringTypeVariant() {
+        public void DecodeEncodeFloatArrayFromVariantJsonStringTypeVariant()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.SerializeToString(new {
+            var str = _serializer.SerializeToString(new
+            {
                 Type = "Float",
                 Body = new float[] { -123.123f, 124.124f, 0.0f }
             });
@@ -310,9 +341,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromVariantJsonTokenTypeNull() {
+        public void DecodeEncodeFloatFromVariantJsonTokenTypeNull()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new {
+            var str = _serializer.FromObject(new
+            {
                 Type = "Float",
                 Body = -123.123f
             });
@@ -325,9 +358,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromVariantJsonTokenTypeNull1() {
+        public void DecodeEncodeFloatArrayFromVariantJsonTokenTypeNull1()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new {
+            var str = _serializer.FromObject(new
+            {
                 TYPE = "FLOAT",
                 BODY = new float[] { -123.123f, 124.124f, 0.0f }
             });
@@ -340,9 +375,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromVariantJsonTokenTypeNull2() {
+        public void DecodeEncodeFloatArrayFromVariantJsonTokenTypeNull2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new {
+            var str = _serializer.FromObject(new
+            {
                 Type = "Float",
                 Body = System.Array.Empty<float>()
             });
@@ -354,9 +391,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromVariantJsonStringTypeNull() {
+        public void DecodeEncodeFloatFromVariantJsonStringTypeNull()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.SerializeToString(new {
+            var str = _serializer.SerializeToString(new
+            {
                 Type = "float",
                 Body = -123.123f
             });
@@ -369,9 +408,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromVariantJsonStringTypeNull() {
+        public void DecodeEncodeFloatArrayFromVariantJsonStringTypeNull()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.SerializeToString(new {
+            var str = _serializer.SerializeToString(new
+            {
                 type = "Float",
                 body = new float[] { -123.123f, 124.124f, 0.0f }
             });
@@ -384,9 +425,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromVariantJsonTokenTypeNullMsftEncoding() {
+        public void DecodeEncodeFloatFromVariantJsonTokenTypeNullMsftEncoding()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new {
+            var str = _serializer.FromObject(new
+            {
                 DataType = "Float",
                 Value = -123.123f
             });
@@ -399,9 +442,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatFromVariantJsonStringTypeVariantMsftEncoding() {
+        public void DecodeEncodeFloatFromVariantJsonStringTypeVariantMsftEncoding()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.SerializeToString(new {
+            var str = _serializer.SerializeToString(new
+            {
                 DataType = "Float",
                 Value = -123.123f
             });
@@ -414,9 +459,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatArrayFromVariantJsonTokenTypeVariantMsftEncoding() {
+        public void DecodeEncodeFloatArrayFromVariantJsonTokenTypeVariantMsftEncoding()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new {
+            var str = _serializer.FromObject(new
+            {
                 dataType = "Float",
                 value = new float[] { -123.123f, 124.124f, 0.0f }
             });
@@ -429,7 +476,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatMatrixFromStringJsonTypeFloat() {
+        public void DecodeEncodeFloatMatrixFromStringJsonTypeFloat()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new float[,,] {
                 { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
@@ -452,9 +500,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatMatrixFromVariantJsonTypeVariant() {
+        public void DecodeEncodeFloatMatrixFromVariantJsonTypeVariant()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.SerializeToString(new {
+            var str = _serializer.SerializeToString(new
+            {
                 type = "Float",
                 body = new float[,,] {
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
@@ -478,9 +528,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatMatrixFromVariantJsonTokenTypeVariantMsftEncoding() {
+        public void DecodeEncodeFloatMatrixFromVariantJsonTokenTypeVariantMsftEncoding()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.SerializeToString(new {
+            var str = _serializer.SerializeToString(new
+            {
                 dataType = "Float",
                 value = new float[,,] {
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
@@ -504,9 +556,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatMatrixFromVariantJsonTypeNull() {
+        public void DecodeEncodeFloatMatrixFromVariantJsonTypeNull()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.SerializeToString(new {
+            var str = _serializer.SerializeToString(new
+            {
                 type = "Float",
                 body = new float[,,] {
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
@@ -530,9 +584,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeFloatMatrixFromVariantJsonTokenTypeNullMsftEncoding() {
+        public void DecodeEncodeFloatMatrixFromVariantJsonTokenTypeNullMsftEncoding()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.SerializeToString(new {
+            var str = _serializer.SerializeToString(new
+            {
                 dataType = "Float",
                 value = new float[,,] {
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },

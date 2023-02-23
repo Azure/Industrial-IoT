@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Models {
+namespace Azure.IIoT.OpcUa.Encoders.Models
+{
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using System;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
     /// <summary>
     /// Encodeable wrapper for Json tokens
     /// </summary>
-    public sealed class EncodeableJToken : IEncodeable {
+    public sealed class EncodeableJToken : IEncodeable
+    {
         /// <summary>
         /// The encoded object
         /// </summary>
@@ -21,7 +23,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
         /// Create encodeable token
         /// </summary>
         /// <param name="jToken"></param>
-        public EncodeableJToken(JToken jToken) {
+        public EncodeableJToken(JToken jToken)
+        {
             JToken = jToken ?? throw new ArgumentNullException(nameof(jToken));
         }
 
@@ -38,18 +41,22 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
             nameof(EncodeableJToken) + "_Encoding_DefaultXml";
 
         /// <inheritdoc/>
-        public void Decode(IDecoder decoder) {
+        public void Decode(IDecoder decoder)
+        {
             JToken = JToken.Parse(decoder.ReadString(nameof(JToken)));
         }
 
         /// <inheritdoc/>
-        public void Encode(IEncoder encoder) {
+        public void Encode(IEncoder encoder)
+        {
             encoder.WriteString(nameof(JToken), JToken.ToString());
         }
 
         /// <inheritdoc/>
-        public bool IsEqual(IEncodeable encodeable) {
-            if (encodeable is EncodeableJToken wrapper) {
+        public bool IsEqual(IEncodeable encodeable)
+        {
+            if (encodeable is EncodeableJToken wrapper)
+            {
                 return JToken.EqualityComparer.Equals(wrapper.JToken, JToken);
             }
             return false;

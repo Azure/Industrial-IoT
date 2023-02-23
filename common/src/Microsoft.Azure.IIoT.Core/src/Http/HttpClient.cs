@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http.Default {
+namespace Microsoft.Azure.IIoT.Http.Default
+{
     using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics;
@@ -19,13 +20,15 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// abstracting away all the http client factory and handler noise
     /// for easy injection.
     /// </summary>
-    public sealed class HttpClient : IHttpClient {
+    public sealed class HttpClient : IHttpClient
+    {
         /// <summary>
         /// Create client
         /// </summary>
         /// <param name="logger"></param>
         public HttpClient(ILogger logger) :
-            this(null, logger) {
+            this(null, logger)
+        {
         }
 
         /// <summary>
@@ -33,7 +36,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="logger"></param>
-        public HttpClient(IHttpClientFactory factory, ILogger logger) {
+        public HttpClient(IHttpClientFactory factory, ILogger logger)
+        {
             _factory = factory ?? new HttpClientFactory(null, logger);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -41,32 +45,38 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         }
 
         /// <inheritdoc/>
-        public IHttpRequest NewRequest(Uri uri, string resourceId) {
+        public IHttpRequest NewRequest(Uri uri, string resourceId)
+        {
             return new HttpRequest(uri, resourceId);
         }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> GetAsync(IHttpRequest request, CancellationToken ct) {
+        public Task<IHttpResponse> GetAsync(IHttpRequest request, CancellationToken ct)
+        {
             return SendAsync(request, HttpMethod.Get, ct);
         }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> PostAsync(IHttpRequest request, CancellationToken ct) {
+        public Task<IHttpResponse> PostAsync(IHttpRequest request, CancellationToken ct)
+        {
             return SendAsync(request, HttpMethod.Post, ct);
         }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> PutAsync(IHttpRequest request, CancellationToken ct) {
+        public Task<IHttpResponse> PutAsync(IHttpRequest request, CancellationToken ct)
+        {
             return SendAsync(request, HttpMethod.Put, ct);
         }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> PatchAsync(IHttpRequest request, CancellationToken ct) {
+        public Task<IHttpResponse> PatchAsync(IHttpRequest request, CancellationToken ct)
+        {
             return SendAsync(request, new HttpMethod("PATCH"), ct);
         }
 
         /// <inheritdoc/>
-        public Task<IHttpResponse> DeleteAsync(IHttpRequest request, CancellationToken ct) {
+        public Task<IHttpResponse> DeleteAsync(IHttpRequest request, CancellationToken ct)
+        {
             return SendAsync(request, HttpMethod.Delete, ct);
         }
 
@@ -78,14 +88,18 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<IHttpResponse> SendAsync(IHttpRequest httpRequest,
-            HttpMethod httpMethod, CancellationToken ct) {
-            if (!(httpRequest is HttpRequest wrapper)) {
+            HttpMethod httpMethod, CancellationToken ct)
+        {
+            if (!(httpRequest is HttpRequest wrapper))
+            {
                 throw new InvalidOperationException("Bad request");
             }
 
             using (var client = _factory.CreateClient(httpRequest.ResourceId ??
-                HttpHandlerFactory.DefaultResourceId)) {
-                if (httpRequest.Options.Timeout.HasValue) {
+                HttpHandlerFactory.DefaultResourceId))
+            {
+                if (httpRequest.Options.Timeout.HasValue)
+                {
                     client.Timeout = httpRequest.Options.Timeout.Value;
                 }
 
@@ -94,12 +108,15 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     httpRequest.Uri);
 
                 // We will use this local function for Exception formatting
-                HttpRequestException generateHttpRequestException(Exception e) {
+                HttpRequestException generateHttpRequestException(Exception e)
+                {
                     var errorMessage = $"{e.GetType()}: {e.Message}";
-                    if (e.InnerException != null) {
+                    if (e.InnerException != null)
+                    {
                         errorMessage += " - " + e.InnerException.Message;
                     }
-                    if (!httpRequest.Options.SuppressHttpClientLogging) {
+                    if (!httpRequest.Options.SuppressHttpClientLogging)
+                    {
                         _logger.LogWarning("{Method} to {Uri} failed (after {Elapsed}) : {Message}!",
                             httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
                     }
@@ -108,41 +125,52 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     return new HttpRequestException(errorMessage, e);
                 }
 
-                using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct)) {
-                    try {
+                using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct))
+                {
+                    try
+                    {
                         wrapper.Request.Method = httpMethod;
-                        using (var response = await client.SendAsync(wrapper.Request, linkedCts.Token).ConfigureAwait(false)) {
-                            var result = new HttpResponse {
+                        using (var response = await client.SendAsync(wrapper.Request, linkedCts.Token).ConfigureAwait(false))
+                        {
+                            var result = new HttpResponse
+                            {
                                 ResourceId = httpRequest.ResourceId,
                                 StatusCode = response.StatusCode,
                                 Headers = response.Headers,
                                 ContentHeaders = response.Content.Headers,
                                 Content = await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false)
                             };
-                            if (result.IsError()) {
-                                if (!httpRequest.Options.SuppressHttpClientLogging) {
+                            if (result.IsError())
+                            {
+                                if (!httpRequest.Options.SuppressHttpClientLogging)
+                                {
                                     _logger.LogWarning("{Method} to {Uri} returned {Code} (took {Elapsed}) {Error}.",
                                         httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
                                          result.GetContentAsString(Encoding.UTF8));
                                 }
-                                else {
+                                else
+                                {
                                     _logger.LogDebug("{Method} to {Uri} returned {Code} (took {Elapsed}).",
                                         httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
                                 }
                             }
-                            else {
+                            else
+                            {
                                 _logger.LogTrace("{Method} to {Uri} returned {Code} (took {Elapsed}).",
                                     httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
                             }
                             return result;
                         }
                     }
-                    catch (HttpRequestException e) {
+                    catch (HttpRequestException e)
+                    {
                         var requestEx = generateHttpRequestException(e);
                         throw requestEx;
                     }
-                    catch (OperationCanceledException e) {
-                        if (ct.IsCancellationRequested) {
+                    catch (OperationCanceledException e)
+                    {
+                        if (ct.IsCancellationRequested)
+                        {
                             // Cancel was called. We will call ct.ThrowIfCancellationRequested() because the
                             // token that is passed to the exception is the linked token. This way,
                             // information about usage of linked tokens will not be leaked to the caller.
@@ -153,8 +181,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                         var requestEx = generateHttpRequestException(e);
                         throw requestEx;
                     }
-                    catch (Exception ex) {
-                        if (!httpRequest.Options.SuppressHttpClientLogging) {
+                    catch (Exception ex)
+                    {
+                        if (!httpRequest.Options.SuppressHttpClientLogging)
+                        {
                             _logger.LogWarning("{Method} to {Uri} failed (after {Elapsed}) : {Message}!",
                                 httpMethod, httpRequest.Uri, sw.Elapsed, ex.Message);
                         }
@@ -167,23 +197,27 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Request object
         /// </summary>
-        public sealed class HttpRequest : IHttpRequest {
+        public sealed class HttpRequest : IHttpRequest
+        {
             /// <summary>
             /// Constructor
             /// </summary>
             /// <param name="uri"></param>
             /// <param name="resourceId"></param>
-            public HttpRequest(Uri uri, string resourceId) {
+            public HttpRequest(Uri uri, string resourceId)
+            {
                 Options = new Http.HttpRequestOptions();
                 Request = new HttpRequestMessage();
-                if (!uri.Scheme.EqualsIgnoreCase("http") && !uri.Scheme.EqualsIgnoreCase("https")) {
+                if (!uri.Scheme.EqualsIgnoreCase("http") && !uri.Scheme.EqualsIgnoreCase("https"))
+                {
                     // Need a way to work around request uri validation - add uds path to header.
                     Request.Headers.TryAddWithoutValidation(HttpHeader.UdsPath,
                         ParseUdsPath(uri, out uri));
                 }
                 Request.RequestUri = uri;
                 ResourceId = resourceId;
-                if (ResourceId != null) {
+                if (ResourceId != null)
+                {
                     Request.Headers.TryAddWithoutValidation(HttpHeader.ResourceId, ResourceId);
                 }
             }
@@ -203,7 +237,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             public Http.HttpRequestOptions Options { get; }
 
             /// <inheritdoc/>
-            public HttpContent Content {
+            public HttpContent Content
+            {
                 get => Request.Content;
                 set => Request.Content = value;
             }
@@ -216,28 +251,34 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// </summary>
             /// <param name="fileUri"></param>
             /// <param name="httpRequestUri"></param>
-            private static string ParseUdsPath(Uri fileUri, out Uri httpRequestUri) {
+            private static string ParseUdsPath(Uri fileUri, out Uri httpRequestUri)
+            {
                 var localPath = fileUri.LocalPath;
                 // Find socket
-                var builder = new UriBuilder(fileUri) {
+                var builder = new UriBuilder(fileUri)
+                {
                     Scheme = "https",
                     Host = Dns.GetHostName()
                 };
                 string fileDevice;
                 string pathAndQuery;
                 var index = localPath.IndexOf("sock", StringComparison.InvariantCultureIgnoreCase);
-                if (index != -1) {
+                if (index != -1)
+                {
                     fileDevice = localPath.Substring(0, index + 4);
                     pathAndQuery = localPath.Substring(index + 4);
                 }
-                else {
+                else
+                {
                     // Find fake port delimiter
                     index = localPath.IndexOf(':', StringComparison.Ordinal);
-                    if (index != -1) {
+                    if (index != -1)
+                    {
                         fileDevice = localPath.Substring(0, index);
                         pathAndQuery = localPath.Substring(index + 1);
                     }
-                    else {
+                    else
+                    {
                         builder.Path = "/";
                         httpRequestUri = builder.Uri;
                         return localPath.TrimEnd('/');
@@ -246,7 +287,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
 
                 // Find first path character and strip off everything before...
                 index = pathAndQuery.IndexOf('/', StringComparison.Ordinal);
-                if (index > 0) {
+                if (index > 0)
+                {
                     pathAndQuery = pathAndQuery.Substring(index, pathAndQuery.Length - index);
                 }
                 builder.Path = pathAndQuery;
@@ -258,7 +300,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Response object
         /// </summary>
-        public sealed class HttpResponse : IHttpResponse {
+        public sealed class HttpResponse : IHttpResponse
+        {
             /// <inheritdoc/>
             public string ResourceId { get; internal set; }
 

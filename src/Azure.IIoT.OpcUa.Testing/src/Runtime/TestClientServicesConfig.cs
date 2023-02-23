@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Runtime {
+namespace Azure.IIoT.OpcUa.Testing.Runtime
+{
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Furly.Extensions.Utils;
@@ -15,7 +16,8 @@ namespace Azure.IIoT.OpcUa.Testing.Runtime {
     /// <summary>
     /// Client's application configuration implementation
     /// </summary>
-    public class TestClientServicesConfig : IClientServicesConfig, IDisposable {
+    public class TestClientServicesConfig : IClientServicesConfig, IDisposable
+    {
         /// <inheritdoc/>
         public string PkiRootPath { get; }
         /// <inheritdoc/>
@@ -68,9 +70,11 @@ namespace Azure.IIoT.OpcUa.Testing.Runtime {
         public int SecurityTokenLifetime => _opc.SecurityTokenLifetime;
 
         /// <inheritdoc/>
-        public TestClientServicesConfig(IConfiguration configuration = null, bool autoAccept = false) {
+        public TestClientServicesConfig(IConfiguration configuration = null, bool autoAccept = false)
+        {
             AutoAcceptUntrustedCertificates = autoAccept;
-            if (configuration == null) {
+            if (configuration == null)
+            {
                 PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
                     Guid.NewGuid().ToByteArray().ToBase16String());
                 configuration = new ConfigurationBuilder()
@@ -81,14 +85,17 @@ namespace Azure.IIoT.OpcUa.Testing.Runtime {
                     .Build();
                 _opc = new ClientServicesConfig(configuration);
             }
-            else {
+            else
+            {
                 _opc = new ClientServicesConfig(configuration);
                 PkiRootPath = _opc.PkiRootPath;
             }
         }
         /// <inheritdoc/>
-        public void Dispose() {
-            if (Directory.Exists(PkiRootPath)) {
+        public void Dispose()
+        {
+            if (Directory.Exists(PkiRootPath))
+            {
                 Try.Op(() => Directory.Delete(PkiRootPath, true));
             }
         }

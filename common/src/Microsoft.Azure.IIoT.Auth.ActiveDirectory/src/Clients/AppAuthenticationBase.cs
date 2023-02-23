@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
+namespace Microsoft.Azure.IIoT.Auth.Clients.Default
+{
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Logging;
@@ -29,31 +30,39 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// https://docs.microsoft.com/en-us/azure/key-vault/service-to-service-authentication
     /// </para>
     /// </summary>
-    public abstract class AppAuthenticationBase : ITokenClient {
+    public abstract class AppAuthenticationBase : ITokenClient
+    {
         /// <inheritdoc/>
-        protected AppAuthenticationBase(ILogger logger) {
+        protected AppAuthenticationBase(ILogger logger)
+        {
             _logger = logger;
         }
 
         /// <inheritdoc/>
-        public bool Supports(string resource) {
+        public bool Supports(string resource)
+        {
             return GetProvider(resource).Any();
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
-            IEnumerable<string> scopes) {
+            IEnumerable<string> scopes)
+        {
             var exceptions = new List<Exception>();
-            foreach (var (config, provider) in GetProvider(resource)) {
-                try {
+            foreach (var (config, provider) in GetProvider(resource))
+            {
+                try
+                {
                     var token = await provider.KeyVaultTokenCallback(
                         config.GetAuthorityUrl(true), config.GetAudience(scopes),
                         config.GetScopeNames(scopes)?.FirstOrDefault()).ConfigureAwait(false);
-                    if (token == null) {
+                    if (token == null)
+                    {
                         return null;
                     }
                     var result = JwtSecurityTokenEx.Parse(token);
-                    if (result.ExpiresOn < DateTime.UtcNow) {
+                    if (result.ExpiresOn < DateTime.UtcNow)
+                    {
                         return null;
                     }
                     _logger.LogInformation(
@@ -61,7 +70,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                         resource, config.GetName());
                     return result;
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _logger.LogDebug(ex,
                         "Failed to retrieve token for {Resource} using {Config}",
                         resource, config.GetName());
@@ -69,14 +79,16 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                     continue;
                 }
             }
-            if (exceptions.Count != 0) {
+            if (exceptions.Count != 0)
+            {
                 throw new AggregateException(exceptions);
             }
             return null;
         }
 
         /// <inheritdoc/>
-        public Task InvalidateAsync(string resource) {
+        public Task InvalidateAsync(string resource)
+        {
             return Task.CompletedTask;
         }
 

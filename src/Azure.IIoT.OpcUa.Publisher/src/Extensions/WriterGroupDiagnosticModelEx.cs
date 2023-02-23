@@ -3,21 +3,26 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Models
+{
     /// <summary>
     /// Writer group Model extensions
     /// </summary>
-    public static class WriterGroupDiagnosticModelEx {
+    public static class WriterGroupDiagnosticModelEx
+    {
         /// <summary>
         /// Clone
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static WriterGroupDiagnosticModel Clone(this WriterGroupDiagnosticModel model) {
-            if (model == null) {
+        public static WriterGroupDiagnosticModel Clone(this WriterGroupDiagnosticModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new WriterGroupDiagnosticModel {
+            return new WriterGroupDiagnosticModel
+            {
                 SentMessagesPerSec = model.SentMessagesPerSec,
                 IngestionStart = model.IngestionStart,
                 IngressDataChanges = model.IngressDataChanges,

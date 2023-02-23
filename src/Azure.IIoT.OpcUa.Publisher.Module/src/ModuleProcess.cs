@@ -3,19 +3,20 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module {
+namespace Azure.IIoT.OpcUa.Publisher.Module
+{
+    using Autofac;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Discovery;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
-    using Azure.IIoT.OpcUa.Publisher.Discovery;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Twin;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Autofac;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -35,13 +36,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
     /// <summary>
     /// Publisher module
     /// </summary>
-    public class ModuleProcess : IProcessControl {
+    public class ModuleProcess : IProcessControl
+    {
         /// <summary>
         /// Create process
         /// </summary>
         /// <param name="config"></param>
         /// <param name="injector"></param>
-        public ModuleProcess(IConfiguration config, IInjector injector = null) {
+        public ModuleProcess(IConfiguration config, IInjector injector = null)
+        {
             _config = config;
             _injector = injector;
             _exitCode = 0;
@@ -50,17 +53,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
         }
 
         /// <inheritdoc/>
-        public void Reset() {
+        public void Reset()
+        {
             _reset.TrySetResult(true);
         }
 
         /// <inheritdoc/>
-        public void Exit(int exitCode) {
+        public void Exit(int exitCode)
+        {
             // Shut down gracefully.
             _exitCode = exitCode;
             _exit.TrySetResult(true);
 
-            if (Host.IsContainer) {
+            if (Host.IsContainer)
+            {
                 // Set timer to kill the entire process after 5 minutes.
                 _ = new Timer(o => Process.GetCurrentProcess().Kill(), null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
             }
@@ -74,10 +80,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
         /// <summary>
         /// Run module host
         /// </summary>
-        public async Task<int> RunAsync() {
+        public async Task<int> RunAsync()
+        {
             // Wait until the module unloads
-            while (true) {
-                using (var hostScope = ConfigureContainer(_config)) {
+            while (true)
+            {
+                using (var hostScope = ConfigureContainer(_config))
+                {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var events = hostScope.Resolve<IEventEmitter>();
@@ -85,7 +94,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var server = new MetricServer(port: kPublisherPrometheusPort);
-                    try {
+                    try
+                    {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         logger.LogInformation("Starting module OpcPublisher version {Version}.", version);
                         logger.LogInformation("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
@@ -104,17 +114,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
 
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task).ConfigureAwait(false);
-                        if (_exit.Task.IsCompleted) {
+                        if (_exit.Task.IsCompleted)
+                        {
                             logger.LogInformation("Module exits...");
                             return _exitCode;
                         }
                         _reset = new TaskCompletionSource<bool>();
                         logger.LogInformation("Module reset...");
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         logger.LogError(ex, "Error during module execution - restarting!");
                     }
-                    finally {
+                    finally
+                    {
                         OnRunning?.Invoke(this, false);
 
                         server.StopWhenEnabled(moduleConfig, logger);
@@ -130,7 +143,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
         /// </summary>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        private IContainer ConfigureContainer(IConfiguration configuration) {
+        private IContainer ConfigureContainer(IConfiguration configuration)
+        {
             var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
 
@@ -197,7 +211,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
 
-            if (_injector != null) {
+            if (_injector != null)
+            {
                 // Inject additional services
                 builder.RegisterInstance(_injector)
                     .AsImplementedInterfaces().SingleInstance()

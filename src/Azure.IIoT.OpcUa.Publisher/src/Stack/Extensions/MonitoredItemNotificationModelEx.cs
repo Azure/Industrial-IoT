@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -14,7 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// <summary>
     /// Notification model extensions
     /// </summary>
-    public static class MonitoredItemNotificationModelEx {
+    public static class MonitoredItemNotificationModelEx
+    {
         /// <summary>
         /// Clone notification
         /// </summary>
@@ -23,11 +25,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// <param name="dataValue"></param>
         /// <returns></returns>
         public static MonitoredItemNotificationModel Clone(this MonitoredItemNotificationModel model,
-            uint? sequenceNumber = null, DataValue dataValue = null) {
-            if (model == null) {
+            uint? sequenceNumber = null, DataValue dataValue = null)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new MonitoredItemNotificationModel {
+            return new MonitoredItemNotificationModel
+            {
                 Id = model.Id,
                 DataSetFieldName = model.DataSetFieldName,
                 DisplayName = model.DisplayName,
@@ -48,12 +53,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// <returns></returns>
         public static IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
             this IEncodeable notification, MonitoredItem monitoredItem,
-            Func<MonitoredItemNotificationModel> defaultValue = null) {
-            if (notification != null && monitoredItem != null) {
-                if (notification is MonitoredItemNotification m) {
+            Func<MonitoredItemNotificationModel> defaultValue = null)
+        {
+            if (notification != null && monitoredItem != null)
+            {
+                if (notification is MonitoredItemNotification m)
+                {
                     return m.ToMonitoredItemNotifications(monitoredItem);
                 }
-                if (notification is EventFieldList e) {
+                if (notification is EventFieldList e)
+                {
                     return e.ToMonitoredItemNotifications(monitoredItem);
                 }
             }
@@ -68,19 +77,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// <param name="monitoredItem"></param>
         /// <returns></returns>
         public static IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
-            this MonitoredItemNotification notification, MonitoredItem monitoredItem) {
-            if (notification == null || monitoredItem == null) {
+            this MonitoredItemNotification notification, MonitoredItem monitoredItem)
+        {
+            if (notification == null || monitoredItem == null)
+            {
                 yield break;
             }
             var handleId = monitoredItem.Handle as OpcUaMonitoredItem;
-            if (handleId?.SkipMonitoredItemNotification() ?? false) {
+            if (handleId?.SkipMonitoredItemNotification() ?? false)
+            {
                 // Skip change notification
                 yield break;
             }
             var sequence = notification.Message?.IsEmpty != false
                 ? (uint?)null
                 : notification.Message.SequenceNumber;
-            yield return new MonitoredItemNotificationModel {
+            yield return new MonitoredItemNotificationModel
+            {
                 Id = handleId?.Template?.Id ?? string.Empty,
                 DataSetFieldName = string.IsNullOrEmpty(monitoredItem.DisplayName)
                     ? handleId?.Template?.Id : monitoredItem.DisplayName,
@@ -100,14 +113,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// <param name="monitoredItem"></param>
         /// <returns></returns>
         public static IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
-            this EventFieldList eventFieldList, MonitoredItem monitoredItem) {
+            this EventFieldList eventFieldList, MonitoredItem monitoredItem)
+        {
             var handleId = monitoredItem.Handle as OpcUaMonitoredItem;
-            if (eventFieldList != null && monitoredItem != null) {
-                for (var i = 0; i < eventFieldList.EventFields.Count; i++) {
+            if (eventFieldList != null && monitoredItem != null)
+            {
+                for (var i = 0; i < eventFieldList.EventFields.Count; i++)
+                {
                     var sequenceNumber = eventFieldList.Message?.IsEmpty != false
                             ? (uint?)null
                             : eventFieldList.Message.SequenceNumber;
-                    yield return new MonitoredItemNotificationModel {
+                    yield return new MonitoredItemNotificationModel
+                    {
                         Id = handleId?.Template?.Id ?? string.Empty,
                         DataSetFieldName = handleId?.Fields[i].Name,
                         DisplayName = monitoredItem.DisplayName,

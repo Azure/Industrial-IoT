@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Application event
     /// </summary>
     [DataContract]
-    public sealed record class ApplicationEventModel {
+    public sealed record class ApplicationEventModel
+    {
         /// <summary>
         /// Event type
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Registry {
+namespace Azure.IIoT.OpcUa.Services.Registry
+{
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     /// Edge registry which uses the IoT Hub twin services for gateway
     /// identity management.
     /// </summary>
-    public sealed class GatewayRegistry : IGatewayRegistry {
+    public sealed class GatewayRegistry : IGatewayRegistry
+    {
         /// <summary>
         /// Create registry services
         /// </summary>
@@ -26,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         /// <param name="logger"></param>
         /// <param name="events"></param>
         public GatewayRegistry(IIoTHubTwinServices iothub, ILogger logger,
-            IGatewayRegistryListener events = null) {
+            IGatewayRegistryListener events = null)
+        {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _events = events;
@@ -34,13 +37,16 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
         /// <inheritdoc/>
         public async Task<GatewayInfoModel> GetGatewayAsync(string gatewayId,
-            bool onlyServerState, CancellationToken ct) {
-            if (string.IsNullOrEmpty(gatewayId)) {
+            bool onlyServerState, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(gatewayId))
+            {
                 throw new ArgumentException(nameof(gatewayId));
             }
             var deviceId = gatewayId;
             var device = await _iothub.GetAsync(deviceId, null, ct).ConfigureAwait(false);
-            if (!(device.ToEntityRegistration() is GatewayRegistration registration)) {
+            if (!(device.ToEntityRegistration() is GatewayRegistration registration))
+            {
                 throw new ResourceNotFoundException(
                     $"{gatewayId} is not a gateway registration.");
             }
@@ -48,8 +54,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             var modules = await _iothub.QueryAllDeviceTwinsAsync(
                 $"SELECT * FROM devices.modules WHERE deviceId = '{device.Id}'", ct).ConfigureAwait(false);
             var gatewayModules = new GatewayModulesModel();
-            foreach (var module in modules) {
-                switch (module.ToEntityRegistration(onlyServerState)) {
+            foreach (var module in modules)
+            {
+                switch (module.ToEntityRegistration(onlyServerState))
+                {
                     case PublisherRegistration pr:
                         gatewayModules.Supervisor = pr.ToSupervisorModel();
                         gatewayModules.Discoverer = pr.ToDiscovererModel();
@@ -60,7 +68,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                         break;
                 }
             }
-            return new GatewayInfoModel {
+            return new GatewayInfoModel
+            {
                 Gateway = registration.ToServiceModel(),
                 Modules = gatewayModules
             };
@@ -68,26 +77,33 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
         /// <inheritdoc/>
         public async Task UpdateGatewayAsync(string gatewayId,
-            GatewayUpdateModel request, CancellationToken ct) {
-            if (request == null) {
+            GatewayUpdateModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(gatewayId)) {
+            if (string.IsNullOrEmpty(gatewayId))
+            {
                 throw new ArgumentException(nameof(gatewayId));
             }
 
             // Get existing endpoint and compare to see if we need to patch.
             var deviceId = gatewayId;
 
-            while (true) {
-                try {
+            while (true)
+            {
+                try
+                {
                     var twin = await _iothub.GetAsync(deviceId, null, ct).ConfigureAwait(false);
-                    if (twin.Id != deviceId) {
+                    if (twin.Id != deviceId)
+                    {
                         throw new ArgumentException("Id must be same as twin to patch",
                             nameof(gatewayId));
                     }
 
-                    if (!(twin.ToEntityRegistration(true) is GatewayRegistration registration)) {
+                    if (!(twin.ToEntityRegistration(true) is GatewayRegistration registration))
+                    {
                         throw new ResourceNotFoundException(
                             $"{gatewayId} is not a gateway registration.");
                     }
@@ -95,7 +111,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                     // Update registration from update request
                     var patched = registration.ToServiceModel();
 
-                    if (request.SiteId != null) {
+                    if (request.SiteId != null)
+                    {
                         patched.SiteId = string.IsNullOrEmpty(request.SiteId) ?
                             null : request.SiteId;
                     }
@@ -108,7 +125,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                     await (_events?.OnGatewayUpdatedAsync(null, registration.ToServiceModel())).ConfigureAwait(false);
                     return;
                 }
-                catch (ResourceOutOfDateException ex) {
+                catch (ResourceOutOfDateException ex)
+                {
                     _logger.LogDebug(ex, "Retrying updating gateway...");
                     continue;
                 }
@@ -117,12 +135,14 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
         /// <inheritdoc/>
         public async Task<GatewayListModel> ListGatewaysAsync(
-            string continuation, int? pageSize, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct)
+        {
             const string query = "SELECT * FROM devices WHERE " +
                 $"tags.{TwinProperty.Type} = '{IdentityType.Gateway}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
-            return new GatewayListModel {
+            return new GatewayListModel
+            {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
                     .Select(t => t.ToGatewayRegistration())
@@ -133,27 +153,33 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
         /// <inheritdoc/>
         public async Task<GatewayListModel> QueryGatewaysAsync(
-            GatewayQueryModel model, int? pageSize, CancellationToken ct) {
+            GatewayQueryModel model, int? pageSize, CancellationToken ct)
+        {
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{TwinProperty.Type} = '{IdentityType.Gateway}' ";
 
-            if (model?.SiteId != null) {
+            if (model?.SiteId != null)
+            {
                 // If site id provided, include it in search
                 query +=
 $"AND (tags.{TwinProperty.SiteId} = '{model.SiteId}' OR deviceId = '{model.SiteId}') ";
             }
-            if (model?.Connected != null) {
+            if (model?.Connected != null)
+            {
                 // If flag provided, include it in search
-                if (model.Connected.Value) {
+                if (model.Connected.Value)
+                {
                     query += "AND connectionState = 'Connected' ";
                 }
-                else {
+                else
+                {
                     query += "AND connectionState != 'Connected' ";
                 }
             }
 
             var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct).ConfigureAwait(false);
-            return new GatewayListModel {
+            return new GatewayListModel
+            {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
                     .Select(t => t.ToGatewayRegistration())

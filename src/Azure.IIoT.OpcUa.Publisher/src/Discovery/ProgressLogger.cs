@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Discovery {
+namespace Azure.IIoT.OpcUa.Publisher.Discovery
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Extensions.Logging;
     using System;
@@ -13,19 +14,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
     /// <summary>
     /// Discovery progress logger
     /// </summary>
-    public class ProgressLogger : IDiscoveryProgress {
+    public class ProgressLogger : IDiscoveryProgress
+    {
         /// <summary>
         /// Create listener
         /// </summary>
         /// <param name="logger"></param>
-        public ProgressLogger(ILogger logger) {
+        public ProgressLogger(ILogger logger)
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public void OnDiscoveryPending(DiscoveryRequestModel request,
-            int pending) {
-            Send(new DiscoveryProgressModel {
+            int pending)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 EventType = DiscoveryProgressType.Pending,
                 Request = request,
                 Total = pending
@@ -33,16 +38,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         }
 
         /// <inheritdoc/>
-        public void OnDiscoveryStarted(DiscoveryRequestModel request) {
-            Send(new DiscoveryProgressModel {
+        public void OnDiscoveryStarted(DiscoveryRequestModel request)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 EventType = DiscoveryProgressType.Started,
                 Request = request
             });
         }
 
         /// <inheritdoc/>
-        public void OnDiscoveryCancelled(DiscoveryRequestModel request) {
-            Send(new DiscoveryProgressModel {
+        public void OnDiscoveryCancelled(DiscoveryRequestModel request)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 TimeStamp = DateTime.UtcNow,
                 EventType = DiscoveryProgressType.Cancelled,
                 Request = request
@@ -51,21 +60,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnDiscoveryError(DiscoveryRequestModel request,
-            Exception ex) {
-            Send(new DiscoveryProgressModel {
+            Exception ex)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 TimeStamp = DateTime.UtcNow,
                 EventType = DiscoveryProgressType.Error,
                 Request = request,
                 Result = ex.Message,
-                ResultDetails = new Dictionary<string, string> {
+                ResultDetails = new Dictionary<string, string>
+                {
                     ["exception"] = ex.ToString()
                 },
             });
         }
 
         /// <inheritdoc/>
-        public void OnDiscoveryFinished(DiscoveryRequestModel request) {
-            Send(new DiscoveryProgressModel {
+        public void OnDiscoveryFinished(DiscoveryRequestModel request)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 TimeStamp = DateTime.UtcNow,
                 EventType = DiscoveryProgressType.Finished,
                 Request = request
@@ -74,8 +88,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnNetScanStarted(DiscoveryRequestModel request,
-            int workers, int progress, int total) {
-            Send(new DiscoveryProgressModel {
+            int workers, int progress, int total)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 TimeStamp = DateTime.UtcNow,
                 EventType = DiscoveryProgressType.NetworkScanStarted,
                 Workers = workers,
@@ -87,8 +103,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnNetScanResult(DiscoveryRequestModel request,
-            int workers, int progress, int total, int discovered, IPAddress address) {
-            Send(new DiscoveryProgressModel {
+            int workers, int progress, int total, int discovered, IPAddress address)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 TimeStamp = DateTime.UtcNow,
                 EventType = DiscoveryProgressType.NetworkScanResult,
                 Workers = workers,
@@ -102,8 +120,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnNetScanProgress(DiscoveryRequestModel request,
-            int workers, int progress, int total, int discovered) {
-            Send(new DiscoveryProgressModel {
+            int workers, int progress, int total, int discovered)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 TimeStamp = DateTime.UtcNow,
                 EventType = DiscoveryProgressType.NetworkScanProgress,
                 Workers = workers,
@@ -116,8 +136,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnNetScanFinished(DiscoveryRequestModel request,
-            int workers, int progress, int total, int discovered) {
-            Send(new DiscoveryProgressModel {
+            int workers, int progress, int total, int discovered)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 TimeStamp = DateTime.UtcNow,
                 EventType = DiscoveryProgressType.NetworkScanFinished,
                 Workers = workers,
@@ -130,8 +152,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnPortScanStart(DiscoveryRequestModel request,
-            int workers, int progress, int total) {
-            Send(new DiscoveryProgressModel {
+            int workers, int progress, int total)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 TimeStamp = DateTime.UtcNow,
                 EventType = DiscoveryProgressType.PortScanStarted,
                 Workers = workers,
@@ -143,8 +167,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnPortScanResult(DiscoveryRequestModel request,
-            int workers, int progress, int total, int discovered, IPEndPoint result) {
-            Send(new DiscoveryProgressModel {
+            int workers, int progress, int total, int discovered, IPEndPoint result)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 TimeStamp = DateTime.UtcNow,
                 EventType = DiscoveryProgressType.PortScanResult,
                 Workers = workers,
@@ -158,8 +184,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnPortScanProgress(DiscoveryRequestModel request,
-            int workers, int progress, int total, int discovered) {
-            Send(new DiscoveryProgressModel {
+            int workers, int progress, int total, int discovered)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 EventType = DiscoveryProgressType.PortScanProgress,
                 Workers = workers,
                 Progress = progress,
@@ -171,8 +199,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnPortScanFinished(DiscoveryRequestModel request,
-            int workers, int progress, int total, int discovered) {
-            Send(new DiscoveryProgressModel {
+            int workers, int progress, int total, int discovered)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 EventType = DiscoveryProgressType.PortScanFinished,
                 Workers = workers,
                 Progress = progress,
@@ -184,8 +214,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnServerDiscoveryStarted(DiscoveryRequestModel request,
-            int workers, int progress, int total) {
-            Send(new DiscoveryProgressModel {
+            int workers, int progress, int total)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 EventType = DiscoveryProgressType.ServerDiscoveryStarted,
                 Workers = workers,
                 Progress = progress,
@@ -196,10 +228,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnFindEndpointsStarted(DiscoveryRequestModel request,
-            int workers, int progress, int total, int discovered, Uri url, IPAddress address) {
-            Send(new DiscoveryProgressModel {
+            int workers, int progress, int total, int discovered, Uri url, IPAddress address)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 EventType = DiscoveryProgressType.EndpointsDiscoveryStarted,
-                RequestDetails = new Dictionary<string, string> {
+                RequestDetails = new Dictionary<string, string>
+                {
                     ["url"] = url.ToString(),
                     ["address"] = address.ToString()
                 },
@@ -214,10 +249,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <inheritdoc/>
         public void OnFindEndpointsFinished(DiscoveryRequestModel request,
             int workers, int progress, int total, int discovered, Uri url,
-            IPAddress address, int endpoints) {
-            Send(new DiscoveryProgressModel {
+            IPAddress address, int endpoints)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 EventType = DiscoveryProgressType.EndpointsDiscoveryFinished,
-                RequestDetails = new Dictionary<string, string> {
+                RequestDetails = new Dictionary<string, string>
+                {
                     ["url"] = url.ToString(),
                     ["address"] = address.ToString()
                 },
@@ -232,8 +270,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public void OnServerDiscoveryFinished(DiscoveryRequestModel request,
-            int workers, int progress, int total, int discovered) {
-            Send(new DiscoveryProgressModel {
+            int workers, int progress, int total, int discovered)
+        {
+            Send(new DiscoveryProgressModel
+            {
                 EventType = DiscoveryProgressType.ServerDiscoveryFinished,
                 Workers = workers,
                 Progress = progress,
@@ -247,7 +287,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// Send progress
         /// </summary>
         /// <param name="progress"></param>
-        protected virtual void Send(DiscoveryProgressModel progress) {
+        protected virtual void Send(DiscoveryProgressModel progress)
+        {
             progress.TimeStamp = DateTime.UtcNow;
             _logger.LogProgress(progress);
         }

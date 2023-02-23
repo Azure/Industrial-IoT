@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Azure.IIoT.OpcUa.Shared.Models;
@@ -24,7 +25,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
-    public class EndpointsController : ControllerBase {
+    public class EndpointsController : ControllerBase
+    {
         /// <summary>
         /// Create controller for endpoints services
         /// </summary>
@@ -34,7 +36,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <param name="certificates"></param>
         public EndpointsController(IEndpointRegistry endpoints,
             IEndpointManager manager, IConnectionServices<string> activation,
-            ICertificateServices<string> certificates) {
+            ICertificateServices<string> certificates)
+        {
             _manager = manager;
             _activation = activation;
             _certificates = certificates;
@@ -56,7 +59,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// not the call will fail.</param>
         /// <returns>Endpoint identifier</returns>
         [HttpPut]
-        public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query) {
+        public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query)
+        {
             return await _manager.RegisterEndpointAsync(query).ConfigureAwait(false);
         }
 
@@ -73,7 +77,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Endpoint registration</returns>
         [HttpGet("{endpointId}")]
         public async Task<EndpointInfoModel> GetEndpointAsync(string endpointId,
-            [FromQuery] bool? onlyServerState) {
+            [FromQuery] bool? onlyServerState)
+        {
             return await _endpoints.GetEndpointAsync(endpointId, onlyServerState ?? false).ConfigureAwait(false);
         }
 
@@ -96,16 +101,19 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task<EndpointInfoListModel> GetListOfEndpointsAsync(
             [FromQuery] bool? onlyServerState,
             [FromQuery] string continuationToken,
-            [FromQuery] int? pageSize) {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
+            [FromQuery] int? pageSize)
+        {
+            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken]
                     .FirstOrDefault();
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount)) {
+            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            
+
 
             // TODO: Redact username/token based on policy/permission
 
@@ -132,11 +140,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task<EndpointInfoListModel> QueryEndpointsAsync(
             [FromBody][Required] EndpointRegistrationQueryModel query,
             [FromQuery] bool? onlyServerState,
-            [FromQuery] int? pageSize) {
-            if (query == null) {
+            [FromQuery] int? pageSize)
+        {
+            if (query == null)
+            {
                 throw new ArgumentNullException(nameof(query));
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount)) {
+            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
@@ -164,11 +175,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task<EndpointInfoListModel> GetFilteredListOfEndpointsAsync(
             [FromQuery][Required] EndpointRegistrationQueryModel query,
             [FromQuery] bool? onlyServerState,
-            [FromQuery] int? pageSize) {
-            if (query == null) {
+            [FromQuery] int? pageSize)
+        {
+            if (query == null)
+            {
                 throw new ArgumentNullException(nameof(query));
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount)) {
+            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
@@ -186,7 +200,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </remarks>
         /// <param name="endpointId">endpoint identifier</param>
         [HttpPost("{endpointId}/activate")]
-        public async Task ConnectAsync(string endpointId) {
+        public async Task ConnectAsync(string endpointId)
+        {
             await _activation.ConnectAsync(endpointId).ConfigureAwait(false);
         }
 
@@ -200,7 +215,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Endpoint registration</returns>
         [HttpGet("{endpointId}/certificate")]
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
-            string endpointId) {
+            string endpointId)
+        {
             return await _certificates.GetEndpointCertificateAsync(endpointId).ConfigureAwait(false);
         }
 
@@ -212,7 +228,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </remarks>
         /// <param name="endpointId">endpoint identifier</param>
         [HttpPost("{endpointId}/deactivate")]
-        public async Task DisconnectAsync(string endpointId) {
+        public async Task DisconnectAsync(string endpointId)
+        {
             await _activation.DisconnectAsync(endpointId).ConfigureAwait(false);
         }
 

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Result of node browse continuation
     /// </summary>
     [DataContract]
-    public sealed record class BrowseNextResponseModel {
+    public sealed record class BrowseNextResponseModel
+    {
         /// <summary>
         /// References, if included, otherwise null.
         /// </summary>

@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Alarms {
+namespace Alarms
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -43,13 +44,15 @@ namespace Alarms {
     /// identified by a fully qualified path. The underlying system knows how to access the source
     /// configuration when it is provided the fully qualified path.
     /// </remarks>
-    public class AlarmConditionServerNodeManager : CustomNodeManager2 {
+    public class AlarmConditionServerNodeManager : CustomNodeManager2
+    {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         public AlarmConditionServerNodeManager(IServerInternal server, ApplicationConfiguration configuration)
         :
-            base(server, configuration, Namespaces.AlarmCondition) {
+            base(server, configuration, Namespaces.AlarmCondition)
+        {
             SystemContext.SystemHandle = _system = new UnderlyingSystem();
             SystemContext.NodeIdFactory = this;
 
@@ -57,7 +60,8 @@ namespace Alarms {
             _configuration = configuration.ParseExtension<AlarmConditionServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            _configuration ??= new AlarmConditionServerConfiguration {
+            _configuration ??= new AlarmConditionServerConfiguration
+            {
                 Areas = new AreaConfigurationCollection {
                         new AreaConfiguration {
                             Name = "Green",
@@ -120,13 +124,17 @@ namespace Alarms {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
-                if (_system != null) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_system != null)
+                {
                     _system.Dispose();
                     _system = null;
                 }
-                if (_simulationTimer != null) {
+                if (_simulationTimer != null)
+                {
                     _simulationTimer.Dispose();
                     _simulationTimer = null;
                 }
@@ -148,7 +156,8 @@ namespace Alarms {
         /// strings. Other implementations could assign unique integers or Guids and save the new
         /// Node in a dictionary for later lookup.
         /// </remarks>
-        public override NodeId New(ISystemContext context, NodeState node) {
+        public override NodeId New(ISystemContext context, NodeState node)
+        {
             return ModelUtils.ConstructIdForComponent(node, NamespaceIndex);
         }
 
@@ -160,18 +169,23 @@ namespace Alarms {
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
         /// should have a reference to the root folder node(s) exposed by this node manager.
         /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Lock) {
-                if (_configuration.Areas != null) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Lock)
+            {
+                if (_configuration.Areas != null)
+                {
                     // Top level areas need a reference from the Server object.
                     // These references are added to a list that is returned to the caller.
                     // The caller will update the Objects folder node.
 
-                    if (!externalReferences.TryGetValue(ObjectIds.Server, out var references)) {
+                    if (!externalReferences.TryGetValue(ObjectIds.Server, out var references))
+                    {
                         externalReferences[ObjectIds.Server] = references = new List<IReference>();
                     }
 
-                    for (var ii = 0; ii < _configuration.Areas.Count; ii++) {
+                    for (var ii = 0; ii < _configuration.Areas.Count; ii++)
+                    {
                         // recursively process each area.
                         var area = CreateAndIndexAreas(null, _configuration.Areas[ii]);
                         AddRootNotifier(area);
@@ -187,8 +201,10 @@ namespace Alarms {
             }
         }
 
-        private void OnRaiseSystemEvents(object state) {
-            try {
+        private void OnRaiseSystemEvents(object state)
+        {
+            try
+            {
                 var e = new SystemEventState(null);
 
                 e.Initialize(
@@ -217,7 +233,8 @@ namespace Alarms {
 
                 Server.ReportEvent(ae);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Unexpected error in OnRaiseSystemEvents");
             }
         }
@@ -225,7 +242,8 @@ namespace Alarms {
         /// <summary>
         /// Creates and indexes an area defined for the server.
         /// </summary>
-        private AreaState CreateAndIndexAreas(AreaState parent, AreaConfiguration configuration) {
+        private AreaState CreateAndIndexAreas(AreaState parent, AreaConfiguration configuration)
+        {
             // create a unique path to the area.
             var areaPath = Utils.Format("{0}/{1}", (parent != null) ? parent.SymbolicName : string.Empty, configuration.Name);
             var areaId = ModelUtils.ConstructIdForArea(areaPath, NamespaceIndex);
@@ -237,20 +255,25 @@ namespace Alarms {
             parent?.AddChild(area);
 
             // create an index any sub-areas defined for the area.
-            if (configuration.SubAreas != null) {
-                for (var ii = 0; ii < configuration.SubAreas.Count; ii++) {
+            if (configuration.SubAreas != null)
+            {
+                for (var ii = 0; ii < configuration.SubAreas.Count; ii++)
+                {
                     CreateAndIndexAreas(area, configuration.SubAreas[ii]);
                 }
             }
 
             // add references to sources.
-            if (configuration.SourcePaths != null) {
-                for (var ii = 0; ii < configuration.SourcePaths.Count; ii++) {
+            if (configuration.SourcePaths != null)
+            {
+                for (var ii = 0; ii < configuration.SourcePaths.Count; ii++)
+                {
                     var sourcePath = configuration.SourcePaths[ii];
 
                     // check if the source already exists because it is referenced by another area.
 
-                    if (!_sources.TryGetValue(sourcePath, out var source)) {
+                    if (!_sources.TryGetValue(sourcePath, out var source))
+                    {
                         var sourceId = ModelUtils.ConstructIdForSource(sourcePath, NamespaceIndex);
                         _sources[sourcePath] = source = new SourceState(this, sourceId, sourcePath);
                     }
@@ -270,8 +293,10 @@ namespace Alarms {
         /// <summary>
         /// Frees any resources allocated for the address space.
         /// </summary>
-        public override void DeleteAddressSpace() {
-            lock (Lock) {
+        public override void DeleteAddressSpace()
+        {
+            lock (Lock)
+            {
                 _system.StopSimulation();
                 _areas.Clear();
                 _sources.Clear();
@@ -281,17 +306,22 @@ namespace Alarms {
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache) {
-            lock (Lock) {
+        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
+        {
+            lock (Lock)
+            {
                 // quickly exclude nodes that are not in the namespace.
-                if (!IsNodeIdInNamespace(nodeId)) {
+                if (!IsNodeIdInNamespace(nodeId))
+                {
                     return null;
                 }
 
                 // check for check for nodes that are being currently monitored.
 
-                if (MonitoredNodes.TryGetValue(nodeId, out var monitoredNode)) {
-                    return new NodeHandle {
+                if (MonitoredNodes.TryGetValue(nodeId, out var monitoredNode))
+                {
+                    return new NodeHandle
+                    {
                         NodeId = nodeId,
                         Validated = true,
                         Node = monitoredNode.Node
@@ -301,8 +331,10 @@ namespace Alarms {
                 // parse the identifier.
                 var parsedNodeId = ParsedNodeId.Parse(nodeId);
 
-                if (parsedNodeId != null) {
-                    return new NodeHandle {
+                if (parsedNodeId != null)
+                {
+                    return new NodeHandle
+                    {
                         NodeId = nodeId,
                         Validated = false,
                         Node = null,
@@ -320,24 +352,30 @@ namespace Alarms {
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
-            IDictionary<NodeId, NodeState> cache) {
+            IDictionary<NodeId, NodeState> cache)
+        {
             // not valid if no root.
-            if (handle == null) {
+            if (handle == null)
+            {
                 return null;
             }
 
             // check if previously validated.
-            if (handle.Validated) {
+            if (handle.Validated)
+            {
                 return handle.Node;
             }
 
             NodeState target = null;
 
             // check if already in the cache.
-            if (cache != null) {
-                if (cache.TryGetValue(handle.NodeId, out target)) {
+            if (cache != null)
+            {
+                if (cache.TryGetValue(handle.NodeId, out target))
+                {
                     // nulls mean a NodeId which was previously found to be invalid has been referenced again.
-                    if (target == null) {
+                    if (target == null)
+                    {
                         return null;
                     }
 
@@ -349,17 +387,21 @@ namespace Alarms {
                 target = null;
             }
 
-            try {
+            try
+            {
                 // check if the node id has been parsed.
-                if (!(handle.ParsedNodeId is ParsedNodeId parsedNodeId)) {
+                if (!(handle.ParsedNodeId is ParsedNodeId parsedNodeId))
+                {
                     return null;
                 }
 
                 NodeState root = null;
 
                 // validate area.
-                if (parsedNodeId.RootType == ModelUtils.Area) {
-                    if (!_areas.TryGetValue(parsedNodeId.RootId, out var area)) {
+                if (parsedNodeId.RootType == ModelUtils.Area)
+                {
+                    if (!_areas.TryGetValue(parsedNodeId.RootId, out var area))
+                    {
                         return null;
                     }
 
@@ -367,8 +409,10 @@ namespace Alarms {
                 }
 
                 // validate soucre.
-                else if (parsedNodeId.RootType == ModelUtils.Source) {
-                    if (!_sources.TryGetValue(parsedNodeId.RootId, out var source)) {
+                else if (parsedNodeId.RootType == ModelUtils.Source)
+                {
+                    if (!_sources.TryGetValue(parsedNodeId.RootId, out var source))
+                    {
                         return null;
                     }
 
@@ -376,12 +420,14 @@ namespace Alarms {
                 }
 
                 // unknown root type.
-                else {
+                else
+                {
                     return null;
                 }
 
                 // all done if no components to validate.
-                if (string.IsNullOrEmpty(parsedNodeId.ComponentPath)) {
+                if (string.IsNullOrEmpty(parsedNodeId.ComponentPath))
+                {
                     handle.Validated = true;
                     handle.Node = target = root;
                     return handle.Node;
@@ -391,7 +437,8 @@ namespace Alarms {
                 NodeState component = root.FindChildBySymbolicName(context, parsedNodeId.ComponentPath);
 
                 // component does not exist.
-                if (component == null) {
+                if (component == null)
+                {
                     return null;
                 }
 
@@ -400,7 +447,8 @@ namespace Alarms {
                 handle.Node = target = component;
                 return handle.Node;
             }
-            finally {
+            finally
+            {
                 // store the node in the cache to optimize subsequent lookups.
                 cache?.Add(handle.NodeId, target);
             }

@@ -27,20 +27,25 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalEvents {
+namespace HistoricalEvents
+{
     using Opc.Ua;
     using Opc.Ua.Server;
 
     /// <inheritdoc/>
-    public class HistoricalEventsServer : INodeManagerFactory {
+    public class HistoricalEventsServer : INodeManagerFactory
+    {
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
-            ApplicationConfiguration configuration) {
+            ApplicationConfiguration configuration)
+        {
             return new HistoricalEventsNodeManager(server, configuration);
         }
         /// <inheritdoc/>
-        public StringCollection NamespacesUris {
-            get {
+        public StringCollection NamespacesUris
+        {
+            get
+            {
                 return new StringCollection {
                     Namespaces.HistoricalEvents,
                 };

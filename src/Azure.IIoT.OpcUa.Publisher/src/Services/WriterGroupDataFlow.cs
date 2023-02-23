@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services {
+namespace Azure.IIoT.OpcUa.Publisher.Services
+{
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -19,7 +20,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// <summary>
     /// Dataflow engine
     /// </summary>
-    public class WriterGroupDataFlow : IWriterGroup {
+    public class WriterGroupDataFlow : IWriterGroup
+    {
         /// <inheritdoc/>
         public IMessageSource Source { get; }
 
@@ -29,7 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         public WriterGroupDataFlow(IMessageSource source, IMessageEncoder encoder,
             IMessageSink sink, IEngineConfiguration config, ILogger logger,
             IMetricsContext metrics, IWriterGroupDiagnostics diagnostics = null)
-            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
+        {
             _config = config;
             Source = source;
             _messageSink = sink;
@@ -37,16 +40,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             _logger = logger;
             _diagnostics = diagnostics;
 
-            if (_config.BatchSize > 1) {
+            if (_config.BatchSize > 1)
+            {
                 _notificationBufferSize = _config.BatchSize.Value;
             }
-            if (_config.MaxMessageSize > 0) {
+            if (_config.MaxMessageSize > 0)
+            {
                 _maxEncodedMessageSize = _config.MaxMessageSize.Value;
             }
-            if (_maxEncodedMessageSize <= 0) {
+            if (_maxEncodedMessageSize <= 0)
+            {
                 _maxEncodedMessageSize = int.MaxValue;
             }
-            if (_maxEncodedMessageSize > _messageSink.MaxMessageSize) {
+            if (_maxEncodedMessageSize > _messageSink.MaxMessageSize)
+            {
                 _maxEncodedMessageSize = _messageSink.MaxMessageSize;
             }
 
@@ -55,12 +62,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             _maxOutgressMessages = _config.MaxOutgressMessages ?? 4096; // = 1 GB
 
             _encodingBlock = new TransformManyBlock<SubscriptionNotificationModel[], ITelemetryEvent>(
-                input => {
-                    try {
+                input =>
+                {
+                    try
+                    {
                         return _messageEncoder.Encode(_messageSink.CreateMessage,
                             input, _maxEncodedMessageSize, _notificationBufferSize != 1);
                     }
-                    catch (Exception e) {
+                    catch (Exception e)
+                    {
                         _logger.LogError(e, "Encoding failure.");
                         return Enumerable.Empty<ITelemetryEvent>();
                     }
@@ -81,8 +91,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         }
 
         /// <inheritdoc/>
-        public async ValueTask DisposeAsync() {
-            try {
+        public async ValueTask DisposeAsync()
+        {
+            try
+            {
                 _batchTriggerIntervalTimer?.Change(Timeout.Infinite, Timeout.Infinite);
                 Source.OnCounterReset -= MessageTriggerCounterResetReceived;
                 Source.OnMessage -= OnMessageReceived;
@@ -94,22 +106,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 await _sinkBlock.Completion.ConfigureAwait(false);
                 _batchTriggerIntervalTimer?.Dispose();
             }
-            finally {
+            finally
+            {
                 _diagnostics?.Dispose();
                 await Source.DisposeAsync().ConfigureAwait(false);
             }
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         /// <summary>
         /// Batch trigger interval
         /// </summary>
-        private void BatchTriggerIntervalTimer_Elapsed(object state) {
-            if (_batchTriggerInterval > TimeSpan.Zero) {
+        private void BatchTriggerIntervalTimer_Elapsed(object state)
+        {
+            if (_batchTriggerInterval > TimeSpan.Zero)
+            {
                 _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
             }
             _batchDataSetMessageBlock?.TriggerBatch();
@@ -118,12 +134,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Message received handler
         /// </summary>
-        private void OnMessageReceived(object sender, SubscriptionNotificationModel args) {
+        private void OnMessageReceived(object sender, SubscriptionNotificationModel args)
+        {
             _logger.LogDebug("Message source received message with sequenceNumber {SequenceNumber}",
                 args.SequenceNumber);
 
-            if (_dataFlowStartTime == DateTime.MinValue) {
-                if (_batchTriggerInterval > TimeSpan.Zero) {
+            if (_dataFlowStartTime == DateTime.MinValue)
+            {
+                if (_batchTriggerInterval > TimeSpan.Zero)
+                {
                     _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
                 }
                 _diagnostics?.ResetWriterGroupDiagnostics();
@@ -132,15 +151,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     args.SubscriptionName, args.EndpointUrl);
             }
 
-            if (_sinkBlock.InputCount >= _maxOutgressMessages) {
+            if (_sinkBlock.InputCount >= _maxOutgressMessages)
+            {
                 _sinkBlockInputDroppedCount++;
             }
-            else {
+            else
+            {
                 _batchDataSetMessageBlock.Post(args);
             }
         }
 
-        private void MessageTriggerCounterResetReceived(object sender, EventArgs e) {
+        private void MessageTriggerCounterResetReceived(object sender, EventArgs e)
+        {
             _dataFlowStartTime = DateTime.MinValue;
         }
 
@@ -148,7 +170,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Create observable metrics
         /// </summary>
         /// <param name="metrics"></param>
-        private WriterGroupDataFlow(IMetricsContext metrics) {
+        private WriterGroupDataFlow(IMetricsContext metrics)
+        {
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_iothub_queue_dropped_count",
                 () => new Measurement<long>(_sinkBlockInputDroppedCount, metrics.TagList), "Messages",
                 "Telemetry messages dropped due to overflow.");

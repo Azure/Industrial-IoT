@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http {
+namespace Microsoft.Azure.IIoT.Http
+{
     /// <summary>
     /// Custom header values
     /// </summary>
-    public static class HttpHeader {
+    public static class HttpHeader
+    {
         // Common
 
         /// <summary>

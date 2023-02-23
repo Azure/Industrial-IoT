@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace MemoryBuffer {
+namespace MemoryBuffer
+{
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -35,11 +36,13 @@ namespace MemoryBuffer {
     /// Stores the configuration the test node manager
     /// </summary>
     [DataContract(Namespace = Namespaces.MemoryBuffer)]
-    public class MemoryBufferConfiguration {
+    public class MemoryBufferConfiguration
+    {
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public MemoryBufferConfiguration() {
+        public MemoryBufferConfiguration()
+        {
             Initialize();
         }
 
@@ -47,14 +50,16 @@ namespace MemoryBuffer {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private void Initialize()
+        {
             Buffers = null;
         }
 
@@ -69,11 +74,13 @@ namespace MemoryBuffer {
     /// Stores the configuration for a memory buffer instance.
     /// </summary>
     [DataContract(Namespace = Namespaces.MemoryBuffer)]
-    public class MemoryBufferInstance {
+    public class MemoryBufferInstance
+    {
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public MemoryBufferInstance() {
+        public MemoryBufferInstance()
+        {
             Initialize();
         }
 
@@ -81,14 +88,16 @@ namespace MemoryBuffer {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private void Initialize()
+        {
             Name = null;
             TagCount = 0;
             DataType = null;
@@ -117,6 +126,7 @@ namespace MemoryBuffer {
     /// A collection of MemoryBufferInstances.
     /// </summary>
     [CollectionDataContract(Name = "ListOfMemoryBufferInstance", Namespace = Namespaces.MemoryBuffer, ItemName = "MemoryBufferInstance")]
-    public class MemoryBufferInstanceCollection : List<MemoryBufferInstance> {
+    public class MemoryBufferInstanceCollection : List<MemoryBufferInstance>
+    {
     }
 }

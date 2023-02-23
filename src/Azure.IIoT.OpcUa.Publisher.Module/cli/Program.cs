@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Logging;
@@ -28,11 +29,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     /// <summary>
     /// Publisher module host process
     /// </summary>
-    public class Program {
+    public class Program
+    {
         /// <summary>
         /// Entry point
         /// </summary>
-        public static void Main(string[] args) {
+        public static void Main(string[] args)
+        {
             var checkTrust = true;
             var withServer = false;
             var verbose = false;
@@ -50,19 +53,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
                 .Build();
             var cs = configuration.GetValue<string>(PcsVariable.PCS_IOTHUB_CONNSTRING, null);
-            if (string.IsNullOrEmpty(cs)) {
+            if (string.IsNullOrEmpty(cs))
+            {
                 cs = configuration.GetValue<string>("_HUB_CS", null);
             }
             IIoTHubConfig config = null;
             var instances = 1;
             var unknownArgs = new List<string>();
-            try {
-                for (var i = 0; i < args.Length; i++) {
-                    switch (args[i]) {
+            try
+            {
+                for (var i = 0; i < args.Length; i++)
+                {
+                    switch (args[i])
+                    {
                         case "-C":
                         case "--connection-string":
                             i++;
-                            if (i < args.Length) {
+                            if (i < args.Length)
+                            {
                                 cs = args[i];
                                 break;
                             }
@@ -75,7 +83,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                         case "-n":
                         case "--instances":
                             i++;
-                            if (i < args.Length && int.TryParse(args[i], out instances)) {
+                            if (i < args.Length && int.TryParse(args[i], out instances))
+                            {
                                 break;
                             }
                             throw new ArgumentException(
@@ -97,26 +106,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                             break;
                     }
                 }
-                if (string.IsNullOrEmpty(cs)) {
+                if (string.IsNullOrEmpty(cs))
+                {
                     throw new ArgumentException("Missing connection string.");
                 }
-                if (!ConnectionString.TryParse(cs, out var connectionString)) {
+                if (!ConnectionString.TryParse(cs, out var connectionString))
+                {
                     throw new ArgumentException("Bad connection string.");
                 }
                 config = connectionString.ToIoTHubConfig();
 
-                if (deviceId == null) {
+                if (deviceId == null)
+                {
                     deviceId = Utils.GetHostName();
                     logger.LogInformation("Using <deviceId> '{DeviceId}'", deviceId);
                 }
-                if (moduleId == null) {
+                if (moduleId == null)
+                {
                     moduleId = "publisher";
                     logger.LogInformation("Using <moduleId> '{ModuleId}'", moduleId);
                 }
 
                 args = unknownArgs.ToArray();
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 logger.LogError(
                     @"{Error}
 
@@ -139,20 +153,25 @@ Options:
             AppDomain.CurrentDomain.UnhandledException += (s, e) => logger.LogError(e.ExceptionObject as Exception, "Exception");
 
             var tasks = new List<Task>(instances);
-            try {
+            try
+            {
                 var enableEventBroker = instances == 1;
-                for (var i = 1; i < instances; i++) {
+                for (var i = 1; i < instances; i++)
+                {
                     tasks.Add(HostAsync(config, logger, deviceId + "_" + i, moduleId, args, verbose, !checkTrust));
                 }
-                if (!withServer) {
+                if (!withServer)
+                {
                     tasks.Add(HostAsync(config, logger, deviceId, moduleId, args, verbose, !checkTrust));
                 }
-                else {
+                else
+                {
                     tasks.Add(WithServerAsync(config, logger, deviceId, moduleId, args, verbose));
                 }
                 Task.WaitAll(tasks.ToArray());
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 logger.LogError(e, "Exception");
             }
         }
@@ -162,7 +181,8 @@ Options:
         /// </summary>
         private static async Task HostAsync(IIoTHubConfig config, ILogger logger,
             string deviceId, string moduleId, string[] args, bool verbose = false,
-            bool acceptAll = false) {
+            bool acceptAll = false)
+        {
             logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
                 deviceId, moduleId);
 
@@ -172,12 +192,14 @@ Options:
             Run(logger, deviceId, moduleId, args, verbose, acceptAll, cs);
 
             static void Run(ILogger logger, string deviceId, string moduleId, string[] args,
-                bool verbose, bool acceptAll, ConnectionString cs) {
+                bool verbose, bool acceptAll, ConnectionString cs)
+            {
                 logger.LogInformation("Starting publisher module {DeviceId} {ModuleId}...",
                     deviceId, moduleId);
                 var arguments = args.ToList();
                 arguments.Add($"--ec={cs}");
-                if (acceptAll) {
+                if (acceptAll)
+                {
                     arguments.Add("--aa");
                 }
                 Module.Program.Main(arguments.ToArray());
@@ -190,10 +212,13 @@ Options:
         /// setup publishing from sample server
         /// </summary>
         private static async Task WithServerAsync(IIoTHubConfig config, ILogger logger,
-            string deviceId, string moduleId, string[] args, bool verbose = false) {
-            try {
+            string deviceId, string moduleId, string[] args, bool verbose = false)
+        {
+            try
+            {
                 using (var cts = new CancellationTokenSource())
-                using (var server = new ServerWrapper(logger)) { // Start test server
+                using (var server = new ServerWrapper(logger))
+                { // Start test server
                     // Start publisher module
                     var host = Task.Run(() => HostAsync(config, logger, deviceId,
                         moduleId, args, verbose, false), cts.Token);
@@ -214,30 +239,39 @@ Options:
         /// Add or get module identity
         /// </summary>
         private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
-            string deviceId, string moduleId, ILogger logger) {
+            string deviceId, string moduleId, ILogger logger)
+        {
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, new NewtonsoftJsonSerializer(), logger);
-            try {
-                await registry.CreateOrUpdateAsync(new DeviceTwinModel {
+            try
+            {
+                await registry.CreateOrUpdateAsync(new DeviceTwinModel
+                {
                     Id = deviceId,
-                    Tags = new Dictionary<string, VariantValue> {
+                    Tags = new Dictionary<string, VariantValue>
+                    {
                         [TwinProperty.Type] = IdentityType.Gateway
                     },
-                    Capabilities = new DeviceCapabilitiesModel {
+                    Capabilities = new DeviceCapabilitiesModel
+                    {
                         IotEdge = true
                     }
                 }, false, default).ConfigureAwait(false);
             }
-            catch (ConflictingResourceException) {
+            catch (ConflictingResourceException)
+            {
                 logger.LogInformation("Gateway {DeviceId} exists.", deviceId);
             }
-            try {
-                await registry.CreateOrUpdateAsync(new DeviceTwinModel {
+            try
+            {
+                await registry.CreateOrUpdateAsync(new DeviceTwinModel
+                {
                     Id = deviceId,
                     ModuleId = moduleId
                 }, false, default).ConfigureAwait(false);
             }
-            catch (ConflictingResourceException) {
+            catch (ConflictingResourceException)
+            {
                 logger.LogInformation("Module {ModuleId} exists...", moduleId);
             }
             return await registry.GetConnectionStringAsync(deviceId, moduleId).ConfigureAwait(false);
@@ -246,13 +280,15 @@ Options:
         /// <summary>
         /// Wraps server and disposes after use
         /// </summary>
-        private class ServerWrapper : IDisposable {
+        private class ServerWrapper : IDisposable
+        {
             public string EndpointUrl { get; }
 
             /// <summary>
             /// Create wrapper
             /// </summary>
-            public ServerWrapper(ILogger logger) {
+            public ServerWrapper(ILogger logger)
+            {
                 _cts = new CancellationTokenSource();
                 _server = RunSampleServerAsync(logger, _cts.Token);
                 EndpointUrl = "opc.tcp://" + Utils.GetHostName() +
@@ -260,7 +296,8 @@ Options:
             }
 
             /// <inheritdoc/>
-            public void Dispose() {
+            public void Dispose()
+            {
                 _cts.Cancel();
                 _server.Wait();
                 _cts.Dispose();
@@ -269,14 +306,18 @@ Options:
             /// <summary>
             /// Run server until cancelled
             /// </summary>
-            private static async Task RunSampleServerAsync(ILogger logger, CancellationToken ct) {
+            private static async Task RunSampleServerAsync(ILogger logger, CancellationToken ct)
+            {
                 var tcs = new TaskCompletionSource<bool>();
                 ct.Register(() => tcs.TrySetResult(true));
-                using (var server = new ServerConsoleHost(new ServerFactory(logger) {
+                using (var server = new ServerConsoleHost(new ServerFactory(logger)
+                {
                     LogStatus = false
-                }, logger) {
+                }, logger)
+                {
                     AutoAccept = true
-                }) {
+                })
+                {
                     logger.LogInformation("Starting server.");
                     await server.StartAsync(new List<int> { 51210 }).ConfigureAwait(false);
                     logger.LogInformation("Server started.");

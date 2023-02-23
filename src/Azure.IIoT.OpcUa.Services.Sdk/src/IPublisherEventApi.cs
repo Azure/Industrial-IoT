@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Publisher Event controller api
     /// </summary>
-    public interface IPublisherEventApi {
+    public interface IPublisherEventApi
+    {
         /// <summary>
         /// Subscribe client to receive published samples
         /// </summary>

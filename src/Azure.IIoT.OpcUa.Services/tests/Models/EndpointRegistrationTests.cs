@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models {
-    using Azure.IIoT.OpcUa.Shared.Models;
+namespace Azure.IIoT.OpcUa.Services.Models
+{
     using AutoFixture;
     using AutoFixture.Kernel;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Hub;
@@ -14,9 +15,11 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     using System.Linq;
     using Xunit;
 
-    public class EndpointRegistrationTests {
+    public class EndpointRegistrationTests
+    {
         [Fact]
-        public void TestEqualIsEqual() {
+        public void TestEqualIsEqual()
+        {
             var r1 = CreateRegistration();
             var r2 = r1;
 
@@ -27,7 +30,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqual() {
+        public void TestEqualIsNotEqual()
+        {
             var r1 = CreateRegistration();
             var r2 = CreateRegistration();
 
@@ -39,7 +43,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsEqualWithServiceModelConversion() {
+        public void TestEqualIsEqualWithServiceModelConversion()
+        {
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
             var r2 = m.ToEndpointRegistration();
@@ -51,7 +56,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqualWithServiceModelConversionWhenDisabled() {
+        public void TestEqualIsNotEqualWithServiceModelConversionWhenDisabled()
+        {
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
             var r2 = m.ToEndpointRegistration(true);
@@ -63,7 +69,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqualWithServiceModelConversion() {
+        public void TestEqualIsNotEqualWithServiceModelConversion()
+        {
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
             m.Registration.Endpoint.SecurityPolicy = "";
@@ -76,7 +83,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqualWithDeviceModel() {
+        public void TestEqualIsNotEqualWithDeviceModel()
+        {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin(_serializer);
             m.Properties.Desired["SecurityPolicy"] = "babab";
@@ -89,7 +97,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsEqualWithDeviceModel() {
+        public void TestEqualIsEqualWithDeviceModel()
+        {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin(_serializer);
             var r2 = m.ToEntityRegistration();
@@ -101,7 +110,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsEqualWithDeviceModelWhenDisabled() {
+        public void TestEqualIsEqualWithDeviceModelWhenDisabled()
+        {
             var fix = new Fixture();
 
             var r1 = CreateRegistration();
@@ -120,7 +130,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// Helper to create registration
         /// </summary>
         /// <returns></returns>
-        private static EndpointRegistration CreateRegistration() {
+        private static EndpointRegistration CreateRegistration()
+        {
             var fix = new Fixture();
 
             fix.Customizations.Add(new TypeRelay(typeof(VariantValue), typeof(VariantValue)));

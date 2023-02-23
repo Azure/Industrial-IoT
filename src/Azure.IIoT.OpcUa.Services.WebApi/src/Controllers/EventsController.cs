@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Microsoft.AspNetCore.Authorization;
@@ -19,12 +20,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
-    public class EventsController : ControllerBase {
+    public class EventsController : ControllerBase
+    {
         /// <summary>
         /// Create controller for discovery services
         /// </summary>
         /// <param name="events"></param>
-        public EventsController(IGroupRegistrationT<DiscoverersHub> events) {
+        public EventsController(IGroupRegistrationT<DiscoverersHub> events)
+        {
             _events = events;
         }
 
@@ -41,7 +44,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns></returns>
         [HttpPut("{discovererId}/events")]
         public async Task SubscribeByDiscovererIdAsync(string discovererId,
-            [FromBody] string connectionId) {
+            [FromBody] string connectionId)
+        {
             await _events.SubscribeAsync(discovererId, connectionId).ConfigureAwait(false);
         }
 
@@ -58,7 +62,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns></returns>
         [HttpPut("requests/{requestId}/events")]
         public async Task SubscribeByRequestIdAsync(string requestId,
-            [FromBody] string connectionId) {
+            [FromBody] string connectionId)
+        {
             await _events.SubscribeAsync(requestId, connectionId).ConfigureAwait(false);
         }
 
@@ -76,7 +81,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns></returns>
         [HttpDelete("requests/{requestId}/events/{connectionId}")]
         public async Task UnsubscribeByRequestIdAsync(string requestId,
-            string connectionId) {
+            string connectionId)
+        {
             await _events.UnsubscribeAsync(requestId, connectionId).ConfigureAwait(false);
         }
 
@@ -93,7 +99,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns></returns>
         [HttpDelete("{discovererId}/events/{connectionId}")]
         public async Task UnsubscribeByDiscovererIdAsync(string discovererId,
-            string connectionId) {
+            string connectionId)
+        {
             await _events.UnsubscribeAsync(discovererId, connectionId).ConfigureAwait(false);
         }
 

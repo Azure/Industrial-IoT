@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Threading;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// <summary>
     /// Registry api calls
     /// </summary>
-    public interface IRegistryServiceApi {
+    public interface IRegistryServiceApi
+    {
         /// <summary>
         /// Returns status of the service
         /// </summary>

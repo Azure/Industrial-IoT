@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Moq;
@@ -13,12 +14,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
     using System.Linq;
     using Xunit;
 
-    public class GetSimpleEventFilterTests : EventTestsBase {
+    public class GetSimpleEventFilterTests : EventTestsBase
+    {
         [Fact]
-        public void SetupSimpleFilterForBaseEventType() {
+        public void SetupSimpleFilterForBaseEventType()
+        {
             // Arrange
-            var template = new EventMonitoredItemModel {
-                EventFilter = new EventFilterModel() {
+            var template = new EventMonitoredItemModel
+            {
+                EventFilter = new EventFilterModel()
+                {
                     TypeDefinitionId = ObjectTypeIds.BaseEventType.ToString()
                 }
             };
@@ -52,10 +57,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
         }
 
         [Fact]
-        public void SetupSimpleFilterForConditionType() {
+        public void SetupSimpleFilterForConditionType()
+        {
             // Arrange
-            var template = new EventMonitoredItemModel {
-                EventFilter = new EventFilterModel() {
+            var template = new EventMonitoredItemModel
+            {
+                EventFilter = new EventFilterModel()
+                {
                     TypeDefinitionId = ObjectTypeIds.ConditionType.ToString()
                 }
             };
@@ -101,13 +109,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
         }
 
         [Fact]
-        public void SetupSimpleFilterForConditionTypeWithConditionHandlingEnabled() {
+        public void SetupSimpleFilterForConditionTypeWithConditionHandlingEnabled()
+        {
             // Arrange
-            var template = new EventMonitoredItemModel {
-                EventFilter = new EventFilterModel {
+            var template = new EventMonitoredItemModel
+            {
+                EventFilter = new EventFilterModel
+                {
                     TypeDefinitionId = ObjectTypeIds.ConditionType.ToString(),
                 },
-                ConditionHandling = new ConditionHandlingOptionsModel {
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
                     SnapshotInterval = 10
                 }
             };
@@ -154,7 +166,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
             Assert.Equal(nodeId, ObjectTypeIds.ConditionType);
         }
 
-        protected override Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null) {
+        protected override Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null)
+        {
             var nodeCache = base.SetupMockedNodeCache(namespaceTable);
             AddNode(_baseObjectTypeNode);
             AddNode(_baseEventTypeNode);
@@ -184,8 +197,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
             _enabledStateNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _idNode.NodeId);
             _idNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, _enabledStateNode.NodeId);
             _commentNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.ConditionType);
-            nodeCache.Setup(x => x.FetchNode(It.IsAny<ExpandedNodeId>())).Returns((ExpandedNodeId x) => {
-                if (x.IdType == IdType.Numeric && x.Identifier is uint id) {
+            nodeCache.Setup(x => x.FetchNode(It.IsAny<ExpandedNodeId>())).Returns((ExpandedNodeId x) =>
+            {
+                if (x.IdType == IdType.Numeric && x.Identifier is uint id)
+                {
                     return _nodes[id];
                 }
                 return null;
@@ -193,11 +208,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
             return nodeCache;
         }
 
-        private void AddNode(Node node) {
+        private void AddNode(Node node)
+        {
             _nodes[(uint)node.NodeId.Identifier] = node;
         }
 
-        private readonly Node _baseObjectTypeNode = new() {
+        private readonly Node _baseObjectTypeNode = new()
+        {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.BaseObjectType,
@@ -205,7 +222,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
             NodeClass = Opc.Ua.NodeClass.ObjectType,
             NodeId = ObjectTypeIds.BaseObjectType
         };
-        private readonly Node _baseEventTypeNode = new() {
+        private readonly Node _baseEventTypeNode = new()
+        {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.BaseEventType,
@@ -213,7 +231,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
             NodeClass = Opc.Ua.NodeClass.ObjectType,
             NodeId = ObjectTypeIds.BaseEventType
         };
-        private readonly Node _messageNode = new() {
+        private readonly Node _messageNode = new()
+        {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.Message,
@@ -222,7 +241,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.BaseEventType_Message
         };
-        private readonly Node _conditionTypeNode = new() {
+        private readonly Node _conditionTypeNode = new()
+        {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.ConditionType,
@@ -230,7 +250,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
             NodeClass = Opc.Ua.NodeClass.ObjectType,
             NodeId = ObjectTypeIds.ConditionType
         };
-        private readonly Node _conditionNameNode = new() {
+        private readonly Node _conditionNameNode = new()
+        {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.ConditionName,
@@ -239,7 +260,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_ConditionName
         };
-        private readonly Node _commentNode = new() {
+        private readonly Node _commentNode = new()
+        {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.Comment,
@@ -248,7 +270,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_Comment
         };
-        private readonly Node _enabledStateNode = new() {
+        private readonly Node _enabledStateNode = new()
+        {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.EnabledState,
@@ -257,7 +280,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_EnabledState
         };
-        private readonly Node _idNode = new() {
+        private readonly Node _idNode = new()
+        {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.Id,

@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Utils.Tests {
-    using Microsoft.Azure.IIoT.Utils;
+namespace Microsoft.Azure.IIoT.Utils.Tests
+{
     using Microsoft.Azure.IIoT.Http.Exceptions;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Logging;
     using Moq;
     using System;
@@ -17,9 +18,11 @@ namespace Microsoft.Azure.IIoT.Utils.Tests {
     /// <summary>
     /// Tests for Microsoft.Azure.IIoT.Utils.Retry utility.
     /// </summary>
-    public class RetryTests {
+    public class RetryTests
+    {
         [Fact]
-        public async Task TestWithExponentialBackoffAsync() {
+        public async Task TestWithExponentialBackoffAsync()
+        {
             var loggerMock = new Mock<ILogger>();
             var logger = loggerMock.Object;
 
@@ -43,7 +46,8 @@ namespace Microsoft.Azure.IIoT.Utils.Tests {
 
                 await Assert.ThrowsAsync<ArgumentException>(() => Retry2.WithExponentialBackoffAsync(
                     logger,
-                    () => {
+                    () =>
+                    {
                         ++retryCounter;
                         throw new ArgumentException("Test");
                     },
@@ -59,7 +63,8 @@ namespace Microsoft.Azure.IIoT.Utils.Tests {
 
                 await Assert.ThrowsAsync<HttpTransientException>(() => Retry2.WithExponentialBackoffAsync(
                     logger,
-                    () => {
+                    () =>
+                    {
                         ++retryCounter;
                         throw new HttpTransientException(HttpStatusCode.InternalServerError);
                     },
@@ -70,7 +75,8 @@ namespace Microsoft.Azure.IIoT.Utils.Tests {
         }
 
         [Fact]
-        public async Task TestWithExponentialBackoffCTAsync() {
+        public async Task TestWithExponentialBackoffCTAsync()
+        {
             var loggerMock = new Mock<ILogger>();
             var logger = loggerMock.Object;
 
@@ -82,7 +88,8 @@ namespace Microsoft.Azure.IIoT.Utils.Tests {
 
                 await Retry2.WithExponentialBackoffAsync(
                     logger,
-                    () => {
+                    () =>
+                    {
                         ++retryCounter;
                         cts.Cancel();
                     },
@@ -100,7 +107,8 @@ namespace Microsoft.Azure.IIoT.Utils.Tests {
 
                 await Assert.ThrowsAsync<ArgumentException>(() => Retry2.WithExponentialBackoffAsync(
                     logger,
-                    () => {
+                    () =>
+                    {
                         ++retryCounter;
                         cts.Cancel();
                         throw new ArgumentException("Test");
@@ -119,9 +127,11 @@ namespace Microsoft.Azure.IIoT.Utils.Tests {
 
                 await Assert.ThrowsAsync<TaskCanceledException>(() => Retry2.WithExponentialBackoffAsync(
                     logger,
-                    () => {
+                    () =>
+                    {
                         ++retryCounter;
-                        if (retryCounter == 3) {
+                        if (retryCounter == 3)
+                        {
                             cts.Cancel();
                         }
                         throw new HttpTransientException(HttpStatusCode.InternalServerError);

@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders {
+namespace Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders
+{
     /// <summary>
     /// Forwarded headers processing configuration.
     /// </summary>
-    public interface IForwardedHeadersConfig {
+    public interface IForwardedHeadersConfig
+    {
         /// <summary>
         /// Determines whethere processing of forwarded headers should be enabled or not.
         /// </summary>

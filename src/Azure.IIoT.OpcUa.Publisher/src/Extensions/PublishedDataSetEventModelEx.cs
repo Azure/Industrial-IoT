@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using System;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// <summary>
     /// Published data set events extensions
     /// </summary>
-    public static class PublishedDataSetEventModelEx {
+    public static class PublishedDataSetEventModelEx
+    {
         /// <summary>
         /// Convert to monitored item
         /// </summary>
@@ -21,15 +23,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <returns></returns>
         public static EventMonitoredItemModel ToMonitoredItem(
             this PublishedDataSetEventModel publishedEvent,
-            ISubscriptionConfig configuration) {
-            if (publishedEvent == null) {
+            ISubscriptionConfig configuration)
+        {
+            if (publishedEvent == null)
+            {
                 return null;
             }
 
-            return new EventMonitoredItemModel {
+            return new EventMonitoredItemModel
+            {
                 Id = publishedEvent.Id,
                 DisplayName = publishedEvent.PublishedEventName,
-                EventFilter = new EventFilterModel {
+                EventFilter = new EventFilterModel
+                {
                     SelectClauses = publishedEvent.SelectClauses?
                         .Select(s => s.Clone())
                         .ToList(),

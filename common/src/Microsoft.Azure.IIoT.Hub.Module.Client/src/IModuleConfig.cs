@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client
+{
     /// <summary>
     /// Module configuration
     /// </summary>
-    public interface IModuleConfig {
+    public interface IModuleConfig
+    {
         /// <summary>
         /// IoTEdgeHub connection string
         /// </summary>

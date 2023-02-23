@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Extensions.DependencyInjection {
+namespace Microsoft.Extensions.DependencyInjection
+{
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
@@ -11,15 +12,18 @@ namespace Microsoft.Extensions.DependencyInjection {
     /// <summary>
     /// Extension to configure processing of forwarded headers
     /// </summary>
-    public static class ServiceCollectionEx {
+    public static class ServiceCollectionEx
+    {
         /// <summary>
         /// Use header forwarding
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static IApplicationBuilder UseHeaderForwarding(this IApplicationBuilder builder) {
+        public static IApplicationBuilder UseHeaderForwarding(this IApplicationBuilder builder)
+        {
             var fhConfig = builder.ApplicationServices.GetService<IForwardedHeadersConfig>();
-            if (fhConfig?.AspNetCoreForwardedHeadersEnabled != true) {
+            if (fhConfig?.AspNetCoreForwardedHeadersEnabled != true)
+            {
                 return builder;
             }
             return builder.UseForwardedHeaders();
@@ -29,16 +33,20 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// Configure processing of forwarded headers
         /// </summary>
         /// <param name="services"></param>
-        public static IServiceCollection AddHeaderForwarding(this IServiceCollection services) {
+        public static IServiceCollection AddHeaderForwarding(this IServiceCollection services)
+        {
             var fhConfig = services.BuildServiceProvider().GetService<IForwardedHeadersConfig>();
-            if (fhConfig?.AspNetCoreForwardedHeadersEnabled != true) {
+            if (fhConfig?.AspNetCoreForwardedHeadersEnabled != true)
+            {
                 return services;
             }
-            services.Configure<ForwardedHeadersOptions>(options => {
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
                     ForwardedHeaders.XForwardedProto;
 
-                if (fhConfig.AspNetCoreForwardedHeadersForwardLimit > 0) {
+                if (fhConfig.AspNetCoreForwardedHeadersForwardLimit > 0)
+                {
                     options.ForwardLimit = fhConfig.AspNetCoreForwardedHeadersForwardLimit;
                 }
 

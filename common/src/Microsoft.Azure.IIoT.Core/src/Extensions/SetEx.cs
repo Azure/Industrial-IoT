@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace System.Collections.Generic {
+namespace System.Collections.Generic
+{
     using System.Linq;
 
     /// <summary>
     /// Set extensions
     /// </summary>
-    public static class SetEx {
+    public static class SetEx
+    {
         /// <summary>
         /// Merge enumerable b into set a.
         /// </summary>
@@ -17,12 +19,16 @@ namespace System.Collections.Generic {
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        public static IReadOnlySet<T> MergeWith<T>(this IReadOnlySet<T> a, IEnumerable<T> b) {
-            if (b?.Any() ?? false) {
-                if (a == null) {
+        public static IReadOnlySet<T> MergeWith<T>(this IReadOnlySet<T> a, IEnumerable<T> b)
+        {
+            if (b?.Any() ?? false)
+            {
+                if (a == null)
+                {
                     return b.ToHashSetSafe();
                 }
-                else {
+                else
+                {
                     return a.Concat(b).ToHashSet();
                 }
             }

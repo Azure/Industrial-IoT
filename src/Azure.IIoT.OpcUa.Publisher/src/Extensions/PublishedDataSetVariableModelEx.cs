@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
 
     /// <summary>
     /// Variable extensions
     /// </summary>
-    public static class PublishedDataSetVariableModelEx {
+    public static class PublishedDataSetVariableModelEx
+    {
         /// <summary>
         /// Convert published dataset variable to monitored item
         /// </summary>
@@ -20,11 +22,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <returns></returns>
         public static DataMonitoredItemModel ToMonitoredItem(
             this PublishedDataSetVariableModel publishedVariable,
-            ISubscriptionConfig configuration = null, string displayName = null) {
-            if (string.IsNullOrEmpty(publishedVariable?.PublishedVariableNodeId)) {
+            ISubscriptionConfig configuration = null, string displayName = null)
+        {
+            if (string.IsNullOrEmpty(publishedVariable?.PublishedVariableNodeId))
+            {
                 return null;
             }
-            return new DataMonitoredItemModel {
+            return new DataMonitoredItemModel
+            {
                 Id = publishedVariable.Id,
                 DataSetClassFieldId = publishedVariable.DataSetClassFieldId,
                 DisplayName = displayName ?? publishedVariable.PublishedVariableDisplayName,
@@ -64,14 +69,17 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <returns></returns>
         private static DataChangeFilterModel ToDataChangeFilter(
             this PublishedDataSetVariableModel publishedVariable,
-            ISubscriptionConfig configuration = null) {
+            ISubscriptionConfig configuration = null)
+        {
             if (publishedVariable?.DataChangeTrigger == null &&
                 configuration?.DefaultDataChangeTrigger == null &&
                 publishedVariable?.DeadbandType == null &&
-                publishedVariable?.DeadbandValue == null) {
+                publishedVariable?.DeadbandValue == null)
+            {
                 return null;
             }
-            return new DataChangeFilterModel {
+            return new DataChangeFilterModel
+            {
                 DataChangeTrigger = publishedVariable.DataChangeTrigger
                     ?? configuration?.DefaultDataChangeTrigger,
                 DeadbandType = publishedVariable.DeadbandType,

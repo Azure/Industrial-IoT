@@ -27,18 +27,21 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Views {
+namespace Views
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Stores the configuration the data access node manager.
     /// </summary>
     [DataContract(Namespace = Model.Namespaces.Views)]
-    public class ViewsServerConfiguration {
+    public class ViewsServerConfiguration
+    {
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public ViewsServerConfiguration() {
+        public ViewsServerConfiguration()
+        {
             Initialize();
         }
 
@@ -46,14 +49,16 @@ namespace Views {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private static void Initialize() {
+        private static void Initialize()
+        {
         }
     }
 }

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa {
+namespace Azure.IIoT.OpcUa
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa {
     /// <summary>
     /// Server discovery interface
     /// </summary>
-    public interface IServerDiscovery {
+    public interface IServerDiscovery
+    {
         /// <summary>
         /// Find a server using the endpoint url in the query
         /// object. Returns a application registration object only

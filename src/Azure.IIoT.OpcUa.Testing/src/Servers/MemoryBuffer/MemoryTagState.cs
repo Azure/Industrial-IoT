@@ -27,16 +27,19 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace MemoryBuffer {
+namespace MemoryBuffer
+{
     using Opc.Ua;
 
-    public partial class MemoryTagState {
+    public partial class MemoryTagState
+    {
         /// <summary>
         /// Initializes a memory tag for a buffer.
         /// </summary>
         /// <param name="parent">The buffer that owns the tag.</param>
         /// <param name="offet">The offset of the tag address in the memory buffer.</param>
-        public MemoryTagState(MemoryBufferState parent, uint offet) : base(parent) {
+        public MemoryTagState(MemoryBufferState parent, uint offet) : base(parent)
+        {
             // these objects are created an discarded during each operation.
             // the metadata is derived from the parameters passed to constructors.
             NodeId = new NodeId(Utils.Format("{0}[{1}]", parent.SymbolicName, offet), parent.NodeId.NamespaceIndex);

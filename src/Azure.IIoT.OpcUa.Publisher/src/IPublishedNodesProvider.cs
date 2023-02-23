@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher
+{
     using System;
     using System.IO;
 
     /// <summary>
     /// Interface for utilities provider for published nodes file.
     /// </summary>
-    public interface IPublishedNodesProvider {
+    public interface IPublishedNodesProvider
+    {
         /// <summary>
         /// Occurs when published nodes file is deleted.
         /// </summary>

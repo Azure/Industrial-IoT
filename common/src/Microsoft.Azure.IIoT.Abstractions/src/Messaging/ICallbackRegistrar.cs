@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging {
+namespace Microsoft.Azure.IIoT.Messaging
+{
     using System;
     using System.Threading.Tasks;
 
     /// <summary>
     /// User callback registration client
     /// </summary>
-    public interface ICallbackRegistrar {
+    public interface ICallbackRegistrar
+    {
         /// <summary>
         /// Connection receiving events
         /// </summary>

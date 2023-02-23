@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace MemoryBuffer {
+namespace MemoryBuffer
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -35,7 +36,8 @@ namespace MemoryBuffer {
     /// <summary>
     /// A class to browse the references for a memory buffer.
     /// </summary>
-    public class MemoryBufferBrowser : NodeBrowser {
+    public class MemoryBufferBrowser : NodeBrowser
+    {
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
@@ -58,7 +60,8 @@ namespace MemoryBuffer {
                 browseDirection,
                 browseName,
                 additionalReferences,
-                internalOnly) {
+                internalOnly)
+        {
             _buffer = buffer;
             _stage = Stage.Begin;
         }
@@ -67,34 +70,42 @@ namespace MemoryBuffer {
         /// Returns the next reference.
         /// </summary>
         /// <returns></returns>
-        public override IReference Next() {
-            lock (DataLock) {
+        public override IReference Next()
+        {
+            lock (DataLock)
+            {
                 IReference reference = null;
 
                 // enumerate pre-defined references.
                 // always call first to ensure any pushed-back references are returned first.
                 reference = base.Next();
 
-                if (reference != null) {
+                if (reference != null)
+                {
                     return reference;
                 }
 
-                if (_stage == Stage.Begin) {
+                if (_stage == Stage.Begin)
+                {
                     _stage = Stage.Components;
                     _position = 0;
                 }
 
                 // don't start browsing huge number of references when only internal references are requested.
-                if (InternalOnly) {
+                if (InternalOnly)
+                {
                     return null;
                 }
 
                 // enumerate components.
-                if (_stage == Stage.Components) {
-                    if (IsRequired(ReferenceTypeIds.HasComponent, false)) {
+                if (_stage == Stage.Components)
+                {
+                    if (IsRequired(ReferenceTypeIds.HasComponent, false))
+                    {
                         reference = NextChild();
 
-                        if (reference != null) {
+                        if (reference != null)
+                        {
                             return reference;
                         }
                     }
@@ -111,25 +122,31 @@ namespace MemoryBuffer {
         /// <summary>
         /// Returns the next child.
         /// </summary>
-        private IReference NextChild() {
+        private IReference NextChild()
+        {
             MemoryTagState tag = null;
 
             // check if a specific browse name is requested.
-            if (!QualifiedName.IsNull(BrowseName)) {
+            if (!QualifiedName.IsNull(BrowseName))
+            {
                 // check if match found previously.
-                if (_position == uint.MaxValue) {
+                if (_position == uint.MaxValue)
+                {
                     return null;
                 }
 
                 // browse name must be qualified by the correct namespace.
-                if (_buffer.TypeDefinitionId.NamespaceIndex != BrowseName.NamespaceIndex) {
+                if (_buffer.TypeDefinitionId.NamespaceIndex != BrowseName.NamespaceIndex)
+                {
                     return null;
                 }
 
                 var name = BrowseName.Name;
 
-                for (var ii = 0; ii < name.Length; ii++) {
-                    if ("0123456789ABCDEF".IndexOf(name[ii]) == -1) {
+                for (var ii = 0; ii < name.Length; ii++)
+                {
+                    if ("0123456789ABCDEF".IndexOf(name[ii]) == -1)
+                    {
                         return null;
                     }
                 }
@@ -137,7 +154,8 @@ namespace MemoryBuffer {
                 _position = Convert.ToUInt32(name, 16);
 
                 // check for memory overflow.
-                if (_position >= _buffer.SizeInBytes.Value) {
+                if (_position >= _buffer.SizeInBytes.Value)
+                {
                     return null;
                 }
 
@@ -146,8 +164,10 @@ namespace MemoryBuffer {
             }
 
             // return the child at the next position.
-            else {
-                if (_position >= _buffer.SizeInBytes.Value) {
+            else
+            {
+                if (_position >= _buffer.SizeInBytes.Value)
+                {
                     return null;
                 }
 
@@ -155,7 +175,8 @@ namespace MemoryBuffer {
                 _position += _buffer.ElementSize;
 
                 // check for memory overflow.
-                if (_position >= _buffer.SizeInBytes.Value) {
+                if (_position >= _buffer.SizeInBytes.Value)
+                {
                     return null;
                 }
             }
@@ -166,7 +187,8 @@ namespace MemoryBuffer {
         /// <summary>
         /// The stages available in a browse operation.
         /// </summary>
-        private enum Stage {
+        private enum Stage
+        {
             Begin,
             Components,
             ModelParents,

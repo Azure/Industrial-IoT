@@ -3,21 +3,25 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
 
     /// <summary>
     /// Handle event
     /// </summary>
-    public static class ApplicationInfoModelEx {
+    public static class ApplicationInfoModelEx
+    {
         /// <summary>
         /// Update an application
         /// </summary>
         /// <param name="update"></param>
         /// <param name="application"></param>
         public static ApplicationInfoModel Patch(this ApplicationInfoModel update,
-            ApplicationInfoModel application) {
-            if (update == null) {
+            ApplicationInfoModel application)
+        {
+            if (update == null)
+            {
                 return application;
             }
             application ??= new ApplicationInfoModel();

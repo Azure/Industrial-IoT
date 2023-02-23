@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     using System;
     using System.Globalization;
 
     /// <summary>
     /// The bounding value for a timeslice.
     /// </summary>
-    public class BoundingValue : AggregateCursor {
+    public class BoundingValue : AggregateCursor
+    {
         /// <summary>
         /// Indicates how the bounding value was obtained.
         /// </summary>
@@ -53,18 +55,24 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// The value for the bound.
         /// </summary>
-        public DataValue Value {
-            get {
-                if (_value != null) {
+        public DataValue Value
+        {
+            get
+            {
+                if (_value != null)
+                {
                     return _value;
                 }
 
                 StatusCode code = StatusCodes.Good;
 
-                switch (DerivationType) {
+                switch (DerivationType)
+                {
                     case BoundingValueType.Raw:
-                        if (RawPoint != null) {
-                            _value = new DataValue(RawPoint) {
+                        if (RawPoint != null)
+                        {
+                            _value = new DataValue(RawPoint)
+                            {
                                 ServerTimestamp = DateTime.UtcNow
                             };
                             code.AggregateBits = AggregateBits.Raw;
@@ -72,8 +80,10 @@ namespace Opc.Ua.Aggregates {
                         }
                         break;
                     case BoundingValueType.QualityRaw:
-                        if (RawPoint != null) {
-                            _value = new DataValue {
+                        if (RawPoint != null)
+                        {
+                            _value = new DataValue
+                            {
                                 Value = RawPoint.StatusCode,
                                 SourceTimestamp = Timestamp,
                                 ServerTimestamp = DateTime.UtcNow
@@ -83,8 +93,10 @@ namespace Opc.Ua.Aggregates {
                         }
                         break;
                     case BoundingValueType.SlopedExtrapolation:
-                        if ((PriorPoint != null) && (EarlyPoint != null)) {
-                            _value = new DataValue {
+                        if ((PriorPoint != null) && (EarlyPoint != null))
+                        {
+                            _value = new DataValue
+                            {
                                 Value = ProjectedValue(PriorPoint, EarlyPoint, Timestamp),
                                 SourceTimestamp = Timestamp,
                                 ServerTimestamp = DateTime.UtcNow
@@ -95,8 +107,10 @@ namespace Opc.Ua.Aggregates {
                         }
                         break;
                     case BoundingValueType.SlopedInterpolation:
-                        if ((EarlyPoint != null) && (LatePoint != null)) {
-                            _value = new DataValue(EarlyPoint) {
+                        if ((EarlyPoint != null) && (LatePoint != null))
+                        {
+                            _value = new DataValue(EarlyPoint)
+                            {
                                 Value = ProjectedValue(EarlyPoint, LatePoint, Timestamp),
                                 SourceTimestamp = Timestamp,
                                 ServerTimestamp = DateTime.UtcNow
@@ -107,8 +121,10 @@ namespace Opc.Ua.Aggregates {
                         }
                         break;
                     case BoundingValueType.SteppedExtrapolation:
-                        if (EarlyPoint != null) {
-                            _value = new DataValue(EarlyPoint) {
+                        if (EarlyPoint != null)
+                        {
+                            _value = new DataValue(EarlyPoint)
+                            {
                                 SourceTimestamp = Timestamp,
                                 ServerTimestamp = DateTime.UtcNow
                             };
@@ -118,8 +134,10 @@ namespace Opc.Ua.Aggregates {
                         }
                         break;
                     case BoundingValueType.SteppedInterpolation:
-                        if (EarlyPoint != null) {
-                            _value = new DataValue(EarlyPoint) {
+                        if (EarlyPoint != null)
+                        {
+                            _value = new DataValue(EarlyPoint)
+                            {
                                 SourceTimestamp = Timestamp,
                                 ServerTimestamp = DateTime.UtcNow
                             };
@@ -129,11 +147,14 @@ namespace Opc.Ua.Aggregates {
                         }
                         break;
                     case BoundingValueType.QualityExtrapolation:
-                        if (EarlyPoint != null) {
+                        if (EarlyPoint != null)
+                        {
                             _value = new DataValue();
                             var valueToUse = EarlyPoint;
-                            foreach (var dv in CurrentBadPoints) {
-                                if ((dv.SourceTimestamp > valueToUse.SourceTimestamp) && (dv.SourceTimestamp < Timestamp)) {
+                            foreach (var dv in CurrentBadPoints)
+                            {
+                                if ((dv.SourceTimestamp > valueToUse.SourceTimestamp) && (dv.SourceTimestamp < Timestamp))
+                                {
                                     valueToUse = dv;
                                 }
                             }
@@ -147,11 +168,14 @@ namespace Opc.Ua.Aggregates {
                         }
                         break;
                     case BoundingValueType.QualityInterpolation:
-                        if (EarlyPoint != null) {
+                        if (EarlyPoint != null)
+                        {
                             _value = new DataValue();
                             var valueToUse = EarlyPoint;
-                            foreach (var dv in CurrentBadPoints) {
-                                if ((dv.SourceTimestamp > valueToUse.SourceTimestamp) && (dv.SourceTimestamp < Timestamp)) {
+                            foreach (var dv in CurrentBadPoints)
+                            {
+                                if ((dv.SourceTimestamp > valueToUse.SourceTimestamp) && (dv.SourceTimestamp < Timestamp))
+                                {
                                     valueToUse = dv;
                                 }
                             }
@@ -176,7 +200,8 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Projects the value to the specified time using the two points.
         /// </summary>
-        private static double ProjectedValue(DataValue p1, DataValue p2, DateTime time) {
+        private static double ProjectedValue(DataValue p1, DataValue p2, DateTime time)
+        {
             var ve = Convert.ToDouble(p1.Value, CultureInfo.InvariantCulture);
             var vl = Convert.ToDouble(p2.Value, CultureInfo.InvariantCulture);
             var fraction = (time - p1.SourceTimestamp).TotalMilliseconds / (p2.SourceTimestamp - p1.SourceTimestamp).TotalMilliseconds;

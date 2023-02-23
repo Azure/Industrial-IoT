@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Handlers {
-    using Azure.IIoT.OpcUa.Services.Models;
+namespace Azure.IIoT.OpcUa.Services.Handlers
+{
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Services.Models;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Logging;
@@ -19,7 +20,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
     /// <summary>
     /// Publisher message handling
     /// </summary>
-    public sealed class NetworkMessageUadpHandler : IDeviceTelemetryHandler {
+    public sealed class NetworkMessageUadpHandler : IDeviceTelemetryHandler
+    {
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.NetworkMessageUadp;
 
@@ -30,7 +32,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
         public NetworkMessageUadpHandler(IVariantEncoderFactory encoder,
-            IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
+            IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger)
+        {
             _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
@@ -38,17 +41,23 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
 
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-            try {
+            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint)
+        {
+            try
+            {
                 var context = new ServiceMessageContext();
                 var pubSubMessage = PubSubMessage.Decode(payload, ContentMimeType.Uadp, context, null, MessageSchema);
-                if (pubSubMessage is not BaseNetworkMessage networkMessage) {
+                if (pubSubMessage is not BaseNetworkMessage networkMessage)
+                {
                     _logger.LogInformation("Received non network message.");
                     return;
                 }
-                if (pubSubMessage is UadpNetworkMessage message) {
-                    foreach (UadpDataSetMessage dataSetMessage in message.Messages) {
-                        var dataset = new DataSetMessageModel {
+                if (pubSubMessage is UadpNetworkMessage message)
+                {
+                    foreach (UadpDataSetMessage dataSetMessage in message.Messages)
+                    {
+                        var dataset = new DataSetMessageModel
+                        {
                             PublisherId = message.PublisherId,
                             MessageId = message.NetworkMessageNumber.ToString(),
                             DataSetClassId = message.DataSetClassId.ToString(),
@@ -61,10 +70,12 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                             Timestamp = dataSetMessage.Timestamp,
                             Payload = new Dictionary<string, DataValueModel>()
                         };
-                        foreach (var datapoint in dataSetMessage.Payload) {
+                        foreach (var datapoint in dataSetMessage.Payload)
+                        {
                             var codec = _encoder.Create(context);
                             var type = BuiltInType.Null;
-                            dataset.Payload[datapoint.Key] = new DataValueModel {
+                            dataset.Payload[datapoint.Key] = new DataValueModel
+                            {
                                 Value = datapoint.Value == null
                                     ? null : codec.Encode(datapoint.Value.WrappedValue, out type),
                                 DataType = type == BuiltInType.Null
@@ -85,13 +96,15 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                     }
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Subscriber binary network message handling failed - skip");
             }
         }
 
         /// <inheritdoc/>
-        public Task OnBatchCompleteAsync() {
+        public Task OnBatchCompleteAsync()
+        {
             return Task.CompletedTask;
         }
 

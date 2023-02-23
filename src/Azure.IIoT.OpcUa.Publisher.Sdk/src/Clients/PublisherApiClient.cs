@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
+namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
+{
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
     /// Implements node and publish services through command control against
     /// the OPC Publihser module.
     /// </summary>
-    public sealed class PublisherApiClient : IPublisherApi {
+    public sealed class PublisherApiClient : IPublisherApi
+    {
         /// <summary>
         /// Create module client
         /// </summary>
@@ -27,7 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
         /// <param name="moduleId"></param>
         /// <param name="serializer"></param>
         public PublisherApiClient(IMethodClient methodClient, string deviceId,
-            string moduleId = null, IJsonSerializer serializer = null) {
+            string moduleId = null, IJsonSerializer serializer = null)
+        {
             _serializer = serializer ?? new NewtonsoftJsonSerializer();
             _methodClient = methodClient ??
                 throw new ArgumentNullException(nameof(methodClient));
@@ -43,23 +46,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
         /// <param name="serializer"></param>
         public PublisherApiClient(IMethodClient methodClient,
             ISdkConfig config = null, IJsonSerializer serializer = null) :
-            this(methodClient, config?.DeviceId, config?.ModuleId, serializer) {
+            this(methodClient, config?.DeviceId, config?.ModuleId, serializer)
+        {
         }
 
         /// <inheritdoc/>
         public async Task<PublishStartResponseModel> NodePublishStartAsync(ConnectionModel connection,
-            PublishStartRequestModel request, CancellationToken ct = default) {
-            if (connection == null) {
+            PublishStartRequestModel request, CancellationToken ct = default)
+        {
+            if (connection == null)
+            {
                 throw new ArgumentNullException(nameof(connection));
             }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
                 throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
-            if (request == null) {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "PublishStart", _serializer.SerializeToString(new {
+                "PublishStart", _serializer.SerializeToString(new
+                {
                     connection,
                     request
                 }), null, ct).ConfigureAwait(false);
@@ -68,18 +77,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishStopResponseModel> NodePublishStopAsync(ConnectionModel connection,
-            PublishStopRequestModel request, CancellationToken ct = default) {
-            if (connection == null) {
+            PublishStopRequestModel request, CancellationToken ct = default)
+        {
+            if (connection == null)
+            {
                 throw new ArgumentNullException(nameof(connection));
             }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
                 throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
-            if (request == null) {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "PublishStop", _serializer.SerializeToString(new {
+                "PublishStop", _serializer.SerializeToString(new
+                {
                     connection,
                     request
                 }), null, ct).ConfigureAwait(false);
@@ -88,18 +102,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishBulkResponseModel> NodePublishBulkAsync(ConnectionModel connection,
-            PublishBulkRequestModel request, CancellationToken ct = default) {
-            if (connection == null) {
+            PublishBulkRequestModel request, CancellationToken ct = default)
+        {
+            if (connection == null)
+            {
                 throw new ArgumentNullException(nameof(connection));
             }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
                 throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
-            if (request == null) {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "PublishBulk", _serializer.SerializeToString(new {
+                "PublishBulk", _serializer.SerializeToString(new
+                {
                     connection,
                     request
                 }), null, ct).ConfigureAwait(false);
@@ -108,18 +127,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishedItemListResponseModel> NodePublishListAsync(ConnectionModel connection,
-            PublishedItemListRequestModel request, CancellationToken ct = default) {
-            if (connection == null) {
+            PublishedItemListRequestModel request, CancellationToken ct = default)
+        {
+            if (connection == null)
+            {
                 throw new ArgumentNullException(nameof(connection));
             }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
                 throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
-            if (request == null) {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "PublishList", _serializer.SerializeToString(new {
+                "PublishList", _serializer.SerializeToString(new
+                {
                     connection,
                     request
                 }), null, ct).ConfigureAwait(false);
@@ -128,8 +152,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishedNodesResponseModel> PublishNodesAsync(
-            PublishedNodesEntryModel request, CancellationToken ct) {
-            if (request == null) {
+            PublishedNodesEntryModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
@@ -139,8 +165,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishedNodesResponseModel> UnpublishNodesAsync(
-            PublishedNodesEntryModel request, CancellationToken ct) {
-            if (request == null) {
+            PublishedNodesEntryModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
@@ -150,8 +178,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
-            PublishedNodesEntryModel request, CancellationToken ct) {
-            if (request == null) {
+            PublishedNodesEntryModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
@@ -161,8 +191,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
-            List<PublishedNodesEntryModel> request, CancellationToken ct) {
-            if (request == null) {
+            List<PublishedNodesEntryModel> request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
@@ -172,7 +204,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<GetConfiguredEndpointsResponseModel> GetConfiguredEndpointsAsync(
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                "GetConfiguredEndpoints", null, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(response);
@@ -180,8 +213,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<GetConfiguredNodesOnEndpointResponseModel> GetConfiguredNodesOnEndpointAsync(
-            PublishedNodesEntryModel request, CancellationToken ct) {
-            if (request == null) {
+            PublishedNodesEntryModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
@@ -190,7 +225,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(CancellationToken ct) {
+        public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(CancellationToken ct)
+        {
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "GetDiagnosticInfo", null, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(response);

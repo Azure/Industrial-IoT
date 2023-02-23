@@ -3,21 +3,24 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Mock {
+namespace Microsoft.Azure.IIoT.Hub.Mock
+{
+    using Autofac;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Tasks.Default;
-    using Autofac;
 
     /// <summary>
     /// Injected mock edge framework module
     /// </summary>
-    public sealed class IoTHubMockModule : Module {
+    public sealed class IoTHubMockModule : Module
+    {
         /// <summary>
         /// Load the module
         /// </summary>
         /// <param name="builder"></param>
-        protected override void Load(ContainerBuilder builder) {
+        protected override void Load(ContainerBuilder builder)
+        {
             // Module and device client simulation
             builder.RegisterType<IoTHubClientFactory>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();

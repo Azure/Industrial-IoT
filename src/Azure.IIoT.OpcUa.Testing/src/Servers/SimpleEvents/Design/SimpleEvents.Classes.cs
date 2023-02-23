@@ -27,11 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using Opc.Ua;
 using System;
 using System.Collections.Generic;
-using Opc.Ua;
 
-namespace SimpleEvents {
+namespace SimpleEvents
+{
     #region SystemCycleStatusEventState Class
 #if (!OPCUA_EXCLUDE_SystemCycleStatusEventState)
     /// <summary>
@@ -39,18 +40,21 @@ namespace SimpleEvents {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class SystemCycleStatusEventState : SystemEventState {
+    public partial class SystemCycleStatusEventState : SystemEventState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public SystemCycleStatusEventState(NodeState parent) : base(parent) {
+        public SystemCycleStatusEventState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(SimpleEvents.ObjectTypes.SystemCycleStatusEventType, SimpleEvents.Namespaces.SimpleEvents, namespaceUris);
         }
 
@@ -58,7 +62,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -66,7 +71,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -74,7 +80,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -97,13 +104,17 @@ namespace SimpleEvents {
 
         #region Public Properties
         /// <remarks />
-        public PropertyState<string> CycleId {
-            get {
+        public PropertyState<string> CycleId
+        {
+            get
+            {
                 return m_cycleId;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_cycleId, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_cycleId, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -112,13 +123,17 @@ namespace SimpleEvents {
         }
 
         /// <remarks />
-        public PropertyState<CycleStepDataType> CurrentStep {
-            get {
+        public PropertyState<CycleStepDataType> CurrentStep
+        {
+            get
+            {
                 return m_currentStep;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_currentStep, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_currentStep, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -135,12 +150,15 @@ namespace SimpleEvents {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_cycleId != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_cycleId != null)
+            {
                 children.Add(m_cycleId);
             }
 
-            if (m_currentStep != null) {
+            if (m_currentStep != null)
+            {
                 children.Add(m_currentStep);
             }
 
@@ -154,21 +172,29 @@ namespace SimpleEvents {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case SimpleEvents.BrowseNames.CycleId: {
-                        if (createOrReplace) {
-                            if (CycleId == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case SimpleEvents.BrowseNames.CycleId:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (CycleId == null)
+                            {
+                                if (replacement == null)
+                                {
                                     CycleId = new PropertyState<string>(this);
                                 }
-                                else {
+                                else
+                                {
                                     CycleId = (PropertyState<string>)replacement;
                                 }
                             }
@@ -178,13 +204,18 @@ namespace SimpleEvents {
                         break;
                     }
 
-                case SimpleEvents.BrowseNames.CurrentStep: {
-                        if (createOrReplace) {
-                            if (CurrentStep == null) {
-                                if (replacement == null) {
+                case SimpleEvents.BrowseNames.CurrentStep:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (CurrentStep == null)
+                            {
+                                if (replacement == null)
+                                {
                                     CurrentStep = new PropertyState<CycleStepDataType>(this);
                                 }
-                                else {
+                                else
+                                {
                                     CurrentStep = (PropertyState<CycleStepDataType>)replacement;
                                 }
                             }
@@ -195,7 +226,8 @@ namespace SimpleEvents {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 
@@ -218,18 +250,21 @@ namespace SimpleEvents {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class SystemCycleStartedEventState : SystemCycleStatusEventState {
+    public partial class SystemCycleStartedEventState : SystemCycleStatusEventState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public SystemCycleStartedEventState(NodeState parent) : base(parent) {
+        public SystemCycleStartedEventState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(SimpleEvents.ObjectTypes.SystemCycleStartedEventType, SimpleEvents.Namespaces.SimpleEvents, namespaceUris);
         }
 
@@ -237,7 +272,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -245,7 +281,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -253,7 +290,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -277,13 +315,17 @@ namespace SimpleEvents {
 
         #region Public Properties
         /// <remarks />
-        public PropertyState<CycleStepDataType[]> Steps {
-            get {
+        public PropertyState<CycleStepDataType[]> Steps
+        {
+            get
+            {
                 return m_steps;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_steps, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_steps, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -300,8 +342,10 @@ namespace SimpleEvents {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_steps != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_steps != null)
+            {
                 children.Add(m_steps);
             }
 
@@ -315,21 +359,29 @@ namespace SimpleEvents {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case SimpleEvents.BrowseNames.Steps: {
-                        if (createOrReplace) {
-                            if (Steps == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case SimpleEvents.BrowseNames.Steps:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Steps == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Steps = new PropertyState<CycleStepDataType[]>(this);
                                 }
-                                else {
+                                else
+                                {
                                     Steps = (PropertyState<CycleStepDataType[]>)replacement;
                                 }
                             }
@@ -340,7 +392,8 @@ namespace SimpleEvents {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 
@@ -362,18 +415,21 @@ namespace SimpleEvents {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class SystemCycleAbortedEventState : SystemCycleStatusEventState {
+    public partial class SystemCycleAbortedEventState : SystemCycleStatusEventState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public SystemCycleAbortedEventState(NodeState parent) : base(parent) {
+        public SystemCycleAbortedEventState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(SimpleEvents.ObjectTypes.SystemCycleAbortedEventType, SimpleEvents.Namespaces.SimpleEvents, namespaceUris);
         }
 
@@ -381,7 +437,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -389,7 +446,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -397,7 +455,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -421,13 +480,17 @@ namespace SimpleEvents {
 
         #region Public Properties
         /// <remarks />
-        public PropertyState<StatusCode> Error {
-            get {
+        public PropertyState<StatusCode> Error
+        {
+            get
+            {
                 return m_error;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_error, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_error, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -444,8 +507,10 @@ namespace SimpleEvents {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_error != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_error != null)
+            {
                 children.Add(m_error);
             }
 
@@ -459,21 +524,29 @@ namespace SimpleEvents {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case SimpleEvents.BrowseNames.Error: {
-                        if (createOrReplace) {
-                            if (Error == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case SimpleEvents.BrowseNames.Error:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Error == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Error = new PropertyState<StatusCode>(this);
                                 }
-                                else {
+                                else
+                                {
                                     Error = (PropertyState<StatusCode>)replacement;
                                 }
                             }
@@ -484,7 +557,8 @@ namespace SimpleEvents {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 
@@ -506,18 +580,21 @@ namespace SimpleEvents {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class SystemCycleFinishedEventState : SystemCycleStatusEventState {
+    public partial class SystemCycleFinishedEventState : SystemCycleStatusEventState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public SystemCycleFinishedEventState(NodeState parent) : base(parent) {
+        public SystemCycleFinishedEventState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(SimpleEvents.ObjectTypes.SystemCycleFinishedEventType, SimpleEvents.Namespaces.SimpleEvents, namespaceUris);
         }
 
@@ -525,7 +602,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -533,7 +611,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -541,7 +620,8 @@ namespace SimpleEvents {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 

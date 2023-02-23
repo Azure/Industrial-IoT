@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     using Azure.IIoT.OpcUa.Encoders;
     using Opc.Ua;
     using System;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// <summary>
     /// Data set message
     /// </summary>
-    public class JsonDataSetMessage : BaseDataSetMessage {
+    public class JsonDataSetMessage : BaseDataSetMessage
+    {
         /// <summary>
         /// Compatibility with 2.8 when encoding and decoding
         /// </summary>
@@ -24,24 +26,30 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         public string DataSetWriterName { get; set; }
 
         /// <inheritdoc/>
-        public override bool Equals(object value) {
-            if (ReferenceEquals(this, value)) {
+        public override bool Equals(object value)
+        {
+            if (ReferenceEquals(this, value))
+            {
                 return true;
             }
-            if (!(value is JsonDataSetMessage wrapper)) {
+            if (!(value is JsonDataSetMessage wrapper))
+            {
                 return false;
             }
-            if (!base.Equals(value)) {
+            if (!base.Equals(value))
+            {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName)) {
+            if (!Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName))
+            {
                 return false;
             }
             return true;
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
             hash.Add(DataSetWriterName);
@@ -49,39 +57,52 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         }
 
         /// <inheritdoc/>
-        internal virtual void Encode(JsonEncoderEx encoder, string publisherId, bool withHeader, string property) {
-            if (withHeader) {
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterId) != 0) {
-                    if (!UseCompatibilityMode) {
+        internal virtual void Encode(JsonEncoderEx encoder, string publisherId, bool withHeader, string property)
+        {
+            if (withHeader)
+            {
+                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterId) != 0)
+                {
+                    if (!UseCompatibilityMode)
+                    {
                         encoder.WriteUInt16(nameof(DataSetWriterId), DataSetWriterId);
                     }
-                    else {
+                    else
+                    {
                         // Up to version 2.8 we wrote the string id as id which is not per standard
                         encoder.WriteString(nameof(DataSetWriterId), DataSetWriterName);
                     }
                 }
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.SequenceNumber) != 0) {
+                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.SequenceNumber) != 0)
+                {
                     encoder.WriteUInt32(nameof(SequenceNumber), SequenceNumber);
                 }
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.MetaDataVersion) != 0) {
+                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.MetaDataVersion) != 0)
+                {
                     encoder.WriteEncodeable(nameof(MetaDataVersion), MetaDataVersion, typeof(ConfigurationVersionDataType));
                 }
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Timestamp) != 0) {
+                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Timestamp) != 0)
+                {
                     encoder.WriteDateTime(nameof(Timestamp), Timestamp);
                 }
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0) {
+                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0)
+                {
                     var status = Status ?? Payload.Values
                         .FirstOrDefault(s => StatusCode.IsNotGood(s.StatusCode))?.StatusCode ?? StatusCodes.Good;
-                    if (!UseCompatibilityMode) {
+                    if (!UseCompatibilityMode)
+                    {
                         encoder.WriteUInt32(nameof(Status), status.Code);
                     }
-                    else {
+                    else
+                    {
                         // Up to version 2.8 we wrote the full status code
                         encoder.WriteStatusCode(nameof(Status), status);
                     }
                 }
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.MessageType) != 0) {
-                    switch (MessageType) {
+                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.MessageType) != 0)
+                {
+                    switch (MessageType)
+                    {
                         case MessageType.KeyFrame:
                             encoder.WriteString(nameof(MessageType), "ua-keyframe");
                             break;
@@ -100,24 +121,29 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                     }
                 }
                 if (!UseCompatibilityMode &&
-                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask2.DataSetWriterName) != 0) {
+                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask2.DataSetWriterName) != 0)
+                {
                     encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
                 }
                 WritePayload(encoder, nameof(Payload));
             }
-            else {
+            else
+            {
                 WritePayload(encoder, property);
             }
-            void WritePayload(JsonEncoderEx jsonEncoder, string propertyName = null) {
+            void WritePayload(JsonEncoderEx jsonEncoder, string propertyName = null)
+            {
                 var useReversibleEncoding =
                     (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0;
                 var prevReversibleEncoding = jsonEncoder.UseReversibleEncoding;
-                try {
+                try
+                {
                     // if propertyname is null we are already inside the object
                     jsonEncoder.UseReversibleEncoding = useReversibleEncoding;
                     jsonEncoder.WriteDataSet(propertyName, Payload);
                 }
-                finally {
+                finally
+                {
                     // Restore original reversible setting
                     jsonEncoder.UseReversibleEncoding = prevReversibleEncoding;
                 }
@@ -126,18 +152,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
 
         /// <inheritdoc/>
         internal virtual bool TryDecode(JsonDecoderEx jsonDecoder, string property, ref bool withHeader,
-            ref string publisherId) {
-            if (TryReadDataSetMessageHeader(jsonDecoder, out var dataSetMessageContentMask)) {
+            ref string publisherId)
+        {
+            if (TryReadDataSetMessageHeader(jsonDecoder, out var dataSetMessageContentMask))
+            {
                 withHeader |= true;
                 DataSetMessageContentMask = dataSetMessageContentMask;
                 Payload = jsonDecoder.ReadDataSet(nameof(Payload));
                 return true;
             }
-            else if (withHeader) {
+            else if (withHeader)
+            {
                 // Previously we found a header, not now, we fail here
                 return false;
             }
-            else {
+            else
+            {
                 // Reset content
                 DataSetMessageContentMask = 0;
                 MessageType = MessageType.KeyFrame;
@@ -147,11 +177,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                 MetaDataVersion = null;
                 Timestamp = DateTime.MinValue;
 
-                if (jsonDecoder.HasField(property)) {
+                if (jsonDecoder.HasField(property))
+                {
                     // Read payload off of the property name
                     Payload = jsonDecoder.ReadDataSet(property);
                 }
-                else {
+                else
+                {
                     // Read the current object as dataset
                     Payload = jsonDecoder.ReadDataSet(null);
                 }
@@ -159,90 +191,113 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
             }
 
             // Read the data set message header
-            bool TryReadDataSetMessageHeader(JsonDecoderEx jsonDecoder, out uint dataSetMessageContentMask) {
+            bool TryReadDataSetMessageHeader(JsonDecoderEx jsonDecoder, out uint dataSetMessageContentMask)
+            {
                 dataSetMessageContentMask = 0;
-                if (jsonDecoder.HasField(nameof(DataSetWriterId))) {
+                if (jsonDecoder.HasField(nameof(DataSetWriterId)))
+                {
                     DataSetWriterId = jsonDecoder.ReadUInt16(nameof(DataSetWriterId));
-                    if (DataSetWriterId == 0) {
+                    if (DataSetWriterId == 0)
+                    {
                         // Up to version 2.8 we wrote the string id as id which is not per standard
                         DataSetWriterName = jsonDecoder.ReadString(nameof(DataSetWriterId));
-                        if (DataSetWriterName != null) {
+                        if (DataSetWriterName != null)
+                        {
                             UseCompatibilityMode = true;
                             dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterId;
                             dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask2.DataSetWriterName;
                         }
-                        else {
+                        else
+                        {
                             // Continue and treat all of this as payload.
                             return false;
                         }
                     }
-                    else {
+                    else
+                    {
                         dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterId;
                     }
                 }
 
-                if (jsonDecoder.HasField(nameof(MetaDataVersion))) {
+                if (jsonDecoder.HasField(nameof(MetaDataVersion)))
+                {
                     MetaDataVersion = (ConfigurationVersionDataType)jsonDecoder.ReadEncodeable(
                         nameof(MetaDataVersion), typeof(ConfigurationVersionDataType));
-                    if (MetaDataVersion != null) {
+                    if (MetaDataVersion != null)
+                    {
                         dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.MetaDataVersion;
                     }
-                    else {
+                    else
+                    {
                         // Continue and treat all of this as payload.
                         return false;
                     }
                 }
 
-                if (jsonDecoder.HasField(nameof(SequenceNumber))) {
+                if (jsonDecoder.HasField(nameof(SequenceNumber)))
+                {
                     SequenceNumber = jsonDecoder.ReadUInt32(nameof(SequenceNumber));
                     dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.SequenceNumber;
                 }
 
-                if (jsonDecoder.HasField(nameof(Timestamp))) {
+                if (jsonDecoder.HasField(nameof(Timestamp)))
+                {
                     Timestamp = jsonDecoder.ReadDateTime(nameof(Timestamp));
                     dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.Timestamp;
                 }
 
-                if (jsonDecoder.HasField(nameof(Status))) {
+                if (jsonDecoder.HasField(nameof(Status)))
+                {
                     UseCompatibilityMode = jsonDecoder.IsObject(nameof(Status));
                     dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.Status;
-                    if (!UseCompatibilityMode) {
+                    if (!UseCompatibilityMode)
+                    {
                         Status = jsonDecoder.ReadUInt32(nameof(Status));
                     }
-                    else {
+                    else
+                    {
                         // Up to version 2.8 we wrote the string id as id which is not per standard
                         Status = jsonDecoder.ReadStatusCode(nameof(Status));
                     }
                 }
 
-                if (jsonDecoder.HasField(nameof(MessageType))) {
+                if (jsonDecoder.HasField(nameof(MessageType)))
+                {
                     var messageType = jsonDecoder.ReadString(nameof(MessageType));
                     dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.MessageType;
 
-                    if (messageType != null) {
-                        if (messageType.Equals("ua-deltaframe", StringComparison.Ordinal)) {
+                    if (messageType != null)
+                    {
+                        if (messageType.Equals("ua-deltaframe", StringComparison.Ordinal))
+                        {
                             MessageType = MessageType.DeltaFrame;
                         }
-                        else if (messageType.Equals("ua-event", StringComparison.Ordinal)) {
+                        else if (messageType.Equals("ua-event", StringComparison.Ordinal))
+                        {
                             MessageType = MessageType.Event;
                         }
-                        else if (messageType.Equals("ua-keepalive", StringComparison.Ordinal)) {
+                        else if (messageType.Equals("ua-keepalive", StringComparison.Ordinal))
+                        {
                             MessageType = MessageType.KeepAlive;
                         }
-                        else if (messageType.Equals("ua-condition", StringComparison.Ordinal)) {
+                        else if (messageType.Equals("ua-condition", StringComparison.Ordinal))
+                        {
                             MessageType = MessageType.Condition;
                         }
-                        else if (messageType.Equals("ua-keyframe", StringComparison.Ordinal)) {
+                        else if (messageType.Equals("ua-keyframe", StringComparison.Ordinal))
+                        {
                             MessageType = MessageType.KeyFrame;
                         }
-                        else {
+                        else
+                        {
                             // Continue and treat this as payload.
                             return false;
                         }
                     }
                 }
 
-                if (jsonDecoder.HasField(nameof(DataSetWriterName))) {
+                if (jsonDecoder.HasField(nameof(DataSetWriterName)))
+                {
                     DataSetWriterName = jsonDecoder.ReadString(nameof(DataSetWriterName));
                     dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask2.DataSetWriterName;
                 }

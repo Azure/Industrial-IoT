@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Exceptions {
+namespace Microsoft.Azure.IIoT.Exceptions
+{
     using System;
 
     /// <summary>
@@ -11,19 +12,23 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// providing the wrong Etag value. The client should retrieve the
     /// resource again, to have the new Etag, and retry.
     /// </summary>
-    public class ResourceOutOfDateException : Exception {
+    public class ResourceOutOfDateException : Exception
+    {
         /// <inheritdoc />
-        public ResourceOutOfDateException() {
+        public ResourceOutOfDateException()
+        {
         }
 
         /// <inheritdoc />
         public ResourceOutOfDateException(string message) :
-            base(message) {
+            base(message)
+        {
         }
 
         /// <inheritdoc />
         public ResourceOutOfDateException(string message, Exception innerException) :
-            base(message, innerException) {
+            base(message, innerException)
+        {
         }
     }
 }

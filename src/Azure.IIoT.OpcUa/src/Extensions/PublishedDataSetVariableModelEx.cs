@@ -3,23 +3,28 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Linq;
 
     /// <summary>
     /// Events extensions
     /// </summary>
-    public static class PublishedDataSetVariableModelEx {
+    public static class PublishedDataSetVariableModelEx
+    {
         /// <summary>
         /// Clone
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static PublishedDataSetVariableModel Clone(this PublishedDataSetVariableModel model) {
-            if (model == null) {
+        public static PublishedDataSetVariableModel Clone(this PublishedDataSetVariableModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new PublishedDataSetVariableModel {
+            return new PublishedDataSetVariableModel
+            {
                 Id = model.Id,
                 DiscardNew = model.DiscardNew,
                 Attribute = model.Attribute,

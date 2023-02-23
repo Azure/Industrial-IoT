@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models {
+namespace Azure.IIoT.OpcUa.Services.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Hub;
@@ -14,7 +15,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// <summary>
     /// Publisher registration extensions
     /// </summary>
-    public static class PublisherRegistrationEx {
+    public static class PublisherRegistrationEx
+    {
         /// <summary>
         /// Create device twin
         /// </summary>
@@ -22,7 +24,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="serializer"></param>
         /// <returns></returns>
         public static DeviceTwinModel ToDeviceTwin(
-            this PublisherRegistration registration, IJsonSerializer serializer) {
+            this PublisherRegistration registration, IJsonSerializer serializer)
+        {
             return Patch(null, registration, serializer);
         }
 
@@ -33,37 +36,44 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="update"></param>
         /// <param name="serializer"></param>
         public static DeviceTwinModel Patch(this PublisherRegistration existing,
-            PublisherRegistration update, IJsonSerializer serializer) {
-            var twin = new DeviceTwinModel {
+            PublisherRegistration update, IJsonSerializer serializer)
+        {
+            var twin = new DeviceTwinModel
+            {
                 Etag = existing?.Etag,
                 Tags = new Dictionary<string, VariantValue>(),
-                Properties = new TwinPropertiesModel {
+                Properties = new TwinPropertiesModel
+                {
                     Desired = new Dictionary<string, VariantValue>()
                 }
             };
 
             // Tags
 
-            if (update?.IsDisabled != null && update.IsDisabled != existing?.IsDisabled) {
+            if (update?.IsDisabled != null && update.IsDisabled != existing?.IsDisabled)
+            {
                 twin.Tags.Add(nameof(PublisherRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
                     true : (bool?)null);
                 twin.Tags.Add(nameof(PublisherRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
                     DateTime.UtcNow : (DateTime?)null);
             }
 
-            if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId) {
+            if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId)
+            {
                 twin.Tags.Add(nameof(PublisherRegistration.SiteOrGatewayId),
                     update?.SiteOrGatewayId);
             }
 
             // Settings
-            if (update?.LogLevel != existing?.LogLevel) {
+            if (update?.LogLevel != existing?.LogLevel)
+            {
                 twin.Properties.Desired.Add(nameof(PublisherRegistration.LogLevel),
                     update?.LogLevel == null ?
                     null : serializer.FromObject(update.LogLevel.ToString()));
             }
 
-            if (update?.SiteId != existing?.SiteId) {
+            if (update?.SiteId != existing?.SiteId)
+            {
                 twin.Properties.Desired.Add(TwinProperty.SiteId, update?.SiteId);
             }
 
@@ -80,14 +90,17 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="properties"></param>
         /// <returns></returns>
         public static PublisherRegistration ToPublisherRegistration(this DeviceTwinModel twin,
-            Dictionary<string, VariantValue> properties) {
-            if (twin == null) {
+            Dictionary<string, VariantValue> properties)
+        {
+            if (twin == null)
+            {
                 return null;
             }
 
             var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
 
-            return new PublisherRegistration {
+            return new PublisherRegistration
+            {
                 // Device
 
                 DeviceId = twin.Id,
@@ -122,7 +135,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
         public static PublisherRegistration ToPublisherRegistration(this DeviceTwinModel twin,
-            bool onlyServerState = false) {
+            bool onlyServerState = false)
+        {
             return ToPublisherRegistration(twin, onlyServerState, out var tmp);
         }
 
@@ -139,8 +153,10 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="connected"></param>
         /// <returns></returns>
         public static PublisherRegistration ToPublisherRegistration(this DeviceTwinModel twin,
-            bool onlyServerState, out bool connected) {
-            if (twin == null) {
+            bool onlyServerState, out bool connected)
+        {
+            if (twin == null)
+            {
                 connected = false;
                 return null;
             }
@@ -152,24 +168,29 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                 ToPublisherRegistration(twin, twin.Properties.Desired);
 
             connected = consolidated.Connected;
-            if (desired != null) {
+            if (desired != null)
+            {
                 desired.Connected = connected;
-                if (desired.SiteId == null && consolidated.SiteId != null) {
+                if (desired.SiteId == null && consolidated.SiteId != null)
+                {
                     // Not set by user, but by config, so fake user desiring it.
                     desired.SiteId = consolidated.SiteId;
                 }
-                if (desired.LogLevel == null && consolidated.LogLevel != null) {
+                if (desired.LogLevel == null && consolidated.LogLevel != null)
+                {
                     // Not set by user, but reported, so set as desired
                     desired.LogLevel = consolidated.LogLevel;
                 }
                 desired.Version = consolidated.Version;
             }
 
-            if (!onlyServerState) {
+            if (!onlyServerState)
+            {
                 consolidated._isInSync = consolidated.IsInSyncWith(desired);
                 return consolidated;
             }
-            if (desired != null) {
+            if (desired != null)
+            {
                 desired._isInSync = desired.IsInSyncWith(consolidated);
             }
             return desired;
@@ -181,13 +202,16 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="model"></param>
         /// <param name="disabled"></param>
         public static PublisherRegistration ToPublisherRegistration(
-            this PublisherModel model, bool? disabled = null) {
-            if (model == null) {
+            this PublisherModel model, bool? disabled = null)
+        {
+            if (model == null)
+            {
                 throw new ArgumentNullException(nameof(model));
             }
             var deviceId = PublisherModelEx.ParseDeviceId(model.Id,
                 out var moduleId);
-            return new PublisherRegistration {
+            return new PublisherRegistration
+            {
                 IsDisabled = disabled,
                 DeviceId = deviceId,
                 ModuleId = moduleId,
@@ -204,13 +228,16 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="model"></param>
         /// <param name="disabled"></param>
         public static PublisherRegistration ToPublisherRegistration(
-            this SupervisorModel model, bool? disabled = null) {
-            if (model == null) {
+            this SupervisorModel model, bool? disabled = null)
+        {
+            if (model == null)
+            {
                 throw new ArgumentNullException(nameof(model));
             }
             var deviceId = PublisherModelEx.ParseDeviceId(model.Id,
                 out var moduleId);
-            return new PublisherRegistration {
+            return new PublisherRegistration
+            {
                 IsDisabled = disabled,
                 DeviceId = deviceId,
                 ModuleId = moduleId,
@@ -227,13 +254,16 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="model"></param>
         /// <param name="disabled"></param>
         public static PublisherRegistration ToPublisherRegistration(
-            this DiscovererModel model, bool? disabled = null) {
-            if (model == null) {
+            this DiscovererModel model, bool? disabled = null)
+        {
+            if (model == null)
+            {
                 throw new ArgumentNullException(nameof(model));
             }
             var deviceId = PublisherModelEx.ParseDeviceId(model.Id,
                 out var moduleId);
-            return new PublisherRegistration {
+            return new PublisherRegistration
+            {
                 IsDisabled = disabled,
                 DeviceId = deviceId,
                 ModuleId = moduleId,
@@ -249,11 +279,14 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
-        public static PublisherModel ToPublisherModel(this PublisherRegistration registration) {
-            if (registration == null) {
+        public static PublisherModel ToPublisherModel(this PublisherRegistration registration)
+        {
+            if (registration == null)
+            {
                 return null;
             }
-            return new PublisherModel {
+            return new PublisherModel
+            {
                 Id = PublisherModelEx.CreatePublisherId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
                 LogLevel = registration.LogLevel,
@@ -268,11 +301,14 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
-        public static SupervisorModel ToSupervisorModel(this PublisherRegistration registration) {
-            if (registration == null) {
+        public static SupervisorModel ToSupervisorModel(this PublisherRegistration registration)
+        {
+            if (registration == null)
+            {
                 return null;
             }
-            return new SupervisorModel {
+            return new SupervisorModel
+            {
                 Id = PublisherModelEx.CreatePublisherId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
                 LogLevel = registration.LogLevel,
@@ -287,11 +323,14 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
-        public static DiscovererModel ToDiscovererModel(this PublisherRegistration registration) {
-            if (registration == null) {
+        public static DiscovererModel ToDiscovererModel(this PublisherRegistration registration)
+        {
+            if (registration == null)
+            {
                 return null;
             }
-            return new DiscovererModel {
+            return new DiscovererModel
+            {
                 Discovery = DiscoveryMode.Off,
                 Id = PublisherModelEx.CreatePublisherId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
@@ -311,8 +350,10 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="registration"></param>
         /// <param name="other"></param>
         internal static bool IsInSyncWith(this PublisherRegistration registration,
-            PublisherRegistration other) {
-            if (registration == null) {
+            PublisherRegistration other)
+        {
+            if (registration == null)
+            {
                 return other == null;
             }
             return

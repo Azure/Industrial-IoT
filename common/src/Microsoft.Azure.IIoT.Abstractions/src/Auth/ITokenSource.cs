@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
+namespace Microsoft.Azure.IIoT.Auth
+{
     using Microsoft.Azure.IIoT.Auth.Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -12,7 +13,8 @@ namespace Microsoft.Azure.IIoT.Auth {
     /// Token retriever uses a strategy to retrieve tokens for a
     /// particular <see cref="Http.Resource"/>.
     /// </summary>
-    public interface ITokenSource {
+    public interface ITokenSource
+    {
         /// <summary>
         /// The token source is enabled
         /// </summary>

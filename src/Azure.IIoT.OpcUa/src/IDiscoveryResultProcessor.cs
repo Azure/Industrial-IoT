@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa {
+namespace Azure.IIoT.OpcUa
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa {
     /// <summary>
     /// Discovery processing
     /// </summary>
-    public interface IDiscoveryResultProcessor {
+    public interface IDiscoveryResultProcessor
+    {
         /// <summary>
         /// Consolidate any existing applications with the
         /// provided discovery events list from the supervisor.

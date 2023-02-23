@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
+namespace Microsoft.Azure.IIoT.Auth
+{
     /// <summary>
     /// Configuration extensions
     /// </summary>
-    public static class OAuthConfigEx {
+    public static class OAuthConfigEx
+    {
         /// <summary>
         /// Url of the token issuing instance.  E.g. the JWT bearer
         /// authentication middleware will use this URI as base
@@ -18,30 +20,36 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// <param name="noVersion"></param>
         /// <returns></returns>
         public static string GetAuthorityUrl(this IOAuthConfig config,
-            bool noVersion = false) {
+            bool noVersion = false)
+        {
             var authorityUrl = config?.InstanceUrl?.TrimEnd('/');
 
             var tenantId = config?.TenantId;
             var provider = config.GetProviderName();
 
-            if (string.IsNullOrEmpty(authorityUrl)) {
+            if (string.IsNullOrEmpty(authorityUrl))
+            {
                 // Default to aad
                 authorityUrl = kDefaultAuthorityUrl;
             }
-            if (provider == AuthProvider.AzureAD) {
+            if (provider == AuthProvider.AzureAD)
+            {
                 // use v2.0 endpoint of AAD with tenant if set
-                if (string.IsNullOrEmpty(tenantId)) {
+                if (string.IsNullOrEmpty(tenantId))
+                {
                     tenantId = "common";
                 }
                 authorityUrl += "/" + tenantId;
-                if (!noVersion) {
+                if (!noVersion)
+                {
                     authorityUrl += "/v2.0";
                 }
                 return authorityUrl;
             }
 
             // Non aad e.g. identity server with optional tenant id.
-            if (!string.IsNullOrEmpty(tenantId)) {
+            if (!string.IsNullOrEmpty(tenantId))
+            {
                 authorityUrl += "/" + tenantId;
             }
             return authorityUrl;
@@ -52,9 +60,11 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static string GetProviderName(this IOAuthConfig config) {
+        public static string GetProviderName(this IOAuthConfig config)
+        {
             var name = config.Provider;
-            if (string.IsNullOrEmpty(name)) {
+            if (string.IsNullOrEmpty(name))
+            {
                 return AuthProvider.Unknown;
             }
             return name;

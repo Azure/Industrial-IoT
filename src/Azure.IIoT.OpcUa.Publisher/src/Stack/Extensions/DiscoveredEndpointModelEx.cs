@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using System.Collections.Generic;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// <summary>
     /// Discovered Endpoint Model extensions
     /// </summary>
-    public static class DiscoveredEndpointModelEx {
+    public static class DiscoveredEndpointModelEx
+    {
         /// <summary>
         /// Create server model
         /// </summary>
@@ -24,12 +26,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// <returns></returns>
         public static ApplicationRegistrationModel ToServiceModel(this DiscoveredEndpointModel result,
             string hostAddress, string siteId, string gatewayId, string moduleId,
-            IJsonSerializer serializer) {
+            IJsonSerializer serializer)
+        {
             var type = result.Description.Server.ApplicationType.ToServiceType() ??
                 ApplicationType.Server;
             var discovererId = PublisherModelEx.CreatePublisherId(gatewayId, moduleId);
-            return new ApplicationRegistrationModel {
-                Application = new ApplicationInfoModel {
+            return new ApplicationRegistrationModel
+            {
+                Application = new ApplicationInfoModel
+                {
                     SiteId = siteId,
                     DiscovererId = discovererId,
                     ApplicationType = type,
@@ -42,7 +47,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
                     HostAddresses = new HashSet<string> { hostAddress },
                     ApplicationName = result.Description.Server.ApplicationName.Text,
                     LocalizedNames = string.IsNullOrEmpty(result.Description.Server.ApplicationName.Locale) ?
-                        null : new Dictionary<string, string> {
+                        null : new Dictionary<string, string>
+                        {
                             [result.Description.Server.ApplicationName.Locale] =
                                 result.Description.Server.ApplicationName.Text
                         },

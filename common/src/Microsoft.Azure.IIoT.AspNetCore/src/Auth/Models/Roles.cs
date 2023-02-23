@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
+namespace Microsoft.Azure.IIoT.AspNetCore.Auth
+{
     /// <summary>
     /// Common roles
     /// </summary>
-    public static class Roles {
+    public static class Roles
+    {
         /// <summary>
         /// Admin role name
         /// </summary>

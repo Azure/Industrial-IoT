@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json {
-    using Azure.IIoT.OpcUa.Services.WebApi.Tests.Api;
-    using Azure.IIoT.OpcUa.Services.WebApi.Tests;
-    using Azure.IIoT.OpcUa.Services.Sdk.Clients;
+namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json
+{
     using Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter;
+    using Azure.IIoT.OpcUa.Services.Sdk.Clients;
+    using Azure.IIoT.OpcUa.Services.WebApi.Tests;
+    using Azure.IIoT.OpcUa.Services.WebApi.Tests.Api;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
@@ -23,15 +24,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json {
     using Xunit;
 
     [Collection(ReadJsonCollection.Name)]
-    public class BrowsePathControllerTest : IClassFixture<WebApiTestFixture> {
-        public BrowsePathControllerTest(WebApiTestFixture factory, TestServerFixture server) {
+    public class BrowsePathControllerTest : IClassFixture<WebApiTestFixture>
+    {
+        public BrowsePathControllerTest(WebApiTestFixture factory, TestServerFixture server)
+        {
             _factory = factory;
             _server = server;
             _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
-        private BrowsePathTests<string> GetTests() {
+        private BrowsePathTests<string> GetTests()
+        {
             var client = _factory.CreateClient(); // Call to create server
             var registry = _factory.Resolve<IEndpointManager>();
             var endpointId = registry.RegisterEndpointAsync(Endpoint).Result;
@@ -43,7 +47,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json {
                     new TestConfig(client.BaseAddress), serializer)), endpointId);
         }
 
-        public EndpointModel Endpoint => new() {
+        public EndpointModel Endpoint => new()
+        {
             Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
             AlternativeUrls = _hostEntry?.AddressList
                 .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
@@ -56,22 +61,26 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json {
         private readonly IPHostEntry _hostEntry;
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test1Async() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test1Async()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethod3Test1Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test2Async() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test2Async()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethod3Test2Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test3Async() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test3Async()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethod3Test3Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethodsTestAsync() {
+        public async Task NodeBrowsePathStaticScalarMethodsTestAsync()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethodsTestAsync().ConfigureAwait(false);
         }
     }

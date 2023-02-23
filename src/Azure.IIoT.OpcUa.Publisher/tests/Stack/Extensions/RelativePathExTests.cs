@@ -3,12 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Extensions {
+namespace Opc.Ua.Extensions
+{
     using Xunit;
 
-    public class RelativePathExTests {
+    public class RelativePathExTests
+    {
         [Fact]
-        public void EncodeDecodePath1() {
+        public void EncodeDecodePath1()
+        {
             var path = new string[] {
                 "<!#http://contoso.com/ua#i=44>Test",
                 "<!HasChild>Test",
@@ -30,7 +33,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodePath2() {
+        public void EncodeDecodePath2()
+        {
             var path = new string[] {
                 "<!HasChild>Test",
                 "<#http://opcfoundation.org/ua#i_33>Test",

@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Registry {
-    using Azure.IIoT.OpcUa.Services.Models;
-    using Azure.IIoT.OpcUa.Shared.Models;
+namespace Azure.IIoT.OpcUa.Services.Registry
+{
     using Autofac;
     using Autofac.Extras.Moq;
     using AutoFixture;
     using AutoFixture.Kernel;
+    using Azure.IIoT.OpcUa.Services.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -21,17 +22,21 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     using System.Linq;
     using Xunit;
 
-    public class SupervisorRegistryTests {
+    public class SupervisorRegistryTests
+    {
         [Fact]
-        public void GetSupervisorThatDoesNotExist() {
+        public void GetSupervisorThatDoesNotExist()
+        {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder => {
+            using (var mock = AutoMock.GetLoose(builder =>
+            {
                 var hub = IoTHubServices.Create(modules);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            })) {
+            }))
+            {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
@@ -45,15 +50,18 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         }
 
         [Fact]
-        public void GetSupervisorThatExists() {
+        public void GetSupervisorThatExists()
+        {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder => {
+            using (var mock = AutoMock.GetLoose(builder =>
+            {
                 var hub = IoTHubServices.Create(modules);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            })) {
+            }))
+            {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
@@ -65,15 +73,18 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         }
 
         [Fact]
-        public void ListAllSupervisors() {
+        public void ListAllSupervisors()
+        {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder => {
+            using (var mock = AutoMock.GetLoose(builder =>
+            {
                 var hub = IoTHubServices.Create(modules);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            })) {
+            }))
+            {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
@@ -85,15 +96,18 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         }
 
         [Fact]
-        public void ListAllSupervisorsUsingQuery() {
+        public void ListAllSupervisorsUsingQuery()
+        {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder => {
+            using (var mock = AutoMock.GetLoose(builder =>
+            {
                 var hub = IoTHubServices.Create(modules);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            })) {
+            }))
+            {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
@@ -105,19 +119,23 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         }
 
         [Fact]
-        public void QuerySupervisorsBySiteId() {
+        public void QuerySupervisorsBySiteId()
+        {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder => {
+            using (var mock = AutoMock.GetLoose(builder =>
+            {
                 var hub = IoTHubServices.Create(modules);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            })) {
+            }))
+            {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var records = service.QuerySupervisorsAsync(new SupervisorQueryModel {
+                var records = service.QuerySupervisorsAsync(new SupervisorQueryModel
+                {
                     SiteId = site
                 }, false, null).Result;
 
@@ -127,19 +145,23 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         }
 
         [Fact]
-        public void QuerySupervisorsByNoneExistantSiteId() {
+        public void QuerySupervisorsByNoneExistantSiteId()
+        {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules, true);
 
-            using (var mock = AutoMock.GetLoose(builder => {
+            using (var mock = AutoMock.GetLoose(builder =>
+            {
                 var hub = IoTHubServices.Create(modules);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            })) {
+            }))
+            {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
 
                 // Run
-                var records = service.QuerySupervisorsAsync(new SupervisorQueryModel {
+                var records = service.QuerySupervisorsAsync(new SupervisorQueryModel
+                {
                     SiteId = "test"
                 }, false, null).Result;
 
@@ -156,7 +178,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         /// <param name="modules"></param>
         private void CreateSupervisorFixtures(out string site,
             out List<SupervisorModel> supervisors, out List<(DeviceTwinModel, DeviceModel)> modules,
-            bool noSite = false) {
+            bool noSite = false)
+        {
             var fix = new Fixture();
             fix.Customizations.Add(new TypeRelay(typeof(VariantValue), typeof(VariantValue)));
             fix.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
@@ -175,8 +198,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             modules = supervisors
                 .Select(a => a.ToPublisherRegistration())
                 .Select(a => a.ToDeviceTwin(_serializer))
-                .Select(t => {
-                    t.Properties.Reported = new Dictionary<string, VariantValue> {
+                .Select(t =>
+                {
+                    t.Properties.Reported = new Dictionary<string, VariantValue>
+                    {
                         [TwinProperty.Type] = IdentityType.Publisher
                     };
                     return t;

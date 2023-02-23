@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
+namespace Microsoft.Azure.IIoT.Hub.Client.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// IoT hub services runtime configuration
     /// </summary>
-    public class IoTHubConfig : ConfigBase, IIoTHubConfig {
+    public class IoTHubConfig : ConfigBase, IIoTHubConfig
+    {
         /// <summary>
         /// Service configuration
         /// </summary>
@@ -27,7 +29,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public IoTHubConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

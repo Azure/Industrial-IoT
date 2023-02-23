@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub {
+namespace Microsoft.Azure.IIoT.Hub
+{
     /// <summary>
     /// IoT hub Message system property names
     /// </summary>
-    public static class SystemProperties {
+    public static class SystemProperties
+    {
         /// <summary>
         /// Message schema
         /// </summary>

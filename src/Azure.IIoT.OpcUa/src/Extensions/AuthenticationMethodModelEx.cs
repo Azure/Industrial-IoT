@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.Linq;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// <summary>
     /// Authentication method model extensions
     /// </summary>
-    public static class AuthenticationMethodModelEx {
+    public static class AuthenticationMethodModelEx
+    {
         /// <summary>
         /// Equality comparison
         /// </summary>
@@ -19,18 +21,24 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="that"></param>
         /// <returns></returns>
         public static bool IsSameAs(this IEnumerable<AuthenticationMethodModel> model,
-            IEnumerable<AuthenticationMethodModel> that) {
-            if (model == that) {
+            IEnumerable<AuthenticationMethodModel> that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
-            if (model.Count() != that.Count()) {
+            if (model.Count() != that.Count())
+            {
                 return false;
             }
-            foreach (var a in model) {
-                if (!that.Any(b => b.IsSameAs(a))) {
+            foreach (var a in model)
+            {
+                if (!that.Any(b => b.IsSameAs(a)))
+                {
                     return false;
                 }
             }
@@ -44,15 +52,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="that"></param>
         /// <returns></returns>
         public static bool IsSameAs(this AuthenticationMethodModel model,
-            AuthenticationMethodModel that) {
-            if (model == that) {
+            AuthenticationMethodModel that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
-            if (model.Configuration != null && that.Configuration != null) {
-                if (!VariantValue.DeepEquals(model.Configuration, that.Configuration)) {
+            if (model.Configuration != null && that.Configuration != null)
+            {
+                if (!VariantValue.DeepEquals(model.Configuration, that.Configuration))
+                {
                     return false;
                 }
             }
@@ -67,11 +80,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static AuthenticationMethodModel Clone(this AuthenticationMethodModel model) {
-            if (model == null) {
+        public static AuthenticationMethodModel Clone(this AuthenticationMethodModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new AuthenticationMethodModel {
+            return new AuthenticationMethodModel
+            {
                 Configuration = model.Configuration?.Copy(),
                 Id = model.Id,
                 SecurityPolicy = model.SecurityPolicy,

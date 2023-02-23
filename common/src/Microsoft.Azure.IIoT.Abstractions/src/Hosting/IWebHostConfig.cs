@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hosting {
+namespace Microsoft.Azure.IIoT.Hosting
+{
     /// <summary>
     /// Host configuration
     /// </summary>
-    public interface IWebHostConfig {
+    public interface IWebHostConfig
+    {
         /// <summary>
         /// null value allows http. Should always be set to
         /// the https port except for local development.

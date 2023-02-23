@@ -3,22 +3,26 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
 
     /// <summary>
     /// Operation extensions
     /// </summary>
-    public static class RegistryOperationContextModelEx {
+    public static class RegistryOperationContextModelEx
+    {
         /// <summary>
         /// Clone
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
         public static OperationContextModel Clone(
-            this OperationContextModel model) {
+            this OperationContextModel model)
+        {
             model = model.Validate();
-            return new OperationContextModel {
+            return new OperationContextModel
+            {
                 AuthorityId = model.AuthorityId,
                 Time = model.Time
             };
@@ -30,9 +34,12 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="context"></param>
         /// <returns></returns>
         public static OperationContextModel Validate(
-            this OperationContextModel context) {
-            if (context == null) {
-                context = new OperationContextModel {
+            this OperationContextModel context)
+        {
+            if (context == null)
+            {
+                context = new OperationContextModel
+                {
                     AuthorityId = null, // Should throw if configured
                     Time = DateTime.UtcNow
                 };

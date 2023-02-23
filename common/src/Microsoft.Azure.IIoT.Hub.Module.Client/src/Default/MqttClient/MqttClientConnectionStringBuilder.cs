@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
+{
     using MQTTnet.Formatter;
     using System;
     using System.IO;
@@ -14,7 +15,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     /// <summary>
     /// Connection string builder for MQTT client connections
     /// </summary>
-    public sealed class MqttClientConnectionStringBuilder {
+    public sealed class MqttClientConnectionStringBuilder
+    {
         private const char kValuePairDelimiter = ';';
         private const char kValuePairSeparator = '=';
         private const string kHostNamePropertyName = nameof(HostName);
@@ -108,7 +110,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <summary>
         /// Initializes a new instance of the <see cref="MqttClientConnectionStringBuilder"/> class.
         /// </summary>
-        private MqttClientConnectionStringBuilder() {
+        private MqttClientConnectionStringBuilder()
+        {
         }
 
         /// <summary>
@@ -116,42 +119,52 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// </summary>
         /// <param name="mqttClientConnectionString">The connection string.</param>
         /// <returns>A new instance of the <see cref="MqttClientConnectionStringBuilder"/> class with a populated connection string.</returns>
-        public static MqttClientConnectionStringBuilder Create(string mqttClientConnectionString) {
-            if (string.IsNullOrWhiteSpace(mqttClientConnectionString)) {
+        public static MqttClientConnectionStringBuilder Create(string mqttClientConnectionString)
+        {
+            if (string.IsNullOrWhiteSpace(mqttClientConnectionString))
+            {
                 throw new ArgumentNullException(nameof(mqttClientConnectionString));
             }
 
             var properties = mqttClientConnectionString.ToDictionary(kValuePairDelimiter, kValuePairSeparator);
-            var mqttClientConnectionStringBuilder = new MqttClientConnectionStringBuilder {
+            var mqttClientConnectionStringBuilder = new MqttClientConnectionStringBuilder
+            {
                 HostName = properties.GetRequired<string>(kHostNamePropertyName),
                 DeviceId = properties.GetOptional<string>(kDeviceIdPropertyName),
                 ModuleId = properties.GetOptional<string>(kModuleIdPropertyName),
                 StateFile = properties.GetOptional<string>(kStateFilePropertyName),
             };
 
-            if (properties.ContainsKey(kUsingIoTHubPropertyName)) {
+            if (properties.ContainsKey(kUsingIoTHubPropertyName))
+            {
                 mqttClientConnectionStringBuilder.UsingIoTHub = properties.GetRequired<bool>(kUsingIoTHubPropertyName);
             }
-            else {
+            else
+            {
                 // If the connection string does not contain the property to indicate if the target is an Azure IoT Hub
                 // or not, we can make a guess using the hostname.
                 mqttClientConnectionStringBuilder.UsingIoTHub = kHostNameRegex.Match(mqttClientConnectionStringBuilder.HostName).Success;
             }
 
             // Permit the port to be set if provided, otherwise use defaults.
-            if (properties.ContainsKey(kPortPropertyName)) {
+            if (properties.ContainsKey(kPortPropertyName))
+            {
                 mqttClientConnectionStringBuilder.Port = properties.GetRequired<int>(kPortPropertyName);
             }
-            else {
-                if (mqttClientConnectionStringBuilder.UsingIoTHub) {
+            else
+            {
+                if (mqttClientConnectionStringBuilder.UsingIoTHub)
+                {
                     mqttClientConnectionStringBuilder.Port = kDefaultIoTHubMqttPort;
                 }
-                else {
+                else
+                {
                     mqttClientConnectionStringBuilder.Port = kDefaultMqttPort;
                 }
             }
 
-            if (mqttClientConnectionStringBuilder.UsingIoTHub) {
+            if (mqttClientConnectionStringBuilder.UsingIoTHub)
+            {
                 mqttClientConnectionStringBuilder.SharedAccessSignature = properties.GetRequired<string>(kSharedAccessSignaturePropertyName);
                 mqttClientConnectionStringBuilder.Username = $"{mqttClientConnectionStringBuilder.HostName}/{mqttClientConnectionStringBuilder.DeviceId}/?api-version=2018-06-30";
                 mqttClientConnectionStringBuilder.Password = mqttClientConnectionStringBuilder.SharedAccessSignature;
@@ -159,16 +172,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 // Get the DigiCert Baltimore root certificate to establish a TLS connection for the Azure IoT Hub.
                 // You can find the certificate in the Azure IoT C SDK at https://github.com/Azure/azure-iot-sdk-c/blob/master/certs/certs.c.
                 var certificatePath = Environment.GetEnvironmentVariable("IoTHubRootCertificateFile");
-                if (!string.IsNullOrWhiteSpace(certificatePath) && File.Exists(certificatePath)) {
+                if (!string.IsNullOrWhiteSpace(certificatePath) && File.Exists(certificatePath))
+                {
                     mqttClientConnectionStringBuilder.X509Cert = X509Certificate.CreateFromCertFile(certificatePath);
                 }
             }
-            else {
+            else
+            {
                 mqttClientConnectionStringBuilder.Username = properties.GetOptional<string>(kUsernamePropertyName);
                 mqttClientConnectionStringBuilder.Password = properties.GetOptional<string>(kAuthPropertyName);
             }
 
-            if (properties.ContainsKey(kMqttProtocolVersionPropertyName)) {
+            if (properties.ContainsKey(kMqttProtocolVersionPropertyName))
+            {
                 mqttClientConnectionStringBuilder.Protocol =
                     Enum.Parse<MqttProtocolVersion>(properties.GetRequired<string>(kMqttProtocolVersionPropertyName), true);
             }
@@ -180,20 +196,25 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <summary>
         /// Validate the properties of the connection string.
         /// </summary>
-        private void Validate() {
-            if (string.IsNullOrWhiteSpace(HostName)) {
+        private void Validate()
+        {
+            if (string.IsNullOrWhiteSpace(HostName))
+            {
                 throw new ArgumentException($"{kHostNamePropertyName} must be specified in the connection string");
             }
 
-            if (UsingIoTHub) {
-                if (string.IsNullOrWhiteSpace(DeviceId)) {
+            if (UsingIoTHub)
+            {
+                if (string.IsNullOrWhiteSpace(DeviceId))
+                {
                     throw new ArgumentException($"{kDeviceIdPropertyName} must be specified in the connection string");
                 }
 
                 ValidateFormat(DeviceId, kDeviceIdPropertyName, kIdNameRegex);
                 ValidateFormatIfSpecified(ModuleId, kModuleIdPropertyName, kIdNameRegex);
 
-                if (string.IsNullOrWhiteSpace(SharedAccessSignature)) {
+                if (string.IsNullOrWhiteSpace(SharedAccessSignature))
+                {
                     throw new ArgumentException($"{kSharedAccessSignaturePropertyName} must be specified in the connection string");
                 }
 
@@ -202,16 +223,20 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 ValidateFormat(SharedAccessSignature, nameof(SharedAccessSignature), kSasSignatureRegex);
                 ValidateFormat(SharedAccessSignature, nameof(SharedAccessSignature), kSasExpiryRegex);
 
-                if (string.IsNullOrWhiteSpace(Username)) {
+                if (string.IsNullOrWhiteSpace(Username))
+                {
                     throw new ArgumentException($"{kUsernamePropertyName} was not configured and is required for the Azure IoT Hub");
                 }
 
-                if (string.IsNullOrWhiteSpace(Password)) {
+                if (string.IsNullOrWhiteSpace(Password))
+                {
                     throw new ArgumentException($"{kAuthPropertyName} was not configured and is required for the Azure IoT Hub");
                 }
             }
-            else {
-                if (string.IsNullOrWhiteSpace(DeviceId)) {
+            else
+            {
+                if (string.IsNullOrWhiteSpace(DeviceId))
+                {
                     DeviceId = string.Empty;
                 }
             }
@@ -223,8 +248,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="value">The property value to validate.</param>
         /// <param name="propertyName">The name of the property.</param>
         /// <param name="regex">The regular expression for a valid value.</param>
-        private static void ValidateFormat(string value, string propertyName, Regex regex) {
-            if (!regex.IsMatch(value)) {
+        private static void ValidateFormat(string value, string propertyName, Regex regex)
+        {
+            if (!regex.IsMatch(value))
+            {
                 throw new ArgumentException($"The connection string has an invalid value for property: {propertyName}.");
             }
         }
@@ -235,8 +262,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="value">The property value to validate.</param>
         /// <param name="propertyName">The name of the property.</param>
         /// <param name="regex">The regular expression for a valid value.</param>
-        private static void ValidateFormatIfSpecified(string value, string propertyName, Regex regex) {
-            if (!string.IsNullOrEmpty(value)) {
+        private static void ValidateFormatIfSpecified(string value, string propertyName, Regex regex)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
                 ValidateFormat(value, propertyName, regex);
             }
         }
@@ -245,7 +274,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// Produces the connection string based on the values of the <see cref="MqttClientConnectionStringBuilder"/> instance properties.
         /// </summary>
         /// <returns>A properly formatted connection string.</returns>
-        public override sealed string ToString() {
+        public override sealed string ToString()
+        {
             Validate();
 
             var stringBuilder = new StringBuilder();
@@ -257,7 +287,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             stringBuilder.AppendKeyValuePairIfNotEmpty(kAuthPropertyName, Password);
             stringBuilder.AppendKeyValuePairIfNotEmpty(kUsingIoTHubPropertyName, UsingIoTHub);
             stringBuilder.AppendKeyValuePairIfNotEmpty(kMqttProtocolVersionPropertyName, Protocol);
-            if (stringBuilder.Length > 0) {
+            if (stringBuilder.Length > 0)
+            {
                 stringBuilder.Remove(stringBuilder.Length - 1, 1);
             }
 

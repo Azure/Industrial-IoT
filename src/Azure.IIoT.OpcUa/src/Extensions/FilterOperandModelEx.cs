@@ -3,24 +3,29 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Furly.Extensions.Serializers;
     using System.Collections.Generic;
 
     /// <summary>
     /// Content filter element extensions
     /// </summary>
-    public static class FilterOperandModelEx {
+    public static class FilterOperandModelEx
+    {
         /// <summary>
         /// Clone
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static FilterOperandModel Clone(this FilterOperandModel model) {
-            if (model == null) {
+        public static FilterOperandModel Clone(this FilterOperandModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new FilterOperandModel {
+            return new FilterOperandModel
+            {
                 Alias = model.Alias,
                 AttributeId = model.AttributeId,
                 BrowsePath = model.BrowsePath,
@@ -37,29 +42,38 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this FilterOperandModel model, FilterOperandModel other) {
-            if (model == null && other == null) {
+        public static bool IsSameAs(this FilterOperandModel model, FilterOperandModel other)
+        {
+            if (model == null && other == null)
+            {
                 return true;
             }
-            if (model == null || other == null) {
+            if (model == null || other == null)
+            {
                 return false;
             }
-            if (model.AttributeId != other.AttributeId) {
+            if (model.AttributeId != other.AttributeId)
+            {
                 return false;
             }
-            if (model.Index != other.Index) {
+            if (model.Index != other.Index)
+            {
                 return false;
             }
-            if (!VariantValue.DeepEquals(model.Value, other.Value)) {
+            if (!VariantValue.DeepEquals(model.Value, other.Value))
+            {
                 return false;
             }
-            if (!model.BrowsePath.SequenceEqualsSafe(other.BrowsePath)) {
+            if (!model.BrowsePath.SequenceEqualsSafe(other.BrowsePath))
+            {
                 return false;
             }
-            if (model.IndexRange != other.IndexRange) {
+            if (model.IndexRange != other.IndexRange)
+            {
                 return false;
             }
-            if (model.NodeId != other.NodeId) {
+            if (model.NodeId != other.NodeId)
+            {
                 return false;
             }
             return true;

@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using Opc.Ua;
     using System.Collections.Generic;
 
     /// <summary>
     /// Represents id based access to node attributes
     /// </summary>
-    public interface INodeAttributes : IEnumerable<KeyValuePair<uint, DataValue>> {
+    public interface INodeAttributes : IEnumerable<KeyValuePair<uint, DataValue>>
+    {
         /// <summary>
         /// Retrieve attribute from node or return a
         /// default as per node class

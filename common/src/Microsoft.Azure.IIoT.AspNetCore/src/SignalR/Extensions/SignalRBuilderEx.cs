@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Extensions.DependencyInjection {
-    using Microsoft.Extensions.Options;
-    using Microsoft.AspNetCore.SignalR;
+namespace Microsoft.Extensions.DependencyInjection
+{
     using Furly.Extensions.Serializers;
     using MessagePack.Resolvers;
+    using Microsoft.AspNetCore.SignalR;
+    using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
@@ -16,14 +17,17 @@ namespace Microsoft.Extensions.DependencyInjection {
     /// <summary>
     /// SignalR setup extensions
     /// </summary>
-    public static class SignalRBuilderEx {
+    public static class SignalRBuilderEx
+    {
         /// <summary>
         /// Add json serializer
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static T AddJsonSerializer<T>(this T builder) where T : ISignalRBuilder {
-            if (builder == null) {
+        public static T AddJsonSerializer<T>(this T builder) where T : ISignalRBuilder
+        {
+            if (builder == null)
+            {
                 throw new ArgumentNullException(nameof(builder));
             }
 
@@ -31,10 +35,12 @@ namespace Microsoft.Extensions.DependencyInjection {
 
             // Configure json serializer settings transiently to pick up all converters
             builder.Services.AddTransient<IConfigureOptions<NewtonsoftJsonHubProtocolOptions>>(services =>
-                new ConfigureNamedOptions<NewtonsoftJsonHubProtocolOptions>(Options.DefaultName, options => {
+                new ConfigureNamedOptions<NewtonsoftJsonHubProtocolOptions>(Options.DefaultName, options =>
+                {
                     var provider = services.GetService<INewtonsoftSerializerSettingsProvider>();
                     var settings = provider?.Settings;
-                    if (settings == null) {
+                    if (settings == null)
+                    {
                         return;
                     }
 
@@ -47,7 +53,8 @@ namespace Microsoft.Extensions.DependencyInjection {
                     options.PayloadSerializerSettings.Context = settings.Context;
 
                     var set = new HashSet<JsonConverter>(options.PayloadSerializerSettings.Converters);
-                    if (!set.IsProperSupersetOf(settings.Converters)) {
+                    if (!set.IsProperSupersetOf(settings.Converters))
+                    {
                         options.PayloadSerializerSettings.Converters =
                             set.MergeWith(settings.Converters).ToList();
                     }
@@ -60,8 +67,10 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static T AddMessagePackSerializer<T>(this T builder) where T : ISignalRBuilder {
-            if (builder == null) {
+        public static T AddMessagePackSerializer<T>(this T builder) where T : ISignalRBuilder
+        {
+            if (builder == null)
+            {
                 throw new ArgumentNullException(nameof(builder));
             }
 
@@ -69,10 +78,12 @@ namespace Microsoft.Extensions.DependencyInjection {
 
             // Configure json serializer settings transiently to pick up all converters
             builder.Services.AddTransient<IConfigureOptions<MessagePackHubProtocolOptions>>(services =>
-                new ConfigureNamedOptions<MessagePackHubProtocolOptions>(Options.DefaultName, options => {
+                new ConfigureNamedOptions<MessagePackHubProtocolOptions>(Options.DefaultName, options =>
+                {
                     var provider = services.GetService<IMessagePackSerializerOptionsProvider>();
                     var resolvers = provider?.Resolvers;
-                    if (resolvers != null) {
+                    if (resolvers != null)
+                    {
                         options.SerializerOptions = options.SerializerOptions.WithResolver(CompositeResolver.Create(resolvers.ToArray()));
                     }
                 }));

@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Models
+{
     using System;
 
     /// <summary>
     /// Model for a diagnostic info.
     /// </summary>
-    public class WriterGroupDiagnosticModel {
+    public class WriterGroupDiagnosticModel
+    {
         /// <summary>
         /// Ingestion start
         /// </summary>

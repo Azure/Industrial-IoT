@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;
@@ -13,7 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
     /// <summary>
     /// Security configuration
     /// </summary>
-    public class SecurityConfig : ConfigBase, ISecurityConfig {
+    public class SecurityConfig : ConfigBase, ISecurityConfig
+    {
         /// <summary>
         /// Configuration
         /// </summary>
@@ -41,7 +43,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
             GetStringOrDefault(PkiRootPathKey, () => "pki");
 
         /// <inheritdoc/>
-        public CertificateInfo ApplicationCertificate => new() {
+        public CertificateInfo ApplicationCertificate => new()
+        {
             StorePath = GetStringOrDefault(ApplicationCertificateStorePathKey,
                 () => $"{PkiRootPath}/own"),
             StoreType = GetStringOrDefault(ApplicationCertificateStoreTypeKey,
@@ -52,7 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
         };
 
         /// <inheritdoc/>
-        public CertificateStore TrustedIssuerCertificates => new() {
+        public CertificateStore TrustedIssuerCertificates => new()
+        {
             StorePath = GetStringOrDefault(TrustedIssuerCertificatesPathKey,
                 () => _issuersFolderName.Value),
             StoreType = GetStringOrDefault(TrustedIssuerCertificatesTypeKey,
@@ -60,7 +64,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
         };
 
         /// <inheritdoc/>
-        public CertificateStore TrustedPeerCertificates => new() {
+        public CertificateStore TrustedPeerCertificates => new()
+        {
             StorePath = GetStringOrDefault(TrustedPeerCertificatesPathKey,
                 () => $"{PkiRootPath}/trusted"),
             StoreType = GetStringOrDefault(TrustedPeerCertificatesTypeKey,
@@ -68,7 +73,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
         };
 
         /// <inheritdoc/>
-        public CertificateStore RejectedCertificateStore => new() {
+        public CertificateStore RejectedCertificateStore => new()
+        {
             StorePath = GetStringOrDefault(RejectedCertificateStorePathKey,
                 () => $"{PkiRootPath}/rejected"),
             StoreType = GetStringOrDefault(RejectedCertificateStoreTypeKey,
@@ -96,7 +102,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public SecurityConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
             _issuersFolderName = new Lazy<string>(GetIssuersFolder);
         }
 
@@ -105,7 +112,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
         /// <see href="https://github.com/OPCFoundation/UA-.NETStandard/blob/master/Docs/Certificates.md"/>.
         /// </summary>
         /// <returns>The issuer folder name</returns>
-        private string GetIssuersFolder() {
+        private string GetIssuersFolder()
+        {
             var legacyPath = $"{PkiRootPath}/issuers";
             return Directory.Exists(legacyPath) ? legacyPath : $"{PkiRootPath}/issuer";
         }

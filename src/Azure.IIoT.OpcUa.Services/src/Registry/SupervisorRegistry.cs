@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Registry {
+namespace Azure.IIoT.OpcUa.Services.Registry
+{
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
@@ -19,7 +20,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     /// Supervisor registry which uses the IoT Hub twin services
     /// for supervisor identity management.
     /// </summary>
-    public sealed class SupervisorRegistry : ISupervisorRegistry {
+    public sealed class SupervisorRegistry : ISupervisorRegistry
+    {
         /// <summary>
         /// Create registry services
         /// </summary>
@@ -28,7 +30,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         /// <param name="logger"></param>
         /// <param name="events"></param>
         public SupervisorRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
-            ILogger logger, ISupervisorRegistryListener events = null) {
+            ILogger logger, ISupervisorRegistryListener events = null)
+        {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -37,13 +40,16 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
         /// <inheritdoc/>
         public async Task<SupervisorModel> GetSupervisorAsync(string supervisorId,
-            bool onlyServerState, CancellationToken ct) {
-            if (string.IsNullOrEmpty(supervisorId)) {
+            bool onlyServerState, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(supervisorId))
+            {
                 throw new ArgumentException(nameof(supervisorId));
             }
             var deviceId = PublisherModelEx.ParseDeviceId(supervisorId, out var moduleId);
             var device = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
-            if (device.ToEntityRegistration(onlyServerState) is not PublisherRegistration registration) {
+            if (device.ToEntityRegistration(onlyServerState) is not PublisherRegistration registration)
+            {
                 throw new ResourceNotFoundException(
                     $"{supervisorId} is not a supervisor registration.");
             }
@@ -52,26 +58,33 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
         /// <inheritdoc/>
         public async Task UpdateSupervisorAsync(string supervisorId,
-            SupervisorUpdateModel request, CancellationToken ct) {
-            if (request == null) {
+            SupervisorUpdateModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(supervisorId)) {
+            if (string.IsNullOrEmpty(supervisorId))
+            {
                 throw new ArgumentException(nameof(supervisorId));
             }
 
             // Get existing endpoint and compare to see if we need to patch.
             var deviceId = PublisherModelEx.ParseDeviceId(supervisorId, out var moduleId);
 
-            while (true) {
-                try {
+            while (true)
+            {
+                try
+                {
                     var twin = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
-                    if (twin.Id != deviceId && twin.ModuleId != moduleId) {
+                    if (twin.Id != deviceId && twin.ModuleId != moduleId)
+                    {
                         throw new ArgumentException("Id must be same as twin to patch",
                             nameof(supervisorId));
                     }
 
-                    if (!(twin.ToEntityRegistration(true) is PublisherRegistration registration)) {
+                    if (!(twin.ToEntityRegistration(true) is PublisherRegistration registration))
+                    {
                         throw new ResourceNotFoundException(
                             $"{supervisorId} is not a supervisor registration.");
                     }
@@ -79,12 +92,14 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                     // Update registration from update request
                     var patched = registration.ToSupervisorModel();
 
-                    if (request.SiteId != null) {
+                    if (request.SiteId != null)
+                    {
                         patched.SiteId = string.IsNullOrEmpty(request.SiteId) ?
                             null : request.SiteId;
                     }
 
-                    if (request.LogLevel != null) {
+                    if (request.LogLevel != null)
+                    {
                         patched.LogLevel = request.LogLevel == TraceLogLevel.Information ?
                             null : request.LogLevel;
                     }
@@ -98,7 +113,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                     await (_events?.OnSupervisorUpdatedAsync(null, registration.ToSupervisorModel())).ConfigureAwait(false);
                     return;
                 }
-                catch (ResourceOutOfDateException ex) {
+                catch (ResourceOutOfDateException ex)
+                {
                     _logger.LogDebug(ex, "Retrying updating supervisor...");
                     continue;
                 }
@@ -107,12 +123,14 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
         /// <inheritdoc/>
         public async Task<SupervisorListModel> ListSupervisorsAsync(
-            string continuation, bool onlyServerState, int? pageSize, CancellationToken ct) {
+            string continuation, bool onlyServerState, int? pageSize, CancellationToken ct)
+        {
             const string query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
-            return new SupervisorListModel {
+            return new SupervisorListModel
+            {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
                     .Select(t => t.ToPublisherRegistration(onlyServerState))
@@ -123,34 +141,41 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
         /// <inheritdoc/>
         public async Task<SupervisorListModel> QuerySupervisorsAsync(
-            SupervisorQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct) {
+            SupervisorQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct)
+        {
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}'";
 
-            if (model?.SiteId != null) {
+            if (model?.SiteId != null)
+            {
                 // If site id provided, include it in search
                 query += $"AND (properties.reported.{TwinProperty.SiteId} = " +
                     $"'{model.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
                     $"'{model.SiteId}' OR deviceId = '{model.SiteId}') ";
             }
 
-            if (EndpointInfoModelEx.IsEndpointId(model?.EndpointId)) {
+            if (EndpointInfoModelEx.IsEndpointId(model?.EndpointId))
+            {
                 // If endpoint id provided include in search
                 query += $"AND IS_DEFINED(properties.desired.{model.EndpointId}) ";
             }
 
-            if (model?.Connected != null) {
+            if (model?.Connected != null)
+            {
                 // If flag provided, include it in search
-                if (model.Connected.Value) {
+                if (model.Connected.Value)
+                {
                     query += "AND connectionState = 'Connected' ";
                 }
-                else {
+                else
+                {
                     query += "AND connectionState != 'Connected' ";
                 }
             }
 
             var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct).ConfigureAwait(false);
-            return new SupervisorListModel {
+            return new SupervisorListModel
+            {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
                     .Select(t => t.ToPublisherRegistration(onlyServerState))

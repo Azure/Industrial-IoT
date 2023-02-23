@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
+namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -16,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
     /// <summary>
     /// Implementation of Historian service api.
     /// </summary>
-    public sealed class HistoryServiceClient : IHistoryServiceApi {
+    public sealed class HistoryServiceClient : IHistoryServiceApi
+    {
         /// <summary>
         /// Create service client
         /// </summary>
@@ -25,7 +27,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serializer"></param>
         public HistoryServiceClient(IHttpClient httpClient, IServiceApiConfig config,
             ISerializer serializer) :
-            this(httpClient, config?.ServiceUrl, serializer) {
+            this(httpClient, config?.ServiceUrl, serializer)
+        {
         }
 
         /// <summary>
@@ -35,8 +38,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serviceUri"></param>
         /// <param name="serializer"></param>
         public HistoryServiceClient(IHttpClient httpClient, string serviceUri,
-            ISerializer serializer = null) {
-            if (string.IsNullOrWhiteSpace(serviceUri)) {
+            ISerializer serializer = null)
+        {
+            if (string.IsNullOrWhiteSpace(serviceUri))
+            {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the endpoint micro service.");
             }
@@ -46,14 +51,17 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<string> GetServiceStatusAsync(CancellationToken ct) {
+        public async Task<string> GetServiceStatusAsync(CancellationToken ct)
+        {
             var request = _httpClient.NewRequest($"{_serviceUri}/history/healthz", Resource.Platform);
-            try {
+            try
+            {
                 var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
                 return response.GetContentAsString();
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return ex.Message;
             }
         }
@@ -61,11 +69,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
             string endpointId, HistoryReadRequestModel<ReadValuesDetailsModel> content,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -79,11 +90,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
             string endpointId, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> content,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -97,11 +111,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
             string endpointId, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> content,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -115,11 +132,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
             string endpointId, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> content,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -132,14 +152,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
-            string endpointId, HistoryReadNextRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            string endpointId, HistoryReadNextRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(content.ContinuationToken)) {
+            if (string.IsNullOrEmpty(content.ContinuationToken))
+            {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
             var request = _httpClient.NewRequest(
@@ -153,11 +177,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
             string endpointId, HistoryReadRequestModel<ReadEventsDetailsModel> content,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -170,14 +197,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
-            string endpointId, HistoryReadNextRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            string endpointId, HistoryReadNextRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(content.ContinuationToken)) {
+            if (string.IsNullOrEmpty(content.ContinuationToken))
+            {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
             var request = _httpClient.NewRequest(
@@ -190,11 +221,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateValuesDetailsModel> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -207,11 +241,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateEventsDetailsModel> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -224,11 +261,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateValuesDetailsModel> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -241,11 +281,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateValuesDetailsModel> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -258,11 +301,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateEventsDetailsModel> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -275,11 +321,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateEventsDetailsModel> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -292,11 +341,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<DeleteValuesDetailsModel> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            HistoryUpdateRequestModel<DeleteValuesDetailsModel> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -309,11 +361,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(string endpointId,
-            HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -326,11 +381,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<DeleteValuesDetailsModel> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            HistoryUpdateRequestModel<DeleteValuesDetailsModel> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
@@ -343,11 +401,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(string endpointId,
-            HistoryUpdateRequestModel<DeleteEventsDetailsModel> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            HistoryUpdateRequestModel<DeleteEventsDetailsModel> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Services {
+namespace Azure.IIoT.OpcUa.Services.Services
+{
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
@@ -23,7 +24,8 @@ namespace Azure.IIoT.OpcUa.Services.Services {
     /// twin services for identity registration/retrieval.
     /// </summary>
     public sealed class ApplicationRegistry : IApplicationRegistry, IEndpointRegistry,
-        IApplicationBulkProcessor {
+        IApplicationBulkProcessor
+    {
         /// <summary>
         /// Create endpoint registry
         /// </summary>
@@ -34,7 +36,8 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="applicationEvents"></param>
         public ApplicationRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
             ILogger logger, IEndpointRegistryListener endpointEvents = null,
-            IApplicationRegistryListener applicationEvents = null) {
+            IApplicationRegistryListener applicationEvents = null)
+        {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -44,11 +47,14 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationResponseModel> RegisterApplicationAsync(
-            ApplicationRegistrationRequestModel request, CancellationToken ct) {
-            if (request == null) {
+            ApplicationRegistrationRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.ApplicationUri == null) {
+            if (request.ApplicationUri == null)
+            {
                 throw new ArgumentNullException(nameof(request.ApplicationUri));
             }
 
@@ -60,19 +66,23 @@ namespace Azure.IIoT.OpcUa.Services.Services {
             await (_applicationEvents?.OnApplicationNewAsync(context, application)).ConfigureAwait(false);
             await HandleApplicationEnabledAsync(context, application).ConfigureAwait(false);
 
-            return new ApplicationRegistrationResponseModel {
+            return new ApplicationRegistrationResponseModel
+            {
                 Id = application.ApplicationId
             };
         }
 
         /// <inheritdoc/>
         public async Task DisableApplicationAsync(string applicationId,
-            OperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct)
+        {
             context = context.Validate();
 
-            var app = await UpdateApplicationAsync(applicationId, (application, disabled) => {
+            var app = await UpdateApplicationAsync(applicationId, (application, disabled) =>
+            {
                 // Disable application
-                if (!(disabled ?? false)) {
+                if (!(disabled ?? false))
+                {
                     application.NotSeenSince = DateTime.UtcNow;
                     application.Updated = context;
                     return (true, true);
@@ -85,12 +95,15 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task EnableApplicationAsync(string applicationId,
-            OperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct)
+        {
             context = context.Validate();
 
-            var app = await UpdateApplicationAsync(applicationId, (application, disabled) => {
+            var app = await UpdateApplicationAsync(applicationId, (application, disabled) =>
+            {
                 // Enable application
-                if (disabled ?? false) {
+                if (disabled ?? false)
+                {
                     application.NotSeenSince = null;
                     application.Updated = context;
                     return (true, false);
@@ -103,13 +116,15 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task UnregisterApplicationAsync(string applicationId,
-            OperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct)
+        {
             context = context.Validate();
 
             await DeleteEndpointsAsync(context, applicationId).ConfigureAwait(false);
 
             var app = await DeleteApplicationAsync(applicationId, null, ct).ConfigureAwait(false);
-            if (app == null) {
+            if (app == null)
+            {
                 return;
             }
             await (_applicationEvents?.OnApplicationDeletedAsync(context, applicationId, app)).ConfigureAwait(false);
@@ -117,13 +132,16 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task UpdateApplicationAsync(string applicationId,
-            ApplicationRegistrationUpdateModel request, CancellationToken ct) {
-            if (request == null) {
+            ApplicationRegistrationUpdateModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var context = request.Context.Validate();
 
-            var application = await UpdateApplicationAsync(applicationId, (existing, _) => {
+            var application = await UpdateApplicationAsync(applicationId, (existing, _) =>
+            {
                 existing.Patch(request);
                 existing.Updated = context;
                 return (true, null);
@@ -135,85 +153,102 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
-            ApplicationRegistrationQueryModel model, int? pageSize, CancellationToken ct) {
+            ApplicationRegistrationQueryModel model, int? pageSize, CancellationToken ct)
+        {
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Application}' ";
 
-            if (!(model?.IncludeNotSeenSince ?? false)) {
+            if (!(model?.IncludeNotSeenSince ?? false))
+            {
                 // Scope to non deleted applications
                 query += $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)}) ";
             }
 
-            if (model?.Locale != null) {
-                if (model?.ApplicationName != null) {
+            if (model?.Locale != null)
+            {
+                if (model?.ApplicationName != null)
+                {
                     // If application name provided, include it in search
                     query += $"AND tags.{nameof(ApplicationRegistration.LocalizedNames)}" +
                         $".{model.Locale} = '{model.ApplicationName}' ";
                 }
-                else {
+                else
+                {
                     // Just search for locale
                     query += $"AND IS_DEFINED(tags.{nameof(ApplicationRegistration.LocalizedNames)}" +
                         $".{model.Locale}) ";
                 }
             }
-            else if (model?.ApplicationName != null) {
+            else if (model?.ApplicationName != null)
+            {
                 // If application name provided, search for default name
                 query += $"AND tags.{nameof(ApplicationRegistration.ApplicationName)} = " +
                     $"'{model.ApplicationName}' ";
             }
-            if (model?.DiscovererId != null) {
+            if (model?.DiscovererId != null)
+            {
                 // If discoverer provided, include it in search
                 query += $"AND tags.{nameof(ApplicationRegistration.DiscovererId)} = " +
                     $"'{model.DiscovererId}' ";
             }
-            if (model?.ProductUri != null) {
+            if (model?.ProductUri != null)
+            {
                 // If product uri provided, include it in search
                 query += $"AND tags.{nameof(ApplicationRegistration.ProductUri)} = " +
                     $"'{model.ProductUri}' ";
             }
-            if (model?.GatewayServerUri != null) {
+            if (model?.GatewayServerUri != null)
+            {
                 // If gateway uri provided, include it in search
                 query += $"AND tags.{nameof(ApplicationRegistration.GatewayServerUri)} = " +
                     $"'{model.GatewayServerUri}' ";
             }
-            if (model?.DiscoveryProfileUri != null) {
+            if (model?.DiscoveryProfileUri != null)
+            {
                 // If discovery profile uri provided, include it in search
                 query += $"AND tags.{nameof(ApplicationRegistration.DiscoveryProfileUri)} = " +
                     $"'{model.DiscoveryProfileUri}' ";
             }
-            if (model?.ApplicationUri != null) {
+            if (model?.ApplicationUri != null)
+            {
                 // If ApplicationUri provided, include it in search
                 query += $"AND tags.{nameof(ApplicationRegistration.ApplicationUriLC)} = " +
                     $"'{model.ApplicationUri.ToLowerInvariant()}' ";
             }
             if (model?.ApplicationType is ApplicationType.Client or
-                ApplicationType.ClientAndServer) {
+                ApplicationType.ClientAndServer)
+            {
                 // If searching for clients include it in search
                 query += $"AND tags.{nameof(ApplicationType.Client)} = true ";
             }
             if (model?.ApplicationType is ApplicationType.Server or
-                ApplicationType.ClientAndServer) {
+                ApplicationType.ClientAndServer)
+            {
                 // If searching for servers include it in search
                 query += $"AND tags.{nameof(ApplicationType.Server)} = true ";
             }
-            if (model?.ApplicationType == ApplicationType.DiscoveryServer) {
+            if (model?.ApplicationType == ApplicationType.DiscoveryServer)
+            {
                 // If searching for servers include it in search
                 query += $"AND tags.{nameof(ApplicationType.DiscoveryServer)} = true ";
             }
-            if (model?.Capability != null) {
+            if (model?.Capability != null)
+            {
                 // If Capabilities provided, filter results
                 var tag = VariantValueEx2.SanitizePropertyName(model.Capability)
                     .ToUpperInvariant();
                 query += $"AND tags.{tag} = true ";
             }
-            if (model?.SiteOrGatewayId != null) {
+            if (model?.SiteOrGatewayId != null)
+            {
                 // If site or gateway id search provided, include it in search
                 query += $"AND tags.{nameof(EntityRegistration.SiteOrGatewayId)} = " +
                     $"'{model.SiteOrGatewayId}' ";
             }
 
             var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct: ct).ConfigureAwait(false);
-            return new ApplicationInfoListModel {
+            return new ApplicationInfoListModel
+            {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
                     .Select(t => t.ToApplicationRegistration())
@@ -224,13 +259,15 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task<ApplicationSiteListModel> ListSitesAsync(
-            string continuation, int? pageSize, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct)
+        {
             const string tag = nameof(EntityRegistration.SiteOrGatewayId);
             var query = $"SELECT tags.{tag}, COUNT() FROM devices WHERE " +
                 $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Application}' " +
                 $"GROUP BY tags.{tag}";
             var result = await _iothub.QueryAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
-            return new ApplicationSiteListModel {
+            return new ApplicationSiteListModel
+            {
                 ContinuationToken = result.ContinuationToken,
                 Sites = result.Result
                     .Select(o => o.GetValueOrDefault<string>(tag))
@@ -241,14 +278,16 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationModel> GetApplicationAsync(
-            string applicationId, bool filterInactiveTwins, CancellationToken ct) {
+            string applicationId, bool filterInactiveTwins, CancellationToken ct)
+        {
             var registration = await GetApplicationRegistrationAsync(applicationId, true, ct).ConfigureAwait(false);
             var application = registration.ToServiceModel();
 
             // Include deleted twins if the application itself is deleted.  Otherwise omit.
             var endpoints = await GetEndpointsAsync(applicationId,
                 application.NotSeenSince != null, ct).ConfigureAwait(false);
-            return new ApplicationRegistrationModel {
+            return new ApplicationRegistrationModel
+            {
                 Application = application,
                 Endpoints = endpoints
                     .Select(e => e.ToServiceModel())
@@ -259,11 +298,13 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> ListApplicationsAsync(
-            string continuation, int? pageSize, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct)
+        {
             const string query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Application}' ";
             var result = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
-            return new ApplicationInfoListModel {
+            return new ApplicationInfoListModel
+            {
                 ContinuationToken = result.ContinuationToken,
                 Items = result.Items
                     .Select(t => t.ToApplicationRegistration())
@@ -274,36 +315,44 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task PurgeDisabledApplicationsAsync(TimeSpan notSeenSince,
-            OperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct)
+        {
             context = context.Validate();
             var absolute = DateTime.UtcNow - notSeenSince;
             string continuation = null;
-            do {
+            do
+            {
                 var applications = await ListApplicationsAsync(continuation, null, ct).ConfigureAwait(false);
                 continuation = applications?.ContinuationToken;
-                if (applications?.Items == null) {
+                if (applications?.Items == null)
+                {
                     continue;
                 }
-                foreach (var application in applications.Items) {
+                foreach (var application in applications.Items)
+                {
                     if (application.NotSeenSince == null ||
-                        application.NotSeenSince.Value >= absolute) {
+                        application.NotSeenSince.Value >= absolute)
+                    {
                         // Skip
                         continue;
                     }
-                    try {
+                    try
+                    {
                         await DeleteEndpointsAsync(context, application.ApplicationId).ConfigureAwait(false);
 
                         // Delete if disabled state is reflected in the query result
                         var app = await DeleteApplicationAsync(application.ApplicationId,
                             _ => application.NotSeenSince < absolute, ct).ConfigureAwait(false);
-                        if (app == null) {
+                        if (app == null)
+                        {
                             // Skip - already deleted or not satisfying condition
                             continue;
                         }
                         await (_applicationEvents?.OnApplicationDeletedAsync(context,
                             app.ApplicationId, app)).ConfigureAwait(false);
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         _logger.LogError(ex, "Exception purging application {Id} - continue",
                             application.ApplicationId);
                         continue;
@@ -315,8 +364,10 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task<EndpointInfoModel> GetEndpointAsync(string endpointId,
-            bool onlyServerState, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            bool onlyServerState, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentException(nameof(endpointId));
             }
             var device = await _iothub.GetAsync(endpointId, null, ct).ConfigureAwait(false);
@@ -325,13 +376,15 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task<EndpointInfoListModel> ListEndpointsAsync(string continuation,
-            bool onlyServerState, int? pageSize, CancellationToken ct) {
+            bool onlyServerState, int? pageSize, CancellationToken ct)
+        {
             // Find all devices where endpoint information is configured
             const string query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}'";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
 
-            return new EndpointInfoListModel {
+            return new EndpointInfoListModel
+            {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
                     .Select(d => TwinModelToEndpointRegistrationModel(d, onlyServerState, true))
@@ -343,51 +396,61 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <inheritdoc/>
         public async Task<EndpointInfoListModel> QueryEndpointsAsync(
             EndpointRegistrationQueryModel model, bool onlyServerState, int? pageSize,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
 
-            if (!(model?.IncludeNotSeenSince ?? false)) {
+            if (!(model?.IncludeNotSeenSince ?? false))
+            {
                 // Scope to non deleted twins
                 query += $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)}) ";
             }
-            if (model?.Url != null) {
+            if (model?.Url != null)
+            {
                 // If Url provided, include it in search
                 query += $"AND tags.{nameof(EndpointRegistration.EndpointUrlLC)} = " +
                     $"'{model.Url.ToLowerInvariant()}' ";
             }
-            if (model?.ApplicationId != null) {
+            if (model?.ApplicationId != null)
+            {
                 // If application id provided, include it in search
                 query += $"AND tags.{nameof(EndpointRegistration.ApplicationId)} = " +
                     $"'{model.ApplicationId}' ";
             }
-            if (model?.DiscovererId != null) {
+            if (model?.DiscovererId != null)
+            {
                 // If discoverer provided, include it in search
                 query += $"AND tags.{nameof(EndpointRegistration.DiscovererId)} = " +
                     $"'{model.DiscovererId}' ";
             }
-            if (model?.SiteOrGatewayId != null) {
+            if (model?.SiteOrGatewayId != null)
+            {
                 // If site or gateway provided, include it in search
                 query += $"AND tags.{nameof(EntityRegistration.SiteOrGatewayId)} = " +
                     $"'{model.SiteOrGatewayId}' ";
             }
-            if (model?.Certificate != null) {
+            if (model?.Certificate != null)
+            {
                 // If cert thumbprint provided, include it in search
                 query += $"AND tags.{nameof(EndpointRegistration.Thumbprint)} = " +
                     $"{model.Certificate} ";
             }
-            if (model?.SecurityMode != null) {
+            if (model?.SecurityMode != null)
+            {
                 // If SecurityMode provided, include it in search
                 query += $"AND properties.desired.{nameof(EndpointRegistration.SecurityMode)} = " +
                     $"'{model.SecurityMode}' ";
             }
-            if (model?.SecurityPolicy != null) {
+            if (model?.SecurityPolicy != null)
+            {
                 // If SecurityPolicy uri provided, include it in search
                 query += $"AND properties.desired.{nameof(EndpointRegistration.SecurityPolicy)} = " +
                     $"'{model.SecurityPolicy}' ";
             }
             var result = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct).ConfigureAwait(false);
-            return new EndpointInfoListModel {
+            return new EndpointInfoListModel
+            {
                 ContinuationToken = result.ContinuationToken,
                 Items = result.Items
                     .Select(t => t.ToEndpointRegistration(onlyServerState))
@@ -398,21 +461,26 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public Task<ApplicationRegistrationModel> AddDiscoveredApplicationAsync(
-            ApplicationRegistrationModel application, CancellationToken ct = default) {
+            ApplicationRegistrationModel application, CancellationToken ct = default)
+        {
             // TODO
             throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
         public async Task ProcessDiscoveryEventsAsync(string siteId, string discovererId,
-            DiscoveryResultModel result, IEnumerable<DiscoveryEventModel> events) {
-            if (string.IsNullOrEmpty(siteId)) {
+            DiscoveryResultModel result, IEnumerable<DiscoveryEventModel> events)
+        {
+            if (string.IsNullOrEmpty(siteId))
+            {
                 throw new ArgumentNullException(nameof(siteId));
             }
-            if (string.IsNullOrEmpty(discovererId)) {
+            if (string.IsNullOrEmpty(discovererId))
+            {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            if (result == null) {
+            if (result == null)
+            {
                 throw new ArgumentNullException(nameof(result));
             }
             var context = result.Context.Validate();
@@ -434,7 +502,8 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                 .Select(t => t.ToApplicationRegistration())
                 .Select(a => a.ToServiceModel());
 
-            var found = events.Select(ev => {
+            var found = events.Select(ev =>
+            {
                 //
                 // Ensure we set the site id and discoverer id in the found applications
                 // to a consistent value.  This works around where the reported events
@@ -449,14 +518,16 @@ namespace Azure.IIoT.OpcUa.Services.Services {
             var endpoints = events.GroupBy(k => k.Application.ApplicationId).ToDictionary(
                 group => group.Key,
                 group => group
-                    .Select(ev => {
+                    .Select(ev =>
+                    {
                         //
                         // Ensure the site id and discoverer id in the found endpoints
                         // also set to a consistent value, same as applications earlier.
                         //
                         ev.Registration.SiteId = siteId;
                         ev.Registration.DiscovererId = discovererId;
-                        return new EndpointInfoModel {
+                        return new EndpointInfoModel
+                        {
                             ApplicationId = group.Key,
                             Registration = ev.Registration
                         };
@@ -488,19 +559,25 @@ namespace Azure.IIoT.OpcUa.Services.Services {
             var unchanged = 0;
             var removed = 0;
 
-            if (!(result.RegisterOnly ?? false)) {
+            if (!(result.RegisterOnly ?? false))
+            {
                 // Remove applications
-                foreach (var removal in remove) {
-                    try {
+                foreach (var removal in remove)
+                {
+                    try
+                    {
                         // Only touch applications the discoverer owns.
-                        if (removal.DiscovererId == discovererId) {
+                        if (removal.DiscovererId == discovererId)
+                        {
                             var wasUpdated = false;
 
                             // Disable if not already disabled
                             var app = await UpdateApplicationAsync(removal.ApplicationId,
-                                (application, disabled) => {
+                                (application, disabled) =>
+                                {
                                     // Disable application
-                                    if (!(disabled ?? false)) {
+                                    if (!(disabled ?? false))
+                                    {
                                         application.NotSeenSince = DateTime.UtcNow;
                                         application.Updated = context;
                                         removed++;
@@ -511,17 +588,20 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                                     return (null, null);
                                 }, default).ConfigureAwait(false);
 
-                            if (wasUpdated) {
+                            if (wasUpdated)
+                            {
                                 await (_applicationEvents?.OnApplicationUpdatedAsync(context, app)).ConfigureAwait(false);
                             }
                             await HandleApplicationDisabledAsync(context, app).ConfigureAwait(false);
                         }
-                        else {
+                        else
+                        {
                             // Skip the ones owned by other discoverers
                             unchanged++;
                         }
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         unchanged++;
                         _logger.LogError(ex, "Exception during application disabling.");
                     }
@@ -529,8 +609,10 @@ namespace Azure.IIoT.OpcUa.Services.Services {
             }
 
             // ... add brand new applications
-            foreach (var addition in add) {
-                try {
+            foreach (var addition in add)
+            {
+                try
+                {
                     var application = addition.Clone();
                     application.ApplicationId =
                         ApplicationInfoModelEx.CreateApplicationId(application);
@@ -551,29 +633,35 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                         discovererId, null, false).ConfigureAwait(false);
                     added++;
                 }
-                catch (ConflictingResourceException) {
+                catch (ConflictingResourceException)
+                {
                     unchange.Add(addition); // Update the existing one
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     unchanged++;
                     _logger.LogError(ex, "Exception adding application from discovery.");
                 }
             }
 
             // Update applications and endpoints ...
-            foreach (var update in unchange) {
-                try {
+            foreach (var update in unchange)
+            {
+                try
+                {
                     var wasDisabled = false;
                     var wasUpdated = false;
 
                     // Disable if not already disabled
                     var app = await UpdateApplicationAsync(update.ApplicationId,
-                        (application, disabled) => {
+                        (application, disabled) =>
+                        {
                             //
                             // Check whether another discoverer owns this application (discoverer
                             // id are not the same) and it is not disabled before updating it it.
                             //
-                            if (update.DiscovererId != discovererId && !(disabled ?? false)) {
+                            if (update.DiscovererId != discovererId && !(disabled ?? false))
+                            {
                                 // TODO: Decide whether we merge newly found endpoints...
                                 unchanged++;
                                 return (null, null);
@@ -591,11 +679,13 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                             return (true, false);
                         }, default).ConfigureAwait(false);
 
-                    if (wasDisabled) {
+                    if (wasDisabled)
+                    {
                         await HandleApplicationEnabledAsync(context, app).ConfigureAwait(false);
                     }
 
-                    if (wasUpdated) {
+                    if (wasUpdated)
+                    {
                         // If this is our discoverer's application we update all endpoints also.
                         endpoints.TryGetValue(app.ApplicationId, out var epFound);
 
@@ -606,7 +696,8 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                         await (_applicationEvents?.OnApplicationUpdatedAsync(context, app)).ConfigureAwait(false);
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     unchanged++;
                     _logger.LogError(ex, "Exception during update.");
                 }
@@ -624,8 +715,10 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <inheritdoc/>
         private async Task ProcessDiscoveryEventsAsync(IEnumerable<EndpointInfoModel> newEndpoints,
             DiscoveryResultModel result, string discovererId, string applicationId,
-            bool hardDelete) {
-            if (newEndpoints == null) {
+            bool hardDelete)
+        {
+            if (newEndpoints == null)
+            {
                 throw new ArgumentNullException(nameof(newEndpoints));
             }
 
@@ -636,7 +729,8 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                 .ToList();
 
             var existing = Enumerable.Empty<EndpointRegistration>();
-            if (!string.IsNullOrEmpty(applicationId)) {
+            if (!string.IsNullOrEmpty(applicationId))
+            {
                 // Merge with existing endpoints of the application
                 existing = await GetEndpointsAsync(applicationId, true).ConfigureAwait(false);
             }
@@ -660,13 +754,18 @@ namespace Azure.IIoT.OpcUa.Services.Services {
             var unchanged = 0;
             var removed = 0;
 
-            if (!(result.RegisterOnly ?? false)) {
+            if (!(result.RegisterOnly ?? false))
+            {
                 // Remove or disable an endpoint
-                foreach (var item in remove) {
-                    try {
+                foreach (var item in remove)
+                {
+                    try
+                    {
                         // Only touch applications the discoverer owns.
-                        if (item.DiscovererId == discovererId) {
-                            if (hardDelete) {
+                        if (item.DiscovererId == discovererId)
+                        {
+                            if (hardDelete)
+                            {
                                 var device = await _iothub.GetAsync(item.DeviceId).ConfigureAwait(false);
                                 // First we update any registration
                                 var existingEndpoint = device.ToEndpointRegistration(false);
@@ -676,24 +775,28 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                                 await (_endpointEvents?.OnEndpointDeletedAsync(context,
                                     item.DeviceId, item.ToServiceModel())).ConfigureAwait(false);
                             }
-                            else if (!(item.IsDisabled ?? false)) {
+                            else if (!(item.IsDisabled ?? false))
+                            {
                                 var endpoint = item.ToServiceModel();
                                 var update = endpoint.ToEndpointRegistration(true);
                                 await _iothub.PatchAsync(item.Patch(update, _serializer), true).ConfigureAwait(false);
                                 await (_endpointEvents?.OnEndpointDisabledAsync(context, endpoint)).ConfigureAwait(false);
                             }
-                            else {
+                            else
+                            {
                                 unchanged++;
                                 continue;
                             }
                             removed++;
                         }
-                        else {
+                        else
+                        {
                             // Skip the ones owned by other publishers
                             unchanged++;
                         }
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         unchanged++;
                         _logger.LogError(ex, "Exception during discovery removal.");
                     }
@@ -701,19 +804,23 @@ namespace Azure.IIoT.OpcUa.Services.Services {
             }
 
             // Update endpoints that were disabled
-            foreach (var exists in unchange) {
-                try {
+            foreach (var exists in unchange)
+            {
+                try
+                {
                     // Get the new one we will patch over the existing one...
                     var patch = change.First(x =>
                         EndpointRegistrationEx.Logical.Equals(x, exists));
 
-                    if (exists != patch) {
+                    if (exists != patch)
+                    {
                         await _iothub.PatchAsync(exists.Patch(patch, _serializer), true).ConfigureAwait(false);
                         var endpoint = patch.ToServiceModel();
 
                         // await _broker.NotifyAllAsync(
                         //     l => l.OnEndpointUpdatedAsync(context, endpoint));
-                        if (exists.IsDisabled ?? false) {
+                        if (exists.IsDisabled ?? false)
+                        {
                             await (_endpointEvents?.OnEndpointEnabledAsync(context, endpoint)).ConfigureAwait(false);
                         }
                         updated++;
@@ -721,15 +828,18 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                     }
                     unchanged++;
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     unchanged++;
                     _logger.LogError(ex, "Exception during update.");
                 }
             }
 
             // Add endpoint
-            foreach (var item in add) {
-                try {
+            foreach (var item in add)
+            {
+                try
+                {
                     await _iothub.CreateOrUpdateAsync(item.ToDeviceTwin(_serializer), true).ConfigureAwait(false);
 
                     var endpoint = item.ToServiceModel();
@@ -737,13 +847,15 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                     await (_endpointEvents?.OnEndpointEnabledAsync(context, endpoint)).ConfigureAwait(false);
                     added++;
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     unchanged++;
                     _logger.LogError(ex, "Exception adding endpoint from discovery.");
                 }
             }
 
-            if (added != 0 || removed != 0) {
+            if (added != 0 || removed != 0)
+            {
                 _logger.LogInformation("processed endpoint results: {Added} endpoints added, {Updated} " +
                     "updated, {Removed} removed or disabled, and {Unchanged} unchanged.",
                     added, updated, removed, unchanged);
@@ -758,21 +870,26 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<ApplicationInfoModel> UpdateApplicationAsync(string applicationId,
-            Func<ApplicationInfoModel, bool?, (bool?, bool?)> updater, CancellationToken ct) {
-            while (true) {
-                try {
+            Func<ApplicationInfoModel, bool?, (bool?, bool?)> updater, CancellationToken ct)
+        {
+            while (true)
+            {
+                try
+                {
                     var registration = await GetApplicationRegistrationAsync(applicationId, true, ct).ConfigureAwait(false);
                     // Update registration from update request
                     var application = registration.ToServiceModel();
                     var (patch, disabled) = updater(application, registration.IsDisabled);
-                    if (patch ?? false) {
+                    if (patch ?? false)
+                    {
                         var update = application.ToApplicationRegistration(disabled);
                         var twin = await _iothub.PatchAsync(registration.Patch(update, _serializer), ct: ct).ConfigureAwait(false);
                         registration = twin.ToApplicationRegistration();
                     }
                     return registration.ToServiceModel();
                 }
-                catch (ResourceOutOfDateException ex) {
+                catch (ResourceOutOfDateException ex)
+                {
                     // Retry create/update
                     _logger.LogDebug(ex, "Retry updating application...");
                     continue;
@@ -788,7 +905,8 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<ApplicationInfoModel> AddApplicationAsync(
-            ApplicationInfoModel application, bool? disabled, CancellationToken ct) {
+            ApplicationInfoModel application, bool? disabled, CancellationToken ct)
+        {
             var registration = application.ToApplicationRegistration(disabled);
             var twin = await _iothub.CreateOrUpdateAsync(
                 registration.ToDeviceTwin(_serializer), false, ct).ConfigureAwait(false);
@@ -803,17 +921,23 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<ApplicationInfoModel> DeleteApplicationAsync(string applicationId,
-            Func<ApplicationInfoModel, bool> precondition, CancellationToken ct) {
-            while (true) {
-                try {
+            Func<ApplicationInfoModel, bool> precondition, CancellationToken ct)
+        {
+            while (true)
+            {
+                try
+                {
                     var registration = await GetApplicationRegistrationAsync(applicationId, false, ct).ConfigureAwait(false);
-                    if (registration == null) {
+                    if (registration == null)
+                    {
                         return null;
                     }
                     var application = registration.ToServiceModel();
-                    if (precondition != null) {
+                    if (precondition != null)
+                    {
                         var shouldDelete = precondition(application);
-                        if (!shouldDelete) {
+                        if (!shouldDelete)
+                        {
                             return null;
                         }
                     }
@@ -822,7 +946,8 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                     // return deleted entity
                     return application;
                 }
-                catch (ResourceOutOfDateException ex) {
+                catch (ResourceOutOfDateException ex)
+                {
                     // Retry create/update
                     _logger.LogDebug(ex, "Retry deleting application...");
                     continue;
@@ -838,20 +963,24 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<ApplicationRegistration> GetApplicationRegistrationAsync(
-            string applicationId, bool throwIfNotFound, CancellationToken ct) {
-            if (string.IsNullOrEmpty(applicationId)) {
+            string applicationId, bool throwIfNotFound, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(applicationId))
+            {
                 throw new ArgumentNullException(nameof(applicationId));
             }
             // Get existing application and compare to see if we need to patch.
             var twin = await _iothub.GetAsync(applicationId, null, ct).ConfigureAwait(false);
-            if (twin.Id != applicationId) {
+            if (twin.Id != applicationId)
+            {
                 throw new ArgumentException("Id must be same as application to patch",
                     nameof(applicationId));
             }
 
             // Convert to application registration
             var registration = twin.ToEntityRegistration() as ApplicationRegistration;
-            if (registration == null && throwIfNotFound) {
+            if (registration == null && throwIfNotFound)
+            {
                 throw new ResourceNotFoundException("Not an application registration");
             }
             return registration;
@@ -864,21 +993,26 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="application"></param>
         /// <returns></returns>
         private async Task HandleApplicationEnabledAsync(OperationContextModel context,
-            ApplicationInfoModel application) {
+            ApplicationInfoModel application)
+        {
             var endpoints = await GetEndpointsAsync(application.ApplicationId, true).ConfigureAwait(false);
-            foreach (var registration in endpoints) {
+            foreach (var registration in endpoints)
+            {
                 // Enable if disabled
-                if (!(registration.IsDisabled ?? false)) {
+                if (!(registration.IsDisabled ?? false))
+                {
                     continue;
                 }
-                try {
+                try
+                {
                     var endpoint = registration.ToServiceModel();
                     endpoint.NotSeenSince = null;
                     var update = endpoint.ToEndpointRegistration(false);
                     await _iothub.PatchAsync(registration.Patch(update, _serializer)).ConfigureAwait(false);
                     await (_endpointEvents?.OnEndpointEnabledAsync(context, endpoint)).ConfigureAwait(false);
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _logger.LogError(ex, "Failed re-enabling endpoint {Id}", registration.Id);
                     continue;
                 }
@@ -893,20 +1027,25 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="application"></param>
         /// <returns></returns>
         public async Task HandleApplicationDisabledAsync(OperationContextModel context,
-            ApplicationInfoModel application) {
+            ApplicationInfoModel application)
+        {
             // Disable endpoints
             var endpoints = await GetEndpointsAsync(application.ApplicationId, true).ConfigureAwait(false);
-            foreach (var registration in endpoints) {
+            foreach (var registration in endpoints)
+            {
                 // Disable if enabled
-                if (!(registration.IsDisabled ?? false)) {
-                    try {
+                if (!(registration.IsDisabled ?? false))
+                {
+                    try
+                    {
                         var endpoint = registration.ToServiceModel();
                         endpoint.NotSeenSince = DateTime.UtcNow;
                         var update = endpoint.ToEndpointRegistration(true);
                         await _iothub.PatchAsync(registration.Patch(update, _serializer)).ConfigureAwait(false);
                         await (_endpointEvents?.OnEndpointDisabledAsync(context, endpoint)).ConfigureAwait(false);
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         _logger.LogError(ex, "Failed disabling endpoint {Id}", registration.Id);
                     }
                 }
@@ -921,11 +1060,13 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="applicationId"></param>
         /// <returns></returns>
         private async Task DeleteEndpointsAsync(OperationContextModel context,
-            string applicationId) {
+            string applicationId)
+        {
             // Get all endpoint registrations and for each one, call delete, if failure,
             // stop half way and throw and do not complete.
             var endpoints = await GetEndpointsAsync(applicationId, true).ConfigureAwait(false);
-            foreach (var registration in endpoints) {
+            foreach (var registration in endpoints)
+            {
                 await _iothub.DeleteAsync(registration.DeviceId).ConfigureAwait(false);
                 var endpoint = registration.ToServiceModel();
                 await (_endpointEvents?.OnEndpointDeletedAsync(context,
@@ -941,20 +1082,23 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<IEnumerable<EndpointRegistration>> GetEndpointsAsync(
-            string applicationId, bool includeDeleted, CancellationToken ct = default) {
+            string applicationId, bool includeDeleted, CancellationToken ct = default)
+        {
             // Find all devices where endpoint information is configured
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EndpointRegistration.ApplicationId)} = " +
                     $"'{applicationId}' AND " +
                 $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
 
-            if (!includeDeleted) {
+            if (!includeDeleted)
+            {
                 query += $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             }
 
             var result = new List<DeviceTwinModel>();
             string continuation = null;
-            do {
+            do
+            {
                 var devices = await _iothub.QueryDeviceTwinsAsync(query, null, null, ct).ConfigureAwait(false);
                 result.AddRange(devices.Items);
                 continuation = devices.ContinuationToken;
@@ -974,11 +1118,14 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="skipInvalid"></param>
         /// <returns></returns>
         private static EndpointInfoModel TwinModelToEndpointRegistrationModel(
-            DeviceTwinModel twin, bool onlyServerState, bool skipInvalid) {
+            DeviceTwinModel twin, bool onlyServerState, bool skipInvalid)
+        {
             // Convert to twin registration
             var registration = twin.ToEntityRegistration(onlyServerState) as EndpointRegistration;
-            if (registration == null) {
-                if (skipInvalid) {
+            if (registration == null)
+            {
+                if (skipInvalid)
+                {
                     return null;
                 }
                 throw new ResourceNotFoundException(

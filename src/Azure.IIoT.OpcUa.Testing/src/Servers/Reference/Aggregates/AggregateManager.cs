@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
@@ -35,11 +36,13 @@ namespace Opc.Ua.Aggregates {
     /// <summary>
     /// An object that manages aggregate factories supported by the server.
     /// </summary>
-    public class AggregateManager : IDisposable {
+    public class AggregateManager : IDisposable
+    {
         /// <summary>
         /// Initilizes the manager.
         /// </summary>
-        public AggregateManager(IServerInternal server) {
+        public AggregateManager(IServerInternal server)
+        {
             _server = server;
             _factories = new Dictionary<NodeId, AggregatorFactory>();
             _minimumProcessingInterval = 1000;
@@ -48,14 +51,16 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// The finializer implementation.
         /// </summary>
-        ~AggregateManager() {
+        ~AggregateManager()
+        {
             Dispose(false);
         }
 
         /// <summary>
         /// Frees any unmanaged resources.
         /// </summary>
-        public void Dispose() {
+        public void Dispose()
+        {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -63,8 +68,10 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected virtual void Dispose(bool disposing) {
-            if (disposing) {
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
                 // TBD
             }
         }
@@ -74,12 +81,15 @@ namespace Opc.Ua.Aggregates {
         /// </summary>
         /// <param name="aggregateId">The id of the aggregate function.</param>
         /// <returns>True if the aggregate is supported.</returns>
-        public bool IsSupported(NodeId aggregateId) {
-            if (NodeId.IsNull(aggregateId)) {
+        public bool IsSupported(NodeId aggregateId)
+        {
+            if (NodeId.IsNull(aggregateId))
+            {
                 return false;
             }
 
-            lock (_lock) {
+            lock (_lock)
+            {
                 return _factories.ContainsKey(aggregateId);
             }
         }
@@ -87,15 +97,20 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// The minimum processing interval for any aggregate calculation.
         /// </summary>
-        public double MinimumProcessingInterval {
-            get {
-                lock (_lock) {
+        public double MinimumProcessingInterval
+        {
+            get
+            {
+                lock (_lock)
+                {
                     return _minimumProcessingInterval;
                 }
             }
 
-            set {
-                lock (_lock) {
+            set
+            {
+                lock (_lock)
+                {
                     _minimumProcessingInterval = value;
                 }
             }
@@ -106,10 +121,13 @@ namespace Opc.Ua.Aggregates {
         /// </summary>
         /// <param name="variableId">The id of history data node.</param>
         /// <returns>The configuration.</returns>
-        public AggregateConfiguration GetDefaultConfiguration(NodeId variableId) {
+        public AggregateConfiguration GetDefaultConfiguration(NodeId variableId)
+        {
             System.Diagnostics.Contracts.Contract.Assume(variableId != null);
-            lock (_lock) {
-                _defaultConfiguration ??= new AggregateConfiguration {
+            lock (_lock)
+            {
+                _defaultConfiguration ??= new AggregateConfiguration
+                {
                     PercentDataBad = 0,
                     PercentDataGood = 100,
                     TreatUncertainAsBad = false,
@@ -124,8 +142,10 @@ namespace Opc.Ua.Aggregates {
         /// Sets the default aggregate configuration.
         /// </summary>
         /// <param name="configuration">The default aggregate configuration..</param>
-        public void SetDefaultConfiguration(AggregateConfiguration configuration) {
-            lock (_lock) {
+        public void SetDefaultConfiguration(AggregateConfiguration configuration)
+        {
+            lock (_lock)
+            {
                 _defaultConfiguration = configuration;
             }
         }
@@ -144,22 +164,27 @@ namespace Opc.Ua.Aggregates {
             DateTime startTime,
             DateTime endTime,
             double processingInterval,
-            AggregateConfiguration configuration) {
-            if (NodeId.IsNull(aggregateId)) {
+            AggregateConfiguration configuration)
+        {
+            if (NodeId.IsNull(aggregateId))
+            {
                 return null;
             }
 
             AggregatorFactory factory = null;
 
-            lock (_lock) {
-                if (!_factories.TryGetValue(aggregateId, out factory)) {
+            lock (_lock)
+            {
+                if (!_factories.TryGetValue(aggregateId, out factory))
+                {
                     return null;
                 }
             }
 
             var calculator = factory();
 
-            if (calculator == null) {
+            if (calculator == null)
+            {
                 return null;
             }
 
@@ -178,9 +203,11 @@ namespace Opc.Ua.Aggregates {
         /// <param name="aggregateId">The id of the aggregate function.</param>
         /// <param name="aggregateName">The id of the aggregate name.</param>
         /// <param name="factory">The factory used to create calculators.</param>
-        public void RegisterFactory(NodeId aggregateId, string aggregateName, AggregatorFactory factory) {
+        public void RegisterFactory(NodeId aggregateId, string aggregateName, AggregatorFactory factory)
+        {
             System.Diagnostics.Contracts.Contract.Assume(aggregateName != null);
-            lock (_lock) {
+            lock (_lock)
+            {
                 _factories[aggregateId] = factory;
             }
         }
@@ -189,8 +216,10 @@ namespace Opc.Ua.Aggregates {
         /// Unregisters an aggregate factory.
         /// </summary>
         /// <param name="aggregateId">The id of the aggregate function.</param>
-        public void RegisterFactory(NodeId aggregateId) {
-            lock (_lock) {
+        public void RegisterFactory(NodeId aggregateId)
+        {
+            lock (_lock)
+            {
                 _factories.Remove(aggregateId);
             }
         }

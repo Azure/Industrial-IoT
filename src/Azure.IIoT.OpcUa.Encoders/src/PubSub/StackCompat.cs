@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     using Opc.Ua;
 
     /// <summary>
     /// Missing data set flags. TODO: Remove when moving to 1.05
     /// </summary>
-    public static class JsonDataSetMessageContentMask2 {
+    public static class JsonDataSetMessageContentMask2
+    {
         /// <summary>
         /// Missing definition in stack (1.05)
         /// </summary>

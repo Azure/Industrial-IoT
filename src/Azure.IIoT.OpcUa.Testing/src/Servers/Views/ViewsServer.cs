@@ -27,21 +27,26 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Views {
+namespace Views
+{
     using Opc.Ua;
     using Opc.Ua.Server;
 
     /// <inheritdoc/>
-    public class ViewsServer : INodeManagerFactory {
+    public class ViewsServer : INodeManagerFactory
+    {
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
-            ApplicationConfiguration configuration) {
+            ApplicationConfiguration configuration)
+        {
             return new ViewsNodeManager(server, configuration);
         }
 
         /// <inheritdoc/>
-        public StringCollection NamespacesUris {
-            get {
+        public StringCollection NamespacesUris
+        {
+            get
+            {
                 return new StringCollection {
                     Model.Namespaces.Engineering,
                     Model.Namespaces.Views,

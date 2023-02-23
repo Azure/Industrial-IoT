@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT {
+namespace Microsoft.Azure.IIoT
+{
     /// <summary>
     /// Common runtime environment variables
     /// </summary>
-    public static class PcsVariable {
+    public static class PcsVariable
+    {
 #pragma warning disable CA1707 // Identifiers should not contain underscores
         /// <summary> Service name </summary>
         public const string PCS_SERVICE_NAME =

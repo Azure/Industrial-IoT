@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Default {
-    using Microsoft.Azure.IIoT.Module.Models;
+namespace Microsoft.Azure.IIoT.Module.Default
+{
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Extensions.Logging;
-    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Concurrent;
     using System.Net;
@@ -19,7 +20,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     /// <summary>
     /// Chunked method provide reliable any size send/receive
     /// </summary>
-    public sealed class ChunkMethodServer : IMethodInvoker {
+    public sealed class ChunkMethodServer : IMethodInvoker
+    {
         /// <inheritdoc/>
         public string MethodName => MethodNames.Call;
 
@@ -28,7 +30,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         /// </summary>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public ChunkMethodServer(IJsonSerializer serializer, ILogger logger) {
+        public ChunkMethodServer(IJsonSerializer serializer, ILogger logger)
+        {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _requests = new ConcurrentDictionary<string, ChunkProcessor>();
@@ -37,28 +40,34 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             _timer.Dispose();
             _requests.Clear();
         }
 
         /// <inheritdoc/>
         public async Task<byte[]> InvokeAsync(byte[] payload, string contentType,
-            IMethodHandler handler) {
+            IMethodHandler handler)
+        {
             var request = _serializer.Deserialize<MethodChunkModel>(payload);
             ChunkProcessor processor;
-            if (request.Handle != null) {
-                if (!_requests.TryGetValue(request.Handle, out processor)) {
+            if (request.Handle != null)
+            {
+                if (!_requests.TryGetValue(request.Handle, out processor))
+                {
                     throw new MethodCallStatusException(
                         (int)HttpStatusCode.RequestTimeout, $"No handle {request.Handle}");
                 }
             }
-            else {
+            else
+            {
                 var handle = Interlocked.Increment(ref _requestCounter).ToString();
                 processor = new ChunkProcessor(this, handle, request.MethodName,
                     request.ContentType, request.ContentLength, request.MaxChunkLength,
                     request.Timeout);
-                if (!_requests.TryAdd(handle, processor)) {
+                if (!_requests.TryAdd(handle, processor))
+                {
                     throw new MethodCallStatusException((int)HttpStatusCode.InternalServerError,
                         $"Adding handle {handle} failed.");
                 }
@@ -70,9 +79,12 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         /// <summary>
         /// Manage requests
         /// </summary>
-        private void OnTimer() {
-            foreach (var item in _requests.Values) {
-                if (item.IsTimedOut) {
+        private void OnTimer()
+        {
+            foreach (var item in _requests.Values)
+            {
+                if (item.IsTimedOut)
+                {
                     _requests.TryRemove(item.Handle, out var tmp);
                 }
             }
@@ -81,7 +93,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         /// <summary>
         /// Processes chunks
         /// </summary>
-        private class ChunkProcessor {
+        private class ChunkProcessor
+        {
             /// <summary>
             /// Request handle
             /// </summary>
@@ -103,14 +116,16 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             /// <param name="maxChunkLength"></param>
             /// <param name="timeout"></param>
             public ChunkProcessor(ChunkMethodServer outer, string handle, string method,
-                string contentType, int? contentLength, int? maxChunkLength, TimeSpan? timeout) {
+                string contentType, int? contentLength, int? maxChunkLength, TimeSpan? timeout)
+            {
                 Handle = handle ??
                     throw new ArgumentNullException(nameof(handle));
                 _outer = outer ??
                     throw new ArgumentNullException(nameof(outer));
                 _method = method ??
                     throw new ArgumentNullException(nameof(method));
-                if (contentLength == null) {
+                if (contentLength == null)
+                {
                     throw new ArgumentNullException(nameof(contentLength));
                 }
                 _payload = new byte[contentLength.Value];
@@ -126,32 +141,39 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             /// <param name="request"></param>
             /// <returns></returns>
             public async Task<MethodChunkModel> ProcessAsync(IMethodHandler handler,
-                MethodChunkModel request) {
+                MethodChunkModel request)
+            {
                 var status = 200;
-                if (_sent == -1) {
+                if (_sent == -1)
+                {
                     // Receiving
                     Buffer.BlockCopy(request.Payload, 0, _payload, _received,
                         request.Payload.Length);
                     _received += request.Payload.Length;
-                    if (_received < _payload.Length) {
+                    if (_received < _payload.Length)
+                    {
                         // Continue upload
                         _lastActivity = DateTime.UtcNow;
-                        return new MethodChunkModel {
+                        return new MethodChunkModel
+                        {
                             Handle = Handle
                         };
                     }
-                    try {
+                    try
+                    {
                         // Process
                         var result = await handler.InvokeAsync(_method,
                             _payload.Unzip(), _contentType).ConfigureAwait(false);
                         // Set response payload
                         _payload = result.Zip();
                     }
-                    catch (MethodCallStatusException mex) {
+                    catch (MethodCallStatusException mex)
+                    {
                         _payload = Encoding.UTF8.GetBytes(mex.ResponsePayload).Zip();
                         status = mex.Result;
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         // Unexpected
                         status = (int)HttpStatusCode.InternalServerError;
                         _outer._logger.LogError(ex,
@@ -164,17 +186,20 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 var length = Math.Min(_payload.Length - _sent, _maxChunkLength);
                 var buffer = new byte[length];
                 Buffer.BlockCopy(_payload, _sent, buffer, 0, buffer.Length);
-                var response = new MethodChunkModel {
+                var response = new MethodChunkModel
+                {
                     ContentLength = _sent == 0 ? _payload.Length : (int?)null,
                     Status = _sent == 0 && status != 200 ? status : (int?)null,
                     Payload = buffer
                 };
                 _sent += length;
-                if (_sent == _payload.Length) {
+                if (_sent == _payload.Length)
+                {
                     // Done - remove ourselves
                     _outer._requests.TryRemove(Handle, out var tmp);
                 }
-                else {
+                else
+                {
                     response.Handle = Handle;
                     _lastActivity = DateTime.UtcNow;
                 }

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Opc.Ua;
     using Opc.Ua.Configuration;
@@ -13,7 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// <summary>
     /// Certificate store extensions
     /// </summary>
-    public static class SecurityConfigEx {
+    public static class SecurityConfigEx
+    {
         /// <summary>
         /// Builds and applies the security configuration according to the local settings. Returns a the
         /// configuration application ready to use for initialization of the OPC UA SDK client object.
@@ -26,27 +28,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
             this ISecurityConfig securityConfig,
             IApplicationConfigurationBuilderClientSelected applicationConfigurationBuilder,
             ApplicationConfiguration applicationConfiguration,
-            string hostname) {
-            if (securityConfig == null) {
+            string hostname)
+        {
+            if (securityConfig == null)
+            {
                 throw new ArgumentNullException(nameof(securityConfig));
             }
 
-            if (securityConfig.TrustedIssuerCertificates == null) {
+            if (securityConfig.TrustedIssuerCertificates == null)
+            {
                 throw new ArgumentNullException(
                     $"{nameof(securityConfig)}.{nameof(SecurityConfig.TrustedIssuerCertificates)}");
             }
 
-            if (securityConfig.TrustedPeerCertificates == null) {
+            if (securityConfig.TrustedPeerCertificates == null)
+            {
                 throw new ArgumentNullException(
                     $"{nameof(securityConfig)}.{nameof(SecurityConfig.TrustedPeerCertificates)}");
             }
 
-            if (securityConfig.RejectedCertificateStore == null) {
+            if (securityConfig.RejectedCertificateStore == null)
+            {
                 throw new ArgumentNullException(
                     $"{nameof(securityConfig)}.{nameof(SecurityConfig.RejectedCertificateStore)}");
             }
 
-            if (securityConfig.ApplicationCertificate == null) {
+            if (securityConfig.ApplicationCertificate == null)
+            {
                 throw new ArgumentNullException(
                     $"{nameof(securityConfig)}.{nameof(SecurityConfig.ApplicationCertificate)}");
             }

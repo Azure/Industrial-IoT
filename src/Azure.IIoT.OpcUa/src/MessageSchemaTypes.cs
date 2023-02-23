@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa {
+namespace Azure.IIoT.OpcUa
+{
     /// <summary>
     /// Publisher related message schemas
     /// </summary>
-    public static class MessageSchemaTypes {
+    public static class MessageSchemaTypes
+    {
         /// <summary>
         /// Monitored item message
         /// </summary>

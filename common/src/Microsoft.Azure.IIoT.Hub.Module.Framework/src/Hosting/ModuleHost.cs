@@ -3,18 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Hub;
+namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
+{
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Exceptions;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Extensions.Logging;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.Metrics;
@@ -27,7 +28,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     /// Module host implementation
     /// </summary>
     public sealed class ModuleHost : IModuleHost, IEventEmitter,
-        IClientAccessor {
+        IClientAccessor
+    {
         /// <inheritdoc/>
         public IClient Client { get; private set; }
 
@@ -43,7 +45,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public ModuleHost(IMethodRouter router, ISettingsRouter settings,
             IClientFactory factory, IJsonSerializer serializer, ILogger logger,
             IMetricsContext metrics)
-            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _router = router ?? throw new ArgumentNullException(nameof(router));
@@ -52,29 +55,37 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync() {
-            if (Client != null) {
-                try {
+        public async Task StopAsync()
+        {
+            if (Client != null)
+            {
+                try
+                {
                     await _lock.WaitAsync().ConfigureAwait(false);
-                    if (Client != null) {
+                    if (Client != null)
+                    {
                         _logger.LogInformation("Stopping Module Host...");
-                        try {
+                        try
+                        {
                             await Client.DisposeAsync().ConfigureAwait(false);
                         }
                         catch (OperationCanceledException) { }
                         catch (IotHubCommunicationException) { }
                         catch (DeviceNotFoundException) { }
                         catch (UnauthorizedException) { }
-                        catch (Exception se) {
+                        catch (Exception se)
+                        {
                             _logger.LogError(se, "Module Host not cleanly disconnected.");
                         }
                     }
                     _logger.LogInformation("Module Host stopped.");
                 }
-                catch (Exception ce) {
+                catch (Exception ce)
+                {
                     _logger.LogError(ce, "Module Host stopping caused exception.");
                 }
-                finally {
+                finally
+                {
                     Client?.Dispose();
                     Client = null;
                     _reported?.Clear();
@@ -85,11 +96,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
         /// <inheritdoc/>
         public async Task StartAsync(string type, string productInfo, string version,
-            IProcessControl reset) {
-            if (Client == null) {
-                try {
+            IProcessControl reset)
+        {
+            if (Client == null)
+            {
+                try
+                {
                     await _lock.WaitAsync().ConfigureAwait(false);
-                    if (Client == null) {
+                    if (Client == null)
+                    {
                         // Create client
                         _logger.LogDebug("Starting Module Host...");
                         Client = await _factory.CreateAsync(productInfo + "_" + version, _metrics, reset).ConfigureAwait(false);
@@ -104,7 +119,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                             (settings, _) => ProcessSettingsAsync(settings)).ConfigureAwait(false);
 
                         // Report type of service, chosen site, and connection state
-                        var twinSettings = new TwinCollection {
+                        var twinSettings = new TwinCollection
+                        {
                             [TwinProperty.Type] = type
                         };
 
@@ -116,9 +132,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         return;
                     }
                 }
-                catch (Exception) {
+                catch (Exception)
+                {
                     _logger.LogError("Module Host failed to start.");
-                    if (Client != null) {
+                    if (Client != null)
+                    {
                         await Try.Async(() => Client.DisposeAsync().AsTask()).ConfigureAwait(false);
                         Client.Dispose();
                         Client = null;
@@ -126,7 +144,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _reported?.Clear();
                     throw;
                 }
-                finally {
+                finally
+                {
                     _lock.Release();
                 }
             }
@@ -135,42 +154,54 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
         /// <inheritdoc/>
         public async Task SendEventAsync(IReadOnlyList<byte[]> batch, string contentType,
-            string eventSchema, string contentEncoding) {
-            try {
+            string eventSchema, string contentEncoding)
+        {
+            try
+            {
                 await _lock.WaitAsync().ConfigureAwait(false);
-                if (Client != null) {
+                if (Client != null)
+                {
                     using var message = Client.CreateMessage(batch,
                         contentEncoding, contentType, eventSchema);
                     await Client.SendEventAsync(message).ConfigureAwait(false);
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
 
         /// <inheritdoc/>
         public async Task SendEventAsync(byte[] data, string contentType, string eventSchema,
-            string contentEncoding) {
-            try {
+            string contentEncoding)
+        {
+            try
+            {
                 await _lock.WaitAsync().ConfigureAwait(false);
-                if (Client != null) {
+                if (Client != null)
+                {
                     using var msg = Client.CreateMessage(new[] { data },
                         contentEncoding, contentType, eventSchema);
                     await Client.SendEventAsync(msg).ConfigureAwait(false);
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
 
         /// <inheritdoc/>
-        public async Task ReportAsync(string propertyId, VariantValue value) {
-            try {
+        public async Task ReportAsync(string propertyId, VariantValue value)
+        {
+            try
+            {
                 await _lock.WaitAsync().ConfigureAwait(false);
-                if (Client != null) {
-                    var collection = new TwinCollection {
+                if (Client != null)
+                {
+                    var collection = new TwinCollection
+                    {
                         [propertyId] = value?.ConvertTo<object>()
                     };
                     await Client.UpdateReportedPropertiesAsync(collection).ConfigureAwait(false);
@@ -178,18 +209,21 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _reported.Add(propertyId, value);
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
 
         /// <inheritdoc/>
         public async Task<string> CallMethodAsync(string deviceId, string moduleId,
-            string method, string payload, TimeSpan? timeout, CancellationToken ct) {
+            string method, string payload, TimeSpan? timeout, CancellationToken ct)
+        {
             var request = new MethodRequest(method, Encoding.UTF8.GetBytes(payload),
                 timeout, null);
             var response = await Client.InvokeMethodAsync(deviceId, moduleId, request, ct).ConfigureAwait(false);
-            if (response.Status != 200) {
+            if (response.Status != 200)
+            {
                 throw new MethodCallStatusException(
                     response.ResultAsJson, response.Status);
             }
@@ -197,8 +231,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
-            if (Client != null) {
+        public void Dispose()
+        {
+            if (Client != null)
+            {
                 StopAsync().Wait();
             }
             _lock.Dispose();
@@ -210,12 +246,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// update.  Reported values are cached until user calls Refresh.
         /// </summary>
         /// <returns></returns>
-        private async Task InitializeTwinAsync() {
+        private async Task InitializeTwinAsync()
+        {
             System.Diagnostics.Debug.Assert(_lock.CurrentCount == 0);
 
             // Process initial setting snapshot from twin
             var twin = await Client.GetTwinAsync().ConfigureAwait(false);
-            if (twin == null) {
+            if (twin == null)
+            {
                 return;
             }
 
@@ -224,23 +262,28 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             // Start with reported values which we desire to be re-applied
             _reported.Clear();
-            foreach (KeyValuePair<string, dynamic> property in twin.Properties.Reported) {
+            foreach (KeyValuePair<string, dynamic> property in twin.Properties.Reported)
+            {
                 var value = (VariantValue)_serializer.FromObject(property.Value);
                 if (value.IsObject &&
                     value.TryGetProperty("status", out var val) &&
-                    value.PropertyNames.Count() == 1) {
+                    value.PropertyNames.Count() == 1)
+                {
                     // Clear status properties from twin
                     _reported.AddOrUpdate(property.Key, null);
                     continue;
                 }
-                if (!ProcessEdgeHostSettings(property.Key, value)) {
+                if (!ProcessEdgeHostSettings(property.Key, value))
+                {
                     _reported.AddOrUpdate(property.Key, value);
                 }
             }
             // Apply desired values on top.
-            foreach (KeyValuePair<string, dynamic> property in twin.Properties.Desired) {
+            foreach (KeyValuePair<string, dynamic> property in twin.Properties.Desired)
+            {
                 var value = (VariantValue)_serializer.FromObject(property.Value);
-                if (!ProcessEdgeHostSettings(property.Key, value, reported)) {
+                if (!ProcessEdgeHostSettings(property.Key, value, reported))
+                {
                     desired[property.Key] = value;
                 }
             }
@@ -261,29 +304,37 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="reported"></param>
         /// <returns></returns>
         private async Task ReportControllerStateAsync(Twin twin,
-            Dictionary<string, VariantValue> reported) {
+            Dictionary<string, VariantValue> reported)
+        {
             var processed = await _settings.GetSettingsStateAsync().ConfigureAwait(false);
 
             // If there are changes, update what should be reported back.
-            foreach (var property in processed) {
+            foreach (var property in processed)
+            {
                 var exists = twin.Properties.Reported.Contains(property.Key);
-                if (property.Value.IsNull()) {
-                    if (exists) {
+                if (property.Value.IsNull())
+                {
+                    if (exists)
+                    {
                         // If exists as reported, remove
                         reported.AddOrUpdate(property.Key, null);
                         _reported.Remove(property.Key);
                     }
                 }
-                else {
-                    if (exists) {
+                else
+                {
+                    if (exists)
+                    {
                         // If exists and same as property value, continue
                         var r = (VariantValue)this._serializer.FromObject(
                             twin.Properties.Reported[property.Key]);
-                        if (r == property.Value) {
+                        if (r == property.Value)
+                        {
                             continue;
                         }
                     }
-                    else if (property.Value.IsNull()) {
+                    else if (property.Value.IsNull())
+                    {
                         continue;
                     }
 
@@ -292,10 +343,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _reported.AddOrUpdate(property.Key, property.Value);
                 }
             }
-            if (reported.Count > 0) {
+            if (reported.Count > 0)
+            {
                 _logger.LogDebug("Reporting controller state...");
                 var collection = new TwinCollection();
-                foreach (var item in reported) {
+                foreach (var item in reported)
+                {
                     collection[item.Key] = item.Value?.ConvertTo<object>();
                 }
                 await Client.UpdateReportedPropertiesAsync(collection).ConfigureAwait(false);
@@ -309,25 +362,32 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        private async Task ProcessSettingsAsync(TwinCollection settings) {
-            if (settings.Count > 0) {
-                try {
+        private async Task ProcessSettingsAsync(TwinCollection settings)
+        {
+            if (settings.Count > 0)
+            {
+                try
+                {
                     await _lock.WaitAsync().ConfigureAwait(false);
 
                     // Patch existing reported properties
                     var desired = new Dictionary<string, VariantValue>();
                     var reporting = new Dictionary<string, VariantValue>();
 
-                    foreach (KeyValuePair<string, dynamic> property in settings) {
+                    foreach (KeyValuePair<string, dynamic> property in settings)
+                    {
                         var value = (VariantValue)_serializer.FromObject(property.Value);
-                        if (!ProcessEdgeHostSettings(property.Key, value, reporting)) {
+                        if (!ProcessEdgeHostSettings(property.Key, value, reporting))
+                        {
                             desired.AddOrUpdate(property.Key, value);
                         }
                     }
 
-                    if (reporting != null && reporting.Count != 0) {
+                    if (reporting != null && reporting.Count != 0)
+                    {
                         var collection = new TwinCollection();
-                        foreach (var item in reporting) {
+                        foreach (var item in reporting)
+                        {
                             collection[item.Key] = item.Value?.ConvertTo<object>();
                         }
                         await Client.UpdateReportedPropertiesAsync(collection).ConfigureAwait(false);
@@ -335,27 +395,32 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     }
 
                     // Any controller properties left?
-                    if (desired.Count == 0) {
+                    if (desired.Count == 0)
+                    {
                         return;
                     }
 
                     _logger.LogDebug("Processing new settings...");
                     var reported = await _settings.ProcessSettingsAsync(desired).ConfigureAwait(false);
 
-                    if (reported != null && reported.Count != 0) {
+                    if (reported != null && reported.Count != 0)
+                    {
                         _logger.LogDebug("Reporting setting results...");
                         var collection = new TwinCollection();
-                        foreach (var item in reported) {
+                        foreach (var item in reported)
+                        {
                             collection[item.Key] = item.Value?.ConvertTo<object>();
                         }
                         await Client.UpdateReportedPropertiesAsync(collection).ConfigureAwait(false);
-                        foreach (var item in reported) {
+                        foreach (var item in reported)
+                        {
                             _reported.AddOrUpdate(item.Key, item.Value);
                         }
                     }
                     _logger.LogInformation("New settings processed.");
                 }
-                finally {
+                finally
+                {
                     _lock.Release();
                 }
             }
@@ -369,15 +434,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="processed"></param>
         /// <returns></returns>
         private static bool ProcessEdgeHostSettings(string key, VariantValue value,
-            IDictionary<string, VariantValue> processed = null) {
-            switch (key.ToLowerInvariant()) {
+            IDictionary<string, VariantValue> processed = null)
+        {
+            switch (key.ToLowerInvariant())
+            {
                 case TwinProperty.Version:
                 case TwinProperty.Type:
                     break;
                 default:
                     return false;
             }
-            if (processed != null) {
+            if (processed != null)
+            {
                 processed[key] = value;
             }
             return true;
@@ -387,7 +455,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Create observable metrics
         /// </summary>
         /// <param name="metrics"></param>
-        private ModuleHost(IMetricsContext metrics) {
+        private ModuleHost(IMetricsContext metrics)
+        {
             Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_module_start",
                 () => new Measurement<int>(Client != null ? 1 : 0, metrics.TagList), "Starts",
                 "Module starts.");

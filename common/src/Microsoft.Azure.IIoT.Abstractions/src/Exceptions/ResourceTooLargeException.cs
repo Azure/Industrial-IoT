@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Exceptions {
+namespace Microsoft.Azure.IIoT.Exceptions
+{
     using System;
 
     /// <summary>
     /// Thrown when a resource does not fit into the allowed
     /// storage allocation
     /// </summary>
-    public class ResourceTooLargeException : Exception {
+    public class ResourceTooLargeException : Exception
+    {
         /// <summary>
         /// Actual size
         /// </summary>
@@ -28,7 +30,8 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// <param name="size"></param>
         /// <param name="maxSize"></param>
         public ResourceTooLargeException(string message,
-            int size, int maxSize) : base(message) {
+            int size, int maxSize) : base(message)
+        {
             Size = size;
             MaxSize = maxSize;
         }
@@ -38,7 +41,8 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// </summary>
         /// <param name="message"></param>
         public ResourceTooLargeException(string message) :
-            this(message, -1, -1) {
+            this(message, -1, -1)
+        {
         }
     }
 }

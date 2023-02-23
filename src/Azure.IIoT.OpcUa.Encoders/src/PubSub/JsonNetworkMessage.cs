@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
-    using Azure.IIoT.OpcUa.Encoders;
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     using Azure.IIoT.OpcUa;
+    using Azure.IIoT.OpcUa.Encoders;
     using Microsoft.Azure.IIoT;
     using Opc.Ua;
     using System;
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Json Network message
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
-    public class JsonNetworkMessage : BaseNetworkMessage {
+    public class JsonNetworkMessage : BaseNetworkMessage
+    {
         /// <inheritdoc/>
         public override string MessageSchema => HasSamplesPayload ?
             MessageSchemaTypes.MonitoredItemMessageJson : MessageSchemaTypes.NetworkMessageJson;
@@ -66,19 +68,25 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <summary>
         /// Flag that indicates if the Network message payload is monitored item samples
         /// </summary>
-        public bool HasSamplesPayload {
-            get {
-                if (_hasSamplesPayload == null) {
-                    if (Messages.Count > 0) {
+        public bool HasSamplesPayload
+        {
+            get
+            {
+                if (_hasSamplesPayload == null)
+                {
+                    if (Messages.Count > 0)
+                    {
                         _hasSamplesPayload = Messages.Any(m => m is MonitoredItemMessage);
                     }
-                    else {
+                    else
+                    {
                         return false;
                     }
                 }
                 return _hasSamplesPayload.Value;
             }
-            set {
+            set
+            {
                 _hasSamplesPayload = value;
             }
         }
@@ -86,15 +94,20 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <summary>
         /// Sets the message schema to use
         /// </summary>
-        internal string MessageSchemaToUse {
-            get {
+        internal string MessageSchemaToUse
+        {
+            get
+            {
                 return MessageSchema;
             }
-            set {
-                if (value?.Equals(MessageSchemaTypes.MonitoredItemMessageJson, StringComparison.OrdinalIgnoreCase) == true) {
+            set
+            {
+                if (value?.Equals(MessageSchemaTypes.MonitoredItemMessageJson, StringComparison.OrdinalIgnoreCase) == true)
+                {
                     HasSamplesPayload = true;
                 }
-                else {
+                else
+                {
                     HasSamplesPayload = false;
                 }
             }
@@ -121,17 +134,23 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <summary>
         /// Returns the starting state of the json encoder
         /// </summary>
-        private JsonEncoderEx.JsonEncoding JsonEncoderStartingState {
-            get {
-                if (!HasNetworkMessageHeader) {
-                    if (!HasSingleDataSetMessage || UseArrayEnvelope) {
+        private JsonEncoderEx.JsonEncoding JsonEncoderStartingState
+        {
+            get
+            {
+                if (!HasNetworkMessageHeader)
+                {
+                    if (!HasSingleDataSetMessage || UseArrayEnvelope)
+                    {
                         return JsonEncoderEx.JsonEncoding.Array;
                     }
-                    if (!HasDataSetMessageHeader) {
+                    if (!HasDataSetMessageHeader)
+                    {
                         return JsonEncoderEx.JsonEncoding.Token;
                     }
                 }
-                if (UseArrayEnvelope) {
+                if (UseArrayEnvelope)
+                {
                     return JsonEncoderEx.JsonEncoding.Array;
                 }
                 return JsonEncoderEx.JsonEncoding.StartObject;
@@ -141,30 +160,37 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <summary>
         /// Create message
         /// </summary>
-        public JsonNetworkMessage() {
+        public JsonNetworkMessage()
+        {
             MessageId = () => _messageId;
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object value) {
-            if (ReferenceEquals(this, value)) {
+        public override bool Equals(object value)
+        {
+            if (ReferenceEquals(this, value))
+            {
                 return true;
             }
-            if (!(value is JsonNetworkMessage wrapper)) {
+            if (!(value is JsonNetworkMessage wrapper))
+            {
                 return false;
             }
-            if (!base.Equals(value)) {
+            if (!base.Equals(value))
+            {
                 return false;
             }
             if (!Utils.IsEqual(wrapper.MessageId(), MessageId()) ||
-                !Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup)) {
+                !Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup))
+            {
                 return false;
             }
             return true;
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
             hash.Add(MessageId);
@@ -174,23 +200,29 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
 
         /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context, Queue<byte[]> reader,
-            IDataSetMetaDataResolver resolver = null) {
+            IDataSetMetaDataResolver resolver = null)
+        {
             // Decodes a single buffer
-            if (reader.TryPeek(out var buffer)) {
-                using (var memoryStream = Memory.GetStream(buffer)) {
+            if (reader.TryPeek(out var buffer))
+            {
+                using (var memoryStream = Memory.GetStream(buffer))
+                {
                     var compression = UseGzipCompression ?
                         new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
-                    try {
+                    try
+                    {
                         using var decoder = new JsonDecoderEx(UseGzipCompression ?
                             compression : memoryStream, context, useJsonLoader: false);
-                        if (!decoder.ReadArray(null, () => TryReadNetworkMessage(decoder)).All(s => s)) {
+                        if (!decoder.ReadArray(null, () => TryReadNetworkMessage(decoder)).All(s => s))
+                        {
                             return false;
                         }
                         // Complete the buffer
                         reader.Dequeue();
                         return true;
                     }
-                    finally {
+                    finally
+                    {
                         compression?.Dispose();
                     }
                 }
@@ -200,33 +232,43 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
 
         /// <inheritdoc/>
         public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
-            int maxChunkSize, IDataSetMetaDataResolver resolver = null) {
+            int maxChunkSize, IDataSetMetaDataResolver resolver = null)
+        {
             var chunks = new List<byte[]>();
             var messages = Messages.OfType<JsonDataSetMessage>().ToArray().AsSpan();
             var messageId = MessageId;
-            try {
-                if (HasSingleDataSetMessage && !UseArrayEnvelope) {
-                    for (var i = 0; i < messages.Length; i++) {
+            try
+            {
+                if (HasSingleDataSetMessage && !UseArrayEnvelope)
+                {
+                    for (var i = 0; i < messages.Length; i++)
+                    {
                         EncodeMessages(messages.Slice(i, 1));
                     }
                 }
-                else {
+                else
+                {
                     EncodeMessages(messages);
                 }
             }
-            finally {
+            finally
+            {
                 MessageId = messageId;
             }
             return chunks;
 
-            void EncodeMessages(Span<JsonDataSetMessage> messages) {
+            void EncodeMessages(Span<JsonDataSetMessage> messages)
+            {
                 byte[] messageBuffer;
-                using (var memoryStream = Memory.GetStream()) {
+                using (var memoryStream = Memory.GetStream())
+                {
                     var compression = UseGzipCompression ?
                         new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true) : null;
-                    try {
+                    try
+                    {
                         using var encoder = new JsonEncoderEx(
-                            UseGzipCompression ? compression : memoryStream, context, JsonEncoderStartingState) {
+                            UseGzipCompression ? compression : memoryStream, context, JsonEncoderStartingState)
+                        {
                             UseAdvancedEncoding = UseAdvancedEncoding,
                             UseUriEncoding = UseAdvancedEncoding,
                             IgnoreDefaultValues = true,
@@ -235,7 +277,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                         };
                         WriteMessages(encoder, messages);
                     }
-                    finally {
+                    finally
+                    {
                         compression?.Dispose();
                     }
 
@@ -245,13 +288,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                     messageBuffer = memoryStream.ToArray();
                 }
 
-                if (messageBuffer.Length < maxChunkSize) {
+                if (messageBuffer.Length < maxChunkSize)
+                {
                     chunks.Add(messageBuffer);
                 }
-                else if (messages.Length == 1) {
+                else if (messages.Length == 1)
+                {
                     chunks.Add(null);
                 }
-                else {
+                else
+                {
                     // Split
                     var len = messages.Length / 2;
                     var first = messages.Slice(0, len);
@@ -268,28 +314,36 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="messages"></param>
-        private void WriteMessages(JsonEncoderEx encoder, Span<JsonDataSetMessage> messages) {
+        private void WriteMessages(JsonEncoderEx encoder, Span<JsonDataSetMessage> messages)
+        {
             var messagesToInclude = messages.ToArray();
-            if (UseArrayEnvelope) {
-                if (HasSingleDataSetMessage || HasNetworkMessageHeader) {
+            if (UseArrayEnvelope)
+            {
+                if (HasSingleDataSetMessage || HasNetworkMessageHeader)
+                {
                     // Legacy compatibility - n network messages with 1 message each inside array
-                    for (var i = 0; i < messages.Length; i++) {
+                    for (var i = 0; i < messages.Length; i++)
+                    {
                         var single = messages.Slice(i, 1).ToArray();
-                        if (HasDataSetMessageHeader || HasNetworkMessageHeader) {
+                        if (HasDataSetMessageHeader || HasNetworkMessageHeader)
+                        {
                             encoder.WriteObject(null, Messages, _ => WriteNetworkMessage(encoder, single));
                         }
-                        else {
+                        else
+                        {
                             // Write single messages into the array envelope
                             WriteNetworkMessage(encoder, single);
                         }
                     }
                 }
-                else {
+                else
+                {
                     // Write all messages into the array envelope
                     WriteNetworkMessage(encoder, messagesToInclude);
                 }
             }
-            else {
+            else
+            {
                 WriteNetworkMessage(encoder, messagesToInclude);
             }
         }
@@ -299,13 +353,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// </summary>
         /// <param name="decoder"></param>
         /// <returns></returns>
-        private bool TryReadNetworkMessage(JsonDecoderEx decoder) {
-            if (!HasSamplesPayload && TryReadNetworkMessageHeader(decoder, out var networkMessageContentMask)) {
-                if (decoder.IsObject(nameof(Messages))) {
+        private bool TryReadNetworkMessage(JsonDecoderEx decoder)
+        {
+            if (!HasSamplesPayload && TryReadNetworkMessageHeader(decoder, out var networkMessageContentMask))
+            {
+                if (decoder.IsObject(nameof(Messages)))
+                {
                     // Single message
                     networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
                 }
-                else if (!decoder.IsArray(nameof(Messages))) {
+                else if (!decoder.IsArray(nameof(Messages)))
+                {
                     // Messages property is neither object nor array. We might be inside a single dataset
                     // TODO: Should we throw?
                     return false;
@@ -313,7 +371,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                 NetworkMessageContentMask = networkMessageContentMask;
                 return TryReadDataSetMessages(decoder, nameof(Messages));
             }
-            else {
+            else
+            {
                 // Reset
                 NetworkMessageContentMask = 0;
                 DataSetWriterGroup = null;
@@ -321,40 +380,49 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                 MessageId = null;
                 PublisherId = null;
 
-                if (decoder.IsObject(null)) {
+                if (decoder.IsObject(null))
+                {
                     // Treat this object as the single message
                     NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
                 }
-                else if (!decoder.IsArray(null)) {
+                else if (!decoder.IsArray(null))
+                {
                     // This object we are reading is neither an object nor array
                     return false;
                 }
                 return TryReadDataSetMessages(decoder, null);
             }
 
-            bool TryReadDataSetMessages(JsonDecoderEx decoder, string property) {
+            bool TryReadDataSetMessages(JsonDecoderEx decoder, string property)
+            {
                 var hasDataSetMessageHeader = false;
                 string publisherId = null;
-                var messages = decoder.ReadArray<BaseDataSetMessage>(property, () => {
+                var messages = decoder.ReadArray<BaseDataSetMessage>(property, () =>
+                {
                     var message = !HasSamplesPayload ? new JsonDataSetMessage() : new MonitoredItemMessage();
-                    if (!message.TryDecode(decoder, property, ref hasDataSetMessageHeader, ref publisherId)) {
+                    if (!message.TryDecode(decoder, property, ref hasDataSetMessageHeader, ref publisherId))
+                    {
                         return null;
                     }
                     return message;
                 });
                 // Add decoded messages to messages array
-                foreach (var message in messages) {
-                    if (message == null) {
+                foreach (var message in messages)
+                {
+                    if (message == null)
+                    {
                         // Reset
                         Messages.Clear();
                         return false;
                     }
                     Messages.Add(message);
                 }
-                if (hasDataSetMessageHeader) {
+                if (hasDataSetMessageHeader)
+                {
                     NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetMessageHeader;
                 }
-                if (publisherId != null) {
+                if (publisherId != null)
+                {
                     NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
                     PublisherId = null;
                 }
@@ -367,51 +435,64 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="messages"></param>
-        private void WriteNetworkMessage(JsonEncoderEx encoder, JsonDataSetMessage[] messages) {
+        private void WriteNetworkMessage(JsonEncoderEx encoder, JsonDataSetMessage[] messages)
+        {
             var publisherId =
                 (NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) == 0
                     ? null : PublisherId;
-            if (HasNetworkMessageHeader) {
+            if (HasNetworkMessageHeader)
+            {
                 WriteNetworkMessageHeader(encoder);
 
-                if (HasSingleDataSetMessage) {
-                    if (HasDataSetMessageHeader) {
+                if (HasSingleDataSetMessage)
+                {
+                    if (HasDataSetMessageHeader)
+                    {
                         // Write as a single object under messages property
                         encoder.WriteObject(nameof(Messages), messages[0],
                             v => v.Encode(encoder, publisherId, true, null));
                     }
-                    else {
+                    else
+                    {
                         // Write raw data set object under messages property
                         messages[0].Encode(encoder, publisherId, false, nameof(Messages));
                     }
                 }
-                else if (HasDataSetMessageHeader) {
+                else if (HasDataSetMessageHeader)
+                {
                     // Write as array of objects
                     encoder.WriteArray(nameof(Messages), messages, v =>
                         encoder.WriteObject(null, v, v => v.Encode(encoder, publisherId, true, null)));
                 }
-                else {
+                else
+                {
                     // Write as array of dataset payload tokens
                     encoder.WriteArray(nameof(Messages), messages,
                         v => v.Encode(encoder, publisherId, false, null));
                 }
             }
-            else {
+            else
+            {
                 // The encoder was set up as array or object beforehand
-                if (HasSingleDataSetMessage) {
+                if (HasSingleDataSetMessage)
+                {
                     // Write object content to current object
                     messages[0].Encode(encoder, publisherId, HasDataSetMessageHeader, null);
                 }
-                else if (HasDataSetMessageHeader) {
+                else if (HasDataSetMessageHeader)
+                {
                     // Write each object to the array that is the initial state of the encoder
-                    foreach (var message in messages) {
+                    foreach (var message in messages)
+                    {
                         // Write as array of dataset messages with payload
                         encoder.WriteObject(null, message, v => v.Encode(encoder, publisherId, true, null));
                     }
                 }
-                else {
+                else
+                {
                     // Writes dataset directly the encoder was set up as token
-                    foreach (var message in messages) {
+                    foreach (var message in messages)
+                    {
                         message.Encode(encoder, publisherId, false, null);
                     }
                 }
@@ -424,50 +505,62 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="decoder"></param>
         /// <param name="networkMessageContentMask"></param>
         /// <returns></returns>
-        private bool TryReadNetworkMessageHeader(JsonDecoderEx decoder, out uint networkMessageContentMask) {
+        private bool TryReadNetworkMessageHeader(JsonDecoderEx decoder, out uint networkMessageContentMask)
+        {
             networkMessageContentMask = 0;
-            if (!decoder.HasField(nameof(MessageId)) || HasSamplesPayload) {
+            if (!decoder.HasField(nameof(MessageId)) || HasSamplesPayload)
+            {
                 return false;
             }
             _messageId = decoder.ReadString(nameof(MessageId));
-            if (MessageId == null) {
+            if (MessageId == null)
+            {
                 // Field is there but not of type string, cannot be a network message header
                 return false;
             }
             var messageType = decoder.ReadString(nameof(MessageType));
-            if (!messageType.Equals(MessageTypeUaData, StringComparison.OrdinalIgnoreCase)) {
+            if (!messageType.Equals(MessageTypeUaData, StringComparison.OrdinalIgnoreCase))
+            {
                 // Not a dataset network message
                 return false;
             }
             networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.NetworkMessageHeader;
 
-            if (decoder.HasField(nameof(PublisherId))) {
+            if (decoder.HasField(nameof(PublisherId)))
+            {
                 PublisherId = decoder.ReadString(nameof(PublisherId));
-                if (PublisherId != null) {
+                if (PublisherId != null)
+                {
                     networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
                 }
-                else {
+                else
+                {
                     // publisher is not string type,
                     // TODO
                     return false;
                 }
             }
 
-            if (decoder.HasField(nameof(DataSetClassId))) {
+            if (decoder.HasField(nameof(DataSetClassId)))
+            {
                 var dataSetClassId = decoder.ReadString(nameof(DataSetClassId));
-                if (dataSetClassId != null && Guid.TryParse(dataSetClassId, out var result)) {
+                if (dataSetClassId != null && Guid.TryParse(dataSetClassId, out var result))
+                {
                     DataSetClassId = result;
                     networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetClassId;
                 }
-                else {
+                else
+                {
                     // class id is not guid or string
                     return false;
                 }
             }
 
-            if (decoder.HasField(nameof(DataSetWriterGroup))) {
+            if (decoder.HasField(nameof(DataSetWriterGroup)))
+            {
                 DataSetWriterGroup = decoder.ReadString(nameof(DataSetWriterGroup));
-                if (DataSetWriterGroup == null) {
+                if (DataSetWriterGroup == null)
+                {
                     // writer group is not string type
                     // TODO
                     return false;
@@ -480,18 +573,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// Write network message header
         /// </summary>
         /// <param name="encoder"></param>
-        private void WriteNetworkMessageHeader(JsonEncoderEx encoder) {
+        private void WriteNetworkMessageHeader(JsonEncoderEx encoder)
+        {
             // The encoder was set up as object beforehand based on IsJsonArray result
             encoder.WriteString(nameof(MessageId), MessageId());
             encoder.WriteString(nameof(MessageType), MessageType);
-            if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
+            if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0)
+            {
                 encoder.WriteString(nameof(PublisherId), PublisherId);
             }
             if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0 &&
-                DataSetClassId != Guid.Empty) {
+                DataSetClassId != Guid.Empty)
+            {
                 encoder.WriteString(nameof(DataSetClassId), DataSetClassId.ToString());
             }
-            if (!string.IsNullOrEmpty(DataSetWriterGroup)) {
+            if (!string.IsNullOrEmpty(DataSetWriterGroup))
+            {
                 encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
             }
         }

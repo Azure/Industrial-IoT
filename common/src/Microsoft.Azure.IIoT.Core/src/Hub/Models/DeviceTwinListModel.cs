@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Models {
+namespace Microsoft.Azure.IIoT.Hub.Models
+{
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// List of device twins with continuation token
     /// </summary>
     [DataContract]
-    public class DeviceTwinListModel {
+    public class DeviceTwinListModel
+    {
         /// <summary>
         /// Continuation token to use for next call or null
         /// </summary>

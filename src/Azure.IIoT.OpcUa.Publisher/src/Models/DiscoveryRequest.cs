@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Models
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport;
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
@@ -19,7 +20,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
     /// <summary>
     /// Discovery request wrapper
     /// </summary>
-    internal sealed class DiscoveryRequest : IDisposable {
+    internal sealed class DiscoveryRequest : IDisposable
+    {
         /// <summary>
         /// Cancellation token to cancel request
         /// </summary>
@@ -83,7 +85,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// Create request wrapper
         /// </summary>
         public DiscoveryRequest() :
-            this(null, null) {
+            this(null, null)
+        {
         }
 
         /// <summary>
@@ -93,12 +96,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="configuration"></param>
         public DiscoveryRequest(DiscoveryMode? mode,
             DiscoveryConfigModel configuration) :
-            this(new DiscoveryRequestModel {
+            this(new DiscoveryRequestModel
+            {
                 Id = "",
                 Configuration = configuration.Clone(),
                 Context = null,
                 Discovery = mode
-            }, NetworkClass.Wired, true) {
+            }, NetworkClass.Wired, true)
+        {
         }
 
         /// <summary>
@@ -108,21 +113,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="networkClass"></param>
         /// <param name="isScan"></param>
         public DiscoveryRequest(DiscoveryRequestModel request,
-            NetworkClass networkClass = NetworkClass.Wired, bool isScan = false) {
+            NetworkClass networkClass = NetworkClass.Wired, bool isScan = false)
+        {
             Request = request?.Clone() ?? throw new ArgumentNullException(nameof(request));
             _cts = new CancellationTokenSource();
             NetworkClass = networkClass;
             IsScan = isScan;
 
-            if (Request.Configuration == null) {
+            if (Request.Configuration == null)
+            {
                 Request.Configuration = new DiscoveryConfigModel();
             }
 
             if (Request.Discovery == null ||
-                Request.Discovery == DiscoveryMode.Off) {
+                Request.Discovery == DiscoveryMode.Off)
+            {
                 // Report empty configuration if off, but keep the
                 // discovery urls details from the original request
-                Request.Configuration = new DiscoveryConfigModel() {
+                Request.Configuration = new DiscoveryConfigModel()
+                {
                     DiscoveryUrls = Request.Configuration.DiscoveryUrls?.ToList(),
                     Locales = Request.Configuration.Locales?.ToList()
                 };
@@ -132,21 +141,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
 
             // Parse whatever provided
 
-            if (!string.IsNullOrEmpty(Request.Configuration.PortRangesToScan)) {
+            if (!string.IsNullOrEmpty(Request.Configuration.PortRangesToScan))
+            {
                 if (PortRange.TryParse(Request.Configuration.PortRangesToScan,
-                    out var ports)) {
+                    out var ports))
+                {
                     PortRanges = ports;
-                    if (Request.Discovery == null) {
+                    if (Request.Discovery == null)
+                    {
                         Request.Discovery = DiscoveryMode.Fast;
                     }
                 }
             }
 
-            if (!string.IsNullOrEmpty(Request.Configuration.AddressRangesToScan)) {
+            if (!string.IsNullOrEmpty(Request.Configuration.AddressRangesToScan))
+            {
                 if (AddressRange.TryParse(Request.Configuration.AddressRangesToScan,
-                    out var addresses)) {
+                    out var addresses))
+                {
                     AddressRanges = addresses;
-                    if (Request.Discovery == null) {
+                    if (Request.Discovery == null)
+                    {
                         Request.Discovery = DiscoveryMode.Fast;
                     }
                 }
@@ -154,9 +169,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
 
             // Set default ranges
 
-            if (AddressRanges == null) {
+            if (AddressRanges == null)
+            {
                 IEnumerable<NetInterface> interfaces;
-                switch (Request.Discovery) {
+                switch (Request.Discovery)
+                {
                     case DiscoveryMode.Local:
                         interfaces = NetworkInformationEx.GetAllNetInterfaces(NetworkClass);
                         AddressRanges = AddLocalHost(interfaces
@@ -191,8 +208,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
                 }
             }
 
-            if (PortRanges == null) {
-                switch (Request.Discovery) {
+            if (PortRanges == null)
+            {
+                switch (Request.Discovery)
+                {
                     case DiscoveryMode.Local:
                         PortRanges = PortRange.All;
                         break;
@@ -214,12 +233,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
 
             // Update reported configuration with used settings
 
-            if (AddressRanges?.Any() == true) {
+            if (AddressRanges?.Any() == true)
+            {
                 Request.Configuration.AddressRangesToScan = AddressRange.Format(AddressRanges);
                 TotalAddresses = AddressRanges?.Sum(r => r.Count) ?? 0;
             }
 
-            if (PortRanges?.Any() == true) {
+            if (PortRanges?.Any() == true)
+            {
                 Request.Configuration.PortRangesToScan = PortRange.Format(PortRanges);
                 TotalPorts = PortRanges?.Sum(r => r.Count) ?? 0;
             }
@@ -234,18 +255,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="request"></param>
         public DiscoveryRequest(DiscoveryRequest request) :
-            this(request.Request, request.NetworkClass, request.IsScan) {
+            this(request.Request, request.NetworkClass, request.IsScan)
+        {
         }
 
         /// <summary>
         /// Cancel request
         /// </summary>
-        public void Cancel() {
+        public void Cancel()
+        {
             Try.Op(() => _cts.Cancel());
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             _cts.Dispose();
         }
 
@@ -253,7 +277,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// Clone options
         /// </summary>
         /// <returns></returns>
-        internal DiscoveryRequest Clone() {
+        internal DiscoveryRequest Clone()
+        {
             return new DiscoveryRequest(this);
         }
 
@@ -262,9 +287,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="ranges"></param>
         /// <returns></returns>
-        public static IEnumerable<AddressRange> AddLocalHost(IEnumerable<AddressRange> ranges) {
-            if (Host.IsContainer) {
-                try {
+        public static IEnumerable<AddressRange> AddLocalHost(IEnumerable<AddressRange> ranges)
+        {
+            if (Host.IsContainer)
+            {
+                try
+                {
                     var addresses = Dns.GetHostAddresses("host.docker.internal");
                     var listedRanges = ranges.ToList();
                     return listedRanges.Concat(addresses
@@ -277,7 +305,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
                         // Select either the local or a small subnet around it
                         .Select(a => new AddressRange(a, 32, "localhost")));
                 }
-                catch {
+                catch
+                {
                 }
             }
             return ranges;

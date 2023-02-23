@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using Microsoft.Azure.IIoT.Diagnostics;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
@@ -14,7 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// <summary>
     /// Session services
     /// </summary>
-    public interface ISessionProvider<T> {
+    public interface ISessionProvider<T>
+    {
         /// <summary>
         /// Get a connected session
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Tests {
+namespace Azure.IIoT.OpcUa.Testing.Tests
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -13,16 +14,19 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
     using System.Threading.Tasks;
     using Xunit;
 
-    public class NodeMetadataTests<T> {
+    public class NodeMetadataTests<T>
+    {
         /// <summary>
         /// Create metadata tests
         /// </summary>
-        public NodeMetadataTests(Func<INodeServices<T>> services, T connection) {
+        public NodeMetadataTests(Func<INodeServices<T>> services, T connection)
+        {
             _services = services;
             _connection = connection;
         }
 
-        public async Task GetServerCapabilitiesTestAsync() {
+        public async Task GetServerCapabilitiesTestAsync()
+        {
             var services = _services();
 
             var results = await services.GetServerCapabilitiesAsync(
@@ -56,7 +60,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Null(results.ModellingRules);
         }
 
-        public async Task HistoryGetServerCapabilitiesTestAsync() {
+        public async Task HistoryGetServerCapabilitiesTestAsync()
+        {
             var services = _services();
 
             var results = await services.HistoryGetServerCapabilitiesAsync(
@@ -81,14 +86,18 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Null(results.MaxReturnEventValues);
         }
 
-        public async Task NodeGetMetadataForFolderTypeTestAsync() {
+        public async Task NodeGetMetadataForFolderTypeTestAsync()
+        {
             var browser = _services();
 
             // Act
             var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel {
-                    Header = new RequestHeaderModel {
-                        Diagnostics = new DiagnosticsModel {
+                new NodeMetadataRequestModel
+                {
+                    Header = new RequestHeaderModel
+                    {
+                        Diagnostics = new DiagnosticsModel
+                        {
                             Level = DiagnosticsLevel.Verbose
                         }
                     },
@@ -103,12 +112,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Empty(result.TypeDefinition.Declarations);
         }
 
-        public async Task NodeGetMetadataForServerObjectTestAsync() {
+        public async Task NodeGetMetadataForServerObjectTestAsync()
+        {
             var browser = _services();
 
             // Act
             var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel {
+                new NodeMetadataRequestModel
+                {
                     NodeId = Opc.Ua.ObjectIds.Server.ToString(),
                 }).ConfigureAwait(false);
 
@@ -191,14 +202,18 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 arg => Assert.Equal("InputArguments", arg));
         }
 
-        public async Task NodeGetMetadataForConditionTypeTestAsync() {
+        public async Task NodeGetMetadataForConditionTypeTestAsync()
+        {
             var browser = _services();
 
             // Act
             var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel {
-                    Header = new RequestHeaderModel {
-                        Diagnostics = new DiagnosticsModel {
+                new NodeMetadataRequestModel
+                {
+                    Header = new RequestHeaderModel
+                    {
+                        Diagnostics = new DiagnosticsModel
+                        {
                             Level = DiagnosticsLevel.Verbose
                         }
                     },
@@ -216,12 +231,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal(34, result.TypeDefinition.Declarations.Count);
         }
 
-        public async Task NodeGetMetadataForServerStatusVariableTestAsync() {
+        public async Task NodeGetMetadataForServerStatusVariableTestAsync()
+        {
             var browser = _services();
 
             // Act
             var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel {
+                new NodeMetadataRequestModel
+                {
                     NodeId = Opc.Ua.VariableIds.Server_ServerStatus.ToString(),
                 }).ConfigureAwait(false);
 
@@ -253,12 +270,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 arg => Assert.Equal("ShutdownReason", arg));
         }
 
-        public async Task NodeGetMetadataForRedundancySupportPropertyTestAsync() {
+        public async Task NodeGetMetadataForRedundancySupportPropertyTestAsync()
+        {
             var browser = _services();
 
             // Act
             var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel {
+                new NodeMetadataRequestModel
+                {
                     NodeId = Opc.Ua.VariableIds.Server_ServerRedundancy_RedundancySupport.ToString(),
                 }).ConfigureAwait(false);
 
@@ -276,14 +295,18 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Empty(result.TypeDefinition.Declarations);
         }
 
-        public async Task NodeGetMetadataForBaseInterfaceTypeTestAsync() {
+        public async Task NodeGetMetadataForBaseInterfaceTypeTestAsync()
+        {
             var browser = _services();
 
             // Act
             var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel {
-                    Header = new RequestHeaderModel {
-                        Diagnostics = new DiagnosticsModel {
+                new NodeMetadataRequestModel
+                {
+                    Header = new RequestHeaderModel
+                    {
+                        Diagnostics = new DiagnosticsModel
+                        {
                             Level = DiagnosticsLevel.Verbose
                         }
                     },
@@ -302,14 +325,18 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Empty(result.TypeDefinition.Declarations);
         }
 
-        public async Task NodeGetMetadataTestForBaseEventTypeTestAsync() {
+        public async Task NodeGetMetadataTestForBaseEventTypeTestAsync()
+        {
             var browser = _services();
 
             // Act
             var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel {
-                    Header = new RequestHeaderModel {
-                        Diagnostics = new DiagnosticsModel {
+                new NodeMetadataRequestModel
+                {
+                    Header = new RequestHeaderModel
+                    {
+                        Diagnostics = new DiagnosticsModel
+                        {
                             Level = DiagnosticsLevel.Verbose
                         }
                     },
@@ -326,7 +353,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("i=58", baseType.NodeId);
             Assert.Equal("BaseObjectType", baseType.BrowseName);
             Assert.Equal(NodeType.Event, result.TypeDefinition.NodeType);
-            Assert.All(result.TypeDefinition.Declarations, arg => {
+            Assert.All(result.TypeDefinition.Declarations, arg =>
+            {
                 Assert.Equal("i=2041", arg.RootTypeId);
                 Assert.Equal(NodeClass.Variable, arg.NodeClass);
                 Assert.NotNull(arg.VariableMetadata);
@@ -337,63 +365,72 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank.Value);
             });
             Assert.Collection(result.TypeDefinition.Declarations,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("EventId", arg.BrowsePath);
                     Assert.Equal("EventId", arg.DisplayName);
                     Assert.Equal("ByteString", arg.VariableMetadata.DataType.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2042", arg.NodeId);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("EventType", arg.BrowsePath);
                     Assert.Equal("EventType", arg.DisplayName);
                     Assert.Equal("NodeId", arg.VariableMetadata.DataType.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2043", arg.NodeId);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("SourceNode", arg.BrowsePath);
                     Assert.Equal("SourceNode", arg.DisplayName);
                     Assert.Equal("NodeId", arg.VariableMetadata.DataType.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2044", arg.NodeId);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("SourceName", arg.BrowsePath);
                     Assert.Equal("SourceName", arg.DisplayName);
                     Assert.Equal("String", arg.VariableMetadata.DataType.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2045", arg.NodeId);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Time", arg.BrowsePath);
                     Assert.Equal("Time", arg.DisplayName);
                     Assert.Equal("UtcTime", arg.VariableMetadata.DataType.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2046", arg.NodeId);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("ReceiveTime", arg.BrowsePath);
                     Assert.Equal("ReceiveTime", arg.DisplayName);
                     Assert.Equal("UtcTime", arg.VariableMetadata.DataType.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2047", arg.NodeId);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("LocalTime", arg.BrowsePath);
                     Assert.Equal("LocalTime", arg.DisplayName);
                     Assert.Equal("TimeZoneDataType", arg.VariableMetadata.DataType.DataType);
                     Assert.Equal("Optional", arg.ModellingRule);
                     Assert.Equal("i=3190", arg.NodeId);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Message", arg.BrowsePath);
                     Assert.Equal("Message", arg.DisplayName);
                     Assert.Equal("LocalizedText", arg.VariableMetadata.DataType.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2050", arg.NodeId);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Severity", arg.BrowsePath);
                     Assert.Equal("Severity", arg.DisplayName);
                     Assert.Equal("UInt16", arg.VariableMetadata.DataType.DataType);
@@ -402,12 +439,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-        public async Task NodeGetMetadataForPropertyTypeTestAsync() {
+        public async Task NodeGetMetadataForPropertyTypeTestAsync()
+        {
             var browser = _services();
 
             // Act
             var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel {
+                new NodeMetadataRequestModel
+                {
                     NodeId = Opc.Ua.VariableTypeIds.PropertyType.ToString()
                 }).ConfigureAwait(false);
 
@@ -423,12 +462,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Empty(result.TypeDefinition.Declarations);
         }
 
-        public async Task NodeGetMetadataForBaseDataVariableTypeTestAsync() {
+        public async Task NodeGetMetadataForBaseDataVariableTypeTestAsync()
+        {
             var browser = _services();
 
             // Act
             var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel {
+                new NodeMetadataRequestModel
+                {
                     NodeId = Opc.Ua.VariableTypeIds.BaseDataVariableType.ToString()
                 }).ConfigureAwait(false);
 
@@ -444,12 +485,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Empty(result.TypeDefinition.Declarations);
         }
 
-        public async Task NodeGetMetadataForAudioVariableTypeTestAsync() {
+        public async Task NodeGetMetadataForAudioVariableTypeTestAsync()
+        {
             var browser = _services();
 
             // Act
             var result = await browser.GetMetadataAsync(_connection,
-                new NodeMetadataRequestModel {
+                new NodeMetadataRequestModel
+                {
                     NodeId = Opc.Ua.VariableTypeIds.AudioVariableType.ToString()
                 }).ConfigureAwait(false);
 
@@ -461,7 +504,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal(NodeType.DataVariable, result.TypeDefinition.NodeType);
             Assert.NotNull(result.TypeDefinition.Declarations);
             Assert.Equal(3, result.TypeDefinition.Declarations.Count);
-            Assert.All(result.TypeDefinition.Declarations, arg => {
+            Assert.All(result.TypeDefinition.Declarations, arg =>
+            {
                 Assert.Equal(Opc.Ua.VariableTypeIds.AudioVariableType.ToString(), arg.RootTypeId);
                 Assert.Equal(NodeClass.Variable, arg.NodeClass);
                 Assert.NotNull(arg.VariableMetadata);
@@ -474,17 +518,20 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank.Value);
             });
             Assert.Collection(result.TypeDefinition.Declarations,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Optional", arg.ModellingRule);
                     Assert.Equal("ListId", arg.DisplayName);
                     Assert.Equal("i=17988", arg.NodeId);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Optional", arg.ModellingRule);
                     Assert.Equal("AgencyId", arg.DisplayName);
                     Assert.Equal("i=17989", arg.NodeId);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Optional", arg.ModellingRule);
                     Assert.Equal("VersionId", arg.DisplayName);
                     Assert.Equal("i=17990", arg.NodeId);

@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
 
     /// <summary>
     /// Event monitored item
     /// </summary>
-    public class EventMonitoredItemModel : BaseMonitoredItemModel {
+    public class EventMonitoredItemModel : BaseMonitoredItemModel
+    {
         /// <summary>
         /// Event filter
         /// </summary>
@@ -25,8 +27,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// Clone
         /// </summary>
         /// <returns>A copy of this object</returns>
-        public override BaseMonitoredItemModel Clone() {
-            return new EventMonitoredItemModel {
+        public override BaseMonitoredItemModel Clone()
+        {
+            return new EventMonitoredItemModel
+            {
                 Id = Id,
                 StartNodeId = StartNodeId,
                 SamplingInterval = SamplingInterval,
@@ -47,7 +51,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         /// <param name="obj"></param>
         /// <returns>If the objects are equal</returns>
-        public override bool Equals(object obj) {
+        public override bool Equals(object obj)
+        {
             return obj is EventMonitoredItemModel model &&
                    base.Equals(obj) &&
                    EventFilter.IsSameAs(model.EventFilter) &&
@@ -58,7 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// Calculate hash code
         /// </summary>
         /// <returns>The hash code</returns>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
             hash.Add(EventFilter);

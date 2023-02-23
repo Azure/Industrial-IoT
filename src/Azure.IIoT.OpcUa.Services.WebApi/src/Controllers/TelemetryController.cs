@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Microsoft.AspNetCore.Authorization;
@@ -19,12 +20,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
-    public class TelemetryController : ControllerBase {
+    public class TelemetryController : ControllerBase
+    {
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="events"></param>
-        public TelemetryController(IGroupRegistrationT<PublishersHub> events) {
+        public TelemetryController(IGroupRegistrationT<PublishersHub> events)
+        {
             _events = events;
         }
 
@@ -40,7 +43,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns></returns>
         [HttpPut("{endpointId}/samples")]
         public async Task SubscribeAsync(string endpointId,
-            [FromBody] string connectionId) {
+            [FromBody] string connectionId)
+        {
             await _events.SubscribeAsync(endpointId, connectionId).ConfigureAwait(false);
         }
 
@@ -56,7 +60,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// any more published samples</param>
         /// <returns></returns>
         [HttpDelete("{endpointId}/samples/{connectionId}")]
-        public async Task UnsubscribeAsync(string endpointId, string connectionId) {
+        public async Task UnsubscribeAsync(string endpointId, string connectionId)
+        {
             await _events.UnsubscribeAsync(endpointId, connectionId).ConfigureAwait(false);
         }
 

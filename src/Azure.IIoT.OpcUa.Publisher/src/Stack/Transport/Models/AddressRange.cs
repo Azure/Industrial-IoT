@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
+{
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
@@ -14,7 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
     /// <summary>
     /// Represents a range of ipv4 addresses
     /// </summary>
-    public sealed class AddressRange {
+    public sealed class AddressRange
+    {
         /// <summary>
         /// Name of the Network interface.
         /// </summary>
@@ -42,7 +44,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// <param name="high"></param>
         /// <param name="nic"></param>
         public AddressRange(uint low, uint high,
-            string? nic = null) {
+            string? nic = null)
+        {
             Nic = string.IsNullOrEmpty(nic) ? kNullNicName : nic;
             Low = _cur = low > high ? high : low;
             High = high < low ? low : high;
@@ -55,11 +58,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// <param name="suffix"></param>
         /// <param name="nic"></param>
         public AddressRange(IPAddress address, int suffix,
-            string? nic = null) {
-            if (address == null) {
+            string? nic = null)
+        {
+            if (address == null)
+            {
                 throw new ArgumentNullException(nameof(address));
             }
-            if (suffix > 32) {
+            if (suffix > 32)
+            {
                 throw new ArgumentException("Suffix too large", nameof(suffix));
             }
             var curAddr = (uint)IPAddress.NetworkToHostOrder(
@@ -81,18 +87,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// <param name="localOnly"></param>
         /// <param name="suffix"></param>
         public AddressRange(NetInterface itf,
-            bool localOnly = false, int? suffix = null) {
-            if (itf == null) {
+            bool localOnly = false, int? suffix = null)
+        {
+            if (itf == null)
+            {
                 throw new ArgumentNullException(nameof(itf));
             }
             var curAddr = (uint)new IPv4Address(itf.UnicastAddress);
             Nic = string.IsNullOrEmpty(itf.Name) ? kNullNicName : itf.Name;
-            if (localOnly) {
+            if (localOnly)
+            {
                 // Add local address only
                 High = curAddr;
                 Low = _cur = curAddr;
             }
-            else {
+            else
+            {
                 var mask = suffix == null ?
                     (uint)new IPv4Address(itf.SubnetMask) :
                         0xffffffff << (32 - suffix.Value);
@@ -112,11 +122,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// <param name="suffix"></param>
         /// <param name="nic"></param>
         public AddressRange(IPAddress address, IPAddress subnet,
-            int? suffix = null, string? nic = null) {
-            if (address == null) {
+            int? suffix = null, string? nic = null)
+        {
+            if (address == null)
+            {
                 throw new ArgumentNullException(nameof(address));
             }
-            if (subnet == null) {
+            if (subnet == null)
+            {
                 throw new ArgumentNullException(nameof(subnet));
             }
 
@@ -134,8 +147,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object? obj) {
-            if (obj is not AddressRange range) {
+        public override bool Equals(object? obj)
+        {
+            if (obj is not AddressRange range)
+            {
                 return false;
             }
             return Low == range.Low && High == range.High;
@@ -149,12 +164,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
             !(range1 == range2);
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return HashCode.Combine(Low, High);
         }
 
         /// <inheritdoc/>
-        public override string ToString() {
+        public override string ToString()
+        {
             var sb = new StringBuilder();
             AppendTo(sb);
             return sb.ToString();
@@ -164,7 +181,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// Clone
         /// </summary>
         /// <returns></returns>
-        public AddressRange Copy() {
+        public AddressRange Copy()
+        {
             return new AddressRange(Low, High, Nic);
         }
 
@@ -175,12 +193,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// <param name="ranges"></param>
         /// <returns></returns>
         public static bool TryParse(string value,
-            [NotNullWhen(true)] out IEnumerable<AddressRange>? ranges) {
-            try {
+            [NotNullWhen(true)] out IEnumerable<AddressRange>? ranges)
+        {
+            try
+            {
                 ranges = Parse(value);
                 return true;
             }
-            catch {
+            catch
+            {
                 ranges = null;
                 return false;
             }
@@ -191,11 +212,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="ranges"></param>
         /// <returns></returns>
-        public static string Format(IEnumerable<AddressRange> ranges) {
+        public static string Format(IEnumerable<AddressRange> ranges)
+        {
             var sb = new StringBuilder();
             var first = true;
-            foreach (var range in Merge(ranges)) {
-                if (!first) {
+            foreach (var range in Merge(ranges))
+            {
+                if (!first)
+                {
                     sb.Append(';');
                 }
                 first = false;
@@ -209,27 +233,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static IEnumerable<AddressRange> Parse(string value) {
-            if (string.IsNullOrEmpty(value)) {
+        public static IEnumerable<AddressRange> Parse(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
                 throw new ArgumentNullException(nameof(value));
             }
             var split = value.Split(new char[] { ';', ',' },
                 StringSplitOptions.RemoveEmptyEntries);
             var unmerged = split
-                .SelectMany(s => {
+                .SelectMany(s =>
+                {
                     var nic = string.Empty;
                     var x = s.Split('[', StringSplitOptions.RemoveEmptyEntries);
-                    if (x.Length > 1) {
+                    if (x.Length > 1)
+                    {
                         var postFix = x[1].Split(']');
-                        if (postFix.Length > 1) {
+                        if (postFix.Length > 1)
+                        {
                             nic = postFix[0];
                         }
                         s = x[0].Trim();
                     }
                     x = s.Split('/', StringSplitOptions.RemoveEmptyEntries);
-                    if (x.Length != 2) {
+                    if (x.Length != 2)
+                    {
                         x = s.Split('-', StringSplitOptions.RemoveEmptyEntries);
-                        if (x.Length != 2) {
+                        if (x.Length != 2)
+                        {
                             throw new FormatException("Bad suffix format");
                         }
                         // Combine into cidr ranges and parse so we get distinct ranges
@@ -238,10 +269,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
                             new IPv4Address(IPAddress.Parse(x[1])), nic).ToString());
                     }
                     var suffix = int.Parse(x[1]);
-                    if (suffix == 0 || suffix > 32) {
+                    if (suffix == 0 || suffix > 32)
+                    {
                         throw new FormatException("Bad suffix value");
                     }
-                    if (x[0] == "*") {
+                    if (x[0] == "*")
+                    {
                         return NetworkInformationEx.GetAllNetInterfaces(
                             NetworkClass.Wired)
                         .Select(t => new AddressRange(t, false, suffix));
@@ -259,8 +292,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="batch"></param>
         /// <param name="count"></param>
-        public void FillNextBatch(IList<uint> batch, int count) {
-            for (var i = 0; _cur <= High && i < count; i++) {
+        public void FillNextBatch(IList<uint> batch, int count)
+        {
+            for (var i = 0; _cur <= High && i < count; i++)
+            {
                 batch.Add(_cur++);
             }
         }
@@ -268,7 +303,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// <summary>
         /// Reset range
         /// </summary>
-        public void Reset() {
+        public void Reset()
+        {
             _cur = Low;
         }
 
@@ -277,7 +313,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool Contains(IPv4Address value) {
+        public bool Contains(IPv4Address value)
+        {
             return value >= Low && value <= High;
         }
 
@@ -286,7 +323,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public bool Overlaps(AddressRange other) {
+        public bool Overlaps(AddressRange other)
+        {
             return
                 Contains(other.Low) ||
                 Contains(other.High) ||
@@ -299,16 +337,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="ranges"></param>
         /// <returns></returns>
-        private static IEnumerable<AddressRange> Merge(IEnumerable<AddressRange> ranges) {
+        private static IEnumerable<AddressRange> Merge(IEnumerable<AddressRange> ranges)
+        {
             var results = new Stack<AddressRange>();
-            if (ranges != null) {
-                foreach (var range in ranges.OrderBy(k => k.Low)) {
-                    if (results.Count == 0) {
+            if (ranges != null)
+            {
+                foreach (var range in ranges.OrderBy(k => k.Low))
+                {
+                    if (results.Count == 0)
+                    {
                         results.Push(range);
                     }
-                    else {
+                    else
+                    {
                         var top = results.Peek();
-                        if (top.Overlaps(range)) {
+                        if (top.Overlaps(range))
+                        {
                             var nic = (top.Nic + range.Nic)
                                 .Replace("localhost", "").Replace(kNullNicName, "");
                             var union = new AddressRange(
@@ -317,7 +361,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
                             results.Pop();
                             results.Push(union);
                         }
-                        else {
+                        else
+                        {
                             results.Push(range);
                         }
                     }
@@ -331,33 +376,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="sb"></param>
         /// <returns></returns>
-        private void AppendTo(StringBuilder sb) {
+        private void AppendTo(StringBuilder sb)
+        {
             long start = Low;
             long end = High;
             var first = true;
-            while (end >= start) {
+            while (end >= start)
+            {
                 byte subnetSize = 32;
-                while (subnetSize > 0) {
+                while (subnetSize > 0)
+                {
                     var mask = (1L << 32) - (1L << (32 - (subnetSize - 1)));
-                    if ((start & mask) != start) {
+                    if ((start & mask) != start)
+                    {
                         break;
                     }
                     subnetSize--;
                 }
                 var x = Math.Floor(Math.Log(end - start + 1) / Math.Log(2));
                 var maxDiff = (byte)(32 - x);
-                if (subnetSize < maxDiff) {
+                if (subnetSize < maxDiff)
+                {
                     subnetSize = maxDiff;
                 }
                 var ip = ((IPv4Address)start).ToString();
-                if (!first) {
+                if (!first)
+                {
                     sb.Append(';');
                 }
                 first = false;
                 sb.Append(ip);
                 sb.Append('/');
                 sb.Append(subnetSize);
-                if (Nic != kNullNicName) {
+                if (Nic != kNullNicName)
+                {
                     sb.Append(" [");
                     sb.Append(Nic);
                     sb.Append(']');

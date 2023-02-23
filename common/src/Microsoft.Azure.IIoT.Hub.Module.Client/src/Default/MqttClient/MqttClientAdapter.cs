@@ -3,14 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
+{
+    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Client.Common;
+    using Microsoft.Azure.Devices.Shared;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Client.Common;
-    using Microsoft.Azure.Devices.Shared;
     using Microsoft.Extensions.Logging;
     using MQTTnet;
     using MQTTnet.Client;
@@ -23,6 +24,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics.Metrics;
+    using System.Globalization;
     using System.Net;
     using System.Runtime.InteropServices;
     using System.Security.Authentication;
@@ -30,12 +32,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Globalization;
 
     /// <summary>
     /// MQTT client adapter implementation
     /// </summary>
-    public sealed class MqttClientAdapter : IClient {
+    public sealed class MqttClientAdapter : IClient
+    {
         /// <inheritdoc />
         public int MaxEventBufferSize => int.MaxValue;
 
@@ -68,7 +70,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         private MqttClientAdapter(IManagedMqttClient client, string deviceId, TimeSpan timeout,
             MqttProtocolVersion protocolVersion, MqttQualityOfServiceLevel qualityOfServiceLevel,
             string telemetryTopicTemplate, ILogger logger, IMetricsContext metrics)
-            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
+        {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _deviceId = deviceId ?? throw new ArgumentNullException(nameof(deviceId));
             _timeout = timeout;
@@ -78,18 +81,23 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             _methodTopicRoot = "$iothub/methods";
             _twinTopicRoot = "$iothub/twin";
 
-            if (!string.IsNullOrWhiteSpace(telemetryTopicTemplate)) {
-                if (!telemetryTopicTemplate.Contains(kOutputNamePlaceholder, StringComparison.Ordinal)) {
-                    if (telemetryTopicTemplate.EndsWith('/')) {
+            if (!string.IsNullOrWhiteSpace(telemetryTopicTemplate))
+            {
+                if (!telemetryTopicTemplate.Contains(kOutputNamePlaceholder, StringComparison.Ordinal))
+                {
+                    if (telemetryTopicTemplate.EndsWith('/'))
+                    {
                         _telemetryTopicTemplate =
                             $"{telemetryTopicTemplate}{kOutputNamePlaceholder}/";
                     }
-                    else {
+                    else
+                    {
                         _telemetryTopicTemplate =
                             $"{telemetryTopicTemplate}/{kOutputNamePlaceholder}";
                     }
                 }
-                else {
+                else
+                {
                     _telemetryTopicTemplate = telemetryTopicTemplate;
                 }
                 _methodTopicRoot = _telemetryTopicTemplate
@@ -118,34 +126,41 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <returns></returns>
         public static async Task<IClient> CreateAsync(IManagedMqttClient client,
             MqttClientConnectionStringBuilder cs, string deviceId, string telemetryTopicTemplate,
-            TimeSpan timeout, ILogger logger, IMetricsContext metrics) {
+            TimeSpan timeout, ILogger logger, IMetricsContext metrics)
+        {
             var options = new MqttClientOptionsBuilder()
                 .WithClientId(string.IsNullOrEmpty(cs.DeviceId) ? Guid.NewGuid().ToString() : cs.DeviceId)
-                .WithTcpServer(tcpOptions => {
+                .WithTcpServer(tcpOptions =>
+                {
                     tcpOptions.Server = cs.HostName;
                     tcpOptions.Port = cs.Port;
 
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
                         tcpOptions.BufferSize = 64 * 1024;
                     }
                 });
 
-            if (!string.IsNullOrWhiteSpace(cs.Username) && !string.IsNullOrWhiteSpace(cs.Password)) {
+            if (!string.IsNullOrWhiteSpace(cs.Username) && !string.IsNullOrWhiteSpace(cs.Password))
+            {
                 options = options.WithCredentials(cs.Username, cs.Password);
             }
 
-            var tlsOptions = new MqttClientOptionsBuilderTlsParameters {
+            var tlsOptions = new MqttClientOptionsBuilderTlsParameters
+            {
                 UseTls = cs.UsingIoTHub,
                 SslProtocol = SslProtocols.Tls12,
                 IgnoreCertificateRevocationErrors = true
             };
 
-            if (cs.UsingX509Cert) {
+            if (cs.UsingX509Cert)
+            {
                 tlsOptions.Certificates = new List<X509Certificate> { cs.X509Cert };
             }
             options = options.WithTls(tlsOptions);
 
-            if (cs.Protocol != MqttProtocolVersion.Unknown) {
+            if (cs.Protocol != MqttProtocolVersion.Unknown)
+            {
                 options = options.WithProtocolVersion(cs.Protocol);
             }
 
@@ -167,7 +182,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 .WithPendingMessagesOverflowStrategy(
                     MQTTnet.Server.MqttPendingMessagesOverflowStrategy.DropOldestQueuedMessage)
                 ;
-            if (cs.UsingStateFile) {
+            if (cs.UsingStateFile)
+            {
                 managedOptions = managedOptions.WithStorage(new ManagedMqttClientStorage(cs.StateFile, logger));
             }
 
@@ -187,15 +203,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <returns></returns>
         public static Task<IClient> CreateAsync(MqttClientConnectionStringBuilder cs,
             string deviceId, string telemetryTopicTemplate, TimeSpan timeout, ILogger logger,
-            IMetricsContext metrics) {
+            IMetricsContext metrics)
+        {
             var client = new MqttFactory().CreateManagedMqttClient();
             return CreateAsync(client, cs, deviceId, telemetryTopicTemplate, timeout, logger,
                 metrics);
         }
 
         /// <inheritdoc />
-        public async ValueTask DisposeAsync() {
-            if (IsClosed) {
+        public async ValueTask DisposeAsync()
+        {
+            if (IsClosed)
+            {
                 return;
             }
             IsClosed = true;
@@ -203,19 +222,24 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         }
 
         /// <inheritdoc />
-        public ITelemetryEvent CreateTelemetryEvent() {
+        public ITelemetryEvent CreateTelemetryEvent()
+        {
             return new MqttClientAdapterMessage(this);
         }
 
         /// <inheritdoc />
-        public async Task SendEventAsync(ITelemetryEvent message) {
-            if (IsClosed) {
+        public async Task SendEventAsync(ITelemetryEvent message)
+        {
+            if (IsClosed)
+            {
                 return;
             }
             var msg = (MqttClientAdapterMessage)message;
             var topic = msg.Topic;
-            foreach (var body in msg.Buffers) {
-                if (body != null) {
+            foreach (var body in msg.Buffers)
+            {
+                if (body != null)
+                {
                     await InternalSendEventAsync(topic, body, msg.ContentType, msg.Retain,
                         msg.Ttl, msg.UserProperties).ConfigureAwait(false);
                 }
@@ -223,20 +247,24 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         }
 
         /// <inheritdoc />
-        public Task SetMethodHandlerAsync(MethodCallback methodHandler) {
+        public Task SetMethodHandlerAsync(MethodCallback methodHandler)
+        {
             _defaultMethodCallback = methodHandler;
             return Task.CompletedTask;
         }
 
         /// <inheritdoc />
-        public Task SetDesiredPropertyUpdateCallbackAsync(DesiredPropertyUpdateCallback callback) {
+        public Task SetDesiredPropertyUpdateCallbackAsync(DesiredPropertyUpdateCallback callback)
+        {
             _desiredPropertyUpdateCallback = callback;
             return Task.CompletedTask;
         }
 
         /// <inheritdoc />
-        public async Task<Twin> GetTwinAsync() {
-            if (IsClosed || _telemetryTopicTemplate != null) {
+        public async Task<Twin> GetTwinAsync()
+        {
+            if (IsClosed || _telemetryTopicTemplate != null)
+            {
                 return null;
             }
 
@@ -248,15 +276,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             _responses[requestId] = null;
 
             Twin result = null;
-            try {
+            try
+            {
                 // Publish message and wait for response to come back. The thread may be unblocked by other
                 // simultaneous calls, so wait again if needed.
                 await InternalSendEventAsync($"{_twinTopicRoot}/GET/?$rid={requestId}").ConfigureAwait(false);
-                while (!cancellationTokenSource.Token.IsCancellationRequested) {
+                while (!cancellationTokenSource.Token.IsCancellationRequested)
+                {
                     _responseHandle.WaitOne(_timeout);
                     _responseHandle.Reset();
-                    if (_responses[requestId] != null) {
-                        result = new Twin {
+                    if (_responses[requestId] != null)
+                    {
+                        result = new Twin
+                        {
                             Properties = JsonConvert.DeserializeObject<TwinProperties>(
                                 Encoding.UTF8.GetString(_responses[requestId].Payload)),
                         };
@@ -264,14 +296,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     }
                 }
 
-                if (result == null) {
+                if (result == null)
+                {
                     cancellationTokenSource.Token.ThrowIfCancellationRequested();
                 }
             }
-            catch (TaskCanceledException) {
+            catch (TaskCanceledException)
+            {
                 _logger.LogError("Failed to get twin due to timeout: {Timeout}", _timeout);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Failed to get twin.");
             }
             _responses.Remove(requestId, out _);
@@ -279,8 +314,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         }
 
         /// <inheritdoc />
-        public async Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
-            if (IsClosed) {
+        public async Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties)
+        {
+            if (IsClosed)
+            {
                 return;
             }
             var payload = Encoding.UTF8.GetBytes(reportedProperties.ToJson());
@@ -290,12 +327,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
         /// <inheritdoc />
         public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
-            MethodRequest methodRequest, CancellationToken cancellationToken) {
+            MethodRequest methodRequest, CancellationToken cancellationToken)
+        {
             throw new NotSupportedException("MQTT client does not support methods");
         }
 
         /// <inheritdoc />
-        public void Dispose() {
+        public void Dispose()
+        {
             IsClosed = true;
             _client?.Dispose();
         }
@@ -314,18 +353,21 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <exception cref="MessageTooLargeException"></exception>
         private async Task InternalSendEventAsync(string topic, byte[] payload = null,
             string contentType = null, bool retain = false, TimeSpan? ttl = null,
-            Dictionary<string, string> properties = null, byte[] correlationData = null) {
+            Dictionary<string, string> properties = null, byte[] correlationData = null)
+        {
             _logger.LogDebug("Publishing {ByteCount} bytes to {Topic}", (payload?.Length) ?? 0, topic);
 
             // Check topic length.
             var topicLength = Encoding.UTF8.GetByteCount(topic);
-            if (topicLength > kMaxTopicLength) {
+            if (topicLength > kMaxTopicLength)
+            {
                 throw new MessageTooLargeException(
                     $"Topic for MQTT message cannot be larger than {kMaxTopicLength} bytes, " +
                     $"but current length is {topicLength}. The list of message.properties " +
                     "and/or message.systemProperties is likely too long. Please use AMQP or HTTP.");
             }
-            try {
+            try
+            {
                 // Build MQTT message.
                 var mqttApplicationMessageBuilder = new MqttApplicationMessageBuilder()
                     .WithQualityOfServiceLevel(_qualityOfServiceLevel)
@@ -334,25 +376,31 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     .WithRetainFlag(retain)
                     ;
 
-                if (correlationData != null) {
+                if (correlationData != null)
+                {
                     mqttApplicationMessageBuilder.WithCorrelationData(correlationData);
                 }
-                if (payload != null) {
+                if (payload != null)
+                {
                     mqttApplicationMessageBuilder = mqttApplicationMessageBuilder.WithPayload(payload);
                 }
-                if (ttl > TimeSpan.Zero) {
+                if (ttl > TimeSpan.Zero)
+                {
                     mqttApplicationMessageBuilder = mqttApplicationMessageBuilder
                         .WithMessageExpiryInterval((uint)ttl.Value.TotalSeconds);
                 }
-                if (properties != null) {
-                    foreach (var userProperty in properties) {
+                if (properties != null)
+                {
+                    foreach (var userProperty in properties)
+                    {
                         mqttApplicationMessageBuilder.WithUserProperty(userProperty.Key, userProperty.Value);
                     }
                 }
                 var mqttmessage = mqttApplicationMessageBuilder.Build();
                 await _client.EnqueueAsync(mqttmessage).ConfigureAwait(false);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Failed to publish MQTT message.");
             }
         }
@@ -362,7 +410,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// </summary>
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
-        private Task OnConnectedAsync(MqttClientConnectedEventArgs eventArgs) {
+        private Task OnConnectedAsync(MqttClientConnectedEventArgs eventArgs)
+        {
             _logger.LogInformation("{Counter}: Device {DeviceId} connected or reconnected",
                 _reconnectCounter, _deviceId);
             _reconnectCounter++;
@@ -375,7 +424,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// </summary>
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
-        private Task SynchronizingSubscriptionsFailedAsync(ManagedProcessFailedEventArgs eventArgs) {
+        private Task SynchronizingSubscriptionsFailedAsync(ManagedProcessFailedEventArgs eventArgs)
+        {
             _logger.LogInformation("{Counter}: Device {DeviceId} subscription sync failed.",
                 _reconnectCounter, _deviceId);
             return Task.CompletedTask;
@@ -386,7 +436,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// </summary>
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
-        private Task OnConnectionStateChangedAsync(EventArgs eventArgs) {
+        private Task OnConnectionStateChangedAsync(EventArgs eventArgs)
+        {
             _logger.LogInformation("{Counter}: Device {DeviceId} connection state changed.",
                 _reconnectCounter, _deviceId);
             return Task.CompletedTask;
@@ -397,7 +448,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// </summary>
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
-        private Task OnConnectingFailedAsync(ConnectingFailedEventArgs eventArgs) {
+        private Task OnConnectingFailedAsync(ConnectingFailedEventArgs eventArgs)
+        {
             IsConnected = false;
 
             _logger.LogInformation("{Counter}: Device {DeviceId} disconnected due to {Reason}",
@@ -412,8 +464,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// </summary>
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
-        private Task OnDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs) {
-            if (!IsConnected) {
+        private Task OnDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs)
+        {
+            if (!IsConnected)
+            {
                 return Task.CompletedTask;
             }
             IsConnected = false;
@@ -429,7 +483,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// Subscribe to all required topics
         /// </summary>
         /// <returns></returns>
-        private async Task StartAsync(ManagedMqttClientOptions options) {
+        private async Task StartAsync(ManagedMqttClientOptions options)
+        {
             // Start the client which connects to the server in the background.
             await _client.StartAsync(options).ConfigureAwait(false);
 
@@ -452,13 +507,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// </summary>
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
-        private Task OnTwinResponseAsync(MqttApplicationMessageReceivedEventArgs eventArgs) {
+        private Task OnTwinResponseAsync(MqttApplicationMessageReceivedEventArgs eventArgs)
+        {
             // Only handling twin GET response for now.
 
             // Only store the response if a thread is waiting for it (indicated by key added).
             var requestId = eventArgs.ApplicationMessage.Topic.Substring(
                 $"{_twinTopicRoot}/res/200/?$rid=".Length);
-            if (_responses.ContainsKey(requestId)) {
+            if (_responses.ContainsKey(requestId))
+            {
                 _responses[requestId] = eventArgs.ApplicationMessage;
             }
 
@@ -472,7 +529,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// </summary>
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
-        private Task OnDesiredPropertiesUpdatedAsync(MqttApplicationMessageReceivedEventArgs eventArgs) {
+        private Task OnDesiredPropertiesUpdatedAsync(MqttApplicationMessageReceivedEventArgs eventArgs)
+        {
             var twinCollection = JsonConvert.DeserializeObject<TwinCollection>(
                 Encoding.UTF8.GetString(eventArgs.ApplicationMessage.Payload));
             _desiredPropertyUpdateCallback?.Invoke(twinCollection, null);
@@ -484,21 +542,26 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// </summary>
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
-        private async Task OnMethodRequestAsync(MqttApplicationMessageReceivedEventArgs eventArgs) {
+        private async Task OnMethodRequestAsync(MqttApplicationMessageReceivedEventArgs eventArgs)
+        {
             // Parse topic.
             var components = eventArgs.ApplicationMessage.Topic.Split('/');
 
             string methodName;
             string requestId = null;
-            if (IsMqttv5) {
-                if (string.IsNullOrEmpty(eventArgs.ApplicationMessage.ResponseTopic)) {
+            if (IsMqttv5)
+            {
+                if (string.IsNullOrEmpty(eventArgs.ApplicationMessage.ResponseTopic))
+                {
                     // No response topic
                     return;
                 }
                 methodName = components[components.Length - 1];
             }
-            else {
-                if (components.Length < 2) {
+            else
+            {
+                if (components.Length < 2)
+                {
                     return;
                 }
                 methodName = components[components.Length - 2];
@@ -507,35 +570,42 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
             // Get callback and user context.
             var callback = _defaultMethodCallback;
-            if (callback == null) {
+            if (callback == null)
+            {
                 return;
             }
 
             // Invoke callback.
             var methodRequest = new MethodRequest(methodName, eventArgs.ApplicationMessage.Payload);
-            try {
+            try
+            {
                 var methodResponse = await callback.Invoke(methodRequest, null).ConfigureAwait(false);
                 var payload = methodResponse.Result?.Length > 0 ? methodResponse.Result : null;
                 var statusCode = methodResponse.Status.ToString(CultureInfo.InvariantCulture);
-                if (IsMqttv5) {
+                if (IsMqttv5)
+                {
                     await InternalSendEventAsync(eventArgs.ApplicationMessage.ResponseTopic, payload,
                         properties: new Dictionary<string, string> { [kStatusCodeKey] = statusCode },
                         correlationData: eventArgs.ApplicationMessage.CorrelationData).ConfigureAwait(false);
                 }
-                else {
+                else
+                {
                     await InternalSendEventAsync(
                         $"{_methodTopicRoot}/res/{statusCode}/?$rid={requestId}", payload).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Failed to call method \"{MethodName}\"", methodName);
                 var statusCode = ((int)HttpStatusCode.InternalServerError).ToString(CultureInfo.InvariantCulture);
-                if (IsMqttv5) {
+                if (IsMqttv5)
+                {
                     await InternalSendEventAsync(eventArgs.ApplicationMessage.ResponseTopic,
                         properties: new Dictionary<string, string> { [kStatusCodeKey] = statusCode },
                         correlationData: eventArgs.ApplicationMessage.CorrelationData).ConfigureAwait(false);
                 }
-                else {
+                else
+                {
                     await InternalSendEventAsync(
                         $"{_methodTopicRoot}/res/{statusCode}/?$rid={requestId}").ConfigureAwait(false);
                 }
@@ -546,7 +616,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// Handler for when a method response was received
         /// </summary>
         /// <param name="eventArgs"></param>
-        private static Task OnMethodResponseAsync(MqttApplicationMessageReceivedEventArgs eventArgs) {
+        private static Task OnMethodResponseAsync(MqttApplicationMessageReceivedEventArgs eventArgs)
+        {
             // TODO: Support responses
             return Task.CompletedTask;
         }
@@ -556,14 +627,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// </summary>
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
-        private async Task OnApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs eventArgs) {
-            if (eventArgs.ProcessingFailed) {
+        private async Task OnApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs eventArgs)
+        {
+            if (eventArgs.ProcessingFailed)
+            {
                 _logger.LogWarning("Failed to process MQTT message: {ReasonCode}", eventArgs.ReasonCode);
                 return;
             }
             var topic = eventArgs.ApplicationMessage.Topic;
-            try {
-                if (topic.StartsWith($"{_methodTopicRoot}/res/", StringComparison.OrdinalIgnoreCase)) {
+            try
+            {
+                if (topic.StartsWith($"{_methodTopicRoot}/res/", StringComparison.OrdinalIgnoreCase))
+                {
                     //
                     // Handle method responses for methods called on other components.
                     // All responses are diverted to topics starting with /res either through
@@ -571,7 +646,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     //
                     await OnMethodResponseAsync(eventArgs).ConfigureAwait(false);
                 }
-                else if (topic.StartsWith($"{_methodTopicRoot}/", StringComparison.OrdinalIgnoreCase)) {
+                else if (topic.StartsWith($"{_methodTopicRoot}/", StringComparison.OrdinalIgnoreCase))
+                {
                     //
                     // typically should start with method topic root and /POST/ element but
                     // we allow any topic path components in between it and the method.
@@ -579,15 +655,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     await OnMethodRequestAsync(eventArgs).ConfigureAwait(false);
                 }
                 else if (topic.StartsWith($"{_twinTopicRoot}/res/200/?$rid=",
-                    StringComparison.OrdinalIgnoreCase)) {
+                    StringComparison.OrdinalIgnoreCase))
+                {
                     await OnTwinResponseAsync(eventArgs).ConfigureAwait(false);
                 }
                 else if (topic.StartsWith($"{_twinTopicRoot}/PATCH/properties/desired/?$version=",
-                    StringComparison.OrdinalIgnoreCase)) {
+                    StringComparison.OrdinalIgnoreCase))
+                {
                     await OnDesiredPropertiesUpdatedAsync(eventArgs).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Failed to process MQTT message.");
             }
         }
@@ -595,7 +674,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <summary>
         /// Message wrapper
         /// </summary>
-        internal sealed class MqttClientAdapterMessage : ITelemetryEvent {
+        internal sealed class MqttClientAdapterMessage : ITelemetryEvent
+        {
             /// <summary>
             /// User properties
             /// </summary>
@@ -605,17 +685,22 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// <summary>
             /// Topic
             /// </summary>
-            internal string Topic {
-                get {
+            internal string Topic
+            {
+                get
+                {
                     // Build merged dictionary of properties to serialize in topic.
-                    if (_outer._telemetryTopicTemplate == null) {
+                    if (_outer._telemetryTopicTemplate == null)
+                    {
                         var topic = $"devices/{_outer._deviceId}/messages/events/";
-                        if (_userProperties.Count > 0) {
+                        if (_userProperties.Count > 0)
+                        {
                             topic += UrlEncodedDictionarySerializer.Serialize(_userProperties) + kSegmentSeparator;
                         }
                         return topic;
                     }
-                    else {
+                    else
+                    {
                         return _outer._telemetryTopicTemplate
                             .Replace(kDeviceIdTemplatePlaceholder, _outer._deviceId, StringComparison.Ordinal)
                             .Replace(kOutputNamePlaceholder, OutputName ?? string.Empty, StringComparison.Ordinal)
@@ -629,14 +714,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             public DateTime Timestamp { get; set; }
 
             /// <inheritdoc/>
-            public string ContentType {
-                get {
+            public string ContentType
+            {
+                get
+                {
                     return _userProperties[kContentTypePropertyName];
                 }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
+                set
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
                         _userProperties[kContentTypePropertyName] = value;
-                        if (_outer._telemetryTopicTemplate == null) {
+                        if (_outer._telemetryTopicTemplate == null)
+                        {
                             _userProperties[SystemProperties.MessageSchema] = value;
                         }
                     }
@@ -644,14 +734,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
 
             /// <inheritdoc/>
-            public string ContentEncoding {
-                get {
+            public string ContentEncoding
+            {
+                get
+                {
                     return _userProperties[kContentEncodingPropertyName];
                 }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
+                set
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
                         _userProperties[kContentEncodingPropertyName] = value;
-                        if (_outer._telemetryTopicTemplate == null) {
+                        if (_outer._telemetryTopicTemplate == null)
+                        {
                             _userProperties[CommonProperties.ContentEncoding] = value;
                         }
                     }
@@ -659,24 +754,32 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
 
             /// <inheritdoc/>
-            public string MessageSchema {
-                get {
+            public string MessageSchema
+            {
+                get
+                {
                     return _userProperties[CommonProperties.EventSchemaType];
                 }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
+                set
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
                         _userProperties[CommonProperties.EventSchemaType] = value;
                     }
                 }
             }
 
             /// <inheritdoc/>
-            public string RoutingInfo {
-                get {
+            public string RoutingInfo
+            {
+                get
+                {
                     return _userProperties[CommonProperties.RoutingInfo];
                 }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
+                set
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
                         _userProperties[CommonProperties.RoutingInfo] = value;
                     }
                 }
@@ -692,7 +795,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             public IReadOnlyList<byte[]> Buffers { get; set; }
 
             /// <inheritdoc/>
-            public void Dispose() {
+            public void Dispose()
+            {
                 _userProperties.Clear();
             }
 
@@ -700,7 +804,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// Create message
             /// </summary>
             /// <param name="outer"></param>
-            internal MqttClientAdapterMessage(MqttClientAdapter outer) {
+            internal MqttClientAdapterMessage(MqttClientAdapter outer)
+            {
                 _outer = outer;
             }
 
@@ -712,7 +817,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// Create observable metrics
         /// </summary>
         /// <param name="metrics"></param>
-        private MqttClientAdapter(IMetricsContext metrics) {
+        private MqttClientAdapter(IMetricsContext metrics)
+        {
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_mqtt_reconnect_count",
                 () => new Measurement<int>(_reconnectCounter, metrics.TagList), "times",
                 "MQTT client reconnected count.");

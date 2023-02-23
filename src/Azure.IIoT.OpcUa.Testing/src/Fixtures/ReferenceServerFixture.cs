@@ -3,19 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Fixtures {
+namespace Azure.IIoT.OpcUa.Testing.Fixtures
+{
     using Opc.Ua.Server;
     using System.Collections.Generic;
 
     /// <summary>
     /// Reference server fixture
     /// </summary>
-    public class ReferenceServerFixture : BaseServerFixture {
+    public class ReferenceServerFixture : BaseServerFixture
+    {
         /// <summary>
         /// Sample server nodes
         /// </summary>
-        public static IEnumerable<INodeManagerFactory> SampleServer {
-            get {
+        public static IEnumerable<INodeManagerFactory> SampleServer
+        {
+            get
+            {
                 yield return new TestData.TestDataServer();
                 yield return new MemoryBuffer.MemoryBufferServer();
                 yield return new Boiler.BoilerServer();
@@ -33,7 +37,8 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
 
         /// <inheritdoc/>
         public ReferenceServerFixture() :
-            base(SampleServer) {
+            base(SampleServer)
+        {
         }
     }
 }

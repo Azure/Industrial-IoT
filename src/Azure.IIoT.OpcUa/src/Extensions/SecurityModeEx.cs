@@ -3,33 +3,42 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     /// <summary>
     /// Security mode enumeration extensions
     /// </summary>
-    public static class SecurityModeEx {
+    public static class SecurityModeEx
+    {
         /// <summary>
         /// Match security mode to filter
         /// </summary>
         /// <param name="mode"></param>
         /// <param name="filter"></param>
         /// <returns></returns>
-        public static bool MatchesFilter(this SecurityMode mode, SecurityMode filter) {
-            if (mode == SecurityMode.Best) {
+        public static bool MatchesFilter(this SecurityMode mode, SecurityMode filter)
+        {
+            if (mode == SecurityMode.Best)
+            {
                 mode = SecurityMode.SignAndEncrypt;
             }
-            if (filter == SecurityMode.Best) {
+            if (filter == SecurityMode.Best)
+            {
                 filter = SecurityMode.SignAndEncrypt;
             }
-            if (filter == mode) {
+            if (filter == mode)
+            {
                 return true;
             }
-            if (filter == SecurityMode.Sign) {
-                if (mode == SecurityMode.SignAndEncrypt) {
+            if (filter == SecurityMode.Sign)
+            {
+                if (mode == SecurityMode.SignAndEncrypt)
+                {
                     return true;
                 }
             }
-            if (filter == SecurityMode.None) {
+            if (filter == SecurityMode.None)
+            {
                 return true;
             }
             return false;

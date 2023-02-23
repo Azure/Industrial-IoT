@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Services {
+namespace Azure.IIoT.OpcUa.Publisher.Services
+{
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -17,58 +18,67 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// This class provides access to a servers address space providing node
     /// and browse services.  It uses the OPC ua client interface to access
     /// the server.
     /// </summary>
-    public sealed class NodeServices<T> : INodeServices<T>, INodeServicesInternal<T> {
+    public sealed class NodeServices<T> : INodeServices<T>, INodeServicesInternal<T>
+    {
         /// <summary>
         /// Create node service
         /// </summary>
         /// <param name="client"></param>
         /// <param name="logger"></param>
         ///
-        public NodeServices(ISessionProvider<T> client, ILogger logger) {
+        public NodeServices(ISessionProvider<T> client, ILogger logger)
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         /// <inheritdoc/>
         public Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(T connectionId,
-            CancellationToken ct) {
+            CancellationToken ct)
+        {
             return _client.ExecuteServiceAsync(connectionId,
                 session => session.GetServerCapabilitiesAsync(ct), ct: ct);
         }
 
         /// <inheritdoc/>
         public async Task<BrowseFirstResponseModel> BrowseFirstAsync(T connectionId,
-            BrowseFirstRequestModel request, CancellationToken ct) {
+            BrowseFirstRequestModel request, CancellationToken ct)
+        {
             using var trace = kActivity.StartActivity("BrowseFirst");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var rootId = request.NodeId.ToNodeId(session.MessageContext);
-                if (NodeId.IsNull(rootId)) {
+                if (NodeId.IsNull(rootId))
+                {
                     rootId = ObjectIds.RootFolder;
                 }
                 var typeId = request.ReferenceTypeId.ToNodeId(session.MessageContext);
-                if (NodeId.IsNull(typeId)) {
+                if (NodeId.IsNull(typeId))
+                {
                     typeId = ReferenceTypeIds.HierarchicalReferences;
                 }
                 var view = request.View.ToStackModel(session.MessageContext);
                 var excludeReferences = false;
                 var rawMode = request.NodeIdsOnly ?? false;
-                if (!rawMode) {
+                if (!rawMode)
+                {
                     excludeReferences = request.MaxReferencesToReturn == 0;
                 }
 
                 var references = new List<NodeReferenceModel>();
                 string? continuationToken = null;
                 ServiceResultModel? errorInfo = null;
-                if (!excludeReferences) {
+                if (!excludeReferences)
+                {
                     var direction = (request.Direction ?? Shared.Models.BrowseDirection.Forward)
                         .ToStackType();
                     var browseDescriptions = new BrowseDescriptionCollection {
@@ -90,7 +100,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     var results = response.Validate(response.Results, r => r.StatusCode,
                         response.DiagnosticInfos, browseDescriptions);
                     errorInfo = results.ErrorInfo;
-                    if (errorInfo == null) {
+                    if (errorInfo == null)
+                    {
                         errorInfo = results[0].ErrorInfo;
                         continuationToken = await AddReferencesToBrowseResultAsync(session,
                             request.Header.ToRequestHeader(), request.TargetNodesOnly ?? false,
@@ -104,7 +115,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     request.Header.ToRequestHeader(), rootId, null, true, rawMode,
                     !excludeReferences ? references.Count != 0 : null, ct).ConfigureAwait(false);
 
-                return new BrowseFirstResponseModel {
+                return new BrowseFirstResponseModel
+                {
                     // Read root node
                     Node = node,
                     References = excludeReferences ? null : references,
@@ -116,16 +128,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<BrowseNextResponseModel> BrowseNextAsync(T connectionId,
-            BrowseNextRequestModel request, CancellationToken ct) {
-            if (request == null) {
+            BrowseNextRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(request.ContinuationToken)) {
+            if (string.IsNullOrEmpty(request.ContinuationToken))
+            {
                 throw new ArgumentException("Missing continuation token", nameof(request));
             }
             using var trace = kActivity.StartActivity("BrowseNext");
             var continuationPoint = Convert.FromBase64String(request.ContinuationToken);
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var references = new List<NodeReferenceModel>();
 
                 var continuationPoints = new ByteStringCollection { continuationPoint };
@@ -135,8 +151,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, continuationPoints);
-                if (results.ErrorInfo != null) {
-                    return new BrowseNextResponseModel {
+                if (results.ErrorInfo != null)
+                {
+                    return new BrowseNextResponseModel
+                    {
                         ErrorInfo = results.ErrorInfo
                     };
                 }
@@ -146,7 +164,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     request.ReadVariableValues ?? false, request.NodeIdsOnly ?? false,
                     references, results[0].Result.ContinuationPoint,
                     results[0].Result.References, ct).ConfigureAwait(false);
-                return new BrowseNextResponseModel {
+                return new BrowseNextResponseModel
+                {
                     References = references,
                     ContinuationToken = continuationToken,
                     ErrorInfo = results[0].ErrorInfo
@@ -156,7 +175,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async IAsyncEnumerable<BrowseStreamChunkModel> BrowseAsync(T connectionId,
-            BrowseStreamRequestModel request, [EnumeratorCancellation] CancellationToken ct) {
+            BrowseStreamRequestModel request, [EnumeratorCancellation] CancellationToken ct)
+        {
             var browseStack = new Stack<NodeId>();
             var visited = new HashSet<NodeId>();
             var nodes = 0;
@@ -167,22 +187,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             using var trace = kActivity.StartActivity("Browse");
             _logger.LogDebug("Browsing all nodes in address space ...");
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            do {
+            do
+            {
                 ct.ThrowIfCancellationRequested();
                 // Read source node
-                var source = await _client.ExecuteServiceAsync(connectionId, async session => {
+                var source = await _client.ExecuteServiceAsync(connectionId, async session =>
+                {
                     // Lazy initialize to capture session context
-                    if (nodeIds == null) {
+                    if (nodeIds == null)
+                    {
                         // Initialize
                         nodeIds = request.NodeIds == null ? Array.Empty<NodeId>() : request.NodeIds
                             .Select(n => n.ToNodeId(session.MessageContext))
                             .Where(n => !NodeId.IsNull(n))
                             .ToArray();
-                        if (nodeIds.Length == 0) {
+                        if (nodeIds.Length == 0)
+                        {
                             browseStack.Push(ObjectIds.RootFolder);
                         }
-                        else {
-                            foreach (var id in nodeIds) {
+                        else
+                        {
+                            foreach (var id in nodeIds)
+                            {
                                 browseStack.Push(id);
                             }
                         }
@@ -190,7 +216,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
                     BrowseStreamChunkModel? chunk = null;
                     var nodeId = PopNode();
-                    if (nodeId != null) {
+                    if (nodeId != null)
+                    {
                         var (node, errorInfo) = await session.ReadNodeAsync(
                             request.Header.ToRequestHeader(),
                             nodeId, null, !(request.ReadVariableValues ?? false),
@@ -198,8 +225,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
                         visited.Add(nodeId); // Mark as visited
                         var id = nodeId.AsString(session.MessageContext);
-                        if (id != null) {
-                            chunk = new BrowseStreamChunkModel {
+                        if (id != null)
+                        {
+                            chunk = new BrowseStreamChunkModel
+                            {
                                 SourceId = id,
                                 Attributes = node,
                                 Reference = null,
@@ -211,8 +240,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 }, ct: ct).ConfigureAwait(false);
 
                 // Return result and read references
-                if (source.nodeId != null) {
-                    if (source.chunk == null) {
+                if (source.nodeId != null)
+                {
+                    if (source.chunk == null)
+                    {
                         continue; // Check whether there is more
                     }
                     nodes++;
@@ -222,14 +253,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     //  }
 
                     // Read first set of references
-                    var chunks = await _client.ExecuteServiceAsync(connectionId, async session => {
-                        if (typeId == null) {
+                    var chunks = await _client.ExecuteServiceAsync(connectionId, async session =>
+                    {
+                        if (typeId == null)
+                        {
                             typeId = request.ReferenceTypeId.ToNodeId(session.MessageContext);
-                            if (NodeId.IsNull(typeId)) {
+                            if (NodeId.IsNull(typeId))
+                            {
                                 typeId = ReferenceTypeIds.HierarchicalReferences;
                             }
                         }
-                        if (view == null) {
+                        if (view == null)
+                        {
                             view = request.View.ToStackModel(session.MessageContext);
                         }
                         var browseDescriptions = new BrowseDescriptionCollection {
@@ -250,8 +285,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
                         var results = response.Validate(response.Results, r => r.StatusCode,
                             response.DiagnosticInfos, browseDescriptions);
-                        if (results.ErrorInfo != null) {
-                            var chunk = new BrowseStreamChunkModel {
+                        if (results.ErrorInfo != null)
+                        {
+                            var chunk = new BrowseStreamChunkModel
+                            {
                                 ErrorInfo = results.ErrorInfo
                             };
                             return (chunk.YieldReturn(), Array.Empty<byte>());
@@ -260,13 +297,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             results[0].Result.References, results[0].ErrorInfo);
                         return (refs, results[0].Result.ContinuationPoint ?? Array.Empty<byte>());
                     }, ct: ct).ConfigureAwait(false);
-                    foreach (var chunk in chunks.Item1.Where(r => r != null)) {
+                    foreach (var chunk in chunks.Item1.Where(r => r != null))
+                    {
                         references++;
                         yield return chunk;
                     }
-                    while (chunks.Item2.Length > 0) {
+                    while (chunks.Item2.Length > 0)
+                    {
                         // Get remainder
-                        chunks = await _client.ExecuteServiceAsync(connectionId, async session => {
+                        chunks = await _client.ExecuteServiceAsync(connectionId, async session =>
+                        {
                             // Browse and read children
                             var continuationPoints = new ByteStringCollection {
                                 chunks.Item2
@@ -277,8 +317,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
                             var results = response.Validate(response.Results, r => r.StatusCode,
                                 response.DiagnosticInfos, continuationPoints);
-                            if (results.ErrorInfo != null) {
-                                var chunk = new BrowseStreamChunkModel {
+                            if (results.ErrorInfo != null)
+                            {
+                                var chunk = new BrowseStreamChunkModel
+                                {
                                     ErrorInfo = results.ErrorInfo
                                 };
                                 return (chunk.YieldReturn(), Array.Empty<byte>());
@@ -288,7 +330,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             return (refs, results[0].Result.ContinuationPoint ?? Array.Empty<byte>());
                         }, ct: ct).ConfigureAwait(false);
 
-                        foreach (var chunk in chunks.Item1.Where(r => r != null)) {
+                        foreach (var chunk in chunks.Item1.Where(r => r != null))
+                        {
                             references++;
                             yield return chunk;
                         }
@@ -300,20 +343,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 "in address space in {Elapsed}...", nodes, references, sw.Elapsed);
 
             // Helper to push nodes onto the browse stack
-            void PushNode(ExpandedNodeId nodeId) {
-                if ((nodeId?.ServerIndex ?? 1u) != 0) {
+            void PushNode(ExpandedNodeId nodeId)
+            {
+                if ((nodeId?.ServerIndex ?? 1u) != 0)
+                {
                     return;
                 }
                 var local = (NodeId)nodeId;
-                if (!NodeId.IsNull(local) && !visited.Contains(local)) {
+                if (!NodeId.IsNull(local) && !visited.Contains(local))
+                {
                     browseStack.Push(local);
                 }
             }
 
             // Helper to pop nodes from the browse stack
-            NodeId? PopNode() {
-                while (browseStack.TryPop(out var nodeId)) {
-                    if (!NodeId.IsNull(nodeId) && !visited.Contains(nodeId)) {
+            NodeId? PopNode()
+            {
+                while (browseStack.TryPop(out var nodeId))
+                {
+                    if (!NodeId.IsNull(nodeId) && !visited.Contains(nodeId))
+                    {
                         return nodeId;
                     }
                 }
@@ -323,26 +372,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             // Collect references
             IEnumerable<BrowseStreamChunkModel?> CollectReferences(
                 ISessionHandle session, string sourceId, ReferenceDescriptionCollection refs,
-                ServiceResultModel? errorInfo) {
-                return refs.Select(r => {
+                ServiceResultModel? errorInfo)
+            {
+                return refs.Select(r =>
+                {
                     PushNode(r.NodeId);
                     PushNode(r.ReferenceTypeId);
                     PushNode(r.TypeDefinition);
 
                     var id = r.NodeId.AsString(session.MessageContext);
-                    if (id == null) {
+                    if (id == null)
+                    {
                         return null;
                     }
-                    return new BrowseStreamChunkModel {
+                    return new BrowseStreamChunkModel
+                    {
                         SourceId = sourceId,
                         ErrorInfo = errorInfo,
-                        Reference = new NodeReferenceModel {
+                        Reference = new NodeReferenceModel
+                        {
                             ReferenceTypeId = r.ReferenceTypeId.AsString(
                                 session.MessageContext),
                             Direction = r.IsForward ?
                                 Shared.Models.BrowseDirection.Forward :
                                 Shared.Models.BrowseDirection.Backward,
-                            Target = new NodeModel {
+                            Target = new NodeModel
+                            {
                                 NodeId = id,
                                 DisplayName = r.DisplayName?.ToString(),
                                 TypeDefinitionId = r.TypeDefinition.AsString(session.MessageContext),
@@ -356,24 +411,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<BrowsePathResponseModel> BrowsePathAsync(T connectionId,
-            BrowsePathRequestModel request, CancellationToken ct) {
-            if (request == null) {
+            BrowsePathRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             if (request.BrowsePaths == null ||
                 request.BrowsePaths.Count == 0 ||
-                request.BrowsePaths.Any(p => p == null || p.Count == 0)) {
+                request.BrowsePaths.Any(p => p == null || p.Count == 0))
+            {
                 throw new ArgumentException("Bad browse path", nameof(request));
             }
             using var trace = kActivity.StartActivity("BrowsePath");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var rootId = request.NodeId.ToNodeId(session.MessageContext);
-                if (NodeId.IsNull(rootId)) {
+                if (NodeId.IsNull(rootId))
+                {
                     rootId = ObjectIds.RootFolder;
                 }
                 var targets = new List<NodePathTargetModel>();
                 var requests = new BrowsePathCollection(request.BrowsePaths.Select(p =>
-                    new BrowsePath {
+                    new BrowsePath
+                    {
                         StartingNode = rootId,
                         RelativePath = p.ToRelativePath(session.MessageContext)
                     }));
@@ -381,19 +442,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     request.Header.ToRequestHeader(), requests, ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, request.BrowsePaths);
-                if (results.ErrorInfo != null) {
-                    return new BrowsePathResponseModel {
+                if (results.ErrorInfo != null)
+                {
+                    return new BrowsePathResponseModel
+                    {
                         ErrorInfo = results.ErrorInfo
                     };
                 }
-                foreach (var operation in results) {
+                foreach (var operation in results)
+                {
                     await AddTargetsToBrowseResultAsync(session,
                         request.Header.ToRequestHeader(),
                         request.ReadVariableValues ?? false, request.NodeIdsOnly ?? false,
                         targets, operation.Result.Targets,
                         operation.Request.ToArray(), ct).ConfigureAwait(false);
                 }
-                return new BrowsePathResponseModel {
+                return new BrowsePathResponseModel
+                {
                     Targets = targets,
                     ErrorInfo = results[0].ErrorInfo
                 };
@@ -402,30 +467,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(
-            T connectionId, NodeMetadataRequestModel request, CancellationToken ct) {
-            if (request == null) {
+            T connectionId, NodeMetadataRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             if (string.IsNullOrEmpty(request.NodeId) &&
-                (request.BrowsePath == null || request.BrowsePath.Count == 0)) {
+                (request.BrowsePath == null || request.BrowsePath.Count == 0))
+            {
                 throw new ArgumentException("Node id or browse path missing", nameof(request));
             }
             using var trace = kActivity.StartActivity("GetMetadata");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var nodeId = request.NodeId.ToNodeId(session.MessageContext);
-                if (request.BrowsePath?.Count > 0) {
+                if (request.BrowsePath?.Count > 0)
+                {
                     nodeId = await ResolveBrowsePathToNodeAsync(session, request.Header,
                         nodeId, request.BrowsePath.ToArray(),
                         nameof(request.BrowsePath), ct).ConfigureAwait(false);
                 }
-                if (NodeId.IsNull(nodeId)) {
+                if (NodeId.IsNull(nodeId))
+                {
                     throw new ArgumentException("Node id missing", nameof(request));
                 }
 
                 var (node, errorInfo) = await session.ReadNodeAsync(
                     request.Header.ToRequestHeader(), nodeId, ct: ct).ConfigureAwait(false);
-                if (errorInfo != null || node.NodeClass == null) {
-                    return new NodeMetadataResponseModel {
+                if (errorInfo != null || node.NodeClass == null)
+                {
+                    return new NodeMetadataResponseModel
+                    {
                         ErrorInfo = errorInfo ?? ((StatusCode)StatusCodes.BadNodeIdUnknown)
                             .CreateResultModel()
                     };
@@ -435,42 +508,52 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 MethodMetadataModel? methodMetadata = null;
                 DataTypeMetadataModel? dataTypeMetadata = null;
                 var typeId = nodeId;
-                if (node.NodeClass == Shared.Models.NodeClass.Method) {
+                if (node.NodeClass == Shared.Models.NodeClass.Method)
+                {
                     (methodMetadata, errorInfo) = await session.GetMethodMetadataAsync(
                         request.Header.ToRequestHeader(), nodeId, ct).ConfigureAwait(false);
-                    if (errorInfo != null) {
+                    if (errorInfo != null)
+                    {
                         return new NodeMetadataResponseModel { ErrorInfo = errorInfo };
                     }
                 }
-                else if (node.NodeClass == Shared.Models.NodeClass.DataType) {
+                else if (node.NodeClass == Shared.Models.NodeClass.DataType)
+                {
                     // TODO
                     dataTypeMetadata = null;
                 }
                 else if (node.NodeClass is Shared.Models.NodeClass.Variable or
-                         Shared.Models.NodeClass.Object) {
+                         Shared.Models.NodeClass.Object)
+                {
                     // Get type definition
                     var references = await session.FindTargetOfReferenceAsync(
                         request.Header.ToRequestHeader(), nodeId.YieldReturn(),
                         ReferenceTypeIds.HasTypeDefinition, ct).ConfigureAwait(false);
                     (_, typeId) = references.FirstOrDefault();
-                    if (NodeId.IsNull(typeId)) {
+                    if (NodeId.IsNull(typeId))
+                    {
                         typeId = nodeId;
                     }
-                    if (node.NodeClass == Shared.Models.NodeClass.Variable) {
+                    if (node.NodeClass == Shared.Models.NodeClass.Variable)
+                    {
                         (variableMetadata, errorInfo) = await session.GetVariableMetadataAsync(
                             request.Header.ToRequestHeader(), nodeId, ct).ConfigureAwait(false);
-                        if (errorInfo != null) {
+                        if (errorInfo != null)
+                        {
                             return new NodeMetadataResponseModel { ErrorInfo = errorInfo };
                         }
                     }
                 }
 
                 var type = node;
-                if (typeId != nodeId) {
+                if (typeId != nodeId)
+                {
                     (type, errorInfo) = await session.ReadNodeAsync(
                     request.Header.ToRequestHeader(), typeId, ct: ct).ConfigureAwait(false);
-                    if (errorInfo != null || type.NodeClass == null) {
-                        return new NodeMetadataResponseModel {
+                    if (errorInfo != null || type.NodeClass == null)
+                    {
+                        return new NodeMetadataResponseModel
+                        {
                             ErrorInfo = errorInfo ?? ((StatusCode)StatusCodes.BadTypeDefinitionInvalid)
                                 .CreateResultModel()
                         };
@@ -485,21 +568,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 await session.CollectTypeHierarchyAsync(request.Header.ToRequestHeader(),
                     typeId, hierarchy, ct).ConfigureAwait(false);
                 hierarchy.Reverse(); // Start from Root super type
-                foreach (var (subType, superType) in hierarchy) {
+                foreach (var (subType, superType) in hierarchy)
+                {
                     errorInfo = await session.CollectInstanceDeclarationsAsync(
                         request.Header.ToRequestHeader(), (NodeId)superType.NodeId,
                         null, declarations, map, ct).ConfigureAwait(false);
-                    if (errorInfo != null) {
+                    if (errorInfo != null)
+                    {
                         break;
                     }
                 }
-                if (errorInfo == null) {
+                if (errorInfo == null)
+                {
                     // collect the fields for the selected type.
                     errorInfo = await session.CollectInstanceDeclarationsAsync(
                         request.Header.ToRequestHeader(), typeId, null,
                         declarations, map, ct).ConfigureAwait(false);
                 }
-                return new NodeMetadataResponseModel {
+                return new NodeMetadataResponseModel
+                {
                     ErrorInfo = errorInfo,
                     Description = node.Description,
                     DisplayName = node.DisplayName,
@@ -508,12 +595,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     MethodMetadata = methodMetadata,
                     VariableMetadata = variableMetadata,
                     DataTypeMetadata = dataTypeMetadata,
-                    TypeDefinition = errorInfo != null ? null : new TypeDefinitionModel {
+                    TypeDefinition = errorInfo != null ? null : new TypeDefinitionModel
+                    {
                         TypeDefinitionId = type.NodeId,
                         DisplayName = type.DisplayName,
                         BrowseName = type.BrowseName,
                         Description = type.Description,
-                        TypeHierarchy = hierarchy.ConvertAll(e => new NodeModel {
+                        TypeHierarchy = hierarchy.ConvertAll(e => new NodeModel
+                        {
                             NodeId = e.Item2.NodeId.AsString(session.MessageContext) ?? string.Empty,
                             DisplayName = e.Item2.DisplayName.Text,
                             BrowseName = e.Item2.BrowseName.AsString(session.MessageContext),
@@ -528,26 +617,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 };
             }, ct: ct).ConfigureAwait(false);
 
-            static NodeType GetNodeType(List<NodeId> hierarchy) {
-                if (hierarchy.Count > 1) {
-                    if (hierarchy[1] == ObjectTypeIds.BaseEventType) {
+            static NodeType GetNodeType(List<NodeId> hierarchy)
+            {
+                if (hierarchy.Count > 1)
+                {
+                    if (hierarchy[1] == ObjectTypeIds.BaseEventType)
+                    {
                         return NodeType.Event;
                     }
-                    if (hierarchy[1] == ObjectTypeIds.BaseInterfaceType) {
+                    if (hierarchy[1] == ObjectTypeIds.BaseInterfaceType)
+                    {
                         return NodeType.Interface;
                     }
-                    if (hierarchy[1] == VariableTypeIds.PropertyType) {
+                    if (hierarchy[1] == VariableTypeIds.PropertyType)
+                    {
                         return NodeType.Property;
                     }
-                    if (hierarchy[1] == VariableTypeIds.BaseDataVariableType) {
+                    if (hierarchy[1] == VariableTypeIds.BaseDataVariableType)
+                    {
                         return NodeType.DataVariable;
                     }
                 }
-                if (hierarchy.Count > 0) {
-                    if (hierarchy[0] == VariableTypeIds.BaseVariableType) {
+                if (hierarchy.Count > 0)
+                {
+                    if (hierarchy[0] == VariableTypeIds.BaseVariableType)
+                    {
                         return NodeType.Variable;
                     }
-                    if (hierarchy[0] == ObjectTypeIds.BaseObjectType) {
+                    if (hierarchy[0] == ObjectTypeIds.BaseObjectType)
+                    {
                         return NodeType.Object;
                     }
                 }
@@ -557,27 +655,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<MethodMetadataResponseModel> GetMethodMetadataAsync(
-            T connectionId, MethodMetadataRequestModel request, CancellationToken ct) {
-            if (request == null) {
+            T connectionId, MethodMetadataRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             if (string.IsNullOrEmpty(request.MethodId) &&
-                (request.MethodBrowsePath == null || request.MethodBrowsePath.Count == 0)) {
+                (request.MethodBrowsePath == null || request.MethodBrowsePath.Count == 0))
+            {
                 throw new ArgumentException("Node id missing", nameof(request));
             }
             using var trace = kActivity.StartActivity("GetMethodMetadata");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var methodId = request.MethodId.ToNodeId(session.MessageContext);
-                if (NodeId.IsNull(methodId)) {
+                if (NodeId.IsNull(methodId))
+                {
                     throw new ArgumentException("Method id missing", nameof(request));
                 }
-                if (request.MethodBrowsePath?.Count > 0) {
+                if (request.MethodBrowsePath?.Count > 0)
+                {
                     // Browse from object id to method if possible
                     methodId = await ResolveBrowsePathToNodeAsync(session, request.Header,
                         methodId, request.MethodBrowsePath.ToArray(),
                         nameof(request.MethodBrowsePath), ct).ConfigureAwait(false);
                 }
-                if (NodeId.IsNull(methodId)) {
+                if (NodeId.IsNull(methodId))
+                {
                     throw new ArgumentException(nameof(request.MethodId));
                 }
                 var browseDescriptions = new BrowseDescriptionCollection {
@@ -597,48 +702,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
                 var browseresults = browse.Validate(browse.Results, r => r.StatusCode,
                     browse.DiagnosticInfos, browseDescriptions);
-                if (browseresults.ErrorInfo != null) {
-                    return new MethodMetadataResponseModel {
+                if (browseresults.ErrorInfo != null)
+                {
+                    return new MethodMetadataResponseModel
+                    {
                         ErrorInfo = browseresults.ErrorInfo
                     };
                 }
                 var result = new MethodMetadataResponseModel();
-                foreach (var nodeReference in browseresults[0].Result.References) {
+                foreach (var nodeReference in browseresults[0].Result.References)
+                {
                     if (result.OutputArguments != null &&
                         result.InputArguments != null &&
-                        !string.IsNullOrEmpty(result.ObjectId)) {
+                        !string.IsNullOrEmpty(result.ObjectId))
+                    {
                         break;
                     }
-                    if (!nodeReference.IsForward) {
-                        if (nodeReference.ReferenceTypeId == ReferenceTypeIds.HasComponent) {
+                    if (!nodeReference.IsForward)
+                    {
+                        if (nodeReference.ReferenceTypeId == ReferenceTypeIds.HasComponent)
+                        {
                             result.ObjectId = nodeReference.NodeId.AsString(
                                 session.MessageContext);
                         }
                         continue;
                     }
                     var isInput = nodeReference.BrowseName == BrowseNames.InputArguments;
-                    if (!isInput && nodeReference.BrowseName != BrowseNames.OutputArguments) {
+                    if (!isInput && nodeReference.BrowseName != BrowseNames.OutputArguments)
+                    {
                         continue;
                     }
 
                     var node = nodeReference.NodeId.ToNodeId(session.MessageContext.NamespaceUris);
                     var (value, errorInfo) = await session.ReadValueAsync(
                         request.Header.ToRequestHeader(), node, ct).ConfigureAwait(false);
-                    if (errorInfo != null) {
-                        return new MethodMetadataResponseModel {
+                    if (errorInfo != null)
+                    {
+                        return new MethodMetadataResponseModel
+                        {
                             ErrorInfo = errorInfo
                         };
                     }
-                    if (value?.Value is not ExtensionObject[] argumentsList) {
+                    if (value?.Value is not ExtensionObject[] argumentsList)
+                    {
                         continue;
                     }
 
                     var argList = new List<MethodMetadataArgumentModel>();
-                    foreach (var argument in argumentsList.Select(a => (Argument)a.Body)) {
+                    foreach (var argument in argumentsList.Select(a => (Argument)a.Body))
+                    {
                         var (dataTypeIdNode, errorInfo2) = await session.ReadNodeAsync(
                             request.Header.ToRequestHeader(), argument.DataType, null,
                             false, false, false, ct).ConfigureAwait(false);
-                        var arg = new MethodMetadataArgumentModel {
+                        var arg = new MethodMetadataArgumentModel
+                        {
                             Name = argument.Name,
                             DefaultValue = argument.Value == null ? VariantValue.Null :
                                 session.Codec.Encode(new Variant(argument.Value), out var type),
@@ -651,10 +768,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                         };
                         argList.Add(arg);
                     }
-                    if (isInput) {
+                    if (isInput)
+                    {
                         result.InputArguments = argList;
                     }
-                    else {
+                    else
+                    {
                         result.OutputArguments = argList;
                     }
                 }
@@ -664,16 +783,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<MethodCallResponseModel> MethodCallAsync(T connectionId,
-            MethodCallRequestModel request, CancellationToken ct) {
-            if (request == null) {
+            MethodCallRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             if (string.IsNullOrEmpty(request.ObjectId) &&
-                (request.ObjectBrowsePath == null || request.ObjectBrowsePath.Count == 0)) {
+                (request.ObjectBrowsePath == null || request.ObjectBrowsePath.Count == 0))
+            {
                 throw new ArgumentException("Object id missing or bad browse path", nameof(request));
             }
             using var trace = kActivity.StartActivity("MethodCall");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 //
                 // A method call request can specify the targets in several ways:
                 //
@@ -686,18 +809,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 //   real method node.
                 //
                 var objectId = request.ObjectId.ToNodeId(session.MessageContext);
-                if (request.ObjectBrowsePath?.Count > 0) {
+                if (request.ObjectBrowsePath?.Count > 0)
+                {
                     objectId = await ResolveBrowsePathToNodeAsync(session, request.Header,
                         objectId, request.ObjectBrowsePath.ToArray(),
                         nameof(request.ObjectBrowsePath), ct).ConfigureAwait(false);
                 }
-                if (NodeId.IsNull(objectId)) {
+                if (NodeId.IsNull(objectId))
+                {
                     throw new ArgumentException("Object id missing", nameof(request));
                 }
 
                 var methodId = request.MethodId.ToNodeId(session.MessageContext);
-                if (request.MethodBrowsePath?.Count > 0) {
-                    if (NodeId.IsNull(methodId)) {
+                if (request.MethodBrowsePath?.Count > 0)
+                {
+                    if (NodeId.IsNull(methodId))
+                    {
                         // Browse from object id to method if possible
                         methodId = objectId ??
                             throw new ArgumentException("Method id and object id missing",
@@ -707,7 +834,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                         methodId, request.MethodBrowsePath.ToArray(),
                         nameof(request.MethodBrowsePath), ct).ConfigureAwait(false);
                 }
-                else if (NodeId.IsNull(methodId)) {
+                else if (NodeId.IsNull(methodId))
+                {
                     // Method is null and cannot browse to method from object
                     throw new ArgumentException("Method id missing", nameof(request));
                 }
@@ -730,16 +858,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 var browseresults = browse.Validate(browse.Results, r => r.StatusCode,
                     browse.DiagnosticInfos, browseDescriptions);
                 List<(TypeInfo, object)>? inputs = null, outputs = null;
-                if (browseresults.ErrorInfo == null) {
-                    foreach (var nodeReference in browseresults[0].Result.References) {
+                if (browseresults.ErrorInfo == null)
+                {
+                    foreach (var nodeReference in browseresults[0].Result.References)
+                    {
                         List<(TypeInfo, object)>? temp = null;
-                        if (nodeReference.BrowseName == BrowseNames.InputArguments) {
+                        if (nodeReference.BrowseName == BrowseNames.InputArguments)
+                        {
                             temp = inputs = new List<(TypeInfo, object)>();
                         }
-                        else if (nodeReference.BrowseName == BrowseNames.OutputArguments) {
+                        else if (nodeReference.BrowseName == BrowseNames.OutputArguments)
+                        {
                             temp = outputs = new List<(TypeInfo, object)>();
                         }
-                        else {
+                        else
+                        {
                             continue;
                         }
                         var node = nodeReference.NodeId.ToNodeId(session.MessageContext.NamespaceUris);
@@ -747,23 +880,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             request.Header.ToRequestHeader(),
                             node, ct).ConfigureAwait(false);
                         // value is also null if the type is not a variable node
-                        if (value?.Value is ExtensionObject[] argumentsList) {
-                            foreach (var argument in argumentsList.Select(a => (Argument)a.Body)) {
+                        if (value?.Value is ExtensionObject[] argumentsList)
+                        {
+                            foreach (var argument in argumentsList.Select(a => (Argument)a.Body))
+                            {
                                 var builtInType = TypeInfo.GetBuiltInType(argument.DataType);
                                 temp.Add((new TypeInfo(builtInType,
                                     argument.ValueRank), argument.Value));
                             }
-                            if (inputs != null && outputs != null) {
+                            if (inputs != null && outputs != null)
+                            {
                                 break;
                             }
                         }
                     }
                 }
 
-                if ((request.Arguments?.Count ?? 0) > (inputs?.Count ?? 0)) {
+                if ((request.Arguments?.Count ?? 0) > (inputs?.Count ?? 0))
+                {
                     // Too many arguments provided
-                    if (browseresults.ErrorInfo != null) {
-                        return new MethodCallResponseModel {
+                    if (browseresults.ErrorInfo != null)
+                    {
+                        return new MethodCallResponseModel
+                        {
                             ErrorInfo = browseresults.ErrorInfo
                         };
                     }
@@ -782,16 +921,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 };
 
                 // Update with input arguments provided in request payload
-                if ((request.Arguments?.Count ?? 0) != 0) {
+                if ((request.Arguments?.Count ?? 0) != 0)
+                {
                     System.Diagnostics.Debug.Assert(request.Arguments != null);
                     System.Diagnostics.Debug.Assert(inputs != null);
-                    for (var i = 0; i < request.Arguments.Count; i++) {
+                    for (var i = 0; i < request.Arguments.Count; i++)
+                    {
                         var arg = request.Arguments[i];
-                        if (arg == null) {
+                        if (arg == null)
+                        {
                             continue;
                         }
                         var builtinType = inputs[i].Item1.BuiltInType;
-                        if (!string.IsNullOrEmpty(arg.DataType)) {
+                        if (!string.IsNullOrEmpty(arg.DataType))
+                        {
                             builtinType = TypeInfo.GetBuiltInType(
                                 arg.DataType.ToNodeId(session.MessageContext),
                                 session.Session.TypeTree);
@@ -807,8 +950,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, requests);
-                if (results.ErrorInfo != null) {
-                    return new MethodCallResponseModel {
+                if (results.ErrorInfo != null)
+                {
+                    return new MethodCallResponseModel
+                    {
                         ErrorInfo = results.ErrorInfo
                     };
                 }
@@ -816,26 +961,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 var arguments = new List<MethodCallArgumentModel>();
 
                 var args = results[0].Result.OutputArguments?.Count ?? 0;
-                for (var i = 0; i < args; i++) {
+                for (var i = 0; i < args; i++)
+                {
                     var arg = results[0].Result.OutputArguments[i];
                     if (arg == Variant.Null &&
-                        (outputs?.Count ?? 0) > i && outputs![i].Item2 != null) {
+                        (outputs?.Count ?? 0) > i && outputs![i].Item2 != null)
+                    {
                         // return default value
                         arg = new Variant(outputs[i].Item2);
                     }
                     var value = session.Codec.Encode(arg, out var type);
-                    if (type == BuiltInType.Null && (outputs?.Count ?? 0) > i) {
+                    if (type == BuiltInType.Null && (outputs?.Count ?? 0) > i)
+                    {
                         // return default type from type info
                         type = outputs![i].Item1.BuiltInType;
                     }
                     var dataType = type == BuiltInType.Null ?
                         null : type.ToString();
-                    arguments.Add(new MethodCallArgumentModel {
+                    arguments.Add(new MethodCallArgumentModel
+                    {
                         Value = value,
                         DataType = dataType
                     });
                 }
-                return new MethodCallResponseModel {
+                return new MethodCallResponseModel
+                {
                     Results = arguments,
                     ErrorInfo = results[0].ErrorInfo
                 };
@@ -844,23 +994,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<ValueReadResponseModel> ValueReadAsync(T connectionId,
-            ValueReadRequestModel request, CancellationToken ct) {
-            if (request == null) {
+            ValueReadRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             if (string.IsNullOrEmpty(request.NodeId) &&
-                (request.BrowsePath == null || request.BrowsePath.Count == 0)) {
+                (request.BrowsePath == null || request.BrowsePath.Count == 0))
+            {
                 throw new ArgumentException("Bad node id or browse path missing", nameof(request));
             }
             using var trace = kActivity.StartActivity("ValueRead");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var readNode = request.NodeId.ToNodeId(session.MessageContext);
-                if (request.BrowsePath?.Count > 0) {
+                if (request.BrowsePath?.Count > 0)
+                {
                     readNode = await ResolveBrowsePathToNodeAsync(session, request.Header,
                         readNode, request.BrowsePath.ToArray(),
                         nameof(request.BrowsePath), ct).ConfigureAwait(false);
                 }
-                if (NodeId.IsNull(readNode)) {
+                if (NodeId.IsNull(readNode))
+                {
                     throw new ArgumentException("Node id missing", nameof(request));
                 }
 
@@ -887,12 +1043,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
                 var values = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, nodesToRead);
-                if (values.ErrorInfo != null) {
-                    return new ValueReadResponseModel {
+                if (values.ErrorInfo != null)
+                {
+                    return new ValueReadResponseModel
+                    {
                         ErrorInfo = values.ErrorInfo
                     };
                 }
-                return new ValueReadResponseModel {
+                return new ValueReadResponseModel
+                {
                     ServerPicoseconds = values[0].Result.ServerPicoseconds != 0 ?
                         values[0].Result.ServerPicoseconds : null,
                     ServerTimestamp = values[0].Result.ServerTimestamp != DateTime.MinValue ?
@@ -910,35 +1069,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<ValueWriteResponseModel> ValueWriteAsync(T connectionId,
-            ValueWriteRequestModel request, CancellationToken ct) {
-            if (request == null) {
+            ValueWriteRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Value is null) {
+            if (request.Value is null)
+            {
                 throw new ArgumentException("Missing value", nameof(request));
             }
             if (string.IsNullOrEmpty(request.NodeId) &&
-                (request.BrowsePath == null || request.BrowsePath.Count == 0)) {
+                (request.BrowsePath == null || request.BrowsePath.Count == 0))
+            {
                 throw new ArgumentException("Bad node id or browse path missing", nameof(request));
             }
             using var trace = kActivity.StartActivity("ValueWrite");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var writeNode = request.NodeId.ToNodeId(session.MessageContext);
-                if (request.BrowsePath?.Count > 0) {
+                if (request.BrowsePath?.Count > 0)
+                {
                     writeNode = await ResolveBrowsePathToNodeAsync(session, request.Header,
                         writeNode, request.BrowsePath.ToArray(),
                         nameof(request.BrowsePath), ct).ConfigureAwait(false);
                 }
-                if (NodeId.IsNull(writeNode)) {
+                if (NodeId.IsNull(writeNode))
+                {
                     throw new ArgumentException("Node id missing", nameof(request));
                 }
                 var dataTypeId = request.DataType.ToNodeId(session.MessageContext);
-                if (NodeId.IsNull(dataTypeId)) {
+                if (NodeId.IsNull(dataTypeId))
+                {
                     // Read data type
                     (dataTypeId, _) = await session.ReadAttributeAsync<NodeId?>(
                         request.Header.ToRequestHeader(), writeNode,
                         Attributes.DataType, ct).ConfigureAwait(false);
-                    if (NodeId.IsNull(dataTypeId)) {
+                    if (NodeId.IsNull(dataTypeId))
+                    {
                         throw new ArgumentException("Data type missing", nameof(request));
                     }
                 }
@@ -959,7 +1127,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     ct).ConfigureAwait(false);
                 var values = response.Validate(response.Results, s => s,
                     response.DiagnosticInfos, nodesToWrite);
-                return new ValueWriteResponseModel {
+                return new ValueWriteResponseModel
+                {
                     ErrorInfo = values.ErrorInfo ?? values[0].ErrorInfo
                 };
             }, ct: ct).ConfigureAwait(false);
@@ -967,20 +1136,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<ReadResponseModel> ReadAsync(T connectionId,
-            ReadRequestModel request, CancellationToken ct) {
-            if (request == null) {
+            ReadRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Attributes == null) {
+            if (request.Attributes == null)
+            {
                 throw new ArgumentException("Missing attributes", nameof(request));
             }
-            if (request.Attributes.Any(a => string.IsNullOrEmpty(a.NodeId))) {
+            if (request.Attributes.Any(a => string.IsNullOrEmpty(a.NodeId)))
+            {
                 throw new ArgumentException("Bad attributes", nameof(request));
             }
             using var trace = kActivity.StartActivity("Read");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var requests = new ReadValueIdCollection(request.Attributes
-                    .Select(a => new ReadValueId {
+                    .Select(a => new ReadValueId
+                    {
                         AttributeId = (uint)a.Attribute,
                         NodeId = a.NodeId.ToNodeId(session.MessageContext)
                     }));
@@ -990,15 +1165,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, requests);
-                if (results.ErrorInfo != null) {
-                    return new ReadResponseModel {
+                if (results.ErrorInfo != null)
+                {
+                    return new ReadResponseModel
+                    {
                         ErrorInfo = results.ErrorInfo
                     };
                 }
-                return new ReadResponseModel {
+                return new ReadResponseModel
+                {
                     Results = results
-                        .Select(result => {
-                            return new AttributeReadResponseModel {
+                        .Select(result =>
+                        {
+                            return new AttributeReadResponseModel
+                            {
                                 Value = session.Codec.Encode(result.Result.WrappedValue,
                                     out var wellKnown),
                                 ErrorInfo = result.ErrorInfo
@@ -1010,20 +1190,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<WriteResponseModel> WriteAsync(T connectionId,
-            WriteRequestModel request, CancellationToken ct) {
-            if (request == null) {
+            WriteRequestModel request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Attributes == null) {
+            if (request.Attributes == null)
+            {
                 throw new ArgumentException("Missing attributes", nameof(request));
             }
-            if (request.Attributes.Any(a => string.IsNullOrEmpty(a.NodeId))) {
+            if (request.Attributes.Any(a => string.IsNullOrEmpty(a.NodeId)))
+            {
                 throw new ArgumentException("Missing node id in attributes", nameof(request));
             }
             using var trace = kActivity.StartActivity("Write");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var requests = new WriteValueCollection(request.Attributes
-                    .Select(a => new WriteValue {
+                    .Select(a => new WriteValue
+                    {
                         AttributeId = (uint)a.Attribute,
                         NodeId = a.NodeId.ToNodeId(session.MessageContext),
                         Value = new DataValue(session.Codec.Decode(a.Value ?? VariantValue.Null,
@@ -1035,15 +1221,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
                 var results = response.Validate(response.Results, s => s,
                     response.DiagnosticInfos, requests);
-                if (results.ErrorInfo != null) {
-                    return new WriteResponseModel {
+                if (results.ErrorInfo != null)
+                {
+                    return new WriteResponseModel
+                    {
                         ErrorInfo = results.ErrorInfo
                     };
                 }
-                return new WriteResponseModel {
+                return new WriteResponseModel
+                {
                     Results = results
-                        .Select(result => {
-                            return new AttributeWriteResponseModel {
+                        .Select(result =>
+                        {
+                            return new AttributeWriteResponseModel
+                            {
                                 ErrorInfo = result.ErrorInfo
                             };
                         }).ToList()
@@ -1053,7 +1244,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            T connectionId, CancellationToken ct) {
+            T connectionId, CancellationToken ct)
+        {
             return _client.ExecuteServiceAsync(connectionId,
                 session => session.GetHistoryCapabilitiesAsync(ct), ct: ct);
         }
@@ -1061,17 +1253,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <inheritdoc/>
         public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
             T connectionId, HistoryConfigurationRequestModel request,
-            CancellationToken ct) {
-            if (request == null) {
+            CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(request.NodeId)) {
+            if (string.IsNullOrEmpty(request.NodeId))
+            {
                 throw new ArgumentException("Bad node id missing", nameof(request));
             }
             using var trace = kActivity.StartActivity("HistoryGetConfiguration");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var nodeId = request.NodeId.ToNodeId(session.MessageContext);
-                if (NodeId.IsNull(nodeId)) {
+                if (NodeId.IsNull(nodeId))
+                {
                     throw new ArgumentException("Bad node id", nameof(request));
                 }
 
@@ -1115,7 +1312,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     BrowseNames.HAConfiguration, null, false);
 
                 var relativePath = new RelativePath();
-                relativePath.Elements.Add(new RelativePathElement {
+                relativePath.Elements.Add(new RelativePathElement
+                {
                     ReferenceTypeId = ReferenceTypeIds.HasHistoricalConfiguration,
                     IsInverse = false,
                     IncludeSubtypes = false,
@@ -1124,19 +1322,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 var errorInfo = await session.ReadNodeStateAsync(
                     request.Header.ToRequestHeader(), config,
                     nodeId, relativePath, ct).ConfigureAwait(false);
-                if (errorInfo != null) {
-                    return new HistoryConfigurationResponseModel {
+                if (errorInfo != null)
+                {
+                    return new HistoryConfigurationResponseModel
+                    {
                         ErrorInfo = errorInfo
                     };
                 }
                 var startTime = config.StartOfOnlineArchive.GetValueOrDefault() ?? config.StartOfArchive.GetValueOrDefault();
-                if (startTime == null) {
+                if (startTime == null)
+                {
                     startTime = await HistoryReadTimestampAsync(
                         session, request.Header, nodeId, true,
                         ct).ConfigureAwait(false);
                 }
                 DateTime? endTime = null;
-                if (endTime == null) {
+                if (endTime == null)
+                {
                     endTime = await HistoryReadTimestampAsync(
                         session, request.Header, nodeId, false,
                         ct).ConfigureAwait(false);
@@ -1146,8 +1348,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 var aggregateFunctions = children.OfType<BaseObjectState>().ToDictionary(
                     c => c.BrowseName.AsString(session.MessageContext),
                     c => c.NodeId.AsString(session.MessageContext) ?? string.Empty);
-                return new HistoryConfigurationResponseModel {
-                    Configuration = errorInfo != null ? null : new HistoryConfigurationModel {
+                return new HistoryConfigurationResponseModel
+                {
+                    Configuration = errorInfo != null ? null : new HistoryConfigurationModel
+                    {
                         MinTimeInterval =
                             config.MinTimeInterval.GetValueOrDefault(
                                 v => v.HasValue && v.Value != 0 ?
@@ -1169,7 +1373,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             config.Definition.GetValueOrDefault(),
                         AggregateFunctions =
                             aggregateFunctions.Count == 0 ? null : aggregateFunctions,
-                        AggregateConfiguration = new AggregateConfigurationModel {
+                        AggregateConfiguration = new AggregateConfigurationModel
+                        {
                             PercentDataBad =
                                 aggregate.PercentDataBad.GetValueOrDefault(),
                             PercentDataGood =
@@ -1193,10 +1398,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(T connectionId,
-            HistoryReadRequestModel<VariantValue> request, CancellationToken ct) {
-            return HistoryReadAsync(connectionId, request, (details, session) => {
+            HistoryReadRequestModel<VariantValue> request, CancellationToken ct)
+        {
+            return HistoryReadAsync(connectionId, request, (details, session) =>
+            {
                 var variant = session.Codec.Decode(details, BuiltInType.ExtensionObject);
-                if (variant.Value is not ExtensionObject extensionObject) {
+                if (variant.Value is not ExtensionObject extensionObject)
+                {
                     throw new ArgumentException("Bad details", nameof(request));
                 }
                 return extensionObject;
@@ -1205,20 +1413,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
-            T connectionId, HistoryReadNextRequestModel request, CancellationToken ct) {
+            T connectionId, HistoryReadNextRequestModel request, CancellationToken ct)
+        {
             return HistoryReadNextAsync(connectionId, request,
                 (details, session) => session.Codec.Encode(new Variant(details), out _), ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryUpdateAsync(T connectionId,
-            HistoryUpdateRequestModel<VariantValue> request, CancellationToken ct) {
-            return HistoryUpdateAsync(connectionId, request, (nodeId, details, session) => {
+            HistoryUpdateRequestModel<VariantValue> request, CancellationToken ct)
+        {
+            return HistoryUpdateAsync(connectionId, request, (nodeId, details, session) =>
+            {
                 var variant = session.Codec.Decode(details, BuiltInType.ExtensionObject);
-                if (variant.Value is not ExtensionObject extensionObject) {
+                if (variant.Value is not ExtensionObject extensionObject)
+                {
                     throw new ArgumentException("Bad details", nameof(request));
                 }
-                if (extensionObject.Body is HistoryUpdateDetails updateDetails) {
+                if (extensionObject.Body is HistoryUpdateDetails updateDetails)
+                {
                     updateDetails.NodeId = nodeId;
                 }
                 return Task.FromResult(extensionObject);
@@ -1230,27 +1443,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             T connectionId, HistoryReadRequestModel<TInput> request,
             Func<TInput, ISessionHandle, ExtensionObject> decode,
             Func<ExtensionObject, ISessionHandle, TResult> encode,
-            CancellationToken ct) where TInput : class where TResult : class {
-            if (request == null) {
+            CancellationToken ct) where TInput : class where TResult : class
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Details == null) {
+            if (request.Details == null)
+            {
                 throw new ArgumentException("Missing details", nameof(request));
             }
             if (string.IsNullOrEmpty(request.NodeId) &&
-                (request.BrowsePath == null || request.BrowsePath.Count == 0)) {
+                (request.BrowsePath == null || request.BrowsePath.Count == 0))
+            {
                 throw new ArgumentException("Bad node id or browse path missing",
                     nameof(request));
             }
             using var trace = kActivity.StartActivity("HistoryRead");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var nodeId = request.NodeId.ToNodeId(session.MessageContext);
-                if (request.BrowsePath?.Count > 0) {
+                if (request.BrowsePath?.Count > 0)
+                {
                     nodeId = await ResolveBrowsePathToNodeAsync(session, request.Header,
                         nodeId, request.BrowsePath.ToArray(),
                         nameof(request.BrowsePath), ct).ConfigureAwait(false);
                 }
-                if (NodeId.IsNull(nodeId)) {
+                if (NodeId.IsNull(nodeId))
+                {
                     throw new ArgumentException("Bad node id", nameof(request));
                 }
                 var readDetails = decode(request.Details, session);
@@ -1267,21 +1487,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     false, historytoread, ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, historytoread);
-                if (results.ErrorInfo != null) {
+                if (results.ErrorInfo != null)
+                {
                     return new HistoryReadResponseModel<TResult> { ErrorInfo = results.ErrorInfo };
                 }
 
                 var history = encode(results[0].Result.HistoryData, session);
                 var errorInfo = results[0].ErrorInfo;
                 if (errorInfo?.StatusCode == StatusCodes.GoodNoData &&
-                    history is Array array && array.Length > 0) {
+                    history is Array array && array.Length > 0)
+                {
                     errorInfo = null; // There is data, so fix up error
                 }
                 var continuationToken =
                     results[0].Result.ContinuationPoint == null ||
                     results[0].Result.ContinuationPoint.Length == 0 ? null :
                     Convert.ToBase64String(results[0].Result.ContinuationPoint);
-                return new HistoryReadResponseModel<TResult> {
+                return new HistoryReadResponseModel<TResult>
+                {
                     ContinuationToken = continuationToken,
                     History = history,
                     ErrorInfo = errorInfo
@@ -1293,15 +1516,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         public async Task<HistoryReadNextResponseModel<TResult>> HistoryReadNextAsync<TResult>(
             T connectionId, HistoryReadNextRequestModel request,
             Func<ExtensionObject, ISessionHandle, TResult> encode, CancellationToken ct)
-            where TResult : class {
-            if (request == null) {
+            where TResult : class
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(request.ContinuationToken)) {
+            if (string.IsNullOrEmpty(request.ContinuationToken))
+            {
                 throw new ArgumentException("Missing continuation", nameof(request));
             }
             using var trace = kActivity.StartActivity("HistoryReadNext");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var historytoread = new HistoryReadValueIdCollection {
                     new HistoryReadValueId {
                         ContinuationPoint = Convert.FromBase64String(request.ContinuationToken),
@@ -1313,20 +1540,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     request.Abort ?? false, historytoread, ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, historytoread);
-                if (results.ErrorInfo != null) {
+                if (results.ErrorInfo != null)
+                {
                     return new HistoryReadNextResponseModel<TResult> { ErrorInfo = results.ErrorInfo };
                 }
                 var history = encode(results[0].Result.HistoryData, session);
                 var errorInfo = results[0].ErrorInfo;
                 if (errorInfo?.StatusCode == StatusCodes.GoodNoData &&
-                    history is Array array && array.Length > 0) {
+                    history is Array array && array.Length > 0)
+                {
                     errorInfo = null; // There is data, so fix up error
                 }
                 var continuationToken =
                     results[0].Result.ContinuationPoint == null ||
                     results[0].Result.ContinuationPoint.Length == 0 ? null :
                     Convert.ToBase64String(results[0].Result.ContinuationPoint);
-                return new HistoryReadNextResponseModel<TResult> {
+                return new HistoryReadNextResponseModel<TResult>
+                {
                     ContinuationToken = continuationToken,
                     History = history,
                     ErrorInfo = errorInfo
@@ -1338,27 +1568,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync<TInput>(
             T connectionId, HistoryUpdateRequestModel<TInput> request,
             Func<NodeId, TInput, ISessionHandle, Task<ExtensionObject>> decode,
-            CancellationToken ct) where TInput : class {
-            if (request == null) {
+            CancellationToken ct) where TInput : class
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Details == null) {
+            if (request.Details == null)
+            {
                 throw new ArgumentException("Missing details", nameof(request));
             }
             using var trace = kActivity.StartActivity("HistoryUpdate");
-            return await _client.ExecuteServiceAsync(connectionId, async session => {
+            return await _client.ExecuteServiceAsync(connectionId, async session =>
+            {
                 var nodeId = request.NodeId.ToNodeId(session.MessageContext);
-                if (request.BrowsePath?.Count > 0) {
+                if (request.BrowsePath?.Count > 0)
+                {
                     nodeId = await ResolveBrowsePathToNodeAsync(session, request.Header,
                         nodeId, request.BrowsePath.ToArray(),
                         nameof(request.BrowsePath), ct).ConfigureAwait(false);
                 }
                 // Update the node id to target based on the request
-                if (NodeId.IsNull(nodeId)) {
+                if (NodeId.IsNull(nodeId))
+                {
                     throw new ArgumentException("Missing node id", nameof(request));
                 }
                 var details = await decode(nodeId, request.Details, session).ConfigureAwait(false);
-                if (details == null) {
+                if (details == null)
+                {
                     throw new ArgumentException("Bad details", nameof(request));
                 }
                 var updates = new ExtensionObjectCollection { details };
@@ -1366,12 +1603,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     updates, ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, updates);
-                if (results.ErrorInfo != null) {
+                if (results.ErrorInfo != null)
+                {
                     return new HistoryUpdateResponseModel { ErrorInfo = results.ErrorInfo };
                 }
                 var inner = response.Validate(response.Results[0].OperationResults, s => s,
                     response.Results[0].DiagnosticInfos);
-                return new HistoryUpdateResponseModel {
+                return new HistoryUpdateResponseModel
+                {
                     Results = inner.Select(r => r.ResultInfo).ToList(),
                     ErrorInfo = inner.ErrorInfo
                 };
@@ -1394,21 +1633,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         private async Task<string?> AddReferencesToBrowseResultAsync(ISessionHandle session,
             RequestHeader header, bool targetNodesOnly, bool readValues,
             bool rawMode, List<NodeReferenceModel> result, byte[] continuationPoint,
-            List<ReferenceDescription> references, CancellationToken ct) {
-            if (references == null) {
+            List<ReferenceDescription> references, CancellationToken ct)
+        {
+            if (references == null)
+            {
                 return null;
             }
-            foreach (var reference in references) {
-                try {
+            foreach (var reference in references)
+            {
+                try
+                {
                     var nodeId = reference.NodeId.ToNodeId(session.MessageContext.NamespaceUris);
                     var id = nodeId.AsString(session.MessageContext);
-                    if (targetNodesOnly && result.Any(r => r.Target.NodeId == id)) {
+                    if (targetNodesOnly && result.Any(r => r.Target.NodeId == id))
+                    {
                         continue;
                     }
                     bool? children = null;
-                    if (!rawMode) {
+                    if (!rawMode)
+                    {
                         // Check for children
-                        try {
+                        try
+                        {
                             var browseDescriptions = new BrowseDescriptionCollection {
                                 new BrowseDescription {
                                     BrowseDirection = Opc.Ua.BrowseDirection.Forward,
@@ -1424,9 +1670,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             System.Diagnostics.Debug.Assert(response != null);
                             var results = response.Validate(response.Results, r => r.StatusCode,
                                 response.DiagnosticInfos, browseDescriptions);
-                            if (results.Count > 0) {
+                            if (results.Count > 0)
+                            {
                                 children = results[0].Result.References.Count != 0;
-                                if (results[0].Result.ContinuationPoint != null) {
+                                if (results[0].Result.ContinuationPoint != null)
+                                {
                                     await session.Session.BrowseNextAsync(header, true,
                                         new ByteStringCollection {
                                             response.Results[0].ContinuationPoint
@@ -1434,28 +1682,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                                 }
                             }
                         }
-                        catch (Exception ex) {
+                        catch (Exception ex)
+                        {
                             _logger.LogInformation(ex, "Failed to obtain child information");
                         }
                     }
                     var (model, _) = await session.ReadNodeAsync(header, nodeId,
                         reference.NodeClass, !readValues, rawMode, children,
                         ct).ConfigureAwait(false);
-                    if (rawMode) {
-                        model = model with {
+                    if (rawMode)
+                    {
+                        model = model with
+                        {
                             BrowseName = reference.BrowseName.AsString(session.MessageContext),
                             DisplayName = reference.DisplayName?.ToString()
                         };
                     }
-                    model = model with {
+                    model = model with
+                    {
                         TypeDefinitionId = reference.TypeDefinition.AsString(
                             session.MessageContext)
                     };
-                    if (targetNodesOnly) {
+                    if (targetNodesOnly)
+                    {
                         result.Add(new NodeReferenceModel { Target = model });
                         continue;
                     }
-                    result.Add(new NodeReferenceModel {
+                    result.Add(new NodeReferenceModel
+                    {
                         ReferenceTypeId = reference.ReferenceTypeId.AsString(
                             session.MessageContext),
                         Direction = reference.IsForward ?
@@ -1464,7 +1718,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                         Target = model
                     });
                 }
-                catch {
+                catch
+                {
                     // TODO: Add trace result for trace.
                     continue;
                 }
@@ -1487,22 +1742,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         private static async Task AddTargetsToBrowseResultAsync(ISessionHandle session,
             RequestHeader header, bool readValues, bool rawMode,
             List<NodePathTargetModel> result, BrowsePathTargetCollection targets,
-            string[] path, CancellationToken ct) {
-            if (targets != null) {
-                foreach (var target in targets) {
-                    try {
+            string[] path, CancellationToken ct)
+        {
+            if (targets != null)
+            {
+                foreach (var target in targets)
+                {
+                    try
+                    {
                         var nodeId = target.TargetId.ToNodeId(session.MessageContext.NamespaceUris);
                         var (model, _) = await session.ReadNodeAsync(header,
                             nodeId, null, !readValues, rawMode, false,
                             ct).ConfigureAwait(false);
-                        result.Add(new NodePathTargetModel {
+                        result.Add(new NodePathTargetModel
+                        {
                             BrowsePath = path,
                             Target = model,
                             RemainingPathIndex = target.RemainingPathIndex == 0 ?
                                 null : (int)target.RemainingPathIndex
                         });
                     }
-                    catch {
+                    catch
+                    {
                         // Skip node - TODO: Should we add a failure
                         // reference into the yet unused trace instead?
                         continue;
@@ -1523,14 +1784,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <returns></returns>
         private static async Task<NodeId> ResolveBrowsePathToNodeAsync(
             ISessionHandle session, RequestHeaderModel? header, NodeId rootId,
-            string[] paths, string paramName, CancellationToken ct) {
-            if (paths == null || paths.Length == 0) {
+            string[] paths, string paramName, CancellationToken ct)
+        {
+            if (paths == null || paths.Length == 0)
+            {
                 return rootId;
             }
-            if (NodeId.IsNull(rootId)) {
+            if (NodeId.IsNull(rootId))
+            {
                 rootId = ObjectIds.RootFolder;
             }
-            var result = new BrowsePathResponseModel {
+            var result = new BrowsePathResponseModel
+            {
                 Targets = new List<NodePathTargetModel>()
             };
             var browsepaths = new BrowsePathCollection {
@@ -1546,11 +1811,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             var results = response.Validate(response.Results, r => r.StatusCode,
                 response.DiagnosticInfos, browsepaths);
             var count = results[0].Result.Targets?.Count ?? 0;
-            if (count == 0) {
+            if (count == 0)
+            {
                 throw new ResourceNotFoundException(
                     $"{paramName} did not resolve to any node.");
             }
-            if (count != 1) {
+            if (count != 1)
+            {
                 throw new ConflictingResourceException(
                     $"{paramName} resolved to {count} nodes.");
             }
@@ -1570,14 +1837,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <returns></returns>
         private static async Task<DateTime?> HistoryReadTimestampAsync(
             ISessionHandle session, RequestHeaderModel? header, NodeId nodeId,
-            bool first, CancellationToken ct) {
+            bool first, CancellationToken ct)
+        {
             // do it the hard way (may take a long time with some servers).
             var nodesToRead = new HistoryReadValueIdCollection {
                 new HistoryReadValueId {
                     NodeId = nodeId
                 }
             };
-            var details = new ExtensionObject(new ReadRawModifiedDetails {
+            var details = new ExtensionObject(new ReadRawModifiedDetails
+            {
                 StartTime = first ? new DateTime(1970, 1, 1) : DateTime.MinValue,
                 EndTime = first ? DateTime.MinValue : DateTime.UtcNow.AddDays(1),
                 NumValuesPerNode = 1,
@@ -1589,11 +1858,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 nodesToRead, ct).ConfigureAwait(false);
             var results = response.Validate(response.Results, s => s.StatusCode,
                 response.DiagnosticInfos, nodesToRead);
-            try {
+            try
+            {
                 if (StatusCode.IsBad(results.StatusCode) ||
                     StatusCode.IsBad(results[0].StatusCode) ||
                     ExtensionObject.ToEncodeable(results[0].Result.HistoryData)
-                        is not HistoryData historyData) {
+                        is not HistoryData historyData)
+                {
                     return null;
                 }
                 var date = historyData.DataValues[0].SourceTimestamp;
@@ -1602,9 +1873,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     date.Second, 0, DateTimeKind.Utc);
                 return !first ? date.AddSeconds(1) : date;
             }
-            finally {
+            finally
+            {
                 // Abort read if needed
-                if (results[0].Result.ContinuationPoint?.Length > 0) {
+                if (results[0].Result.ContinuationPoint?.Length > 0)
+                {
                     nodesToRead = new HistoryReadValueIdCollection {
                         new HistoryReadValueId {
                             NodeId = nodeId,

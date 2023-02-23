@@ -27,11 +27,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace DataAccess {
+namespace DataAccess
+{
     /// <summary>
     /// Defines the possible tag types
     /// </summary>
-    public enum UnderlyingSystemTagType {
+    public enum UnderlyingSystemTagType
+    {
         /// <summary>
         /// The tag has no special characteristics.
         /// </summary>

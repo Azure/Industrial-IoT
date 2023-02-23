@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Tasks {
+namespace Microsoft.Azure.IIoT.Tasks
+{
     using System.Threading.Tasks;
 
     /// <summary>
     /// Injectable task scheduler implementations
     /// </summary>
-    public interface ITaskScheduler {
+    public interface ITaskScheduler
+    {
         /// <summary>
         /// Task factory
         /// </summary>

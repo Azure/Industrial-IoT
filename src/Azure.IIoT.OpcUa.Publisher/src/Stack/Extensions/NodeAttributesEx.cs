@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     /// <summary>
     /// Node attribute extensions
     /// </summary>
-    public static class NodeAttributesEx {
+    public static class NodeAttributesEx
+    {
         /// <summary>
         /// Get attribute
         /// </summary>
@@ -16,8 +18,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static T GetAttribute<T>(this INodeAttributes attributes,
-            uint attribute, T defaultValue) where T : class {
-            if (attributes.TryGetAttribute<T>(attribute, out var result)) {
+            uint attribute, T defaultValue) where T : class
+        {
+            if (attributes.TryGetAttribute<T>(attribute, out var result))
+            {
                 return result;
             }
             return defaultValue;
@@ -31,8 +35,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static T? GetAttribute<T>(this INodeAttributes attributes,
-            uint attribute, T? defaultValue) where T : struct {
-            if (attributes.TryGetAttribute<T>(attribute, out var result)) {
+            uint attribute, T? defaultValue) where T : struct
+        {
+            if (attributes.TryGetAttribute<T>(attribute, out var result))
+            {
                 return result;
             }
             return defaultValue;

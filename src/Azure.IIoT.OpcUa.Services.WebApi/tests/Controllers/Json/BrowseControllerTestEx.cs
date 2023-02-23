@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers.Json {
-    using Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers;
+namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers.Json
+{
+    using Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter;
     using Azure.IIoT.OpcUa.Services.WebApi.Tests;
     using Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients;
-    using Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter;
+    using Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
@@ -23,15 +24,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers.Json {
     using Xunit;
 
     [Collection(ReadJsonCollection.Name)]
-    public class BrowseControllerTestEx : IClassFixture<WebApiTestFixture> {
-        public BrowseControllerTestEx(WebApiTestFixture factory, TestServerFixture server) {
+    public class BrowseControllerTestEx : IClassFixture<WebApiTestFixture>
+    {
+        public BrowseControllerTestEx(WebApiTestFixture factory, TestServerFixture server)
+        {
             _factory = factory;
             _server = server;
             _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
-        private BrowseServicesTests<string> GetTests() {
+        private BrowseServicesTests<string> GetTests()
+        {
             var client = _factory.CreateClient(); // Call to create server
             var registry = _factory.Resolve<IEndpointManager>();
             var endpointId = registry.RegisterEndpointAsync(Endpoint).Result;
@@ -44,7 +48,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers.Json {
                             serializer)), endpointId);
         }
 
-        public EndpointModel Endpoint => new() {
+        public EndpointModel Endpoint => new()
+        {
             Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
             AlternativeUrls = _hostEntry?.AddressList
                 .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
@@ -57,52 +62,62 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers.Json {
         private readonly IPHostEntry _hostEntry;
 
         [Fact]
-        public async Task NodeBrowseInRootTest2Async() {
+        public async Task NodeBrowseInRootTest2Async()
+        {
             await GetTests().NodeBrowseInRootTest2Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowseBoilersObjectsTest1Async() {
+        public async Task NodeBrowseBoilersObjectsTest1Async()
+        {
             await GetTests().NodeBrowseBoilersObjectsTest1Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowseDataAccessObjectsTest3Async() {
+        public async Task NodeBrowseDataAccessObjectsTest3Async()
+        {
             await GetTests().NodeBrowseDataAccessObjectsTest3Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowseDataAccessObjectsTest4Async() {
+        public async Task NodeBrowseDataAccessObjectsTest4Async()
+        {
             await GetTests().NodeBrowseDataAccessObjectsTest4Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowseDataAccessFC1001Test2Async() {
+        public async Task NodeBrowseDataAccessFC1001Test2Async()
+        {
             await GetTests().NodeBrowseDataAccessFC1001Test2Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowseStaticScalarVariablesTestAsync() {
+        public async Task NodeBrowseStaticScalarVariablesTestAsync()
+        {
             await GetTests().NodeBrowseStaticScalarVariablesTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowseStaticArrayVariablesTestAsync() {
+        public async Task NodeBrowseStaticArrayVariablesTestAsync()
+        {
             await GetTests().NodeBrowseStaticArrayVariablesTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowseStaticArrayVariablesWithValuesTestAsync() {
+        public async Task NodeBrowseStaticArrayVariablesWithValuesTestAsync()
+        {
             await GetTests().NodeBrowseStaticArrayVariablesWithValuesTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowseDiagnosticsStatusTestAsync() {
+        public async Task NodeBrowseDiagnosticsStatusTestAsync()
+        {
             await GetTests().NodeBrowseDiagnosticsStatusTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowseDiagnosticsVerboseTestAsync() {
+        public async Task NodeBrowseDiagnosticsVerboseTestAsync()
+        {
             await GetTests().NodeBrowseDiagnosticsVerboseTestAsync().ConfigureAwait(false);
         }
     }

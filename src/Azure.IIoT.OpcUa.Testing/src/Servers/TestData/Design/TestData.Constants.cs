@@ -29,14 +29,16 @@
 
 using Opc.Ua;
 
-namespace TestData {
+namespace TestData
+{
     #region DataType Identifiers
     /// <summary>
     /// A class that declares constants for all DataTypes in the Model Design.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class DataTypes {
+    public static partial class DataTypes
+    {
         /// <summary>
         /// The identifier for the ScalarValueDataType DataType.
         /// </summary>
@@ -175,7 +177,8 @@ namespace TestData {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Methods {
+    public static partial class Methods
+    {
         /// <summary>
         /// The identifier for the TestDataObjectType_GenerateValues Method.
         /// </summary>
@@ -744,7 +747,8 @@ namespace TestData {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Objects {
+    public static partial class Objects
+    {
         /// <summary>
         /// The identifier for the TestDataObjectType_CycleComplete Object.
         /// </summary>
@@ -968,7 +972,8 @@ namespace TestData {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectTypes {
+    public static partial class ObjectTypes
+    {
         /// <summary>
         /// The identifier for the GenerateValuesEventType ObjectType.
         /// </summary>
@@ -1027,7 +1032,8 @@ namespace TestData {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Variables {
+    public static partial class Variables
+    {
         /// <summary>
         /// The identifier for the GenerateValuesEventType_Iterations Variable.
         /// </summary>
@@ -6546,7 +6552,8 @@ namespace TestData {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class DataTypeIds {
+    public static partial class DataTypeIds
+    {
         /// <summary>
         /// The identifier for the ScalarValueDataType DataType.
         /// </summary>
@@ -6685,7 +6692,8 @@ namespace TestData {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class MethodIds {
+    public static partial class MethodIds
+    {
         /// <summary>
         /// The identifier for the TestDataObjectType_GenerateValues Method.
         /// </summary>
@@ -7254,7 +7262,8 @@ namespace TestData {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectIds {
+    public static partial class ObjectIds
+    {
         /// <summary>
         /// The identifier for the TestDataObjectType_CycleComplete Object.
         /// </summary>
@@ -7478,7 +7487,8 @@ namespace TestData {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectTypeIds {
+    public static partial class ObjectTypeIds
+    {
         /// <summary>
         /// The identifier for the GenerateValuesEventType ObjectType.
         /// </summary>
@@ -7537,7 +7547,8 @@ namespace TestData {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class VariableIds {
+    public static partial class VariableIds
+    {
         /// <summary>
         /// The identifier for the GenerateValuesEventType_Iterations Variable.
         /// </summary>
@@ -13055,7 +13066,8 @@ namespace TestData {
     /// Declares all of the BrowseNames used in the Model Design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class BrowseNames {
+    public static partial class BrowseNames
+    {
         /// <summary>
         /// The BrowseName for the AnalogArrayValueObjectType component.
         /// </summary>
@@ -13488,7 +13500,8 @@ namespace TestData {
     /// Defines constants for all namespaces referenced by the model design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Namespaces {
+    public static partial class Namespaces
+    {
         /// <summary>
         /// The URI for the OpcUa namespace (.NET code namespace is 'Opc.Ua').
         /// </summary>

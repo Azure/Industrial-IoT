@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using System;
     using System.Collections.Generic;
@@ -13,7 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// <summary>
     /// Endpoint discovery services extensions
     /// </summary>
-    public interface IEndpointDiscovery {
+    public interface IEndpointDiscovery
+    {
         /// <summary>
         /// Try get unique set of endpoints from all servers found on discovery
         /// server endpoint url, filtered by optional prioritized locale list.

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
+{
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
     /// <summary>
     /// Network interface model
     /// </summary>
-    public sealed class NetInterface {
+    public sealed class NetInterface
+    {
         /// <summary>
         /// Network interface name
         /// </summary>
@@ -55,7 +57,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// <param name="unicastAddress"></param>
         /// <param name="subnetMask"></param>
         public NetInterface(string name,
-            IPAddress unicastAddress, IPAddress subnetMask) {
+            IPAddress unicastAddress, IPAddress subnetMask)
+        {
             Name = name;
             UnicastAddress = unicastAddress;
             SubnetMask = subnetMask;
@@ -68,7 +71,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         public NetInterface(string name, PhysicalAddress macAddress,
             IPAddress unicastAddress, IPAddress subnetMask, IPAddress gateway,
             string dnsSuffix, IEnumerable<IPAddress> dnsServers) :
-                this(name, unicastAddress, subnetMask) {
+                this(name, unicastAddress, subnetMask)
+        {
             Gateway = gateway;
             MacAddress = macAddress;
             DnsServers = dnsServers;
@@ -80,7 +84,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override bool Equals(object? obj) {
+        public override bool Equals(object? obj)
+        {
             return obj is NetInterface context &&
                 EqualityComparer<PhysicalAddress>.Default.Equals(
                     MacAddress, context.MacAddress) &&
@@ -100,7 +105,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// Get unique hash code
         /// </summary>
         /// <returns></returns>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return System.HashCode.Combine(MacAddress, UnicastAddress, SubnetMask, Gateway, DnsSuffix);
         }
     }

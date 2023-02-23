@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
+    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
-    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -22,12 +23,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
-    public class ReadController : ControllerBase {
+    public class ReadController : ControllerBase
+    {
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="historian"></param>
-        public ReadController(IHistoryServices<string> historian) {
+        public ReadController(IHistoryServices<string> historian)
+        {
             _historian = historian ?? throw new ArgumentNullException(nameof(historian));
         }
 
@@ -45,8 +48,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/events")]
         public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
             string endpointId,
-            [FromBody][Required] HistoryReadRequestModel<ReadEventsDetailsModel> request) {
-            if (request == null) {
+            [FromBody][Required] HistoryReadRequestModel<ReadEventsDetailsModel> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryReadEventsAsync(endpointId, request).ConfigureAwait(false);
@@ -66,8 +71,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/events/next")]
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
             string endpointId,
-            [FromBody][Required] HistoryReadNextRequestModel request) {
-            if (request == null) {
+            [FromBody][Required] HistoryReadNextRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryReadEventsNextAsync(endpointId, request).ConfigureAwait(false);
@@ -87,8 +94,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
             string endpointId,
-            [FromBody][Required] HistoryReadRequestModel<ReadValuesDetailsModel> request) {
-            if (request == null) {
+            [FromBody][Required] HistoryReadRequestModel<ReadValuesDetailsModel> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryReadValuesAsync(endpointId, request).ConfigureAwait(false);
@@ -108,8 +117,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/pick")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
             string endpointId,
-            [FromBody][Required] HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request) {
-            if (request == null) {
+            [FromBody][Required] HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryReadValuesAtTimesAsync(endpointId, request).ConfigureAwait(false);
@@ -129,8 +140,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/processed")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
             string endpointId,
-            [FromBody][Required] HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request) {
-            if (request == null) {
+            [FromBody][Required] HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryReadProcessedValuesAsync(endpointId, request).ConfigureAwait(false);
@@ -150,8 +163,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/modified")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
             string endpointId,
-            [FromBody][Required] HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request) {
-            if (request == null) {
+            [FromBody][Required] HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryReadModifiedValuesAsync(endpointId, request).ConfigureAwait(false);
@@ -171,8 +186,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/next")]
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValueNextAsync(
             string endpointId,
-            [FromBody][Required] HistoryReadNextRequestModel request) {
-            if (request == null) {
+            [FromBody][Required] HistoryReadNextRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryReadValuesNextAsync(endpointId, request).ConfigureAwait(false);

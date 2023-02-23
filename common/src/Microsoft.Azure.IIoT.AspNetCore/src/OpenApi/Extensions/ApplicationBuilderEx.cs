@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.OpenApi.Models {
+namespace Microsoft.OpenApi.Models
+{
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -18,12 +19,14 @@ namespace Microsoft.OpenApi.Models {
     /// <summary>
     /// Enable OpenApi
     /// </summary>
-    public static class ApplicationBuilderEx {
+    public static class ApplicationBuilderEx
+    {
         /// <summary>
         /// Use swagger in application
         /// </summary>
         /// <param name="app"></param>
-        public static void UseSwagger(this IApplicationBuilder app) {
+        public static void UseSwagger(this IApplicationBuilder app)
+        {
             var config = app.ApplicationServices.GetRequiredService<IOpenApiConfig>();
             var auth = app.ApplicationServices.GetService<IServerAuthConfig>();
             var server = app.ApplicationServices.GetRequiredService<IServer>();
@@ -32,32 +35,39 @@ namespace Microsoft.OpenApi.Models {
                 .ToList() ?? new List<Uri>();
 
             // Enable swagger and swagger ui
-            app.UseSwagger(options => {
-                options.PreSerializeFilters.Add((doc, request) => {
+            app.UseSwagger(options =>
+            {
+                options.PreSerializeFilters.Add((doc, request) =>
+                {
                     doc.Servers = new List<OpenApiServer>();
                     foreach (var scheme in addresses
                         .Select(a => a.Scheme)
                         .Append("https")
                         .Append(request.Scheme)
-                        .Distinct()) {
+                        .Distinct())
+                    {
                         var url = $"{scheme}://{request.Host.Value}";
 
                         // If config.OpenApiServerHost is set, we will use that instead of request.Host.Value
-                        if (!string.IsNullOrEmpty(config.OpenApiServerHost)) {
+                        if (!string.IsNullOrEmpty(config.OpenApiServerHost))
+                        {
                             url = $"{scheme}://{config.OpenApiServerHost}";
                         }
 
-                        doc.Servers.Add(new OpenApiServer {
+                        doc.Servers.Add(new OpenApiServer
+                        {
                             Description = $"{scheme} endpoint.",
                             Url = url
                         });
                     }
 
                     // If request.PathBase exists, then we will prepend it to doc.Paths.
-                    if (request.PathBase.HasValue) {
+                    if (request.PathBase.HasValue)
+                    {
                         var pathBase = request.PathBase.Value;
                         var prefixedPaths = new OpenApiPaths();
-                        foreach (var path in doc.Paths) {
+                        foreach (var path in doc.Paths)
+                        {
                             prefixedPaths.Add(pathBase + path.Key, path.Value);
                         }
                         doc.Paths = prefixedPaths;
@@ -66,7 +76,8 @@ namespace Microsoft.OpenApi.Models {
                 options.SerializeAsV2 = true;
                 options.RouteTemplate = "swagger/{documentName}/openapi.json";
             });
-            if (!config.UIEnabled) {
+            if (!config.UIEnabled)
+            {
                 return;
             }
 
@@ -74,18 +85,24 @@ namespace Microsoft.OpenApi.Models {
             var infos = api.GetOpenApiInfos(null, null);
 
             // Where to host the ui
-            app.UseSwaggerUI(options => {
-                foreach (var info in infos) {
-                    if (config.WithAuth) {
+            app.UseSwaggerUI(options =>
+            {
+                foreach (var info in infos)
+                {
+                    if (config.WithAuth)
+                    {
                         options.OAuthAppName(info.Title);
                         options.OAuthClientId(config.OpenApiAppId);
-                        if (!string.IsNullOrEmpty(config.OpenApiAppSecret)) {
+                        if (!string.IsNullOrEmpty(config.OpenApiAppSecret))
+                        {
                             options.OAuthClientSecret(config.OpenApiAppSecret);
                         }
                         var resource = auth?.JwtBearerProviders?.FirstOrDefault();
-                        if (!string.IsNullOrEmpty(resource?.Audience)) {
+                        if (!string.IsNullOrEmpty(resource?.Audience))
+                        {
                             options.OAuthAdditionalQueryStringParams(
-                                new Dictionary<string, string> {
+                                new Dictionary<string, string>
+                                {
                                     ["resource"] = resource.Audience
                                 });
                         }

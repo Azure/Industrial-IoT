@@ -3,13 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace System.Collections.Generic {
+namespace System.Collections.Generic
+{
     using System.Text;
     using Xunit;
 
-    public class EnumerableExTests {
+    public class EnumerableExTests
+    {
         [Fact]
-        public void SequenceEqualsReturnsFalseWhenListSubjectNull() {
+        public void SequenceEqualsReturnsFalseWhenListSubjectNull()
+        {
             List<string> test1 = null;
             var test2 = new List<string> { "serf", "sated" };
 
@@ -18,7 +21,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsReturnsFalseWhenListObjectNull() {
+        public void SequenceEqualsReturnsFalseWhenListObjectNull()
+        {
             var test1 = new List<string> { "serf", "sated" };
             List<string> test2 = null;
 
@@ -27,7 +31,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsWReturnsTrueWhenBothListNull() {
+        public void SequenceEqualsWReturnsTrueWhenBothListNull()
+        {
             List<string> test1 = null;
             List<string> test2 = null;
 
@@ -36,7 +41,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsReturnsFalseWhenEnumerableSubjectNull() {
+        public void SequenceEqualsReturnsFalseWhenEnumerableSubjectNull()
+        {
             IEnumerable<string> test1 = null;
             IEnumerable<string> test2 = new List<string> { "serf", "sated" };
 
@@ -45,7 +51,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsReturnsFalseWhenEnumerableObjectNull() {
+        public void SequenceEqualsReturnsFalseWhenEnumerableObjectNull()
+        {
             IEnumerable<string> test1 = new List<string> { "serf", "sated" };
             IEnumerable<string> test2 = null;
 
@@ -54,7 +61,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsWReturnsTrueWhenBothEnumerableNull() {
+        public void SequenceEqualsWReturnsTrueWhenBothEnumerableNull()
+        {
             IEnumerable<string> test1 = null;
             IEnumerable<string> test2 = null;
 
@@ -63,7 +71,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsReturnsFalseWhenBufferSubjectNull() {
+        public void SequenceEqualsReturnsFalseWhenBufferSubjectNull()
+        {
             byte[] test1 = null;
             var test2 = Encoding.UTF8.GetBytes("testtesttesttest");
 
@@ -72,7 +81,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsReturnsFalseWhenBufferObjectNull() {
+        public void SequenceEqualsReturnsFalseWhenBufferObjectNull()
+        {
             var test1 = Encoding.UTF8.GetBytes("testtesttesttest");
             byte[] test2 = null;
 
@@ -81,7 +91,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsReturnsTrueWhenSequenceSame() {
+        public void SequenceEqualsReturnsTrueWhenSequenceSame()
+        {
             var test1 = new List<string> { "serf", "sated" };
             var test2 = new List<string> { "serf", "sated" };
 
@@ -90,7 +101,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsReturnsFalseWhenSequenceNotSame1() {
+        public void SequenceEqualsReturnsFalseWhenSequenceNotSame1()
+        {
             var test1 = new List<string> { "serf", "sated" };
             var test2 = new List<string> { "serf", "sated", "data" };
 
@@ -99,7 +111,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsReturnsFalseWhenSequenceNotSame2() {
+        public void SequenceEqualsReturnsFalseWhenSequenceNotSame2()
+        {
             var test1 = new List<string> { "serf", "sated" };
             var test2 = new List<string> { "sated", "serf" };
 
@@ -108,7 +121,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsReturnsTrueWhenBufferSame() {
+        public void SequenceEqualsReturnsTrueWhenBufferSame()
+        {
             var test1 = Encoding.UTF8.GetBytes("testtesttesttest");
             var test2 = Encoding.UTF8.GetBytes("testtesttesttest");
 
@@ -117,7 +131,8 @@ namespace System.Collections.Generic {
         }
 
         [Fact]
-        public void SequenceEqualsReturnsFalseWhenBufferNotSame() {
+        public void SequenceEqualsReturnsFalseWhenBufferNotSame()
+        {
             var test1 = Encoding.UTF8.GetBytes("testtesttesttest");
             var test2 = Encoding.UTF8.GetBytes("testtesttesttesx");
 

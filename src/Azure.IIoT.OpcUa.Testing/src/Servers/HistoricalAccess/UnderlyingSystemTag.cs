@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalAccess {
+namespace HistoricalAccess
+{
     using System;
 
     /// <summary>
@@ -38,7 +39,8 @@ namespace HistoricalAccess {
     /// system has no concept of the UA information model and the NodeManager must
     /// convert the information stored in this class into the UA equivalent.
     /// </remarks>
-    public class UnderlyingSystemTag {
+    public class UnderlyingSystemTag
+    {
         /// <summary>
         /// The block that the tag belongs to
         /// </summary>
@@ -119,7 +121,8 @@ namespace HistoricalAccess {
         /// Creates a snapshot of the tag.
         /// </summary>
         /// <returns>The snapshot.</returns>
-        public UnderlyingSystemTag CreateSnapshot() {
+        public UnderlyingSystemTag CreateSnapshot()
+        {
             return (UnderlyingSystemTag)MemberwiseClone();
         }
     }

@@ -3,21 +3,24 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework {
-    using Microsoft.Azure.IIoT.Module.Framework.Hosting;
+namespace Microsoft.Azure.IIoT.Module.Framework
+{
+    using Autofac;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Module.Client.Default;
+    using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Tasks.Default;
-    using Autofac;
 
     /// <summary>
     /// Injected module framework module
     /// </summary>
-    public sealed class ModuleFramework : Module {
+    public sealed class ModuleFramework : Module
+    {
         /// <inheritdoc/>
-        protected override void Load(ContainerBuilder builder) {
+        protected override void Load(ContainerBuilder builder)
+        {
             builder.RegisterType<EmptyMetricsContext>()
                 .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));
 

@@ -3,23 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App {
-    using Microsoft.Azure.IIoT.App.Runtime;
-    using Microsoft.Azure.IIoT.App.Services;
-    using Microsoft.Azure.IIoT.App.Validation;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
-    using Microsoft.Azure.IIoT.AspNetCore.Storage;
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Components.Authorization;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Logging.Configuration;
+namespace Microsoft.Azure.IIoT.App
+{
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Blazored.Modal;
@@ -27,12 +12,29 @@ namespace Microsoft.Azure.IIoT.App {
     using FluentValidation;
     using global::Azure.IIoT.OpcUa.Services.Sdk;
     using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Components.Authorization;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.Azure.IIoT.App.Runtime;
+    using Microsoft.Azure.IIoT.App.Services;
+    using Microsoft.Azure.IIoT.App.Validation;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Storage;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.Configuration;
     using System;
 
     /// <summary>
     /// Webapp startup
     /// </summary>
-    public class Startup {
+    public class Startup
+    {
         /// <summary>
         /// Configuration - Initialized in constructor
         /// </summary>
@@ -62,7 +64,8 @@ namespace Microsoft.Azure.IIoT.App {
                 // Above configuration providers will provide connection
                 // details for KeyVault configuration provider.
                 .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
-                .Build())) {
+                .Build()))
+        {
         }
 
         /// <summary>
@@ -70,7 +73,8 @@ namespace Microsoft.Azure.IIoT.App {
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IWebHostEnvironment env, Config configuration) {
+        public Startup(IWebHostEnvironment env, Config configuration)
+        {
             Environment = env ?? throw new ArgumentNullException(nameof(env));
             Config = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
@@ -80,7 +84,8 @@ namespace Microsoft.Azure.IIoT.App {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
+        {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
 
             app.UsePathBase();
@@ -97,7 +102,8 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => {
+            app.UseEndpoints(endpoints =>
+            {
                 endpoints.MapControllers();
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
@@ -115,7 +121,8 @@ namespace Microsoft.Azure.IIoT.App {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public void ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services)
+        {
             services.AddLogging(o => o.AddConsole());
             services.AddHeaderForwarding();
 
@@ -128,7 +135,8 @@ namespace Microsoft.Azure.IIoT.App {
             services.AddAzureDataProtection(Config.Configuration);
             services.AddDistributedMemoryCache();
 
-            services.Configure<CookiePolicyOptions>(options => {
+            services.Configure<CookiePolicyOptions>(options =>
+            {
                 // This lambda determines whether user consent for non-essential cookies
                 // is needed for a given request.
                 options.CheckConsentNeeded = context => true;
@@ -162,7 +170,8 @@ namespace Microsoft.Azure.IIoT.App {
         /// Configure dependency injection using autofac.
         /// </summary>
         /// <param name="builder"></param>
-        public void ConfigureContainer(ContainerBuilder builder) {
+        public void ConfigureContainer(ContainerBuilder builder)
+        {
             // Register configuration interfaces and logger
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces().AsSelf().SingleInstance();

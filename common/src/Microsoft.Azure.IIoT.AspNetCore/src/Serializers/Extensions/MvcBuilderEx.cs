@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Extensions.DependencyInjection {
-    using Microsoft.Extensions.Options;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.IIoT.AspNetCore.Serializers;
+namespace Microsoft.Extensions.DependencyInjection
+{
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Azure.IIoT.AspNetCore.Serializers;
+    using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
@@ -17,14 +18,17 @@ namespace Microsoft.Extensions.DependencyInjection {
     /// <summary>
     /// Mvc setup extensions
     /// </summary>
-    public static class MvcBuilderEx {
+    public static class MvcBuilderEx
+    {
         /// <summary>
         /// Add MessagePack serializer
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static IMvcBuilder AddSerializers(this IMvcBuilder builder) {
-            if (builder == null) {
+        public static IMvcBuilder AddSerializers(this IMvcBuilder builder)
+        {
+            if (builder == null)
+            {
                 throw new ArgumentNullException(nameof(builder));
             }
 
@@ -33,15 +37,19 @@ namespace Microsoft.Extensions.DependencyInjection {
 
             // Add all other serializers
             builder.Services.AddTransient<IConfigureOptions<MvcOptions>>(services =>
-                new ConfigureNamedOptions<MvcOptions>(Options.DefaultName, option => {
+                new ConfigureNamedOptions<MvcOptions>(Options.DefaultName, option =>
+                {
                     var serializers = services.GetService<IEnumerable<ISerializer>>();
-                    if (serializers == null) {
+                    if (serializers == null)
+                    {
                         return;
                     }
                     option.OutputFormatters.RemoveType<SerializerOutputFormatter>();
                     option.InputFormatters.RemoveType<SerializerInputFormatter>();
-                    foreach (var serializer in serializers) {
-                        if (serializer is NewtonsoftJsonSerializer) {
+                    foreach (var serializer in serializers)
+                    {
+                        if (serializer is NewtonsoftJsonSerializer)
+                        {
                             continue;  // skip
                         }
                         option.OutputFormatters.Add(new SerializerOutputFormatter(serializer));
@@ -56,8 +64,10 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        internal static IMvcBuilder AddJsonSerializer(this IMvcBuilder builder) {
-            if (builder == null) {
+        internal static IMvcBuilder AddJsonSerializer(this IMvcBuilder builder)
+        {
+            if (builder == null)
+            {
                 throw new ArgumentNullException(nameof(builder));
             }
 
@@ -65,10 +75,12 @@ namespace Microsoft.Extensions.DependencyInjection {
 
             // Configure json serializer settings transiently to pick up all converters
             builder.Services.AddTransient<IConfigureOptions<MvcNewtonsoftJsonOptions>>(services =>
-                new ConfigureNamedOptions<MvcNewtonsoftJsonOptions>(Options.DefaultName, options => {
+                new ConfigureNamedOptions<MvcNewtonsoftJsonOptions>(Options.DefaultName, options =>
+                {
                     var provider = services.GetService<INewtonsoftSerializerSettingsProvider>();
                     var settings = provider?.Settings;
-                    if (settings == null) {
+                    if (settings == null)
+                    {
                         return;
                     }
 
@@ -81,7 +93,8 @@ namespace Microsoft.Extensions.DependencyInjection {
                     options.SerializerSettings.Context = settings.Context;
 
                     var set = new HashSet<JsonConverter>(options.SerializerSettings.Converters);
-                    if (!set.IsProperSupersetOf(settings.Converters)) {
+                    if (!set.IsProperSupersetOf(settings.Converters))
+                    {
                         options.SerializerSettings.Converters =
                             set.MergeWith(settings.Converters).ToList();
                     }

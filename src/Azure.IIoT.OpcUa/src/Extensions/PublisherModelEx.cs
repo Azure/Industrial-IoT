@@ -3,20 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
 
     /// <summary>
     /// Service model extensions for discovery service
     /// </summary>
-    public static class PublisherModelEx {
+    public static class PublisherModelEx
+    {
         /// <summary>
         /// Convert a device id and module to publisher id
         /// </summary>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <returns></returns>
-        public static string CreatePublisherId(string deviceId, string moduleId) {
+        public static string CreatePublisherId(string deviceId, string moduleId)
+        {
             return string.IsNullOrEmpty(moduleId) ? deviceId : $"{deviceId}_module_{moduleId}";
         }
 
@@ -26,14 +29,17 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="publisherId"></param>
         /// <param name="moduleId"></param>
         /// <returns></returns>
-        public static string ParseDeviceId(string publisherId, out string moduleId) {
-            if (string.IsNullOrEmpty(publisherId)) {
+        public static string ParseDeviceId(string publisherId, out string moduleId)
+        {
+            if (string.IsNullOrEmpty(publisherId))
+            {
                 moduleId = null;
                 return null;
             }
             var components = publisherId.Split(new string[] { "_module_" },
                 StringSplitOptions.RemoveEmptyEntries);
-            if (components.Length == 2) {
+            if (components.Length == 2)
+            {
                 moduleId = components[1];
                 return components[0];
             }

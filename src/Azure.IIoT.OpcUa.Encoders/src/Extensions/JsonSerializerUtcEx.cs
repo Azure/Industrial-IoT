@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders {
+namespace Azure.IIoT.OpcUa.Encoders
+{
     using Opc.Ua;
     using System;
     using System.Globalization;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
     /// <summary>
     /// Json serializer settings extensions
     /// </summary>
-    public static class JsonSerializerUtcEx {
+    public static class JsonSerializerUtcEx
+    {
         /// <summary>
         /// Constant for OpcUa JSON encoded DateTime.MinValue.
         /// </summary>
@@ -30,14 +32,18 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <summary>
         /// Convert to OpcUa JSON Encoded Utc string.
         /// </summary>
-        public static string ToOpcUaJsonEncodedTime(this DateTime dateTime) {
-            if (dateTime <= DateTime.MinValue) {
+        public static string ToOpcUaJsonEncodedTime(this DateTime dateTime)
+        {
+            if (dateTime <= DateTime.MinValue)
+            {
                 return OpcUaDateTimeMinValue;
             }
-            else if (dateTime >= kDateTimeMaxJsonValue) {
+            else if (dateTime >= kDateTimeMaxJsonValue)
+            {
                 return OpcUaDateTimeMaxValue;
             }
-            else {
+            else
+            {
                 return dateTime.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                     CultureInfo.InvariantCulture);
             }
@@ -46,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <summary>
         /// Convert DataValue timestamps to OpcUa Encoded Utc.
         /// </summary>
-        public static DataValue ToOpcUaUniversalTime(this DataValue dataValue) {
+        public static DataValue ToOpcUaUniversalTime(this DataValue dataValue)
+        {
             dataValue.SourceTimestamp = dataValue.SourceTimestamp.ToOpcUaUniversalTime();
             dataValue.ServerTimestamp = dataValue.ServerTimestamp.ToOpcUaUniversalTime();
             return dataValue;
@@ -57,15 +64,20 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// The result is DateTime.MinValue, DateTime.MaxValue or
         /// the Utc kind.
         /// </summary>
-        public static DateTime ToOpcUaUniversalTime(this DateTime dateTime) {
-            if (dateTime <= DateTime.MinValue) {
+        public static DateTime ToOpcUaUniversalTime(this DateTime dateTime)
+        {
+            if (dateTime <= DateTime.MinValue)
+            {
                 return DateTime.MinValue;
             }
-            else if (dateTime >= kDateTimeMaxJsonValue) {
+            else if (dateTime >= kDateTimeMaxJsonValue)
+            {
                 return DateTime.MaxValue;
             }
-            else {
-                if (dateTime.Kind != DateTimeKind.Utc) {
+            else
+            {
+                if (dateTime.Kind != DateTimeKind.Utc)
+                {
                     return dateTime.ToUniversalTime();
                 }
             }

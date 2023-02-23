@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Handlers {
+namespace Azure.IIoT.OpcUa.Services.Handlers
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Hub;
@@ -17,7 +18,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
     /// <summary>
     /// Discovery progress handling
     /// </summary>
-    public sealed class DiscoveryProgressHandler : IDeviceTelemetryHandler {
+    public sealed class DiscoveryProgressHandler : IDeviceTelemetryHandler
+    {
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.DiscoveryMessage;
 
@@ -28,7 +30,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public DiscoveryProgressHandler(IEnumerable<IDiscoveryProgressProcessor> handlers,
-            IJsonSerializer serializer, ILogger logger) {
+            IJsonSerializer serializer, ILogger logger)
+        {
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
             _logger = logger ??
@@ -39,27 +42,33 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
 
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
+            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint)
+        {
             DiscoveryProgressModel discovery;
-            try {
+            try
+            {
                 discovery = _serializer.Deserialize<DiscoveryProgressModel>(payload);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Failed to convert discovery message {Json}",
                     Encoding.UTF8.GetString(payload));
                 return;
             }
-            try {
+            try
+            {
                 await Task.WhenAll(_handlers.Select(h => h.OnDiscoveryProgressAsync(discovery))).ConfigureAwait(false);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex,
                     "Publishing discovery message failed with exception - skip");
             }
         }
 
         /// <inheritdoc/>
-        public Task OnBatchCompleteAsync() {
+        public Task OnBatchCompleteAsync()
+        {
             return Task.CompletedTask;
         }
 

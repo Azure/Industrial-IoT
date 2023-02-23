@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
+namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter
+{
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
@@ -13,18 +14,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
     /// <summary>
     /// Implements node services as adapter on top of twin api.
     /// </summary>
-    public sealed class PublisherApiAdapter : ICertificateServices<EndpointModel> {
+    public sealed class PublisherApiAdapter : ICertificateServices<EndpointModel>
+    {
         /// <summary>
         /// Create adapter
         /// </summary>
         /// <param name="client"></param>
-        public PublisherApiAdapter(IDiscoveryApi client) {
+        public PublisherApiAdapter(IDiscoveryApi client)
+        {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         /// <inheritdoc/>
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
-            EndpointModel endpoint, CancellationToken ct) {
+            EndpointModel endpoint, CancellationToken ct)
+        {
             return await _client.GetEndpointCertificateAsync(endpoint, ct).ConfigureAwait(false);
         }
 

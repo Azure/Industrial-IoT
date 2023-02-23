@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests
+{
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Shared.Models;
@@ -18,18 +19,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests {
     using Xunit;
 
     [Collection(WriteCollection.Name)]
-    public class ValueWriteArrayTests {
-        public ValueWriteArrayTests(TestServerFixture server) {
+    public class ValueWriteArrayTests
+    {
+        public ValueWriteArrayTests(TestServerFixture server)
+        {
             _server = server;
             _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
-        private WriteArrayValueTests<ConnectionModel> GetTests() {
+        private WriteArrayValueTests<ConnectionModel> GetTests()
+        {
             return new WriteArrayValueTests<ConnectionModel>(
                 () => new NodeServices<ConnectionModel>(_server.Client,
-                    _server.Logger), new ConnectionModel {
-                        Endpoint = new EndpointModel {
+                    _server.Logger), new ConnectionModel
+                    {
+                        Endpoint = new EndpointModel
+                        {
                             Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                             AlternativeUrls = _hostEntry?.AddressList
                         .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
@@ -43,157 +49,188 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests {
         private readonly IPHostEntry _hostEntry;
 
         [Fact]
-        public async Task NodeWriteStaticArrayBooleanValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayBooleanValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayBooleanValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArraySByteValueVariableTestAsync() {
+        public async Task NodeWriteStaticArraySByteValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArraySByteValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayByteValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayByteValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayByteValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayInt16ValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayInt16ValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayInt16ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayUInt16ValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayUInt16ValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayUInt16ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayInt32ValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayInt32ValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayInt32ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayUInt32ValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayUInt32ValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayUInt32ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayInt64ValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayInt64ValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayInt64ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayUInt64ValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayUInt64ValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayUInt64ValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayFloatValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayFloatValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayFloatValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayDoubleValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayDoubleValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayDoubleValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayStringValueVariableTest1Async() {
+        public async Task NodeWriteStaticArrayStringValueVariableTest1Async()
+        {
             await GetTests().NodeWriteStaticArrayStringValueVariableTest1Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayStringValueVariableTest2Async() {
+        public async Task NodeWriteStaticArrayStringValueVariableTest2Async()
+        {
             await GetTests().NodeWriteStaticArrayStringValueVariableTest2Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayDateTimeValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayDateTimeValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayDateTimeValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayGuidValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayGuidValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayGuidValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayByteStringValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayByteStringValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayByteStringValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayXmlElementValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayXmlElementValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayXmlElementValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayNodeIdValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayNodeIdValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayNodeIdValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayExpandedNodeIdValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayExpandedNodeIdValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayExpandedNodeIdValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayQualifiedNameValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayQualifiedNameValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayQualifiedNameValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayLocalizedTextValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayLocalizedTextValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayLocalizedTextValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayStatusCodeValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayStatusCodeValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayStatusCodeValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayVariantValueVariableTest1Async() {
+        public async Task NodeWriteStaticArrayVariantValueVariableTest1Async()
+        {
             await GetTests().NodeWriteStaticArrayVariantValueVariableTest1Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayEnumerationValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayEnumerationValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayEnumerationValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayStructureValueVariableTestAsync() {
+        public async Task NodeWriteStaticArrayStructureValueVariableTestAsync()
+        {
             await GetTests().NodeWriteStaticArrayStructureValueVariableTestAsync().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayNumberValueVariableTest1Async() {
+        public async Task NodeWriteStaticArrayNumberValueVariableTest1Async()
+        {
             await GetTests().NodeWriteStaticArrayNumberValueVariableTest1Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayNumberValueVariableTest2Async() {
+        public async Task NodeWriteStaticArrayNumberValueVariableTest2Async()
+        {
             await GetTests().NodeWriteStaticArrayNumberValueVariableTest2Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayIntegerValueVariableTest1Async() {
+        public async Task NodeWriteStaticArrayIntegerValueVariableTest1Async()
+        {
             await GetTests().NodeWriteStaticArrayIntegerValueVariableTest1Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayIntegerValueVariableTest2Async() {
+        public async Task NodeWriteStaticArrayIntegerValueVariableTest2Async()
+        {
             await GetTests().NodeWriteStaticArrayIntegerValueVariableTest2Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayUIntegerValueVariableTest1Async() {
+        public async Task NodeWriteStaticArrayUIntegerValueVariableTest1Async()
+        {
             await GetTests().NodeWriteStaticArrayUIntegerValueVariableTest1Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeWriteStaticArrayUIntegerValueVariableTest2Async() {
+        public async Task NodeWriteStaticArrayUIntegerValueVariableTest2Async()
+        {
             await GetTests().NodeWriteStaticArrayUIntegerValueVariableTest2Async().ConfigureAwait(false);
         }
     }

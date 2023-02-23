@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Handlers {
+namespace Azure.IIoT.OpcUa.Services.Handlers
+{
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
     /// <summary>
     /// Gateway event handler.
     /// </summary>
-    public sealed class RegistryLifecycleHandler : IDeviceTelemetryHandler {
+    public sealed class RegistryLifecycleHandler : IDeviceTelemetryHandler
+    {
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.DeviceLifecycleNotification;
 
@@ -41,7 +43,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
             IApplicationRegistryListener applications = null,
             IEndpointRegistryListener endpoints = null,
             ISupervisorRegistryListener supervisors = null,
-            IDiscovererRegistryListener discoverers = null) {
+            IDiscovererRegistryListener discoverers = null)
+        {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -56,36 +59,44 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
 
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
+            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint)
+        {
             if (!properties.TryGetValue("opType", out var opType) ||
-                !properties.TryGetValue("operationTimestamp", out var ts)) {
+                !properties.TryGetValue("operationTimestamp", out var ts))
+            {
                 return;
             }
             _ = DateTime.TryParse(ts, out var timestamp);
-            if (timestamp + TimeSpan.FromSeconds(10) < DateTime.UtcNow) {
+            if (timestamp + TimeSpan.FromSeconds(10) < DateTime.UtcNow)
+            {
                 // Drop twin events that are too far in our past.
                 _logger.LogDebug("Skipping {Event} from {DeviceId}({ModuleId}) from {Ts}.",
                     opType, deviceId, moduleId, timestamp);
                 return;
             }
             var twin = Try.Op(() => _serializer.Deserialize<DeviceTwinModel>(payload));
-            if (twin == null) {
+            if (twin == null)
+            {
                 return;
             }
             twin.ModuleId ??= moduleId;
             twin.Id ??= deviceId;
             var type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
-            if (string.IsNullOrEmpty(type)) {
-                try {
+            if (string.IsNullOrEmpty(type))
+            {
+                try
+                {
                     twin = await _iothub.GetAsync(deviceId, moduleId).ConfigureAwait(false);
                     type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _logger.LogInformation(ex, "Failed to materialize twin from registry.");
                     return;
                 }
             }
-            switch (opType) {
+            switch (opType)
+            {
                 case "createDeviceIdentity":
                 case "createModuleIdentity":
                     await HandleCreateAsync(twin, timestamp).ConfigureAwait(false);
@@ -103,12 +114,15 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <param name="twin"></param>
         /// <param name="timestamp"></param>
         /// <returns></returns>
-        private async Task HandleDeleteAsync(DeviceTwinModel twin, DateTime timestamp) {
+        private async Task HandleDeleteAsync(DeviceTwinModel twin, DateTime timestamp)
+        {
             var type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
-            var ctx = new OperationContextModel {
+            var ctx = new OperationContextModel
+            {
                 Time = timestamp
             };
-            switch (type) {
+            switch (type)
+            {
                 case IdentityType.Gateway:
                     await (_gateways?.OnGatewayDeletedAsync(ctx, twin.Id)).ConfigureAwait(false);
                     break;
@@ -137,12 +151,15 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <param name="twin"></param>
         /// <param name="timestamp"></param>
         /// <returns></returns>
-        private async Task HandleCreateAsync(DeviceTwinModel twin, DateTime timestamp) {
+        private async Task HandleCreateAsync(DeviceTwinModel twin, DateTime timestamp)
+        {
             var type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
-            var ctx = new OperationContextModel {
+            var ctx = new OperationContextModel
+            {
                 Time = timestamp
             };
-            switch (type) {
+            switch (type)
+            {
                 case IdentityType.Gateway:
                     await (_gateways?.OnGatewayNewAsync(ctx,
                         twin.ToGatewayRegistration().ToServiceModel())).ConfigureAwait(false);
@@ -167,7 +184,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         }
 
         /// <inheritdoc/>
-        public Task OnBatchCompleteAsync() {
+        public Task OnBatchCompleteAsync()
+        {
             return Task.CompletedTask;
         }
 

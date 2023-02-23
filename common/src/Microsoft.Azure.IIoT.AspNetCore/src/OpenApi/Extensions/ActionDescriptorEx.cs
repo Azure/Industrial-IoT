@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.OpenApi.Models {
+namespace Microsoft.OpenApi.Models
+{
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -15,7 +16,8 @@ namespace Microsoft.OpenApi.Models {
     /// <summary>
     /// ActionDescriptorCollectionProvider extensions
     /// </summary>
-    public static class ActionDescriptorEx {
+    public static class ActionDescriptorEx
+    {
         /// <summary>
         /// Collect configured scopes from all controllers registered as services
         /// </summary>
@@ -23,7 +25,8 @@ namespace Microsoft.OpenApi.Models {
         /// <param name="options"></param>
         /// <returns></returns>
         public static IEnumerable<string> GetRequiredScopes(
-            this IActionDescriptorCollectionProvider services, IOptions<AuthorizationOptions> options) {
+            this IActionDescriptorCollectionProvider services, IOptions<AuthorizationOptions> options)
+        {
             return services.ActionDescriptors.Items
                 .OfType<ControllerActionDescriptor>()
                 .Cast<ControllerActionDescriptor>()
@@ -39,24 +42,29 @@ namespace Microsoft.OpenApi.Models {
         /// <param name="description"></param>
         /// <returns></returns>
         public static IEnumerable<OpenApiInfo> GetOpenApiInfos(
-            this IActionDescriptorCollectionProvider services, string title, string description) {
+            this IActionDescriptorCollectionProvider services, string title, string description)
+        {
             var versions = services.ActionDescriptors.Items
                 .OfType<ControllerActionDescriptor>()
                 .Cast<ControllerActionDescriptor>()
                 .SelectMany(d => d.GetApiVersions())
                 .Distinct()
                 .ToList(); ;
-            if (versions.Count == 0) {
+            if (versions.Count == 0)
+            {
                 versions.Add("1");
             }
-            return versions.Select(version => new OpenApiInfo {
+            return versions.Select(version => new OpenApiInfo
+            {
                 Title = title ?? "Api",
                 Description = description ?? "Api",
                 Version = "v" + version,
-                Contact = new OpenApiContact {
+                Contact = new OpenApiContact
+                {
                     Url = new Uri("https://www.github.com/Azure/Industrial-IoT"),
                 },
-                License = new OpenApiLicense() {
+                License = new OpenApiLicense()
+                {
                     Name = "MIT LICENSE",
                     Url = new Uri("https://opensource.org/licenses/MIT")
                 }

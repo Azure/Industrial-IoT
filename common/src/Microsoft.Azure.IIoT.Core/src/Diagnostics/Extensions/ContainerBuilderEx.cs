@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Autofac {
+namespace Autofac
+{
     using Autofac.Core.Registration;
     using Furly.Extensions.Logging;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -14,7 +15,8 @@ namespace Autofac {
     /// <summary>
     /// Register console logger
     /// </summary>
-    public static class ContainerBuilderEx {
+    public static class ContainerBuilderEx
+    {
         /// <summary>
         /// Register trace logger
         /// </summary>
@@ -22,8 +24,10 @@ namespace Autofac {
         /// <param name="configure"></param>
         /// <returns></returns>
         public static IModuleRegistrar AddDiagnostics(this ContainerBuilder builder,
-            Action<ILoggingBuilder> configure = null) {
-            if (builder == null) {
+            Action<ILoggingBuilder> configure = null)
+        {
+            if (builder == null)
+            {
                 throw new ArgumentNullException(nameof(builder));
             }
             configure ??= _ => { };

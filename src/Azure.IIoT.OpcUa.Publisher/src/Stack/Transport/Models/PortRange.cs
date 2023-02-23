@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
+{
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
@@ -15,7 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
     /// <summary>
     /// A port range
     /// </summary>
-    public sealed class PortRange {
+    public sealed class PortRange
+    {
         /// <summary>
         /// Number of ports in range
         /// </summary>
@@ -26,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="lower"></param>
         /// <param name="upper"></param>
-        public PortRange(int lower, int upper) {
+        public PortRange(int lower, int upper)
+        {
             _lower = Math.Max(IPEndPoint.MinPort, Math.Min(lower, upper));
             _upper = Math.Min(IPEndPoint.MaxPort, Math.Max(lower, upper));
         }
@@ -36,22 +39,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="value"></param>
         public PortRange(int value) :
-            this(value, value) {
+            this(value, value)
+        {
         }
 
         /// <summary>
         /// Yield endpoints
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<IPEndPoint> GetEndpoints(IPAddress address) {
-            for (var port = _lower; port <= _upper; port++) {
+        public IEnumerable<IPEndPoint> GetEndpoints(IPAddress address)
+        {
+            for (var port = _lower; port <= _upper; port++)
+            {
                 yield return new IPEndPoint(address, port);
             }
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object? obj) {
-            if (obj is not PortRange range) {
+        public override bool Equals(object? obj)
+        {
+            if (obj is not PortRange range)
+            {
                 return false;
             }
             return _lower == range._lower && _upper == range._upper;
@@ -65,7 +73,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
             !(range1 == range2);
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return HashCode.Combine(_lower, _upper);
         }
 
@@ -74,7 +83,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool Contains(int value) {
+        public bool Contains(int value)
+        {
             return value >= _lower && value <= _upper;
         }
 
@@ -83,7 +93,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public bool Overlaps(PortRange other) {
+        public bool Overlaps(PortRange other)
+        {
             return
                 Contains(other._lower) ||
                 Contains(other._upper) ||
@@ -92,7 +103,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         }
 
         /// <inheritdoc/>
-        public override string ToString() {
+        public override string ToString()
+        {
             var sb = new StringBuilder();
             AppendTo(sb);
             return sb.ToString();
@@ -108,12 +120,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// <param name="ranges"></param>
         /// <returns></returns>
         public static bool TryParse(string value,
-            [NotNullWhen(true)] out IEnumerable<PortRange>? ranges) {
-            try {
+            [NotNullWhen(true)] out IEnumerable<PortRange>? ranges)
+        {
+            try
+            {
                 ranges = Parse(value);
                 return true;
             }
-            catch {
+            catch
+            {
                 ranges = null;
                 return false;
             }
@@ -124,11 +139,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="ranges"></param>
         /// <returns></returns>
-        public static string Format(IEnumerable<PortRange> ranges) {
+        public static string Format(IEnumerable<PortRange> ranges)
+        {
             var sb = new StringBuilder();
             var first = true;
-            foreach (var range in ranges) {
-                if (!first) {
+            foreach (var range in ranges)
+            {
+                if (!first)
+                {
                     sb.Append(';');
                 }
                 first = false;
@@ -142,11 +160,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static IEnumerable<PortRange> Parse(string value) {
+        public static IEnumerable<PortRange> Parse(string value)
+        {
             var parsed = value.Split(new char[] { ';', ',' },
-                StringSplitOptions.RemoveEmptyEntries).Select(s => {
+                StringSplitOptions.RemoveEmptyEntries).Select(s =>
+                {
                     var x = s.Split('-');
-                    if (x.Length > 2) {
+                    if (x.Length > 2)
+                    {
                         throw new FormatException("Bad range format");
                     }
                     var lows = x[0].Trim();
@@ -155,16 +176,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
                     var lowsInt = IPEndPoint.MinPort;
                     var highsInt = IPEndPoint.MaxPort;
 
-                    if (lows != "*") {
+                    if (lows != "*")
+                    {
                         lowsInt = int.Parse(lows, CultureInfo.InvariantCulture);
                     }
-                    if (highs != "*") {
+                    if (highs != "*")
+                    {
                         highsInt = int.Parse(highs, CultureInfo.InvariantCulture);
                     }
 
                     if (lowsInt < IPEndPoint.MinPort ||
                         highsInt > IPEndPoint.MaxPort ||
-                        lowsInt > highsInt) {
+                        lowsInt > highsInt)
+                    {
                         throw new ArgumentException("Port numbers are out of the range", nameof(value));
                     }
 
@@ -177,8 +201,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// Opc ua ports
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<PortRange> OpcUa {
-            get {
+        public static IEnumerable<PortRange> OpcUa
+        {
+            get
+            {
                 yield return new PortRange(4840, 4841);
             }
         }
@@ -187,8 +213,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// Well known opc ua ports
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<PortRange> WellKnown {
-            get {
+        public static IEnumerable<PortRange> WellKnown
+        {
+            get
+            {
                 yield return new PortRange(4840, 4841);
                 yield return new PortRange(48000, 48100);
                 yield return new PortRange(49320);
@@ -204,8 +232,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// All possible ports
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<PortRange> All {
-            get {
+        public static IEnumerable<PortRange> All
+        {
+            get
+            {
                 yield return new PortRange(IPEndPoint.MinPort, IPEndPoint.MaxPort);
             }
         }
@@ -214,8 +244,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// All IANA unassigned ports
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<PortRange> Unassigned {
-            get {
+        public static IEnumerable<PortRange> Unassigned
+        {
+            get
+            {
                 yield return new PortRange(4);
                 yield return new PortRange(6);
                 yield return new PortRange(8);
@@ -1047,25 +1079,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// Append to builder
         /// </summary>
         /// <param name="sb"></param>
-        private void AppendTo(StringBuilder sb) {
-            if (IPEndPoint.MinPort == _lower) {
-                if (_upper == IPEndPoint.MaxPort) {
+        private void AppendTo(StringBuilder sb)
+        {
+            if (IPEndPoint.MinPort == _lower)
+            {
+                if (_upper == IPEndPoint.MaxPort)
+                {
                     sb.Append('*');
                     return;
                 }
                 sb.Append('0');
             }
-            else {
+            else
+            {
                 sb.Append(_lower);
             }
-            if (_lower == _upper) {
+            if (_lower == _upper)
+            {
                 return;
             }
             sb.Append('-');
-            if (IPEndPoint.MaxPort == _upper) {
+            if (IPEndPoint.MaxPort == _upper)
+            {
                 sb.Append('*');
             }
-            else {
+            else
+            {
                 sb.Append(_upper);
             }
         }
@@ -1075,23 +1114,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="ranges"></param>
         /// <returns></returns>
-        private static IEnumerable<PortRange> Merge(IEnumerable<PortRange> ranges) {
+        private static IEnumerable<PortRange> Merge(IEnumerable<PortRange> ranges)
+        {
             var results = new Stack<PortRange>();
-            if (ranges != null) {
-                foreach (var range in ranges.OrderBy(k => k._lower)) {
-                    if (results.Count == 0) {
+            if (ranges != null)
+            {
+                foreach (var range in ranges.OrderBy(k => k._lower))
+                {
+                    if (results.Count == 0)
+                    {
                         results.Push(range);
                     }
-                    else {
+                    else
+                    {
                         var top = results.Peek();
-                        if (top.Overlaps(range)) {
+                        if (top.Overlaps(range))
+                        {
                             var union = new PortRange(
                                 top._lower < range._lower ? top._lower : range._lower,
                                 top._upper > range._upper ? top._upper : range._upper);
                             results.Pop();
                             results.Push(union);
                         }
-                        else {
+                        else
+                        {
                             results.Push(range);
                         }
                     }

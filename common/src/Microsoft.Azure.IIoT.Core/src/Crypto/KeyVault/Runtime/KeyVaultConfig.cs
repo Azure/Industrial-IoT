@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime {
+namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <inheritdoc/>
-    public class KeyVaultConfig : ConfigBase, IKeyVaultConfig {
+    public class KeyVaultConfig : ConfigBase, IKeyVaultConfig
+    {
         /// <summary>
         /// Key Vault configuration
         /// </summary>
@@ -29,7 +31,8 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public KeyVaultConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

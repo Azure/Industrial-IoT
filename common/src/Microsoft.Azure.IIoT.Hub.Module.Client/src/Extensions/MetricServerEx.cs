@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client
+{
     using Microsoft.Extensions.Logging;
     using Prometheus;
     using System.Net;
@@ -11,22 +12,28 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// <summary>
     /// Metric Server extensions
     /// </summary>
-    public static class MetricServerEx {
+    public static class MetricServerEx
+    {
         /// <summary>
         /// Start metric server
         /// </summary>
         /// <returns></returns>
-        public static void StartWhenEnabled(this IMetricServer server, IModuleConfig config, ILogger logger) {
-            if (config.EnableMetrics) {
-                try {
+        public static void StartWhenEnabled(this IMetricServer server, IModuleConfig config, ILogger logger)
+        {
+            if (config.EnableMetrics)
+            {
+                try
+                {
                     server.Start();
                     logger.LogInformation("Prometheus metric server started.");
                 }
-                catch (HttpListenerException e) {
+                catch (HttpListenerException e)
+                {
                     logger.LogError(e, "Unable to start metric server. For more info, please check troubleshooting guide for edge metrics collection");
                 }
             }
-            else {
+            else
+            {
                 logger.LogInformation("Metrics Collection is disabled. Not starting prometheus metric server.");
             }
         }
@@ -35,8 +42,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Stop metric server if enabled
         /// </summary>
         /// <returns></returns>
-        public static void StopWhenEnabled(this IMetricServer server, IModuleConfig config, ILogger logger) {
-            if (config.EnableMetrics) {
+        public static void StopWhenEnabled(this IMetricServer server, IModuleConfig config, ILogger logger)
+        {
+            if (config.EnableMetrics)
+            {
                 server.Stop(); ;
                 logger.LogInformation("Stopped prometheus metric server");
             }

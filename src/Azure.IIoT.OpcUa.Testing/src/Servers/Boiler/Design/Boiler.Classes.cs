@@ -27,11 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using Opc.Ua;
 using System;
 using System.Collections.Generic;
-using Opc.Ua;
 
-namespace Boiler {
+namespace Boiler
+{
     #region GenericControllerState Class
 #if !OPCUA_EXCLUDE_GenericControllerState
     /// <summary>
@@ -39,18 +40,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class GenericControllerState : BaseObjectState {
+    public partial class GenericControllerState : BaseObjectState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public GenericControllerState(NodeState parent) : base(parent) {
+        public GenericControllerState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.GenericControllerType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -58,7 +62,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -66,7 +71,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -74,7 +80,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -90,14 +97,21 @@ namespace Boiler {
         #endregion
 
         #region Public Properties
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public PropertyState<double> Measurement {
-            get {
+        public PropertyState<double> Measurement
+        {
+            get
+            {
                 return m_measurement;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_measurement, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_measurement, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -105,14 +119,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public PropertyState<double> SetPoint {
-            get {
+        public PropertyState<double> SetPoint
+        {
+            get
+            {
                 return m_setPoint;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_setPoint, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_setPoint, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -120,14 +141,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public PropertyState<double> ControlOut {
-            get {
+        public PropertyState<double> ControlOut
+        {
+            get
+            {
                 return m_controlOut;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_controlOut, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_controlOut, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -144,16 +172,20 @@ namespace Boiler {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_measurement != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_measurement != null)
+            {
                 children.Add(m_measurement);
             }
 
-            if (m_setPoint != null) {
+            if (m_setPoint != null)
+            {
                 children.Add(m_setPoint);
             }
 
-            if (m_controlOut != null) {
+            if (m_controlOut != null)
+            {
                 children.Add(m_controlOut);
             }
 
@@ -167,21 +199,29 @@ namespace Boiler {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Boiler.BrowseNames.Measurement: {
-                        if (createOrReplace) {
-                            if (Measurement == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Boiler.BrowseNames.Measurement:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Measurement == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Measurement = new PropertyState<double>(this);
                                 }
-                                else {
+                                else
+                                {
                                     Measurement = (PropertyState<double>)replacement;
                                 }
                             }
@@ -191,13 +231,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.SetPoint: {
-                        if (createOrReplace) {
-                            if (SetPoint == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.SetPoint:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (SetPoint == null)
+                            {
+                                if (replacement == null)
+                                {
                                     SetPoint = new PropertyState<double>(this);
                                 }
-                                else {
+                                else
+                                {
                                     SetPoint = (PropertyState<double>)replacement;
                                 }
                             }
@@ -207,13 +252,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.ControlOut: {
-                        if (createOrReplace) {
-                            if (ControlOut == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.ControlOut:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (ControlOut == null)
+                            {
+                                if (replacement == null)
+                                {
                                     ControlOut = new PropertyState<double>(this);
                                 }
-                                else {
+                                else
+                                {
                                     ControlOut = (PropertyState<double>)replacement;
                                 }
                             }
@@ -244,18 +294,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class GenericSensorState : BaseObjectState {
+    public partial class GenericSensorState : BaseObjectState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public GenericSensorState(NodeState parent) : base(parent) {
+        public GenericSensorState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.GenericSensorType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -263,7 +316,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -271,7 +325,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -279,7 +334,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -295,13 +351,17 @@ namespace Boiler {
 
         #region Public Properties
         /// <remarks />
-        public AnalogItemState<double> Output {
-            get {
+        public AnalogItemState<double> Output
+        {
+            get
+            {
                 return m_output;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_output, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_output, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -318,8 +378,10 @@ namespace Boiler {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_output != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_output != null)
+            {
                 children.Add(m_output);
             }
 
@@ -333,21 +395,29 @@ namespace Boiler {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Boiler.BrowseNames.Output: {
-                        if (createOrReplace) {
-                            if (Output == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Boiler.BrowseNames.Output:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Output == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Output = new AnalogItemState<double>(this);
                                 }
-                                else {
+                                else
+                                {
                                     Output = (AnalogItemState<double>)replacement;
                                 }
                             }
@@ -358,7 +428,8 @@ namespace Boiler {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 
@@ -380,18 +451,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class GenericActuatorState : BaseObjectState {
+    public partial class GenericActuatorState : BaseObjectState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public GenericActuatorState(NodeState parent) : base(parent) {
+        public GenericActuatorState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.GenericActuatorType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -399,7 +473,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -407,7 +482,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -415,7 +491,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -431,13 +508,17 @@ namespace Boiler {
 
         #region Public Properties
         /// <remarks />
-        public AnalogItemState<double> Input {
-            get {
+        public AnalogItemState<double> Input
+        {
+            get
+            {
                 return m_input;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_input, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_input, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -454,8 +535,10 @@ namespace Boiler {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_input != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_input != null)
+            {
                 children.Add(m_input);
             }
 
@@ -469,21 +552,29 @@ namespace Boiler {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Boiler.BrowseNames.Input: {
-                        if (createOrReplace) {
-                            if (Input == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Boiler.BrowseNames.Input:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Input == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Input = new AnalogItemState<double>(this);
                                 }
-                                else {
+                                else
+                                {
                                     Input = (AnalogItemState<double>)replacement;
                                 }
                             }
@@ -494,7 +585,8 @@ namespace Boiler {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 
@@ -516,18 +608,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class CustomControllerState : BaseObjectState {
+    public partial class CustomControllerState : BaseObjectState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public CustomControllerState(NodeState parent) : base(parent) {
+        public CustomControllerState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.CustomControllerType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -535,7 +630,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -543,7 +639,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -551,7 +648,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -570,13 +668,17 @@ namespace Boiler {
 
         #region Public Properties
         /// <remarks />
-        public PropertyState<double> Input1 {
-            get {
+        public PropertyState<double> Input1
+        {
+            get
+            {
                 return m_input1;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_input1, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_input1, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -585,13 +687,17 @@ namespace Boiler {
         }
 
         /// <remarks />
-        public PropertyState<double> Input2 {
-            get {
+        public PropertyState<double> Input2
+        {
+            get
+            {
                 return m_input2;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_input2, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_input2, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -600,13 +706,17 @@ namespace Boiler {
         }
 
         /// <remarks />
-        public PropertyState<double> Input3 {
-            get {
+        public PropertyState<double> Input3
+        {
+            get
+            {
                 return m_input3;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_input3, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_input3, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -615,13 +725,17 @@ namespace Boiler {
         }
 
         /// <remarks />
-        public PropertyState<double> ControlOut {
-            get {
+        public PropertyState<double> ControlOut
+        {
+            get
+            {
                 return m_controlOut;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_controlOut, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_controlOut, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -630,13 +744,17 @@ namespace Boiler {
         }
 
         /// <remarks />
-        public PropertyState<LocalizedText> DescriptionX {
-            get {
+        public PropertyState<LocalizedText> DescriptionX
+        {
+            get
+            {
                 return m_descriptionX;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_descriptionX, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_descriptionX, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -653,24 +771,30 @@ namespace Boiler {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_input1 != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_input1 != null)
+            {
                 children.Add(m_input1);
             }
 
-            if (m_input2 != null) {
+            if (m_input2 != null)
+            {
                 children.Add(m_input2);
             }
 
-            if (m_input3 != null) {
+            if (m_input3 != null)
+            {
                 children.Add(m_input3);
             }
 
-            if (m_controlOut != null) {
+            if (m_controlOut != null)
+            {
                 children.Add(m_controlOut);
             }
 
-            if (m_descriptionX != null) {
+            if (m_descriptionX != null)
+            {
                 children.Add(m_descriptionX);
             }
 
@@ -684,21 +808,29 @@ namespace Boiler {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Boiler.BrowseNames.Input1: {
-                        if (createOrReplace) {
-                            if (Input1 == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Boiler.BrowseNames.Input1:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Input1 == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Input1 = new PropertyState<double>(this);
                                 }
-                                else {
+                                else
+                                {
                                     Input1 = (PropertyState<double>)replacement;
                                 }
                             }
@@ -708,13 +840,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Input2: {
-                        if (createOrReplace) {
-                            if (Input2 == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.Input2:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Input2 == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Input2 = new PropertyState<double>(this);
                                 }
-                                else {
+                                else
+                                {
                                     Input2 = (PropertyState<double>)replacement;
                                 }
                             }
@@ -724,13 +861,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Input3: {
-                        if (createOrReplace) {
-                            if (Input3 == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.Input3:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Input3 == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Input3 = new PropertyState<double>(this);
                                 }
-                                else {
+                                else
+                                {
                                     Input3 = (PropertyState<double>)replacement;
                                 }
                             }
@@ -740,13 +882,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.ControlOut: {
-                        if (createOrReplace) {
-                            if (ControlOut == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.ControlOut:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (ControlOut == null)
+                            {
+                                if (replacement == null)
+                                {
                                     ControlOut = new PropertyState<double>(this);
                                 }
-                                else {
+                                else
+                                {
                                     ControlOut = (PropertyState<double>)replacement;
                                 }
                             }
@@ -756,13 +903,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.DescriptionX: {
-                        if (createOrReplace) {
-                            if (DescriptionX == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.DescriptionX:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (DescriptionX == null)
+                            {
+                                if (replacement == null)
+                                {
                                     DescriptionX = new PropertyState<LocalizedText>(this);
                                 }
-                                else {
+                                else
+                                {
                                     DescriptionX = (PropertyState<LocalizedText>)replacement;
                                 }
                             }
@@ -773,7 +925,8 @@ namespace Boiler {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 
@@ -799,18 +952,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class ValveState : GenericActuatorState {
+    public partial class ValveState : GenericActuatorState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public ValveState(NodeState parent) : base(parent) {
+        public ValveState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.ValveType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -818,7 +974,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -826,7 +983,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -834,7 +992,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -867,18 +1026,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class LevelControllerState : GenericControllerState {
+    public partial class LevelControllerState : GenericControllerState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public LevelControllerState(NodeState parent) : base(parent) {
+        public LevelControllerState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.LevelControllerType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -886,7 +1048,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -894,7 +1057,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -902,7 +1066,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -936,18 +1101,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class FlowControllerState : GenericControllerState {
+    public partial class FlowControllerState : GenericControllerState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public FlowControllerState(NodeState parent) : base(parent) {
+        public FlowControllerState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.FlowControllerType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -955,7 +1123,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -963,7 +1132,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -971,7 +1141,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -1005,18 +1176,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class LevelIndicatorState : GenericSensorState {
+    public partial class LevelIndicatorState : GenericSensorState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public LevelIndicatorState(NodeState parent) : base(parent) {
+        public LevelIndicatorState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.LevelIndicatorType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -1024,7 +1198,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -1032,7 +1207,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -1040,7 +1216,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -1073,18 +1250,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class FlowTransmitterState : GenericSensorState {
+    public partial class FlowTransmitterState : GenericSensorState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public FlowTransmitterState(NodeState parent) : base(parent) {
+        public FlowTransmitterState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.FlowTransmitterType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -1092,7 +1272,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -1100,7 +1281,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -1108,7 +1290,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -1141,18 +1324,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class BoilerStateMachineState : ProgramStateMachineState {
+    public partial class BoilerStateMachineState : ProgramStateMachineState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public BoilerStateMachineState(NodeState parent) : base(parent) {
+        public BoilerStateMachineState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.BoilerStateMachineType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -1160,7 +1346,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -1168,7 +1355,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -1176,7 +1364,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -1211,14 +1400,21 @@ namespace Boiler {
         #endregion
 
         #region Public Properties
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public PropertyState<uint> UpdateRate {
-            get {
+        public PropertyState<uint> UpdateRate
+        {
+            get
+            {
                 return m_updateRate;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_updateRate, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_updateRate, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1226,14 +1422,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public MethodState Start {
-            get {
+        public MethodState Start
+        {
+            get
+            {
                 return m_startMethod;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_startMethod, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_startMethod, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1241,14 +1444,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public MethodState Suspend {
-            get {
+        public MethodState Suspend
+        {
+            get
+            {
                 return m_suspendMethod;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_suspendMethod, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_suspendMethod, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1256,14 +1466,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public MethodState Resume {
-            get {
+        public MethodState Resume
+        {
+            get
+            {
                 return m_resumeMethod;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_resumeMethod, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_resumeMethod, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1271,14 +1488,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public MethodState Halt {
-            get {
+        public MethodState Halt
+        {
+            get
+            {
                 return m_haltMethod;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_haltMethod, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_haltMethod, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1286,14 +1510,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public MethodState Reset {
-            get {
+        public MethodState Reset
+        {
+            get
+            {
                 return m_resetMethod;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_resetMethod, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_resetMethod, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1310,28 +1541,35 @@ namespace Boiler {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_updateRate != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_updateRate != null)
+            {
                 children.Add(m_updateRate);
             }
 
-            if (m_startMethod != null) {
+            if (m_startMethod != null)
+            {
                 children.Add(m_startMethod);
             }
 
-            if (m_suspendMethod != null) {
+            if (m_suspendMethod != null)
+            {
                 children.Add(m_suspendMethod);
             }
 
-            if (m_resumeMethod != null) {
+            if (m_resumeMethod != null)
+            {
                 children.Add(m_resumeMethod);
             }
 
-            if (m_haltMethod != null) {
+            if (m_haltMethod != null)
+            {
                 children.Add(m_haltMethod);
             }
 
-            if (m_resetMethod != null) {
+            if (m_resetMethod != null)
+            {
                 children.Add(m_resetMethod);
             }
 
@@ -1345,21 +1583,29 @@ namespace Boiler {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Boiler.BrowseNames.UpdateRate: {
-                        if (createOrReplace) {
-                            if (UpdateRate == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Boiler.BrowseNames.UpdateRate:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (UpdateRate == null)
+                            {
+                                if (replacement == null)
+                                {
                                     UpdateRate = new PropertyState<uint>(this);
                                 }
-                                else {
+                                else
+                                {
                                     UpdateRate = (PropertyState<uint>)replacement;
                                 }
                             }
@@ -1369,13 +1615,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Start: {
-                        if (createOrReplace) {
-                            if (Start == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.Start:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Start == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Start = new MethodState(this);
                                 }
-                                else {
+                                else
+                                {
                                     Start = (MethodState)replacement;
                                 }
                             }
@@ -1385,13 +1636,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Suspend: {
-                        if (createOrReplace) {
-                            if (Suspend == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.Suspend:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Suspend == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Suspend = new MethodState(this);
                                 }
-                                else {
+                                else
+                                {
                                     Suspend = (MethodState)replacement;
                                 }
                             }
@@ -1401,13 +1657,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Resume: {
-                        if (createOrReplace) {
-                            if (Resume == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.Resume:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Resume == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Resume = new MethodState(this);
                                 }
-                                else {
+                                else
+                                {
                                     Resume = (MethodState)replacement;
                                 }
                             }
@@ -1417,13 +1678,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Halt: {
-                        if (createOrReplace) {
-                            if (Halt == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.Halt:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Halt == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Halt = new MethodState(this);
                                 }
-                                else {
+                                else
+                                {
                                     Halt = (MethodState)replacement;
                                 }
                             }
@@ -1433,13 +1699,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Reset: {
-                        if (createOrReplace) {
-                            if (Reset == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.Reset:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Reset == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Reset = new MethodState(this);
                                 }
-                                else {
+                                else
+                                {
                                     Reset = (MethodState)replacement;
                                 }
                             }
@@ -1473,18 +1744,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class BoilerInputPipeState : FolderState {
+    public partial class BoilerInputPipeState : FolderState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public BoilerInputPipeState(NodeState parent) : base(parent) {
+        public BoilerInputPipeState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.BoilerInputPipeType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -1492,7 +1766,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -1500,7 +1775,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -1508,7 +1784,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -1528,13 +1805,17 @@ namespace Boiler {
 
         #region Public Properties
         /// <remarks />
-        public FlowTransmitterState FlowTransmitter1 {
-            get {
+        public FlowTransmitterState FlowTransmitter1
+        {
+            get
+            {
                 return m_flowTransmitter1;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_flowTransmitter1, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_flowTransmitter1, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1543,13 +1824,17 @@ namespace Boiler {
         }
 
         /// <remarks />
-        public ValveState Valve {
-            get {
+        public ValveState Valve
+        {
+            get
+            {
                 return m_valve;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_valve, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_valve, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1566,12 +1851,15 @@ namespace Boiler {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_flowTransmitter1 != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_flowTransmitter1 != null)
+            {
                 children.Add(m_flowTransmitter1);
             }
 
-            if (m_valve != null) {
+            if (m_valve != null)
+            {
                 children.Add(m_valve);
             }
 
@@ -1585,21 +1873,29 @@ namespace Boiler {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Boiler.BrowseNames.FlowTransmitter1: {
-                        if (createOrReplace) {
-                            if (FlowTransmitter1 == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Boiler.BrowseNames.FlowTransmitter1:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (FlowTransmitter1 == null)
+                            {
+                                if (replacement == null)
+                                {
                                     FlowTransmitter1 = new FlowTransmitterState(this);
                                 }
-                                else {
+                                else
+                                {
                                     FlowTransmitter1 = (FlowTransmitterState)replacement;
                                 }
                             }
@@ -1609,13 +1905,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Valve: {
-                        if (createOrReplace) {
-                            if (Valve == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.Valve:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Valve == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Valve = new ValveState(this);
                                 }
-                                else {
+                                else
+                                {
                                     Valve = (ValveState)replacement;
                                 }
                             }
@@ -1626,7 +1927,8 @@ namespace Boiler {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 
@@ -1649,18 +1951,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class BoilerDrumState : FolderState {
+    public partial class BoilerDrumState : FolderState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public BoilerDrumState(NodeState parent) : base(parent) {
+        public BoilerDrumState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.BoilerDrumType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -1668,7 +1973,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -1676,7 +1982,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -1684,7 +1991,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -1701,13 +2009,17 @@ namespace Boiler {
 
         #region Public Properties
         /// <remarks />
-        public LevelIndicatorState LevelIndicator {
-            get {
+        public LevelIndicatorState LevelIndicator
+        {
+            get
+            {
                 return m_levelIndicator;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_levelIndicator, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_levelIndicator, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1724,8 +2036,10 @@ namespace Boiler {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_levelIndicator != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_levelIndicator != null)
+            {
                 children.Add(m_levelIndicator);
             }
 
@@ -1739,21 +2053,29 @@ namespace Boiler {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Boiler.BrowseNames.LevelIndicator: {
-                        if (createOrReplace) {
-                            if (LevelIndicator == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Boiler.BrowseNames.LevelIndicator:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (LevelIndicator == null)
+                            {
+                                if (replacement == null)
+                                {
                                     LevelIndicator = new LevelIndicatorState(this);
                                 }
-                                else {
+                                else
+                                {
                                     LevelIndicator = (LevelIndicatorState)replacement;
                                 }
                             }
@@ -1764,7 +2086,8 @@ namespace Boiler {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 
@@ -1786,18 +2109,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class BoilerOutputPipeState : FolderState {
+    public partial class BoilerOutputPipeState : FolderState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public BoilerOutputPipeState(NodeState parent) : base(parent) {
+        public BoilerOutputPipeState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.BoilerOutputPipeType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -1805,7 +2131,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -1813,7 +2140,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -1821,7 +2149,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -1838,13 +2167,17 @@ namespace Boiler {
 
         #region Public Properties
         /// <remarks />
-        public FlowTransmitterState FlowTransmitter2 {
-            get {
+        public FlowTransmitterState FlowTransmitter2
+        {
+            get
+            {
                 return m_flowTransmitter2;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_flowTransmitter2, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_flowTransmitter2, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1861,8 +2194,10 @@ namespace Boiler {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_flowTransmitter2 != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_flowTransmitter2 != null)
+            {
                 children.Add(m_flowTransmitter2);
             }
 
@@ -1876,21 +2211,29 @@ namespace Boiler {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Boiler.BrowseNames.FlowTransmitter2: {
-                        if (createOrReplace) {
-                            if (FlowTransmitter2 == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Boiler.BrowseNames.FlowTransmitter2:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (FlowTransmitter2 == null)
+                            {
+                                if (replacement == null)
+                                {
                                     FlowTransmitter2 = new FlowTransmitterState(this);
                                 }
-                                else {
+                                else
+                                {
                                     FlowTransmitter2 = (FlowTransmitterState)replacement;
                                 }
                             }
@@ -1901,7 +2244,8 @@ namespace Boiler {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 
@@ -1923,18 +2267,21 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class BoilerState : BaseObjectState {
+    public partial class BoilerState : BaseObjectState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public BoilerState(NodeState parent) : base(parent) {
+        public BoilerState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.BoilerType, Boiler.Namespaces.Boiler, namespaceUris);
         }
 
@@ -1942,7 +2289,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -1950,7 +2298,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -1958,7 +2307,8 @@ namespace Boiler {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -2024,14 +2374,21 @@ namespace Boiler {
         #endregion
 
         #region Public Properties
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public BoilerInputPipeState InputPipe {
-            get {
+        public BoilerInputPipeState InputPipe
+        {
+            get
+            {
                 return m_inputPipe;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_inputPipe, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_inputPipe, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2039,14 +2396,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public BoilerDrumState Drum {
-            get {
+        public BoilerDrumState Drum
+        {
+            get
+            {
                 return m_drum;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_drum, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_drum, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2054,14 +2418,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public BoilerOutputPipeState OutputPipe {
-            get {
+        public BoilerOutputPipeState OutputPipe
+        {
+            get
+            {
                 return m_outputPipe;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_outputPipe, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_outputPipe, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2069,14 +2440,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public FlowControllerState FlowController {
-            get {
+        public FlowControllerState FlowController
+        {
+            get
+            {
                 return m_flowController;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_flowController, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_flowController, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2084,14 +2462,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public LevelControllerState LevelController {
-            get {
+        public LevelControllerState LevelController
+        {
+            get
+            {
                 return m_levelController;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_levelController, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_levelController, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2099,14 +2484,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public CustomControllerState CustomController {
-            get {
+        public CustomControllerState CustomController
+        {
+            get
+            {
                 return m_customController;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_customController, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_customController, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2114,14 +2506,21 @@ namespace Boiler {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         /// <remarks />
-        public BoilerStateMachineState Simulation {
-            get {
+        public BoilerStateMachineState Simulation
+        {
+            get
+            {
                 return m_simulation;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_simulation, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_simulation, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2138,32 +2537,40 @@ namespace Boiler {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_inputPipe != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_inputPipe != null)
+            {
                 children.Add(m_inputPipe);
             }
 
-            if (m_drum != null) {
+            if (m_drum != null)
+            {
                 children.Add(m_drum);
             }
 
-            if (m_outputPipe != null) {
+            if (m_outputPipe != null)
+            {
                 children.Add(m_outputPipe);
             }
 
-            if (m_flowController != null) {
+            if (m_flowController != null)
+            {
                 children.Add(m_flowController);
             }
 
-            if (m_levelController != null) {
+            if (m_levelController != null)
+            {
                 children.Add(m_levelController);
             }
 
-            if (m_customController != null) {
+            if (m_customController != null)
+            {
                 children.Add(m_customController);
             }
 
-            if (m_simulation != null) {
+            if (m_simulation != null)
+            {
                 children.Add(m_simulation);
             }
 
@@ -2177,21 +2584,29 @@ namespace Boiler {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Boiler.BrowseNames.InputPipe: {
-                        if (createOrReplace) {
-                            if (InputPipe == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Boiler.BrowseNames.InputPipe:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (InputPipe == null)
+                            {
+                                if (replacement == null)
+                                {
                                     InputPipe = new BoilerInputPipeState(this);
                                 }
-                                else {
+                                else
+                                {
                                     InputPipe = (BoilerInputPipeState)replacement;
                                 }
                             }
@@ -2201,13 +2616,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Drum: {
-                        if (createOrReplace) {
-                            if (Drum == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.Drum:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Drum == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Drum = new BoilerDrumState(this);
                                 }
-                                else {
+                                else
+                                {
                                     Drum = (BoilerDrumState)replacement;
                                 }
                             }
@@ -2217,13 +2637,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.OutputPipe: {
-                        if (createOrReplace) {
-                            if (OutputPipe == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.OutputPipe:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (OutputPipe == null)
+                            {
+                                if (replacement == null)
+                                {
                                     OutputPipe = new BoilerOutputPipeState(this);
                                 }
-                                else {
+                                else
+                                {
                                     OutputPipe = (BoilerOutputPipeState)replacement;
                                 }
                             }
@@ -2233,13 +2658,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.FlowController: {
-                        if (createOrReplace) {
-                            if (FlowController == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.FlowController:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (FlowController == null)
+                            {
+                                if (replacement == null)
+                                {
                                     FlowController = new FlowControllerState(this);
                                 }
-                                else {
+                                else
+                                {
                                     FlowController = (FlowControllerState)replacement;
                                 }
                             }
@@ -2249,13 +2679,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.LevelController: {
-                        if (createOrReplace) {
-                            if (LevelController == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.LevelController:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (LevelController == null)
+                            {
+                                if (replacement == null)
+                                {
                                     LevelController = new LevelControllerState(this);
                                 }
-                                else {
+                                else
+                                {
                                     LevelController = (LevelControllerState)replacement;
                                 }
                             }
@@ -2265,13 +2700,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.CustomController: {
-                        if (createOrReplace) {
-                            if (CustomController == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.CustomController:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (CustomController == null)
+                            {
+                                if (replacement == null)
+                                {
                                     CustomController = new CustomControllerState(this);
                                 }
-                                else {
+                                else
+                                {
                                     CustomController = (CustomControllerState)replacement;
                                 }
                             }
@@ -2281,13 +2721,18 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Simulation: {
-                        if (createOrReplace) {
-                            if (Simulation == null) {
-                                if (replacement == null) {
+                case Boiler.BrowseNames.Simulation:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Simulation == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Simulation = new BoilerStateMachineState(this);
                                 }
-                                else {
+                                else
+                                {
                                     Simulation = (BoilerStateMachineState)replacement;
                                 }
                             }

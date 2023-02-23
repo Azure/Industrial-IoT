@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher
+{
     /// <summary>
     /// Constants for diagnostics
     /// </summary>
-    internal static class Constants {
+    internal static class Constants
+    {
         /// <summary>
         /// Default dataset writer id
         /// </summary>

@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT {
+namespace Microsoft.Azure.IIoT
+{
     /// <summary>
     /// Content mime types
     /// </summary>
-    public static class ContentMimeType {
+    public static class ContentMimeType
+    {
         /// <summary>
         /// Binary blob
         /// </summary>

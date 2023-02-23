@@ -27,13 +27,15 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Alarms {
+namespace Alarms
+{
     using Opc.Ua;
 
     /// <summary>
     /// Maps an alarm area to a UA object node.
     /// </summary>
-    public class AreaState : FolderState {
+    public class AreaState : FolderState
+    {
         /// <summary>
         /// Initializes the area.
         /// </summary>
@@ -43,7 +45,8 @@ namespace Alarms {
             NodeId nodeId,
             AreaConfiguration configuration)
         :
-            base(parent) {
+            base(parent)
+        {
             Initialize(context);
 
             // initialize the area with the fixed metadata.

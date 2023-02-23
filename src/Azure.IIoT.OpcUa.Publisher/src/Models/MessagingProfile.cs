@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Models
+{
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
@@ -13,7 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
     /// <summary>
     /// Messaging profiles supported by OPC Publisher
     /// </summary>
-    public class MessagingProfile {
+    public class MessagingProfile
+    {
         /// <summary>
         /// Messaging mode
         /// </summary>
@@ -22,9 +24,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Returns true if messaging profiles supports metadata
         /// </summary>
-        public bool SupportsMetadata {
-            get {
-                switch (MessagingMode) {
+        public bool SupportsMetadata
+        {
+            get
+            {
+                switch (MessagingMode)
+                {
                     case MessagingMode.FullSamples:
                     case MessagingMode.Samples:
                     case MessagingMode.RawDataSets:
@@ -38,9 +43,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Returns true if messaging profiles supports keyframes
         /// </summary>
-        public bool SupportsKeyFrames {
-            get {
-                switch (MessagingMode) {
+        public bool SupportsKeyFrames
+        {
+            get
+            {
+                switch (MessagingMode)
+                {
                     case MessagingMode.FullSamples:
                     case MessagingMode.Samples:
                         return false;
@@ -82,7 +90,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="encoding"></param>
         /// <returns></returns>
         public static MessagingProfile Get(MessagingMode messageMode,
-            MessageEncoding encoding) {
+            MessageEncoding encoding)
+        {
             var key = (messageMode, GetMessageEncoding(encoding));
             return kProfiles[key];
         }
@@ -94,7 +103,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="encoding"></param>
         /// <returns></returns>
         public static bool IsSupported(MessagingMode messageMode,
-            MessageEncoding encoding) {
+            MessageEncoding encoding)
+        {
             var key = (messageMode, GetMessageEncoding(encoding));
             return kProfiles.ContainsKey(key);
         }
@@ -111,7 +121,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
             MessageEncoding messageEncoding,
             DataSetContentMask dataSetMessageContentMask,
             NetworkMessageContentMask networkMessageContentMask,
-            DataSetFieldContentMask dataSetFieldContentMask) {
+            DataSetFieldContentMask dataSetFieldContentMask)
+        {
             MessagingMode = messagingMode;
             MessageEncoding = messageEncoding;
             DataSetMessageContentMask = dataSetMessageContentMask;
@@ -120,7 +131,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) {
+        public override bool Equals(object obj)
+        {
             return obj is MessagingProfile profile &&
                 DataSetMessageContentMask == profile.DataSetMessageContentMask &&
                 NetworkMessageContentMask == profile.NetworkMessageContentMask &&
@@ -128,7 +140,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return HashCode.Combine(
                 DataSetMessageContentMask,
                 NetworkMessageContentMask,
@@ -136,7 +149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         }
 
         /// <inheritdoc/>
-        public override string ToString() {
+        public override string ToString()
+        {
             var builder = new StringBuilder("| ");
             builder.Append(MessagingMode);
             builder.Append(" | ");
@@ -164,7 +178,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
             return builder.ToString();
         }
 
-        static MessagingProfile() {
+        static MessagingProfile()
+        {
             //
             // New message profiles supported in 2.5
             //
@@ -264,13 +279,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// Get a markdown compatible string of all message profiles
         /// </summary>
         /// <returns></returns>
-        public static string GetAllAsMarkdownTable() {
+        public static string GetAllAsMarkdownTable()
+        {
             var builder = new StringBuilder();
             builder.Append(
 @"| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata supported | KeyFrames supported |
    |--------------------------|----------------------------|---------------------------|---------------------------|-------------------------|--------------------|---------------------|
 ");
-            foreach (var profile in kProfiles) {
+            foreach (var profile in kProfiles)
+            {
                 builder.Append(profile.Value.ToString());
             }
             return builder.ToString();
@@ -281,8 +298,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="encoding"></param>
         /// <returns></returns>
-        private static MessageEncoding GetMessageEncoding(MessageEncoding encoding) {
-            if (encoding == 0) {
+        private static MessageEncoding GetMessageEncoding(MessageEncoding encoding)
+        {
+            if (encoding == 0)
+            {
                 return MessageEncoding.Json;
             }
             return encoding;
@@ -292,8 +311,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
             DataSetContentMask dataSetMessageContentMask,
             NetworkMessageContentMask networkMessageContentMask,
             DataSetFieldContentMask dataSetFieldContentMask,
-            params MessageEncoding[] messageEncoding) {
-            foreach (var encoding in messageEncoding) {
+            params MessageEncoding[] messageEncoding)
+        {
+            foreach (var encoding in messageEncoding)
+            {
                 kProfiles.Add((messagingMode, encoding),
                     new MessagingProfile(messagingMode, encoding,
                         dataSetMessageContentMask,
@@ -304,7 +325,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
 
         // From published nodes jobs converter
         private static DataSetFieldContentMask BuildDataSetFieldContentMask(
-            bool fullFeaturedMessage) {
+            bool fullFeaturedMessage)
+        {
             return
                 DataSetFieldContentMask.StatusCode |
                 DataSetFieldContentMask.SourceTimestamp |
@@ -318,7 +340,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         }
 
         private static DataSetContentMask BuildDataSetContentMask(
-            bool fullFeaturedMessage, bool reversibleEncoding = false) {
+            bool fullFeaturedMessage, bool reversibleEncoding = false)
+        {
             return
                 (reversibleEncoding ?
                      DataSetContentMask.ReversibleFieldEncoding : 0) |
@@ -334,7 +357,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         }
 
         private static NetworkMessageContentMask BuildNetworkMessageContentMask(
-            bool isSampleMessage = false) {
+            bool isSampleMessage = false)
+        {
             return (isSampleMessage ?
                 NetworkMessageContentMask.MonitoredItemMessage
                  : (NetworkMessageContentMask.NetworkMessageHeader |

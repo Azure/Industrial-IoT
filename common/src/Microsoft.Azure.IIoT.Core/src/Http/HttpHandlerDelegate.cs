@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http.Default {
+namespace Microsoft.Azure.IIoT.Http.Default
+{
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -17,7 +18,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// Wraps stateless http handlers in a delegating handler instance to be
     /// used by http client and client factory
     /// </summary>
-    public class HttpHandlerDelegate : DelegatingHandler {
+    public class HttpHandlerDelegate : DelegatingHandler
+    {
         /// <summary>
         /// Create delegating handler
         /// </summary>
@@ -28,23 +30,28 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="logger"></param>
         public HttpHandlerDelegate(HttpMessageHandler next, string resourceId,
             IEnumerable<IHttpHandler> handlers,
-            IWebProxy proxy, ILogger logger) : base(next) {
+            IWebProxy proxy, ILogger logger) : base(next)
+        {
             _resourceId = resourceId;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var root = next.GetRoot();
-            if (root == null) {
+            if (root == null)
+            {
                 _logger.LogError("Cannot configure root handler, inner " +
                     "most handler is not a configurable client handler");
                 return;
             }
 
-            if (proxy != null) {
-                if (root.SupportsProxy) {
+            if (proxy != null)
+            {
+                if (root.SupportsProxy)
+                {
                     root.UseProxy = true;
                     root.Proxy = proxy;
                 }
-                else {
+                else
+                {
                     _logger.LogWarning("Proxy configuration provided, but " +
                         "underlying handler does not support proxy " +
                         "configuration.  Skipping proxy.");
@@ -58,7 +65,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 .OfType<IHttpCertificateValidator>()
                 .Cast<IHttpCertificateValidator>()
                 .ToList();
-            if (validators.Count > 0) {
+            if (validators.Count > 0)
+            {
                 root.ServerCertificateCustomValidationCallback =
                     (req, cert, chain, err) => validators.All(
                         v => v.Validate(req.Headers, cert, chain, err));
@@ -78,20 +86,24 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         internal TimeSpan MaxLifetime { get; set; } = TimeSpan.FromMinutes(5);
 
         /// <inheritdoc/>
-        protected override void Dispose(bool disposing) {
+        protected override void Dispose(bool disposing)
+        {
             _handlers.OfType<IDisposable>().ToList().ForEach(d => d.Dispose());
             base.Dispose(disposing);
         }
 
         /// <inheritdoc/>
         protected override async Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request, CancellationToken cancellationToken) {
-            foreach (var h in _handlers) {
+            HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            foreach (var h in _handlers)
+            {
                 await h.OnRequestAsync(_resourceId, request.RequestUri,
                     request.Headers, request.Content, cancellationToken).ConfigureAwait(false);
             }
             var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            foreach (var h in _handlers) {
+            foreach (var h in _handlers)
+            {
                 await h.OnResponseAsync(_resourceId, request.RequestUri,
                     response.StatusCode, response.Headers, response.Content,
                     cancellationToken).ConfigureAwait(false);

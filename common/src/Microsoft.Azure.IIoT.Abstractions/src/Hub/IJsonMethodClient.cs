@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub {
+namespace Microsoft.Azure.IIoT.Hub
+{
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -12,7 +13,8 @@ namespace Microsoft.Azure.IIoT.Hub {
     /// Json payload method call client as implemented by
     /// IoTHub service clients and IoTEdge Module clients.
     /// </summary>
-    public interface IJsonMethodClient {
+    public interface IJsonMethodClient
+    {
         /// <summary>
         /// Max payload string size in bytes.
         /// </summary>

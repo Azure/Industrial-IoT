@@ -27,21 +27,26 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace PerfTest {
+namespace PerfTest
+{
     using Opc.Ua;
     using Opc.Ua.Server;
 
     /// <inheritdoc/>
-    public class PerfTestServer : INodeManagerFactory {
+    public class PerfTestServer : INodeManagerFactory
+    {
         /// <inheritdoc/>
         public INodeManager Create(IServerInternal server,
-            ApplicationConfiguration configuration) {
+            ApplicationConfiguration configuration)
+        {
             return new PerfTestNodeManager(server, configuration);
         }
 
         /// <inheritdoc/>
-        public StringCollection NamespacesUris {
-            get {
+        public StringCollection NamespacesUris
+        {
+            get
+            {
                 return new StringCollection {
                     Namespaces.PerfTest,
                 };

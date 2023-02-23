@@ -4,14 +4,16 @@
 // ------------------------------------------------------------
 
 #nullable enable
-namespace Opc.Ua.Extensions {
+namespace Opc.Ua.Extensions
+{
     using Opc.Ua;
     using System;
 
     /// <summary>
     /// Node state extensions
     /// </summary>
-    public static class NodeStateEx {
+    public static class NodeStateEx
+    {
         /// <summary>
         /// Return value or update
         /// </summary>
@@ -22,7 +24,8 @@ namespace Opc.Ua.Extensions {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static R? GetValueOrDefault<T, R>(this PropertyState<T> state,
-            Func<T?, R?> convert, T? defaultValue = default) where T : struct {
+            Func<T?, R?> convert, T? defaultValue = default) where T : struct
+        {
             var result = GetValueOrDefault(state, defaultValue);
             return convert(result);
         }
@@ -37,7 +40,8 @@ namespace Opc.Ua.Extensions {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static R? GetValueOrDefault<T, R>(this PropertyState<T> state,
-            Func<T?, R?> convert, T? defaultValue = null) where T : class {
+            Func<T?, R?> convert, T? defaultValue = null) where T : class
+        {
             var result = GetValueOrDefault(state, defaultValue);
             return convert(result);
         }
@@ -50,8 +54,10 @@ namespace Opc.Ua.Extensions {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static T? GetValueOrDefault<T>(this PropertyState<T> state,
-            T? defaultValue = default) where T : struct {
-            if (!StatusCode.IsGood(state.StatusCode)) {
+            T? defaultValue = default) where T : struct
+        {
+            if (!StatusCode.IsGood(state.StatusCode))
+            {
                 return defaultValue;
             }
             return state.Value;
@@ -65,8 +71,10 @@ namespace Opc.Ua.Extensions {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static T? GetValueOrDefault<T>(this PropertyState<T> state,
-            T? defaultValue = null) where T : class {
-            if (!StatusCode.IsGood(state.StatusCode)) {
+            T? defaultValue = null) where T : class
+        {
+            if (!StatusCode.IsGood(state.StatusCode))
+            {
                 return defaultValue;
             }
             return state.Value;

@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Endpoint query
     /// </summary>
     [DataContract]
-    public sealed record class EndpointRegistrationQueryModel {
+    public sealed record class EndpointRegistrationQueryModel
+    {
         /// <summary>
         /// Endoint url for direct server access
         /// </summary>

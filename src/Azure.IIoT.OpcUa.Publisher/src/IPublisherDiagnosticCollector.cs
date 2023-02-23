@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher
+{
     using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Publisher collector collects metrics from for writer groups
     /// inside the publisher during runtime.
     /// </summary>
-    public interface IPublisherDiagnosticCollector {
+    public interface IPublisherDiagnosticCollector
+    {
         /// <summary>
         /// Remove writer group from collector
         /// </summary>

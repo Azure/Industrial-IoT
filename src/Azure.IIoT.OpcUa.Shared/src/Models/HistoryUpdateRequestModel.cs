@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Request node history update
     /// </summary>
     [DataContract]
-    public sealed record class HistoryUpdateRequestModel<T> {
+    public sealed record class HistoryUpdateRequestModel<T>
+    {
         /// <summary>
         /// Node to update
         /// </summary>

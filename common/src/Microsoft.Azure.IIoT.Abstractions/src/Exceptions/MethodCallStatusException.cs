@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Exceptions {
+namespace Microsoft.Azure.IIoT.Exceptions
+{
     /// <summary>
     /// This exception is thrown when method call returned a
     /// status other than 200
     /// </summary>
-    public class MethodCallStatusException : MethodCallException {
+    public class MethodCallStatusException : MethodCallException
+    {
         /// <summary>
         /// Result of method call
         /// </summary>
@@ -25,7 +27,8 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// <param name="result"></param>
         /// <param name="errorMessage"></param>
         public MethodCallStatusException(int result, string errorMessage = null) :
-            this("{}", result, errorMessage) {
+            this("{}", result, errorMessage)
+        {
         }
 
         /// <summary>
@@ -36,7 +39,8 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// <param name="errorMessage"></param>
         public MethodCallStatusException(string responsePayload, int result,
             string errorMessage = null) :
-            base($"{{\"Message\":\"Response {result} {errorMessage ?? ""}\",\"Details\":{responsePayload ?? "null"}}}") {
+            base($"{{\"Message\":\"Response {result} {errorMessage ?? ""}\",\"Details\":{responsePayload ?? "null"}}}")
+        {
             Result = result;
             ResponsePayload = $"{{\"Message\":\"Response {result} {errorMessage ?? ""}\",\"Details\":{responsePayload ?? "null"}}}";
         }

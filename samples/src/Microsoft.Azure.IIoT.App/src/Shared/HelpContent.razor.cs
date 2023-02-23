@@ -3,15 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Shared {
-    using Microsoft.AspNetCore.Components;
+namespace Microsoft.Azure.IIoT.App.Shared
+{
     using Blazored.Modal;
     using Blazored.Modal.Services;
+    using Microsoft.AspNetCore.Components;
 
-    public partial class HelpContent {
+    public partial class HelpContent
+    {
         [CascadingParameter] private BlazoredModalInstance BlazoredModal { get; set; }
 
-        private void Close() {
+        private void Close()
+        {
             BlazoredModal.Close(ModalResult.Ok(true));
         }
     }

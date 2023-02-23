@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Tasks.Default {
-    using Microsoft.Extensions.Logging;
+namespace Microsoft.Azure.IIoT.Tasks.Default
+{
     using Furly.Extensions.Utils;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -16,7 +17,8 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
     /// A task (or job) processor build on top of an in memory
     /// BlockingCollection
     /// </summary>
-    public sealed class TaskProcessor : ITaskProcessor{
+    public sealed class TaskProcessor : ITaskProcessor
+    {
         /// <summary>
         /// The processors task scheduler
         /// </summary>
@@ -27,7 +29,8 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         /// </summary>
         /// <param name="logger"></param>
         public TaskProcessor(ILogger logger) :
-            this(new DefaultConfig(), logger) {
+            this(new DefaultConfig(), logger)
+        {
         }
 
         /// <summary>
@@ -36,7 +39,8 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public TaskProcessor(ITaskProcessorConfig config, ILogger logger) :
-            this(config, new DefaultScheduler(), logger) {
+            this(config, new DefaultScheduler(), logger)
+        {
         }
 
         /// <summary>
@@ -46,49 +50,59 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         /// <param name="scheduler"></param>
         /// <param name="logger"></param>
         public TaskProcessor(ITaskProcessorConfig config, ITaskScheduler scheduler,
-            ILogger logger) {
+            ILogger logger)
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             Scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
             _processors = new List<ProcessorWorker>();
-            for (var i = 0; i < Math.Max(1, config.MaxInstances); i++) {
+            for (var i = 0; i < Math.Max(1, config.MaxInstances); i++)
+            {
                 _processors.Add(new ProcessorWorker(this));
             }
         }
 
         /// <inheritdoc/>
-        public bool TrySchedule(Func<Task> task, Func<Task> checkpoint) {
-            if (task == null) {
+        public bool TrySchedule(Func<Task> task, Func<Task> checkpoint)
+        {
+            if (task == null)
+            {
                 throw new ArgumentNullException(nameof(task));
             }
-            if (checkpoint == null) {
+            if (checkpoint == null)
+            {
                 throw new ArgumentNullException(nameof(checkpoint));
             }
-            return TrySchedule(new ProcessorWorker.Work {
+            return TrySchedule(new ProcessorWorker.Work
+            {
                 Checkpoint = checkpoint,
                 Task = task,
                 Retries = 2 // TODO
             });
         }
 
-        private bool TrySchedule(ProcessorWorker.Work work) {
+        private bool TrySchedule(ProcessorWorker.Work work)
+        {
             return -1 != BlockingCollection<ProcessorWorker.Work>.TryAddToAny(
                 _processors.Select(p => p.Queue).ToArray(), work);
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             Try.Op(() => Task.WaitAll(_processors.Select(p => p.CloseAsync()).ToArray()));
         }
 
-        private sealed class ProcessorWorker {
+        private sealed class ProcessorWorker
+        {
             internal BlockingCollection<Work> Queue { get; }
 
             /// <summary>
             /// Create worker
             /// </summary>
             /// <param name="processor"></param>
-            public ProcessorWorker(TaskProcessor processor) {
+            public ProcessorWorker(TaskProcessor processor)
+            {
                 _processor = processor ??
                     throw new ArgumentNullException(nameof(processor));
                 Queue = new BlockingCollection<Work>(
@@ -100,7 +114,8 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             /// Close worker
             /// </summary>
             /// <returns></returns>
-            public Task CloseAsync() {
+            public Task CloseAsync()
+            {
                 Queue.CompleteAdding();
                 return _worker;
             }
@@ -109,19 +124,26 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             /// Process items in queue
             /// </summary>
             /// <returns></returns>
-            private async Task WorkAsync() {
-                while (true) {
-                    if (!Queue.TryTake(out var item, TimeSpan.FromSeconds(20))) {
-                        if (Queue.IsAddingCompleted) {
+            private async Task WorkAsync()
+            {
+                while (true)
+                {
+                    if (!Queue.TryTake(out var item, TimeSpan.FromSeconds(20)))
+                    {
+                        if (Queue.IsAddingCompleted)
+                        {
                             return;
                         }
                         continue;
                     }
-                    try {
+                    try
+                    {
                         await item.Task().ConfigureAwait(false);
                     }
-                    catch (Exception ex) {
-                        if (item.Retries == 0) {
+                    catch (Exception ex)
+                    {
+                        if (item.Retries == 0)
+                        {
                             // Give up.
                             _processor._logger.LogError(ex, "Exception thrown, give up on task!");
                             return;
@@ -134,7 +156,8 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                 }
             }
 
-            internal sealed class Work {
+            internal sealed class Work
+            {
                 /// <summary>
                 /// Number of retries
                 /// </summary>
@@ -155,7 +178,8 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             private readonly Task _worker;
         }
 
-        internal sealed class DefaultConfig : ITaskProcessorConfig {
+        internal sealed class DefaultConfig : ITaskProcessorConfig
+        {
             public int MaxInstances => 1;
             public int MaxQueueSize => 1000;
         }

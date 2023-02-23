@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Services {
+namespace Microsoft.Azure.IIoT.Module.Framework.Services
+{
     using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Services {
     /// <summary>
     /// Route the settings to the right controller implementations
     /// </summary>
-    public interface ISettingsRouter {
+    public interface ISettingsRouter
+    {
         /// <summary>
         /// Process desired and return reported
         /// </summary>

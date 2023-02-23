@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
+{
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -16,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
-    public class PublisherConfig : ConfigBase, IModuleConfig, IClientServicesConfig {
+    public class PublisherConfig : ConfigBase, IModuleConfig, IClientServicesConfig
+    {
         /// <inheritdoc/>
         public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
         /// <inheritdoc/>
@@ -87,7 +89,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public PublisherConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
             _opc = new ClientServicesConfig(configuration);
             _module = new ModuleConfig(configuration);
         }

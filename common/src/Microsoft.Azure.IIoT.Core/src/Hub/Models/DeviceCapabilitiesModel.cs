@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Models {
+namespace Microsoft.Azure.IIoT.Hub.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Capabilities
     /// </summary>
     [DataContract]
-    public class DeviceCapabilitiesModel {
+    public class DeviceCapabilitiesModel
+    {
         /// <summary>
         /// iotedge device
         /// </summary>

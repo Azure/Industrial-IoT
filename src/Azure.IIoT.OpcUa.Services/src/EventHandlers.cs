@@ -3,19 +3,22 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services {
-    using Azure.IIoT.OpcUa.Services.Handlers;
+namespace Azure.IIoT.OpcUa.Services
+{
     using Autofac;
+    using Azure.IIoT.OpcUa.Services.Handlers;
 
     /// <summary>
     /// Injected event handlers
     /// </summary>
-    public sealed class EventHandlers : Module {
+    public sealed class EventHandlers : Module
+    {
         /// <summary>
         /// Load the module
         /// </summary>
         /// <param name="builder"></param>
-        protected override void Load(ContainerBuilder builder) {
+        protected override void Load(ContainerBuilder builder)
+        {
             builder.RegisterType<DeviceTelemetryEventHandler>()
                 .AsImplementedInterfaces();
 

@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT {
+namespace Microsoft.Azure.IIoT
+{
     using System.Threading.Tasks;
 
     /// <summary>
     /// Host
     /// </summary>
-    public interface IHostProcess {
+    public interface IHostProcess
+    {
         /// <summary>
         /// Start host
         /// </summary>

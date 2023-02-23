@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Storage {
+namespace Azure.IIoT.OpcUa.Publisher.Storage
+{
     using Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Extensions.Logging;
     using System;
@@ -14,7 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
     /// <summary>
     /// Utilities provider for published nodes file.
     /// </summary>
-    public sealed class PublishedNodesProvider : IPublishedNodesProvider, IDisposable {
+    public sealed class PublishedNodesProvider : IPublishedNodesProvider, IDisposable
+    {
         private readonly IPublisherConfiguration _config;
         private readonly ILogger _logger;
         private readonly SemaphoreSlim _lock;
@@ -33,7 +35,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
         public event RenamedEventHandler Renamed;
 
         /// <inheritdoc/>
-        public bool EnableRaisingEvents {
+        public bool EnableRaisingEvents
+        {
             get { return _fileSystemWatcher.EnableRaisingEvents; }
             set { _fileSystemWatcher.EnableRaisingEvents = value; }
         }
@@ -43,13 +46,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
         /// </summary>
         /// <param name="config"> Publisher configuration with location of published nodes file. </param>
         /// <param name="logger"> Logger </param>
-        public PublishedNodesProvider(IPublisherConfiguration config, ILogger logger) {
+        public PublishedNodesProvider(IPublisherConfiguration config, ILogger logger)
+        {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var directory = Path.GetDirectoryName(_config.PublishedNodesFile);
 
-            if (string.IsNullOrWhiteSpace(directory)) {
+            if (string.IsNullOrWhiteSpace(directory))
+            {
                 directory = Environment.CurrentDirectory;
             }
 
@@ -65,82 +70,99 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
         }
 
         /// <inheritdoc/>
-        public DateTime GetLastWriteTime() {
+        public DateTime GetLastWriteTime()
+        {
             _lock.Wait();
-            try {
+            try
+            {
                 return File.GetLastWriteTime(_config.PublishedNodesFile);
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
 
         /// <inheritdoc/>
-        public string ReadContent() {
+        public string ReadContent()
+        {
             _lock.Wait();
-            try {
+            try
+            {
                 using (var fileStream = new FileStream(
                     _config.PublishedNodesFile,
                     FileMode.Open,
                     FileAccess.Read,
                     FileShare.Read
-                 )) {
+                 ))
+                {
                     return fileStream.ReadAsString(Encoding.UTF8);
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 _logger.LogError(e, "Failed to read content of published nodes file from \"{Path}\"",
                     _config.PublishedNodesFile);
                 throw;
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
 
         /// <inheritdoc/>
-        public void WriteContent(string content, bool disableRaisingEvents = false) {
+        public void WriteContent(string content, bool disableRaisingEvents = false)
+        {
             // Store current state.
             var eventState = _fileSystemWatcher.EnableRaisingEvents;
 
             _lock.Wait();
-            try {
-                if (disableRaisingEvents) {
+            try
+            {
+                if (disableRaisingEvents)
+                {
                     _fileSystemWatcher.EnableRaisingEvents = false;
                 }
 
-                try {
+                try
+                {
                     using (var fileStream = new FileStream(
                         _config.PublishedNodesFile,
                         FileMode.OpenOrCreate,
                         FileAccess.Write,
                         // We will require that there is no other process using the file.
                         FileShare.None
-                     )) {
+                     ))
+                    {
                         fileStream.SetLength(0);
                         fileStream.Write(Encoding.UTF8.GetBytes(content));
                     }
                 }
-                catch (IOException e) {
+                catch (IOException e)
+                {
                     _logger.LogWarning("Failed to update published nodes file at \"{Path}\" with restricted share policies. " +
                         "Please close any other application that uses this file. " +
                         "Falling back to opening it with more relaxed share policies.",
                         _config.PublishedNodesFile);
 
                     // We will fall back to writing with ReadWrite access.
-                    try {
+                    try
+                    {
                         using (var fileStream = new FileStream(
                             _config.PublishedNodesFile,
                             FileMode.OpenOrCreate,
                             FileAccess.Write,
                             // Relaxing requirements.
                             FileShare.ReadWrite
-                         )) {
+                         ))
+                        {
                             fileStream.SetLength(0);
                             fileStream.Write(Encoding.UTF8.GetBytes(content));
                         }
                     }
-                    catch (Exception) {
+                    catch (Exception)
+                    {
                         // Report and raise original exception if fallback also failed.
                         _logger.LogError(e, "Failed to update published nodes file at \"{Path}\"",
                             _config.PublishedNodesFile);
@@ -149,9 +171,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                     }
                 }
             }
-            finally {
+            finally
+            {
                 // Retore state.
-                if (disableRaisingEvents) {
+                if (disableRaisingEvents)
+                {
                     _fileSystemWatcher.EnableRaisingEvents = eventState;
                 }
 
@@ -160,7 +184,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             _fileSystemWatcher.EnableRaisingEvents = false;
             _fileSystemWatcher.Deleted -= FileSystemWatcher_Deleted;
             _fileSystemWatcher.Created -= FileSystemWatcher_Created;
@@ -170,19 +195,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
             _fileSystemWatcher.Dispose();
         }
 
-        private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
+        private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
+        {
             Changed?.Invoke(sender, e);
         }
 
-        private void FileSystemWatcher_Created(object sender, FileSystemEventArgs e) {
+        private void FileSystemWatcher_Created(object sender, FileSystemEventArgs e)
+        {
             Created?.Invoke(sender, e);
         }
 
-        private void FileSystemWatcher_Deleted(object sender, FileSystemEventArgs e) {
+        private void FileSystemWatcher_Deleted(object sender, FileSystemEventArgs e)
+        {
             Deleted?.Invoke(sender, e);
         }
 
-        private void FileSystemWatcher_Renamed(object sender, RenamedEventArgs e) {
+        private void FileSystemWatcher_Renamed(object sender, RenamedEventArgs e)
+        {
             Renamed?.Invoke(sender, e);
         }
     }

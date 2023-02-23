@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
-    using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.EventHubs;
-    using Microsoft.Azure.EventHubs.Processor;
-    using Microsoft.Extensions.Logging;
+namespace Microsoft.Azure.IIoT.Hub.Processor.Services
+{
     using Autofac;
     using Furly.Extensions.Utils;
+    using Microsoft.Azure.EventHubs;
+    using Microsoft.Azure.EventHubs.Processor;
+    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Extensions.Logging;
     using Prometheus;
     using System;
     using System.Collections;
@@ -21,7 +22,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
     /// <summary>
     /// Default event hub event processor factory.
     /// </summary>
-    public sealed class EventProcessorFactory : IEventProcessorFactory {
+    public sealed class EventProcessorFactory : IEventProcessorFactory
+    {
         /// <summary>
         /// Create processor factory
         /// </summary>
@@ -29,21 +31,24 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public EventProcessorFactory(IComponentContext context,
-            IEventProcessorConfig config, ILogger logger) {
+            IEventProcessorConfig config, ILogger logger)
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         /// <inheritdoc/>
-        public IEventProcessor CreateEventProcessor(PartitionContext context) {
+        public IEventProcessor CreateEventProcessor(PartitionContext context)
+        {
             return new DefaultProcessor(this, context, _logger);
         }
 
         /// <summary>
         /// Processor implementation
         /// </summary>
-        private class DefaultProcessor : IEventProcessor {
+        private class DefaultProcessor : IEventProcessor
+        {
             /// <summary>
             /// Create processor
             /// </summary>
@@ -51,7 +56,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             /// <param name="partitionContext"></param>
             /// <param name="logger"></param>
             public DefaultProcessor(EventProcessorFactory outer, PartitionContext partitionContext,
-                ILogger logger) {
+                ILogger logger)
+            {
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
                 _partitionContext = partitionContext ?? throw new ArgumentNullException(nameof(partitionContext));
                 _processorId = Guid.NewGuid().ToString();
@@ -70,20 +76,25 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
 
             /// <inheritdoc/>
             public async Task ProcessEventsAsync(PartitionContext context,
-                IEnumerable<EventData> messages) {
-                if (messages?.Any() != true) {
+                IEnumerable<EventData> messages)
+            {
+                if (messages?.Any() != true)
+                {
                     return;
                 }
-                foreach (var eventData in messages) {
+                foreach (var eventData in messages)
+                {
                     if (_outer._config.SkipEventsOlderThan != null &&
                         eventData.SystemProperties.TryGetValue("x-opt-enqueued-time", out var enqueued) &&
-                        (DateTime)enqueued + _outer._config.SkipEventsOlderThan < DateTime.UtcNow) {
+                        (DateTime)enqueued + _outer._config.SkipEventsOlderThan < DateTime.UtcNow)
+                    {
                         continue;
                     }
 
                     var properties = new EventProperties(eventData.SystemProperties,
                         eventData.Properties);
-                    if (eventData.Body.Array == null) {
+                    if (eventData.Body.Array == null)
+                    {
                         _logger.LogTrace("WARNING: Received empty message with properties {@properties}",
                             properties);
                         continue;
@@ -91,7 +102,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                     await _handler.HandleAsync(eventData.Body.Array, properties,
                         () => CheckpointAsync(context, eventData)).ConfigureAwait(false);
 
-                    if (context.CancellationToken.IsCancellationRequested) {
+                    if (context.CancellationToken.IsCancellationRequested)
+                    {
                         // Checkpoint to the last processed event.
                         await CheckpointAsync(context, eventData).ConfigureAwait(false);
                         context.CancellationToken.ThrowIfCancellationRequested();
@@ -99,18 +111,22 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 }
 
                 // Checkpoint if needed
-                if (_sw.ElapsedMilliseconds >= _interval) {
-                    try {
+                if (_sw.ElapsedMilliseconds >= _interval)
+                {
+                    try
+                    {
                         _logger.LogDebug("Checkpointing EventProcessor {Id} for partition {PartitionId}...",
                             _processorId, context.PartitionId);
                         await context.CheckpointAsync().ConfigureAwait(false);
                         _sw.Restart();
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         _logger.LogWarning(ex, "Failed checkpointing EventProcessor {Id} for partition {PartitionId}...",
                             _processorId, context.PartitionId);
                         kEventProcessorDetails.WithLabels(_processorId, context.PartitionId, "checkpoint_failed").Inc();
-                        if (_sw.ElapsedMilliseconds >= 2 * _interval) {
+                        if (_sw.ElapsedMilliseconds >= 2 * _interval)
+                        {
                             // Give up checkpointing after trying a couple more times
                             _sw.Restart();
                         }
@@ -120,7 +136,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             }
 
             /// <inheritdoc/>
-            public Task OpenAsync(PartitionContext context) {
+            public Task OpenAsync(PartitionContext context)
+            {
                 _logger.LogInformation("EventProcessor {Id} for partition {PartitionId} opened",
                     _processorId, context.PartitionId);
                 kEventProcessorDetails.WithLabels(_processorId, context.PartitionId, "opened").Inc();
@@ -128,8 +145,10 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             }
 
             /// <inheritdoc/>
-            public Task ProcessErrorAsync(PartitionContext context, Exception error) {
-                if (!(error is OperationCanceledException)) {
+            public Task ProcessErrorAsync(PartitionContext context, Exception error)
+            {
+                if (!(error is OperationCanceledException))
+                {
                     _logger.LogWarning(error, "EventProcessor {Id} for partition {PartitionId} error",
                         _processorId, context.PartitionId);
                     kEventProcessorDetails.WithLabels(_processorId, context.PartitionId, "error").Inc();
@@ -138,7 +157,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             }
 
             /// <inheritdoc/>
-            public Task CloseAsync(PartitionContext context, CloseReason reason) {
+            public Task CloseAsync(PartitionContext context, CloseReason reason)
+            {
                 _logger.LogInformation("EventProcessor {Id} for partition {PartitionId} closed ({Reason})",
                     _processorId, context.PartitionId, reason);
                 kEventProcessorDetails.WithLabels(_processorId, context.PartitionId, "closed").Inc();
@@ -151,20 +171,24 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             /// <param name="context"></param>
             /// <param name="eventData"></param>
             /// <returns></returns>
-            private async Task CheckpointAsync(PartitionContext context, EventData eventData) {
-                try {
+            private async Task CheckpointAsync(PartitionContext context, EventData eventData)
+            {
+                try
+                {
                     _logger.LogDebug("Checkpointing EventProcessor {Id} for partition {PartitionId} with event with " +
                         "{SequenceNumber} SequenceNumber and {Offset} Offset ...", _processorId, context.PartitionId,
                         eventData.SystemProperties.SequenceNumber, eventData.SystemProperties.Offset);
                     await context.CheckpointAsync(eventData).ConfigureAwait(false);
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _logger.LogWarning(ex, "Failed to checkpoint EventProcessor {Id} for partition {PartitionId} with " +
                         "event with {SequenceNumber} SequenceNumber and {Offset} Offset", _processorId,
                         context.PartitionId, eventData.SystemProperties.SequenceNumber, eventData.SystemProperties.Offset);
                     kEventProcessorDetails.WithLabels(_processorId, context.PartitionId, "checkpoint_failed").Inc();
                 }
-                finally {
+                finally
+                {
                     _sw.Restart();
                 }
             }
@@ -172,14 +196,16 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             /// <summary>
             /// Wraps the properties into a string dictionary
             /// </summary>
-            private class EventProperties : IDictionary<string, string> {
+            private class EventProperties : IDictionary<string, string>
+            {
                 /// <summary>
                 /// Create properties wrapper
                 /// </summary>
                 /// <param name="system"></param>
                 /// <param name="user"></param>
                 internal EventProperties(IDictionary<string, object> system,
-                    IDictionary<string, object> user) {
+                    IDictionary<string, object> user)
+                {
                     _system = system ?? new Dictionary<string, object>();
                     _user = user ?? new Dictionary<string, object>();
                 }
@@ -203,9 +229,12 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 public bool IsReadOnly => true;
 
                 /// <inheritdoc/>
-                public string this[string key] {
-                    get {
-                        if (!_user.TryGetValue(key, out var result)) {
+                public string this[string key]
+                {
+                    get
+                    {
+                        if (!_user.TryGetValue(key, out var result))
+                        {
                             result = _system[key];
                         }
                         return result.ToString();
@@ -214,24 +243,29 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 }
 
                 /// <inheritdoc/>
-                public void Add(string key, string value) {
+                public void Add(string key, string value)
+                {
                     _user.Add(key, value);
                 }
 
                 /// <inheritdoc/>
-                public bool ContainsKey(string key) {
+                public bool ContainsKey(string key)
+                {
                     return _user.ContainsKey(key) || _system.ContainsKey(key);
                 }
 
                 /// <inheritdoc/>
-                public bool Remove(string key) {
+                public bool Remove(string key)
+                {
                     return _user.Remove(key) || _system.Remove(key);
                 }
 
                 /// <inheritdoc/>
-                public bool TryGetValue(string key, out string value) {
+                public bool TryGetValue(string key, out string value)
+                {
                     if (_user.TryGetValue(key, out var result) ||
-                        _system.TryGetValue(key, out result)) {
+                        _system.TryGetValue(key, out result))
+                    {
                         value = result.ToString();
                         return true;
                     }
@@ -240,29 +274,36 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 }
 
                 /// <inheritdoc/>
-                public void Add(KeyValuePair<string, string> item) {
+                public void Add(KeyValuePair<string, string> item)
+                {
                     _user.Add(new KeyValuePair<string, object>(item.Key, item.Value));
                 }
 
                 /// <inheritdoc/>
-                public void Clear() {
+                public void Clear()
+                {
                     _user.Clear();
                     _system.Clear();
                 }
 
                 /// <inheritdoc/>
-                public bool Contains(KeyValuePair<string, string> item) {
-                    if (TryGetValue(item.Key, out var value)) {
+                public bool Contains(KeyValuePair<string, string> item)
+                {
+                    if (TryGetValue(item.Key, out var value))
+                    {
                         return value == item.Value;
                     }
                     return false;
                 }
 
                 /// <inheritdoc/>
-                public void CopyTo(KeyValuePair<string, string>[] array, int arrayIndex) {
+                public void CopyTo(KeyValuePair<string, string>[] array, int arrayIndex)
+                {
                     var index = arrayIndex;
-                    foreach (var item in this) {
-                        if (index >= array.Length) {
+                    foreach (var item in this)
+                    {
+                        if (index >= array.Length)
+                        {
                             return;
                         }
                         array[index++] = item;
@@ -270,15 +311,18 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 }
 
                 /// <inheritdoc/>
-                public bool Remove(KeyValuePair<string, string> item) {
-                    if (Contains(item)) {
+                public bool Remove(KeyValuePair<string, string> item)
+                {
+                    if (Contains(item))
+                    {
                         return Remove(item.Key);
                     }
                     return false;
                 }
 
                 /// <inheritdoc/>
-                public IEnumerator<KeyValuePair<string, string>> GetEnumerator() {
+                public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+                {
                     return _user
             .Select(v => new KeyValuePair<string, string>(v.Key, v.Value.ToString()))
             .Concat(_system
@@ -287,7 +331,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 }
 
                 /// <inheritdoc/>
-                IEnumerator IEnumerable.GetEnumerator() {
+                IEnumerator IEnumerable.GetEnumerator()
+                {
                     return _user.Concat(_system).GetEnumerator();
                 }
 
@@ -304,7 +349,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             private readonly PartitionContext _partitionContext;
             private static readonly Gauge kEventProcessorDetails = Metrics
                 .CreateGauge("iiot_event_processor_info", "details about event processor",
-                    new GaugeConfiguration {
+                    new GaugeConfiguration
+                    {
                         LabelNames = new[] { "id", "partition_id", "status" }
                     });
         }

@@ -1,4 +1,5 @@
-﻿namespace Microsoft.Azure.IIoT.App.Auth {
+﻿namespace Microsoft.Azure.IIoT.App.Auth
+{
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -7,11 +8,14 @@
     [Controller]
     [AllowAnonymous]
     [Route("Account")]
-    public class AuthStateController : Controller {
+    public class AuthStateController : Controller
+    {
         [HttpGet("{scheme}/LogIn")]
-        public IActionResult LogIn([FromRoute] string scheme) {
+        public IActionResult LogIn([FromRoute] string scheme)
+        {
             var redirectUri = Url.Content("~/");
-            var authProps = new AuthenticationProperties {
+            var authProps = new AuthenticationProperties
+            {
                 IsPersistent = true,
                 ExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(30),
                 RedirectUri = redirectUri
@@ -20,10 +24,12 @@
         }
 
         [HttpGet("{scheme}/LogOut")]
-        public IActionResult LogOut([FromRoute] string scheme) {
+        public IActionResult LogOut([FromRoute] string scheme)
+        {
             // var redirectUri = base.Url.Page("/Account/SignedOut", null, null, base.Request.Scheme);
             var redirectUri = Url.Content("~/");
-            var authProps = new AuthenticationProperties {
+            var authProps = new AuthenticationProperties
+            {
                 RedirectUri = redirectUri
             };
             return SignOut(authProps, scheme + "Cookie", scheme);

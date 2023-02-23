@@ -27,11 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using Opc.Ua;
 using System;
 using System.Collections.Generic;
-using Opc.Ua;
 
-namespace Model {
+namespace Model
+{
     #region GenericControllerState Class
 #if (!OPCUA_EXCLUDE_GenericControllerState)
     /// <summary>
@@ -39,18 +40,21 @@ namespace Model {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class GenericControllerState : BaseObjectState {
+    public partial class GenericControllerState : BaseObjectState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public GenericControllerState(NodeState parent) : base(parent) {
+        public GenericControllerState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Model.ObjectTypes.GenericControllerType, Model.Namespaces.Views, namespaceUris);
         }
 
@@ -58,7 +62,8 @@ namespace Model {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -66,7 +71,8 @@ namespace Model {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -74,7 +80,8 @@ namespace Model {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -95,13 +102,17 @@ namespace Model {
 
         #region Public Properties
         /// <remarks />
-        public PropertyState<string> SerialNumber {
-            get {
+        public PropertyState<string> SerialNumber
+        {
+            get
+            {
                 return m_serialNumber;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_serialNumber, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_serialNumber, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -110,13 +121,17 @@ namespace Model {
         }
 
         /// <remarks />
-        public PropertyState<string> Manufacturer {
-            get {
+        public PropertyState<string> Manufacturer
+        {
+            get
+            {
                 return m_manufacturer;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_manufacturer, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_manufacturer, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -125,13 +140,17 @@ namespace Model {
         }
 
         /// <remarks />
-        public AnalogItemState<double> SetPoint {
-            get {
+        public AnalogItemState<double> SetPoint
+        {
+            get
+            {
                 return m_setPoint;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_setPoint, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_setPoint, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -140,13 +159,17 @@ namespace Model {
         }
 
         /// <remarks />
-        public AnalogItemState<double> Measurement {
-            get {
+        public AnalogItemState<double> Measurement
+        {
+            get
+            {
                 return m_measurement;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_measurement, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_measurement, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -163,20 +186,25 @@ namespace Model {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_serialNumber != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_serialNumber != null)
+            {
                 children.Add(m_serialNumber);
             }
 
-            if (m_manufacturer != null) {
+            if (m_manufacturer != null)
+            {
                 children.Add(m_manufacturer);
             }
 
-            if (m_setPoint != null) {
+            if (m_setPoint != null)
+            {
                 children.Add(m_setPoint);
             }
 
-            if (m_measurement != null) {
+            if (m_measurement != null)
+            {
                 children.Add(m_measurement);
             }
 
@@ -190,21 +218,29 @@ namespace Model {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Engineering.BrowseNames.SerialNumber: {
-                        if (createOrReplace) {
-                            if (SerialNumber == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Engineering.BrowseNames.SerialNumber:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (SerialNumber == null)
+                            {
+                                if (replacement == null)
+                                {
                                     SerialNumber = new PropertyState<string>(this);
                                 }
-                                else {
+                                else
+                                {
                                     SerialNumber = (PropertyState<string>)replacement;
                                 }
                             }
@@ -214,13 +250,18 @@ namespace Model {
                         break;
                     }
 
-                case Engineering.BrowseNames.Manufacturer: {
-                        if (createOrReplace) {
-                            if (Manufacturer == null) {
-                                if (replacement == null) {
+                case Engineering.BrowseNames.Manufacturer:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Manufacturer == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Manufacturer = new PropertyState<string>(this);
                                 }
-                                else {
+                                else
+                                {
                                     Manufacturer = (PropertyState<string>)replacement;
                                 }
                             }
@@ -230,13 +271,18 @@ namespace Model {
                         break;
                     }
 
-                case Operations.BrowseNames.SetPoint: {
-                        if (createOrReplace) {
-                            if (SetPoint == null) {
-                                if (replacement == null) {
+                case Operations.BrowseNames.SetPoint:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (SetPoint == null)
+                            {
+                                if (replacement == null)
+                                {
                                     SetPoint = new AnalogItemState<double>(this);
                                 }
-                                else {
+                                else
+                                {
                                     SetPoint = (AnalogItemState<double>)replacement;
                                 }
                             }
@@ -246,13 +292,18 @@ namespace Model {
                         break;
                     }
 
-                case Operations.BrowseNames.Measurement: {
-                        if (createOrReplace) {
-                            if (Measurement == null) {
-                                if (replacement == null) {
+                case Operations.BrowseNames.Measurement:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Measurement == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Measurement = new AnalogItemState<double>(this);
                                 }
-                                else {
+                                else
+                                {
                                     Measurement = (AnalogItemState<double>)replacement;
                                 }
                             }
@@ -263,7 +314,8 @@ namespace Model {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 
@@ -288,18 +340,21 @@ namespace Model {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class FlowControllerState : GenericControllerState {
+    public partial class FlowControllerState : GenericControllerState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public FlowControllerState(NodeState parent) : base(parent) {
+        public FlowControllerState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Model.ObjectTypes.FlowControllerType, Model.Namespaces.Views, namespaceUris);
         }
 
@@ -307,7 +362,8 @@ namespace Model {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -315,7 +371,8 @@ namespace Model {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -323,7 +380,8 @@ namespace Model {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -361,18 +419,21 @@ namespace Model {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class LevelControllerState : GenericControllerState {
+    public partial class LevelControllerState : GenericControllerState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public LevelControllerState(NodeState parent) : base(parent) {
+        public LevelControllerState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Model.ObjectTypes.LevelControllerType, Model.Namespaces.Views, namespaceUris);
         }
 
@@ -380,7 +441,8 @@ namespace Model {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -388,7 +450,8 @@ namespace Model {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -396,7 +459,8 @@ namespace Model {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -434,18 +498,21 @@ namespace Model {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class BoilerState : BaseObjectState {
+    public partial class BoilerState : BaseObjectState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public BoilerState(NodeState parent) : base(parent) {
+        public BoilerState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Model.ObjectTypes.BoilerType, Model.Namespaces.Views, namespaceUris);
         }
 
@@ -453,7 +520,8 @@ namespace Model {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -461,7 +529,8 @@ namespace Model {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -469,7 +538,8 @@ namespace Model {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -504,13 +574,17 @@ namespace Model {
 
         #region Public Properties
         /// <remarks />
-        public BaseObjectState WaterIn {
-            get {
+        public BaseObjectState WaterIn
+        {
+            get
+            {
                 return m_waterIn;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_waterIn, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_waterIn, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -519,13 +593,17 @@ namespace Model {
         }
 
         /// <remarks />
-        public BaseObjectState SteamOut {
-            get {
+        public BaseObjectState SteamOut
+        {
+            get
+            {
                 return m_steamOut;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_steamOut, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_steamOut, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -534,13 +612,17 @@ namespace Model {
         }
 
         /// <remarks />
-        public BaseObjectState Drum {
-            get {
+        public BaseObjectState Drum
+        {
+            get
+            {
                 return m_drum;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_drum, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_drum, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -557,16 +639,20 @@ namespace Model {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_waterIn != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_waterIn != null)
+            {
                 children.Add(m_waterIn);
             }
 
-            if (m_steamOut != null) {
+            if (m_steamOut != null)
+            {
                 children.Add(m_steamOut);
             }
 
-            if (m_drum != null) {
+            if (m_drum != null)
+            {
                 children.Add(m_drum);
             }
 
@@ -580,21 +666,29 @@ namespace Model {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Model.BrowseNames.WaterIn: {
-                        if (createOrReplace) {
-                            if (WaterIn == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Model.BrowseNames.WaterIn:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (WaterIn == null)
+                            {
+                                if (replacement == null)
+                                {
                                     WaterIn = new BaseObjectState(this);
                                 }
-                                else {
+                                else
+                                {
                                     WaterIn = (BaseObjectState)replacement;
                                 }
                             }
@@ -604,13 +698,18 @@ namespace Model {
                         break;
                     }
 
-                case Model.BrowseNames.SteamOut: {
-                        if (createOrReplace) {
-                            if (SteamOut == null) {
-                                if (replacement == null) {
+                case Model.BrowseNames.SteamOut:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (SteamOut == null)
+                            {
+                                if (replacement == null)
+                                {
                                     SteamOut = new BaseObjectState(this);
                                 }
-                                else {
+                                else
+                                {
                                     SteamOut = (BaseObjectState)replacement;
                                 }
                             }
@@ -620,13 +719,18 @@ namespace Model {
                         break;
                     }
 
-                case Model.BrowseNames.Drum: {
-                        if (createOrReplace) {
-                            if (Drum == null) {
-                                if (replacement == null) {
+                case Model.BrowseNames.Drum:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (Drum == null)
+                            {
+                                if (replacement == null)
+                                {
                                     Drum = new BaseObjectState(this);
                                 }
-                                else {
+                                else
+                                {
                                     Drum = (BaseObjectState)replacement;
                                 }
                             }
@@ -637,7 +741,8 @@ namespace Model {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 

@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
+namespace Microsoft.Azure.IIoT.Auth
+{
     /// <summary>
     /// Configuration for oauth flows
     /// </summary>
-    public interface IOAuthConfig {
+    public interface IOAuthConfig
+    {
         /// <summary>
         /// The configuration is valid
         /// </summary>

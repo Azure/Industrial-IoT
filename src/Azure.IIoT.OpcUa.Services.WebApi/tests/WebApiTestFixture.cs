@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
+{
     using Autofac.Extensions.Hosting;
     using Furly.Extensions.Serializers.MessagePack;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -14,31 +15,37 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
     using System.Net.Http;
 
     /// <inheritdoc/>
-    public class WebApiTestFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory {
-        public static IEnumerable<object[]> GetSerializers() {
+    public class WebApiTestFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory
+    {
+        public static IEnumerable<object[]> GetSerializers()
+        {
             yield return new object[] { new MessagePackSerializer() };
             yield return new object[] { new NewtonsoftJsonSerializer() };
         }
 
         /// <inheritdoc/>
-        protected override IHostBuilder CreateHostBuilder() {
+        protected override IHostBuilder CreateHostBuilder()
+        {
             return Host.CreateDefaultBuilder();
         }
 
         /// <inheritdoc/>
-        protected override void ConfigureWebHost(IWebHostBuilder builder) {
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
             builder.UseContentRoot(".").UseStartup<TestStartup>();
             base.ConfigureWebHost(builder);
         }
 
         /// <inheritdoc/>
-        protected override IHost CreateHost(IHostBuilder builder) {
+        protected override IHost CreateHost(IHostBuilder builder)
+        {
             builder.UseAutofac();
             return base.CreateHost(builder);
         }
 
         /// <inheritdoc/>
-        public HttpClient CreateClient(string name) {
+        public HttpClient CreateClient(string name)
+        {
             return CreateClient();
         }
 
@@ -47,7 +54,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Resolve<T>() {
+        public T Resolve<T>()
+        {
             return (T)Server.Services.GetService(typeof(T));
         }
     }

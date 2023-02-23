@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.State.Models {
+namespace Azure.IIoT.OpcUa.Publisher.State.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Model for reporting runtime state.
     /// </summary>
     [DataContract]
-    public class RuntimeStateModel {
+    public class RuntimeStateModel
+    {
         /// <summary> Defines the message type that is sent. </summary>
         [DataMember(Name = "MessageType", Order = 0, EmitDefaultValue = true)]
         public MessageTypeEnum MessageType { get; set; }

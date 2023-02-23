@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Transport quota configuration
     /// </summary>
-    public class TransportQuotaConfig : ConfigBase, ITransportQuotaConfig {
+    public class TransportQuotaConfig : ConfigBase, ITransportQuotaConfig
+    {
         /// <summary>
         /// Configuration
         /// </summary>
@@ -55,7 +57,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public TransportQuotaConfig(IConfiguration configuration = null) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

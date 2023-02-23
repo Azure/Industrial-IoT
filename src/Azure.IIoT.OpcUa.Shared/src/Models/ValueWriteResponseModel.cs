@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Value write response model
     /// </summary>
     [DataContract]
-    public sealed record class ValueWriteResponseModel {
+    public sealed record class ValueWriteResponseModel
+    {
         /// <summary>
         /// Service result in case of error
         /// </summary>

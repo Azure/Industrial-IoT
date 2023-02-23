@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
+    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
-    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -25,12 +26,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
-    public class PublishersController : ControllerBase {
+    public class PublishersController : ControllerBase
+    {
         /// <summary>
         /// Create controller for publisher services
         /// </summary>
         /// <param name="publishers"></param>
-        public PublishersController(IPublisherRegistry publishers) {
+        public PublishersController(IPublisherRegistry publishers)
+        {
             _publishers = publishers;
         }
 
@@ -48,7 +51,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Publisher registration</returns>
         [HttpGet("{publisherId}")]
         public async Task<PublisherModel> GetPublisherAsync(string publisherId,
-            [FromQuery] bool? onlyServerState) {
+            [FromQuery] bool? onlyServerState)
+        {
             return await _publishers.GetPublisherAsync(publisherId,
                 onlyServerState ?? false).ConfigureAwait(false);
         }
@@ -65,8 +69,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPatch("{publisherId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdatePublisherAsync(string publisherId,
-            [FromBody][Required] PublisherUpdateModel request) {
-            if (request == null) {
+            [FromBody][Required] PublisherUpdateModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             await _publishers.UpdatePublisherAsync(publisherId,
@@ -95,12 +101,15 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task<PublisherListModel> GetListOfPublisherAsync(
             [FromQuery] bool? onlyServerState,
             [FromQuery] string continuationToken,
-            [FromQuery] int? pageSize) {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
+            [FromQuery] int? pageSize)
+        {
+            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken]
                     .FirstOrDefault();
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount)) {
+            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
@@ -128,15 +137,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task<PublisherListModel> QueryPublisherAsync(
             [FromBody][Required] PublisherQueryModel query,
             [FromQuery] bool? onlyServerState,
-            [FromQuery] int? pageSize) {
-            if (query == null) {
+            [FromQuery] int? pageSize)
+        {
+            if (query == null)
+            {
                 throw new ArgumentNullException(nameof(query));
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount)) {
+            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            
+
 
             // TODO: Filter results based on RBAC
 
@@ -164,15 +176,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         public async Task<PublisherListModel> GetFilteredListOfPublisherAsync(
             [FromQuery][Required] PublisherQueryModel query,
             [FromQuery] bool? onlyServerState,
-            [FromQuery] int? pageSize) {
-            if (query == null) {
+            [FromQuery] int? pageSize)
+        {
+            if (query == null)
+            {
                 throw new ArgumentNullException(nameof(query));
             }
-            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount)) {
+            if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
+            {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            
+
 
             // TODO: Filter results based on RBAC
 

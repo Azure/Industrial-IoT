@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.OpenApi.Models {
+namespace Microsoft.OpenApi.Models
+{
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Controllers;
@@ -19,7 +20,8 @@ namespace Microsoft.OpenApi.Models {
     /// <summary>
     /// Configure OpenApi
     /// </summary>
-    public static class ServiceCollectionEx {
+    public static class ServiceCollectionEx
+    {
         /// <summary>
         /// Configure OpenApi
         /// </summary>
@@ -27,8 +29,10 @@ namespace Microsoft.OpenApi.Models {
         /// <param name="title"></param>
         /// <param name="description"></param>
         public static IServiceCollection AddSwagger(this IServiceCollection services,
-            string title, string description) {
-            services.AddApiVersioning(o => {
+            string title, string description)
+        {
+            services.AddApiVersioning(o =>
+            {
                 o.AssumeDefaultVersionWhenUnspecified = true;
                 o.DefaultApiVersion = new ApiVersion(1, 0);
             });
@@ -36,12 +40,14 @@ namespace Microsoft.OpenApi.Models {
             services.AddSwaggerGen();
             services.AddSwaggerGenNewtonsoftSupport();
 
-            services.AddTransient<IConfigureOptions<SwaggerGenOptions>>(provider => {
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>>(provider =>
+            {
                 var api = provider.GetRequiredService<IActionDescriptorCollectionProvider>();
                 var config = provider.GetRequiredService<IOpenApiConfig>();
                 var infos = api.GetOpenApiInfos(title, description);
 
-                return new ConfigureNamedOptions<SwaggerGenOptions>(Options.DefaultName, options => {
+                return new ConfigureNamedOptions<SwaggerGenOptions>(Options.DefaultName, options =>
+                {
                     // Add annotations
                     options.EnableAnnotations();
 
@@ -52,28 +58,35 @@ namespace Microsoft.OpenApi.Models {
                     options.DocumentFilter<ApiVersionExtensions>();
 
                     // Ensure the routes are added to the right Swagger doc
-                    options.DocInclusionPredicate((version, descriptor) => {
-                        if (descriptor.ActionDescriptor is ControllerActionDescriptor desc) {
+                    options.DocInclusionPredicate((version, descriptor) =>
+                    {
+                        if (descriptor.ActionDescriptor is ControllerActionDescriptor desc)
+                        {
                             return desc.MatchesVersion(version);
                         }
                         return true;
                     });
 
-                    foreach (var info in infos) {
+                    foreach (var info in infos)
+                    {
                         // Generate doc for version
                         options.SwaggerDoc(info.Version, info);
                     }
 
                     // Add help
-                    foreach (var file in Directory.GetFiles(AppContext.BaseDirectory, "*.xml")) {
+                    foreach (var file in Directory.GetFiles(AppContext.BaseDirectory, "*.xml"))
+                    {
                         options.IncludeXmlComments(file, true);
                     }
 
                     // If auth enabled, need to have bearer token to access any api
-                    if (config.WithAuth) {
+                    if (config.WithAuth)
+                    {
                         if (string.IsNullOrEmpty(config.OpenApiAppId) ||
-                            string.IsNullOrEmpty(config.OpenApiAuthorizationUrl)) {
-                            options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme {
+                            string.IsNullOrEmpty(config.OpenApiAuthorizationUrl))
+                        {
+                            options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
+                            {
                                 Description =
                                     "Authorization token in the form of 'bearer <token>'",
                                 Name = "Authorization",
@@ -81,14 +94,18 @@ namespace Microsoft.OpenApi.Models {
                             });
                             options.OperationFilter<AutoRestOperationExtensions>();
                         }
-                        else {
+                        else
+                        {
                             // TODO: use registered client configuration here instead of IOpenApiConfig
                             var authOptions = provider.GetRequiredService<IOptions<AuthorizationOptions>>();
-                            options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme {
+                            options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+                            {
                                 Type = SecuritySchemeType.OAuth2,
                                 Description = "Implicit oauth2 token flow.",
-                                Flows = new OpenApiOAuthFlows {
-                                    Implicit = new OpenApiOAuthFlow {
+                                Flows = new OpenApiOAuthFlows
+                                {
+                                    Implicit = new OpenApiOAuthFlow
+                                    {
                                         AuthorizationUrl =
                                             new Uri(config.OpenApiAuthorizationUrl),
                                         Scopes = api.GetRequiredScopes(authOptions)
@@ -99,7 +116,8 @@ namespace Microsoft.OpenApi.Models {
                             options.OperationFilter<SecurityRequirementsOperationFilter>();
                         }
                     }
-                    else {
+                    else
+                    {
                         options.OperationFilter<AutoRestOperationExtensions>();
                     }
                 });

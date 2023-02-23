@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher
+{
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Opc.Ua;
@@ -15,7 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// Internal node services interface
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface INodeServicesInternal<T> {
+    public interface INodeServicesInternal<T>
+    {
         /// <summary>
         /// Read node history
         /// </summary>

@@ -3,15 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models {
+namespace Azure.IIoT.OpcUa.Services.Models
+{
     using AutoFixture;
     using System;
     using System.Linq;
     using Xunit;
 
-    public class GatewayRegistrationTests {
+    public class GatewayRegistrationTests
+    {
         [Fact]
-        public void TestEqualIsEqual() {
+        public void TestEqualIsEqual()
+        {
             var fix = new Fixture();
 
             var cert = fix.CreateMany<byte>(1000).ToArray();
@@ -25,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqual() {
+        public void TestEqualIsNotEqual()
+        {
             var fix = new Fixture();
 
             var cert = fix.CreateMany<byte>(1000).ToArray();
@@ -40,7 +44,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsEqualWithServiceModelConversion() {
+        public void TestEqualIsEqualWithServiceModelConversion()
+        {
             var r1 = CreateRegistration();
             var m = r1;
             var r2 = m.ToServiceModel().ToGatewayRegistration();
@@ -52,7 +57,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqualWithServiceModelConversionWhenDisabled() {
+        public void TestEqualIsNotEqualWithServiceModelConversionWhenDisabled()
+        {
             var fix = new Fixture();
 
             var r1 = CreateRegistration();
@@ -66,7 +72,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsEqualWithDeviceModel() {
+        public void TestEqualIsEqualWithDeviceModel()
+        {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin();
             var r2 = m.ToEntityRegistration();
@@ -78,7 +85,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsEqualWithDeviceModelWhenDisabled() {
+        public void TestEqualIsEqualWithDeviceModelWhenDisabled()
+        {
             var fix = new Fixture();
 
             var r1 = CreateRegistration();
@@ -97,7 +105,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// Create registration
         /// </summary>
         /// <returns></returns>
-        private static GatewayRegistration CreateRegistration() {
+        private static GatewayRegistration CreateRegistration()
+        {
             var fix = new Fixture();
             var cert = fix.CreateMany<byte>(1000).ToArray();
             return fix.Build<GatewayRegistration>()

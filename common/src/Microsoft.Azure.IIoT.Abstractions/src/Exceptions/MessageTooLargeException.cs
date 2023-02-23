@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Exceptions {
+namespace Microsoft.Azure.IIoT.Exceptions
+{
     using System;
 
     /// <summary>
     /// Thrown when a message does not fit into the allowed
     /// max buffer size.
     /// </summary>
-    public class MessageTooLargeException : Exception {
+    public class MessageTooLargeException : Exception
+    {
         /// <summary>
         /// Actual size
         /// </summary>
@@ -28,7 +30,8 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// <param name="messageSize"></param>
         /// <param name="maxMessageSize"></param>
         public MessageTooLargeException(string message,
-            int messageSize, int maxMessageSize) : base(message) {
+            int messageSize, int maxMessageSize) : base(message)
+        {
             MessageSize = messageSize;
             MaxMessageSize = maxMessageSize;
         }
@@ -38,7 +41,8 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// </summary>
         /// <param name="message"></param>
         public MessageTooLargeException(string message) :
-            this(message, -1, -1) {
+            this(message, -1, -1)
+        {
         }
     }
 }

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
+{
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
@@ -29,14 +30,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     /// </summary>
     public class PublisherCliOptions : Dictionary<string, string>,
         ISettingsController, IEngineConfiguration, IPublisherConfiguration,
-        IRuntimeStateReporterConfiguration, ISubscriptionConfig {
+        IRuntimeStateReporterConfiguration, ISubscriptionConfig
+    {
         /// <summary>
         /// Creates a new instance of the cli options based on existing configuration values.
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public PublisherCliOptions(IConfiguration config, ILogger logger) {
-            foreach (var item in config.GetChildren()) {
+        public PublisherCliOptions(IConfiguration config, ILogger logger)
+        {
+            foreach (var item in config.GetChildren())
+            {
                 this[item.Key] = item.Value;
             }
             _logger = logger;
@@ -46,7 +50,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// Parse arguments and set values in the environment the way the new configuration expects it.
         /// </summary>
         /// <param name="args">The specified command line arguments.</param>
-        public PublisherCliOptions(string[] args) {
+        public PublisherCliOptions(string[] args)
+        {
             _logger = Log.Console<PublisherCliOptions>();
 
             var showHelp = false;
@@ -351,36 +356,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 { "lt|logflushtimespan=", "Legacy - do not use.", _ => legacyOptions.Add("lt|logflushtimespan"), true },
             };
 
-            try {
+            try
+            {
                 unsupportedOptions = options.Parse(args);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Warning("Parse args exception: " + e.Message);
                 ExitProcess(160);
                 return;
             }
 
-            if (_logger.IsEnabled(LogLevel.Debug)) {
-                foreach (var key in Keys) {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                foreach (var key in Keys)
+                {
                     Debug("Parsed command line option: '{Key}'='{Value}'", key, this[key]);
                 }
             }
 
-            if (unsupportedOptions.Count > 0) {
-                foreach (var option in unsupportedOptions) {
+            if (unsupportedOptions.Count > 0)
+            {
+                foreach (var option in unsupportedOptions)
+                {
                     Warning("Option {Option} wrong or not supported, " +
                         "please use -h option to get all the supported options.", option);
                 }
             }
 
-            if (legacyOptions.Count > 0) {
-                foreach (var option in legacyOptions) {
+            if (legacyOptions.Count > 0)
+            {
+                foreach (var option in legacyOptions)
+                {
                     Warning("Legacy option {option} not supported, please use -h option to get all the supported options.", option);
                 }
             }
 
-            if (!showHelp) {
-                if (!MessagingProfile.IsSupported(StandaloneCliModel.MessagingMode, StandaloneCliModel.MessageEncoding)) {
+            if (!showHelp)
+            {
+                if (!MessagingProfile.IsSupported(StandaloneCliModel.MessagingMode, StandaloneCliModel.MessageEncoding))
+                {
                     Warning("The specified combination of --mm, and --me is not (yet) supported. Currently supported combinations are: {MessageProfiles}), " +
                             "please use -h option to get all the supported options.",
                         MessagingProfile.Supported.Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})").Aggregate((a, b) => $"{a}, {b}"));
@@ -392,14 +407,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 else if (!ContainsKey(PublisherCliConfigKeys.MqttClientConnectionString) &&
                     !ContainsKey(PublisherCliConfigKeys.EdgeHubConnectionString) &&
                     Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID) == null &&
-                    Environment.GetEnvironmentVariable(PublisherCliConfigKeys.EdgeHubConnectionString) == null) {
+                    Environment.GetEnvironmentVariable(PublisherCliConfigKeys.EdgeHubConnectionString) == null)
+                {
                     Warning("You must specify a connection string or run inside IoT Edge context, " +
                             "please use -h option to get all the supported options.");
                     ExitProcess(180);
                     return;
                 }
             }
-            else {
+            else
+            {
                 options.WriteOptionDescriptions(Console.Out);
                 var markdown = MessagingProfile.GetAllAsMarkdownTable();
 #if WRITETABLE
@@ -412,9 +429,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 ExitProcess(0);
             }
 
-            void SetStoreType(string s, string storeTypeKey, string optionName) {
+            void SetStoreType(string s, string storeTypeKey, string optionName)
+            {
                 if (s.Equals(CertificateStoreType.X509Store, StringComparison.OrdinalIgnoreCase) ||
-                            s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase)) {
+                            s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase))
+                {
                     this[storeTypeKey] = s;
                     return;
                 }
@@ -516,8 +535,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// <summary>
         /// The model of the CLI arguments.
         /// </summary>
-        public StandaloneCliModel StandaloneCliModel {
-            get {
+        public StandaloneCliModel StandaloneCliModel
+        {
+            get
+            {
                 _standaloneCliModel ??= ToStandaloneCliModel();
 
                 return _standaloneCliModel;
@@ -527,7 +548,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// <summary>
         /// Call exit with exit code
         /// </summary>
-        public virtual void ExitProcess(int exitCode) {
+        public virtual void ExitProcess(int exitCode)
+        {
             Environment.Exit(exitCode);
         }
 
@@ -535,7 +557,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// Write a log event with the Warning level.
         /// </summary>
         /// <param name="messageTemplate">Message template describing the event.</param>
-        public virtual void Warning(string messageTemplate) {
+        public virtual void Warning(string messageTemplate)
+        {
             _logger.LogWarning(messageTemplate);
         }
 
@@ -544,19 +567,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// </summary>
         /// <param name="messageTemplate">Message template describing the event.</param>
         /// <param name="propertyValue">Object positionally formatted into the message template.</param>
-        public virtual void Warning<T>(string messageTemplate, T propertyValue) {
+        public virtual void Warning<T>(string messageTemplate, T propertyValue)
+        {
             _logger.LogWarning(messageTemplate, propertyValue);
         }
 
         /// <summary>
         /// Write a log event with the Debug level.
         /// </summary>
-        public virtual void Debug<T0, T1>(string messageTemplate, T0 propertyValue0, T1 propertyValue1) {
+        public virtual void Debug<T0, T1>(string messageTemplate, T0 propertyValue0, T1 propertyValue1)
+        {
             _logger.LogDebug(messageTemplate, propertyValue0, propertyValue1);
         }
 
-        private StandaloneCliModel ToStandaloneCliModel() {
-            var model = new StandaloneCliModel {
+        private StandaloneCliModel ToStandaloneCliModel()
+        {
+            var model = new StandaloneCliModel
+            {
                 PublishedNodesFile = GetValueOrDefault(PublisherCliConfigKeys.PublishedNodesConfigurationFilename, PublisherCliConfigKeys.DefaultPublishedNodesFilename),
                 PublishedNodesSchemaFile = GetValueOrDefault(PublisherCliConfigKeys.PublishedNodesConfigurationSchemaFilename, PublisherCliConfigKeys.DefaultPublishedNodesSchemaFilename)
             };
@@ -591,8 +618,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
             return model;
         }
 
-        private T GetValueOrDefault<T>(string key, T defaultValue) {
-            if (!ContainsKey(key)) {
+        private T GetValueOrDefault<T>(string key, T defaultValue)
+        {
+            if (!ContainsKey(key))
+            {
                 return defaultValue;
             }
             var converter = TypeDescriptor.GetConverter(typeof(T));

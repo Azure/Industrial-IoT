@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models;
     using Microsoft.Extensions.Logging;
     using System;
@@ -16,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
     /// <summary>
     /// Scans network using icmp and finds all machines in it.
     /// </summary>
-    public sealed class NetworkScanner : IScanner {
+    public sealed class NetworkScanner : IScanner
+    {
         /// <summary>
         /// Number of items scanned
         /// </summary>
@@ -35,7 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <param name="ct"></param>
         public NetworkScanner(ILogger logger, Action<NetworkScanner, PingReply> replies,
             CancellationToken ct) :
-            this(logger, replies, false, null, NetworkClass.Wired, null, null, ct) {
+            this(logger, replies, false, null, NetworkClass.Wired, null, null, ct)
+        {
         }
 
         /// <summary>
@@ -47,7 +50,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <param name="ct"></param>
         public NetworkScanner(ILogger logger, Action<NetworkScanner, PingReply> replies,
             NetworkClass netclass, CancellationToken ct) :
-            this(logger, replies, false, null, netclass, null, null, ct) {
+            this(logger, replies, false, null, netclass, null, null, ct)
+        {
         }
 
         /// <summary>
@@ -63,7 +67,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <param name="ct"></param>
         public NetworkScanner(ILogger logger, Action<NetworkScanner, PingReply> replies,
             bool local, IEnumerable<AddressRange>? addresses, NetworkClass netclass,
-            int? maxProbeCount, TimeSpan? timeout, CancellationToken ct) {
+            int? maxProbeCount, TimeSpan? timeout, CancellationToken ct)
+        {
             _logger = logger;
             _replies = replies;
             _ct = ct;
@@ -71,18 +76,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             _completion = new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             _candidates = new List<uint>();
-            if (addresses?.Any() != true) {
+            if (addresses?.Any() != true)
+            {
                 _addresses = NetworkInformationEx.GetAllNetInterfaces(netclass)
                     .Select(t => new AddressRange(t, local)).Distinct().ToList();
             }
-            else {
+            else
+            {
                 _addresses = addresses.Select(a => a.Copy()).Distinct().ToList();
             }
             _pings = CreatePings(local ? _addresses.Count + 1 :
                 maxProbeCount ?? kDefaultMaxProbeCount);
             // Start initial pings
             _logger.LogInformation("Start scanning {Sddresses}...", _addresses.Select(a => a.ToString()));
-            foreach (var ping in _pings.ToList()) {
+            foreach (var ping in _pings.ToList())
+            {
                 OnNextPing(ping);
             }
         }
@@ -90,16 +98,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Scan completed
         /// </summary>
-        public Task WaitToCompleteAsync() {
+        public Task WaitToCompleteAsync()
+        {
             return _completion.Task;
         }
 
         /// <summary>
         /// Dispose scanner
         /// </summary>
-        public void Dispose() {
-            lock (_candidates) {
-                foreach (var ping in _pings) {
+        public void Dispose()
+        {
+            lock (_candidates)
+            {
+                foreach (var ping in _pings)
+                {
                     ping.SendAsyncCancel();
                     ping.Dispose();
                 }
@@ -112,10 +124,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// Schedule next
         /// </summary>
         /// <param name="ping"></param>
-        private void OnNextPing(Ping ping) {
-            lock (_candidates) {
-                while (!_ct.IsCancellationRequested) {
-                    if (_candidates.Count > 0) {
+        private void OnNextPing(Ping ping)
+        {
+            lock (_candidates)
+            {
+                while (!_ct.IsCancellationRequested)
+                {
+                    if (_candidates.Count > 0)
+                    {
                         var address = (IPv4Address)_candidates[0];
                         _candidates.RemoveAt(0);
                         ping.SendAsync(address, (int)_timeout.TotalMilliseconds,
@@ -123,20 +139,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                         return;
                     }
 
-                    if (_addresses.Count == 0) {
+                    if (_addresses.Count == 0)
+                    {
                         break;
                     }
                     _addresses[0].FillNextBatch(_candidates, kDefaultBatchSize);
-                    if (_candidates.Count == 0) {
+                    if (_candidates.Count == 0)
+                    {
                         _addresses.RemoveAt(0);
                         continue;
                     }
                     _candidates.Shuffle();
                 }
 
-                if (_pings.Remove(ping)) {
+                if (_pings.Remove(ping))
+                {
                     ping.Dispose();
-                    if (_pings.Count == 0) {
+                    if (_pings.Count == 0)
+                    {
                         // All pings drained...
                         _completion.TrySetResult(true);
                     }
@@ -148,13 +168,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// Helper to create ping
         /// </summary>
         /// <returns></returns>
-        private List<Ping> CreatePings(int count) {
+        private List<Ping> CreatePings(int count)
+        {
             var pings = new List<Ping>(count);
-            for (var i = 0; i < count; i++) {
+            for (var i = 0; i < count; i++)
+            {
                 var ping = new Ping();
-                ping.PingCompleted += (sender, e) => {
+                ping.PingCompleted += (sender, e) =>
+                {
                     var reply = e.Reply;
-                    if (reply?.Status == IPStatus.Success) {
+                    if (reply?.Status == IPStatus.Success)
+                    {
                         _replies(this, reply);
                     }
                     // When completed, grab next

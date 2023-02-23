@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Cli {
+namespace Azure.IIoT.OpcUa.Testing.Cli
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Shared.Models;
@@ -20,8 +21,10 @@ namespace Azure.IIoT.OpcUa.Testing.Cli {
     /// <summary>
     /// Test client for opc ua services
     /// </summary>
-    public static class Program {
-        private enum Op {
+    public static class Program
+    {
+        private enum Op
+        {
             None,
             RunSampleServer
         }
@@ -29,16 +32,20 @@ namespace Azure.IIoT.OpcUa.Testing.Cli {
         /// <summary>
         /// Test client entry point
         /// </summary>
-        public static void Main(string[] args) {
+        public static void Main(string[] args)
+        {
             AppDomain.CurrentDomain.UnhandledException +=
                 (s, e) => Console.WriteLine("unhandled: " + e.ExceptionObject);
             var op = Op.None;
             var endpoint = new EndpointModel();
             var host = Utils.GetHostName();
             var ports = new List<int>();
-            try {
-                for (var i = 0; i < args.Length; i++) {
-                    switch (args[i]) {
+            try
+            {
+                for (var i = 0; i < args.Length; i++)
+                {
+                    switch (args[i])
+                    {
                         case "--sample":
                         case "-s":
                             op = Op.RunSampleServer;
@@ -46,7 +53,8 @@ namespace Azure.IIoT.OpcUa.Testing.Cli {
                         case "-p":
                         case "--port":
                             i++;
-                            if (i < args.Length) {
+                            if (i < args.Length)
+                            {
                                 ports.Add(ushort.Parse(args[i], CultureInfo.InvariantCulture));
                                 break;
                             }
@@ -60,13 +68,17 @@ namespace Azure.IIoT.OpcUa.Testing.Cli {
                             throw new ArgumentException($"Unknown {args[i]}");
                     }
                 }
-                if (op == Op.None) {
-                    if (ports.Count == 0) {
+                if (op == Op.None)
+                {
+                    if (ports.Count == 0)
+                    {
                         var envPort = Environment.GetEnvironmentVariable("SERVER_PORT");
-                        if (!string.IsNullOrEmpty(envPort) && int.TryParse(envPort, out var port)) {
+                        if (!string.IsNullOrEmpty(envPort) && int.TryParse(envPort, out var port))
+                        {
                             ports.Add(port);
                         }
-                        else {
+                        else
+                        {
                             throw new ArgumentException(
                                 "Missing port to run sample server or specify --sample option.");
                         }
@@ -74,7 +86,8 @@ namespace Azure.IIoT.OpcUa.Testing.Cli {
                     op = Op.RunSampleServer;
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(
                     @"
@@ -95,12 +108,15 @@ Operations (Mutually exclusive):
                 return;
             }
 
-            if (ports.Count == 0) {
+            if (ports.Count == 0)
+            {
                 ports.Add(51210);
             }
-            try {
+            try
+            {
                 Console.WriteLine($"Running {op}...");
-                switch (op) {
+                switch (op)
+                {
                     case Op.RunSampleServer:
                         RunServerAsync(ports).Wait();
                         return;
@@ -108,7 +124,8 @@ Operations (Mutually exclusive):
                         throw new ArgumentException("Unknown.");
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Console.WriteLine(e);
                 return;
             }
@@ -117,17 +134,21 @@ Operations (Mutually exclusive):
         /// <summary>
         /// Run server until exit
         /// </summary>
-        private static async Task RunServerAsync(IEnumerable<int> ports) {
+        private static async Task RunServerAsync(IEnumerable<int> ports)
+        {
             var logger = StackLogger.Create(Log.Console<StackLogger>());
             var tcs = new TaskCompletionSource<bool>();
             AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
             using (var server = new ServerConsoleHost(new ServerFactory(logger.Logger),
-                logger.Logger) {
+                logger.Logger)
+            {
                 AutoAccept = true
-            }) {
+            })
+            {
                 await server.StartAsync(ports).ConfigureAwait(false);
 #if DEBUG
-                if (!Console.IsInputRedirected) {
+                if (!Console.IsInputRedirected)
+                {
                     Console.WriteLine("Press any key to exit...");
                     Console.TreatControlCAsInput = true;
                     await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey())).ConfigureAwait(false);
@@ -142,25 +163,30 @@ Operations (Mutually exclusive):
         /// <summary>
         /// Wraps server and disposes after use
         /// </summary>
-        private class ServerWrapper : IDisposable {
+        private class ServerWrapper : IDisposable
+        {
             /// <summary>
             /// Create wrapper
             /// </summary>
             /// <param name="endpoint"></param>
-            public ServerWrapper(EndpointModel endpoint, StackLogger logger) {
+            public ServerWrapper(EndpointModel endpoint, StackLogger logger)
+            {
                 _cts = new CancellationTokenSource();
-                if (endpoint.Url == null) {
+                if (endpoint.Url == null)
+                {
                     _server = RunSampleServerAsync(logger.Logger, _cts.Token);
                     endpoint.Url = "opc.tcp://" + Utils.GetHostName() +
                         ":51210/UA/SampleServer";
                 }
-                else {
+                else
+                {
                     _server = Task.CompletedTask;
                 }
             }
 
             /// <inheritdoc/>
-            public void Dispose() {
+            public void Dispose()
+            {
                 _cts.Cancel();
                 _server.Wait();
                 _cts.Dispose();
@@ -171,14 +197,18 @@ Operations (Mutually exclusive):
             /// </summary>
             /// <param name="ct"></param>
             /// <returns></returns>
-            private static async Task RunSampleServerAsync(ILogger logger, CancellationToken ct) {
+            private static async Task RunSampleServerAsync(ILogger logger, CancellationToken ct)
+            {
                 var tcs = new TaskCompletionSource<bool>();
                 ct.Register(() => tcs.TrySetResult(true));
-                using (var server = new ServerConsoleHost(new ServerFactory(logger) {
+                using (var server = new ServerConsoleHost(new ServerFactory(logger)
+                {
                     LogStatus = false
-                }, logger) {
+                }, logger)
+                {
                     AutoAccept = true
-                }) {
+                })
+                {
                     await server.StartAsync(new List<int> { 51210 }).ConfigureAwait(false);
                     await tcs.Task.ConfigureAwait(false);
                 }

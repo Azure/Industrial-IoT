@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Models {
+namespace Microsoft.Azure.IIoT.Module.Models
+{
     using System;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Module.Models {
     /// Method invocation messaging model.
     /// </summary>
     [DataContract]
-    public class MethodChunkModel {
+    public class MethodChunkModel
+    {
         /// <summary>
         /// Invocation handle - null on first request
         /// and last response, assigned by server for the

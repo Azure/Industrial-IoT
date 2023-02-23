@@ -3,72 +3,85 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Extensions {
+namespace Opc.Ua.Extensions
+{
     using Xunit;
 
-    public class TypeInfoExTests {
+    public class TypeInfoExTests
+    {
         [Fact]
-        public void ScalarBoolNullTest1() {
+        public void ScalarBoolNullTest1()
+        {
             var variant = TypeInfo.Scalars.Boolean.CreateVariant(null);
             Assert.Equal(false, variant.Value);
         }
 
         [Fact]
-        public void ScalarBoolTest1() {
+        public void ScalarBoolTest1()
+        {
             var variant = TypeInfo.Scalars.Boolean.CreateVariant(true);
             Assert.Equal(true, variant.Value);
         }
 
         [Fact]
-        public void ScalarByteTest1() {
+        public void ScalarByteTest1()
+        {
             var variant = TypeInfo.Scalars.Byte.CreateVariant((byte)5);
             Assert.Equal((byte)5, variant.Value);
         }
 
         [Fact]
-        public void ScalarByteNullTest1() {
+        public void ScalarByteNullTest1()
+        {
             var variant = TypeInfo.Scalars.Byte.CreateVariant(null);
             Assert.Equal((byte)0, variant.Value);
         }
 
         [Fact]
-        public void ScalarStringTest1() {
+        public void ScalarStringTest1()
+        {
             var variant = TypeInfo.Scalars.String.CreateVariant("test");
             Assert.Equal("test", variant.Value);
         }
 
         [Fact]
-        public void ScalarExtensionObjectTest1() {
+        public void ScalarExtensionObjectTest1()
+        {
             var variant = TypeInfo.Scalars.ExtensionObject.CreateVariant(new ExtensionObject("test"));
             Assert.Equal(new ExtensionObject("test"), variant.Value);
         }
 
         [Fact]
-        public void ArrayBoolNullTest1() {
+        public void ArrayBoolNullTest1()
+        {
             var variant = TypeInfo.Arrays.Boolean.CreateVariant(null);
             Assert.Equal(System.Array.Empty<bool>(), variant.Value);
         }
 
         [Fact]
-        public void ArrayByteTest1() {
+        public void ArrayByteTest1()
+        {
             var variant = TypeInfo.Arrays.Byte.CreateVariant(new byte[] { 1, 2, 3 });
             Assert.Equal(new byte[] { 1, 2, 3 }, variant.Value);
         }
 
         [Fact]
-        public void ArrayStringTest1() {
+        public void ArrayStringTest1()
+        {
             var variant = TypeInfo.Arrays.String.CreateVariant(new string[] { "", "", "" });
             Assert.Equal(new string[] { "", "", "" }, variant.Value);
         }
 
         [Fact]
-        public void ArrayStringNullTest1() {
+        public void ArrayStringNullTest1()
+        {
             var variant = TypeInfo.Arrays.String.CreateVariant(null);
             Assert.Equal(System.Array.Empty<string>(), variant.Value);
         }
 
         [Fact]
-        public void ArrayExtensionObjectTest1() {
+        public void ArrayExtensionObjectTest1()
+        {
             var expected = new[] {
                 new ExtensionObject("test1"),
                 new ExtensionObject("test2"),

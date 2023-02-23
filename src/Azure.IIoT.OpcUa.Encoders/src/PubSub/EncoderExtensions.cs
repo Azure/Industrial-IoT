@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     using Azure.IIoT.OpcUa.Encoders;
     using Newtonsoft.Json.Linq;
     using System;
@@ -11,19 +12,23 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// <summary>
     /// Encoder extensions
     /// </summary>
-    internal static class EncoderExtensions {
+    internal static class EncoderExtensions
+    {
         /// <summary>
         /// Test for
         /// </summary>
         /// <param name="decoder"></param>
         /// <param name="property"></param>
         /// <returns></returns>
-        public static bool HasField(this JsonDecoderEx decoder, string property) {
-            if (!decoder.TryGetToken(null, out var token)) {
+        public static bool HasField(this JsonDecoderEx decoder, string property)
+        {
+            if (!decoder.TryGetToken(null, out var token))
+            {
                 return false;
             }
             if (token is JObject o && o.TryGetValue(property,
-                    StringComparison.InvariantCultureIgnoreCase, out _)) {
+                    StringComparison.InvariantCultureIgnoreCase, out _))
+            {
                 return true;
             }
             return false;
@@ -35,8 +40,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="decoder"></param>
         /// <param name="property"></param>
         /// <returns></returns>
-        public static bool IsArray(this JsonDecoderEx decoder, string property) {
-            if (!decoder.TryGetToken(property, out var token)) {
+        public static bool IsArray(this JsonDecoderEx decoder, string property)
+        {
+            if (!decoder.TryGetToken(property, out var token))
+            {
                 return false;
             }
             return token is JArray;
@@ -48,8 +55,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="decoder"></param>
         /// <param name="property"></param>
         /// <returns></returns>
-        public static bool IsObject(this JsonDecoderEx decoder, string property) {
-            if (!decoder.TryGetToken(property, out var token)) {
+        public static bool IsObject(this JsonDecoderEx decoder, string property)
+        {
+            if (!decoder.TryGetToken(property, out var token))
+            {
                 return false;
             }
             return token is JObject;

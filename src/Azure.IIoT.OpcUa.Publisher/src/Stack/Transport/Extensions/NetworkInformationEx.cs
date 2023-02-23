@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models;
     using System.Collections.Generic;
     using System.Linq;
@@ -14,14 +15,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport {
     /// <summary>
     /// Network information extensions
     /// </summary>
-    public static class NetworkInformationEx {
+    public static class NetworkInformationEx
+    {
         /// <summary>
         /// Get all interface addresses
         /// </summary>
         /// <param name="netclass"></param>
         /// <returns></returns>
         public static IEnumerable<NetInterface> GetAllNetInterfaces(
-            NetworkClass netclass) {
+            NetworkClass netclass)
+        {
             return NetworkInterface.GetAllNetworkInterfaces()
                 .Where(n =>
                     n.NetworkInterfaceType.IsInClass(netclass) &&
@@ -49,8 +52,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport {
         /// <param name="netclass"></param>
         /// <returns></returns>
         public static bool IsInClass(this NetworkInterfaceType type,
-            NetworkClass netclass) {
-            switch (type) {
+            NetworkClass netclass)
+        {
+            switch (type)
+            {
                 case NetworkInterfaceType.Ethernet:
                 case NetworkInterfaceType.Ethernet3Megabit:
                 case NetworkInterfaceType.GigabitEthernet:

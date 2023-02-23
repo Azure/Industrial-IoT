@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Runtime {
+namespace Microsoft.Azure.IIoT.Auth.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -13,7 +14,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     /// <summary>
     /// Service auth configuration
     /// </summary>
-    public class ServiceAuthAggregateConfig : ConfigBase, IServerAuthConfig {
+    public class ServiceAuthAggregateConfig : ConfigBase, IServerAuthConfig
+    {
         /// <summary>
         /// Auth configuration
         /// </summary>
@@ -34,7 +36,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// <param name="providers"></param>
         public ServiceAuthAggregateConfig(IConfiguration configuration,
             IEnumerable<IOAuthServerConfig> providers) :
-            base(configuration) {
+            base(configuration)
+        {
             JwtBearerProviders = providers?.Where(s => s.IsValid).ToList()
                 ?? throw new ArgumentNullException(nameof(providers));
         }

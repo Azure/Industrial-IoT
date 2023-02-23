@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     using Opc.Ua;
     using System;
     using System.Diagnostics;
@@ -14,7 +15,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// <summary>
     /// Data set message
     /// </summary>
-    public class UadpDataSetMessage : BaseDataSetMessage {
+    public class UadpDataSetMessage : BaseDataSetMessage
+    {
         /// <summary>
         /// Get and set the configured size of the message
         /// </summary>
@@ -44,7 +46,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// The possible values for the DataSetFlags1 encoding byte.
         /// </summary>
         [Flags]
-        internal enum DataSetFlags1EncodingMask : byte {
+        internal enum DataSetFlags1EncodingMask : byte
+        {
             None = 0,
             MessageIsValid = 1,
             FieldTypeRawData = 2,
@@ -63,7 +66,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// The possible values for the DataSetFlags2 encoding byte.
         /// </summary>
         [Flags]
-        internal enum DataSetFlags2EncodingMask : byte {
+        internal enum DataSetFlags2EncodingMask : byte
+        {
             DataKeyFrame = 0,
             DataDeltaFrame = 1,
             Event = 2,
@@ -79,79 +83,99 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <summary>
         /// Get DataSetFlags1
         /// </summary>
-        internal DataSetFlags1EncodingMask DataSetFlags1 {
-            get {
-                if (_dataSetFlags1 == null) {
+        internal DataSetFlags1EncodingMask DataSetFlags1
+        {
+            get
+            {
+                if (_dataSetFlags1 == null)
+                {
                     _dataSetFlags1 = DataSetFlags1EncodingMask.MessageIsValid;
 
                     // DataSetFlags1: Bit range 1-2: Field Encoding
                     _dataSetFlags1 &= ~DataSetFlags1EncodingMask.FieldTypeUsedBits;
-                    if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0) {
+                    if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0)
+                    {
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.FieldTypeRawData;
                     }
-                    else if (Payload.DataSetFieldContentMask != 0) {
+                    else if (Payload.DataSetFieldContentMask != 0)
+                    {
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.FieldTypeDataValue;
                     }
 
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.SequenceNumber) != 0) {
+                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.SequenceNumber) != 0)
+                    {
                         // DataSetFlags1: Bit range 3: sequence
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.DataSetMessageSequenceNumber;
                     }
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.Status) != 0) {
+                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.Status) != 0)
+                    {
                         // DataSetFlags1: Bit range 4: status
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.Status;
                     }
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.MajorVersion) != 0) {
+                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.MajorVersion) != 0)
+                    {
                         // DataSetFlags1: Bit range 5: major version
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion;
                     }
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.MinorVersion) != 0) {
+                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.MinorVersion) != 0)
+                    {
                         // DataSetFlags1: Bit range 6: minor version
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion;
                     }
 
                     // DataSetFlags1: Bit 7 if needed
                     if ((DataSetMessageContentMask & (uint)(UadpDataSetMessageContentMask.Timestamp |
-                                                            UadpDataSetMessageContentMask.PicoSeconds)) != 0) {
+                                                            UadpDataSetMessageContentMask.PicoSeconds)) != 0)
+                    {
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.DataSetFlags2;
                     }
-                    if (MessageType != MessageType.KeyFrame) {
+                    if (MessageType != MessageType.KeyFrame)
+                    {
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.DataSetFlags2;
                     }
                 }
                 return _dataSetFlags1.Value;
             }
-            private set {
+            private set
+            {
                 _dataSetFlags1 = value;
-                if ((value & DataSetFlags1EncodingMask.MessageIsValid) != 0) {
+                if ((value & DataSetFlags1EncodingMask.MessageIsValid) != 0)
+                {
                     // DataSetFlags1: Bit range 1-2: Field Encoding
-                    if ((value & DataSetFlags1EncodingMask.FieldTypeRawData) != 0) {
+                    if ((value & DataSetFlags1EncodingMask.FieldTypeRawData) != 0)
+                    {
                         Payload.DataSetFieldContentMask = (uint)DataSetFieldContentMask.RawData;
                     }
-                    else if ((value & DataSetFlags1EncodingMask.FieldTypeDataValue) != 0) {
+                    else if ((value & DataSetFlags1EncodingMask.FieldTypeDataValue) != 0)
+                    {
                         Payload.DataSetFieldContentMask = (uint)(DataSetFieldContentMask.StatusCode
                                                           | DataSetFieldContentMask.SourceTimestamp
                                                           | DataSetFieldContentMask.ServerTimestamp
                                                           | DataSetFieldContentMask.SourcePicoSeconds
                                                           | DataSetFieldContentMask.ServerPicoSeconds);
                     }
-                    else {
+                    else
+                    {
                         Payload.DataSetFieldContentMask = 0;
                     }
 
                     // DataSetFlags1: Bit range 3: sequence
-                    if ((value & DataSetFlags1EncodingMask.DataSetMessageSequenceNumber) != 0) {
+                    if ((value & DataSetFlags1EncodingMask.DataSetMessageSequenceNumber) != 0)
+                    {
                         DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.SequenceNumber;
                     }
-                    if ((value & DataSetFlags1EncodingMask.Status) != 0) {
+                    if ((value & DataSetFlags1EncodingMask.Status) != 0)
+                    {
                         // DataSetFlags1: Bit range 4: status
                         DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.Status;
                     }
-                    if ((value & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0) {
+                    if ((value & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0)
+                    {
                         // DataSetFlags1: Bit range 5: major version
                         DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.MajorVersion;
                     }
-                    if ((value & DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion) != 0) {
+                    if ((value & DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion) != 0)
+                    {
                         // DataSetFlags1: Bit range 6: minor version
                         DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.MinorVersion;
                     }
@@ -162,13 +186,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <summary>
         /// Get DataSetFlags2
         /// </summary>
-        internal DataSetFlags2EncodingMask DataSetFlags2 {
-            get {
-                if (_dataSetFlags2 == null) {
+        internal DataSetFlags2EncodingMask DataSetFlags2
+        {
+            get
+            {
+                if (_dataSetFlags2 == null)
+                {
                     _dataSetFlags2 = 0;
 
                     // Bit range 0-3: DataSetMessage type
-                    switch (MessageType) {
+                    switch (MessageType)
+                    {
                         case MessageType.DeltaFrame:
                             _dataSetFlags2 |= DataSetFlags2EncodingMask.DataDeltaFrame;
                             break;
@@ -187,20 +215,24 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                     }
 
                     // Bit range 4-5: timestamp
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.Timestamp) != 0) {
+                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.Timestamp) != 0)
+                    {
                         _dataSetFlags2 |= DataSetFlags2EncodingMask.Timestamp;
                     }
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.PicoSeconds) != 0) {
+                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.PicoSeconds) != 0)
+                    {
                         _dataSetFlags2 |= DataSetFlags2EncodingMask.PicoSeconds;
                     }
                 }
                 return _dataSetFlags2.Value;
             }
-            private set {
+            private set
+            {
                 _dataSetFlags2 = value;
 
                 // Bit range 0-3: DataSetMessage type
-                switch (value & DataSetFlags2EncodingMask.MessageTypeBits) {
+                switch (value & DataSetFlags2EncodingMask.MessageTypeBits)
+                {
                     case DataSetFlags2EncodingMask.DataDeltaFrame:
                         MessageType = MessageType.DeltaFrame;
                         break;
@@ -217,19 +249,23 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                 }
 
                 // Bit range 4-5: timestamp
-                if ((value & DataSetFlags2EncodingMask.Timestamp) != 0) {
+                if ((value & DataSetFlags2EncodingMask.Timestamp) != 0)
+                {
                     DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.Timestamp;
                 }
-                if ((value & DataSetFlags2EncodingMask.PicoSeconds) != 0) {
+                if ((value & DataSetFlags2EncodingMask.PicoSeconds) != 0)
+                {
                     DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.PicoSeconds;
                 }
             }
         }
 
         /// <inheritdoc/>
-        internal void Encode(BinaryEncoder binaryEncoder, IDataSetMetaDataResolver resolver) {
+        internal void Encode(BinaryEncoder binaryEncoder, IDataSetMetaDataResolver resolver)
+        {
             StartPositionInStream = binaryEncoder.Position;
-            if (DataSetOffset > 0 && StartPositionInStream < DataSetOffset) {
+            if (DataSetOffset > 0 && StartPositionInStream < DataSetOffset)
+            {
                 StartPositionInStream = DataSetOffset;
                 binaryEncoder.Position = DataSetOffset;
             }
@@ -239,10 +275,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
             var metadata = resolver?.Find(DataSetWriterId,
                 MetaDataVersion.MajorVersion, MetaDataVersion.MinorVersion);
 
-            if ((DataSetFlags2 & DataSetFlags2EncodingMask.DataDeltaFrame) != 0) {
+            if ((DataSetFlags2 & DataSetFlags2EncodingMask.DataDeltaFrame) != 0)
+            {
                 WritePayloadDeltaFrame(binaryEncoder, metadata);
             }
-            else {
+            else
+            {
                 //
                 // Every other type is encoded as key frame. Technically we should also encode
                 // as keyframe if delta frame would be larger, but we skip this for now.
@@ -251,7 +289,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
             }
 
             PayloadSizeInStream = (ushort)(binaryEncoder.Position - StartPositionInStream);
-            if (ConfiguredSize > 0 && PayloadSizeInStream < ConfiguredSize) {
+            if (ConfiguredSize > 0 && PayloadSizeInStream < ConfiguredSize)
+            {
                 PayloadSizeInStream = ConfiguredSize;
                 binaryEncoder.Position = StartPositionInStream + PayloadSizeInStream;
             }
@@ -262,27 +301,34 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// </summary>
         /// <param name="decoder"></param>
         /// <param name="resolver"></param>
-        internal bool TryDecode(BinaryDecoder decoder, IDataSetMetaDataResolver resolver) {
-            if (decoder is not BinaryDecoder binaryDecoder) {
+        internal bool TryDecode(BinaryDecoder decoder, IDataSetMetaDataResolver resolver)
+        {
+            if (decoder is not BinaryDecoder binaryDecoder)
+            {
                 throw ServiceResultException.Create(StatusCodes.BadDecodingError,
                     "Must use Binary decoder here");
             }
-            try {
-                if (!TryReadDataSetMessageHeader(binaryDecoder)) {
+            try
+            {
+                if (!TryReadDataSetMessageHeader(binaryDecoder))
+                {
                     return false;
                 }
 
                 var metadata = resolver?.Find(DataSetWriterId,
                     MetaDataVersion.MajorVersion, MetaDataVersion.MinorVersion);
-                if ((DataSetFlags2 & DataSetFlags2EncodingMask.DataDeltaFrame) != 0) {
+                if ((DataSetFlags2 & DataSetFlags2EncodingMask.DataDeltaFrame) != 0)
+                {
                     ReadPayloadDeltaFrame(binaryDecoder, metadata);
                 }
-                else {
+                else
+                {
                     ReadPayloadKeyFrame(binaryDecoder, metadata);
                 }
                 return true;
             }
-            catch (EndOfStreamException) {
+            catch (EndOfStreamException)
+            {
                 return false;
             }
         }
@@ -291,26 +337,33 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// Read DataSet message header
         /// </summary>
         /// <param name="decoder"></param>
-        private bool TryReadDataSetMessageHeader(IDecoder decoder) {
+        private bool TryReadDataSetMessageHeader(IDecoder decoder)
+        {
             DataSetFlags1 = (DataSetFlags1EncodingMask)decoder.ReadByte(null);
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.MessageIsValid) == 0) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.MessageIsValid) == 0)
+            {
                 // Invalid message
                 return false;
             }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetFlags2) != 0) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetFlags2) != 0)
+            {
                 DataSetFlags2 = (DataSetFlags2EncodingMask)decoder.ReadByte(null);
             }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetMessageSequenceNumber) != 0) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetMessageSequenceNumber) != 0)
+            {
                 SequenceNumber = decoder.ReadUInt16(null);
             }
-            if ((DataSetFlags2 & DataSetFlags2EncodingMask.Timestamp) != 0) {
+            if ((DataSetFlags2 & DataSetFlags2EncodingMask.Timestamp) != 0)
+            {
                 Timestamp = decoder.ReadDateTime(null);
             }
-            if ((DataSetFlags2 & DataSetFlags2EncodingMask.PicoSeconds) != 0) {
+            if ((DataSetFlags2 & DataSetFlags2EncodingMask.PicoSeconds) != 0)
+            {
                 PicoSeconds = decoder.ReadUInt16(null);
             }
 
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.Status) != 0) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.Status) != 0)
+            {
                 // This is the high order 16 bits of the StatusCode DataType representing
                 // the numeric value of the Severity and SubCode of the StatusCode DataType.
                 var code = decoder.ReadUInt16(null);
@@ -319,13 +372,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
 
             uint minorVersion = 1;
             uint majorVersion = 0;
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0)
+            {
                 majorVersion = decoder.ReadUInt32(null);
             }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion) != 0) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion) != 0)
+            {
                 minorVersion = decoder.ReadUInt32(null);
             }
-            MetaDataVersion = new ConfigurationVersionDataType() {
+            MetaDataVersion = new ConfigurationVersionDataType()
+            {
                 MinorVersion = minorVersion,
                 MajorVersion = majorVersion
             };
@@ -336,33 +392,42 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// Write DataSet message header
         /// </summary>
         /// <param name="encoder"></param>
-        private void WriteDataSetMessageHeader(IEncoder encoder) {
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.MessageIsValid) != 0) {
+        private void WriteDataSetMessageHeader(IEncoder encoder)
+        {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.MessageIsValid) != 0)
+            {
                 encoder.WriteByte(null, (byte)DataSetFlags1);
             }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetFlags2) != 0) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetFlags2) != 0)
+            {
                 encoder.WriteByte(null, (byte)DataSetFlags2);
             }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetMessageSequenceNumber) != 0) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetMessageSequenceNumber) != 0)
+            {
                 encoder.WriteUInt16(null, (ushort)SequenceNumber);
             }
-            if ((DataSetFlags2 & DataSetFlags2EncodingMask.Timestamp) != 0) {
+            if ((DataSetFlags2 & DataSetFlags2EncodingMask.Timestamp) != 0)
+            {
                 encoder.WriteDateTime(null, Timestamp);
             }
-            if ((DataSetFlags2 & DataSetFlags2EncodingMask.PicoSeconds) != 0) {
+            if ((DataSetFlags2 & DataSetFlags2EncodingMask.PicoSeconds) != 0)
+            {
                 encoder.WriteUInt16(null, PicoSeconds);
             }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.Status) != 0) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.Status) != 0)
+            {
                 // This is the high order 16 bits of the StatusCode DataType representing
                 // the numeric value of the Severity and SubCode of the StatusCode DataType.
                 var status = Status ?? Payload.Values
                     .FirstOrDefault(s => StatusCode.IsNotGood(s.StatusCode))?.StatusCode ?? StatusCodes.Good;
                 encoder.WriteUInt16(null, (ushort)(status.Code >> 16));
             }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0)
+            {
                 encoder.WriteUInt32(null, MetaDataVersion.MajorVersion);
             }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion) != 0) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion) != 0)
+            {
                 encoder.WriteUInt32(null, MetaDataVersion.MinorVersion);
             }
         }
@@ -373,43 +438,53 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="binaryDecoder"></param>
         /// <param name="metadata"></param>
         /// <returns></returns>
-        private void ReadPayloadKeyFrame(BinaryDecoder binaryDecoder, DataSetMetaDataType metadata) {
+        private void ReadPayloadKeyFrame(BinaryDecoder binaryDecoder, DataSetMetaDataType metadata)
+        {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
             ushort dataSetFieldCount;
-            if (fieldType == DataSetFlags1EncodingMask.FieldTypeRawData) {
-                if (metadata != null) {
+            if (fieldType == DataSetFlags1EncodingMask.FieldTypeRawData)
+            {
+                if (metadata != null)
+                {
                     // metadata should provide field count
                     dataSetFieldCount = (ushort)metadata.Fields.Count;
                 }
-                else {
+                else
+                {
                     throw ServiceResultException.Create(StatusCodes.BadDecodingError,
                         "Requires metadata to decode");
                 }
             }
-            else {
+            else
+            {
                 dataSetFieldCount = binaryDecoder.ReadUInt16(null);
             }
 
             // check configuration version
-            switch (fieldType) {
+            switch (fieldType)
+            {
                 case 0:
-                    for (var i = 0; i < dataSetFieldCount; i++) {
+                    for (var i = 0; i < dataSetFieldCount; i++)
+                    {
                         var fieldMetaData = GetFieldMetadata(metadata, i);
                         Payload.Add(fieldMetaData?.Name ?? i.ToString(),
                             new DataValue(binaryDecoder.ReadVariant(null)));
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeDataValue:
-                    for (var i = 0; i < dataSetFieldCount; i++) {
+                    for (var i = 0; i < dataSetFieldCount; i++)
+                    {
                         var fieldMetaData = GetFieldMetadata(metadata, i);
                         Payload.Add(fieldMetaData?.Name ?? i.ToString(),
                             binaryDecoder.ReadDataValue(null));
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeRawData:
-                    for (var i = 0; i < dataSetFieldCount; i++) {
+                    for (var i = 0; i < dataSetFieldCount; i++)
+                    {
                         var fieldMetaData = GetFieldMetadata(metadata, i);
-                        if (fieldMetaData != null) {
+                        if (fieldMetaData != null)
+                        {
                             var decodedValue = ReadRawData(binaryDecoder, fieldMetaData);
                             Payload.Add(fieldMetaData.Name, new DataValue(new Variant(decodedValue)));
                         }
@@ -426,27 +501,32 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// </summary>
         /// <param name="binaryEncoder"></param>
         /// <param name="metadata"></param>
-        private void WritePayloadKeyFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType metadata) {
+        private void WritePayloadKeyFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType metadata)
+        {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
-            switch (fieldType) {
+            switch (fieldType)
+            {
                 case 0:
                     Debug.Assert(Payload.Count <= ushort.MaxValue);
                     binaryEncoder.WriteUInt16(null, (ushort)Payload.Count);
-                    foreach (var value in Payload) {
+                    foreach (var value in Payload)
+                    {
                         binaryEncoder.WriteVariant(null, value.Value.WrappedValue);
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeDataValue:
                     Debug.Assert(Payload.Count <= ushort.MaxValue);
                     binaryEncoder.WriteUInt16(null, (ushort)Payload.Count);
-                    foreach (var value in Payload) {
+                    foreach (var value in Payload)
+                    {
                         binaryEncoder.WriteDataValue(null, value.Value);
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeRawData:
                     // DataSetFieldCount is not written for RawData
                     var values = Payload.ToList();
-                    for (var i = 0; i < values.Count; i++) {
+                    for (var i = 0; i < values.Count; i++)
+                    {
                         var fieldMetaData = GetFieldMetadata(metadata, i);
                         WriteFieldAsRawData(binaryEncoder,
                             values[i].Value.WrappedValue, fieldMetaData);
@@ -464,14 +544,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="binaryDecoder"></param>
         /// <param name="metadata"></param>
         /// <returns></returns>
-        private void ReadPayloadDeltaFrame(BinaryDecoder binaryDecoder, DataSetMetaDataType metadata) {
+        private void ReadPayloadDeltaFrame(BinaryDecoder binaryDecoder, DataSetMetaDataType metadata)
+        {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
             var fieldCount = binaryDecoder.ReadUInt16(null);
 
-            for (var i = 0; i < fieldCount; i++) {
+            for (var i = 0; i < fieldCount; i++)
+            {
                 var fieldIndex = binaryDecoder.ReadUInt16(null);
                 var fieldMetaData = GetFieldMetadata(metadata, fieldIndex);
-                switch (fieldType) {
+                switch (fieldType)
+                {
                     case 0:
                         Payload.Add(fieldMetaData?.Name ?? fieldIndex.ToString(),
                             new DataValue(binaryDecoder.ReadVariant(null)));
@@ -481,7 +564,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                             binaryDecoder.ReadDataValue(null));
                         break;
                     case DataSetFlags1EncodingMask.FieldTypeRawData:
-                        if (fieldMetaData != null) {
+                        if (fieldMetaData != null)
+                        {
                             var decodedValue = ReadRawData(binaryDecoder, fieldMetaData);
                             Payload.Add(fieldMetaData.Name,
                                 new DataValue(new Variant(decodedValue)));
@@ -499,7 +583,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// </summary>
         /// <param name="binaryEncoder"></param>
         /// <param name="metadata"></param>
-        private void WritePayloadDeltaFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType metadata) {
+        private void WritePayloadDeltaFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType metadata)
+        {
             // ignore null fields
             var fieldCount = Payload.Count(value => value.Value?.Value != null);
             Debug.Assert(fieldCount <= ushort.MaxValue);
@@ -507,16 +592,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
 
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
             var values = Payload.ToList();
-            for (var i = 0; i < values.Count; i++) {
+            for (var i = 0; i < values.Count; i++)
+            {
                 var value = values[i];
-                if (value.Value?.Value == null) {
+                if (value.Value?.Value == null)
+                {
                     continue;
                 }
 
                 // write field index corresponding to metadata
                 var fieldIndex = GetFieldIndex(metadata, value.Key, i);
                 binaryEncoder.WriteUInt16(null, fieldIndex);
-                switch (fieldType) {
+                switch (fieldType)
+                {
                     case 0:
                         binaryEncoder.WriteVariant(null, value.Value.WrappedValue);
                         break;
@@ -541,10 +629,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="key"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        private static ushort GetFieldIndex(DataSetMetaDataType metadata, string key, int pos) {
-            if (metadata?.Fields != null) {
-                for (var i = 0; i < metadata.Fields.Count; i++) {
-                    if (metadata.Fields[i].Name == key) {
+        private static ushort GetFieldIndex(DataSetMetaDataType metadata, string key, int pos)
+        {
+            if (metadata?.Fields != null)
+            {
+                for (var i = 0; i < metadata.Fields.Count; i++)
+                {
+                    if (metadata.Fields[i].Name == key)
+                    {
                         return (ushort)i;
                     }
                 }
@@ -563,11 +655,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="fieldIndex"></param>
         /// <returns></returns>
         private static FieldMetaData GetFieldMetadata(DataSetMetaDataType metadata,
-            int fieldIndex) {
-            if (metadata?.Fields == null) {
+            int fieldIndex)
+        {
+            if (metadata?.Fields == null)
+            {
                 return null;
             }
-            if (fieldIndex < 0 || fieldIndex >= metadata.Fields.Count) {
+            if (fieldIndex < 0 || fieldIndex >= metadata.Fields.Count)
+            {
                 return null;
             }
             return metadata.Fields[fieldIndex];
@@ -580,17 +675,21 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="variant"></param>
         /// <param name="fieldMetaData"></param>
         private static void WriteFieldAsRawData(BinaryEncoder binaryEncoder, Variant variant,
-            FieldMetaData fieldMetaData) {
+            FieldMetaData fieldMetaData)
+        {
             var builtInType = (BuiltInType?)fieldMetaData?.BuiltInType
                 ?? variant.TypeInfo?.BuiltInType ?? BuiltInType.Null;
             var valueRank = fieldMetaData?.ValueRank
                 ?? variant.TypeInfo?.ValueRank ?? 0;
-            if (builtInType == BuiltInType.Null) {
+            if (builtInType == BuiltInType.Null)
+            {
                 return;
             }
             var valueToEncode = variant.Value;
-            if (valueRank == ValueRanks.Scalar) {
-                switch (builtInType) {
+            if (valueRank == ValueRanks.Scalar)
+            {
+                switch (builtInType)
+                {
                     case BuiltInType.Boolean:
                         binaryEncoder.WriteBoolean(null, Convert.ToBoolean(valueToEncode));
                         break;
@@ -662,7 +761,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                         break;
                 }
             }
-            else if (valueRank >= ValueRanks.OneDimension) {
+            else if (valueRank >= ValueRanks.OneDimension)
+            {
                 binaryEncoder.WriteArray(null, valueToEncode, valueRank, builtInType);
             }
         }
@@ -673,10 +773,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="binaryDecoder"></param>
         /// <param name="fieldMetaData"></param>
         /// <returns></returns>
-        private static object ReadRawData(BinaryDecoder binaryDecoder, FieldMetaData fieldMetaData) {
-            if (fieldMetaData.BuiltInType != (byte)BuiltInType.Null) {
-                try {
-                    switch (fieldMetaData.ValueRank) {
+        private static object ReadRawData(BinaryDecoder binaryDecoder, FieldMetaData fieldMetaData)
+        {
+            if (fieldMetaData.BuiltInType != (byte)BuiltInType.Null)
+            {
+                try
+                {
+                    switch (fieldMetaData.ValueRank)
+                    {
                         case ValueRanks.Scalar:
                             return ReadRawScalar(binaryDecoder, fieldMetaData.BuiltInType);
                         case ValueRanks.OneDimension:
@@ -691,10 +795,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                             return StatusCodes.BadNotSupported;
                     }
                 }
-                catch (ServiceResultException sre) {
+                catch (ServiceResultException sre)
+                {
                     return sre.StatusCode;
                 }
-                catch {
+                catch
+                {
                     return StatusCodes.BadDecodingError;
                 }
             }
@@ -707,8 +813,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <param name="binaryDecoder"></param>
         /// <param name="builtInType"></param>
         /// <returns>The decoded object</returns>
-        private static object ReadRawScalar(BinaryDecoder binaryDecoder, byte builtInType) {
-            switch ((BuiltInType)builtInType) {
+        private static object ReadRawScalar(BinaryDecoder binaryDecoder, byte builtInType)
+        {
+            switch ((BuiltInType)builtInType)
+            {
                 case BuiltInType.Boolean:
                     return binaryDecoder.ReadBoolean(null);
                 case BuiltInType.SByte:

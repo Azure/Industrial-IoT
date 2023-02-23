@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models {
+namespace Azure.IIoT.OpcUa.Services.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Hub;
     using System.Collections.Generic;
@@ -13,7 +14,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Publisher agent module registration
     /// </summary>
     [DataContract]
-    public sealed class PublisherRegistration : EntityRegistration {
+    public sealed class PublisherRegistration : EntityRegistration
+    {
         /// <inheritdoc/>
         [DataMember]
         public override string DeviceType => IdentityType.Publisher;
@@ -36,23 +38,29 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         public PublisherRegistration(string deviceId = null,
-            string moduleId = null) {
+            string moduleId = null)
+        {
             DeviceId = deviceId;
             ModuleId = moduleId;
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) {
-            if (obj is not PublisherRegistration registration) {
+        public override bool Equals(object obj)
+        {
+            if (obj is not PublisherRegistration registration)
+            {
                 return false;
             }
-            if (!base.Equals(registration)) {
+            if (!base.Equals(registration))
+            {
                 return false;
             }
-            if (ModuleId != registration.ModuleId) {
+            if (ModuleId != registration.ModuleId)
+            {
                 return false;
             }
-            if (LogLevel != registration.LogLevel) {
+            if (LogLevel != registration.LogLevel)
+            {
                 return false;
             }
             return true;
@@ -67,7 +75,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             PublisherRegistration r2) => !(r1 == r2);
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hashCode = base.GetHashCode();
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(ModuleId);
@@ -76,7 +85,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             return hashCode;
         }
 
-        internal bool IsConnected() {
+        internal bool IsConnected()
+        {
             return Connected;
         }
 

@@ -27,18 +27,21 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace SimpleEvents {
+namespace SimpleEvents
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Stores the configuration the data access node manager.
     /// </summary>
     [DataContract(Namespace = Namespaces.SimpleEvents)]
-    public class SimpleEventsServerConfiguration {
+    public class SimpleEventsServerConfiguration
+    {
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public SimpleEventsServerConfiguration() {
+        public SimpleEventsServerConfiguration()
+        {
             Initialize();
         }
 
@@ -46,14 +49,16 @@ namespace SimpleEvents {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private static void Initialize() {
+        private static void Initialize()
+        {
         }
     }
 }

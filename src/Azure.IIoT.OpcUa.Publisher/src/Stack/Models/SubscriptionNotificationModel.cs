@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Opc.Ua;
     using System;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// <summary>
     /// Subscription notification model
     /// </summary>
-    public class SubscriptionNotificationModel {
+    public class SubscriptionNotificationModel
+    {
         /// <summary>
         /// Sequence number of the message
         /// </summary>

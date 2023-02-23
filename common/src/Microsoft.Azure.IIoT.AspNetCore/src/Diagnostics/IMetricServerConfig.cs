@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.Diagnostics {
+namespace Microsoft.Azure.IIoT.AspNetCore.Diagnostics
+{
     /// <summary>
     /// Configuration interface for prometheus metric server
     /// </summary>
-    public interface IMetricServerConfig {
+    public interface IMetricServerConfig
+    {
         /// <summary>
         /// Metric server port
         /// </summary>

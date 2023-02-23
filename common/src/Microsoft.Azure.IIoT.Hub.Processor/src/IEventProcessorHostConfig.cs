@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Processor {
+namespace Microsoft.Azure.IIoT.Hub.Processor
+{
     using Microsoft.Azure.IIoT.Storage.Datalake;
     using System;
 
     /// <summary>
     /// Eventprocessor host configuration
     /// </summary>
-    public interface IEventProcessorHostConfig : IStorageConfig {
+    public interface IEventProcessorHostConfig : IStorageConfig
+    {
         /// <summary>
         /// Receive batch size
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace System.IO {
+namespace System.IO
+{
     using System.IO.Compression;
     using System.Text;
     using System.Threading.Tasks;
@@ -11,15 +12,19 @@ namespace System.IO {
     /// <summary>
     /// Stream extensions
     /// </summary>
-    public static class StreamEx {
+    public static class StreamEx
+    {
         /// <summary>
         /// Zip string
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static byte[] Zip(this Stream input) {
-            using (var result = new MemoryStream()) {
-                using (var gs = new GZipStream(result, CompressionMode.Compress)) {
+        public static byte[] Zip(this Stream input)
+        {
+            using (var result = new MemoryStream())
+            {
+                using (var gs = new GZipStream(result, CompressionMode.Compress))
+                {
                     input.CopyTo(gs);
                 }
                 return result.ToArray();
@@ -31,9 +36,12 @@ namespace System.IO {
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static byte[] Unzip(this Stream input) {
-            using (var output = new MemoryStream()) {
-                using (var gs = new GZipStream(input, CompressionMode.Decompress)) {
+        public static byte[] Unzip(this Stream input)
+        {
+            using (var output = new MemoryStream())
+            {
+                using (var gs = new GZipStream(input, CompressionMode.Decompress))
+                {
                     gs.CopyTo(output);
                 }
                 return output.ToArray();
@@ -46,7 +54,8 @@ namespace System.IO {
         /// <param name="stream"></param>
         /// <param name="encoder"></param>
         /// <returns></returns>
-        public static string ReadAsString(this Stream stream, Encoding encoder) {
+        public static string ReadAsString(this Stream stream, Encoding encoder)
+        {
             // Try to read as much as possible
             var buffer = stream.ReadAsBuffer();
             return encoder.GetString(buffer.Array, 0, buffer.Count);
@@ -57,19 +66,24 @@ namespace System.IO {
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        public static ArraySegment<byte> ReadAsBuffer(this Stream stream) {
+        public static ArraySegment<byte> ReadAsBuffer(this Stream stream)
+        {
             // Try to read as much as possible
             var body = new byte[1024];
             var offset = 0;
-            try {
-                while (true) {
+            try
+            {
+                while (true)
+                {
                     var read = stream.Read(body, offset, body.Length - offset);
-                    if (read <= 0) {
+                    if (read <= 0)
+                    {
                         break;
                     }
 
                     offset += read;
-                    if (offset == body.Length) {
+                    if (offset == body.Length)
+                    {
                         // Grow
                         var newbuf = new byte[body.Length * 2];
                         Buffer.BlockCopy(body, 0, newbuf, 0, body.Length);
@@ -88,19 +102,24 @@ namespace System.IO {
         /// <param name="bufferSize"></param>
         /// <returns></returns>
         public static async Task<ReadOnlyMemory<byte>> ReadAsMemoryAsync(this Stream stream,
-            int bufferSize = 1024) {
+            int bufferSize = 1024)
+        {
             // Try to read as much as possible
             var body = new byte[bufferSize];
             var offset = 0;
-            try {
-                while (true) {
+            try
+            {
+                while (true)
+                {
                     var read = await stream.ReadAsync(body, offset, body.Length - offset).ConfigureAwait(false);
-                    if (read <= 0) {
+                    if (read <= 0)
+                    {
                         break;
                     }
 
                     offset += read;
-                    if (offset == body.Length) {
+                    if (offset == body.Length)
+                    {
                         // Grow
                         var newbuf = new byte[body.Length * 2];
                         Buffer.BlockCopy(body, 0, newbuf, 0, body.Length);

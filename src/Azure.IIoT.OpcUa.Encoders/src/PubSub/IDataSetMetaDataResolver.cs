@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     using Opc.Ua;
 
     /// <summary>
     /// Resolve metadata during encoding and decoding
     /// </summary>
-    public interface IDataSetMetaDataResolver {
+    public interface IDataSetMetaDataResolver
+    {
         /// <summary>
         /// Find data set metadata or return null if not found.
         /// </summary>

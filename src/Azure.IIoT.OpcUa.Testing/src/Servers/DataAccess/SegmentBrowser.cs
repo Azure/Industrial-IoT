@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace DataAccess {
+namespace DataAccess
+{
     using Opc.Ua;
     using System.Collections.Generic;
 
     /// <summary>
     /// Browses the children of a segment.
     /// </summary>
-    public class SegmentBrowser : NodeBrowser {
+    public class SegmentBrowser : NodeBrowser
+    {
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
@@ -66,7 +68,8 @@ namespace DataAccess {
                 browseDirection,
                 browseName,
                 additionalReferences,
-                internalOnly) {
+                internalOnly)
+        {
             _source = source;
             _stage = Stage.Begin;
         }
@@ -75,37 +78,45 @@ namespace DataAccess {
         /// Returns the next reference.
         /// </summary>
         /// <returns>The next reference that meets the browse criteria.</returns>
-        public override IReference Next() {
+        public override IReference Next()
+        {
             var system = (UnderlyingSystem)SystemContext.SystemHandle;
 
-            lock (DataLock) {
+            lock (DataLock)
+            {
                 IReference reference = null;
 
                 // enumerate pre-defined references.
                 // always call first to ensure any pushed-back references are returned first.
                 reference = base.Next();
 
-                if (reference != null) {
+                if (reference != null)
+                {
                     return reference;
                 }
 
-                if (_stage == Stage.Begin) {
+                if (_stage == Stage.Begin)
+                {
                     _segments = system.FindSegments(_source.SegmentPath);
                     _stage = Stage.Segments;
                     _position = 0;
                 }
 
                 // don't start browsing huge number of references when only internal references are requested.
-                if (InternalOnly) {
+                if (InternalOnly)
+                {
                     return null;
                 }
 
                 // enumerate segments.
-                if (_stage == Stage.Segments) {
-                    if (IsRequired(ReferenceTypeIds.Organizes, false)) {
+                if (_stage == Stage.Segments)
+                {
+                    if (IsRequired(ReferenceTypeIds.Organizes, false))
+                    {
                         reference = NextChild();
 
-                        if (reference != null) {
+                        if (reference != null)
+                        {
                             return reference;
                         }
                     }
@@ -116,11 +127,14 @@ namespace DataAccess {
                 }
 
                 // enumerate blocks.
-                if (_stage == Stage.Blocks) {
-                    if (IsRequired(ReferenceTypeIds.Organizes, false)) {
+                if (_stage == Stage.Blocks)
+                {
+                    if (IsRequired(ReferenceTypeIds.Organizes, false))
+                    {
                         reference = NextChild();
 
-                        if (reference != null) {
+                        if (reference != null)
+                        {
                             return reference;
                         }
 
@@ -137,27 +151,34 @@ namespace DataAccess {
         /// <summary>
         /// Returns the next child.
         /// </summary>
-        private IReference NextChild() {
+        private IReference NextChild()
+        {
             var system = (UnderlyingSystem)SystemContext.SystemHandle;
 
             NodeId targetId = null;
 
             // check if a specific browse name is requested.
-            if (!QualifiedName.IsNull(BrowseName)) {
+            if (!QualifiedName.IsNull(BrowseName))
+            {
                 // check if match found previously.
-                if (_position == int.MaxValue) {
+                if (_position == int.MaxValue)
+                {
                     return null;
                 }
 
                 // browse name must be qualified by the correct namespace.
-                if (_source.BrowseName.NamespaceIndex != BrowseName.NamespaceIndex) {
+                if (_source.BrowseName.NamespaceIndex != BrowseName.NamespaceIndex)
+                {
                     return null;
                 }
 
                 // look for matching segment.
-                if (_stage == Stage.Segments && _segments != null) {
-                    for (var ii = 0; ii < _segments.Count; ii++) {
-                        if (BrowseName.Name == _segments[ii].Name) {
+                if (_stage == Stage.Segments && _segments != null)
+                {
+                    for (var ii = 0; ii < _segments.Count; ii++)
+                    {
+                        if (BrowseName.Name == _segments[ii].Name)
+                        {
                             targetId = ModelUtils.ConstructIdForSegment(_segments[ii].Id, _source.NodeId.NamespaceIndex);
                             break;
                         }
@@ -165,11 +186,14 @@ namespace DataAccess {
                 }
 
                 // look for matching block.
-                if (_stage == Stage.Blocks && _blocks != null) {
-                    for (var ii = 0; ii < _blocks.Count; ii++) {
+                if (_stage == Stage.Blocks && _blocks != null)
+                {
+                    for (var ii = 0; ii < _blocks.Count; ii++)
+                    {
                         var block = system.FindBlock(_blocks[ii]);
 
-                        if (block != null && BrowseName.Name == block.Name) {
+                        if (block != null && BrowseName.Name == block.Name)
+                        {
                             targetId = ModelUtils.ConstructIdForBlock(_blocks[ii], _source.NodeId.NamespaceIndex);
                             break;
                         }
@@ -180,10 +204,13 @@ namespace DataAccess {
             }
 
             // return the child at the next position.
-            else {
+            else
+            {
                 // look for next segment.
-                if (_stage == Stage.Segments && _segments != null) {
-                    if (_position >= _segments.Count) {
+                if (_stage == Stage.Segments && _segments != null)
+                {
+                    if (_position >= _segments.Count)
+                    {
                         return null;
                     }
 
@@ -191,8 +218,10 @@ namespace DataAccess {
                 }
 
                 // look for next block.
-                else if (_stage == Stage.Blocks && _blocks != null) {
-                    if (_position >= _blocks.Count) {
+                else if (_stage == Stage.Blocks && _blocks != null)
+                {
+                    if (_position >= _blocks.Count)
+                    {
                         return null;
                     }
 
@@ -201,7 +230,8 @@ namespace DataAccess {
             }
 
             // create reference.
-            if (targetId != null) {
+            if (targetId != null)
+            {
                 return new NodeStateReference(ReferenceTypeIds.Organizes, false, targetId);
             }
 
@@ -211,7 +241,8 @@ namespace DataAccess {
         /// <summary>
         /// The stages available in a browse operation.
         /// </summary>
-        private enum Stage {
+        private enum Stage
+        {
             Begin,
             Segments,
             Blocks,

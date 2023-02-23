@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
-    using Azure.IIoT.OpcUa.Publisher.Stack;
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -16,11 +17,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// <summary>
     /// Represents a node in the form of its attributes
     /// </summary>
-    public class NodeAttributeSet : INodeAttributes, INode {
+    public class NodeAttributeSet : INodeAttributes, INode
+    {
         /// <summary>
         /// Constructor
         /// </summary>
-        public NodeAttributeSet() {
+        public NodeAttributeSet()
+        {
             _namespaces = new NamespaceTable();
             _attributes = new SortedDictionary<uint, DataValue>();
         }
@@ -29,7 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// Constructor
         /// </summary>
         public NodeAttributeSet(ExpandedNodeId nodeId) :
-            this(nodeId, new NamespaceTable()) {
+            this(nodeId, new NamespaceTable())
+        {
         }
 
         /// <summary>
@@ -37,7 +41,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         public NodeAttributeSet(ExpandedNodeId nodeId, NodeClass nodeClass,
             QualifiedName browseName) :
-            this(nodeId, new NamespaceTable()) {
+            this(nodeId, new NamespaceTable())
+        {
             NodeClass = nodeClass;
             BrowseName = browseName;
         }
@@ -45,13 +50,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// <summary>
         /// Constructor
         /// </summary>
-        public NodeAttributeSet(ExpandedNodeId nodeId, NamespaceTable namespaces) {
+        public NodeAttributeSet(ExpandedNodeId nodeId, NamespaceTable namespaces)
+        {
             _namespaces = namespaces ?? throw new ArgumentNullException(nameof(namespaces));
-            if (Opc.Ua.NodeId.IsNull(nodeId)) {
+            if (Opc.Ua.NodeId.IsNull(nodeId))
+            {
                 throw new ArgumentNullException(nameof(nodeId));
             }
             _attributes = new SortedDictionary<uint, DataValue>();
-            foreach (var identifier in TypeMaps.Attributes.Value.Identifiers) {
+            foreach (var identifier in TypeMaps.Attributes.Value.Identifiers)
+            {
                 _attributes.Add(identifier, null);
             }
             _attributes[Attributes.NodeId] =
@@ -59,12 +67,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public IEnumerator<KeyValuePair<uint, DataValue>> GetEnumerator() {
+        public IEnumerator<KeyValuePair<uint, DataValue>> GetEnumerator()
+        {
             return _attributes.GetEnumerator();
         }
 
         /// <inheritdoc/>
-        IEnumerator IEnumerable.GetEnumerator() {
+        IEnumerator IEnumerable.GetEnumerator()
+        {
             return _attributes.GetEnumerator();
         }
 
@@ -81,7 +91,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             this.GetAttribute(Attributes.NodeId, Opc.Ua.NodeId.Null);
 
         /// <inheritdoc/>
-        public NodeClass NodeClass {
+        public NodeClass NodeClass
+        {
             get => this.GetAttribute<NodeClass>(
                 Attributes.NodeClass, null) ??
                 NodeClass.Unspecified;
@@ -101,7 +112,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
                     AccessLevelType.HistoryRead) != 0);
 
         /// <inheritdoc/>
-        public QualifiedName BrowseName {
+        public QualifiedName BrowseName
+        {
             get => this.GetAttribute<QualifiedName>(
                 Attributes.BrowseName, null);
             set => SetAttribute(
@@ -109,7 +121,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public LocalizedText DisplayName {
+        public LocalizedText DisplayName
+        {
             get => this.GetAttribute<LocalizedText>(
                 Attributes.DisplayName, null);
             set => SetAttribute(
@@ -117,7 +130,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public LocalizedText Description {
+        public LocalizedText Description
+        {
             get => this.GetAttribute<LocalizedText>(
                 Attributes.Description, null);
             set => SetAttribute(
@@ -125,7 +139,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public ushort? AccessRestrictions {
+        public ushort? AccessRestrictions
+        {
             get => this.GetAttribute<ushort>(
                 Attributes.AccessRestrictions, null);
             set => SetAttribute(
@@ -133,7 +148,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public uint? WriteMask {
+        public uint? WriteMask
+        {
             get => this.GetAttribute<uint>(
                 Attributes.WriteMask, null);
             set => SetAttribute(
@@ -141,7 +157,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public uint? UserWriteMask {
+        public uint? UserWriteMask
+        {
             get => this.GetAttribute<uint>(
                 Attributes.UserWriteMask, null);
             set => SetAttribute(
@@ -149,7 +166,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public bool? IsAbstract {
+        public bool? IsAbstract
+        {
             get => this.GetAttribute<bool>(
                 Attributes.IsAbstract, null);
             set => SetAttribute(
@@ -157,7 +175,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public bool? ContainsNoLoops {
+        public bool? ContainsNoLoops
+        {
             get => this.GetAttribute<bool>(
                 Attributes.ContainsNoLoops, null);
             set => SetAttribute(
@@ -165,7 +184,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public byte? EventNotifier {
+        public byte? EventNotifier
+        {
             get => this.GetAttribute<byte>(
                 Attributes.EventNotifier, null);
             set => SetAttribute(
@@ -173,7 +193,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public bool? Executable {
+        public bool? Executable
+        {
             get => this.GetAttribute<bool>(
                 Attributes.Executable, null);
             set => SetAttribute(
@@ -181,7 +202,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public bool? UserExecutable {
+        public bool? UserExecutable
+        {
             get => this.GetAttribute<bool>(
                 Attributes.UserExecutable, null);
             set => SetAttribute(
@@ -189,7 +211,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public ExtensionObject DataTypeDefinition {
+        public ExtensionObject DataTypeDefinition
+        {
             get => this.GetAttribute<ExtensionObject>(
                 Attributes.DataTypeDefinition, null);
             set => SetAttribute(
@@ -197,7 +220,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public byte? AccessLevel {
+        public byte? AccessLevel
+        {
             get => this.GetAttribute<byte>(
                 Attributes.AccessLevel, null);
             set => SetAttribute(
@@ -205,7 +229,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public uint? AccessLevelEx {
+        public uint? AccessLevelEx
+        {
             get => this.GetAttribute<uint>(
                 Attributes.AccessLevelEx, null);
             set => SetAttribute(
@@ -213,7 +238,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public byte? UserAccessLevel {
+        public byte? UserAccessLevel
+        {
             get => this.GetAttribute<byte>(
                 Attributes.UserAccessLevel, null);
             set => SetAttribute(
@@ -221,7 +247,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public NodeId DataType {
+        public NodeId DataType
+        {
             get => this.GetAttribute<NodeId>(
                 Attributes.DataType, null);
             set => SetAttribute(
@@ -229,7 +256,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public int? ValueRank {
+        public int? ValueRank
+        {
             get => this.GetAttribute<int>(
                 Attributes.ValueRank, null);
             set => SetAttribute(
@@ -237,7 +265,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public uint[] ArrayDimensions {
+        public uint[] ArrayDimensions
+        {
             get => this.GetAttribute<uint[]>(
                 Attributes.ArrayDimensions, null);
             set => SetAttribute(
@@ -245,7 +274,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public bool? Historizing {
+        public bool? Historizing
+        {
             get => this.GetAttribute<bool>(
                 Attributes.Historizing, null);
             set => SetAttribute(
@@ -253,7 +283,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public double? MinimumSamplingInterval {
+        public double? MinimumSamplingInterval
+        {
             get => this.GetAttribute<double>(
                 Attributes.MinimumSamplingInterval, null);
             set => SetAttribute(
@@ -261,7 +292,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public LocalizedText InverseName {
+        public LocalizedText InverseName
+        {
             get => this.GetAttribute<LocalizedText>(
                 Attributes.InverseName, null);
             set => SetAttribute(
@@ -269,7 +301,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public bool? Symmetric {
+        public bool? Symmetric
+        {
             get => this.GetAttribute<bool>(
                 Attributes.Symmetric, null);
             set => SetAttribute(
@@ -277,7 +310,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public IEnumerable<RolePermissionType> RolePermissions {
+        public IEnumerable<RolePermissionType> RolePermissions
+        {
             get => this.GetAttribute<ExtensionObject[]>(
                 Attributes.RolePermissions, null)?.Select(ex => ex.Body).OfType<RolePermissionType>();
             set => SetAttribute(Attributes.RolePermissions,
@@ -285,7 +319,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public IEnumerable<RolePermissionType> UserRolePermissions {
+        public IEnumerable<RolePermissionType> UserRolePermissions
+        {
             get => this.GetAttribute<ExtensionObject[]>(
                 Attributes.UserRolePermissions, null)?.Select(ex => ex.Body).OfType<RolePermissionType>();
             set => SetAttribute(Attributes.UserRolePermissions,
@@ -293,10 +328,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public Variant? Value {
-            get {
+        public Variant? Value
+        {
+            get
+            {
                 if (_attributes.TryGetValue(Attributes.Value, out var value) &&
-                    value != null) {
+                    value != null)
+                {
                     return value.WrappedValue;
                 }
                 return null;
@@ -306,10 +344,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public DataValue DataValue {
-            get {
+        public DataValue DataValue
+        {
+            get
+            {
                 if (_attributes.TryGetValue(Attributes.Value, out var value) &&
-                    value != null) {
+                    value != null)
+                {
                     return value;
                 }
                 return null;
@@ -317,31 +358,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object o) {
-            if (o is not NodeAttributeSet node) {
+        public override bool Equals(object o)
+        {
+            if (o is not NodeAttributeSet node)
+            {
                 return false;
             }
-            if (ReferenceEquals(node._attributes, _attributes)) {
+            if (ReferenceEquals(node._attributes, _attributes))
+            {
                 return true;
             }
-            if (node.NodeClass != NodeClass) {
+            if (node.NodeClass != NodeClass)
+            {
                 return false;
             }
-            if (_attributes.SequenceEqual(node._attributes)) {
+            if (_attributes.SequenceEqual(node._attributes))
+            {
                 return true;
             }
-            foreach (var attributeId in AttributeMap.GetNodeClassAttributes(NodeClass)) {
+            foreach (var attributeId in AttributeMap.GetNodeClassAttributes(NodeClass))
+            {
                 var defaultObject = AttributeMap.GetDefaultValue(
                     NodeClass, attributeId, false);
                 object o1 = null;
                 object o2 = null;
-                if (_attributes.TryGetValue(attributeId, out var dataValue)) {
+                if (_attributes.TryGetValue(attributeId, out var dataValue))
+                {
                     o1 = dataValue.Value;
                 }
-                if (node._attributes.TryGetValue(attributeId, out dataValue)) {
+                if (node._attributes.TryGetValue(attributeId, out dataValue))
+                {
                     o2 = dataValue.Value;
                 }
-                if (!Utils.IsEqual(o1 ?? defaultObject, o2 ?? defaultObject)) {
+                if (!Utils.IsEqual(o1 ?? defaultObject, o2 ?? defaultObject))
+                {
                     return false;
                 }
             }
@@ -349,13 +399,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public T GetAttribute<T>(uint attribute) {
+        public T GetAttribute<T>(uint attribute)
+        {
             if (_attributes.TryGetValue(attribute, out var result) &&
-                result != null) {
+                result != null)
+            {
                 return result.GetValueOrDefault<T>();
             }
             var nodeClass = NodeClass;
-            if (nodeClass == NodeClass.Unspecified) {
+            if (nodeClass == NodeClass.Unspecified)
+            {
                 return default;
             }
             var defaultValue = AttributeMap.GetDefaultValue(nodeClass, attribute, false);
@@ -363,33 +416,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public bool TryGetAttribute<T>(uint attribute, out T value) {
+        public bool TryGetAttribute<T>(uint attribute, out T value)
+        {
             value = default;
-            try {
+            try
+            {
                 if (_attributes.TryGetValue(attribute, out var result) &&
-                    result != null) {
+                    result != null)
+                {
                     value = result.GetValueOrDefault<T>();
                     return true;
                 }
                 return false;
             }
-            catch {
+            catch
+            {
                 return false;
             }
         }
 
         /// <inheritdoc/>
-        public void SetAttribute<T>(uint attribute, T value) {
+        public void SetAttribute<T>(uint attribute, T value)
+        {
             _attributes[attribute] = new DataValue(new Variant(value));
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return NodeId.ToString().GetHashCode();
         }
 
         /// <inheritdoc/>
-        public override string ToString() {
+        public override string ToString()
+        {
             return $"{NodeId} ({BrowseName})";
         }
 

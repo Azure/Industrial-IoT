@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Auth {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Auth
+{
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using System;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Auth {
     /// <summary>
     /// Defines publisher service api policies.
     /// </summary>
-    public static class Policies {
+    public static class Policies
+    {
         /// <summary>
         /// Allowed to read
         /// </summary>
@@ -35,8 +37,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Auth {
         /// </summary>
         /// <param name="policy"></param>
         /// <returns></returns>
-        internal static Func<AuthorizationHandlerContext, bool> RoleMapping(string policy) {
-            switch (policy) {
+        internal static Func<AuthorizationHandlerContext, bool> RoleMapping(string policy)
+        {
+            switch (policy)
+            {
                 case CanPublish:
                     return context =>
                         context.User.IsInRole(Roles.Admin) ||

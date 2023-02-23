@@ -27,14 +27,17 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace TestData {
+namespace TestData
+{
     using Opc.Ua;
 
-    public partial class UserScalarValueObjectState {
+    public partial class UserScalarValueObjectState
+    {
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
-        protected override void OnAfterCreate(ISystemContext context, NodeState node) {
+        protected override void OnAfterCreate(ISystemContext context, NodeState node)
+        {
             base.OnAfterCreate(context, node);
 
             InitializeVariable(context, BooleanValue, Variables.UserScalarValueObjectType_BooleanValue);
@@ -68,8 +71,10 @@ namespace TestData {
             ISystemContext context,
             MethodState method,
             NodeId objectId,
-            uint count) {
-            if (!(context.SystemHandle is TestDataSystem system)) {
+            uint count)
+        {
+            if (!(context.SystemHandle is TestDataSystem system))
+            {
                 return StatusCodes.BadOutOfService;
             }
 

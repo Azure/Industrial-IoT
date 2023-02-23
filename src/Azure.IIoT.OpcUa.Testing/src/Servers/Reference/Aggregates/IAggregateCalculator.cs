@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     using System.Collections.Generic;
 
     /// <summary>
     /// An interface that captures the original active API of the AggregateCalculator class
     /// required to integrate with the subscription code.
     /// </summary>
-    public interface IAggregateCalculator {
+    public interface IAggregateCalculator
+    {
         /// <summary>
         /// Processes an incoming value.
         /// </summary>

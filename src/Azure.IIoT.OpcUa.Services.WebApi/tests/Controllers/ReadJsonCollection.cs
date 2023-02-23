@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers
+{
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Xunit;
 
     [CollectionDefinition(Name)]
-    public class ReadJsonCollection : ICollectionFixture<TestServerFixture> {
+    public class ReadJsonCollection : ICollectionFixture<TestServerFixture>
+    {
         public const string Name = "ReadJsonControllers";
     }
 }

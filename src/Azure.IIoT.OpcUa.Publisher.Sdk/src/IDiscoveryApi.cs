@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Sdk {
+namespace Azure.IIoT.OpcUa.Publisher.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
     /// <summary>
     /// Discovery api
     /// </summary>
-    public interface IDiscoveryApi {
+    public interface IDiscoveryApi
+    {
         /// <summary>
         /// Kick off onboarding of new server
         /// </summary>

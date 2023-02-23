@@ -29,14 +29,16 @@
 
 using Opc.Ua;
 
-namespace SimpleEvents {
+namespace SimpleEvents
+{
     #region DataType Identifiers
     /// <summary>
     /// A class that declares constants for all DataTypes in the Model Design.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class DataTypes {
+    public static partial class DataTypes
+    {
         /// <summary>
         /// The identifier for the CycleStepDataType DataType.
         /// </summary>
@@ -50,7 +52,8 @@ namespace SimpleEvents {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Objects {
+    public static partial class Objects
+    {
         /// <summary>
         /// The identifier for the CycleStepDataType_Encoding_DefaultBinary Object.
         /// </summary>
@@ -74,7 +77,8 @@ namespace SimpleEvents {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectTypes {
+    public static partial class ObjectTypes
+    {
         /// <summary>
         /// The identifier for the SystemCycleStatusEventType ObjectType.
         /// </summary>
@@ -103,7 +107,8 @@ namespace SimpleEvents {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Variables {
+    public static partial class Variables
+    {
         /// <summary>
         /// The identifier for the SystemCycleStatusEventType_CycleId Variable.
         /// </summary>
@@ -172,7 +177,8 @@ namespace SimpleEvents {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class DataTypeIds {
+    public static partial class DataTypeIds
+    {
         /// <summary>
         /// The identifier for the CycleStepDataType DataType.
         /// </summary>
@@ -186,7 +192,8 @@ namespace SimpleEvents {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectIds {
+    public static partial class ObjectIds
+    {
         /// <summary>
         /// The identifier for the CycleStepDataType_Encoding_DefaultBinary Object.
         /// </summary>
@@ -210,7 +217,8 @@ namespace SimpleEvents {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectTypeIds {
+    public static partial class ObjectTypeIds
+    {
         /// <summary>
         /// The identifier for the SystemCycleStatusEventType ObjectType.
         /// </summary>
@@ -239,7 +247,8 @@ namespace SimpleEvents {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class VariableIds {
+    public static partial class VariableIds
+    {
         /// <summary>
         /// The identifier for the SystemCycleStatusEventType_CycleId Variable.
         /// </summary>
@@ -307,7 +316,8 @@ namespace SimpleEvents {
     /// Declares all of the BrowseNames used in the Model Design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class BrowseNames {
+    public static partial class BrowseNames
+    {
         /// <summary>
         /// The BrowseName for the CurrentStep component.
         /// </summary>
@@ -370,7 +380,8 @@ namespace SimpleEvents {
     /// Defines constants for all namespaces referenced by the model design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Namespaces {
+    public static partial class Namespaces
+    {
         /// <summary>
         /// The URI for the OpcUa namespace (.NET code namespace is 'Opc.Ua').
         /// </summary>

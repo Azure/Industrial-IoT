@@ -3,19 +3,22 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua {
+namespace Opc.Ua
+{
     using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Typeinfo extensions
     /// </summary>
-    public static class TypeInfoEx {
+    public static class TypeInfoEx
+    {
         /// <summary>
         /// Gets a default event filter.
         /// </summary>
         /// <returns></returns>
-        internal static EventFilter GetDefaultEventFilter() {
+        internal static EventFilter GetDefaultEventFilter()
+        {
             var filter = new EventFilter();
             filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.EventId);
             filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.EventType);
@@ -34,13 +37,16 @@ namespace Opc.Ua {
         /// </summary>
         /// <param name="typeInfo"></param>
         /// <returns></returns>
-        public static object GetDefaultValue(this TypeInfo typeInfo) {
+        public static object GetDefaultValue(this TypeInfo typeInfo)
+        {
             var builtInType = typeInfo.BuiltInType;
-            if (typeInfo.ValueRank == ValueRanks.Scalar) {
+            if (typeInfo.ValueRank == ValueRanks.Scalar)
+            {
                 // For scalar values, try to retrieve a default.
                 return TypeInfo.GetDefaultValue(builtInType);
             }
-            if (typeInfo.ValueRank <= 1) {
+            if (typeInfo.ValueRank <= 1)
+            {
                 return Array.CreateInstance(
                     TypeInfo.GetSystemType(builtInType, -1) ??
                     typeof(object), 0);
@@ -59,53 +65,68 @@ namespace Opc.Ua {
         /// <param name="typeInfo"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static Variant CreateVariant(this TypeInfo typeInfo, object value) {
+        public static Variant CreateVariant(this TypeInfo typeInfo, object value)
+        {
             value ??= typeInfo.GetDefaultValue();
-            if (value is not Variant var) {
+            if (value is not Variant var)
+            {
                 var aex = new List<Exception>();
-                if (typeInfo.BuiltInType == BuiltInType.Enumeration) {
+                if (typeInfo.BuiltInType == BuiltInType.Enumeration)
+                {
                     typeInfo = new TypeInfo(BuiltInType.Int32, typeInfo.ValueRank);
                 }
                 var systemType = TypeInfo.GetSystemType(typeInfo.BuiltInType,
                     typeInfo.ValueRank);
-                if (typeInfo.BuiltInType == BuiltInType.Null) {
-                    if (typeInfo.ValueRank == 1) {
+                if (typeInfo.BuiltInType == BuiltInType.Null)
+                {
+                    if (typeInfo.ValueRank == 1)
+                    {
                         systemType = typeof(object[]);
                     }
-                    else {
+                    else
+                    {
                         return Variant.Null; // Matrix or scalar
                     }
                 }
-                else if (value is Array arr) {
-                    try {
+                else if (value is Array arr)
+                {
+                    try
+                    {
                         var unboxed = Array.CreateInstance(
                             TypeInfo.GetSystemType(typeInfo.BuiltInType, -1), arr.Length);
                         Array.Copy(arr, unboxed, arr.Length);
                         value = unboxed;
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         aex.Add(ex);
                         value = arr;
                     }
                 }
-                if (typeInfo.ValueRank >= 2) {
+                if (typeInfo.ValueRank >= 2)
+                {
                     systemType = typeof(Matrix);
                 }
                 var constructor = typeof(Variant).GetConstructor(new Type[] {
                     systemType
                 });
-                try {
-                    if (constructor != null) {
+                try
+                {
+                    if (constructor != null)
+                    {
                         return (Variant)constructor.Invoke(new object[] { value });
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     aex.Add(ex);
                 }
-                try {
+                try
+                {
                     return new Variant(value, typeInfo);
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     aex.Add(ex);
                     throw new ArgumentException($"Cannot convert {value} " +
                         $"({value.GetType()}/{systemType}/{typeInfo}) to Variant.",

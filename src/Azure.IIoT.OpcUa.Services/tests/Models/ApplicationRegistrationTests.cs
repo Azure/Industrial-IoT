@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models {
+namespace Azure.IIoT.OpcUa.Services.Models
+{
     using AutoFixture;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -12,9 +13,11 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     using System.Linq;
     using Xunit;
 
-    public class ApplicationRegistrationTests {
+    public class ApplicationRegistrationTests
+    {
         [Fact]
-        public void TestEqualIsEqual() {
+        public void TestEqualIsEqual()
+        {
             var r1 = CreateRegistration();
             var r2 = r1;
 
@@ -25,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqual() {
+        public void TestEqualIsNotEqual()
+        {
             var r1 = CreateRegistration();
             var r2 = CreateRegistration();
 
@@ -37,7 +41,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsEqualWithServiceModelConversion() {
+        public void TestEqualIsEqualWithServiceModelConversion()
+        {
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
             var r2 = m.ToApplicationRegistration();
@@ -49,7 +54,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsEqualWithServiceModelConversionWhenDisabled() {
+        public void TestEqualIsEqualWithServiceModelConversionWhenDisabled()
+        {
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
             var r2 = m.ToApplicationRegistration(true);
@@ -61,7 +67,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqualWithServiceModelConversion() {
+        public void TestEqualIsNotEqualWithServiceModelConversion()
+        {
             var r1 = CreateRegistration();
             var m = r1.ToServiceModel();
             m.DiscoveryProfileUri = "";
@@ -74,7 +81,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqualWithDeviceModel() {
+        public void TestEqualIsNotEqualWithDeviceModel()
+        {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin(_serializer);
             m.Tags["DiscoveryProfileUri"] = null;
@@ -87,7 +95,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsEqualWithDeviceModel() {
+        public void TestEqualIsEqualWithDeviceModel()
+        {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin(_serializer);
             var r2 = m.ToEntityRegistration();
@@ -99,7 +108,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqualWithDeviceModelWhenDisabled() {
+        public void TestEqualIsNotEqualWithDeviceModelWhenDisabled()
+        {
             var fix = new Fixture();
 
             var r1 = CreateRegistration();
@@ -118,7 +128,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// Create registration
         /// </summary>
         /// <returns></returns>
-        private static ApplicationRegistration CreateRegistration() {
+        private static ApplicationRegistration CreateRegistration()
+        {
             var fix = new Fixture();
             return fix.Build<ApplicationRegistration>()
                 .With(x => x.Capabilities, fix.CreateMany<string>().ToHashSet()

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Events {
+namespace Azure.IIoT.OpcUa.Services.Events
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Messaging;
     using System;
@@ -12,36 +13,42 @@ namespace Azure.IIoT.OpcUa.Services.Events {
     /// <summary>
     /// Endpoint registry event publisher
     /// </summary>
-    public class EndpointEventPublisher<THub> : IEndpointRegistryListener {
+    public class EndpointEventPublisher<THub> : IEndpointRegistryListener
+    {
         /// <inheritdoc/>
-        public EndpointEventPublisher(ICallbackInvokerT<THub> callback) {
+        public EndpointEventPublisher(ICallbackInvokerT<THub> callback)
+        {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
 
         /// <inheritdoc/>
         public Task OnEndpointDeletedAsync(
-            OperationContextModel context, string endpointId, EndpointInfoModel endpoint) {
+            OperationContextModel context, string endpointId, EndpointInfoModel endpoint)
+        {
             return PublishAsync(EndpointEventType.Deleted, context,
                 endpointId, endpoint);
         }
 
         /// <inheritdoc/>
         public Task OnEndpointDisabledAsync(
-            OperationContextModel context, EndpointInfoModel endpoint) {
+            OperationContextModel context, EndpointInfoModel endpoint)
+        {
             return PublishAsync(EndpointEventType.Disabled, context,
                 endpoint.Registration.Id, endpoint);
         }
 
         /// <inheritdoc/>
         public Task OnEndpointEnabledAsync(
-            OperationContextModel context, EndpointInfoModel endpoint) {
+            OperationContextModel context, EndpointInfoModel endpoint)
+        {
             return PublishAsync(EndpointEventType.Enabled, context,
                 endpoint.Registration.Id, endpoint);
         }
 
         /// <inheritdoc/>
         public Task OnEndpointNewAsync(
-            OperationContextModel context, EndpointInfoModel endpoint) {
+            OperationContextModel context, EndpointInfoModel endpoint)
+        {
             return PublishAsync(EndpointEventType.New, context,
                 endpoint.Registration.Id, endpoint);
         }
@@ -56,7 +63,8 @@ namespace Azure.IIoT.OpcUa.Services.Events {
         /// <returns></returns>
         public Task PublishAsync(EndpointEventType type,
             OperationContextModel context, string endpointId,
-            EndpointInfoModel endpoint) {
+            EndpointInfoModel endpoint)
+        {
             var arguments = new object[] {
                     new EndpointEventModel {
                     EventType = type,

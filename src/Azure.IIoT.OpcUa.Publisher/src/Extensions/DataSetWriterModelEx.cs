@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using System;
@@ -11,27 +12,34 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// <summary>
     /// Data set extensions
     /// </summary>
-    public static class DataSetWriterModelEx {
+    public static class DataSetWriterModelEx
+    {
         /// <summary>
         /// Create subscription info model from message trigger configuration.
         /// </summary>
         public static SubscriptionModel ToSubscriptionModel(
             this DataSetWriterModel dataSetWriter, ISubscriptionConfig configuration,
-            string writerGroupId = null) {
-            if (dataSetWriter == null) {
+            string writerGroupId = null)
+        {
+            if (dataSetWriter == null)
+            {
                 return null;
             }
-            if (dataSetWriter.DataSet == null) {
+            if (dataSetWriter.DataSet == null)
+            {
                 throw new ArgumentNullException(nameof(dataSetWriter.DataSet));
             }
-            if (dataSetWriter.DataSet.DataSetSource == null) {
+            if (dataSetWriter.DataSet.DataSetSource == null)
+            {
                 throw new ArgumentNullException(nameof(dataSetWriter.DataSet.DataSetSource));
             }
             var monitoredItems = dataSetWriter.DataSet.DataSetSource.ToMonitoredItems(configuration);
-            if (monitoredItems.Count == 0) {
+            if (monitoredItems.Count == 0)
+            {
                 throw new ArgumentException(nameof(dataSetWriter.DataSet.DataSetSource));
             }
-            return new SubscriptionModel {
+            return new SubscriptionModel
+            {
                 Id = ToSubscriptionId(dataSetWriter, writerGroupId),
                 MonitoredItems = monitoredItems,
                 ExtensionFields = dataSetWriter.DataSet.ExtensionFields,
@@ -44,14 +52,18 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// Create subscription id.
         /// </summary>
         public static SubscriptionIdentifier ToSubscriptionId(this DataSetWriterModel dataSetWriter,
-            string writerGroupId = null) {
-            if (dataSetWriter == null) {
+            string writerGroupId = null)
+        {
+            if (dataSetWriter == null)
+            {
                 return null;
             }
-            if (dataSetWriter.DataSetWriterName == null) {
+            if (dataSetWriter.DataSetWriterName == null)
+            {
                 throw new ArgumentNullException(nameof(dataSetWriter.DataSetWriterName));
             }
-            if (dataSetWriter.DataSet.DataSetSource.Connection == null) {
+            if (dataSetWriter.DataSet.DataSetSource.Connection == null)
+            {
                 throw new ArgumentNullException(
                     nameof(dataSetWriter.DataSet.DataSetSource.Connection));
             }
@@ -59,7 +71,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
             var connection = dataSetWriter.DataSet.DataSetSource.Connection;
 
             // TODO: We should get rid of this in connection model, it is redundant in the model tree
-            if (connection.Group == null) {
+            if (connection.Group == null)
+            {
                 connection = dataSetWriter.DataSet.DataSetSource.Connection.Clone();
                 connection.Group = writerGroupId;
             }

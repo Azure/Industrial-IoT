@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework {
+namespace Microsoft.Azure.IIoT.Module.Framework
+{
     using System;
 
     /// <summary>
     /// Transport types the client adapter should use
     /// </summary>
     [Flags]
-    public enum TransportOption {
+    public enum TransportOption
+    {
         /// <summary>
         /// Amqp over tcp/ssl
         /// </summary>

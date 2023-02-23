@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
+{
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
@@ -13,12 +14,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
     using Opc.Ua;
     using Opc.Ua.Client;
 
-    public abstract class EventTestsBase {
-        protected INodeCache GetNodeCache(NamespaceTable namespaceTable = null) {
+    public abstract class EventTestsBase
+    {
+        protected INodeCache GetNodeCache(NamespaceTable namespaceTable = null)
+        {
             return SetupMockedNodeCache(namespaceTable).Object;
         }
 
-        protected virtual Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null) {
+        protected virtual Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null)
+        {
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             var nodeCache = mock.Mock<INodeCache>();
             namespaceTable ??= new NamespaceTable();
@@ -32,7 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests {
             BaseMonitoredItemModel template,
             ServiceMessageContext messageContext = null,
             INodeCache nodeCache = null,
-            IVariantEncoder codec = null) {
+            IVariantEncoder codec = null)
+        {
             codec ??= new JsonVariantEncoder(messageContext ?? new ServiceMessageContext(),
                 new NewtonsoftJsonSerializer());
             nodeCache ??= GetNodeCache();

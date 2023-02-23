@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Models {
+namespace Microsoft.Azure.IIoT.Auth.Models
+{
     using Microsoft.Identity.Client;
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
@@ -11,14 +12,16 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
     /// <summary>
     /// Msal extensions
     /// </summary>
-    public static class MsalExtensions {
+    public static class MsalExtensions
+    {
         /// <summary>
         /// Gets the Account identifier for an MSAL.NET account from a
         /// <see cref="ClaimsPrincipal"/>
         /// </summary>
         /// <param name="principal"></param>
         /// <returns></returns>
-        public static string GetMsalAccountId(this ClaimsPrincipal principal) {
+        public static string GetMsalAccountId(this ClaimsPrincipal principal)
+        {
             var userIdentifier = principal.GetObjectId(false);
             var nameIdentifierId = principal.GetNameIdentifierId();
             var tenantId = principal.GetTenantId();
@@ -26,12 +29,14 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
 
             if (!string.IsNullOrWhiteSpace(nameIdentifierId) &&
                 !string.IsNullOrWhiteSpace(tenantId) &&
-                !string.IsNullOrWhiteSpace(userFlowId)) {
+                !string.IsNullOrWhiteSpace(userFlowId))
+            {
                 // B2C pattern: {oid}-{userFlow}.{tid}
                 return $"{nameIdentifierId}.{tenantId}";
             }
             if (!string.IsNullOrWhiteSpace(userIdentifier) &&
-                !string.IsNullOrWhiteSpace(tenantId)) {
+                !string.IsNullOrWhiteSpace(tenantId))
+            {
                 // AAD pattern: {oid}.{tid}
                 return $"{userIdentifier}.{tenantId}";
             }
@@ -44,9 +49,11 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
         /// <param name="result"></param>
         /// <returns></returns>
         public static TokenResultModel ToTokenResult(
-            this AuthenticationResult result) {
+            this AuthenticationResult result)
+        {
             var jwt = new JwtSecurityToken(result.AccessToken);
-            return new TokenResultModel {
+            return new TokenResultModel
+            {
                 RawToken = result.AccessToken,
                 SignatureAlgorithm = jwt.SignatureAlgorithm,
                 Authority = jwt.Issuer,

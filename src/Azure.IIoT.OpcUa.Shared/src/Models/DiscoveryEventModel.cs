@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
 
     /// <summary>
     /// One of n events with the discovered application info
     /// </summary>
-    public sealed record class DiscoveryEventModel {
+    public sealed record class DiscoveryEventModel
+    {
         /// <summary>
         /// Timestamp of the discovery sweep.
         /// </summary>

@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using System.Collections.Generic;
 
     /// <summary>
     /// An activated monitored item subscription on an endpoint
     /// </summary>
-    public class SubscriptionModel {
+    public class SubscriptionModel
+    {
         /// <summary>
         /// Id of the subscription
         /// </summary>

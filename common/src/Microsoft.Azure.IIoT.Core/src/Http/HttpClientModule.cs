@@ -3,18 +3,21 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http.Default {
+namespace Microsoft.Azure.IIoT.Http.Default
+{
     using Autofac;
 
     /// <summary>
     /// Injected http client framework module
     /// </summary>
-    public sealed class HttpClientModule : Module {
+    public sealed class HttpClientModule : Module
+    {
         /// <summary>
         /// Load the module
         /// </summary>
         /// <param name="builder"></param>
-        protected override void Load(ContainerBuilder builder) {
+        protected override void Load(ContainerBuilder builder)
+        {
             // Http client services ...
             builder.RegisterType<HttpClient>()
                 .AsImplementedInterfaces()

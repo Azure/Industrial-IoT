@@ -27,13 +27,15 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     using System.Collections.Generic;
 
     /// <summary>
     /// Calculates aggreates based on the quality or duration.
     /// </summary>
-    public abstract class QualityDurationCalculator : InterpolatingCalculator {
+    public abstract class QualityDurationCalculator : InterpolatingCalculator
+    {
         /// <summary>
         /// Checks if the point has the status that meets the aggregate criteria.
         /// </summary>
@@ -42,41 +44,51 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Calculates the value for the time slice.
         /// </summary>
-        public override DataValue Compute(IAggregationContext context, TimeSlice bucket, AggregateState state) {
+        public override DataValue Compute(IAggregationContext context, TimeSlice bucket, AggregateState state)
+        {
             var retval = new DataValue { SourceTimestamp = bucket.From };
             StatusCode code = StatusCodes.Good;
             var previous = new DataValue { SourceTimestamp = bucket.From };
-            if (bucket.EarlyBound.Value != null) {
+            if (bucket.EarlyBound.Value != null)
+            {
                 previous.StatusCode = (StatusCode)bucket.EarlyBound.Value.WrappedValue.Value;
             }
-            else {
+            else
+            {
                 previous.StatusCode = StatusCodes.Bad;
             }
 
-            if (!RightStatusCode(previous)) {
+            if (!RightStatusCode(previous))
+            {
                 previous = null;
             }
 
             var total = 0.0;
-            foreach (var v in bucket.Values) {
-                if (previous != null) {
+            foreach (var v in bucket.Values)
+            {
+                if (previous != null)
+                {
                     total += (v.SourceTimestamp - previous.SourceTimestamp).TotalMilliseconds;
                 }
 
-                if (RightStatusCode(v)) {
+                if (RightStatusCode(v))
+                {
                     previous = v;
                 }
-                else {
+                else
+                {
                     previous = null;
                 }
             }
-            if (previous != null) {
+            if (previous != null)
+            {
                 total += (bucket.To - previous.SourceTimestamp).TotalMilliseconds;
             }
 
             retval.Value = total;
             code.AggregateBits = AggregateBits.Calculated;
-            if (bucket.Incomplete) {
+            if (bucket.Incomplete)
+            {
                 code.AggregateBits |= AggregateBits.Partial;
             }
 
@@ -87,25 +99,35 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Updates the bounding values for the time slice.
         /// </summary>
-        public override void UpdateBoundingValues(TimeSlice bucket, AggregateState state) {
+        public override void UpdateBoundingValues(TimeSlice bucket, AggregateState state)
+        {
             var EarlyBound = bucket.EarlyBound;
             var LateBound = bucket.LateBound;
-            if (bucket.ExactMatch(state.LatestTimestamp)) {
+            if (bucket.ExactMatch(state.LatestTimestamp))
+            {
                 EarlyBound.RawPoint = state.LatePoint ?? state.EarlyPoint;
                 EarlyBound.DerivationType = BoundingValueType.QualityRaw;
             }
-            else {
-                if (EarlyBound.DerivationType != BoundingValueType.QualityRaw) {
-                    if (EarlyBound.EarlyPoint == null) {
-                        if ((state.EarlyPoint != null) && (state.EarlyPoint.SourceTimestamp < bucket.From)) {
+            else
+            {
+                if (EarlyBound.DerivationType != BoundingValueType.QualityRaw)
+                {
+                    if (EarlyBound.EarlyPoint == null)
+                    {
+                        if ((state.EarlyPoint != null) && (state.EarlyPoint.SourceTimestamp < bucket.From))
+                        {
                             EarlyBound.EarlyPoint = state.EarlyPoint;
                         }
                     }
-                    if (EarlyBound.LatePoint == null) {
-                        if ((state.LatePoint != null) && (state.LatePoint.SourceTimestamp >= bucket.From)) {
+                    if (EarlyBound.LatePoint == null)
+                    {
+                        if ((state.LatePoint != null) && (state.LatePoint.SourceTimestamp >= bucket.From))
+                        {
                             EarlyBound.CurrentBadPoints = new List<DataValue>();
-                            foreach (var dv in state.CurrentBadPoints) {
-                                if (dv.SourceTimestamp < EarlyBound.Timestamp) {
+                            foreach (var dv in state.CurrentBadPoints)
+                            {
+                                if (dv.SourceTimestamp < EarlyBound.Timestamp)
+                                {
                                     EarlyBound.CurrentBadPoints.Add(dv);
                                 }
                             }
@@ -114,10 +136,13 @@ namespace Opc.Ua.Aggregates {
                         }
                     }
                 }
-                if (state.HasTerminated && (state.LatePoint == null)) {
+                if (state.HasTerminated && (state.LatePoint == null))
+                {
                     EarlyBound.CurrentBadPoints = new List<DataValue>();
-                    foreach (var dv in state.CurrentBadPoints) {
-                        if (dv.SourceTimestamp < EarlyBound.Timestamp) {
+                    foreach (var dv in state.CurrentBadPoints)
+                    {
+                        if (dv.SourceTimestamp < EarlyBound.Timestamp)
+                        {
                             EarlyBound.CurrentBadPoints.Add(dv);
                         }
                     }
@@ -126,21 +151,29 @@ namespace Opc.Ua.Aggregates {
                 }
             }
 
-            if (bucket.EndMatch(state.LatestTimestamp)) {
+            if (bucket.EndMatch(state.LatestTimestamp))
+            {
                 LateBound.RawPoint = state.LatePoint ?? state.EarlyPoint;
                 LateBound.DerivationType = BoundingValueType.QualityRaw;
             }
-            else {
-                if (LateBound.DerivationType != BoundingValueType.QualityRaw) {
-                    if ((state.EarlyPoint != null) && (state.EarlyPoint.SourceTimestamp < bucket.To)) {
+            else
+            {
+                if (LateBound.DerivationType != BoundingValueType.QualityRaw)
+                {
+                    if ((state.EarlyPoint != null) && (state.EarlyPoint.SourceTimestamp < bucket.To))
+                    {
                         LateBound.EarlyPoint = state.EarlyPoint;
                     }
 
-                    if (LateBound.LatePoint == null) {
-                        if ((state.LatePoint != null) && (state.LatePoint.SourceTimestamp >= bucket.To)) {
+                    if (LateBound.LatePoint == null)
+                    {
+                        if ((state.LatePoint != null) && (state.LatePoint.SourceTimestamp >= bucket.To))
+                        {
                             LateBound.CurrentBadPoints = new List<DataValue>();
-                            foreach (var dv in state.CurrentBadPoints) {
-                                if (dv.SourceTimestamp < LateBound.Timestamp) {
+                            foreach (var dv in state.CurrentBadPoints)
+                            {
+                                if (dv.SourceTimestamp < LateBound.Timestamp)
+                                {
                                     LateBound.CurrentBadPoints.Add(dv);
                                 }
                             }
@@ -149,10 +182,13 @@ namespace Opc.Ua.Aggregates {
                         }
                     }
                 }
-                if (state.HasTerminated && (state.LatePoint == null)) {
+                if (state.HasTerminated && (state.LatePoint == null))
+                {
                     LateBound.CurrentBadPoints = new List<DataValue>();
-                    foreach (var dv in state.CurrentBadPoints) {
-                        if (dv.SourceTimestamp < LateBound.Timestamp) {
+                    foreach (var dv in state.CurrentBadPoints)
+                    {
+                        if (dv.SourceTimestamp < LateBound.Timestamp)
+                        {
                             LateBound.CurrentBadPoints.Add(dv);
                         }
                     }

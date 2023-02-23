@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
+namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
+{
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
@@ -28,9 +29,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     /// project file set to copy to the output build directory so that it can
     /// be easily referenced here.
     /// </summary>
-    public class PublishedNodesJobConverterTests {
+    public class PublishedNodesJobConverterTests
+    {
         [Fact]
-        public void PnPlcEmptyTestAsync() {
+        public void PnPlcEmptyTestAsync()
+        {
             const string pn = @"
 [
 ]
@@ -49,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetWriterIdTest() {
+        public void PnPlcPubSubDataSetWriterIdTest()
+        {
             const string pn = @"
 [
     {
@@ -82,7 +86,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetWriterIdIsNullTest() {
+        public void PnPlcPubSubDataSetWriterIdIsNullTest()
+        {
             const string pn = @"
 [
     {
@@ -114,7 +119,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetWriterGroupTest() {
+        public void PnPlcPubSubDataSetWriterGroupTest()
+        {
             const string pn = @"
 [
     {
@@ -150,7 +156,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetFieldId1Test() {
+        public void PnPlcPubSubDataSetFieldId1Test()
+        {
             const string pn = @"
 [
     {
@@ -183,7 +190,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetFieldId2Test() {
+        public void PnPlcPubSubDataSetFieldId2Test()
+        {
             const string pn = @"
 [
     {
@@ -226,7 +234,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetFieldIdDuplicateTest() {
+        public void PnPlcPubSubDataSetFieldIdDuplicateTest()
+        {
             const string pn = @"
 [
     {
@@ -269,7 +278,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDisplayNameDuplicateTest() {
+        public void PnPlcPubSubDisplayNameDuplicateTest()
+        {
             const string pn = @"
 [
     {
@@ -312,7 +322,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubFullDuplicateTest() {
+        public void PnPlcPubSubFullDuplicateTest()
+        {
             const string pn = @"
 [
     {
@@ -357,7 +368,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubFullTest() {
+        public void PnPlcPubSubFullTest()
+        {
             const string pn = @"
 [
     {
@@ -417,7 +429,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingInterval1Test() {
+        public void PnPlcPubSubDataSetPublishingInterval1Test()
+        {
             const string pn = @"
 [
     {
@@ -450,7 +463,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingInterval2Test() {
+        public void PnPlcPubSubDataSetPublishingInterval2Test()
+        {
             const string pn = @"
 [
     {
@@ -484,7 +498,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingInterval3Test() {
+        public void PnPlcPubSubDataSetPublishingInterval3Test()
+        {
             const string pn = @"
 [
     {
@@ -520,7 +535,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingInterval4Test() {
+        public void PnPlcPubSubDataSetPublishingInterval4Test()
+        {
             const string pn = @"
 [
     {
@@ -556,7 +572,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingIntervalTimespan1Test() {
+        public void PnPlcPubSubDataSetPublishingIntervalTimespan1Test()
+        {
             const string pn = @"
 [
     {
@@ -589,7 +606,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingIntervalTimespan2Test() {
+        public void PnPlcPubSubDataSetPublishingIntervalTimespan2Test()
+        {
             const string pn = @"
 [
     {
@@ -623,7 +641,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingIntervalTimespan3Test() {
+        public void PnPlcPubSubDataSetPublishingIntervalTimespan3Test()
+        {
             const string pn = @"
 [
     {
@@ -659,7 +678,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingIntervalTimespan4Test() {
+        public void PnPlcPubSubDataSetPublishingIntervalTimespan4Test()
+        {
             const string pn = @"
 [
     {
@@ -695,7 +715,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDisplayName1Test() {
+        public void PnPlcPubSubDisplayName1Test()
+        {
             const string pn = @"
 [
     {
@@ -729,7 +750,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDisplayName2Test() {
+        public void PnPlcPubSubDisplayName2Test()
+        {
             const string pn = @"
 [
     {
@@ -762,7 +784,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDisplayName3Test() {
+        public void PnPlcPubSubDisplayName3Test()
+        {
             const string pn = @"
 [
     {
@@ -797,7 +820,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubDisplayName4Test() {
+        public void PnPlcPubSubDisplayName4Test()
+        {
             const string pn = @"
 [
     {
@@ -831,7 +855,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubPublishedNodeDisplayName1Test() {
+        public void PnPlcPubSubPublishedNodeDisplayName1Test()
+        {
             const string pn = @"
 [
     {
@@ -865,7 +890,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubPublishedNodeDisplayName2Test() {
+        public void PnPlcPubSubPublishedNodeDisplayName2Test()
+        {
             const string pn = @"
 [
     {
@@ -898,7 +924,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubPublishedNodeDisplayName3Test() {
+        public void PnPlcPubSubPublishedNodeDisplayName3Test()
+        {
             const string pn = @"
 [
     {
@@ -933,7 +960,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPubSubPublishedNodeDisplayName4Test() {
+        public void PnPlcPubSubPublishedNodeDisplayName4Test()
+        {
             const string pn = @"
 [
     {
@@ -967,7 +995,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcHeartbeatInterval2Test() {
+        public void PnPlcHeartbeatInterval2Test()
+        {
             const string pn = @"
 [
     {
@@ -1009,7 +1038,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcHeartbeatIntervalTimespanTest() {
+        public void PnPlcHeartbeatIntervalTimespanTest()
+        {
             const string pn = @"
 [
     {
@@ -1051,7 +1081,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcHeartbeatSkipSingleTrueTest() {
+        public void PnPlcHeartbeatSkipSingleTrueTest()
+        {
             const string pn = @"
 [
     {
@@ -1089,7 +1120,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcHeartbeatSkipSingleFalseTest() {
+        public void PnPlcHeartbeatSkipSingleFalseTest()
+        {
             const string pn = @"
 [
     {
@@ -1124,7 +1156,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPublishingInterval2000Test() {
+        public void PnPlcPublishingInterval2000Test()
+        {
             const string pn = @"
 [
     {
@@ -1163,7 +1196,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcPublishingIntervalCliTest() {
+        public void PnPlcPublishingIntervalCliTest()
+        {
             const string pn = @"
 [
     {
@@ -1201,7 +1235,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcSamplingInterval2000Test() {
+        public void PnPlcSamplingInterval2000Test()
+        {
             const string pn = @"
 [
     {
@@ -1242,7 +1277,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcExpandedNodeIdTest() {
+        public void PnPlcExpandedNodeIdTest()
+        {
             const string pn = @"
 [
     {
@@ -1278,7 +1314,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcExpandedNodeId2Test() {
+        public void PnPlcExpandedNodeId2Test()
+        {
             const string pn = @"
 [
     {
@@ -1326,7 +1363,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcExpandedNodeId3Test() {
+        public void PnPlcExpandedNodeId3Test()
+        {
             const string pn = @"
 [
     {
@@ -1367,7 +1405,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcExpandedNodeId4Test() {
+        public void PnPlcExpandedNodeId4Test()
+        {
             const string pn = @"
 [
     {
@@ -1429,7 +1468,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcMultiJob1Test() {
+        public void PnPlcMultiJob1Test()
+        {
             const string pn = @"
 [
     {
@@ -1489,7 +1529,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcMultiJob2Test() {
+        public void PnPlcMultiJob2Test()
+        {
             const string pn = @"
 [
     {
@@ -1560,7 +1601,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcMultiJob3Test() {
+        public void PnPlcMultiJob3Test()
+        {
             const string pn = @"
 [
     {
@@ -1629,7 +1671,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcMultiJob4Test() {
+        public void PnPlcMultiJob4Test()
+        {
             const string pn = @"
 [
     {
@@ -1697,7 +1740,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
         [Theory]
         [InlineData("Publisher/publishednodes_with_duplicates.json")]
-        public async Task PnWithDuplicatesTest(string publishedNodesJsonFile) {
+        public async Task PnWithDuplicatesTest(string publishedNodesJsonFile)
+        {
             var pn = await File.ReadAllTextAsync(publishedNodesJsonFile).ConfigureAwait(false);
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -1729,7 +1773,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcMultiJobBatching1Test() {
+        public void PnPlcMultiJobBatching1Test()
+        {
             var pn = new StringBuilder(@"
 [
     {
@@ -1737,7 +1782,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         ""OpcNodes"": [
             ");
 
-            for (var i = 1; i < 10000; i++) {
+            for (var i = 1; i < 10000; i++)
+            {
                 pn.Append("{ \"Id\": \"i=");
                 pn.Append(i);
                 pn.Append("\" },");
@@ -1780,7 +1826,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcMultiJobBatching2Test() {
+        public void PnPlcMultiJobBatching2Test()
+        {
             var pn = new StringBuilder(@"
 [
     {
@@ -1788,7 +1835,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         ""OpcNodes"": [
             ");
 
-            for (var i = 1; i < 10000; i++) {
+            for (var i = 1; i < 10000; i++)
+            {
                 pn.Append("{ \"Id\": \"i=");
                 pn.Append(i);
                 pn.Append('\"');
@@ -1846,7 +1894,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcJobWithAllEventPropertiesTest() {
+        public void PnPlcJobWithAllEventPropertiesTest()
+        {
             var pn = new StringBuilder(@"
 [
     {
@@ -1941,7 +1990,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcMultiJob1TestWithDataItemsAndEvents() {
+        public void PnPlcMultiJob1TestWithDataItemsAndEvents()
+        {
             const string pn = @"
 [
     {
@@ -2062,7 +2112,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcJobTestWithEvents() {
+        public void PnPlcJobTestWithEvents()
+        {
             const string pn = @"
 [
     {
@@ -2183,7 +2234,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             Assert.Equal("DisplayName2253", eventModel.PublishedEventName);
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Equal(11, eventModel.SelectClauses.Count);
-            Assert.All(eventModel.SelectClauses, x => {
+            Assert.All(eventModel.SelectClauses, x =>
+            {
                 Assert.Equal("i=2041", x.TypeDefinitionId);
                 Assert.Single(x.BrowsePath);
             });
@@ -2203,7 +2255,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcJobTestWithConditionHandling() {
+        public void PnPlcJobTestWithConditionHandling()
+        {
             const string pn = @"
 [
     {
@@ -2252,7 +2305,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             Assert.Equal(30, eventModel.ConditionHandling.SnapshotInterval);
         }
 
-        private static IPublisherConfiguration GetConfig() {
+        private static IPublisherConfiguration GetConfig()
+        {
             var configMock = new Mock<IPublisherConfiguration>();
             configMock.SetupAllProperties();
             configMock.SetupGet(p => p.MaxNodesPerPublishedEndpoint).Returns(1000);

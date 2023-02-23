@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Opc.Ua;
     using System;
@@ -11,22 +12,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// <summary>
     /// Certificate store extensions
     /// </summary>
-    public static class CertificateStoreEx {
+    public static class CertificateStoreEx
+    {
         /// <summary>
         /// Apply the configured settings provided via a CertificateStore to a CertificateTrustList.
         /// </summary>
         public static void ApplyLocalConfig(
             this CertificateTrustList certificateTrustList,
-            CertificateStore certificateStore) {
-            if (certificateTrustList == null) {
+            CertificateStore certificateStore)
+        {
+            if (certificateTrustList == null)
+            {
                 throw new ArgumentNullException(nameof(certificateTrustList));
             }
 
-            if (certificateStore == null) {
+            if (certificateStore == null)
+            {
                 throw new ArgumentNullException(nameof(certificateStore));
             }
 
-            if (certificateTrustList.StorePath != certificateStore.StorePath) {
+            if (certificateTrustList.StorePath != certificateStore.StorePath)
+            {
                 certificateTrustList.StoreType = certificateStore.StoreType;
                 certificateTrustList.StorePath = certificateStore.StorePath;
             }
@@ -37,16 +43,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         public static void ApplyLocalConfig(
             this CertificateIdentifier certificateIdentifier,
-            CertificateInfo certificateStore) {
-            if (certificateIdentifier == null) {
+            CertificateInfo certificateStore)
+        {
+            if (certificateIdentifier == null)
+            {
                 throw new ArgumentNullException(nameof(certificateIdentifier));
             }
 
-            if (certificateStore == null) {
+            if (certificateStore == null)
+            {
                 throw new ArgumentNullException(nameof(certificateStore));
             }
 
-            if (certificateIdentifier.StorePath != certificateStore.StorePath) {
+            if (certificateIdentifier.StorePath != certificateStore.StorePath)
+            {
                 certificateIdentifier.StoreType = certificateStore.StoreType;
                 certificateIdentifier.StorePath = certificateStore.StorePath;
             }
@@ -58,16 +68,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         public static void ApplyLocalConfig(
             this CertificateStoreIdentifier certificateStoreIdentifier,
-            CertificateStore certificateStore) {
-            if (certificateStore == null) {
+            CertificateStore certificateStore)
+        {
+            if (certificateStore == null)
+            {
                 throw new ArgumentNullException(nameof(certificateStore));
             }
 
-            if (certificateStoreIdentifier == null) {
+            if (certificateStoreIdentifier == null)
+            {
                 throw new ArgumentNullException(nameof(certificateStoreIdentifier));
             }
 
-            if (certificateStoreIdentifier.StorePath != certificateStore.StorePath) {
+            if (certificateStoreIdentifier.StorePath != certificateStore.StorePath)
+            {
                 certificateStoreIdentifier.StoreType = certificateStore.StoreType;
                 certificateStoreIdentifier.StorePath = certificateStore.StorePath;
             }

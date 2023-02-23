@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalAccess {
+namespace HistoricalAccess
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -37,13 +38,15 @@ namespace HistoricalAccess {
     /// <summary>
     /// Stores the metadata for a node representing an item in the archive.
     /// </summary>
-    public class ArchiveItemState : DataItemState {
+    public class ArchiveItemState : DataItemState
+    {
         /// <summary>
         /// Creates a new instance of a item.
         /// </summary>
         public ArchiveItemState(ISystemContext context, ArchiveItem item, ushort namespaceIndex)
         :
-            base(null) {
+            base(null)
+        {
             ArchiveItem = item;
 
             TypeDefinitionId = VariableTypeIds.DataItemType;
@@ -61,7 +64,8 @@ namespace HistoricalAccess {
             MinimumSamplingInterval = MinimumSamplingIntervals.Indeterminate;
             Historizing = true;
 
-            _annotations = new PropertyState<Annotation>(this) {
+            _annotations = new PropertyState<Annotation>(this)
+            {
                 ReferenceTypeId = ReferenceTypeIds.HasProperty,
                 TypeDefinitionId = VariableTypeIds.PropertyType,
                 SymbolicName = BrowseNames.Annotations,
@@ -103,10 +107,12 @@ namespace HistoricalAccess {
         /// <summary>
         /// Loads the configuration.
         /// </summary>
-        public void LoadConfiguration(ISystemContext context) {
+        public void LoadConfiguration(ISystemContext context)
+        {
             var reader = new DataFileReader();
 
-            if (reader.LoadConfiguration(context, ArchiveItem)) {
+            if (reader.LoadConfiguration(context, ArchiveItem))
+            {
                 DataType = (uint)ArchiveItem.DataType;
                 ValueRank = ArchiveItem.ValueRank;
                 Historizing = ArchiveItem.Archiving;
@@ -126,24 +132,29 @@ namespace HistoricalAccess {
         /// <summary>
         /// Loads the data.
         /// </summary>
-        public void ReloadFromSource(ISystemContext context) {
+        public void ReloadFromSource(ISystemContext context)
+        {
             LoadConfiguration(context);
 
-            if (ArchiveItem.LastLoadTime == DateTime.MinValue || (ArchiveItem.Persistent && ArchiveItem.LastLoadTime.AddSeconds(10) < DateTime.UtcNow)) {
+            if (ArchiveItem.LastLoadTime == DateTime.MinValue || (ArchiveItem.Persistent && ArchiveItem.LastLoadTime.AddSeconds(10) < DateTime.UtcNow))
+            {
                 var reader = new DataFileReader();
                 reader.LoadHistoryData(context, ArchiveItem);
 
                 // set the start of the archive.
-                if (ArchiveItem.DataSet.Tables[0].DefaultView.Count > 0) {
+                if (ArchiveItem.DataSet.Tables[0].DefaultView.Count > 0)
+                {
                     _configuration.StartOfArchive.Value = (DateTime)ArchiveItem.DataSet.Tables[0].DefaultView[0].Row[0];
                     _configuration.StartOfOnlineArchive.Value = _configuration.StartOfArchive.Value;
                 }
 
-                if (ArchiveItem.Archiving) {
+                if (ArchiveItem.Archiving)
+                {
                     // save the pattern used to produce new data.
                     _pattern = new List<DataValue>();
 
-                    foreach (DataRowView row in ArchiveItem.DataSet.Tables[0].DefaultView) {
+                    foreach (DataRowView row in ArchiveItem.DataSet.Tables[0].DefaultView)
+                    {
                         var value = (DataValue)row.Row[2];
                         _pattern.Add(value);
                         _nextSampleTime = value.SourceTimestamp.AddMilliseconds(ArchiveItem.SamplingInterval);
@@ -165,8 +176,10 @@ namespace HistoricalAccess {
         {
             var newSamples = new List<DataValue>();
 
-            while (_pattern != null && _nextSampleTime < DateTime.UtcNow) {
-                var value = new DataValue {
+            while (_pattern != null && _nextSampleTime < DateTime.UtcNow)
+            {
+                var value = new DataValue
+                {
                     WrappedValue = _pattern[_patternIndex].WrappedValue,
                     ServerTimestamp = _nextSampleTime,
                     SourceTimestamp = _nextSampleTime,
@@ -194,19 +207,23 @@ namespace HistoricalAccess {
         /// <summary>
         /// Updates the history.
         /// </summary>
-        public uint UpdateHistory(SystemContext context, DataValue value, PerformUpdateType performUpdateType) {
+        public uint UpdateHistory(SystemContext context, DataValue value, PerformUpdateType performUpdateType)
+        {
             var replaced = false;
 
-            if (performUpdateType == PerformUpdateType.Remove) {
+            if (performUpdateType == PerformUpdateType.Remove)
+            {
                 return StatusCodes.BadNotSupported;
             }
 
-            if (StatusCode.IsNotBad(value.StatusCode)) {
+            if (StatusCode.IsNotBad(value.StatusCode))
+            {
                 var typeInfo = value.WrappedValue.TypeInfo;
 
                 typeInfo ??= TypeInfo.Construct(value.Value);
 
-                if (typeInfo == null || typeInfo.BuiltInType != ArchiveItem.DataType || typeInfo.ValueRank != ValueRanks.Scalar) {
+                if (typeInfo == null || typeInfo.BuiltInType != ArchiveItem.DataType || typeInfo.ValueRank != ValueRanks.Scalar)
+                {
                     return StatusCodes.BadTypeMismatch;
                 }
             }
@@ -222,8 +239,10 @@ namespace HistoricalAccess {
             DataRow row = null;
 
             const int ii = 0;
-            for (; ii < view.Count;) {
-                if (performUpdateType == PerformUpdateType.Insert) {
+            for (; ii < view.Count;)
+            {
+                if (performUpdateType == PerformUpdateType.Insert)
+                {
                     return StatusCodes.BadEntryExists;
                 }
 
@@ -246,8 +265,10 @@ namespace HistoricalAccess {
             }
 
             // add record indicating it was inserted.
-            if (!replaced) {
-                if (performUpdateType == PerformUpdateType.Replace) {
+            if (!replaced)
+            {
+                if (performUpdateType == PerformUpdateType.Replace)
+                {
                     return StatusCodes.BadNoEntryExists;
                 }
 
@@ -257,11 +278,13 @@ namespace HistoricalAccess {
                 modifiedRow[1] = value.ServerTimestamp;
                 modifiedRow[2] = value;
 
-                if (value.WrappedValue.TypeInfo != null) {
+                if (value.WrappedValue.TypeInfo != null)
+                {
                     modifiedRow[3] = value.WrappedValue.TypeInfo.BuiltInType;
                     modifiedRow[4] = value.WrappedValue.TypeInfo.ValueRank;
                 }
-                else {
+                else
+                {
                     modifiedRow[3] = BuiltInType.Variant;
                     modifiedRow[4] = ValueRanks.Scalar;
                 }
@@ -279,16 +302,19 @@ namespace HistoricalAccess {
             row[1] = value.ServerTimestamp;
             row[2] = value;
 
-            if (value.WrappedValue.TypeInfo != null) {
+            if (value.WrappedValue.TypeInfo != null)
+            {
                 row[3] = value.WrappedValue.TypeInfo.BuiltInType;
                 row[4] = value.WrappedValue.TypeInfo.ValueRank;
             }
-            else {
+            else
+            {
                 row[3] = BuiltInType.Variant;
                 row[4] = ValueRanks.Scalar;
             }
 
-            if (!replaced) {
+            if (!replaced)
+            {
                 ArchiveItem.DataSet.Tables[0].Rows.Add(row);
             }
 
@@ -317,26 +343,32 @@ namespace HistoricalAccess {
 
             DataRow row = null;
 
-            for (var ii = 0; ii < view.Count; ii++) {
+            for (var ii = 0; ii < view.Count; ii++)
+            {
                 var current = (Annotation)view[ii].Row[5];
 
                 replaced = current.UserName == annotation.UserName;
 
-                if (performUpdateType == PerformUpdateType.Insert) {
-                    if (replaced) {
+                if (performUpdateType == PerformUpdateType.Insert)
+                {
+                    if (replaced)
+                    {
                         return StatusCodes.BadEntryExists;
                     }
                 }
 
-                if (replaced) {
+                if (replaced)
+                {
                     row = view[ii].Row;
                     break;
                 }
             }
 
             // add record indicating it was inserted.
-            if (!replaced) {
-                if (performUpdateType == PerformUpdateType.Replace || performUpdateType == PerformUpdateType.Remove) {
+            if (!replaced)
+            {
+                if (performUpdateType == PerformUpdateType.Replace || performUpdateType == PerformUpdateType.Remove)
+                {
                     return StatusCodes.BadNoEntryExists;
                 }
 
@@ -344,7 +376,8 @@ namespace HistoricalAccess {
             }
 
             // add/update new record.
-            if (performUpdateType != PerformUpdateType.Remove) {
+            if (performUpdateType != PerformUpdateType.Remove)
+            {
                 row[0] = value.SourceTimestamp;
                 row[1] = value.ServerTimestamp;
                 row[2] = new DataValue(new ExtensionObject(annotation), StatusCodes.Good, value.SourceTimestamp, value.ServerTimestamp);
@@ -352,13 +385,15 @@ namespace HistoricalAccess {
                 row[4] = ValueRanks.Scalar;
                 row[5] = annotation;
 
-                if (!replaced) {
+                if (!replaced)
+                {
                     ArchiveItem.DataSet.Tables[2].Rows.Add(row);
                 }
             }
 
             // delete record.
-            else {
+            else
+            {
                 row.Delete();
             }
 
@@ -371,13 +406,17 @@ namespace HistoricalAccess {
         /// <summary>
         /// Selects the table to use.
         /// </summary>
-        private DataTable SelectTable(QualifiedName propertyName) {
-            if (propertyName == null || propertyName.Name == null) {
+        private DataTable SelectTable(QualifiedName propertyName)
+        {
+            if (propertyName == null || propertyName.Name == null)
+            {
                 return ArchiveItem.DataSet.Tables[0];
             }
 
-            switch (propertyName.Name) {
-                case BrowseNames.Annotations: {
+            switch (propertyName.Name)
+            {
+                case BrowseNames.Annotations:
+                    {
                         return ArchiveItem.DataSet.Tables[2];
                     }
             }
@@ -388,7 +427,8 @@ namespace HistoricalAccess {
         /// <summary>
         /// Deletes a value from the history.
         /// </summary>
-        public uint DeleteHistory(SystemContext context, DateTime sourceTimestamp) {
+        public uint DeleteHistory(SystemContext context, DateTime sourceTimestamp)
+        {
             var deleted = false;
 
             var filter = string.Format(System.Globalization.CultureInfo.InvariantCulture, "SourceTimestamp = #{0}#", sourceTimestamp);
@@ -399,17 +439,20 @@ namespace HistoricalAccess {
                 null,
                 DataViewRowState.CurrentRows);
 
-            for (var ii = 0; ii < view.Count; ii++) {
+            for (var ii = 0; ii < view.Count; ii++)
+            {
                 var updateType = (int)view[ii].Row[5];
 
-                if (updateType == 0) {
+                if (updateType == 0)
+                {
                     view[ii].Row[5] = HistoryUpdateType.Delete;
                     view[ii].Row[6] = GetModificationInfo(context, HistoryUpdateType.Delete);
                     deleted = true;
                 }
             }
 
-            if (!deleted) {
+            if (!deleted)
+            {
                 return StatusCodes.BadNoEntryExists;
             }
 
@@ -433,23 +476,27 @@ namespace HistoricalAccess {
                 null,
                 DataViewRowState.CurrentRows);
 
-            for (var ii = 0; ii < view.Count; ii++) {
+            for (var ii = 0; ii < view.Count; ii++)
+            {
                 var updateType = (int)view[ii].Row[5];
             }
 
-            if (!deleted) {
+            if (!deleted)
+            {
                 return StatusCodes.BadNoEntryExists;
             }
 
-           // return StatusCodes.Good;
+            // return StatusCodes.Good;
         }
 
         /// <summary>
         /// Deletes a value from the history.
         /// </summary>
-        public uint DeleteHistory(SystemContext context, DateTime startTime, DateTime endTime, bool isModified) {
+        public uint DeleteHistory(SystemContext context, DateTime startTime, DateTime endTime, bool isModified)
+        {
             // ensure time goes up.
-            if (endTime < startTime) {
+            if (endTime < startTime)
+            {
                 var temp = startTime;
                 startTime = endTime;
                 endTime = temp;
@@ -464,7 +511,8 @@ namespace HistoricalAccess {
             // select the table.
             var table = ArchiveItem.DataSet.Tables[0];
 
-            if (isModified) {
+            if (isModified)
+            {
                 table = ArchiveItem.DataSet.Tables[1];
             }
 
@@ -477,8 +525,10 @@ namespace HistoricalAccess {
 
             var rowsToDelete = new List<DataRow>();
 
-            for (var ii = 0; ii < view.Count; ii++) {
-                if (!isModified) {
+            for (var ii = 0; ii < view.Count; ii++)
+            {
+                if (!isModified)
+                {
                     var modifiedRow = ArchiveItem.DataSet.Tables[1].NewRow();
 
                     modifiedRow[0] = view[ii].Row[0];
@@ -496,7 +546,8 @@ namespace HistoricalAccess {
             }
 
             // delete rows.
-            foreach (var row in rowsToDelete) {
+            foreach (var row in rowsToDelete)
+            {
                 row.Delete();
             }
 
@@ -509,13 +560,16 @@ namespace HistoricalAccess {
         /// <summary>
         /// Creates a modification info record.
         /// </summary>
-        private static ModificationInfo GetModificationInfo(SystemContext context, HistoryUpdateType updateType) {
-            var info = new ModificationInfo {
+        private static ModificationInfo GetModificationInfo(SystemContext context, HistoryUpdateType updateType)
+        {
+            var info = new ModificationInfo
+            {
                 UpdateType = updateType,
                 ModificationTime = DateTime.UtcNow
             };
 
-            if (context.OperationContext?.UserIdentity != null) {
+            if (context.OperationContext?.UserIdentity != null)
+            {
                 info.UserName = context.OperationContext.UserIdentity.DisplayName;
             }
 
@@ -525,7 +579,8 @@ namespace HistoricalAccess {
         /// <summary>
         /// Reads the history for the specified time range.
         /// </summary>
-        public DataView ReadHistory(DateTime startTime, DateTime endTime, bool isModified) {
+        public DataView ReadHistory(DateTime startTime, DateTime endTime, bool isModified)
+        {
             return ReadHistory(startTime, endTime, isModified, null);
         }
 
@@ -536,11 +591,13 @@ namespace HistoricalAccess {
         public DataView ReadHistory(DateTime startTime, DateTime endTime, bool isModified, QualifiedName browseName)
 #pragma warning restore IDE0060 // Parameter is never used
         {
-            if (isModified) {
+            if (isModified)
+            {
                 return ArchiveItem.DataSet.Tables[1].DefaultView;
             }
 
-            if (browseName == BrowseNames.Annotations) {
+            if (browseName == BrowseNames.Annotations)
+            {
                 return ArchiveItem.DataSet.Tables[2].DefaultView;
             }
 
@@ -550,10 +607,12 @@ namespace HistoricalAccess {
         /// <summary>
         /// Finds the value at or before the timestamp.
         /// </summary>
-        public static int FindValueAtOrBefore(DataView view, DateTime timestamp, bool ignoreBad, out bool dataIgnored) {
+        public static int FindValueAtOrBefore(DataView view, DateTime timestamp, bool ignoreBad, out bool dataIgnored)
+        {
             dataIgnored = false;
 
-            if (view.Count <= 0) {
+            if (view.Count <= 0)
+            {
                 return -1;
             }
 
@@ -561,13 +620,16 @@ namespace HistoricalAccess {
             var max = view.Count;
             var position = (max - min) / 2;
 
-            while (position >= 0 && position < view.Count) {
+            while (position >= 0 && position < view.Count)
+            {
                 var current = (DateTime)view[position].Row[0];
 
                 // check for exact match.
-                if (current == timestamp) {
+                if (current == timestamp)
+                {
                     // skip the first timestamp.
-                    while (position > 0 && (DateTime)view[position - 1].Row[0] == timestamp) {
+                    while (position > 0 && (DateTime)view[position - 1].Row[0] == timestamp)
+                    {
                         position--;
                     }
 
@@ -575,31 +637,38 @@ namespace HistoricalAccess {
                 }
 
                 // move up.
-                if (current < timestamp) {
+                if (current < timestamp)
+                {
                     min = position + 1;
                 }
 
                 // move down.
-                if (current > timestamp) {
+                if (current > timestamp)
+                {
                     max = position - 1;
                 }
 
                 // not found.
-                if (max < min) {
+                if (max < min)
+                {
                     // find the value before.
-                    while (position >= 0) {
+                    while (position >= 0)
+                    {
                         timestamp = (DateTime)view[position].Row[0];
 
                         // skip the first timestamp in group.
-                        while (position > 0 && (DateTime)view[position - 1].Row[0] == timestamp) {
+                        while (position > 0 && (DateTime)view[position - 1].Row[0] == timestamp)
+                        {
                             position--;
                         }
 
                         // ignore bad data.
-                        if (ignoreBad) {
+                        if (ignoreBad)
+                        {
                             var value = (DataValue)view[position].Row[2];
 
-                            if (StatusCode.IsBad(value.StatusCode)) {
+                            if (StatusCode.IsBad(value.StatusCode))
+                            {
                                 position--;
                                 dataIgnored = true;
                                 continue;
@@ -622,33 +691,40 @@ namespace HistoricalAccess {
         /// <summary>
         /// Returns the next value after the current position.
         /// </summary>
-        public static int FindValueAfter(DataView view, int position, bool ignoreBad, out bool dataIgnored) {
+        public static int FindValueAfter(DataView view, int position, bool ignoreBad, out bool dataIgnored)
+        {
             dataIgnored = false;
 
-            if (position < 0 || position >= view.Count) {
+            if (position < 0 || position >= view.Count)
+            {
                 return -1;
             }
 
             var timestamp = (DateTime)view[position].Row[0];
 
             // skip the current timestamp.
-            while (position < view.Count && (DateTime)view[position].Row[0] == timestamp) {
+            while (position < view.Count && (DateTime)view[position].Row[0] == timestamp)
+            {
                 position++;
             }
 
-            if (position >= view.Count) {
+            if (position >= view.Count)
+            {
                 return -1;
             }
 
             // find the value after.
-            while (position < view.Count) {
+            while (position < view.Count)
+            {
                 timestamp = (DateTime)view[position].Row[0];
 
                 // ignore bad data.
-                if (ignoreBad) {
+                if (ignoreBad)
+                {
                     var value = (DataValue)view[position].Row[2];
 
-                    if (StatusCode.IsBad(value.StatusCode)) {
+                    if (StatusCode.IsBad(value.StatusCode))
+                    {
                         position++;
                         dataIgnored = true;
                         continue;
@@ -658,7 +734,8 @@ namespace HistoricalAccess {
                 break;
             }
 
-            if (position >= view.Count) {
+            if (position >= view.Count)
+            {
                 return -1;
             }
 
@@ -669,8 +746,10 @@ namespace HistoricalAccess {
         /// <summary>
         /// Constructs a node identifier for a item object.
         /// </summary>
-        public static NodeId ConstructId(string filePath, ushort namespaceIndex) {
-            var parsedNodeId = new ParsedNodeId {
+        public static NodeId ConstructId(string filePath, ushort namespaceIndex)
+        {
+            var parsedNodeId = new ParsedNodeId
+            {
                 RootId = filePath,
                 NamespaceIndex = namespaceIndex,
                 RootType = NodeTypes.Item
@@ -689,7 +768,8 @@ namespace HistoricalAccess {
         /// </summary>
         public int SubscribeCount { get; set; }
 
-        protected override void Dispose(bool disposing) {
+        protected override void Dispose(bool disposing)
+        {
             base.Dispose(disposing);
             _annotations?.Dispose();
             _configuration?.Dispose();

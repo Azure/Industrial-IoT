@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http {
+namespace Microsoft.Azure.IIoT.Http
+{
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Http {
     /// <summary>
     /// Client interface
     /// </summary>
-    public interface IHttpClient {
+    public interface IHttpClient
+    {
         /// <summary>
         /// Create new request
         /// </summary>

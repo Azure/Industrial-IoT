@@ -27,32 +27,42 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     /// <summary>
     /// Calculates aggregates with interpolation.
     /// </summary>
-    public abstract class InterpolatingCalculator : BaseAggregateCalculator {
+    public abstract class InterpolatingCalculator : BaseAggregateCalculator
+    {
         /// <summary>
         /// Returns true if more data is required for the next interval.
         /// </summary>
-        public override bool WaitForMoreData(TimeSlice bucket, AggregateState state) {
-            if (!state.HasTerminated) {
-                if (bucket.ContainsTime(state.LatestTimestamp)) {
+        public override bool WaitForMoreData(TimeSlice bucket, AggregateState state)
+        {
+            if (!state.HasTerminated)
+            {
+                if (bucket.ContainsTime(state.LatestTimestamp))
+                {
                     return true;
                 }
 
-                if (IsReverseAggregation) {
-                    if (state.LatestTimestamp < bucket.To) {
+                if (IsReverseAggregation)
+                {
+                    if (state.LatestTimestamp < bucket.To)
+                    {
                         return false;
                     }
                 }
-                else {
-                    if (state.LatestTimestamp > bucket.To) {
+                else
+                {
+                    if (state.LatestTimestamp > bucket.To)
+                    {
                         return false;
                     }
                 }
 
-                if ((bucket.EarlyBound.Value == null) || (bucket.LateBound.Value == null)) {
+                if ((bucket.EarlyBound.Value == null) || (bucket.LateBound.Value == null))
+                {
                     return true;
                 }
             }
@@ -63,7 +73,8 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Calculates the status for the time slice.
         /// </summary>
-        protected override StatusCode ComputeStatus(IAggregationContext context, int numGood, int numBad, TimeSlice bucket) {
+        protected override StatusCode ComputeStatus(IAggregationContext context, int numGood, int numBad, TimeSlice bucket)
+        {
             return (bucket.EarlyBound.Value == null && numGood + numBad == 0) ? // no inital bound, do not extrapolate
                 StatusCodes.BadNoData : base.ComputeStatus(context, numGood, numBad, bucket);
         }
@@ -71,8 +82,10 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Determines the best good point before the end bound.
         /// </summary>
-        protected void UpdatePriorPoint(BoundingValue bound, AggregateState state) {
-            if (state.HasTerminated && (state.LatePoint == null) && bound.PriorPoint == null) {
+        protected void UpdatePriorPoint(BoundingValue bound, AggregateState state)
+        {
+            if (state.HasTerminated && (state.LatePoint == null) && bound.PriorPoint == null)
+            {
                 bound.PriorPoint = state.PriorPoint;
                 bound.PriorBadPoints = state.PriorBadPoints;
                 bound.DerivationType = UseSlopedExtrapolation ? BoundingValueType.SlopedExtrapolation : BoundingValueType.SteppedExtrapolation;

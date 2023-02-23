@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
     /// Service model extensions for discovery service
     /// </summary>
-    public static class DiscovererModelEx {
+    public static class DiscovererModelEx
+    {
         /// <summary>
         /// Equality comparison
         /// </summary>
@@ -18,14 +20,18 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="that"></param>
         /// <returns></returns>
         public static bool IsSameAs(this IEnumerable<DiscovererModel> model,
-            IEnumerable<DiscovererModel> that) {
-            if (model == that) {
+            IEnumerable<DiscovererModel> that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
-            if (model.Count() != that.Count()) {
+            if (model.Count() != that.Count())
+            {
                 return false;
             }
             return model.All(a => that.Any(b => b.IsSameAs(a)));
@@ -38,11 +44,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="that"></param>
         /// <returns></returns>
         public static bool IsSameAs(this DiscovererModel model,
-            DiscovererModel that) {
-            if (model == that) {
+            DiscovererModel that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
             return that.Id == model.Id;

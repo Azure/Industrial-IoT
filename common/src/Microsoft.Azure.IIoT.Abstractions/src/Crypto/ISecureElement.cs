@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Crypto {
+namespace Microsoft.Azure.IIoT.Crypto
+{
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Cryptographic primitives
     /// </summary>
-    public interface ISecureElement {
+    public interface ISecureElement
+    {
         /// <summary>
         /// Decrypt
         /// </summary>

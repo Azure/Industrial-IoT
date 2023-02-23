@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
+{
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using System.Collections.Generic;
 
     /// <summary>
     /// Test class to override Exit method
     /// </summary>
-    public class PublisherCliOptionsTest : PublisherCliOptions {
+    public class PublisherCliOptionsTest : PublisherCliOptions
+    {
         /// <summary>
         /// Exit code
         /// </summary>
@@ -21,23 +23,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime {
         /// </summary>
         public List<string> Warnings = new();
 
-        public PublisherCliOptionsTest(string[] args) : base(args) {
+        public PublisherCliOptionsTest(string[] args) : base(args)
+        {
         }
 
         /// <summary>
         /// Set exit code
         /// </summary>
-        public override void ExitProcess(int exitCode) {
+        public override void ExitProcess(int exitCode)
+        {
             ExitCode = exitCode;
         }
 
         /// <inheritdoc/>
-        public override void Warning(string messageTemplate) {
+        public override void Warning(string messageTemplate)
+        {
             Warnings.Add(messageTemplate);
         }
 
         /// <inheritdoc/>
-        public override void Warning<T>(string messageTemplate, T propertyValue) {
+        public override void Warning<T>(string messageTemplate, T propertyValue)
+        {
             Warnings.Add(messageTemplate + "::" + propertyValue.ToString());
         }
     }

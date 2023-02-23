@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Mock {
+namespace Microsoft.Azure.IIoT.Hub.Mock
+{
     using Microsoft.Azure.IIoT.Messaging;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// <summary>
     /// Hub interface
     /// </summary>
-    public interface IIoTHub {
+    public interface IIoTHub
+    {
         /// <summary>
         /// The host name the client is talking to
         /// </summary>

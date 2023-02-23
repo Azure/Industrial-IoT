@@ -27,15 +27,18 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalEvents {
+namespace HistoricalEvents
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Text;
 
-    public class ReportGenerator {
-        public void Initialize() {
+    public class ReportGenerator
+    {
+        public void Initialize()
+        {
             _dataset = new DataSet();
 
             _dataset.Tables.Add("FluidLevelTests");
@@ -64,7 +67,8 @@ namespace HistoricalEvents {
 
             // look up the local timezone.
             var timeZone = TimeZoneInfo.Local;
-            _timeZone = new TimeZoneDataType {
+            _timeZone = new TimeZoneDataType
+            {
                 Offset = (short)timeZone.GetUtcOffset(DateTime.Now).TotalMinutes,
                 DaylightSavingInOffset = timeZone.IsDaylightSavingTime(DateTime.Now)
             };
@@ -123,24 +127,30 @@ namespace HistoricalEvents {
             "other"
         };
 
-        private int GetRandom(int min, int max) {
+        private int GetRandom(int min, int max)
+        {
             return (int)Math.Truncate((_random.NextDouble() * (max - min + 1)) + min);
         }
 
-        private string GetRandom(string[] values) {
+        private string GetRandom(string[] values)
+        {
             return values[GetRandom(0, values.Length - 1)];
         }
 
-        public static string[] GetAreas() {
+        public static string[] GetAreas()
+        {
             var area = new List<string>();
 
-            for (var ii = 0; ii < kWellNames.Length; ii++) {
+            for (var ii = 0; ii < kWellNames.Length; ii++)
+            {
                 var index = kWellNames[ii].LastIndexOf('/');
 
-                if (index >= 0) {
+                if (index >= 0)
+                {
                     var areaName = kWellNames[ii].Substring(0, index);
 
-                    if (!area.Contains(areaName)) {
+                    if (!area.Contains(areaName))
+                    {
                         area.Add(areaName);
                     }
                 }
@@ -149,20 +159,26 @@ namespace HistoricalEvents {
             return area.ToArray();
         }
 
-        public static WellInfo[] GetWells(string areaName) {
+        public static WellInfo[] GetWells(string areaName)
+        {
             var wells = new List<WellInfo>();
 
-            for (var ii = 0; ii < kWellUIDs.Length; ii++) {
-                var well = new WellInfo {
+            for (var ii = 0; ii < kWellUIDs.Length; ii++)
+            {
+                var well = new WellInfo
+                {
                     Id = kWellUIDs[ii],
                     Name = kWellUIDs[ii]
                 };
 
-                if (kWellNames.Length > ii) {
+                if (kWellNames.Length > ii)
+                {
                     var index = kWellNames[ii].LastIndexOf('/');
 
-                    if (index >= 0) {
-                        if (kWellNames[ii].Substring(0, index) == areaName) {
+                    if (index >= 0)
+                    {
+                        if (kWellNames[ii].Substring(0, index) == areaName)
+                        {
                             well.Name = kWellNames[ii].Substring(index + 1);
                             wells.Add(well);
                         }
@@ -173,13 +189,16 @@ namespace HistoricalEvents {
             return wells.ToArray();
         }
 
-        public class WellInfo {
+        public class WellInfo
+        {
             public string Id { get; set; }
             public string Name { get; set; }
         }
 
-        public DataRow GenerateFluidLevelTestReport() {
-            lock (_dataset) {
+        public DataRow GenerateFluidLevelTestReport()
+        {
+            lock (_dataset)
+            {
                 var row = _dataset.Tables[0].NewRow();
 
                 row[0] = Guid.NewGuid().ToString();
@@ -204,7 +223,8 @@ namespace HistoricalEvents {
         /// <summary>
         /// Deletes the event with the specified event id.
         /// </summary>
-        public bool DeleteEvent(string eventId) {
+        public bool DeleteEvent(string eventId)
+        {
             var filter = new StringBuilder();
 
             filter.Append('(');
@@ -215,11 +235,14 @@ namespace HistoricalEvents {
             filter.Append('\'');
             filter.Append(')');
 
-            lock (_dataset) {
-                for (var ii = 0; ii < _dataset.Tables.Count; ii++) {
+            lock (_dataset)
+            {
+                for (var ii = 0; ii < _dataset.Tables.Count; ii++)
+                {
                     var view = new DataView(_dataset.Tables[ii], filter.ToString(), null, DataViewRowState.CurrentRows);
 
-                    if (view.Count > 0) {
+                    if (view.Count > 0)
+                    {
                         view[0].Delete();
                         _dataset.AcceptChanges();
                         return true;
@@ -232,7 +255,8 @@ namespace HistoricalEvents {
         /// <summary>
         /// Reads the report history for the specified time range.
         /// </summary>
-        public DataView ReadHistoryForWellId(ReportType reportType, string uidWell, DateTime startTime, DateTime endTime) {
+        public DataView ReadHistoryForWellId(ReportType reportType, string uidWell, DateTime startTime, DateTime endTime)
+        {
             var filter = new StringBuilder();
 
             filter.Append('(');
@@ -249,10 +273,12 @@ namespace HistoricalEvents {
         /// <summary>
         /// Reads the report history for the specified time range.
         /// </summary>
-        public DataView ReadHistoryForArea(ReportType reportType, string areaName, DateTime startTime, DateTime endTime) {
+        public DataView ReadHistoryForArea(ReportType reportType, string areaName, DateTime startTime, DateTime endTime)
+        {
             var filter = new StringBuilder();
 
-            if (!string.IsNullOrEmpty(areaName)) {
+            if (!string.IsNullOrEmpty(areaName))
+            {
                 filter.Append('(');
                 filter.Append(BrowseNames.NameWell);
                 filter.Append(" LIKE ");
@@ -269,17 +295,21 @@ namespace HistoricalEvents {
         /// <summary>
         /// Reads the history for the specified time range.
         /// </summary>
-        private DataView ReadHistory(ReportType reportType, StringBuilder filter, DateTime startTime, DateTime endTime) {
+        private DataView ReadHistory(ReportType reportType, StringBuilder filter, DateTime startTime, DateTime endTime)
+        {
             var earlyTime = startTime;
             var lateTime = endTime;
 
-            if (endTime < startTime && endTime != DateTime.MinValue) {
+            if (endTime < startTime && endTime != DateTime.MinValue)
+            {
                 earlyTime = endTime;
                 lateTime = startTime;
             }
 
-            if (earlyTime != DateTime.MinValue) {
-                if (filter.Length > 0) {
+            if (earlyTime != DateTime.MinValue)
+            {
+                if (filter.Length > 0)
+                {
                     filter.Append(" AND ");
                 }
 
@@ -292,8 +322,10 @@ namespace HistoricalEvents {
                 filter.Append(')');
             }
 
-            if (lateTime != DateTime.MinValue) {
-                if (filter.Length > 0) {
+            if (lateTime != DateTime.MinValue)
+            {
+                if (filter.Length > 0)
+                {
                     filter.Append(" AND ");
                 }
 
@@ -306,7 +338,8 @@ namespace HistoricalEvents {
                 filter.Append(')');
             }
 
-            lock (_dataset) {
+            lock (_dataset)
+            {
                 return new DataView(
                 _dataset.Tables[(int)reportType],
                 filter.ToString(),
@@ -323,8 +356,10 @@ namespace HistoricalEvents {
         /// <param name="reportType">The type of report.</param>
         /// <param name="row">The source for the report.</param>
         /// <returns>The new report.</returns>
-        public BaseEventState GetReport(ISystemContext context, ushort namespaceIndex, ReportType reportType, DataRow row) {
-            switch (reportType) {
+        public BaseEventState GetReport(ISystemContext context, ushort namespaceIndex, ReportType reportType, DataRow row)
+        {
+            switch (reportType)
+            {
                 case ReportType.FluidLevelTest: return GetFluidLevelTestReport(context, namespaceIndex, row);
                 case ReportType.InjectionTest: return GetInjectionTestReport(context, namespaceIndex, row);
             }
@@ -332,7 +367,8 @@ namespace HistoricalEvents {
             return null;
         }
 
-        public BaseEventState GetFluidLevelTestReport(ISystemContext SystemContext, ushort namespaceIndex, DataRow row) {
+        public BaseEventState GetFluidLevelTestReport(ISystemContext SystemContext, ushort namespaceIndex, DataRow row)
+        {
             // construct translation object with default text.
             var info = new TranslationInfo(
                 "FluidLevelTestReport",
@@ -370,8 +406,10 @@ namespace HistoricalEvents {
             return e;
         }
 
-        public DataRow GenerateInjectionTestReport() {
-            lock (_dataset) {
+        public DataRow GenerateInjectionTestReport()
+        {
+            lock (_dataset)
+            {
                 var row = _dataset.Tables[1].NewRow();
 
                 row[0] = Guid.NewGuid().ToString();
@@ -394,13 +432,15 @@ namespace HistoricalEvents {
             }
         }
 
-        public static DataRow UpdateeInjectionTestReport(DataRow row, IList<SimpleAttributeOperand> fields, IList<Variant> values) {
+        public static DataRow UpdateeInjectionTestReport(DataRow row, IList<SimpleAttributeOperand> fields, IList<Variant> values)
+        {
             System.Diagnostics.Contracts.Contract.Assume(fields != null);
             System.Diagnostics.Contracts.Contract.Assume(values != null);
             return row;
         }
 
-        public BaseEventState GetInjectionTestReport(ISystemContext SystemContext, ushort namespaceIndex, DataRow row) {
+        public BaseEventState GetInjectionTestReport(ISystemContext SystemContext, ushort namespaceIndex, DataRow row)
+        {
             // construct translation object with default text.
             var info = new TranslationInfo(
                 "InjectionTestReport",
@@ -443,7 +483,8 @@ namespace HistoricalEvents {
         private TimeZoneDataType _timeZone;
     }
 
-    public enum ReportType {
+    public enum ReportType
+    {
         FluidLevelTest,
         InjectionTest
     }

@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace DataAccess {
+namespace DataAccess
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -35,11 +36,13 @@ namespace DataAccess {
     /// <summary>
     /// This class simulates a block in the system.
     /// </summary>
-    public class UnderlyingSystemBlock {
+    public class UnderlyingSystemBlock
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="UnderlyingSystemBlock"/> class.
         /// </summary>
-        public UnderlyingSystemBlock() {
+        public UnderlyingSystemBlock()
+        {
             _tags = new List<UnderlyingSystemTag>();
         }
 
@@ -80,9 +83,11 @@ namespace DataAccess {
             UnderlyingSystemDataType dataType,
             UnderlyingSystemTagType tagType,
             string engineeringUnits,
-            bool writeable) {
+            bool writeable)
+        {
             // create tag.
-            var tag = new UnderlyingSystemTag {
+            var tag = new UnderlyingSystemTag
+            {
                 Block = this,
                 Name = tagName,
                 Description = null,
@@ -94,36 +99,42 @@ namespace DataAccess {
                 EuRange = null
             };
 
-            switch (tagType) {
-                case UnderlyingSystemTagType.Analog: {
+            switch (tagType)
+            {
+                case UnderlyingSystemTagType.Analog:
+                    {
                         tag.Description = "An analog value.";
                         tag.TagType = UnderlyingSystemTagType.Analog;
                         tag.EuRange = new double[] { 100, 0 };
                         break;
                     }
 
-                case UnderlyingSystemTagType.Digital: {
+                case UnderlyingSystemTagType.Digital:
+                    {
                         tag.Description = "A digital value.";
                         tag.TagType = UnderlyingSystemTagType.Digital;
                         tag.Labels = new string[] { "Online", "Offline" };
                         break;
                     }
 
-                case UnderlyingSystemTagType.Enumerated: {
+                case UnderlyingSystemTagType.Enumerated:
+                    {
                         tag.Description = "An enumerated value.";
                         tag.TagType = UnderlyingSystemTagType.Enumerated;
                         tag.Labels = new string[] { "Red", "Yellow", "Green" };
                         break;
                     }
 
-                default: {
+                default:
+                    {
                         tag.Description = "A generic value.";
                         break;
                     }
             }
 
             // set an initial value.
-            switch (tag.DataType) {
+            switch (tag.DataType)
+            {
                 case UnderlyingSystemDataType.Integer1: { tag.Value = (sbyte)0; break; }
                 case UnderlyingSystemDataType.Integer2: { tag.Value = (short)0; break; }
                 case UnderlyingSystemDataType.Integer4: { tag.Value = 0; break; }
@@ -131,7 +142,8 @@ namespace DataAccess {
                 case UnderlyingSystemDataType.String: { tag.Value = string.Empty; break; }
             }
 
-            lock (_tags) {
+            lock (_tags)
+            {
                 _tags.Add(tag);
                 Timestamp = DateTime.UtcNow;
             }
@@ -141,12 +153,15 @@ namespace DataAccess {
         /// Returns a snapshot of the tags belonging to the block.
         /// </summary>
         /// <returns>The list of tags. Null if the block does not exist.</returns>
-        public IList<UnderlyingSystemTag> GetTags() {
-            lock (_tags) {
+        public IList<UnderlyingSystemTag> GetTags()
+        {
+            lock (_tags)
+            {
                 // create snapshots of the tags.
                 var tags = new UnderlyingSystemTag[_tags.Count];
 
-                for (var ii = 0; ii < _tags.Count; ii++) {
+                for (var ii = 0; ii < _tags.Count; ii++)
+                {
                     tags[ii] = _tags[ii].CreateSnapshot();
                 }
 
@@ -158,8 +173,10 @@ namespace DataAccess {
         /// Starts the monitoring.
         /// </summary>
         /// <param name="callback">The callback to use when reporting changes.</param>
-        public void StartMonitoring(TagsChangedEventHandler callback) {
-            lock (_tags) {
+        public void StartMonitoring(TagsChangedEventHandler callback)
+        {
+            lock (_tags)
+            {
                 _onTagsChanged = callback;
             }
         }
@@ -170,50 +187,61 @@ namespace DataAccess {
         /// <param name="tagName">Name of the tag.</param>
         /// <param name="value">The value.</param>
         /// <returns>The status code for the operation.</returns>
-        public uint WriteTagValue(string tagName, object value) {
+        public uint WriteTagValue(string tagName, object value)
+        {
             UnderlyingSystemTag tag = null;
             TagsChangedEventHandler onTagsChanged = null;
 
-            lock (_tags) {
+            lock (_tags)
+            {
                 onTagsChanged = _onTagsChanged;
 
                 // find the tag.
                 tag = FindTag(tagName);
 
-                if (tag == null) {
+                if (tag == null)
+                {
                     return StatusCodes.BadNodeIdUnknown;
                 }
 
                 // cast value to correct type.
-                try {
-                    switch (tag.DataType) {
-                        case UnderlyingSystemDataType.Integer1: {
+                try
+                {
+                    switch (tag.DataType)
+                    {
+                        case UnderlyingSystemDataType.Integer1:
+                            {
                                 tag.Value = (sbyte)value;
                                 break;
                             }
 
-                        case UnderlyingSystemDataType.Integer2: {
+                        case UnderlyingSystemDataType.Integer2:
+                            {
                                 tag.Value = (short)value;
                                 break;
                             }
 
-                        case UnderlyingSystemDataType.Integer4: {
+                        case UnderlyingSystemDataType.Integer4:
+                            {
                                 tag.Value = (int)value;
                                 break;
                             }
 
-                        case UnderlyingSystemDataType.Real4: {
+                        case UnderlyingSystemDataType.Real4:
+                            {
                                 tag.Value = (float)value;
                                 break;
                             }
 
-                        case UnderlyingSystemDataType.String: {
+                        case UnderlyingSystemDataType.String:
+                            {
                                 tag.Value = (string)value;
                                 break;
                             }
                     }
                 }
-                catch {
+                catch
+                {
                     return StatusCodes.BadTypeMismatch;
                 }
 
@@ -222,7 +250,8 @@ namespace DataAccess {
             }
 
             // raise notification.
-            if (tag != null && onTagsChanged != null) {
+            if (tag != null && onTagsChanged != null)
+            {
                 onTagsChanged(new UnderlyingSystemTag[] { tag });
             }
 
@@ -232,8 +261,10 @@ namespace DataAccess {
         /// <summary>
         /// Stops monitoring.
         /// </summary>
-        public void StopMonitoring() {
-            lock (_tags) {
+        public void StopMonitoring()
+        {
+            lock (_tags)
+            {
                 _onTagsChanged = null;
             }
         }
@@ -244,31 +275,38 @@ namespace DataAccess {
         /// <param name="counter">The number of simulation cycles that have elapsed.</param>
         /// <param name="index">The index of the block within the system.</param>
         /// <param name="generator">An object which generates random data.</param>
-        public void DoSimulation(long counter, int index, Opc.Ua.Test.TestDataGenerator generator) {
-            try {
+        public void DoSimulation(long counter, int index, Opc.Ua.Test.TestDataGenerator generator)
+        {
+            try
+            {
                 TagsChangedEventHandler onTagsChanged = null;
                 var snapshots = new List<UnderlyingSystemTag>();
 
                 // update the tags.
-                lock (_tags) {
+                lock (_tags)
+                {
                     onTagsChanged = _onTagsChanged;
 
                     // do nothing if not monitored.
-                    if (onTagsChanged == null) {
+                    if (onTagsChanged == null)
+                    {
                         return;
                     }
 
-                    for (var ii = 0; ii < _tags.Count; ii++) {
+                    for (var ii = 0; ii < _tags.Count; ii++)
+                    {
                         var tag = _tags[ii];
                         UpdateTagValue(tag, generator);
 
-                        var value = new DataValue {
+                        var value = new DataValue
+                        {
                             Value = tag.Value,
                             StatusCode = StatusCodes.Good,
                             SourceTimestamp = tag.Timestamp
                         };
 
-                        if (counter % (8 + (index % 4)) == 0) {
+                        if (counter % (8 + (index % 4)) == 0)
+                        {
                             UpdateTagMetadata(tag, generator);
                         }
 
@@ -279,7 +317,8 @@ namespace DataAccess {
                 // report any tag changes after releasing the lock.
                 onTagsChanged?.Invoke(snapshots);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Unexpected error running simulation for block {0}", Name);
             }
         }
@@ -289,13 +328,17 @@ namespace DataAccess {
         /// </summary>
         /// <param name="tagName">Name of the tag.</param>
         /// <returns>The tag if null; otherwise null.</returns>
-        private UnderlyingSystemTag FindTag(string tagName) {
-            lock (_tags) {
+        private UnderlyingSystemTag FindTag(string tagName)
+        {
+            lock (_tags)
+            {
                 // look up tag.
-                for (var ii = 0; ii < _tags.Count; ii++) {
+                for (var ii = 0; ii < _tags.Count; ii++)
+                {
                     var tag = _tags[ii];
 
-                    if (tag.Name == tagName) {
+                    if (tag.Name == tagName)
+                    {
                         return tag;
                     }
                 }
@@ -309,9 +352,11 @@ namespace DataAccess {
         /// </summary>
         private static bool UpdateTagValue(
             UnderlyingSystemTag tag,
-            Opc.Ua.Test.TestDataGenerator generator) {
+            Opc.Ua.Test.TestDataGenerator generator)
+        {
             // don't update writeable tags.
-            if (tag.IsWriteable) {
+            if (tag.IsWriteable)
+            {
                 return false;
             }
 
@@ -319,9 +364,12 @@ namespace DataAccess {
             var high = 0;
             var low = 0;
 
-            switch (tag.TagType) {
-                case UnderlyingSystemTagType.Analog: {
-                        if (tag.EuRange?.Length >= 2) {
+            switch (tag.TagType)
+            {
+                case UnderlyingSystemTagType.Analog:
+                    {
+                        if (tag.EuRange?.Length >= 2)
+                        {
                             high = (int)tag.EuRange[0];
                             low = (int)tag.EuRange[1];
                         }
@@ -329,14 +377,17 @@ namespace DataAccess {
                         break;
                     }
 
-                case UnderlyingSystemTagType.Digital: {
+                case UnderlyingSystemTagType.Digital:
+                    {
                         high = 1;
                         low = 0;
                         break;
                     }
 
-                case UnderlyingSystemTagType.Enumerated: {
-                        if (tag.Labels?.Length > 0) {
+                case UnderlyingSystemTagType.Enumerated:
+                    {
+                        if (tag.Labels?.Length > 0)
+                        {
                             high = tag.Labels.Length - 1;
                             low = 0;
                         }
@@ -348,57 +399,72 @@ namespace DataAccess {
             // select a value in the range.
             var value = -1;
 
-            if (high > low) {
+            if (high > low)
+            {
                 value = (generator.GetRandomUInt16() % (high - low + 1)) + low;
             }
 
             // cast value to correct type or generate a random value.
-            switch (tag.DataType) {
-                case UnderlyingSystemDataType.Integer1: {
-                        if (value == -1) {
+            switch (tag.DataType)
+            {
+                case UnderlyingSystemDataType.Integer1:
+                    {
+                        if (value == -1)
+                        {
                             tag.Value = generator.GetRandomSByte();
                         }
-                        else {
+                        else
+                        {
                             tag.Value = (sbyte)value;
                         }
 
                         break;
                     }
 
-                case UnderlyingSystemDataType.Integer2: {
-                        if (value == -1) {
+                case UnderlyingSystemDataType.Integer2:
+                    {
+                        if (value == -1)
+                        {
                             tag.Value = generator.GetRandomInt16();
                         }
-                        else {
+                        else
+                        {
                             tag.Value = (short)value;
                         }
 
                         break;
                     }
 
-                case UnderlyingSystemDataType.Integer4: {
-                        if (value == -1) {
+                case UnderlyingSystemDataType.Integer4:
+                    {
+                        if (value == -1)
+                        {
                             tag.Value = generator.GetRandomInt32();
                         }
-                        else {
+                        else
+                        {
                             tag.Value = value;
                         }
 
                         break;
                     }
 
-                case UnderlyingSystemDataType.Real4: {
-                        if (value == -1) {
+                case UnderlyingSystemDataType.Real4:
+                    {
+                        if (value == -1)
+                        {
                             tag.Value = generator.GetRandomFloat();
                         }
-                        else {
+                        else
+                        {
                             tag.Value = (float)value;
                         }
 
                         break;
                     }
 
-                case UnderlyingSystemDataType.String: {
+                case UnderlyingSystemDataType.String:
+                    {
                         tag.Value = generator.GetRandomString();
                         break;
                     }
@@ -413,13 +479,18 @@ namespace DataAccess {
         /// </summary>
         private static bool UpdateTagMetadata(
             UnderlyingSystemTag tag,
-            Opc.Ua.Test.TestDataGenerator generator) {
-            switch (tag.TagType) {
-                case UnderlyingSystemTagType.Analog: {
-                        if (tag.EuRange != null) {
+            Opc.Ua.Test.TestDataGenerator generator)
+        {
+            switch (tag.TagType)
+            {
+                case UnderlyingSystemTagType.Analog:
+                    {
+                        if (tag.EuRange != null)
+                        {
                             var range = new double[tag.EuRange.Length];
 
-                            for (var ii = 0; ii < tag.EuRange.Length; ii++) {
+                            for (var ii = 0; ii < tag.EuRange.Length; ii++)
+                            {
                                 range[ii] = tag.EuRange[ii] + 1;
                             }
 
@@ -430,11 +501,14 @@ namespace DataAccess {
                     }
 
                 case UnderlyingSystemTagType.Digital:
-                case UnderlyingSystemTagType.Enumerated: {
-                        if (tag.Labels != null) {
+                case UnderlyingSystemTagType.Enumerated:
+                    {
+                        if (tag.Labels != null)
+                        {
                             var labels = new string[tag.Labels.Length];
 
-                            for (var ii = 0; ii < tag.Labels.Length; ii++) {
+                            for (var ii = 0; ii < tag.Labels.Length; ii++)
+                            {
                                 labels[ii] = generator.GetRandomString();
                             }
 
@@ -443,7 +517,8 @@ namespace DataAccess {
 
                         break;
                     }
-                default: {
+                default:
+                    {
                         return false;
                     }
             }

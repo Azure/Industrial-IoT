@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Models {
+namespace Microsoft.Azure.IIoT.Hub.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Model of device registry document
     /// </summary>
     [DataContract]
-    public class DeviceModel {
+    public class DeviceModel
+    {
         /// <summary>
         /// Etag for comparison
         /// </summary>

@@ -3,7 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
+{
+    using Autofac;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
@@ -11,10 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Autofac;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Hub;
@@ -37,6 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -44,13 +46,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Globalization;
 
     /// <summary>
     /// Base class for integration testing, it connects to the server, runs
     /// publisher and injects mocked IoTHub services.
     /// </summary>
-    public class PublisherIoTHubIntegrationTestBase : ISdkConfig {
+    public class PublisherIoTHubIntegrationTestBase : ISdkConfig
+    {
         /// <summary>
         /// Whether the module is running.
         /// </summary>
@@ -66,7 +68,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// </summary>
         public string ModuleId { get; }
 
-        public PublisherIoTHubIntegrationTestBase(ReferenceServerFixture serverFixture) {
+        public PublisherIoTHubIntegrationTestBase(ReferenceServerFixture serverFixture)
+        {
             // This is a fake but correctly formatted connection string.
             var connectionString = "HostName=dummy.azure-devices.net;" +
                 $"DeviceId={DeviceId};" +
@@ -84,7 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             string publishedNodesFile,
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
-            string[] arguments = default) {
+            string[] arguments = default)
+        {
             // Collect messages from server with default settings
             return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
         }
@@ -93,7 +97,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             string publishedNodesFile,
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
-            string[] arguments = default) {
+            string[] arguments = default)
+        {
             // Collect messages from server with default settings
             return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
         }
@@ -104,7 +109,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             int messageCount,
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
-            string[] arguments = default) {
+            string[] arguments = default)
+        {
             var (_, messages) = await ProcessMessagesAndMetadataAsync(publishedNodesFile,
                 messageCollectionTimeout, messageCount, predicate, messageType, arguments).ConfigureAwait(false);
             return messages;
@@ -116,7 +122,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             int messageCount,
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
-            string[] arguments = default) {
+            string[] arguments = default)
+        {
             await StartPublisherAsync(publishedNodesFile, arguments).ConfigureAwait(false);
 
             JsonElement? metadata = null;
@@ -131,7 +138,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// Wait for one message
         /// </summary>
         protected List<JsonElement> WaitForMessages(
-            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null)
+        {
             // Collect messages from server with default settings
             JsonElement? metadata = null;
             return WaitForMessagesAndMetadata(TimeSpan.FromMinutes(2), 1, ref metadata, predicate, messageType);
@@ -141,7 +149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// Wait for one message
         /// </summary>
         protected List<JsonElement> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
-            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null)
+        {
             // Collect messages from server with default settings
             JsonElement? metadata = null;
             return WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
@@ -151,27 +160,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// Wait for messages
         /// </summary>
         protected List<JsonElement> WaitForMessagesAndMetadata(TimeSpan messageCollectionTimeout, int messageCount,
-            ref JsonElement? metadata, Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
+            ref JsonElement? metadata, Func<JsonElement, JsonElement> predicate = null, string messageType = null)
+        {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var messages = new List<JsonElement>();
             while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero
-                && Events.TryTake(out var evt, messageCollectionTimeout)) {
+                && Events.TryTake(out var evt, messageCollectionTimeout))
+            {
                 messageCollectionTimeout -= stopWatch.Elapsed;
-                foreach (var body in evt.Buffers) {
+                foreach (var body in evt.Buffers)
+                {
                     var json = Encoding.UTF8.GetString(body);
                     var document = JsonDocument.Parse(json);
                     json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
                     var element = document.RootElement;
-                    if (element.ValueKind == JsonValueKind.Array) {
-                        foreach (var item in element.EnumerateArray()) {
+                    if (element.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var item in element.EnumerateArray())
+                        {
                             Add(messages, item, ref metadata, predicate, messageType, _messageIds);
                         }
                     }
-                    else if (element.ValueKind == JsonValueKind.Object) {
+                    else if (element.ValueKind == JsonValueKind.Object)
+                    {
                         Add(messages, element, ref metadata, predicate, messageType, _messageIds);
                     }
-                    if (messages.Count >= messageCount) {
+                    if (messages.Count >= messageCount)
+                    {
                         break;
                     }
                 }
@@ -179,26 +195,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             return messages.Take(messageCount).ToList();
 
             static void Add(List<JsonElement> messages, JsonElement item, ref JsonElement? metadata,
-                Func<JsonElement, JsonElement> predicate, string messageType, HashSet<string> messageIds) {
-                if (messageType != null) {
-                    if (item.TryGetProperty("MessageType", out var v)) {
+                Func<JsonElement, JsonElement> predicate, string messageType, HashSet<string> messageIds)
+            {
+                if (messageType != null)
+                {
+                    if (item.TryGetProperty("MessageType", out var v))
+                    {
                         var type = v.GetString();
-                        if (type == "ua-metadata") {
+                        if (type == "ua-metadata")
+                        {
                             metadata = item;
                         }
-                        if (type != messageType) {
+                        if (type != messageType)
+                        {
                             return;
                         }
                     }
-                    if (item.TryGetProperty("MessageId", out var id)) {
+                    if (item.TryGetProperty("MessageId", out var id))
+                    {
                         Assert.True(messageIds.Add(id.GetString()));
                     }
                 }
                 var add = item;
-                if (predicate != null) {
+                if (predicate != null)
+                {
                     add = predicate(item);
                 }
-                if (add.ValueKind == JsonValueKind.Object) {
+                if (add.ValueKind == JsonValueKind.Object)
+                {
                     messages.Add(add);
                 }
             }
@@ -207,7 +231,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <summary>
         /// Start publisher
         /// </summary>
-        protected Task StartPublisherAsync(string publishedNodesFile = null, string[] arguments = default) {
+        protected Task StartPublisherAsync(string publishedNodesFile = null, string[] arguments = default)
+        {
             Task.Run(() => HostPublisherAsync(
                 Mock.Of<ILogger>(),
                 publishedNodesFile,
@@ -224,7 +249,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <summary>
         /// Stop publisher
         /// </summary>
-        protected void StopPublisher() {
+        protected void StopPublisher()
+        {
             // Shut down gracefully.
             _exit.TrySetResult(true);
         }
@@ -234,7 +260,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// </summary>
         /// <param name="publishedNodesFile"></param>
         /// <returns></returns>
-        protected PublishedNodesEntryModel[] GetEndpointsFromFile(string publishedNodesFile) {
+        protected PublishedNodesEntryModel[] GetEndpointsFromFile(string publishedNodesFile)
+        {
             IJsonSerializer serializer = new NewtonsoftJsonSerializer();
             var fileContent = File.ReadAllText(publishedNodesFile).Replace("{{Port}}",
                 _serverFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
@@ -244,14 +271,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <summary>
         /// Setup publishing from sample server.
         /// </summary>
-        private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile, string[] arguments) {
+        private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile, string[] arguments)
+        {
             var publishedNodesFilePath = Path.GetTempFileName();
-            if (!string.IsNullOrEmpty(publishedNodesFile)) {
+            if (!string.IsNullOrEmpty(publishedNodesFile))
+            {
                 File.WriteAllText(publishedNodesFilePath,
                     File.ReadAllText(publishedNodesFile).Replace("{{Port}}",
                     _serverFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal));
             }
-            try {
+            try
+            {
                 var config = _typedConnectionString.ToIoTHubConfig();
                 arguments = arguments.Concat(
                     new[]
@@ -271,7 +301,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
                     .AddCommandLine(arguments.ToArray())
                     .Build();
 
-                using (var cts = new CancellationTokenSource()) {
+                using (var cts = new CancellationTokenSource())
+                {
                     // Start publisher module
                     var host = Task.Run(() =>
                     HostAsync(logger, configuration, new List<(DeviceTwinModel, DeviceModel)>() {
@@ -281,11 +312,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
                     await host.ConfigureAwait(false);
                 }
             }
-            catch (OperationCanceledException) {
+            catch (OperationCanceledException)
+            {
                 Console.WriteLine("Cancellation operation.");
             }
-            finally {
-                if (File.Exists(publishedNodesFilePath)) {
+            finally
+            {
+                if (File.Exists(publishedNodesFilePath))
+                {
                     File.Delete(publishedNodesFilePath);
                 }
             }
@@ -294,16 +328,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <summary>
         /// Host the publisher module.
         /// </summary>
-        private async Task HostAsync(ILogger logger, IConfiguration configurationRoot, List<(DeviceTwinModel, DeviceModel)> devices) {
-            try {
-                using (var hostScope = ConfigureContainer(configurationRoot, devices)) {
+        private async Task HostAsync(ILogger logger, IConfiguration configurationRoot, List<(DeviceTwinModel, DeviceModel)> devices)
+        {
+            try
+            {
+                using (var hostScope = ConfigureContainer(configurationRoot, devices))
+                {
                     var module = hostScope.Resolve<IModuleHost>();
                     var events = hostScope.Resolve<IEventEmitter>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
 
                     Events = hostScope.Resolve<IIoTHub>().Events;
 
-                    try {
+                    try
+                    {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         logger.LogInformation("Starting module OpcPublisher version {Version}.", version);
                         // Start module
@@ -314,10 +352,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
                         await Task.WhenAny(_exit.Task).ConfigureAwait(false);
                         logger.LogInformation("Module exits...");
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         _running.TrySetException(ex);
                     }
-                    finally {
+                    finally
+                    {
                         await module.StopAsync().ConfigureAwait(false);
 
                         Events = null;
@@ -326,7 +366,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
                     }
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 logger.LogError(ex, "Error when initializing module host.");
                 throw;
             }
@@ -339,7 +380,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <param name="ioTHubTwinServices"></param>
         /// <returns></returns>
         private IContainer ConfigureContainer(IConfiguration configurationRoot,
-            IIoTHubTwinServices ioTHubTwinServices) {
+            IIoTHubTwinServices ioTHubTwinServices)
+        {
             var builder = new ContainerBuilder();
             builder.RegisterInstance(configurationRoot)
                 .AsImplementedInterfaces();
@@ -362,7 +404,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// Configures DI for the types required.
         /// </summary>
         private static IContainer ConfigureContainer(IConfiguration configuration,
-            List<(DeviceTwinModel, DeviceModel)> devices) {
+            List<(DeviceTwinModel, DeviceModel)> devices)
+        {
             var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
 

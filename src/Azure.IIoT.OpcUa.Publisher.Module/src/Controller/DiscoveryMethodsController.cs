@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
+{
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -16,14 +17,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
     [Version("_V1")]
     [Version("_V2")]
     [ExceptionsFilter]
-    public class DiscoveryMethodsController : IMethodController {
+    public class DiscoveryMethodsController : IMethodController
+    {
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="discover"></param>
         /// <param name="servers"></param>
         public DiscoveryMethodsController(IDiscoveryServices discover,
-            IServerDiscovery servers) {
+            IServerDiscovery servers)
+        {
             _discover = discover ?? throw new ArgumentNullException(nameof(discover));
             _servers = servers ?? throw new ArgumentNullException(nameof(servers));
         }
@@ -34,8 +37,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// <param name="endpoint"></param>
         /// <returns></returns>
         public async Task<ApplicationRegistrationModel> FindServerAsync(
-            ServerEndpointQueryModel endpoint) {
-            if (endpoint == null) {
+            ServerEndpointQueryModel endpoint)
+        {
+            if (endpoint == null)
+            {
                 throw new ArgumentNullException(nameof(endpoint));
             }
             return await _servers.FindServerAsync(endpoint).ConfigureAwait(false);
@@ -46,8 +51,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<bool> RegisterAsync(ServerRegistrationRequestModel request) {
-            if (request == null) {
+        public async Task<bool> RegisterAsync(ServerRegistrationRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             await _discover.RegisterAsync(request).ConfigureAwait(false);
@@ -59,8 +66,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<bool> DiscoverAsync(DiscoveryRequestModel request) {
-            if (request == null) {
+        public async Task<bool> DiscoverAsync(DiscoveryRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             await _discover.DiscoverAsync(request).ConfigureAwait(false);
@@ -72,8 +81,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<bool> CancelAsync(DiscoveryCancelRequestModel request) {
-            if (request == null) {
+        public async Task<bool> CancelAsync(DiscoveryCancelRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             await _discover.CancelAsync(request).ConfigureAwait(false);

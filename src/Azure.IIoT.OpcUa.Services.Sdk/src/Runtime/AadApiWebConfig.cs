@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime {
+namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime
+{
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -13,7 +14,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime {
     /// <summary>
     /// Auth api web application configuration
     /// </summary>
-    public class AadApiWebConfig : ConfigBase, IOAuthClientConfig {
+    public class AadApiWebConfig : ConfigBase, IOAuthClientConfig
+    {
         /// <summary>
         /// Client configuration
         /// </summary>
@@ -58,7 +60,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public AadApiWebConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

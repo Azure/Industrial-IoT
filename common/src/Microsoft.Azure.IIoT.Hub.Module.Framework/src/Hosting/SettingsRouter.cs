@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
+namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
+{
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Extensions.Logging;
-    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -18,13 +19,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     /// <summary>
     /// Provides set/get routing to controllers
     /// </summary>
-    public sealed class SettingsRouter : ISettingsRouter, IDisposable {
+    public sealed class SettingsRouter : ISettingsRouter, IDisposable
+    {
         /// <summary>
         /// Property Di to prevent circular dependency between host and controller
         /// </summary>
-        public IEnumerable<ISettingsController> Controllers {
-            set {
-                foreach (var controller in value) {
+        public IEnumerable<ISettingsController> Controllers
+        {
+            set
+            {
+                foreach (var controller in value)
+                {
                     AddToCallTable(controller);
                 }
             }
@@ -35,7 +40,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// </summary>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public SettingsRouter(IJsonSerializer serializer, ILogger logger) {
+        public SettingsRouter(IJsonSerializer serializer, ILogger logger)
+        {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _calltable = new Dictionary<string, CascadingInvoker>();
@@ -43,29 +49,37 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             _lock.Dispose();
         }
 
         /// <inheritdoc/>
         public async Task<IDictionary<string, VariantValue>> ProcessSettingsAsync(
-            IDictionary<string, VariantValue> settings) {
+            IDictionary<string, VariantValue> settings)
+        {
             var controllers = new List<Controller>();
 
             // Set all properties
-            foreach (var setting in settings) {
-                if (!TryGetInvoker(setting.Key, out var invoker)) {
+            foreach (var setting in settings)
+            {
+                if (!TryGetInvoker(setting.Key, out var invoker))
+                {
                     _logger.LogError("Setting {Key}/{Value} unsupported",
                         setting.Key, setting.Value.ToJson());
                 }
-                else {
-                    try {
+                else
+                {
+                    try
+                    {
                         var controller = invoker.Set(setting.Key, setting.Value);
-                        if (controller != null && !controllers.Contains(controller)) {
+                        if (controller != null && !controllers.Contains(controller))
+                        {
                             controllers.Add(controller); // To apply only affected controllers
                         }
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         _logger.LogError(ex, "Error processing setting {Key}/{Value}",
                             setting.Key, setting.Value.ToJson());
                     }
@@ -74,16 +88,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             // Apply settings on all affected controllers and return reported
             var reported = new Dictionary<string, VariantValue>();
-            if (controllers.Count > 0) {
+            if (controllers.Count > 0)
+            {
                 var sw = Stopwatch.StartNew();
                 await _lock.WaitAsync().ConfigureAwait(false);
-                try {
+                try
+                {
                     await Task.WhenAll(controllers.Select(c => c.SafeApplyAsync())).ConfigureAwait(false);
                     var invokers = controllers.SelectMany(c => c.Invokers).Distinct();
                     CollectSettingsFromControllers(reported, invokers);
                     _logger.LogDebug("Applying new settings took {Elapsed}...", sw.Elapsed);
                 }
-                finally {
+                finally
+                {
                     _lock.Release();
                 }
             }
@@ -91,14 +108,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task<IDictionary<string, VariantValue>> GetSettingsStateAsync() {
+        public async Task<IDictionary<string, VariantValue>> GetSettingsStateAsync()
+        {
             await _lock.WaitAsync().ConfigureAwait(false);
-            try {
+            try
+            {
                 var reported = new Dictionary<string, VariantValue>();
                 CollectSettingsFromControllers(reported, _calltable.Values);
                 return reported;
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
@@ -109,7 +129,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="key"></param>
         /// <param name="invoker"></param>
         /// <returns></returns>
-        private bool TryGetInvoker(string key, out CascadingInvoker invoker) {
+        private bool TryGetInvoker(string key, out CascadingInvoker invoker)
+        {
             return _calltable.TryGetValue(key.ToLowerInvariant(), out invoker) ||
                    _calltable.TryGetValue(kDefaultProp, out invoker);
         }
@@ -120,24 +141,32 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="reported"></param>
         /// <param name="invokers"></param>
         private void CollectSettingsFromControllers(Dictionary<string, VariantValue> reported,
-            IEnumerable<CascadingInvoker> invokers) {
-            foreach (var handler in invokers) {
-                try {
-                    if (string.IsNullOrEmpty(handler.Name)) {
+            IEnumerable<CascadingInvoker> invokers)
+        {
+            foreach (var handler in invokers)
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(handler.Name))
+                    {
                         // Get all indexes and retrieve them one by one
-                        if (handler.GetIndexed(out var result)) {
-                            foreach (var item in result) {
+                        if (handler.GetIndexed(out var result))
+                        {
+                            foreach (var item in result)
+                            {
                                 reported.AddOrUpdate(item.Key, item.Value);
                             }
                         }
                         continue;
                     }
 
-                    if (handler.Get(handler.Name, out var value)) {
+                    if (handler.Get(handler.Name, out var value))
+                    {
                         reported.AddOrUpdate(handler.Name, value);
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _logger.LogDebug(ex, "Error retrieving controller setting {Setting}",
                         handler.Name);
                 }
@@ -148,29 +177,37 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Add target to calltable
         /// </summary>
         /// <param name="target"></param>
-        private void AddToCallTable(object target) {
+        private void AddToCallTable(object target)
+        {
             var versions = target.GetType().GetCustomAttributes<VersionAttribute>(true)
                 .Select(v => v.Numeric)
                 .ToList();
-            if (versions.Count == 0) {
+            if (versions.Count == 0)
+            {
                 versions.Add(ulong.MaxValue);
             }
-            foreach (var version in versions) {
+            foreach (var version in versions)
+            {
                 var apply = target.GetType().GetMethod("ApplyAsync");
-                if (apply != null) {
-                    if (apply.GetParameters().Length != 0 || apply.ReturnType != typeof(Task)) {
+                if (apply != null)
+                {
+                    if (apply.GetParameters().Length != 0 || apply.ReturnType != typeof(Task))
+                    {
                         apply = null;
                     }
                 }
 
                 var controller = new Controller(target, version, apply, _logger);
 
-                foreach (var propInfo in target.GetType().GetProperties()) {
-                    if (!propInfo.CanWrite || propInfo.GetIndexParameters().Length > 1) {
+                foreach (var propInfo in target.GetType().GetProperties())
+                {
+                    if (!propInfo.CanWrite || propInfo.GetIndexParameters().Length > 1)
+                    {
                         // must be able to write
                         continue;
                     }
-                    if (propInfo.GetCustomAttribute<IgnoreAttribute>() != null) {
+                    if (propInfo.GetCustomAttribute<IgnoreAttribute>() != null)
+                    {
                         // Should be ignored
                         continue;
                     }
@@ -178,28 +215,34 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     var indexers = propInfo.GetIndexParameters();
                     var indexed = false;
                     MethodInfo indexer = null;
-                    if (indexers.Length == 1 && indexers[0].ParameterType == typeof(string)) {
+                    if (indexers.Length == 1 && indexers[0].ParameterType == typeof(string))
+                    {
                         // save .net indexer as default
-                        if (name == "item") {
+                        if (name == "item")
+                        {
                             name = kDefaultProp;
                         }
 
                         // Get property name enumerator on controller if any
                         indexer = target.GetType().GetMethod("GetPropertyNames");
-                        if (indexer != null) {
+                        if (indexer != null)
+                        {
                             if (indexer.GetParameters().Length != 0 ||
-                                indexer.ReturnType != typeof(IEnumerable<string>)) {
+                                indexer.ReturnType != typeof(IEnumerable<string>))
+                            {
                                 indexer = null;
                             }
                         }
 
                         indexed = true;
                     }
-                    else if (indexers.Length != 0) {
+                    else if (indexers.Length != 0)
+                    {
                         // Unusable
                         continue;
                     }
-                    if (!_calltable.TryGetValue(name, out var invoker)) {
+                    if (!_calltable.TryGetValue(name, out var invoker))
+                    {
                         invoker = new CascadingInvoker(_logger);
                         _calltable.Add(name, invoker);
                     }
@@ -212,7 +255,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <summary>
         /// Wraps a controller
         /// </summary>
-        private class Controller {
+        private class Controller
+        {
             /// <summary>
             /// Attached invokers
             /// </summary>
@@ -232,7 +276,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// Create cascading invoker
             /// </summary>
             public Controller(object controller, ulong version,
-                MethodInfo applyMethod, ILogger logger) {
+                MethodInfo applyMethod, ILogger logger)
+            {
                 Target = controller;
                 Version = version;
                 _logger = logger;
@@ -243,11 +288,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// Called to apply changes
             /// </summary>
             /// <returns></returns>
-            public async Task SafeApplyAsync() {
-                try {
+            public async Task SafeApplyAsync()
+            {
+                try
+                {
                     await ApplyInternalAsync().ConfigureAwait(false);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     _logger.LogError(e, "Exception applying changes on {Type} {Name}! Continue...",
                         Target.GetType().Name, _applyMethod.Name);
                 }
@@ -257,8 +305,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// Called to apply changes
             /// </summary>
             /// <returns></returns>
-            public async Task ApplyInternalAsync() {
-                if (_applyMethod != null) {
+            public async Task ApplyInternalAsync()
+            {
+                if (_applyMethod != null)
+                {
                     await ((Task)_applyMethod.Invoke(Target, Array.Empty<object>())).ConfigureAwait(false);
                 }
             }
@@ -267,7 +317,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// Add invoker found on controller
             /// </summary>
             /// <param name="invoker"></param>
-            internal void Add(CascadingInvoker invoker) {
+            internal void Add(CascadingInvoker invoker)
+            {
                 _attachedTo.Add(invoker);
             }
 
@@ -280,7 +331,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <summary>
         /// Trys all setters until it can apply the setting.
         /// </summary>
-        private class CascadingInvoker {
+        private class CascadingInvoker
+        {
             /// <summary>
             /// Property name
             /// </summary>
@@ -291,7 +343,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <summary>
             /// Create cascading invoker
             /// </summary>
-            public CascadingInvoker(ILogger logger) {
+            public CascadingInvoker(ILogger logger)
+            {
                 _logger = logger;
                 _invokers = new SortedList<ulong, PropertyInvoker>(
                     Comparer<ulong>.Create((x, y) => (int)(x - y)));
@@ -306,7 +359,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="indexed"></param>
             /// <param name="indexer"></param>
             public void Add(Controller controller, PropertyInfo controllerProp,
-                IJsonSerializer serializer, bool indexed, MethodInfo indexer) {
+                IJsonSerializer serializer, bool indexed, MethodInfo indexer)
+            {
                 _invokers.Add(controller.Version, new PropertyInvoker(controller,
                     controllerProp, indexed, indexer, serializer, _logger));
             }
@@ -317,13 +371,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public Controller Set(string property, VariantValue value) {
+            public Controller Set(string property, VariantValue value)
+            {
                 Exception e = null;
-                foreach (var invoker in _invokers) {
-                    try {
+                foreach (var invoker in _invokers)
+                {
+                    try
+                    {
                         return invoker.Value.Set(property, value);
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         // Save last error, and continue
                         _logger.LogDebug(ex, "Setting '{Property}' failed!",
                             property);
@@ -340,13 +398,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public bool Get(string property, out VariantValue value) {
+            public bool Get(string property, out VariantValue value)
+            {
                 Exception e = null;
-                foreach (var invoker in _invokers) {
-                    try {
+                foreach (var invoker in _invokers)
+                {
+                    try
+                    {
                         return invoker.Value.Get(property, out value);
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         // Save last error, and continue
                         _logger.LogDebug(ex, "Retrieving '{Property}' failed!",
                             property);
@@ -362,13 +424,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             /// <param name="result"></param>
             /// <returns></returns>
-            public bool GetIndexed(out IEnumerable<KeyValuePair<string, VariantValue>> result) {
+            public bool GetIndexed(out IEnumerable<KeyValuePair<string, VariantValue>> result)
+            {
                 Exception e = null;
-                foreach (var invoker in _invokers) {
-                    try {
+                foreach (var invoker in _invokers)
+                {
+                    try
+                    {
                         return invoker.Value.GetIndexed(out result);
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         // Save last error, and continue
                         _logger.LogDebug(ex, "Retrieving indexed values failed!");
                         e = ex;
@@ -385,7 +451,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <summary>
         /// Encapsulates applying a property
         /// </summary>
-        private class PropertyInvoker {
+        private class PropertyInvoker
+        {
             /// <summary>
             /// Property name
             /// </summary>
@@ -402,7 +469,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="serializer"></param>
             /// <param name="logger"></param>
             public PropertyInvoker(Controller controller, PropertyInfo property,
-                bool indexed, MethodInfo indexer, IJsonSerializer serializer, ILogger logger) {
+                bool indexed, MethodInfo indexer, IJsonSerializer serializer, ILogger logger)
+            {
                 _serializer = serializer;
                 _logger = logger;
                 _controller = controller;
@@ -417,19 +485,24 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public Controller Set(string property, VariantValue value) {
-                try {
+            public Controller Set(string property, VariantValue value)
+            {
+                try
+                {
                     var cast = value.ConvertTo(_property.PropertyType);
-                    if (_indexed) {
+                    if (_indexed)
+                    {
                         _property.SetValue(_controller.Target, cast,
                             new object[] { property });
                     }
-                    else {
+                    else
+                    {
                         _property.SetValue(_controller.Target, cast);
                     }
                     return _controller;
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     _logger.LogWarning(e,
                         "Exception during setter {Controller} {Name} invocation",
                         _controller.Target.GetType().Name, _property.Name);
@@ -443,24 +516,30 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public bool Get(string property, out VariantValue value) {
-                try {
-                    if (!_property.CanRead) {
+            public bool Get(string property, out VariantValue value)
+            {
+                try
+                {
+                    if (!_property.CanRead)
+                    {
                         value = _serializer.FromObject(null);
                         return false;
                     }
                     object gotten;
-                    if (_indexed) {
+                    if (_indexed)
+                    {
                         gotten = _property.GetValue(_controller.Target,
                             new object[] { property });
                     }
-                    else {
+                    else
+                    {
                         gotten = _property.GetValue(_controller.Target);
                     }
                     value = _serializer.FromObject(gotten);
                     return true;
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     _logger.LogWarning(e,
                         "Exception during getter {Controller} {Name} invocation",
                         _controller.Target.GetType().Name, _property.Name);
@@ -473,16 +552,22 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             /// <param name="values"></param>
             /// <returns></returns>
-            public bool GetIndexed(out IEnumerable<KeyValuePair<string, VariantValue>> values) {
-                try {
-                    if (_property.CanRead && _indexed && _indexer != null) {
+            public bool GetIndexed(out IEnumerable<KeyValuePair<string, VariantValue>> values)
+            {
+                try
+                {
+                    if (_property.CanRead && _indexed && _indexer != null)
+                    {
                         // Get property names
                         var indexes = _indexer.Invoke(_controller.Target, Array.Empty<object>());
-                        if (indexes is IEnumerable<string> properties) {
+                        if (indexes is IEnumerable<string> properties)
+                        {
                             var results = new Dictionary<string, VariantValue>();
 
-                            foreach (var property in properties) {
-                                if (Get(property, out var value)) {
+                            foreach (var property in properties)
+                            {
+                                if (Get(property, out var value))
+                                {
                                     results.AddOrUpdate(property, value);
                                 }
                             }
@@ -493,7 +578,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     values = null;
                     return false;
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     _logger.LogWarning(e,
                         "Exception collecting all indexed values on {Controller}.",
                         _controller.Target.GetType().Name);

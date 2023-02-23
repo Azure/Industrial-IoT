@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Filters {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
+{
     using Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -17,21 +18,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters {
     /// Convert all the exceptions returned by the module controllers to a
     /// status code.
     /// </summary>
-    public class ExceptionsFilterAttribute : ExceptionFilterAttribute {
+    public class ExceptionsFilterAttribute : ExceptionFilterAttribute
+    {
         /// <inheritdoc />
-        public override Exception Filter(Exception exception, out int status) {
-            switch (exception) {
+        public override Exception Filter(Exception exception, out int status)
+        {
+            switch (exception)
+            {
                 case AggregateException ae:
                     var root = ae.GetBaseException();
-                    if (root is not AggregateException) {
+                    if (root is not AggregateException)
+                    {
                         return Filter(root, out status);
                     }
                     ae = root as AggregateException;
                     status = (int)HttpStatusCode.InternalServerError;
                     Exception result = null;
-                    foreach (var ex in ae.InnerExceptions) {
+                    foreach (var ex in ae.InnerExceptions)
+                    {
                         result = Filter(ex, out status);
-                        if (status != (int)HttpStatusCode.InternalServerError) {
+                        if (status != (int)HttpStatusCode.InternalServerError)
+                        {
                             break;
                         }
                     }

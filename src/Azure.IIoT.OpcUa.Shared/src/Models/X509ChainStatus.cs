@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.Runtime.Serialization;
 
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// </summary>
     [Flags]
     [DataContract]
-    public enum X509ChainStatus {
+    public enum X509ChainStatus
+    {
         /// <summary>
         /// Specifies that the X509 chain has no errors.
         /// </summary>

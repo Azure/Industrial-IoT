@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalEvents {
+namespace HistoricalEvents
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -39,13 +40,15 @@ namespace HistoricalEvents {
     /// <summary>
     /// A node manager for a server that exposes several variables.
     /// </summary>
-    public class HistoricalEventsNodeManager : CustomNodeManager2 {
+    public class HistoricalEventsNodeManager : CustomNodeManager2
+    {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         public HistoricalEventsNodeManager(IServerInternal server,
             ApplicationConfiguration configuration) :
-            base(server, configuration) {
+            base(server, configuration)
+        {
             SystemContext.NodeIdFactory = this;
 
             // set one namespace for the type model and one names for dynamically created nodes.
@@ -66,9 +69,12 @@ namespace HistoricalEvents {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
-                if (_simulationTimer != null) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_simulationTimer != null)
+                {
                     Utils.SilentDispose(_simulationTimer);
                     _simulationTimer = null;
                 }
@@ -78,14 +84,16 @@ namespace HistoricalEvents {
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        public override NodeId New(ISystemContext context, NodeState node) {
+        public override NodeId New(ISystemContext context, NodeState node)
+        {
             return node.NodeId;
         }
 
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
-        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context) {
+        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
+        {
             var type = GetType().GetTypeInfo();
             var predefinedNodes = new NodeStateCollection();
             predefinedNodes.LoadFromBinaryResource(context,
@@ -102,18 +110,22 @@ namespace HistoricalEvents {
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
         /// should have a reference to the root folder node(s) exposed by this node manager.
         /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Lock) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Lock)
+            {
                 LoadPredefinedNodes(SystemContext, externalReferences);
 
                 var platforms = (BaseObjectState)FindPredefinedNode(new NodeId(Objects.Plaforms, NamespaceIndex), typeof(BaseObjectState));
                 platforms.EventNotifier = EventNotifiers.SubscribeToEvents | EventNotifiers.HistoryRead | EventNotifiers.HistoryWrite;
                 base.AddRootNotifier(platforms);
 
-                foreach (var areaName in ReportGenerator.GetAreas()) {
+                foreach (var areaName in ReportGenerator.GetAreas())
+                {
                     var area = CreateArea(SystemContext, platforms, areaName);
 
-                    foreach (var well in ReportGenerator.GetWells(areaName)) {
+                    foreach (var well in ReportGenerator.GetWells(areaName))
+                    {
                         CreateWell(SystemContext, area, well.Id, well.Name);
                     }
                 }
@@ -126,9 +138,11 @@ namespace HistoricalEvents {
         /// <summary>
         /// Creates a new area.
         /// </summary>
-        private BaseObjectState CreateArea(SystemContext context, BaseObjectState platforms, string areaName) {
+        private BaseObjectState CreateArea(SystemContext context, BaseObjectState platforms, string areaName)
+        {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
-            var area = new FolderState(null) {
+            var area = new FolderState(null)
+            {
                 NodeId = new NodeId(areaName, NamespaceIndex),
                 BrowseName = new QualifiedName(areaName, NamespaceIndex)
             };
@@ -147,9 +161,11 @@ namespace HistoricalEvents {
         /// <summary>
         /// Creates a new well.
         /// </summary>
-        private void CreateWell(SystemContext context, BaseObjectState area, string wellId, string wellName) {
+        private void CreateWell(SystemContext context, BaseObjectState area, string wellId, string wellName)
+        {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
-            var well = new WellState(null) {
+            var well = new WellState(null)
+            {
                 NodeId = new NodeId(wellId, NamespaceIndex),
                 BrowseName = new QualifiedName(wellName, NamespaceIndex),
                 DisplayName = wellName,
@@ -166,8 +182,10 @@ namespace HistoricalEvents {
         /// <summary>
         /// Frees any resources allocated for the address space.
         /// </summary>
-        public override void DeleteAddressSpace() {
-            lock (Lock) {
+        public override void DeleteAddressSpace()
+        {
+            lock (Lock)
+            {
                 base.DeleteAddressSpace();
             }
         }
@@ -175,17 +193,23 @@ namespace HistoricalEvents {
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache) {
-            lock (Lock) {
+        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
+        {
+            lock (Lock)
+            {
                 // quickly exclude nodes that are not in the namespace.
-                if (!IsNodeIdInNamespace(nodeId)) {
+                if (!IsNodeIdInNamespace(nodeId))
+                {
                     return null;
                 }
 
                 // check for predefined nodes.
-                if (PredefinedNodes != null) {
-                    if (PredefinedNodes.TryGetValue(nodeId, out var node)) {
-                        return new NodeHandle {
+                if (PredefinedNodes != null)
+                {
+                    if (PredefinedNodes.TryGetValue(nodeId, out var node))
+                    {
+                        return new NodeHandle
+                        {
                             NodeId = nodeId,
                             Validated = true,
                             Node = node
@@ -203,14 +227,17 @@ namespace HistoricalEvents {
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
-            IDictionary<NodeId, NodeState> cache) {
+            IDictionary<NodeId, NodeState> cache)
+        {
             // not valid if no root.
-            if (handle == null) {
+            if (handle == null)
+            {
                 return null;
             }
 
             // check if previously validated.
-            if (handle.Validated) {
+            if (handle.Validated)
+            {
                 return handle.Node;
             }
 
@@ -230,8 +257,10 @@ namespace HistoricalEvents {
             IList<HistoryReadResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToProcess.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToProcess.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToRead = nodesToRead[handle.Index];
                 var result = results[handle.Index];
@@ -239,17 +268,20 @@ namespace HistoricalEvents {
                 HistoryReadRequest request = null;
 
                 // load an exising request.
-                if (nodeToRead.ContinuationPoint != null) {
+                if (nodeToRead.ContinuationPoint != null)
+                {
                     request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
-                    if (request == null) {
+                    if (request == null)
+                    {
                         errors[handle.Index] = StatusCodes.BadContinuationPointInvalid;
                         continue;
                     }
                 }
 
                 // create a new request.
-                else {
+                else
+                {
                     request = CreateHistoryReadRequest(
                         context,
                         details,
@@ -260,18 +292,22 @@ namespace HistoricalEvents {
                 // process events until the max is reached.
                 var events = new HistoryEvent();
 
-                while (request.NumValuesPerNode == 0 || events.Events.Count < request.NumValuesPerNode) {
-                    if (request.Events.Count == 0) {
+                while (request.NumValuesPerNode == 0 || events.Events.Count < request.NumValuesPerNode)
+                {
+                    if (request.Events.Count == 0)
+                    {
                         break;
                     }
 
                     BaseEventState e = null;
 
-                    if (request.TimeFlowsBackward) {
+                    if (request.TimeFlowsBackward)
+                    {
                         e = request.Events.Last.Value;
                         request.Events.RemoveLast();
                     }
-                    else {
+                    else
+                    {
                         e = request.Events.First.Value;
                         request.Events.RemoveFirst();
                     }
@@ -282,15 +318,18 @@ namespace HistoricalEvents {
                 errors[handle.Index] = ServiceResult.Good;
 
                 // check if a continuation point is requred.
-                if (request.Events.Count > 0) {
+                if (request.Events.Count > 0)
+                {
                     // only set if both end time and start time are specified.
-                    if (details.StartTime != DateTime.MinValue && details.EndTime != DateTime.MinValue) {
+                    if (details.StartTime != DateTime.MinValue && details.EndTime != DateTime.MinValue)
+                    {
                         result.ContinuationPoint = SaveContinuationPoint(context, request);
                     }
                 }
 
                 // check if no data returned.
-                else {
+                else
+                {
                     errors[handle.Index] = StatusCodes.GoodNoData;
                 }
 
@@ -308,8 +347,10 @@ namespace HistoricalEvents {
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToProcess.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToProcess.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToUpdate = nodesToUpdate[handle.Index];
                 var result = results[handle.Index];
@@ -318,7 +359,8 @@ namespace HistoricalEvents {
                 var filterContext = new FilterContext(context.NamespaceUris, context.TypeTable, context);
                 var filterResult = nodeToUpdate.Filter.Validate(filterContext);
 
-                if (ServiceResult.IsBad(filterResult.Status)) {
+                if (ServiceResult.IsBad(filterResult.Status))
+                {
                     errors[handle.Index] = filterResult.Status;
                     continue;
                 }
@@ -337,8 +379,10 @@ namespace HistoricalEvents {
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToProcess.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToProcess.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToUpdate = nodesToUpdate[handle.Index];
                 var result = results[handle.Index];
@@ -346,11 +390,14 @@ namespace HistoricalEvents {
                 // delete events.
                 var failed = false;
 
-                for (var jj = 0; jj < nodeToUpdate.EventIds.Count; jj++) {
-                    try {
+                for (var jj = 0; jj < nodeToUpdate.EventIds.Count; jj++)
+                {
+                    try
+                    {
                         var eventId = new Guid(nodeToUpdate.EventIds[jj]).ToString();
 
-                        if (!_generator.DeleteEvent(eventId)) {
+                        if (!_generator.DeleteEvent(eventId))
+                        {
                             result.OperationResults.Add(StatusCodes.BadEventIdUnknown);
                             failed = true;
                             continue;
@@ -358,17 +405,22 @@ namespace HistoricalEvents {
 
                         result.OperationResults.Add(StatusCodes.Good);
                     }
-                    catch {
+                    catch
+                    {
                         result.OperationResults.Add(StatusCodes.BadEventIdUnknown);
                         failed = true;
                     }
                 }
 
                 // check if diagnostics are required.
-                if (failed) {
-                    if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0) {
-                        for (var jj = 0; jj < nodeToUpdate.EventIds.Count; jj++) {
-                            if (StatusCode.IsBad(result.OperationResults[jj])) {
+                if (failed)
+                {
+                    if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0)
+                    {
+                        for (var jj = 0; jj < nodeToUpdate.EventIds.Count; jj++)
+                        {
+                            if (StatusCode.IsBad(result.OperationResults[jj]))
+                            {
                                 result.DiagnosticInfos.Add(ServerUtils.CreateDiagnosticInfo(Server, context.OperationContext, result.OperationResults[jj]));
                             }
                         }
@@ -376,7 +428,8 @@ namespace HistoricalEvents {
                 }
 
                 // clear operation results if all good.
-                else {
+                else
+                {
                     result.OperationResults.Clear();
                 }
 
@@ -388,11 +441,13 @@ namespace HistoricalEvents {
         /// <summary>
         /// Fetches the requested event fields from the event.
         /// </summary>
-        private HistoryEventFieldList GetEventFields(HistoryReadRequest request, IFilterTarget instance) {
+        private HistoryEventFieldList GetEventFields(HistoryReadRequest request, IFilterTarget instance)
+        {
             // fetch the event fields.
             var fields = new HistoryEventFieldList();
 
-            foreach (var clause in request.Filter.SelectClauses) {
+            foreach (var clause in request.Filter.SelectClauses)
+            {
                 // get the value of the attribute (apply localization).
                 var value = instance.GetAttributeValue(
                     request.FilterContext,
@@ -402,11 +457,13 @@ namespace HistoricalEvents {
                     clause.ParsedIndexRange);
 
                 // add the value to the list of event fields.
-                if (value != null) {
+                if (value != null)
+                {
                     // translate any localized text.
                     var text = value as LocalizedText;
 
-                    if (text != null) {
+                    if (text != null)
+                    {
                         value = Server.ResourceManager.Translate(request.FilterContext.PreferredLocales, text);
                     }
 
@@ -415,7 +472,8 @@ namespace HistoricalEvents {
                 }
 
                 // add a dummy entry for missing values.
-                else {
+                else
+                {
                     fields.EventFields.Add(Variant.Null);
                 }
             }
@@ -430,22 +488,26 @@ namespace HistoricalEvents {
             ServerSystemContext context,
             ReadEventDetails details,
             NodeHandle handle,
-            HistoryReadValueId nodeToRead) {
+            HistoryReadValueId nodeToRead)
+        {
             System.Diagnostics.Contracts.Contract.Assume(nodeToRead != null);
             var filterContext = new FilterContext(context.NamespaceUris, context.TypeTable, context.PreferredLocales);
             var events = new LinkedList<BaseEventState>();
 
-            for (var ii = ReportType.FluidLevelTest; ii <= ReportType.InjectionTest; ii++) {
+            for (var ii = ReportType.FluidLevelTest; ii <= ReportType.InjectionTest; ii++)
+            {
                 DataView view = null;
 
-                if (handle.Node is WellState) {
+                if (handle.Node is WellState)
+                {
                     view = _generator.ReadHistoryForWellId(
                         ii,
                         (string)handle.Node.NodeId.Identifier,
                         details.StartTime,
                         details.EndTime);
                 }
-                else {
+                else
+                {
                     view = _generator.ReadHistoryForArea(
                         ii,
                         handle.Node.NodeId.Identifier as string,
@@ -456,26 +518,33 @@ namespace HistoricalEvents {
                 var pos = events.First;
                 var sizeLimited = details.StartTime == DateTime.MinValue || details.EndTime == DateTime.MinValue;
 
-                foreach (DataRowView row in view) {
+                foreach (DataRowView row in view)
+                {
                     // check if reached max results.
-                    if (sizeLimited) {
-                        if (events.Count >= details.NumValuesPerNode) {
+                    if (sizeLimited)
+                    {
+                        if (events.Count >= details.NumValuesPerNode)
+                        {
                             break;
                         }
                     }
 
                     var e = _generator.GetReport(context, NamespaceIndex, ii, row.Row);
 
-                    if (details.Filter.WhereClause?.Elements.Count > 0) {
-                        if (!details.Filter.WhereClause.Evaluate(filterContext, e)) {
+                    if (details.Filter.WhereClause?.Elements.Count > 0)
+                    {
+                        if (!details.Filter.WhereClause.Evaluate(filterContext, e))
+                        {
                             continue;
                         }
                     }
 
                     var inserted = false;
 
-                    for (var jj = pos; jj != null; jj = jj.Next) {
-                        if (jj.Value.Time.Value > e.Time.Value) {
+                    for (var jj = pos; jj != null; jj = jj.Next)
+                    {
+                        if (jj.Value.Time.Value > e.Time.Value)
+                        {
                             events.AddBefore(jj, e);
                             pos = jj;
                             inserted = true;
@@ -483,14 +552,16 @@ namespace HistoricalEvents {
                         }
                     }
 
-                    if (!inserted) {
+                    if (!inserted)
+                    {
                         events.AddLast(e);
                         pos = null;
                     }
                 }
             }
 
-            return new HistoryReadRequest {
+            return new HistoryReadRequest
+            {
                 Events = events,
                 TimeFlowsBackward = details.StartTime == DateTime.MinValue || (details.EndTime != DateTime.MinValue && details.EndTime < details.StartTime),
                 NumValuesPerNode = details.NumValuesPerNode,
@@ -502,7 +573,8 @@ namespace HistoricalEvents {
         /// <summary>
         /// Stores a read history request.
         /// </summary>
-        private class HistoryReadRequest {
+        private class HistoryReadRequest
+        {
             public byte[] ContinuationPoint { get; set; }
             public LinkedList<BaseEventState> Events { get; set; }
             public bool TimeFlowsBackward { get; set; }
@@ -519,15 +591,18 @@ namespace HistoricalEvents {
             IList<HistoryReadValueId> nodesToRead,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToProcess.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToProcess.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToRead = nodesToRead[handle.Index];
 
                 // find the continuation point.
                 var request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
-                if (request == null) {
+                if (request == null)
+                {
                     errors[handle.Index] = StatusCodes.BadContinuationPointInvalid;
                     continue;
                 }
@@ -542,14 +617,17 @@ namespace HistoricalEvents {
         /// </summary>
         private static HistoryReadRequest LoadContinuationPoint(
             ServerSystemContext context,
-            byte[] continuationPoint) {
+            byte[] continuationPoint)
+        {
             var session = context.OperationContext.Session;
 
-            if (session == null) {
+            if (session == null)
+            {
                 return null;
             }
 
-            if (!(session.RestoreHistoryContinuationPoint(continuationPoint) is HistoryReadRequest request)) {
+            if (!(session.RestoreHistoryContinuationPoint(continuationPoint) is HistoryReadRequest request))
+            {
                 return null;
             }
 
@@ -561,10 +639,12 @@ namespace HistoricalEvents {
         /// </summary>
         private static byte[] SaveContinuationPoint(
             ServerSystemContext context,
-            HistoryReadRequest request) {
+            HistoryReadRequest request)
+        {
             var session = context.OperationContext.Session;
 
-            if (session == null) {
+            if (session == null)
+            {
                 return null;
             }
 
@@ -578,13 +658,16 @@ namespace HistoricalEvents {
         /// Does the simulation.
         /// </summary>
         /// <param name="state">The state.</param>
-        private void DoSimulation(object state) {
-            try {
+        private void DoSimulation(object state)
+        {
+            try
+            {
                 {
                     var row = _generator.GenerateFluidLevelTestReport();
                     var well = (BaseObjectState)FindPredefinedNode(new NodeId((string)row[BrowseNames.UidWell], NamespaceIndex), typeof(BaseObjectState));
 
-                    if (well?.AreEventsMonitored == true) {
+                    if (well?.AreEventsMonitored == true)
+                    {
                         var e = _generator.GetFluidLevelTestReport(SystemContext, NamespaceIndex, row);
                         well.ReportEvent(SystemContext, e);
                     }
@@ -594,13 +677,15 @@ namespace HistoricalEvents {
                     var row = _generator.GenerateInjectionTestReport();
                     var well = (BaseObjectState)FindPredefinedNode(new NodeId((string)row[BrowseNames.UidWell], NamespaceIndex), typeof(BaseObjectState));
 
-                    if (well?.AreEventsMonitored == true) {
+                    if (well?.AreEventsMonitored == true)
+                    {
                         var e = _generator.GetInjectionTestReport(SystemContext, NamespaceIndex, row);
                         well.ReportEvent(SystemContext, e);
                     }
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Unexpected error during simulation.");
             }
         }

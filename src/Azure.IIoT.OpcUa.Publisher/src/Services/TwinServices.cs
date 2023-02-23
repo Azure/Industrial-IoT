@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Twin {
+namespace Azure.IIoT.OpcUa.Publisher.Twin
+{
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
@@ -16,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Twin {
     /// Manages the endpoint identity information in the twin and reports
     /// the endpoint's status back to the hub.
     /// </summary>
-    public class TwinServices : IDisposable {
+    public class TwinServices : IDisposable
+    {
         /// <inheritdoc/>
         public EndpointConnectivityState State { get; private set; }
             = EndpointConnectivityState.Disconnected;
@@ -26,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Twin {
         /// </summary>
         /// <param name="events"></param>
         /// <param name="serializer"></param>
-        public TwinServices(IEventEmitter events, IJsonSerializer serializer) {
+        public TwinServices(IEventEmitter events, IJsonSerializer serializer)
+        {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _endpoint = new TaskCompletionSource<EndpointModel>();
@@ -34,8 +37,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Twin {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
-            if (_session != null) {
+        public void Dispose()
+        {
+            if (_session != null)
+            {
                 _session.OnConnectionStateChange -= _session_OnConnectionStateChange;
                 _session.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 _session = null;
@@ -50,9 +55,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Twin {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="state"></param>
-        private void _session_OnConnectionStateChange(object sender, EndpointConnectivityState state) {
+        private void _session_OnConnectionStateChange(object sender, EndpointConnectivityState state)
+        {
             State = state;
-            if (_events != null) {
+            if (_events != null)
+            {
                 Task.Run(() => _events.ReportAsync("State", _serializer.FromObject(state)));
             }
         }

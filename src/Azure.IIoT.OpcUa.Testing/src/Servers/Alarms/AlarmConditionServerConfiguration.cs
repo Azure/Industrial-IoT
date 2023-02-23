@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Alarms {
+namespace Alarms
+{
     using Opc.Ua;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -36,11 +37,13 @@ namespace Alarms {
     /// Stores the configuration the Alarm Condition server.
     /// </summary>
     [DataContract(Namespace = Namespaces.AlarmCondition)]
-    public class AlarmConditionServerConfiguration {
+    public class AlarmConditionServerConfiguration
+    {
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public AlarmConditionServerConfiguration() {
+        public AlarmConditionServerConfiguration()
+        {
             Initialize();
         }
 
@@ -48,14 +51,16 @@ namespace Alarms {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private void Initialize()
+        {
             Areas = new AreaConfigurationCollection();
         }
 
@@ -70,11 +75,13 @@ namespace Alarms {
     /// Stores the configuration for a Area within the Alarm Condition server.
     /// </summary>
     [DataContract(Namespace = Namespaces.AlarmCondition)]
-    public class AreaConfiguration {
+    public class AreaConfiguration
+    {
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public AreaConfiguration() {
+        public AreaConfiguration()
+        {
             Initialize();
         }
 
@@ -82,14 +89,16 @@ namespace Alarms {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private void Initialize()
+        {
             Name = null;
             SubAreas = null;
             SourcePaths = null;
@@ -118,6 +127,7 @@ namespace Alarms {
     /// A collection of AreaConfiguration objects.
     /// </summary>
     [CollectionDataContract(Name = "ListOfAreaConfiguration", Namespace = Namespaces.AlarmCondition, ItemName = "AreaConfiguration")]
-    public class AreaConfigurationCollection : List<AreaConfiguration> {
+    public class AreaConfigurationCollection : List<AreaConfiguration>
+    {
     }
 }

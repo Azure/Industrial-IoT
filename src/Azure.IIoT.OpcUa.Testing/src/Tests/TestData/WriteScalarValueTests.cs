@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Tests {
+namespace Azure.IIoT.OpcUa.Testing.Tests
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Json;
@@ -14,19 +15,22 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
     using System.Xml;
     using Xunit;
 
-    public class WriteScalarValueTests<T> {
+    public class WriteScalarValueTests<T>
+    {
         /// <summary>
         /// Create node services tests
         /// </summary>
         public WriteScalarValueTests(Func<INodeServices<T>> services, T connection,
-            Func<T, string, IJsonSerializer, Task<VariantValue>> readExpected) {
+            Func<T, string, IJsonSerializer, Task<VariantValue>> readExpected)
+        {
             _services = services;
             _connection = connection;
             _readExpected = readExpected;
             _serializer = new DefaultJsonSerializer();
         }
 
-        public async Task NodeWriteStaticScalarBooleanValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarBooleanValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10216";
 
@@ -34,7 +38,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "Boolean"
@@ -47,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = "ns=2;i=10216",
                     Value = expected,
                     DataType = "Boolean"
@@ -57,7 +63,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest1Async() {
+        public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest1Async()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10159"; // Scalar
             var path = new[] {
@@ -68,7 +75,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     BrowsePath = path,
                     Value = expected,
@@ -82,7 +90,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = "ns=2;i=10159",
                     BrowsePath = path,
                     Value = expected,
@@ -93,7 +102,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest2Async() {
+        public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest2Async()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10159"; // Scalar
             var path = new[] {
@@ -104,7 +114,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     BrowsePath = path,
                     Value = expected,
@@ -118,7 +129,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = "ns=2;i=10159",
                     BrowsePath = path,
                     Value = expected,
@@ -129,7 +141,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest3Async() {
+        public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest3Async()
+        {
             var browser = _services();
             var path = new[] {
                 "Objects",
@@ -143,7 +156,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     BrowsePath = path,
                     Value = expected,
                     DataType = "Boolean"
@@ -156,7 +170,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     BrowsePath = path,
                     Value = expected,
                     DataType = "Boolean"
@@ -166,7 +181,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarSByteValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarSByteValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10217";
 
@@ -174,7 +190,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "SByte"
@@ -184,7 +201,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarByteValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarByteValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10218";
 
@@ -192,7 +210,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "Byte"
@@ -202,7 +221,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarInt16ValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarInt16ValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10219";
 
@@ -210,7 +230,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int16"
@@ -220,7 +241,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarUInt16ValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarUInt16ValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10220";
 
@@ -228,7 +250,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInt16"
@@ -238,7 +261,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarInt32ValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarInt32ValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10221";
 
@@ -247,7 +271,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int32"
@@ -257,7 +282,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarUInt32ValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarUInt32ValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10222";
 
@@ -265,7 +291,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInt32"
@@ -275,7 +302,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarInt64ValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarInt64ValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10223";
 
@@ -283,7 +311,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int64"
@@ -293,7 +322,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarUInt64ValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarUInt64ValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10224";
 
@@ -301,7 +331,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInt64"
@@ -311,7 +342,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarFloatValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarFloatValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10225";
 
@@ -320,7 +352,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "Float"
@@ -330,7 +363,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarDoubleValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarDoubleValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10226";
 
@@ -338,7 +372,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "Double"
@@ -348,7 +383,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarStringValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarStringValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10227";
 
@@ -357,7 +393,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "String"
@@ -367,7 +404,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarDateTimeValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarDateTimeValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10228";
 
@@ -375,7 +413,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "DateTime"
@@ -385,7 +424,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarGuidValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarGuidValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10229";
 
@@ -393,7 +433,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "Guid"
@@ -403,7 +444,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarByteStringValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarByteStringValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10230";
 
@@ -413,7 +455,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "ByteString"
@@ -423,12 +466,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarXmlElementValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarXmlElementValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10231";
 
             var expected = _serializer.FromObject(XmlElementEx.SerializeObject(
-                new MemoryBufferInstance {
+                new MemoryBufferInstance
+                {
                     Name = "test",
                     TagCount = 333,
                     DataType = "Byte"
@@ -436,7 +481,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "XmlElement"
@@ -446,7 +492,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarNodeIdValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarNodeIdValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10232";
 
@@ -454,7 +501,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "NodeId"
@@ -464,7 +512,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarExpandedNodeIdValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarExpandedNodeIdValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10233";
 
@@ -472,7 +521,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "ExpandedNodeId"
@@ -482,7 +532,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarQualifiedNameValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarQualifiedNameValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10234";
 
@@ -490,7 +541,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "QualifiedName"
@@ -500,7 +552,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarLocalizedTextValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarLocalizedTextValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10235";
 
@@ -509,7 +562,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "LocalizedText"
@@ -519,7 +573,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarStatusCodeValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarStatusCodeValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10236";
 
@@ -527,7 +582,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "StatusCode"
@@ -537,7 +593,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarVariantValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarVariantValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10237";
 
@@ -545,7 +602,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "BaseDataType"
@@ -555,7 +613,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarEnumerationValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarEnumerationValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10238";
 
@@ -563,7 +622,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int32"
@@ -574,7 +634,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarStructuredValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarStructuredValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10239";
 
@@ -631,7 +692,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "ExtensionObject"
@@ -641,7 +703,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarNumberValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarNumberValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10240";
 
@@ -649,7 +712,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "SByte"
@@ -660,7 +724,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarIntegerValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarIntegerValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10241";
 
@@ -668,7 +733,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "Int32"
@@ -679,7 +745,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        public async Task NodeWriteStaticScalarUIntegerValueVariableTestAsync() {
+        public async Task NodeWriteStaticScalarUIntegerValueVariableTestAsync()
+        {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10242";
 
@@ -687,7 +754,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await browser.ValueWriteAsync(_connection,
-                new ValueWriteRequestModel {
+                new ValueWriteRequestModel
+                {
                     NodeId = node,
                     Value = expected,
                     DataType = "UInt32"
@@ -699,7 +767,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         private async Task AssertResultAsync(string node, VariantValue expected,
-            ValueWriteResponseModel result) {
+            ValueWriteResponseModel result)
+        {
             var value = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
             Assert.NotNull(value);
             Assert.Null(result.ErrorInfo);

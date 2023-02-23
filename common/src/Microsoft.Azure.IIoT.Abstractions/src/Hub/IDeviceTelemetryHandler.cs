@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub {
+namespace Microsoft.Azure.IIoT.Hub
+{
     using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Collections.Generic;
@@ -12,7 +13,8 @@ namespace Microsoft.Azure.IIoT.Hub {
     /// <summary>
     /// Handles events
     /// </summary>
-    public interface IDeviceTelemetryHandler : IHandler {
+    public interface IDeviceTelemetryHandler : IHandler
+    {
         /// <summary>
         /// Event message schema
         /// </summary>

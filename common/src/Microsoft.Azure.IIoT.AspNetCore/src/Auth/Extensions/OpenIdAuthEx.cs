@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
+namespace Microsoft.Azure.IIoT.AspNetCore.Auth
+{
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Options;
@@ -22,7 +23,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     /// <summary>
     /// Open id configuration
     /// </summary>
-    public static class OpenIdAuthEx {
+    public static class OpenIdAuthEx
+    {
         /// <summary>
         /// Add openid authentication
         /// </summary>
@@ -30,24 +32,29 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="provider">Name of the provider</param>
         /// <returns></returns>
         public static AuthenticationBuilder AddOpenIdConnect(this AuthenticationBuilder builder,
-            string provider) {
+            string provider)
+        {
             builder.Services.AddHttpContextAccessor();
             builder.Services.TryAddTransient<IClientAuthConfig, ClientAuthAggregateConfig>();
 
             var signinScheme = provider + "Cookie";
             var openIdConnectScheme = provider + "OpenID";
-            builder.AddPolicyScheme(provider, null, o => {
+            builder.AddPolicyScheme(provider, null, o =>
+            {
                 o.ForwardDefault = signinScheme;
                 o.ForwardChallenge = openIdConnectScheme;
             });
 
             // Add cookie based signin scheme configuration
-            builder.Services.AddTransient<IConfigureOptions<CookieAuthenticationOptions>>(services => {
+            builder.Services.AddTransient<IConfigureOptions<CookieAuthenticationOptions>>(services =>
+            {
                 var schemes = services.GetRequiredService<IClientAuthConfig>();
-                return new ConfigureNamedOptions<CookieAuthenticationOptions>(signinScheme, options => {
+                return new ConfigureNamedOptions<CookieAuthenticationOptions>(signinScheme, options =>
+                {
                     // Find whether the scheme is configurable
                     var config = schemes.Providers?.FirstOrDefault(s => s.Provider == provider);
-                    if (config == null) {
+                    if (config == null)
+                    {
                         // Not configurable - this is ok as this might not be enabled
                         // Will not be enabled for authorization
                         return;
@@ -61,12 +68,15 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             });
 
             // Add oidc scheme configuration
-            builder.Services.AddTransient<IConfigureOptions<OpenIdConnectOptions>>(services => {
+            builder.Services.AddTransient<IConfigureOptions<OpenIdConnectOptions>>(services =>
+            {
                 var schemes = services.GetRequiredService<IClientAuthConfig>();
-                return new ConfigureNamedOptions<OpenIdConnectOptions>(openIdConnectScheme, options => {
+                return new ConfigureNamedOptions<OpenIdConnectOptions>(openIdConnectScheme, options =>
+                {
                     // Find whether the scheme is configurable
                     var config = schemes.Providers?.FirstOrDefault(s => s.Provider == provider);
-                    if (config == null) {
+                    if (config == null)
+                    {
                         // Not configurable - this is ok as this might not be enabled
                         // Will not be enabled for authorization
                         return;
@@ -90,7 +100,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                     options.TokenValidationParameters.NameClaimType = "preferred_username";
 
                     options.Scope.Add("offline_access");
-                    if (config.Audience != null) {
+                    if (config.Audience != null)
+                    {
                         options.Scope.Add(config.Audience + "/.default");
                     }
 
@@ -99,12 +110,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
 
                     // Chain sign in
                     var redirectToIdpHandler = options.Events.OnRedirectToIdentityProvider;
-                    options.Events.OnRedirectToIdentityProvider = async context => {
+                    options.Events.OnRedirectToIdentityProvider = async context =>
+                    {
                         var login = context.Properties.GetParameter<string>(OpenIdConnectParameterNames.LoginHint);
                         // Avoids having users being presented the select account dialog
                         // when they are already signed-in for instance when going through
                         // incremental consent
-                        if (!string.IsNullOrWhiteSpace(login)) {
+                        if (!string.IsNullOrWhiteSpace(login))
+                        {
                             context.ProtocolMessage.LoginHint = login;
                             context.ProtocolMessage.DomainHint = context.Properties.GetParameter<string>(
                                 OpenIdConnectParameterNames.DomainHint);
@@ -115,7 +128,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                             context.Properties.Parameters.Remove(OpenIdConnectParameterNames.DomainHint);
                         }
                         // Additional claims
-                        if (context.Properties.Items.ContainsKey(kAdditionalClaims)) {
+                        if (context.Properties.Items.ContainsKey(kAdditionalClaims))
+                        {
                             context.ProtocolMessage.SetParameter(kAdditionalClaims,
                                 context.Properties.Items[kAdditionalClaims]);
                         }
@@ -124,19 +138,23 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
 
                     // Chain code received handler
                     var codeReceivedHandler = options.Events.OnAuthorizationCodeReceived;
-                    options.Events.OnAuthorizationCodeReceived = async context => {
+                    options.Events.OnAuthorizationCodeReceived = async context =>
+                    {
                         var redeemers = context.HttpContext.RequestServices
                             .GetRequiredService<IEnumerable<IUserTokenClient>>();
                         var redeemer = redeemers.FirstOrDefault(r => r.Provider == provider);
-                        if (redeemer != null) {
+                        if (redeemer != null)
+                        {
                             context.HandleCodeRedemption();
                             if (!context.HttpContext.User.Claims.Any() &&
-                                context.HttpContext.User.Identity is ClaimsIdentity user) {
+                                context.HttpContext.User.Identity is ClaimsIdentity user)
+                            {
                                 user.AddClaims(context.Principal.Claims);
                             }
                             var result = await redeemer.RedeemCodeForUserAsync(
                                 context.HttpContext.User, context.ProtocolMessage.Code, options.Scope).ConfigureAwait(false);
-                            if (result?.IdToken != null) {
+                            if (result?.IdToken != null)
+                            {
                                 // Only share id token or otherwise ASP.NET will cache the access token
                                 context.HandleCodeRedemption(null, result.IdToken);
                             }
@@ -146,11 +164,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
 
                     // Chain sign out
                     var signOutHandler = options.Events.OnRedirectToIdentityProviderForSignOut;
-                    options.Events.OnRedirectToIdentityProviderForSignOut = async context => {
+                    options.Events.OnRedirectToIdentityProviderForSignOut = async context =>
+                    {
                         var redeemers = context.HttpContext.RequestServices
                             .GetRequiredService<IEnumerable<IUserTokenClient>>();
                         var redeemer = redeemers.FirstOrDefault(r => r.Provider == provider);
-                        if (redeemer != null) {
+                        if (redeemer != null)
+                        {
                             await redeemer.SignOutUserAsync(context.HttpContext.User).ConfigureAwait(false);
                         }
                         await signOutHandler(context).ConfigureAwait(false);

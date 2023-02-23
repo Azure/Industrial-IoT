@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
-    using Azure.IIoT.OpcUa.Encoders;
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     using Azure.IIoT.OpcUa;
+    using Azure.IIoT.OpcUa.Encoders;
     using Microsoft.Azure.IIoT;
     using Opc.Ua;
     using System;
@@ -17,7 +18,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// Json discovery metdata message
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
-    public class JsonMetaDataMessage : PubSubMessage {
+    public class JsonMetaDataMessage : PubSubMessage
+    {
         /// <inheritdoc/>
         public override string MessageSchema => MessageSchemaTypes.NetworkMessageJson;
 
@@ -68,28 +70,34 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         public DataSetMetaDataType MetaData { get; set; }
 
         /// <inheritdoc/>
-        public override bool Equals(object value) {
-            if (ReferenceEquals(this, value)) {
+        public override bool Equals(object value)
+        {
+            if (ReferenceEquals(this, value))
+            {
                 return true;
             }
-            if (!(value is JsonMetaDataMessage wrapper)) {
+            if (!(value is JsonMetaDataMessage wrapper))
+            {
                 return false;
             }
-            if (!base.Equals(value)) {
+            if (!base.Equals(value))
+            {
                 return false;
             }
             if (!Utils.IsEqual(wrapper.MessageId, MessageId) ||
                 !Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup) ||
                 !Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName) ||
                 !Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
-                !Utils.IsEqual(wrapper.MetaData, MetaData)) {
+                !Utils.IsEqual(wrapper.MetaData, MetaData))
+            {
                 return false;
             }
             return true;
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
             hash.Add(MessageId);
@@ -102,19 +110,24 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
 
         /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
-            Queue<byte[]> reader, IDataSetMetaDataResolver resolver) {
-            if (reader.TryPeek(out var buffer)) {
+            Queue<byte[]> reader, IDataSetMetaDataResolver resolver)
+        {
+            if (reader.TryPeek(out var buffer))
+            {
                 using var memoryStream = Memory.GetStream(buffer);
                 var compression = UseGzipCompression ?
                     new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
-                try {
+                try
+                {
                     using var decoder = new JsonDecoderEx(
                         UseGzipCompression ? compression : memoryStream, context, useJsonLoader: false); ;
-                    if (TryDecode(decoder)) {
+                    if (TryDecode(decoder))
+                    {
                         reader.Dequeue();
                     }
                 }
-                finally {
+                finally
+                {
                     compression?.Dispose();
                 }
             }
@@ -123,14 +136,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
 
         /// <inheritdoc/>
         public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
-            int maxChunkSize, IDataSetMetaDataResolver resolver) {
+            int maxChunkSize, IDataSetMetaDataResolver resolver)
+        {
             var chunks = new List<byte[]>();
             using var memoryStream = Memory.GetStream();
             var compression = UseGzipCompression ?
                 new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true) : null;
-            try {
+            try
+            {
                 using var encoder = new JsonEncoderEx(
-                    UseGzipCompression ? compression : memoryStream, context) {
+                    UseGzipCompression ? compression : memoryStream, context)
+                {
                     UseAdvancedEncoding = UseAdvancedEncoding,
                     UseUriEncoding = UseAdvancedEncoding,
                     IgnoreDefaultValues = UseAdvancedEncoding,
@@ -139,17 +155,20 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                 };
                 Encode(encoder);
             }
-            finally {
+            finally
+            {
                 compression?.Dispose();
             }
             // TODO: instead of copy using ToArray we shall include the
             // stream with the message and dispose it later when it is
             // consumed.
             var messageBuffer = memoryStream.ToArray();
-            if (messageBuffer.Length < maxChunkSize) {
+            if (messageBuffer.Length < maxChunkSize)
+            {
                 chunks.Add(messageBuffer);
             }
-            else {
+            else
+            {
                 chunks.Add(null);
             }
             return chunks;
@@ -159,30 +178,37 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// Encode metadata
         /// </summary>
         /// <param name="encoder"></param>
-        internal void Encode(IEncoder encoder) {
+        internal void Encode(IEncoder encoder)
+        {
             encoder.WriteString(nameof(MessageId), MessageId);
             encoder.WriteString(nameof(MessageType), MessageType);
 
-            if (!string.IsNullOrEmpty(PublisherId)) {
+            if (!string.IsNullOrEmpty(PublisherId))
+            {
                 encoder.WriteString(nameof(PublisherId), PublisherId);
             }
-            if (DataSetWriterId != 0) {
+            if (DataSetWriterId != 0)
+            {
                 encoder.WriteUInt16(nameof(DataSetWriterId), DataSetWriterId);
             }
-            if (!string.IsNullOrEmpty(DataSetWriterGroup)) {
+            if (!string.IsNullOrEmpty(DataSetWriterGroup))
+            {
                 encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
             }
             encoder.WriteEncodeable(nameof(MetaData), MetaData, typeof(DataSetMetaDataType));
-            if (!string.IsNullOrEmpty(DataSetWriterName)) {
+            if (!string.IsNullOrEmpty(DataSetWriterName))
+            {
                 encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
             }
         }
 
         /// <inheritdoc/>
-        internal bool TryDecode(IDecoder decoder) {
+        internal bool TryDecode(IDecoder decoder)
+        {
             MessageId = decoder.ReadString(nameof(MessageId));
             var messageType = decoder.ReadString(nameof(MessageType));
-            if (!messageType.Equals(MessageTypeUaMetadata, StringComparison.OrdinalIgnoreCase)) {
+            if (!messageType.Equals(MessageTypeUaMetadata, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
             }
             PublisherId = decoder.ReadString(nameof(PublisherId));

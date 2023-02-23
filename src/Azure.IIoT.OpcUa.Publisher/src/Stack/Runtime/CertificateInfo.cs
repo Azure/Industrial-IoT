@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
+{
     /// <summary>
     /// Certificate information
     /// </summary>
-    public class CertificateInfo : CertificateStore {
+    public class CertificateInfo : CertificateStore
+    {
         /// <summary>
         /// Subject name
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Diagnostics configuration
     /// </summary>
     [DataContract]
-    public sealed record class DiagnosticsModel {
+    public sealed record class DiagnosticsModel
+    {
         /// <summary>
         /// Requested level of response diagnostics.
         /// (default: None)

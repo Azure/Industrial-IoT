@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Runtime {
+namespace Microsoft.Azure.IIoT.Auth.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// User principal to keyvault configuration
     /// </summary>
-    public class AadUserKeyVaultConfig : ConfigBase, IOAuthClientConfig {
+    public class AadUserKeyVaultConfig : ConfigBase, IOAuthClientConfig
+    {
         /// <summary>
         /// Client configuration
         /// </summary>
@@ -46,7 +48,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public AadUserKeyVaultConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

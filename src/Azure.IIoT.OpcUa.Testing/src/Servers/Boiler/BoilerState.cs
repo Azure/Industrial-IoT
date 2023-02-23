@@ -27,17 +27,20 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Boiler {
+namespace Boiler
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Threading;
 
-    public partial class BoilerState {
+    public partial class BoilerState
+    {
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
-        protected override void OnAfterCreate(ISystemContext context, NodeState node) {
+        protected override void OnAfterCreate(ISystemContext context, NodeState node)
+        {
             base.OnAfterCreate(context, node);
 
             Simulation.OnAfterTransition = OnControlSimulation;
@@ -47,9 +50,12 @@ namespace Boiler {
         /// <summary>
         /// Cleans up when the object is disposed.
         /// </summary>
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
-                if (_simulationTimer != null) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_simulationTimer != null)
+                {
                     _simulationTimer.Dispose();
                     _simulationTimer = null;
                 }
@@ -65,17 +71,22 @@ namespace Boiler {
             uint transitionId,
             uint causeId,
             IList<object> inputArguments,
-            IList<object> outputArguments) {
-            switch (causeId) {
-                case Opc.Ua.Methods.ProgramStateMachineType_Start: {
-                        if (_simulationTimer != null) {
+            IList<object> outputArguments)
+        {
+            switch (causeId)
+            {
+                case Opc.Ua.Methods.ProgramStateMachineType_Start:
+                    {
+                        if (_simulationTimer != null)
+                        {
                             _simulationTimer.Dispose();
                             _simulationTimer = null;
                         }
 
                         var updateRate = Simulation.UpdateRate.Value;
 
-                        if (updateRate < 100) {
+                        if (updateRate < 100)
+                        {
                             updateRate = 100;
                             Simulation.UpdateRate.Value = updateRate;
                         }
@@ -86,8 +97,10 @@ namespace Boiler {
                     }
 
                 case Opc.Ua.Methods.ProgramStateMachineType_Halt:
-                case Opc.Ua.Methods.ProgramStateMachineType_Suspend: {
-                        if (_simulationTimer != null) {
+                case Opc.Ua.Methods.ProgramStateMachineType_Suspend:
+                    {
+                        if (_simulationTimer != null)
+                        {
                             _simulationTimer.Dispose();
                             _simulationTimer = null;
                         }
@@ -96,8 +109,10 @@ namespace Boiler {
                         break;
                     }
 
-                case Opc.Ua.Methods.ProgramStateMachineType_Reset: {
-                        if (_simulationTimer != null) {
+                case Opc.Ua.Methods.ProgramStateMachineType_Reset:
+                    {
+                        if (_simulationTimer != null)
+                        {
                             _simulationTimer.Dispose();
                             _simulationTimer = null;
                         }
@@ -113,16 +128,19 @@ namespace Boiler {
         /// <summary>
         /// Rounds a value to the significate digits specified and adds a random perturbation.
         /// </summary>
-        private double RoundAndPerturb(double value, byte significantDigits) {
+        private double RoundAndPerturb(double value, byte significantDigits)
+        {
             double offsetToApply = 0;
 
-            if (!value.Equals(0.0)) {
+            if (!value.Equals(0.0))
+            {
                 // need to move all significate digits above the decimal point.
                 var offset = significantDigits - Math.Log10(Math.Abs(value));
 
                 offsetToApply = Math.Floor(offset);
 
-                if (offsetToApply.Equals(offset)) {
+                if (offsetToApply.Equals(offset))
+                {
                     offsetToApply--;
                 }
             }
@@ -143,25 +161,31 @@ namespace Boiler {
         /// <summary>
         /// Moves the value towards the target.
         /// </summary>
-        private static double Adjust(double value, double target, double step, Opc.Ua.Range range) {
+        private static double Adjust(double value, double target, double step, Opc.Ua.Range range)
+        {
             // convert percentage step to an absolute step if range is specified.
-            if (range != null) {
+            if (range != null)
+            {
                 step *= range.Magnitude;
             }
 
             var difference = target - value;
 
-            if (difference < 0) {
+            if (difference < 0)
+            {
                 value -= step;
 
-                if (value < target) {
+                if (value < target)
+                {
                     return target;
                 }
             }
-            else {
+            else
+            {
                 value += step;
 
-                if (value > target) {
+                if (value > target)
+                {
                     return target;
                 }
             }
@@ -172,14 +196,17 @@ namespace Boiler {
         /// <summary>
         /// Returns the value as a percentage of the range.
         /// </summary>
-        private static double GetPercentage(AnalogItemState<double> value) {
+        private static double GetPercentage(AnalogItemState<double> value)
+        {
             var percentage = value.Value;
             var range = value.EURange.Value;
 
-            if (range != null) {
+            if (range != null)
+            {
                 percentage /= Math.Abs(range.High - range.Low);
 
-                if (Math.Abs(percentage) > 1.0) {
+                if (Math.Abs(percentage) > 1.0)
+                {
                     percentage = 1.0;
                 }
             }
@@ -190,8 +217,10 @@ namespace Boiler {
         /// <summary>
         /// Returns the value as a percentage of the range.
         /// </summary>
-        private static double GetValue(double value, Opc.Ua.Range range) {
-            if (range != null) {
+        private static double GetValue(double value, Opc.Ua.Range range)
+        {
+            if (range != null)
+            {
                 return value * range.Magnitude;
             }
 
@@ -201,8 +230,10 @@ namespace Boiler {
         /// <summary>
         /// Updates the values for the simulation.
         /// </summary>
-        private void DoSimulation(object state) {
-            try {
+        private void DoSimulation(object state)
+        {
+            try
+            {
                 _simulationCounter++;
 
                 // adjust level.
@@ -243,7 +274,8 @@ namespace Boiler {
 
                 ClearChangeMasks(_simulationContext, true);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Unexpected error during boiler simulation.");
             }
         }

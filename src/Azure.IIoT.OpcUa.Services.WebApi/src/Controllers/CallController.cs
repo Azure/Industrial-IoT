@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
+    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
-    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -22,12 +23,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
-    public class CallController : ControllerBase {
+    public class CallController : ControllerBase
+    {
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="nodes"></param>
-        public CallController(INodeServices<string> nodes) {
+        public CallController(INodeServices<string> nodes)
+        {
             _nodes = nodes;
         }
 
@@ -44,8 +47,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The method metadata response</returns>
         [HttpPost("{endpointId}/metadata")]
         public async Task<MethodMetadataResponseModel> GetCallMetadataAsync(
-            string endpointId, [FromBody][Required] MethodMetadataRequestModel request) {
-            if (request == null) {
+            string endpointId, [FromBody][Required] MethodMetadataRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _nodes.GetMethodMetadataAsync(
@@ -64,8 +69,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The method call response</returns>
         [HttpPost("{endpointId}")]
         public async Task<MethodCallResponseModel> CallMethodAsync(
-            string endpointId, [FromBody][Required] MethodCallRequestModel request) {
-            if (request == null) {
+            string endpointId, [FromBody][Required] MethodCallRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
 

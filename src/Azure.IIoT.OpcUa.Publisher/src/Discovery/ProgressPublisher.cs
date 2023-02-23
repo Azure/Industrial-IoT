@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Discovery {
+namespace Azure.IIoT.OpcUa.Publisher.Discovery
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
     /// <summary>
     /// Discovery progress message sender
     /// </summary>
-    public class ProgressPublisher : ProgressLogger{
+    public class ProgressPublisher : ProgressLogger
+    {
         /// <summary>
         /// Create listener
         /// </summary>
@@ -29,7 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <param name="logger"></param>
         public ProgressPublisher(IEventEmitter events, ITaskProcessor processor,
             IJsonSerializer serializer, IProcessIdentity identity, ILogger logger)
-            : base(logger) {
+            : base(logger)
+        {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _processor = processor ?? throw new ArgumentNullException(nameof(processor));
@@ -40,7 +43,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// Send progress
         /// </summary>
         /// <param name="progress"></param>
-        protected override void Send(DiscoveryProgressModel progress) {
+        protected override void Send(DiscoveryProgressModel progress)
+        {
             progress.DiscovererId = PublisherModelEx.CreatePublisherId(
                 _identity.ProcessId, _identity.Id);
             base.Send(progress);
@@ -52,7 +56,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// </summary>
         /// <param name="progress"></param>
         /// <returns></returns>
-        private Task SendAsync(DiscoveryProgressModel progress) {
+        private Task SendAsync(DiscoveryProgressModel progress)
+        {
             return Try.Async(() => _events.SendEventAsync(
                 _serializer.SerializeToMemory((object)progress).ToArray(), ContentMimeType.Json,
                 MessageSchemaTypes.DiscoveryMessage, "utf-8"));

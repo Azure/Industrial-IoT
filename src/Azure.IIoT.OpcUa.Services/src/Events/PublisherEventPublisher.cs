@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Events {
+namespace Azure.IIoT.OpcUa.Services.Events
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Messaging;
     using System;
@@ -12,29 +13,34 @@ namespace Azure.IIoT.OpcUa.Services.Events {
     /// <summary>
     /// Publisher registry event publisher
     /// </summary>
-    public class PublisherEventPublisher<THub> : IPublisherRegistryListener {
+    public class PublisherEventPublisher<THub> : IPublisherRegistryListener
+    {
         /// <inheritdoc/>
-        public PublisherEventPublisher(ICallbackInvokerT<THub> callback) {
+        public PublisherEventPublisher(ICallbackInvokerT<THub> callback)
+        {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
 
         /// <inheritdoc/>
         public Task OnPublisherDeletedAsync(OperationContextModel context,
-            string publisherId) {
+            string publisherId)
+        {
             return PublishAsync(PublisherEventType.Deleted, context,
                 publisherId, null);
         }
 
         /// <inheritdoc/>
         public Task OnPublisherNewAsync(OperationContextModel context,
-            PublisherModel publisher) {
+            PublisherModel publisher)
+        {
             return PublishAsync(PublisherEventType.New, context,
                 publisher.Id, publisher);
         }
 
         /// <inheritdoc/>
         public Task OnPublisherUpdatedAsync(OperationContextModel context,
-            PublisherModel publisher) {
+            PublisherModel publisher)
+        {
             return PublishAsync(PublisherEventType.Updated, context,
                 publisher.Id, publisher);
         }
@@ -49,7 +55,8 @@ namespace Azure.IIoT.OpcUa.Services.Events {
         /// <returns></returns>
         public Task PublishAsync(PublisherEventType type,
             OperationContextModel context, string publisherId,
-            PublisherModel publisher) {
+            PublisherModel publisher)
+        {
             var arguments = new object[] {
                 new PublisherEventModel {
                     EventType = type,

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
+{
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -12,11 +13,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
     using System.Collections.Generic;
     using Xunit;
 
-    public class JsonNetworkMessageEncoderTests2 {
+    public class JsonNetworkMessageEncoderTests2
+    {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void MultipleMessagesNoNetworkMessageHeaderAndNoDataSetMessageHeaderRawEncoding(bool useArrayEnvelope) {
+        public void MultipleMessagesNoNetworkMessageHeaderAndNoDataSetMessageHeaderRawEncoding(bool useArrayEnvelope)
+        {
             var simple = CreateMessage(0x18, 0x62, 0x3f);
             simple.UseArrayEnvelope = useArrayEnvelope;
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
@@ -40,7 +43,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void MultipleMessagesNoNetworkMessageHeaderAndNoDataSetMessageHeaderVariantEncoding(bool useArrayEnvelope) {
+        public void MultipleMessagesNoNetworkMessageHeaderAndNoDataSetMessageHeaderVariantEncoding(bool useArrayEnvelope)
+        {
             var simple = CreateMessage(0x18, 0x62, 0);
             simple.UseArrayEnvelope = useArrayEnvelope;
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
@@ -69,7 +73,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void MultipleMessagesNoNetworkMessageHeaderAndNoDataSetMessageHeader(bool useArrayEnvelope) {
+        public void MultipleMessagesNoNetworkMessageHeaderAndNoDataSetMessageHeader(bool useArrayEnvelope)
+        {
             var simple = CreateMessage(0x18, 0x62, 0x1f);
             simple.UseArrayEnvelope = useArrayEnvelope;
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
@@ -93,7 +98,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void MultipleMessagesNoNetworkMessageHeaderAndSubsetofDataSetMessageContent(bool useArrayEnvelope) {
+        public void MultipleMessagesNoNetworkMessageHeaderAndSubsetofDataSetMessageContent(bool useArrayEnvelope)
+        {
             var simple = CreateMessage(0x1a, 0x62, 0x1f);
             simple.UseArrayEnvelope = useArrayEnvelope;
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
@@ -127,7 +133,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void MultipleMessagesAllSwitchesSelectedAndReversableFieldEncoding() {
+        public void MultipleMessagesAllSwitchesSelectedAndReversableFieldEncoding()
+        {
             var simple = CreateMessage(0x1b, 0xff, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
             var buffer = Assert.Single(buffers);
@@ -175,7 +182,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void MultipleMessagesWithNetworkMessageHeaderButNoDataMessageHeaderAndReversableFieldEncoding() {
+        public void MultipleMessagesWithNetworkMessageHeaderButNoDataMessageHeaderAndReversableFieldEncoding()
+        {
             var simple = CreateMessage(0x19, 0x80, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
             var buffer = Assert.Single(buffers);
@@ -203,7 +211,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void MultipleMessagesAllSwitchesSelectedAndReversableFieldEncodingWithArrayEnvelope() {
+        public void MultipleMessagesAllSwitchesSelectedAndReversableFieldEncodingWithArrayEnvelope()
+        {
             var simple = CreateMessage(0x1b, 0xff, 0x1f);
             simple.UseArrayEnvelope = true;
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
@@ -263,7 +272,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void MultipleMessagesAllSwitchesSelectedNoReversableFieldEncoding() {
+        public void MultipleMessagesAllSwitchesSelectedNoReversableFieldEncoding()
+        {
             var simple = CreateMessage(0x1b, 0x7f, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
             var buffer = Assert.Single(buffers);
@@ -311,7 +321,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void SingleMessageNoNetworkMessageHeaderAndNoDataSetMessageHeader() {
+        public void SingleMessageNoNetworkMessageHeaderAndNoDataSetMessageHeader()
+        {
             var simple = CreateMessage(0x1c, 0x62, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
             Assert.Equal(2, buffers.Count);
@@ -332,7 +343,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void SingleMessageNoNetworkMessageHeaderAndNoDataSetMessageHeaderWithArrayEnvelope() {
+        public void SingleMessageNoNetworkMessageHeaderAndNoDataSetMessageHeaderWithArrayEnvelope()
+        {
             var simple = CreateMessage(0x1c, 0x62, 0x1f);
             simple.UseArrayEnvelope = true;
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
@@ -354,7 +366,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void SingleMessageNoNetworkMessageHeaderAndSubsetofDataSetMessageContent() {
+        public void SingleMessageNoNetworkMessageHeaderAndSubsetofDataSetMessageContent()
+        {
             var simple = CreateMessage(0x1e, 0x62, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
             Assert.Equal(2, buffers.Count);
@@ -387,7 +400,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void SingleMessageNoNetworkMessageHeaderAndSubsetofDataSetMessageContentWithArrayEnvelope() {
+        public void SingleMessageNoNetworkMessageHeaderAndSubsetofDataSetMessageContentWithArrayEnvelope()
+        {
             var simple = CreateMessage(0x1e, 0x62, 0x1f);
             simple.UseArrayEnvelope = true;
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
@@ -421,7 +435,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void SingleMessageAllSwitchesSelectedAndReversableFieldEncoding() {
+        public void SingleMessageAllSwitchesSelectedAndReversableFieldEncoding()
+        {
             var simple = CreateMessage(0x1f, 0xff, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
             Assert.Equal(2, buffers.Count);
@@ -453,7 +468,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void SingleMessageWithNetworkButNoDataSetMessageHeaderAndReversableFieldEncoding() {
+        public void SingleMessageWithNetworkButNoDataSetMessageHeaderAndReversableFieldEncoding()
+        {
             var simple = CreateMessage(0x1d, 0x80, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
             Assert.Equal(2, buffers.Count);
@@ -475,7 +491,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void SingleMessageAllSwitchesSelectedNoReversableFieldEncoding() {
+        public void SingleMessageAllSwitchesSelectedNoReversableFieldEncoding()
+        {
             var simple = CreateMessage(0x1f, 0x7f, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
             Assert.Equal(2, buffers.Count);
@@ -507,7 +524,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void SingleMessageAllSwitchesSelectedRawValueEncoding() {
+        public void SingleMessageAllSwitchesSelectedRawValueEncoding()
+        {
             var simple = CreateMessage(0x1f, 0x7f, 0x3f);
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
             Assert.Equal(2, buffers.Count);
@@ -539,7 +557,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void SingleMessageAllSwitchesSelectedJustStatusFieldAndArrayEnvelope() {
+        public void SingleMessageAllSwitchesSelectedJustStatusFieldAndArrayEnvelope()
+        {
             var simple = CreateMessage(0x1f, 0x7f, 0x1);
             simple.UseArrayEnvelope = true;
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
@@ -595,7 +614,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         }
 
         [Fact]
-        public void SingleMessageAllSwitchesSelectedNoReversableFieldEncodingWithArrayEnvelope() {
+        public void SingleMessageAllSwitchesSelectedNoReversableFieldEncodingWithArrayEnvelope()
+        {
             var simple = CreateMessage(0x1f, 0x7f, 0x1f);
             simple.UseArrayEnvelope = true;
             var buffers = simple.Encode(new ServiceMessageContext(), 4096);
@@ -649,8 +669,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
 ]"), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
-        private static JsonNetworkMessage CreateMessage(uint messageMask, uint datasetMask, uint fieldMask) {
-            return new JsonNetworkMessage {
+        private static JsonNetworkMessage CreateMessage(uint messageMask, uint datasetMask, uint fieldMask)
+        {
+            return new JsonNetworkMessage
+            {
                 DataSetClassId = Guid.Parse("5ae1a63a-9757-4aa7-ab71-0d88931266fc"),
                 NetworkMessageContentMask = messageMask,
                 MessageId = () => "9279C0B3-DA88-45A4-AF74-451CEBF82DB0",

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Sdk {
+namespace Azure.IIoT.OpcUa.Publisher.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using System.Threading;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
     /// <summary>
     /// Represents Twin api
     /// </summary>
-    public interface ITwinApi {
+    public interface ITwinApi
+    {
         /// <summary>
         /// Connect client. Optional but can be used
         /// to test connectivity.

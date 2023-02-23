@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Alarms {
+namespace Alarms
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System.Text;
@@ -35,7 +36,8 @@ namespace Alarms {
     /// <summary>
     /// Defines constants and methods used by all classes in the information model.
     /// </summary>
-    public static class ModelUtils {
+    public static class ModelUtils
+    {
         /// <summary>
         /// The RootType for a Area node identfier.
         /// </summary>
@@ -52,8 +54,10 @@ namespace Alarms {
         /// <param name="areaPath">The area path.</param>
         /// <param name="namespaceIndex">Index of the namespace that qualifies the identifier.</param>
         /// <returns>The new node identifier.</returns>
-        public static NodeId ConstructIdForArea(string areaPath, ushort namespaceIndex) {
-            var parsedNodeId = new ParsedNodeId {
+        public static NodeId ConstructIdForArea(string areaPath, ushort namespaceIndex)
+        {
+            var parsedNodeId = new ParsedNodeId
+            {
                 RootId = areaPath,
                 NamespaceIndex = namespaceIndex,
                 RootType = 0
@@ -68,8 +72,10 @@ namespace Alarms {
         /// <param name="sourceId">The source id.</param>
         /// <param name="namespaceIndex">Index of the namespace.</param>
         /// <returns>The new NodeId.</returns>
-        public static NodeId ConstructIdForSource(string sourceId, ushort namespaceIndex) {
-            var parsedNodeId = new ParsedNodeId {
+        public static NodeId ConstructIdForSource(string sourceId, ushort namespaceIndex)
+        {
+            var parsedNodeId = new ParsedNodeId
+            {
                 RootId = sourceId,
                 NamespaceIndex = namespaceIndex,
                 RootType = 1
@@ -84,20 +90,24 @@ namespace Alarms {
         /// <param name="component">The component.</param>
         /// <param name="namespaceIndex">Index of the namespace.</param>
         /// <returns>The node identifier for a component.</returns>
-        public static NodeId ConstructIdForComponent(NodeState component, ushort namespaceIndex) {
-            if (component == null) {
+        public static NodeId ConstructIdForComponent(NodeState component, ushort namespaceIndex)
+        {
+            if (component == null)
+            {
                 return null;
             }
 
             // components must be instances with a parent.
 
-            if (!(component is BaseInstanceState instance) || instance.Parent == null) {
+            if (!(component is BaseInstanceState instance) || instance.Parent == null)
+            {
                 return component.NodeId;
             }
 
             // parent must have a string identifier.
 
-            if (!(instance.Parent.NodeId.Identifier is string parentId)) {
+            if (!(instance.Parent.NodeId.Identifier is string parentId))
+            {
                 return null;
             }
 
@@ -107,10 +117,12 @@ namespace Alarms {
             // check if the parent is another component.
             var index = parentId.IndexOf('?');
 
-            if (index < 0) {
+            if (index < 0)
+            {
                 buffer.Append('?');
             }
-            else {
+            else
+            {
                 buffer.Append('/');
             }
 

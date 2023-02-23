@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests
+{
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
@@ -17,18 +18,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests {
     using Xunit;
 
     [Collection(ReadCollection.Name)]
-    public class BrowsePathTests {
-        public BrowsePathTests(TestServerFixture server) {
+    public class BrowsePathTests
+    {
+        public BrowsePathTests(TestServerFixture server)
+        {
             _server = server;
             _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
-        private BrowsePathTests<ConnectionModel> GetTests() {
+        private BrowsePathTests<ConnectionModel> GetTests()
+        {
             return new BrowsePathTests<ConnectionModel>(
                 () => new NodeServices<ConnectionModel>(_server.Client,
-                    _server.Logger), new ConnectionModel {
-                        Endpoint = new EndpointModel {
+                    _server.Logger), new ConnectionModel
+                    {
+                        Endpoint = new EndpointModel
+                        {
                             Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                             AlternativeUrls = _hostEntry?.AddressList
                         .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
@@ -42,22 +48,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests {
         private readonly IPHostEntry _hostEntry;
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test1Async() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test1Async()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethod3Test1Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test2Async() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test2Async()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethod3Test2Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test3Async() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test3Async()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethod3Test3Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethodsTestAsync() {
+        public async Task NodeBrowsePathStaticScalarMethodsTestAsync()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethodsTestAsync().ConfigureAwait(false);
         }
     }

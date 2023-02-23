@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders {
+namespace Azure.IIoT.OpcUa.Encoders
+{
     using Opc.Ua;
 
     /// <summary>
     /// Variant codec factory
     /// </summary>
-    public interface IVariantEncoderFactory {
+    public interface IVariantEncoderFactory
+    {
         /// <summary>
         /// Default encoder
         /// </summary>

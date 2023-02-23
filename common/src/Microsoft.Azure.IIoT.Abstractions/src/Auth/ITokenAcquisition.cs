@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
+namespace Microsoft.Azure.IIoT.Auth
+{
     using Microsoft.Azure.IIoT.Auth.Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Auth {
     /// <summary>
     /// Injectable token provider implementation
     /// </summary>
-    public interface ITokenAcquisition {
+    public interface ITokenAcquisition
+    {
         /// <summary>
         /// The token provider supports this resource
         /// </summary>

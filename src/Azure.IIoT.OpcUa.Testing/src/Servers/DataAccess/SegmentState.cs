@@ -27,21 +27,24 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace DataAccess {
+namespace DataAccess
+{
     using Opc.Ua;
     using System.Collections.Generic;
 
     /// <summary>
     /// A object which maps a segment to a UA object.
     /// </summary>
-    public class SegmentState : FolderState {
+    public class SegmentState : FolderState
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="SegmentState"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="nodeId">The node id.</param>
         /// <param name="segment">The segment.</param>
-        public SegmentState(ISystemContext context, NodeId nodeId, UnderlyingSystemSegment segment) : base(null) {
+        public SegmentState(ISystemContext context, NodeId nodeId, UnderlyingSystemSegment segment) : base(null)
+        {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
             SegmentPath = segment.Id;
 
@@ -82,7 +85,8 @@ namespace DataAccess {
             BrowseDirection browseDirection,
             QualifiedName browseName,
             IEnumerable<IReference> additionalReferences,
-            bool internalOnly) {
+            bool internalOnly)
+        {
             NodeBrowser browser = new SegmentBrowser(
                 context,
                 view,
@@ -104,19 +108,23 @@ namespace DataAccess {
         /// </summary>
         /// <param name="context">The context for the system being accessed.</param>
         /// <param name="browser">The browser to populate.</param>
-        protected override void PopulateBrowser(ISystemContext context, NodeBrowser browser) {
+        protected override void PopulateBrowser(ISystemContext context, NodeBrowser browser)
+        {
             base.PopulateBrowser(context, browser);
 
             // check if the parent segments need to be returned.
-            if (browser.IsRequired(ReferenceTypeIds.Organizes, true)) {
-                if (!(context.SystemHandle is UnderlyingSystem system)) {
+            if (browser.IsRequired(ReferenceTypeIds.Organizes, true))
+            {
+                if (!(context.SystemHandle is UnderlyingSystem system))
+                {
                     return;
                 }
 
                 // add reference for parent segment.
                 var segment = system.FindParentForSegment(SegmentPath);
 
-                if (segment != null) {
+                if (segment != null)
+                {
                     browser.Add(ReferenceTypeIds.Organizes, true, ModelUtils.ConstructIdForSegment(segment.Id, NodeId.NamespaceIndex));
                 }
             }

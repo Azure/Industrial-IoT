@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models {
+namespace Azure.IIoT.OpcUa.Services.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Hub;
     using System.Collections.Generic;
@@ -13,7 +14,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Twin (endpoint) registration persisted and comparable
     /// </summary>
     [DataContract]
-    public sealed class EndpointRegistration : EntityRegistration {
+    public sealed class EndpointRegistration : EntityRegistration
+    {
         /// <inheritdoc/>
         [DataMember]
         public override string DeviceType => IdentityType.Endpoint;
@@ -112,36 +114,47 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             ApplicationId, EndpointRegistrationUrl, SecurityMode, SecurityPolicy);
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) {
-            if (obj is not EndpointRegistration registration) {
+        public override bool Equals(object obj)
+        {
+            if (obj is not EndpointRegistration registration)
+            {
                 return false;
             }
-            if (!base.Equals(registration)) {
+            if (!base.Equals(registration))
+            {
                 return false;
             }
-            if (DiscovererId != registration.DiscovererId) {
+            if (DiscovererId != registration.DiscovererId)
+            {
                 return false;
             }
-            if (ApplicationId != registration.ApplicationId) {
+            if (ApplicationId != registration.ApplicationId)
+            {
                 return false;
             }
-            if (EndpointUrlLC != registration.EndpointUrlLC) {
+            if (EndpointUrlLC != registration.EndpointUrlLC)
+            {
                 return false;
             }
-            if (SecurityLevel != registration.SecurityLevel) {
+            if (SecurityLevel != registration.SecurityLevel)
+            {
                 return false;
             }
-            if (SecurityPolicy != registration.SecurityPolicy) {
+            if (SecurityPolicy != registration.SecurityPolicy)
+            {
                 return false;
             }
-            if (SecurityMode != registration.SecurityMode) {
+            if (SecurityMode != registration.SecurityMode)
+            {
                 return false;
             }
-            if (Thumbprint != registration.Thumbprint) {
+            if (Thumbprint != registration.Thumbprint)
+            {
                 return false;
             }
             if (!AuthenticationMethods.DecodeAsList().SetEqualsSafe(
-                    AuthenticationMethods.DecodeAsList(), (a, b) => a.IsSameAs(b))) {
+                    AuthenticationMethods.DecodeAsList(), (a, b) => a.IsSameAs(b)))
+            {
                 return false;
             }
             return true;
@@ -157,7 +170,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             !(r1 == r2);
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hashCode = base.GetHashCode();
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(EndpointUrlLC);

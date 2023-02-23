@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models {
+namespace Azure.IIoT.OpcUa.Services.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Hub;
@@ -15,7 +16,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// <summary>
     /// Aapplication registration persisted and comparable
     /// </summary>
-    public static class ApplicationRegistrationEx {
+    public static class ApplicationRegistrationEx
+    {
         /// <summary>
         /// Create device twin
         /// </summary>
@@ -23,7 +25,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="serializer"></param>
         /// <returns></returns>
         public static DeviceTwinModel ToDeviceTwin(
-            this ApplicationRegistration registration, IJsonSerializer serializer) {
+            this ApplicationRegistration registration, IJsonSerializer serializer)
+        {
             return Patch(null, registration, serializer);
         }
 
@@ -34,11 +37,14 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="update"></param>
         /// <param name="serializer"></param>
         public static DeviceTwinModel Patch(this ApplicationRegistration existing,
-            ApplicationRegistration update, IJsonSerializer serializer) {
-            var twin = new DeviceTwinModel {
+            ApplicationRegistration update, IJsonSerializer serializer)
+        {
+            var twin = new DeviceTwinModel
+            {
                 Etag = existing?.Etag,
                 Tags = new Dictionary<string, VariantValue>(),
-                Properties = new TwinPropertiesModel {
+                Properties = new TwinPropertiesModel
+                {
                     Desired = new Dictionary<string, VariantValue>()
                 }
             };
@@ -46,34 +52,40 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             // Tags
 
             if (update?.ApplicationId != null &&
-                update.ApplicationId != existing?.ApplicationId) {
+                update.ApplicationId != existing?.ApplicationId)
+            {
                 twin.Tags.Add(nameof(ApplicationId), update.ApplicationId);
             }
 
             if (update?.IsDisabled != null &&
-                update.IsDisabled != existing?.IsDisabled) {
+                update.IsDisabled != existing?.IsDisabled)
+            {
                 twin.Tags.Add(nameof(EntityRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
                     true : (bool?)null);
                 twin.Tags.Add(nameof(EntityRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
                     DateTime.UtcNow : (DateTime?)null);
             }
 
-            if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId) {
+            if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId)
+            {
                 twin.Tags.Add(nameof(EntityRegistration.SiteOrGatewayId), update?.SiteOrGatewayId);
             }
 
-            if (update?.DiscovererId != existing?.DiscovererId) {
+            if (update?.DiscovererId != existing?.DiscovererId)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.DiscovererId), update?.DiscovererId);
             }
 
-            if (update?.SiteId != existing?.SiteId) {
+            if (update?.SiteId != existing?.SiteId)
+            {
                 twin.Tags.Add(nameof(EntityRegistration.SiteId), update?.SiteId);
             }
 
             twin.Tags.Add(nameof(EntityRegistration.DeviceType), update?.DeviceType);
 
             if (update?.ApplicationType != null &&
-                update?.ApplicationType != existing?.ApplicationType) {
+                update?.ApplicationType != existing?.ApplicationType)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.ApplicationType),
                     serializer.FromObject(update.ApplicationType.ToString()));
                 twin.Tags.Add(nameof(ApplicationType.Server),
@@ -85,45 +97,53 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                     update.ApplicationType == ApplicationType.DiscoveryServer);
             }
 
-            if (update?.ApplicationUri != existing?.ApplicationUri) {
+            if (update?.ApplicationUri != existing?.ApplicationUri)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.ApplicationUri),
                     update?.ApplicationUri);
                 twin.Tags.Add(nameof(ApplicationRegistration.ApplicationUriLC),
                     update?.ApplicationUriLC);
             }
 
-            if (update?.RecordId != existing?.RecordId) {
+            if (update?.RecordId != existing?.RecordId)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.RecordId),
                     update?.RecordId);
             }
 
-            if (update?.ApplicationName != existing?.ApplicationName) {
+            if (update?.ApplicationName != existing?.ApplicationName)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.ApplicationName),
                     update?.ApplicationName);
             }
 
-            if (update?.Locale != existing?.Locale) {
+            if (update?.Locale != existing?.Locale)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.Locale),
                     update?.Locale);
             }
 
-            if (update?.DiscoveryProfileUri != existing?.DiscoveryProfileUri) {
+            if (update?.DiscoveryProfileUri != existing?.DiscoveryProfileUri)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.DiscoveryProfileUri),
                     update?.DiscoveryProfileUri);
             }
 
-            if (update?.GatewayServerUri != existing?.GatewayServerUri) {
+            if (update?.GatewayServerUri != existing?.GatewayServerUri)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.GatewayServerUri),
                     update?.GatewayServerUri);
             }
 
-            if (update?.ProductUri != existing?.ProductUri) {
+            if (update?.ProductUri != existing?.ProductUri)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.ProductUri), update?.ProductUri);
             }
 
             var urlUpdate = update?.DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
                 existing?.DiscoveryUrls?.DecodeAsList());
-            if (!(urlUpdate ?? true)) {
+            if (!(urlUpdate ?? true))
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.DiscoveryUrls),
                     update?.DiscoveryUrls == null ?
                     null : serializer.FromObject(update.DiscoveryUrls));
@@ -131,7 +151,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
             var capsUpdate = update?.Capabilities.DecodeAsSet().SetEqualsSafe(
                 existing?.Capabilities?.DecodeAsSet());
-            if (!(capsUpdate ?? true)) {
+            if (!(capsUpdate ?? true))
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.Capabilities),
                     update?.Capabilities == null ?
                     null : serializer.FromObject(update.Capabilities));
@@ -139,7 +160,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
             var namesUpdate = update?.LocalizedNames.DictionaryEqualsSafe(
                 existing?.LocalizedNames);
-            if (!(namesUpdate ?? true)) {
+            if (!(namesUpdate ?? true))
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.LocalizedNames),
                     update?.LocalizedNames == null ?
                     null : serializer.FromObject(update.LocalizedNames));
@@ -147,26 +169,31 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
             var hostsUpdate = update?.HostAddresses.DecodeAsList().SequenceEqualsSafe(
                 existing?.HostAddresses?.DecodeAsList());
-            if (!(hostsUpdate ?? true)) {
+            if (!(hostsUpdate ?? true))
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.HostAddresses),
                     update?.HostAddresses == null ?
                     null : serializer.FromObject(update.HostAddresses));
             }
 
-            if (update?.CreateAuthorityId != existing?.CreateAuthorityId) {
+            if (update?.CreateAuthorityId != existing?.CreateAuthorityId)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.CreateAuthorityId),
                     update?.CreateAuthorityId);
             }
-            if (update?.CreateTime != existing?.CreateTime) {
+            if (update?.CreateTime != existing?.CreateTime)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.CreateTime),
                     update?.CreateTime);
             }
 
-            if (update?.UpdateAuthorityId != existing?.UpdateAuthorityId) {
+            if (update?.UpdateAuthorityId != existing?.UpdateAuthorityId)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.UpdateAuthorityId),
                     update?.UpdateAuthorityId);
             }
-            if (update?.UpdateTime != existing?.UpdateTime) {
+            if (update?.UpdateTime != existing?.UpdateTime)
+            {
                 twin.Tags.Add(nameof(ApplicationRegistration.UpdateTime),
                     update?.UpdateTime);
             }
@@ -174,30 +201,36 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             // Recalculate identity
 
             var applicationUri = existing?.ApplicationUri;
-            if (update?.ApplicationUri != null) {
+            if (update?.ApplicationUri != null)
+            {
                 applicationUri = update?.ApplicationUri;
             }
-            if (applicationUri == null) {
+            if (applicationUri == null)
+            {
                 throw new ArgumentException(nameof(ApplicationRegistration.ApplicationUri));
             }
 
             var siteOrGatewayId = existing?.SiteOrGatewayId;
-            if (siteOrGatewayId == null) {
+            if (siteOrGatewayId == null)
+            {
                 siteOrGatewayId = update?.SiteOrGatewayId;
-                if (siteOrGatewayId == null) {
+                if (siteOrGatewayId == null)
+                {
                     throw new ArgumentException(nameof(ApplicationRegistration.SiteOrGatewayId));
                 }
             }
 
             var applicationType = existing?.ApplicationType;
-            if (update?.ApplicationType != null) {
+            if (update?.ApplicationType != null)
+            {
                 applicationType = update?.ApplicationType;
             }
 
             twin.Id = ApplicationInfoModelEx.CreateApplicationId(
                 siteOrGatewayId, applicationUri, applicationType);
 
-            if (existing?.DeviceId != twin.Id) {
+            if (existing?.DeviceId != twin.Id)
+            {
                 twin.Etag = null; // Force creation of new identity
             }
             return twin;
@@ -337,12 +370,15 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static ApplicationRegistration ToApplicationRegistration(this DeviceTwinModel twin) {
-            if (twin == null) {
+        public static ApplicationRegistration ToApplicationRegistration(this DeviceTwinModel twin)
+        {
+            if (twin == null)
+            {
                 return null;
             }
             var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
-            return new ApplicationRegistration {
+            return new ApplicationRegistration
+            {
                 // Device
 
                 DeviceId = twin.Id,
@@ -449,11 +485,14 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <returns></returns>
         public static ApplicationRegistration ToApplicationRegistration(
             this ApplicationInfoModel model, bool? disabled = null, string etag = null,
-            uint? recordId = null) {
-            if (model == null) {
+            uint? recordId = null)
+        {
+            if (model == null)
+            {
                 throw new ArgumentNullException(nameof(model));
             }
-            return new ApplicationRegistration {
+            return new ApplicationRegistration
+            {
                 IsDisabled = disabled,
                 DiscovererId = model.DiscovererId,
                 Etag = etag,
@@ -485,11 +524,14 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
-        public static ApplicationInfoModel ToServiceModel(this ApplicationRegistration registration) {
-            if (registration == null) {
+        public static ApplicationInfoModel ToServiceModel(this ApplicationRegistration registration)
+        {
+            if (registration == null)
+            {
                 return null;
             }
-            return new ApplicationInfoModel {
+            return new ApplicationInfoModel
+            {
                 ApplicationId = registration.ApplicationId,
                 ApplicationName = registration.ApplicationName,
                 Locale = registration.Locale,
@@ -518,14 +560,18 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
-        public static string GetSiteOrGatewayId(this ApplicationRegistration registration) {
-            if (registration == null) {
+        public static string GetSiteOrGatewayId(this ApplicationRegistration registration)
+        {
+            if (registration == null)
+            {
                 return null;
             }
             var siteOrGatewayId = registration?.SiteId;
-            if (siteOrGatewayId == null) {
+            if (siteOrGatewayId == null)
+            {
                 var id = registration?.DiscovererId;
-                if (id != null) {
+                if (id != null)
+                {
                     siteOrGatewayId = PublisherModelEx.ParseDeviceId(id, out _);
                 }
             }
@@ -539,11 +585,14 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="time"></param>
         /// <returns></returns>
         private static OperationContextModel ToOperationModel(
-            string authorityId, DateTime? time) {
-            if (string.IsNullOrEmpty(authorityId) && time == null) {
+            string authorityId, DateTime? time)
+        {
+            if (string.IsNullOrEmpty(authorityId) && time == null)
+            {
                 return null;
             }
-            return new OperationContextModel {
+            return new OperationContextModel
+            {
                 AuthorityId = authorityId,
                 Time = time ?? DateTime.MinValue
             };

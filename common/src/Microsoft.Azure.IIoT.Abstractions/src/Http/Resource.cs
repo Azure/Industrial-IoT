@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http {
+namespace Microsoft.Azure.IIoT.Http
+{
     /// <summary>
     /// Resources that can be targeted with service calls
     /// </summary>
-    public static class Resource {
+    public static class Resource
+    {
         /// <summary>
         /// No authentication required
         /// </summary>

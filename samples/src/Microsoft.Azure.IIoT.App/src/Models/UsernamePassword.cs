@@ -3,10 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Models {
+namespace Microsoft.Azure.IIoT.App.Models
+{
     using System.ComponentModel.DataAnnotations;
 
-    public class UsernamePassword {
+    public class UsernamePassword
+    {
         [Required]
         public string Username { get; set; }
 

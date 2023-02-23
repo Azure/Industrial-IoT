@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace TestData {
+namespace TestData
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -35,12 +36,14 @@ namespace TestData {
     /// <summary>
     /// A class used to read values from a history data source.
     /// </summary>
-    public class HistoryDataReader : IDisposable {
+    public class HistoryDataReader : IDisposable
+    {
         /// <summary>
         /// Constructs a reader for the source.
         /// </summary>
         /// <param name="source">The source of the history data.</param>
-        public HistoryDataReader(NodeId variableId, IHistoryDataSource source) {
+        public HistoryDataReader(NodeId variableId, IHistoryDataSource source)
+        {
             Id = Guid.NewGuid();
             VariableId = variableId;
             _source = source;
@@ -49,14 +52,16 @@ namespace TestData {
         /// <summary>
         /// Frees any unmanaged resources.
         /// </summary>
-        public void Dispose() {
+        public void Dispose()
+        {
             Dispose(true);
         }
 
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected virtual void Dispose(bool disposing) {
+        protected virtual void Dispose(bool disposing)
+        {
             // nothing to do.
         }
 
@@ -87,14 +92,16 @@ namespace TestData {
             TimestampsToReturn timestampsToReturn,
             NumericRange indexRange,
             QualifiedName dataEncoding,
-            DataValueCollection values) {
+            DataValueCollection values)
+        {
             _request = request;
 
             // initialize start and end.
             _startTime = _request.StartTime;
             _endTime = _request.EndTime;
 
-            if (_endTime == DateTime.MinValue) {
+            if (_endTime == DateTime.MinValue)
+            {
                 _endTime = DateTime.MaxValue;
             }
 
@@ -105,10 +112,12 @@ namespace TestData {
             DataValue value = null;
 
             // get first bound.
-            if (_request.ReturnBounds) {
+            if (_request.ReturnBounds)
+            {
                 value = _source.FirstRaw(_startTime, !_isForward, _request.IsReadModified, out _position);
 
-                if (value != null) {
+                if (value != null)
+                {
                     AddValue(timestampsToReturn, indexRange, dataEncoding, values, value);
                 }
             }
@@ -130,25 +139,31 @@ namespace TestData {
             TimestampsToReturn timestampsToReturn,
             NumericRange indexRange,
             QualifiedName dataEncoding,
-            DataValueCollection values) {
+            DataValueCollection values)
+        {
             DataValue value = null;
 
-            do {
+            do
+            {
                 // check for limit.
-                if (_request.NumValuesPerNode > 0 && values.Count >= _request.NumValuesPerNode) {
+                if (_request.NumValuesPerNode > 0 && values.Count >= _request.NumValuesPerNode)
+                {
                     return false;
                 }
 
                 value = _source.NextRaw(_lastTime, _isForward, _request.IsReadModified, ref _position);
 
                 // no more data.
-                if (value == null) {
+                if (value == null)
+                {
                     return true;
                 }
 
                 // check for bound.
-                if ((_isForward && value.ServerTimestamp >= _endTime) || (!_isForward && value.ServerTimestamp <= _endTime)) {
-                    if (_request.ReturnBounds) {
+                if ((_isForward && value.ServerTimestamp >= _endTime) || (!_isForward && value.ServerTimestamp <= _endTime))
+                {
+                    if (_request.ReturnBounds)
+                    {
                         AddValue(timestampsToReturn, indexRange, dataEncoding, values, value);
                         return true;
                     }
@@ -170,9 +185,11 @@ namespace TestData {
             NumericRange indexRange,
             QualifiedName dataEncoding,
             DataValueCollection values,
-            DataValue value) {
+            DataValue value)
+        {
             // ignore invalid case.
-            if (value == null) {
+            if (value == null)
+            {
                 return;
             }
 
@@ -180,35 +197,42 @@ namespace TestData {
             _lastTime = value.ServerTimestamp;
 
             // check if the index range or data encoding can be applied.
-            if (StatusCode.IsGood(value.StatusCode)) {
+            if (StatusCode.IsGood(value.StatusCode))
+            {
                 var valueToReturn = value.Value;
 
                 // apply the index range.
-                if (indexRange != NumericRange.Empty) {
+                if (indexRange != NumericRange.Empty)
+                {
                     var error = indexRange.ApplyRange(ref valueToReturn);
 
-                    if (StatusCode.IsBad(error)) {
+                    if (StatusCode.IsBad(error))
+                    {
                         value.Value = null;
                         value.StatusCode = error;
                     }
-                    else {
+                    else
+                    {
                         value.Value = valueToReturn;
                     }
                 }
 
                 // apply the data encoding.
-                if (!QualifiedName.IsNull(dataEncoding)) {
+                if (!QualifiedName.IsNull(dataEncoding))
+                {
                     value.Value = null;
                     value.StatusCode = StatusCodes.BadDataEncodingUnsupported;
                 }
             }
 
             // apply the timestamps filter.
-            if (timestampsToReturn == TimestampsToReturn.Neither || timestampsToReturn == TimestampsToReturn.Server) {
+            if (timestampsToReturn == TimestampsToReturn.Neither || timestampsToReturn == TimestampsToReturn.Server)
+            {
                 value.SourceTimestamp = DateTime.MinValue;
             }
 
-            if (timestampsToReturn == TimestampsToReturn.Neither || timestampsToReturn == TimestampsToReturn.Source) {
+            if (timestampsToReturn == TimestampsToReturn.Neither || timestampsToReturn == TimestampsToReturn.Source)
+            {
                 value.ServerTimestamp = DateTime.MinValue;
             }
 

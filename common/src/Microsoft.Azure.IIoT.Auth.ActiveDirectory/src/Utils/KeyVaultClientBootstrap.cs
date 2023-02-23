@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.KeyVault {
+namespace Microsoft.Azure.IIoT.Auth.KeyVault
+{
+    using Autofac;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Extensions.Configuration;
-    using Autofac;
     using System;
     using System.Linq;
 
@@ -16,7 +17,8 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
     /// Retrieve a working Keyvault client to bootstrap keyvault
     /// communcation
     /// </summary>
-    public class KeyVaultClientBootstrap : IDisposable {
+    public class KeyVaultClientBootstrap : IDisposable
+    {
         /// <summary>
         /// Get client
         /// </summary>
@@ -28,7 +30,8 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
         /// <param name="configuration"></param>
         /// <param name="allowInteractiveLogon"></param>
         public KeyVaultClientBootstrap(IConfiguration configuration,
-            bool allowInteractiveLogon = false) {
+            bool allowInteractiveLogon = false)
+        {
             configuration ??= new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
@@ -43,17 +46,21 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
             builder.AddDiagnostics();
             builder.RegisterModule<KeyVaultAuthentication>();
 
-            if (allowInteractiveLogon) {
+            if (allowInteractiveLogon)
+            {
                 // Allow user authentication through public client auth
                 // Overrides the non-interactive token source in keyvault auth.
                 builder.RegisterModule<NativeClientAuthentication>();
             }
 
             // Register keyvaultclient factory
-            builder.Register(context => {
+            builder.Register(context =>
+            {
                 var provider = context.Resolve<ITokenProvider>();
-                return new KeyVaultClient(async (_, resource, scope) => {
-                    if (resource != "https://vault.azure.net") {
+                return new KeyVaultClient(async (_, resource, scope) =>
+                {
+                    if (resource != "https://vault.azure.net")
+                    {
                         // Tunnels the resource through to the provider
                         scope = resource + "/" + scope;
                     }
@@ -66,7 +73,8 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             _container.Dispose(); // Disposes keyvault client
         }
 

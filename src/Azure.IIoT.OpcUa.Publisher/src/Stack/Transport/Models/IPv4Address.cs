@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
+{
     using System;
     using System.Collections.Generic;
     using System.Net;
@@ -12,13 +13,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
     /// IPV4 address
     /// </summary>
     public sealed class IPv4Address : IPAddress, IComparable<IPv4Address>,
-        IComparable<IPAddress> {
+        IComparable<IPAddress>
+    {
         /// <summary>
         /// Create address
         /// </summary>
         /// <param name="address"></param>
         private IPv4Address(uint address) :
-            base(address) {
+            base(address)
+        {
         }
 
         /// <summary>
@@ -26,15 +29,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
         /// </summary>
         /// <param name="address"></param>
         public IPv4Address(IPAddress address) :
-            this(address.GetAddressBytes()) {
+            this(address.GetAddressBytes())
+        {
         }
 
         /// <summary>
         /// Create address
         /// </summary>
         /// <param name="address"></param>
-        public IPv4Address(byte[] address) : base(address) {
-            if (address.Length != 4) {
+        public IPv4Address(byte[] address) : base(address)
+        {
+            if (address.Length != 4)
+            {
                 throw new ArgumentException(nameof(address.Length));
             }
         }
@@ -108,25 +114,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models {
             !(addr1 == addr2);
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return base.GetHashCode();
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object? comparand) {
+        public override bool Equals(object? comparand)
+        {
             return base.Equals(comparand);
         }
 
         /// <inheritdoc/>
-        public int CompareTo(IPv4Address? other) {
-            if (other is null) {
+        public int CompareTo(IPv4Address? other)
+        {
+            if (other is null)
+            {
                 return int.MinValue;
             }
             return (int)(this - other);
         }
 
         /// <inheritdoc/>
-        public int CompareTo(IPAddress? other) {
+        public int CompareTo(IPAddress? other)
+        {
             return CompareTo(other?.AsV4());
         }
     }

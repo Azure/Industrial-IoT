@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Vehicles {
+namespace Vehicles
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -37,13 +38,15 @@ namespace Vehicles {
     /// <summary>
     /// A node manager for a server that exposes several variables.
     /// </summary>
-    public class VehiclesNodeManager : CustomNodeManager2 {
+    public class VehiclesNodeManager : CustomNodeManager2
+    {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         public VehiclesNodeManager(IServerInternal server, ApplicationConfiguration configuration)
         :
-            base(server, configuration) {
+            base(server, configuration)
+        {
             SystemContext.NodeIdFactory = this;
 
             SetNamespaces(
@@ -61,8 +64,10 @@ namespace Vehicles {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
                 // TBD
             }
         }
@@ -70,10 +75,12 @@ namespace Vehicles {
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        public override NodeId New(ISystemContext context, NodeState node) {
+        public override NodeId New(ISystemContext context, NodeState node)
+        {
             // generate a numeric node id if the node has a parent and no node id assigned.
 
-            if (node is BaseInstanceState instance && instance.Parent != null) {
+            if (node is BaseInstanceState instance && instance.Parent != null)
+            {
                 return GenerateNodeId();
             }
 
@@ -88,8 +95,10 @@ namespace Vehicles {
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
         /// should have a reference to the root folder node(s) exposed by this node manager.
         /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Lock) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Lock)
+            {
                 base.CreateAddressSpace(externalReferences);
 
                 var dictionary = (BaseDataVariableState)FindPredefinedNode(
@@ -114,18 +123,22 @@ namespace Vehicles {
         /// <summary>
         /// Loads the schema from an embedded resource.
         /// </summary>
-        public static byte[] LoadSchemaFromResource(string resourcePath, Assembly assembly) {
-            if (resourcePath == null) {
+        public static byte[] LoadSchemaFromResource(string resourcePath, Assembly assembly)
+        {
+            if (resourcePath == null)
+            {
                 throw new ArgumentNullException(nameof(resourcePath));
             }
 
-            if (assembly == null) {
+            if (assembly == null)
+            {
                 assembly = Assembly.GetCallingAssembly();
             }
 
             var istrm = assembly.GetManifestResourceStream(resourcePath);
 
-            if (istrm == null) {
+            if (istrm == null)
+            {
                 throw ServiceResultException.Create(StatusCodes.BadDecodingError, "Could not load nodes from resource: {0}", resourcePath);
             }
 
@@ -137,7 +150,8 @@ namespace Vehicles {
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
-        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context) {
+        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
+        {
             var type = GetType().GetTypeInfo();
             var predefinedNodes = new NodeStateCollection();
             predefinedNodes.LoadFromBinaryResource(context,
@@ -152,8 +166,10 @@ namespace Vehicles {
         /// <summary>
         /// Frees any resources allocated for the address space.
         /// </summary>
-        public override void DeleteAddressSpace() {
-            lock (Lock) {
+        public override void DeleteAddressSpace()
+        {
+            lock (Lock)
+            {
                 // TBD
             }
         }
@@ -161,24 +177,30 @@ namespace Vehicles {
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache) {
-            lock (Lock) {
+        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
+        {
+            lock (Lock)
+            {
                 // quickly exclude nodes that are not in the namespace.
-                if (!IsNodeIdInNamespace(nodeId)) {
+                if (!IsNodeIdInNamespace(nodeId))
+                {
                     return null;
                 }
 
                 NodeState node = null;
 
                 // check cache (the cache is used because the same node id can appear many times in a single request).
-                if (cache != null) {
-                    if (cache.TryGetValue(nodeId, out node)) {
+                if (cache != null)
+                {
+                    if (cache.TryGetValue(nodeId, out node))
+                    {
                         return new NodeHandle(nodeId, node);
                     }
                 }
 
                 // look up predefined node.
-                if (PredefinedNodes.TryGetValue(nodeId, out node)) {
+                if (PredefinedNodes.TryGetValue(nodeId, out node))
+                {
                     var handle = new NodeHandle(nodeId, node);
 
                     cache?.Add(nodeId, node);
@@ -197,28 +219,33 @@ namespace Vehicles {
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
-            IDictionary<NodeId, NodeState> cache) {
+            IDictionary<NodeId, NodeState> cache)
+        {
             // not valid if no root.
-            if (handle == null) {
+            if (handle == null)
+            {
                 return null;
             }
 
             // check if previously validated.
-            if (handle.Validated) {
+            if (handle.Validated)
+            {
                 return handle.Node;
             }
 
             // lookup in operation cache.
             var target = FindNodeInCache(context, handle, cache);
 
-            if (target != null) {
+            if (target != null)
+            {
                 handle.Node = target;
                 handle.Validated = true;
                 return handle.Node;
             }
 
             // put root into operation cache.
-            if (cache != null) {
+            if (cache != null)
+            {
                 cache[handle.NodeId] = target;
             }
 
@@ -230,7 +257,8 @@ namespace Vehicles {
         /// <summary>
         /// Generates a new node id.
         /// </summary>
-        private NodeId GenerateNodeId() {
+        private NodeId GenerateNodeId()
+        {
             return new NodeId(++_nextNodeId, NamespaceIndex);
         }
 

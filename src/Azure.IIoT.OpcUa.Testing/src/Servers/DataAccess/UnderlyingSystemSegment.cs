@@ -27,11 +27,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace DataAccess {
+namespace DataAccess
+{
     /// <summary>
     /// Stores information about a segment in the system.
     /// </summary>
-    public class UnderlyingSystemSegment {
+    public class UnderlyingSystemSegment
+    {
         /// <summary>
         /// Gets or sets the unique id for the segment.
         /// </summary>

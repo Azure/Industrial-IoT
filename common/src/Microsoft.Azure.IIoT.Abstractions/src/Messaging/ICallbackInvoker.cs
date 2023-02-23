@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging {
+namespace Microsoft.Azure.IIoT.Messaging
+{
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Messaging {
     /// <summary>
     /// Callback invocation client
     /// </summary>
-    public interface ICallbackInvoker : IDisposable {
+    public interface ICallbackInvoker : IDisposable
+    {
         /// <summary>
         /// Call a method on a module or device identity with
         /// json payload.

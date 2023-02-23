@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub {
+namespace Microsoft.Azure.IIoT.Hub
+{
     using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
@@ -16,14 +17,16 @@ namespace Microsoft.Azure.IIoT.Hub {
     /// This includes lists and byte arrays that are longer than
     /// the max field size and more.
     /// </summary>
-    public static class DeviceTwinEncodingEx {
+    public static class DeviceTwinEncodingEx
+    {
         /// <summary>
         /// Convert list to dictionary
         /// </summary>
         /// <param name="list"></param>
         /// <returns></returns>
         public static IReadOnlyDictionary<string, T> EncodeAsDictionary<T>(
-            this IReadOnlyList<T> list) {
+            this IReadOnlyList<T> list)
+        {
             return EncodeAsDictionary(list, t => t);
         }
 
@@ -34,12 +37,15 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="converter"></param>
         /// <returns></returns>
         public static IReadOnlyDictionary<string, V> EncodeAsDictionary<T, V>(
-            this IReadOnlyList<T> list, Func<T, V> converter) {
-            if (list == null) {
+            this IReadOnlyList<T> list, Func<T, V> converter)
+        {
+            if (list == null)
+            {
                 return null;
             }
             var result = new Dictionary<string, V>();
-            for (var i = 0; i < list.Count; i++) {
+            for (var i = 0; i < list.Count; i++)
+            {
                 result.Add(i.ToString(), converter(list[i]));
             }
             return result;
@@ -50,7 +56,8 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="dictionary"></param>
         /// <returns></returns>
-        public static IReadOnlyList<T> DecodeAsList<T>(this IReadOnlyDictionary<string, T> dictionary) {
+        public static IReadOnlyList<T> DecodeAsList<T>(this IReadOnlyDictionary<string, T> dictionary)
+        {
             return DecodeAsList(dictionary, t => t);
         }
 
@@ -61,12 +68,15 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="converter"></param>
         /// <returns></returns>
         public static IReadOnlyList<T> DecodeAsList<T, V>(this IReadOnlyDictionary<string, V> dictionary,
-            Func<V, T> converter) {
-            if (dictionary == null) {
+            Func<V, T> converter)
+        {
+            if (dictionary == null)
+            {
                 return null;
             }
             var result = Enumerable.Repeat(default(T), dictionary.Count).ToList();
-            foreach (var kv in dictionary) {
+            foreach (var kv in dictionary)
+            {
                 result[int.Parse(kv.Key)] = converter(kv.Value);
             }
             return result;
@@ -78,8 +88,10 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="dictionary"></param>
         /// <returns></returns>
         public static IReadOnlySet<string> DecodeAsSet(
-            this IReadOnlyDictionary<string, bool> dictionary) {
-            if (dictionary == null) {
+            this IReadOnlyDictionary<string, bool> dictionary)
+        {
+            if (dictionary == null)
+            {
                 return null;
             }
             return new HashSet<string>(dictionary.Select(kv => kv.Key));
@@ -92,14 +104,18 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="upperCase"></param>
         /// <returns></returns>
         public static IReadOnlyDictionary<string, bool> EncodeAsDictionary(
-            this IReadOnlySet<string> set, bool? upperCase = null) {
-            if (set == null) {
+            this IReadOnlySet<string> set, bool? upperCase = null)
+        {
+            if (set == null)
+            {
                 return null;
             }
             var result = new Dictionary<string, bool>();
-            foreach (var s in set) {
+            foreach (var s in set)
+            {
                 var add = VariantValueEx2.SanitizePropertyName(s);
-                if (upperCase != null) {
+                if (upperCase != null)
+                {
                     add = (bool)upperCase ? add.ToUpperInvariant() : add.ToLowerInvariant();
                 }
                 result.Add(add, true);

@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Models {
+namespace Microsoft.Azure.IIoT.Hub.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Authentication information
     /// </summary>
     [DataContract]
-    public class DeviceAuthenticationModel {
+    public class DeviceAuthenticationModel
+    {
         /// <summary>
         /// Primary sas key
         /// </summary>

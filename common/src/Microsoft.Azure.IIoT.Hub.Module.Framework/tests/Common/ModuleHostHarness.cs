@@ -3,22 +3,24 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Module.Framework.Services;
+namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
+{
+    using Autofac;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Utils;
-    using Autofac;
     using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
 
-    public static class ModuleHostHarness {
+    public static class ModuleHostHarness
+    {
         /// <summary>
         /// Module test harness
         /// </summary>
@@ -26,15 +28,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="test"></param>
         /// <returns></returns>
         public static async Task RunTestAsync(
-            IEnumerable<object> controllers, Func<string, string, IContainer, Task> test) {
+            IEnumerable<object> controllers, Func<string, string, IContainer, Task> test)
+        {
             const string deviceId = "TestDevice";
             const string moduleId = "TestModule";
 
-            using (var hubContainer = CreateHubContainer()) {
+            using (var hubContainer = CreateHubContainer())
+            {
                 var services = hubContainer.Resolve<IIoTHubTwinServices>();
 
                 // Create module
-                var twin = await services.CreateOrUpdateAsync(new DeviceTwinModel {
+                var twin = await services.CreateOrUpdateAsync(new DeviceTwinModel
+                {
                     Id = "TestDevice",
                     ModuleId = "TestModule"
                 }).ConfigureAwait(false);
@@ -43,7 +48,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
                 // Create module host with controller
                 using (var moduleContainer = CreateModuleContainer(services, device,
-                    controllers)) {
+                    controllers))
+                {
                     var edge = moduleContainer.Resolve<IModuleHost>();
 
                     // Act
@@ -74,15 +80,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
         }
 
-        public class TestIoTHubConfig : IIoTHubConfig {
+        public class TestIoTHubConfig : IIoTHubConfig
+        {
             public string IoTHubConnString =>
                 ConnectionString.CreateServiceConnectionString(
                     "test.test.org", "iothubowner", Convert.ToBase64String(
                         Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
         }
 
-        public class TestModuleConfig : IModuleConfig {
-            public TestModuleConfig(DeviceModel device) {
+        public class TestModuleConfig : IModuleConfig
+        {
+            public TestModuleConfig(DeviceModel device)
+            {
                 _device = device;
             }
             public string EdgeHubConnectionString =>
@@ -109,7 +118,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Create hub container
         /// </summary>
         /// <returns></returns>
-        private static IContainer CreateHubContainer() {
+        private static IContainer CreateHubContainer()
+        {
             var builder = new ContainerBuilder();
             builder.AddDiagnostics();
             builder.RegisterModule<IoTHubMockService>();
@@ -126,7 +136,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="controllers"></param>
         /// <returns></returns>
         private static IContainer CreateModuleContainer(IIoTHubTwinServices hub,
-            DeviceModel device, IEnumerable<object> controllers) {
+            DeviceModel device, IEnumerable<object> controllers)
+        {
             var builder = new ContainerBuilder();
             builder.AddDiagnostics();
             builder.RegisterInstance(hub)
@@ -134,7 +145,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             builder.RegisterInstance(new TestModuleConfig(device))
                 .AsImplementedInterfaces();
             builder.RegisterModule<IoTHubMockModule>();
-            foreach (var controller in controllers) {
+            foreach (var controller in controllers)
+            {
                 builder.RegisterInstance(controller)
                     .AsImplementedInterfaces();
             }

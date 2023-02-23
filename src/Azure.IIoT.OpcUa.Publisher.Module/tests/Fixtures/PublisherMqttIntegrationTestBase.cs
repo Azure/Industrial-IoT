@@ -3,7 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
+{
+    using Autofac;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
@@ -13,10 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Autofac;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -38,6 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -45,15 +47,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Globalization;
 
     public readonly record struct JsonMessage(string Topic, JsonElement Message, string ContentType);
 
     /// <summary>
     /// Base class for integration testing, it connects to the server, runs publisher and injects mocked IoTHub services.
     /// </summary>
-    public class PublisherMqttIntegrationTestBase : ISdkConfig {
-        public PublisherMqttIntegrationTestBase(ReferenceServerFixture serverFixture) {
+    public class PublisherMqttIntegrationTestBase : ISdkConfig
+    {
+        public PublisherMqttIntegrationTestBase(ReferenceServerFixture serverFixture)
+        {
             _exit = new TaskCompletionSource<bool>();
             _running = new TaskCompletionSource<bool>();
             _serverFixture = serverFixture;
@@ -64,7 +67,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             bool useMqtt5,
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
-            string[] arguments = default) {
+            string[] arguments = default)
+        {
             // Collect messages from server with default settings
             return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1,
                 useMqtt5, predicate, messageType, arguments);
@@ -77,7 +81,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             bool useMqtt5,
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
-            string[] arguments = default) {
+            string[] arguments = default)
+        {
             await StartPublisherAsync(useMqtt5, publishedNodesFile, arguments).ConfigureAwait(false);
 
             JsonMessage? metadata = null;
@@ -92,7 +97,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// Wait for one message
         /// </summary>
         protected List<JsonMessage> WaitForMessages(
-            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null)
+        {
             // Collect messages from server with default settings
             JsonMessage? metadata = null;
             return WaitForMessagesAndMetadata(TimeSpan.FromMinutes(2), 1, ref metadata, predicate, messageType);
@@ -102,7 +108,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// Wait for one message
         /// </summary>
         protected List<JsonMessage> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
-            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null)
+        {
             // Collect messages from server with default settings
             JsonMessage? metadata = null;
             return WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
@@ -112,12 +119,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// Wait for messages
         /// </summary>
         protected List<JsonMessage> WaitForMessagesAndMetadata(TimeSpan messageCollectionTimeout, int messageCount,
-            ref JsonMessage? metadata, Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
+            ref JsonMessage? metadata, Func<JsonElement, JsonElement> predicate = null, string messageType = null)
+        {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var messages = new List<JsonMessage>();
             while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero
-                && Events.TryTake(out var evt, messageCollectionTimeout)) {
+                && Events.TryTake(out var evt, messageCollectionTimeout))
+            {
                 messageCollectionTimeout -= stopWatch.Elapsed;
 
                 var (topic, body, contentType) = evt;
@@ -126,15 +135,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
                 var document = JsonDocument.Parse(json);
                 json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
                 var element = document.RootElement;
-                if (element.ValueKind == JsonValueKind.Array) {
-                    foreach (var item in element.EnumerateArray()) {
+                if (element.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in element.EnumerateArray())
+                    {
                         Add(messages, item, ref metadata, predicate, messageType, _messageIds, topic, contentType);
                     }
                 }
-                else if (element.ValueKind == JsonValueKind.Object) {
+                else if (element.ValueKind == JsonValueKind.Object)
+                {
                     Add(messages, element, ref metadata, predicate, messageType, _messageIds, topic, contentType);
                 }
-                if (messages.Count >= messageCount) {
+                if (messages.Count >= messageCount)
+                {
                     break;
                 }
             }
@@ -142,26 +155,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
 
             static void Add(List<JsonMessage> messages, JsonElement item, ref JsonMessage? metadata,
                 Func<JsonElement, JsonElement> predicate, string messageType, HashSet<string> messageIds,
-                string topic, string contentType) {
-                if (messageType != null) {
-                    if (item.TryGetProperty("MessageType", out var v)) {
+                string topic, string contentType)
+            {
+                if (messageType != null)
+                {
+                    if (item.TryGetProperty("MessageType", out var v))
+                    {
                         var type = v.GetString();
-                        if (type == "ua-metadata") {
+                        if (type == "ua-metadata")
+                        {
                             metadata = new JsonMessage(topic, item, contentType);
                         }
-                        if (type != messageType) {
+                        if (type != messageType)
+                        {
                             return;
                         }
                     }
-                    if (item.TryGetProperty("MessageId", out var id)) {
+                    if (item.TryGetProperty("MessageId", out var id))
+                    {
                         Assert.True(messageIds.Add(id.GetString()));
                     }
                 }
                 var add = item;
-                if (predicate != null) {
+                if (predicate != null)
+                {
                     add = predicate(item);
                 }
-                if (add.ValueKind == JsonValueKind.Object) {
+                if (add.ValueKind == JsonValueKind.Object)
+                {
                     messages.Add(new JsonMessage(topic, add, contentType));
                 }
             }
@@ -171,7 +192,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// Start publisher
         /// </summary>
         protected Task StartPublisherAsync(bool useMqtt5, string publishedNodesFile = null,
-            string[] arguments = default) {
+            string[] arguments = default)
+        {
             Task.Run(() => HostPublisherAsync(
                 Mock.Of<ILogger>(),
                 publishedNodesFile,
@@ -189,7 +211,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <summary>
         /// Stop publisher
         /// </summary>
-        protected void StopPublisher() {
+        protected void StopPublisher()
+        {
             // Shut down gracefully.
             _exit.TrySetResult(true);
         }
@@ -199,7 +222,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// </summary>
         /// <param name="publishedNodesFile"></param>
         /// <returns></returns>
-        protected PublishedNodesEntryModel[] GetEndpointsFromFile(string publishedNodesFile) {
+        protected PublishedNodesEntryModel[] GetEndpointsFromFile(string publishedNodesFile)
+        {
             IJsonSerializer serializer = new NewtonsoftJsonSerializer();
             var fileContent = File.ReadAllText(publishedNodesFile).Replace("{{Port}}",
                 _serverFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
@@ -216,10 +240,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// Setup publishing from sample server.
         /// </summary>
         private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile,
-            string protocol, string[] arguments) {
+            string protocol, string[] arguments)
+        {
             const string topicRoot = "/publishers/mypublishertest";
 
-            using var broker = await MqttBroker.CreateAsync(protocol, (topic, buffer, contentType) => {
+            using var broker = await MqttBroker.CreateAsync(protocol, (topic, buffer, contentType) =>
+            {
                 Events.Add((topic, buffer, contentType));
                 return Task.CompletedTask;
             }, topicRoot).ConfigureAwait(false);
@@ -227,11 +253,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             broker.Password = "pass";
 
             var publishedNodesFilePath = Path.GetTempFileName();
-            if (!string.IsNullOrEmpty(publishedNodesFile)) {
+            if (!string.IsNullOrEmpty(publishedNodesFile))
+            {
                 File.WriteAllText(publishedNodesFilePath, File.ReadAllText(publishedNodesFile).Replace("{{Port}}",
                     _serverFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal));
             }
-            try {
+            try
+            {
                 arguments = arguments.Concat(
                     new[]
                     {
@@ -251,7 +279,8 @@ $"--ttt={topicRoot}",
                     .AddCommandLine(arguments.ToArray())
                     .Build();
 
-                using (var cts = new CancellationTokenSource()) {
+                using (var cts = new CancellationTokenSource())
+                {
                     // Start publisher module
                     var host = Task.Run(() => HostAsync(logger, configuration, broker), cts.Token);
                     await Task.WhenAny(_exit.Task).ConfigureAwait(false);
@@ -259,11 +288,14 @@ $"--ttt={topicRoot}",
                     await host.ConfigureAwait(false);
                 }
             }
-            catch (OperationCanceledException) {
+            catch (OperationCanceledException)
+            {
                 Console.WriteLine("Cancellation operation.");
             }
-            finally {
-                if (File.Exists(publishedNodesFilePath)) {
+            finally
+            {
+                if (File.Exists(publishedNodesFilePath))
+                {
                     File.Delete(publishedNodesFilePath);
                 }
             }
@@ -272,15 +304,19 @@ $"--ttt={topicRoot}",
         /// <summary>
         /// Host the publisher module.
         /// </summary>
-        private async Task HostAsync(ILogger logger, IConfiguration configurationRoot, MqttBroker mqttBroker) {
-            try {
-                using (var hostScope = ConfigureContainer(configurationRoot)) {
+        private async Task HostAsync(ILogger logger, IConfiguration configurationRoot, MqttBroker mqttBroker)
+        {
+            try
+            {
+                using (var hostScope = ConfigureContainer(configurationRoot))
+                {
                     var module = hostScope.Resolve<IModuleHost>();
                     var events = hostScope.Resolve<IEventEmitter>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     ISessionProvider<ConnectionModel> sessionManager = null;
 
-                    try {
+                    try
+                    {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         logger.LogInformation("Starting module OpcPublisher version {Version}.", version);
                         // Start module
@@ -292,10 +328,12 @@ $"--ttt={topicRoot}",
                         await Task.WhenAny(_exit.Task).ConfigureAwait(false);
                         logger.LogInformation("Module exits...");
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         _running.TrySetException(ex);
                     }
-                    finally {
+                    finally
+                    {
                         await module.StopAsync().ConfigureAwait(false);
 
                         _apiScope?.Dispose();
@@ -303,7 +341,8 @@ $"--ttt={topicRoot}",
                     }
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 logger.LogError(ex, "Error when initializing module host.");
                 throw;
             }
@@ -316,7 +355,8 @@ $"--ttt={topicRoot}",
         /// <param name="methodClient"></param>
         /// <returns></returns>
         private IContainer ConfigureContainer(IConfiguration configurationRoot,
-            IJsonMethodClient methodClient) {
+            IJsonMethodClient methodClient)
+        {
             var builder = new ContainerBuilder();
             builder.RegisterInstance(configurationRoot)
                 .AsImplementedInterfaces();
@@ -336,7 +376,8 @@ $"--ttt={topicRoot}",
         /// <summary>
         /// Configures DI for the types required.
         /// </summary>
-        private static IContainer ConfigureContainer(IConfiguration configuration) {
+        private static IContainer ConfigureContainer(IConfiguration configuration)
+        {
             var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
 
@@ -387,7 +428,8 @@ $"--ttt={topicRoot}",
         /// <summary>
         /// Mqtt broker that can serve as event client
         /// </summary>
-        internal sealed class MqttBroker : IDisposable, IJsonMethodClient {
+        internal sealed class MqttBroker : IDisposable, IJsonMethodClient
+        {
             /// <summary>
             /// Port number
             /// </summary>
@@ -418,7 +460,8 @@ $"--ttt={topicRoot}",
             /// </summary>
             private MqttBroker(ILogger logger, MqttServer server, int port,
                 Func<string, ReadOnlyMemory<byte>, string, Task> subscription,
-                string topicRoot, string protocol) {
+                string topicRoot, string protocol)
+            {
                 _logger = logger;
                 _server = server;
                 _subscription = subscription;
@@ -428,14 +471,16 @@ $"--ttt={topicRoot}",
             }
 
             /// <inheritdoc/>
-            public void Dispose() {
+            public void Dispose()
+            {
                 _server.Dispose();
                 _lock.Dispose();
             }
 
             /// <inheritdoc/>
             public async Task<string> CallMethodAsync(string deviceId, string moduleId,
-                string method, string json, TimeSpan? timeout = null, CancellationToken ct = default) {
+                string method, string json, TimeSpan? timeout = null, CancellationToken ct = default)
+            {
                 var payload = Encoding.UTF8.GetBytes(json);
                 var requestId = Guid.NewGuid();
 
@@ -452,17 +497,21 @@ $"--ttt={topicRoot}",
 
                 var result = await _currentCall.callback.Task.ConfigureAwait(false);
                 var status = 0;
-                if (_useMqtt5) {
+                if (_useMqtt5)
+                {
                     status = int.Parse(result.Item2.UserProperties
                         .Find(p => p.Name == "StatusCode")?.Value ?? "500", CultureInfo.InvariantCulture);
-                    if (!requestId.ToByteArray().SequenceEqual(result.Item2.CorrelationData)) {
+                    if (!requestId.ToByteArray().SequenceEqual(result.Item2.CorrelationData))
+                    {
                         throw new MethodCallException("Did not get correct correlation data back.");
                     }
                 }
-                else {
+                else
+                {
                     var components = result.Item1.Replace($"{_topicRoot}/methods/res/", "", StringComparison.Ordinal).Split('/');
                     status = int.Parse(components[^2], CultureInfo.InvariantCulture);
-                    if (requestId.ToString() != components[^1]["?$rid=".Length..]) {
+                    if (requestId.ToString() != components[^1]["?$rid=".Length..])
+                    {
                         throw new MethodCallException("Did not get correct request id back.");
                     }
                 }
@@ -476,11 +525,14 @@ $"--ttt={topicRoot}",
             /// </summary>
             private Task SendMessageAsync(string topic, string responseTopic,
                 byte[] correlationData, ReadOnlyMemory<byte> payload,
-                string contentType, CancellationToken ct = default) {
-                if (topic == null) {
+                string contentType, CancellationToken ct = default)
+            {
+                if (topic == null)
+                {
                     throw new ArgumentNullException(nameof(topic));
                 }
-                var injected = new InjectedMqttApplicationMessage(new MqttApplicationMessage {
+                var injected = new InjectedMqttApplicationMessage(new MqttApplicationMessage
+                {
                     Topic = topic,
                     Payload = payload.ToArray(),
                     ContentType = contentType,
@@ -488,7 +540,8 @@ $"--ttt={topicRoot}",
                     ResponseTopic = responseTopic,
                     CorrelationData = correlationData,
                     Retain = false
-                }) {
+                })
+                {
                     SenderClientId = ClientId
                 };
                 return _server.InjectApplicationMessage(injected, ct);
@@ -497,7 +550,8 @@ $"--ttt={topicRoot}",
             /// <summary>
             /// Handle connection
             /// </summary>
-            private Task HandleClientConnectedAsync(ClientConnectedEventArgs args) {
+            private Task HandleClientConnectedAsync(ClientConnectedEventArgs args)
+            {
                 _logger.LogInformation("Client {ClientId} connected.", args.ClientId);
                 return Task.CompletedTask;
             }
@@ -506,7 +560,8 @@ $"--ttt={topicRoot}",
             /// Handle unsubscribe
             /// </summary>
             /// <param name="args"></param>
-            private Task HandleClientUnsubscribedTopicAsync(ClientUnsubscribedTopicEventArgs args) {
+            private Task HandleClientUnsubscribedTopicAsync(ClientUnsubscribedTopicEventArgs args)
+            {
                 _logger.LogInformation("Client {ClientId} unsubscribed from {Topic}.",
                     args.ClientId, args.TopicFilter);
                 return Task.CompletedTask;
@@ -516,7 +571,8 @@ $"--ttt={topicRoot}",
             /// Handle subscribe
             /// </summary>
             /// <param name="args"></param>
-            private Task HandleClientSubscribedTopicAsync(ClientSubscribedTopicEventArgs args) {
+            private Task HandleClientSubscribedTopicAsync(ClientSubscribedTopicEventArgs args)
+            {
                 _logger.LogInformation("Client {ClientId} subscribed to {Topic}.",
                     args.ClientId, args.TopicFilter);
                 return Task.CompletedTask;
@@ -526,27 +582,33 @@ $"--ttt={topicRoot}",
             /// Handle message receival
             /// </summary>
             /// <param name="args"></param>
-            private async Task HandleMessageReceivedAsync(InterceptingPublishEventArgs args) {
-                if (args?.ApplicationMessage == null) {
+            private async Task HandleMessageReceivedAsync(InterceptingPublishEventArgs args)
+            {
+                if (args?.ApplicationMessage == null)
+                {
                     return;
                 }
                 var topic = args.ApplicationMessage.Topic;
                 _logger.LogDebug("Client received message from {Client} on {Topic}",
                     args.ClientId, topic);
                 await _lock.WaitAsync().ConfigureAwait(false);
-                try {
+                try
+                {
                     var current = _currentCall;
                     if (current.topic != null &&
-                        MqttTopicFilterComparer.Compare(topic, current.topic) == MqttTopicFilterCompareResult.IsMatch) {
+                        MqttTopicFilterComparer.Compare(topic, current.topic) == MqttTopicFilterCompareResult.IsMatch)
+                    {
                         current.callback.TrySetResult((topic, args.ApplicationMessage));
                     }
                     else if (MqttTopicFilterComparer.Compare(topic, $"{_topicRoot}/twin/#") != MqttTopicFilterCompareResult.IsMatch &&
-                        MqttTopicFilterComparer.Compare(topic, $"{_topicRoot}/methods/#") != MqttTopicFilterCompareResult.IsMatch) {
+                        MqttTopicFilterComparer.Compare(topic, $"{_topicRoot}/methods/#") != MqttTopicFilterCompareResult.IsMatch)
+                    {
                         await _subscription.Invoke(topic, args.ApplicationMessage.Payload,
                             args.ApplicationMessage.ContentType ?? "NoContentType_UseMqttv5").ConfigureAwait(false);
                     }
                 }
-                finally {
+                finally
+                {
                     _lock.Release();
                 }
             }
@@ -556,7 +618,8 @@ $"--ttt={topicRoot}",
             /// </summary>
             /// <param name="args"></param>
             /// <returns></returns>
-            private Task ValidateConnectionAsync(ValidatingConnectionEventArgs args) {
+            private Task ValidateConnectionAsync(ValidatingConnectionEventArgs args)
+            {
                 args.ReasonCode = UserName != null && args.UserName != UserName
                     ? MqttConnectReasonCode.BadUserNameOrPassword
                     : Password != null && args.Password != Password ? MqttConnectReasonCode.BadUserNameOrPassword : MqttConnectReasonCode.Success;
@@ -567,7 +630,8 @@ $"--ttt={topicRoot}",
             /// Handle disconnected
             /// </summary>
             /// <param name="args"></param>
-            private Task HandleClientDisconnectedAsync(ClientDisconnectedEventArgs args) {
+            private Task HandleClientDisconnectedAsync(ClientDisconnectedEventArgs args)
+            {
                 _logger.LogInformation("Disconnected client {ClientId} with type {Reason}",
                     args.ClientId, args.DisconnectType);
                 return Task.CompletedTask;
@@ -579,12 +643,16 @@ $"--ttt={topicRoot}",
             /// <returns></returns>
             public static async Task<MqttBroker> CreateAsync(string protocol,
                 Func<string, ReadOnlyMemory<byte>, string, Task> subscription, string topicRoot,
-                ILogger logger = null) {
-                for (var port = 1883; ; port++) {
-                    try {
+                ILogger logger = null)
+            {
+                for (var port = 1883; ; port++)
+                {
+                    try
+                    {
                         return await CreateAsync(protocol, subscription, port, topicRoot, logger).ConfigureAwait(false);
                     }
-                    catch {
+                    catch
+                    {
                         continue;
                     }
                 }
@@ -595,7 +663,8 @@ $"--ttt={topicRoot}",
             /// </summary>
             public static async Task<MqttBroker> CreateAsync(string protocol,
                 Func<string, ReadOnlyMemory<byte>, string, Task> subscription, int port, string topicRoot,
-                ILogger logger = null) {
+                ILogger logger = null)
+            {
                 logger ??= Log.Console<MqttBroker>();
                 var optionsBuilder = new MqttServerOptionsBuilder()
                     .WithDefaultEndpoint()
@@ -603,7 +672,8 @@ $"--ttt={topicRoot}",
                     ;
                 var server = new MqttFactory().CreateMqttServer(optionsBuilder.Build());
                 var mqttBroker = new MqttBroker(logger, server, port, subscription, topicRoot, protocol);
-                try {
+                try
+                {
                     server.ValidatingConnectionAsync += mqttBroker.ValidateConnectionAsync;
                     server.ClientConnectedAsync += mqttBroker.HandleClientConnectedAsync;
                     server.ClientDisconnectedAsync += mqttBroker.HandleClientDisconnectedAsync;
@@ -613,7 +683,8 @@ $"--ttt={topicRoot}",
                     await server.StartAsync().ConfigureAwait(false);
                     return mqttBroker;
                 }
-                catch {
+                catch
+                {
                     server.Dispose();
                     throw;
                 }

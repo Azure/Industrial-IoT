@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Client {
-    using Microsoft.Azure.IIoT.Hub.Models;
+namespace Microsoft.Azure.IIoT.Hub.Client
+{
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Threading;
@@ -14,7 +15,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     /// <summary>
     /// Method client using twin services
     /// </summary>
-    public sealed class IoTHubTwinMethodClient : IJsonMethodClient {
+    public sealed class IoTHubTwinMethodClient : IJsonMethodClient
+    {
         /// <inheritdoc/>
         public int MaxMethodPayloadCharacterCount => 120 * 1024;
 
@@ -23,23 +25,27 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// </summary>
         /// <param name="twin"></param>
         /// <param name="logger"></param>
-        public IoTHubTwinMethodClient(IIoTHubTwinServices twin, ILogger logger) {
+        public IoTHubTwinMethodClient(IIoTHubTwinServices twin, ILogger logger)
+        {
             _twin = twin ?? throw new ArgumentNullException(nameof(twin));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public async Task<string> CallMethodAsync(string deviceId, string moduleId,
-            string method, string payload, TimeSpan? timeout, CancellationToken ct) {
+            string method, string payload, TimeSpan? timeout, CancellationToken ct)
+        {
             _logger.LogTrace("Call {Method} on {DeviceId} ({ModuleId}) with {Payload}... ",
                 method, deviceId, moduleId, payload);
             var result = await _twin.CallMethodAsync(deviceId, moduleId,
-                new MethodParameterModel {
+                new MethodParameterModel
+                {
                     Name = method,
                     ResponseTimeout = timeout ?? TimeSpan.FromSeconds(kDefaultMethodTimeout),
                     JsonPayload = payload
                 }, ct).ConfigureAwait(false);
-            if (result.Status != 200) {
+            if (result.Status != 200)
+            {
                 _logger.LogDebug("Call {Method} on {DeviceId} ({ModuleId}) with {Payload} " +
                     "returned with error {Status}: {Result}",
                     method, deviceId, moduleId, payload, result.Status, result.JsonPayload);

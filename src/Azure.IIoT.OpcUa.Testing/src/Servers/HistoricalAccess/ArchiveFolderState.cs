@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalAccess {
+namespace HistoricalAccess
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System.Collections.Generic;
@@ -35,7 +36,8 @@ namespace HistoricalAccess {
     /// <summary>
     /// Stores the metadata for a node representing a folder on a file system.
     /// </summary>
-    public class ArchiveFolderState : FolderState {
+    public class ArchiveFolderState : FolderState
+    {
 #pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Creates a new instance of a folder.
@@ -43,7 +45,8 @@ namespace HistoricalAccess {
         public ArchiveFolderState(ISystemContext context, ArchiveFolder folder, ushort namespaceIndex)
 #pragma warning restore IDE0060 // Remove unused parameter
         :
-            base(null) {
+            base(null)
+        {
             ArchiveFolder = folder;
 
             TypeDefinitionId = ObjectTypeIds.FolderType;
@@ -60,8 +63,10 @@ namespace HistoricalAccess {
         /// <summary>
         /// Constructs a node identifier for a folder object.
         /// </summary>
-        public static NodeId ConstructId(string filePath, ushort namespaceIndex) {
-            var parsedNodeId = new ParsedNodeId {
+        public static NodeId ConstructId(string filePath, ushort namespaceIndex)
+        {
+            var parsedNodeId = new ParsedNodeId
+            {
                 RootId = filePath,
                 NamespaceIndex = namespaceIndex,
                 RootType = NodeTypes.Folder
@@ -86,7 +91,8 @@ namespace HistoricalAccess {
             BrowseDirection browseDirection,
             QualifiedName browseName,
             IEnumerable<IReference> additionalReferences,
-            bool internalOnly) {
+            bool internalOnly)
+        {
             NodeBrowser browser = new ArchiveFolderBrowser(
                 context,
                 view,

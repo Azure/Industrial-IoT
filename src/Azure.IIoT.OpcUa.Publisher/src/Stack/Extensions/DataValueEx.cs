@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Opc.Ua.Extensions {
+namespace Opc.Ua.Extensions
+{
     using Opc.Ua;
     using System;
     using System.Diagnostics.CodeAnalysis;
@@ -11,7 +12,8 @@ namespace Opc.Ua.Extensions {
     /// <summary>
     /// Datavalue extensions
     /// </summary>
-    public static class DataValueEx {
+    public static class DataValueEx
+    {
         /// <summary>
         /// Unpack with a default value
         /// </summary>
@@ -22,7 +24,8 @@ namespace Opc.Ua.Extensions {
         /// <returns></returns>
         [return: NotNullIfNotNull("defaultValue")]
         public static T? GetValueOrDefault<T>(this DataValue dataValue,
-            Func<T?, T?> convert, T? defaultValue = default) {
+            Func<T?, T?> convert, T? defaultValue = default)
+        {
             var result = GetValueOrDefault(dataValue, defaultValue);
             return convert(result);
         }
@@ -36,34 +39,45 @@ namespace Opc.Ua.Extensions {
         /// <returns></returns>
         [return: NotNullIfNotNull("defaultValue")]
         public static T? GetValueOrDefault<T>(this DataValue dataValue,
-            T? defaultValue = default) {
-            if (dataValue == null) {
+            T? defaultValue = default)
+        {
+            if (dataValue == null)
+            {
                 return defaultValue;
             }
             var value = dataValue.Value;
-            if (value == null) {
+            if (value == null)
+            {
                 return defaultValue;
             }
-            while (typeof(T).IsEnum) {
-                try {
+            while (typeof(T).IsEnum)
+            {
+                try
+                {
                     return (T)Enum.ToObject(typeof(T), value);
                 }
-                catch {
+                catch
+                {
                     break;
                 }
             }
-            while (!typeof(T).IsInstanceOfType(value)) {
-                try {
+            while (!typeof(T).IsInstanceOfType(value))
+            {
+                try
+                {
                     return value.As<T>();
                 }
-                catch {
+                catch
+                {
                     break;
                 }
             }
-            try {
+            try
+            {
                 return (T)value;
             }
-            catch {
+            catch
+            {
                 return defaultValue;
             }
         }

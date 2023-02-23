@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
+namespace Microsoft.Azure.IIoT.Auth.Clients.Default
+{
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Extensions.Logging;
@@ -14,20 +15,24 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Authenticate using browser
     /// </summary>
-    public sealed class MsalInteractiveClient : MsalPublicClientBase {
+    public sealed class MsalInteractiveClient : MsalPublicClientBase
+    {
         /// <summary>
         /// Create interactive token provider with callback
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public MsalInteractiveClient(IClientAuthConfig config, ILogger logger) :
-            base(config, logger) {
+            base(config, logger)
+        {
         }
 
         /// <inheritdoc/>
         protected override async Task<TokenResultModel> GetTokenAsync(
-            IPublicClientApplication client, string resource, IEnumerable<string> scopes) {
-            if (!client.IsSystemWebViewAvailable) {
+            IPublicClientApplication client, string resource, IEnumerable<string> scopes)
+        {
+            if (!client.IsSystemWebViewAvailable)
+            {
                 return null;
             }
             var result = await client.AcquireTokenInteractive(scopes).ExecuteAsync().ConfigureAwait(false);
@@ -36,7 +41,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
 
         /// <inheritdoc/>
         protected override PublicClientApplicationBuilder ConfigurePublicClientApplication(
-            string clientId, PublicClientApplicationBuilder builder) {
+            string clientId, PublicClientApplicationBuilder builder)
+        {
             return builder.WithDefaultRedirectUri();
         }
     }

@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Plc {
+namespace Plc
+{
     using Opc.Ua;
     using System;
     using System.Threading;
 
-    public partial class PlcNodeManager {
+    public partial class PlcNodeManager
+    {
         /// <summary>
         /// Flags for anomaly generation.
         /// </summary>
@@ -31,7 +33,8 @@ namespace Plc {
         /// <summary>
         /// Ctor for simulation server.
         /// </summary>
-        private void Initialize() {
+        private void Initialize()
+        {
             _random = new Random();
             _cyclesInPhase = SimulationCycleCount;
             _spikeCycleInPhase = SimulationCycleCount;
@@ -53,13 +56,15 @@ namespace Plc {
         /// <summary>
         /// Start the simulation.
         /// </summary>
-        public void Start() {
+        public void Start()
+        {
             _spikeGenerator = new Timer(SpikeGenerator, null, 0, SimulationCycleLength);
             _dipGenerator = new Timer(DipGenerator, null, 0, SimulationCycleLength);
             _posTrendGenerator = new Timer(PosTrendGenerator, null, 0, SimulationCycleLength);
             _negTrendGenerator = new Timer(NegTrendGenerator, null, 0, SimulationCycleLength);
 
-            if (GenerateData) {
+            if (GenerateData)
+            {
                 _dataGenerator = new Timer(ValueGenerator, null, 0, SimulationCycleLength);
             }
         }
@@ -67,7 +72,8 @@ namespace Plc {
         /// <summary>
         /// Stop the simulation.
         /// </summary>
-        public void Stop() {
+        public void Stop()
+        {
             _spikeGenerator?.Change(Timeout.Infinite, Timeout.Infinite);
             _dipGenerator?.Change(Timeout.Infinite, Timeout.Infinite);
             _posTrendGenerator?.Change(Timeout.Infinite, Timeout.Infinite);
@@ -79,22 +85,26 @@ namespace Plc {
         /// Generates a sine wave with spikes at a random cycle in the phase.
         /// Called each SimulationCycleLength msec.
         /// </summary>
-        private void SpikeGenerator(object state) {
+        private void SpikeGenerator(object state)
+        {
             // calculate next value
             double nextValue = 0;
-            if (GenerateSpikes && _spikeCycleInPhase == _spikeAnomalyCycle) {
+            if (GenerateSpikes && _spikeCycleInPhase == _spikeAnomalyCycle)
+            {
                 // TODO: calculate
                 nextValue = SimulationMaxAmplitude * 10;
                 Utils.Trace("generate spike anomaly");
             }
-            else {
+            else
+            {
                 nextValue = SimulationMaxAmplitude * Math.Sin(2 * Math.PI / SimulationCycleCount * _spikeCycleInPhase);
             }
             Utils.Trace($"spike cycle: {_spikeCycleInPhase} data: {nextValue}");
             SpikeData = nextValue;
 
             // end of cycle: reset cycle count and calc next anomaly cycle
-            if (--_spikeCycleInPhase == 0) {
+            if (--_spikeCycleInPhase == 0)
+            {
                 _spikeCycleInPhase = SimulationCycleCount;
                 _spikeAnomalyCycle = _random.Next(SimulationCycleCount);
                 Utils.Trace($"next spike anomaly cycle: {_spikeAnomalyCycle}");
@@ -105,21 +115,25 @@ namespace Plc {
         /// Generates a sine wave with dips at a random cycle in the phase.
         /// Called each SimulationCycleLength msec.
         /// </summary>
-        private void DipGenerator(object state) {
+        private void DipGenerator(object state)
+        {
             // calculate next value
             double nextValue = 0;
-            if (GenerateDips && _dipCycleInPhase == _dipAnomalyCycle) {
+            if (GenerateDips && _dipCycleInPhase == _dipAnomalyCycle)
+            {
                 nextValue = SimulationMaxAmplitude * -10;
                 Utils.Trace("generate dip anomaly");
             }
-            else {
+            else
+            {
                 nextValue = SimulationMaxAmplitude * Math.Sin(2 * Math.PI / SimulationCycleCount * _dipCycleInPhase);
             }
             Utils.Trace($"spike cycle: {_dipCycleInPhase} data: {nextValue}");
             DipData = nextValue;
 
             // end of cycle: reset cycle count and calc next anomaly cycle
-            if (--_dipCycleInPhase == 0) {
+            if (--_dipCycleInPhase == 0)
+            {
                 _dipCycleInPhase = SimulationCycleCount;
                 _dipAnomalyCycle = _random.Next(SimulationCycleCount);
                 Utils.Trace($"next dip anomaly cycle: {_dipAnomalyCycle}");
@@ -130,17 +144,20 @@ namespace Plc {
         /// Generates a sine wave with spikes at a configurable cycle in the phase.
         /// Called each SimulationCycleLength msec.
         /// </summary>
-        private void PosTrendGenerator(object state) {
+        private void PosTrendGenerator(object state)
+        {
             // calculate next value
             var nextValue = kTREND_BASEVALUE;
-            if (GeneratePosTrend && _posTrendPhase >= _posTrendAnomalyPhase) {
+            if (GeneratePosTrend && _posTrendPhase >= _posTrendAnomalyPhase)
+            {
                 nextValue = kTREND_BASEVALUE + ((_posTrendPhase - _posTrendAnomalyPhase) / 10);
                 Utils.Trace("generate postrend anomaly");
             }
             PosTrendData = nextValue;
 
             // end of cycle: reset cycle count and calc next anomaly cycle
-            if (--_posTrendCycleInPhase == 0) {
+            if (--_posTrendCycleInPhase == 0)
+            {
                 _posTrendCycleInPhase = SimulationCycleCount;
                 _posTrendPhase++;
                 Utils.Trace($"pos trend phase: {_posTrendPhase}, data: {nextValue}");
@@ -151,17 +168,20 @@ namespace Plc {
         /// Generates a sine wave with spikes at a configurable cycle in the phase.
         /// Called each SimulationCycleLength msec.
         /// </summary>
-        private void NegTrendGenerator(object state) {
+        private void NegTrendGenerator(object state)
+        {
             // calculate next value
             var nextValue = kTREND_BASEVALUE;
-            if (GenerateNegTrend && _negTrendPhase >= _negTrendAnomalyPhase) {
+            if (GenerateNegTrend && _negTrendPhase >= _negTrendAnomalyPhase)
+            {
                 nextValue = kTREND_BASEVALUE - ((_negTrendPhase - _negTrendAnomalyPhase) / 10);
                 Utils.Trace("generate negtrend anomaly");
             }
             NegTrendData = nextValue;
 
             // end of cycle: reset cycle count and calc next anomaly cycle
-            if (--_negTrendCycleInPhase == 0) {
+            if (--_negTrendCycleInPhase == 0)
+            {
                 _negTrendCycleInPhase = SimulationCycleCount;
                 _negTrendPhase++;
                 Utils.Trace($"neg trend phase: {_negTrendPhase}, data: {nextValue}");
@@ -172,10 +192,12 @@ namespace Plc {
         /// Updates simulation values. Called each SimulationCycleLength msec.
         /// Using SimulationCycleCount cycles per simulation phase.
         /// </summary>
-        private void ValueGenerator(object state) {
+        private void ValueGenerator(object state)
+        {
             // calculate next boolean value
             var nextAlternatingBoolean = (_cyclesInPhase % (SimulationCycleCount / 2)) == 0 ? !_currentAlternatingBoolean : _currentAlternatingBoolean;
-            if (_currentAlternatingBoolean != nextAlternatingBoolean) {
+            if (_currentAlternatingBoolean != nextAlternatingBoolean)
+            {
                 Utils.Trace($"data change to: {nextAlternatingBoolean}");
                 _currentAlternatingBoolean = nextAlternatingBoolean;
             }
@@ -186,12 +208,14 @@ namespace Plc {
             RandomUnsignedInt32 = (uint)_random.Next();
 
             // increase step up value
-            if (_stepUpStarted && (_cyclesInPhase % (SimulationCycleCount / 50) == 0)) {
+            if (_stepUpStarted && (_cyclesInPhase % (SimulationCycleCount / 50) == 0))
+            {
                 StepUp = _stepUp++;
             }
 
             // end of cycle: reset cycle count
-            if (--_cyclesInPhase == 0) {
+            if (--_cyclesInPhase == 0)
+            {
                 _cyclesInPhase = SimulationCycleCount;
             }
         }
@@ -199,7 +223,8 @@ namespace Plc {
         /// <summary>
         /// Method implementation to reset the trend data.
         /// </summary>
-        public void ResetTrendData() {
+        public void ResetTrendData()
+        {
             _posTrendAnomalyPhase = _random.Next(10);
             _posTrendCycleInPhase = SimulationCycleCount;
             _posTrendPhase = 0;
@@ -211,21 +236,24 @@ namespace Plc {
         /// <summary>
         /// Method implementation to reset the StepUp data.
         /// </summary>
-        public void ResetStepUpData() {
+        public void ResetStepUpData()
+        {
             StepUp = _stepUp = 0;
         }
 
         /// <summary>
         /// Method implementation to start the StepUp.
         /// </summary>
-        public void StartStepUp() {
+        public void StartStepUp()
+        {
             _stepUpStarted = true;
         }
 
         /// <summary>
         /// Method implementation to stop the StepUp.
         /// </summary>
-        public void StopStepUp() {
+        public void StopStepUp()
+        {
             _stepUpStarted = false;
         }
 

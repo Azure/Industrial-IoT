@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http.Default {
+namespace Microsoft.Azure.IIoT.Http.Default
+{
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -14,7 +15,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// <summary>
     /// Wraps http handles in a delegating handler
     /// </summary>
-    public sealed class HttpHandlerFactory : IHttpHandlerFactory {
+    public sealed class HttpHandlerFactory : IHttpHandlerFactory
+    {
         /// <summary>Constant to use as default resource id</summary>
         public static readonly string DefaultResourceId = "$default$";
 
@@ -23,7 +25,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// </summary>
         /// <param name="logger"></param>
         public HttpHandlerFactory(ILogger logger) :
-            this(null, logger) { }
+            this(null, logger)
+        { }
 
         /// <summary>
         /// Create handler factory
@@ -31,7 +34,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
         public HttpHandlerFactory(IEnumerable<IHttpHandler> handlers, ILogger logger) :
-            this(handlers, null, logger) { }
+            this(handlers, null, logger)
+        { }
 
         /// <summary>
         /// Create handler factory
@@ -40,16 +44,19 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="proxy"></param>
         /// <param name="logger"></param>
         public HttpHandlerFactory(IEnumerable<IHttpHandler> handlers,
-            IWebProxy proxy, ILogger logger) {
+            IWebProxy proxy, ILogger logger)
+        {
             _proxy = proxy;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? new List<IHttpHandler>();
         }
 
         /// <inheritdoc/>
-        public TimeSpan Create(string resourceId, out HttpMessageHandler handler) {
+        public TimeSpan Create(string resourceId, out HttpMessageHandler handler)
+        {
             var resource = resourceId == DefaultResourceId ? Resource.None : resourceId;
-            if (resource?.StartsWith(Resource.Local, StringComparison.Ordinal) == true) {
+            if (resource?.StartsWith(Resource.Local, StringComparison.Ordinal) == true)
+            {
                 resource = resource.Remove(0, Resource.Local.Length);
             }
 

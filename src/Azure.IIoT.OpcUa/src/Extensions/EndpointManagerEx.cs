@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa {
+namespace Azure.IIoT.OpcUa
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa {
     /// <summary>
     /// Endpoint manager extensions
     /// </summary>
-    public static class EndpointManagerEx {
+    public static class EndpointManagerEx
+    {
         /// <summary>
         /// Register endpoint
         /// </summary>
@@ -20,8 +22,10 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task<string> RegisterEndpointAsync(this IEndpointManager manager,
-            EndpointModel endpoint, CancellationToken ct = default) {
-            return manager.RegisterEndpointAsync(new ServerEndpointQueryModel {
+            EndpointModel endpoint, CancellationToken ct = default)
+        {
+            return manager.RegisterEndpointAsync(new ServerEndpointQueryModel
+            {
                 DiscoveryUrl = endpoint.Url,
                 SecurityPolicy = endpoint.SecurityPolicy,
                 SecurityMode = endpoint.SecurityMode,

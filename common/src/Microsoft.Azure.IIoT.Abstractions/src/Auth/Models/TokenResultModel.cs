@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Models {
+namespace Microsoft.Azure.IIoT.Auth.Models
+{
     using System;
 
     /// <summary>
     /// Contains the results of one token acquisition
     /// operation.
     /// </summary>
-    public sealed class TokenResultModel {
+    public sealed class TokenResultModel
+    {
         /// <summary>
         /// Gets the authority that has issued the token.
         /// </summary>

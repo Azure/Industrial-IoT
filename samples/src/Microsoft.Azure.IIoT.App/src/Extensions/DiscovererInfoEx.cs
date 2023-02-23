@@ -3,34 +3,41 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Extensions {
-    using Microsoft.Azure.IIoT.App.Models;
+namespace Microsoft.Azure.IIoT.App.Extensions
+{
     using global::Azure.IIoT.OpcUa.Services.Sdk;
     using global::Azure.IIoT.OpcUa.Shared.Models;
+    using Microsoft.Azure.IIoT.App.Models;
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
     /// Handle event
     /// </summary>
-    public static class DiscovererInfoEx {
+    public static class DiscovererInfoEx
+    {
         /// <summary>
         /// Update a list of discoverers from a received event
         /// </summary>
         /// <param name="results"></param>
         /// <param name="ev"></param>
         public static void Update(this IList<DiscovererInfo> results,
-            DiscovererEventModel ev) {
+            DiscovererEventModel ev)
+        {
             var discoverer = results.FirstOrDefault(e => e.DiscovererModel.Id == ev.Id);
             if (discoverer == null &&
-                ev.EventType != DiscovererEventType.New) {
+                ev.EventType != DiscovererEventType.New)
+            {
                 return;
             }
-            switch (ev.EventType) {
+            switch (ev.EventType)
+            {
                 case DiscovererEventType.New:
-                    if (discoverer == null) {
+                    if (discoverer == null)
+                    {
                         // Add if not already in list
-                        results.Add(new DiscovererInfo {
+                        results.Add(new DiscovererInfo
+                        {
                             DiscovererModel = ev.Discoverer
                         });
                     }

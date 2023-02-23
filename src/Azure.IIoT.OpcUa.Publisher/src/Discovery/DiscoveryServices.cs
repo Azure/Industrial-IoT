@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Discovery {
+namespace Azure.IIoT.OpcUa.Publisher.Discovery
+{
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
@@ -34,7 +35,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
     /// <summary>
     /// Provides discovery services
     /// </summary>
-    public sealed class DiscoveryServices : IDiscoveryServices, IServerDiscovery, IDisposable {
+    public sealed class DiscoveryServices : IDiscoveryServices, IServerDiscovery, IDisposable
+    {
         /// <summary>
         /// Create services
         /// </summary>
@@ -46,7 +48,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <param name="identity"></param>
         public DiscoveryServices(IEndpointDiscovery client, IEventEmitter events,
             IJsonSerializer serializer, ILogger logger, IDiscoveryProgress progress = null,
-            IProcessIdentity identity = null) {
+            IProcessIdentity identity = null)
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
@@ -60,8 +63,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationModel> FindServerAsync(
-            ServerEndpointQueryModel endpoint, CancellationToken ct) {
-            if (endpoint?.Url == null) {
+            ServerEndpointQueryModel endpoint, CancellationToken ct)
+        {
+            if (endpoint?.Url == null)
+            {
                 throw new ArgumentNullException(nameof(endpoint));
             }
 
@@ -72,19 +77,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                 ct).ConfigureAwait(false);
 
             // Match endpoints
-            foreach (var ep in eps) {
+            foreach (var ep in eps)
+            {
                 if ((ep.Description.SecurityMode.ToServiceType() ?? SecurityMode.None)
-                    != (endpoint.SecurityMode ?? SecurityMode.None)) {
+                    != (endpoint.SecurityMode ?? SecurityMode.None))
+                {
                     // no match
                     continue;
                 }
                 if (endpoint.SecurityPolicy != null &&
-                    endpoint.SecurityPolicy != ep.Description.SecurityPolicyUri) {
+                    endpoint.SecurityPolicy != ep.Description.SecurityPolicyUri)
+                {
                     // no match
                     continue;
                 }
                 if (endpoint.Certificate != null &&
-                    endpoint.Certificate != ep.Description.ServerCertificate.ToThumbprint()) {
+                    endpoint.Certificate != ep.Description.ServerCertificate.ToThumbprint())
+                {
                     // no match
                     continue;
                 }
@@ -95,19 +104,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         }
 
         /// <inheritdoc/>
-        public Task RegisterAsync(ServerRegistrationRequestModel request, CancellationToken ct) {
+        public Task RegisterAsync(ServerRegistrationRequestModel request, CancellationToken ct)
+        {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
-        public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct) {
+        public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct)
+        {
             kDiscoverAsync.Inc();
-            if (request == null) {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             var task = new DiscoveryRequest(request);
             var scheduled = _queue.TryAdd(task);
-            if (!scheduled) {
+            if (!scheduled)
+            {
                 task.Dispose();
                 _logger.LogError("Discovey request not scheduled, internal server error!");
                 var ex = new ResourceExhaustionException("Failed to schedule task");
@@ -115,37 +128,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                 throw ex;
             }
             await _lock.WaitAsync(ct).ConfigureAwait(false);
-            try {
-                if (_pending.Count != 0) {
+            try
+            {
+                if (_pending.Count != 0)
+                {
                     _progress.OnDiscoveryPending(task.Request, _pending.Count);
                 }
                 _pending.Add(task);
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
 
         /// <inheritdoc/>
-        public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct) {
+        public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct)
+        {
             kCancelAsync.Inc();
-            if (request == null) {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             await _lock.WaitAsync(ct).ConfigureAwait(false);
-            try {
-                foreach (var task in _pending.Where(r => r.Request.Id == request.Id)) {
+            try
+            {
+                foreach (var task in _pending.Where(r => r.Request.Id == request.Id))
+                {
                     // Cancel the task
                     task.Cancel();
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             Try.Async(StopDiscoveryRequestProcessingAsync).Wait();
 
             // Dispose
@@ -157,28 +179,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <summary>
         /// Scan timer expired
         /// </summary>
-        private void OnScanScheduling() {
+        private void OnScanScheduling()
+        {
             _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _lock.Wait();
-            try {
-                foreach (var task in _pending.Where(r => r.IsScan)) {
+            try
+            {
+                foreach (var task in _pending.Where(r => r.IsScan))
+                {
                     // Cancel any current scan tasks if any
                     task.Cancel();
                 }
 
                 // Add new discovery request
-                if (_request.Mode != DiscoveryMode.Off) {
+                if (_request.Mode != DiscoveryMode.Off)
+                {
                     // Push request
                     var task = _request.Clone();
-                    if (_queue.TryAdd(task)) {
+                    if (_queue.TryAdd(task))
+                    {
                         _pending.Add(task);
                     }
-                    else {
+                    else
+                    {
                         task.Dispose();
                     }
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
@@ -187,27 +216,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// Stop discovery request processing
         /// </summary>
         /// <returns></returns>
-        private async Task StopDiscoveryRequestProcessingAsync() {
+        private async Task StopDiscoveryRequestProcessingAsync()
+        {
             _queue.CompleteAdding();
             _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             await _lock.WaitAsync().ConfigureAwait(false);
-            try {
+            try
+            {
                 // Cancel all requests first
-                foreach (var request in _pending) {
+                foreach (var request in _pending)
+                {
                     request.Cancel();
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
 
             // Try cancel discovery and wait for completion of runner
             Try.Op(() => _cts?.Cancel());
-            try {
+            try
+            {
                 await _runner.ConfigureAwait(false);
             }
             catch (OperationCanceledException) { }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Unexpected exception stopping processor thread.");
             }
         }
@@ -217,20 +252,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task ProcessDiscoveryRequestsAsync(CancellationToken ct) {
+        private async Task ProcessDiscoveryRequestsAsync(CancellationToken ct)
+        {
             _logger.LogInformation("Starting discovery processor...");
             // Process all discovery requests
-            while (!ct.IsCancellationRequested) {
-                try {
+            while (!ct.IsCancellationRequested)
+            {
+                try
+                {
                     var request = _queue.Take(ct);
-                    try {
+                    try
+                    {
                         // Update pending queue size
                         await ReportPendingRequestsAsync().ConfigureAwait(false);
                         await ProcessDiscoveryRequestAsync(request).ConfigureAwait(false);
                     }
-                    finally {
+                    finally
+                    {
                         // If the request is scan request, schedule next one
-                        if (!ct.IsCancellationRequested && (request?.IsScan ?? false)) {
+                        if (!ct.IsCancellationRequested && (request?.IsScan ?? false))
+                        {
                             // Re-schedule another scan when idle time expired
                             _timer.Change(
                                 request.Request.Configuration.IdleTimeBetweenScans ??
@@ -240,7 +281,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                     }
                 }
                 catch (OperationCanceledException) { }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _logger.LogError(ex, "Discovery processor error occurred - continue...");
                 }
             }
@@ -253,7 +295,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// Process the provided discovery request
         /// </summary>
         /// <param name="request"></param>
-        private async Task ProcessDiscoveryRequestAsync(DiscoveryRequest request) {
+        private async Task ProcessDiscoveryRequestAsync(DiscoveryRequest request)
+        {
             _logger.LogDebug("Processing discovery request...");
             _progress.OnDiscoveryStarted(request.Request);
             object diagnostics = null;
@@ -262,7 +305,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
             // Discover servers
             //
             List<ApplicationRegistrationModel> discovered;
-            try {
+            try
+            {
                 discovered = await DiscoverServersAsync(request).ConfigureAwait(false);
                 request.Token.ThrowIfCancellationRequested();
                 //
@@ -273,20 +317,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 
                 _progress.OnDiscoveryFinished(request.Request);
             }
-            catch (OperationCanceledException) {
+            catch (OperationCanceledException)
+            {
                 _progress.OnDiscoveryCancelled(request.Request);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _progress.OnDiscoveryError(request.Request, ex);
             }
-            finally {
-                if (request != null) {
+            finally
+            {
+                if (request != null)
+                {
                     await _lock.WaitAsync().ConfigureAwait(false);
-                    try {
+                    try
+                    {
                         _pending.Remove(request);
                         Try.Op(() => request.Dispose());
                     }
-                    finally {
+                    finally
+                    {
                         _lock.Release();
                     }
                 }
@@ -299,9 +349,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <param name="request"></param>
         /// <returns></returns>
         private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
-            DiscoveryRequest request) {
+            DiscoveryRequest request)
+        {
             var discoveryUrls = await GetDiscoveryUrlsAsync(request.DiscoveryUrls).ConfigureAwait(false);
-            if (request.Mode == DiscoveryMode.Off) {
+            if (request.Mode == DiscoveryMode.Off)
+            {
                 return await DiscoverServersAsync(request, discoveryUrls,
                     request.Configuration.Locales).ConfigureAwait(false);
             }
@@ -318,18 +370,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 #endif
             var addresses = new List<IPAddress>();
             _progress.OnNetScanStarted(request.Request, 0, 0, request.TotalAddresses);
-            using (var netscanner = new NetworkScanner(_logger, (scanner, reply) => {
+            using (var netscanner = new NetworkScanner(_logger, (scanner, reply) =>
+            {
                 _progress.OnNetScanResult(request.Request, scanner.ActiveProbes,
                     scanner.ScanCount, request.TotalAddresses, addresses.Count, reply.Address);
                 addresses.Add(reply.Address);
             }, local, local ? null : request.AddressRanges, request.NetworkClass,
                 request.Configuration.MaxNetworkProbes, request.Configuration.NetworkProbeTimeout,
-                request.Token)) {
+                request.Token))
+            {
                 // Log progress
                 using (var progress = new Timer(_ => ProgressTimer(
                     () => _progress.OnNetScanProgress(request.Request, netscanner.ActiveProbes,
                         netscanner.ScanCount, request.TotalAddresses, addresses.Count)),
-                    null, kProgressInterval, kProgressInterval)) {
+                    null, kProgressInterval, kProgressInterval))
+                {
                     await netscanner.WaitToCompleteAsync().ConfigureAwait(false);
                 }
                 _progress.OnNetScanFinished(request.Request, netscanner.ActiveProbes,
@@ -338,7 +393,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
             request.Token.ThrowIfCancellationRequested();
 
             await AddLoopbackAddressesAsync(addresses).ConfigureAwait(false);
-            if (addresses.Count == 0) {
+            if (addresses.Count == 0)
+            {
                 return new List<ApplicationRegistrationModel>();
             }
 
@@ -350,34 +406,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 #endif
             _progress.OnPortScanStart(request.Request, 0, 0, totalPorts);
             using (var portscan = new PortScanner(_logger,
-                addresses.SelectMany(address => {
+                addresses.SelectMany(address =>
+                {
                     var ranges = request.PortRanges ?? PortRange.OpcUa;
                     return ranges.SelectMany(x => x.GetEndpoints(address));
-                }), (scanner, ep) => {
+                }), (scanner, ep) =>
+                {
                     _progress.OnPortScanResult(request.Request, scanner.ActiveProbes,
                         scanner.ScanCount, totalPorts, ports.Count, ep);
                     ports.Add(ep);
                 }, probe, request.Configuration.MaxPortProbes,
                 request.Configuration.MinPortProbesPercent,
-                request.Configuration.PortProbeTimeout, request.Token)) {
+                request.Configuration.PortProbeTimeout, request.Token))
+            {
                 using (var progress = new Timer(_ => ProgressTimer(
                     () => _progress.OnPortScanProgress(request.Request, portscan.ActiveProbes,
                         portscan.ScanCount, totalPorts, ports.Count)),
-                    null, kProgressInterval, kProgressInterval)) {
+                    null, kProgressInterval, kProgressInterval))
+                {
                     await portscan.WaitToCompleteAsync().ConfigureAwait(false);
                 }
                 _progress.OnPortScanFinished(request.Request, portscan.ActiveProbes,
                     portscan.ScanCount, totalPorts, ports.Count);
             }
             request.Token.ThrowIfCancellationRequested();
-            if (ports.Count == 0) {
+            if (ports.Count == 0)
+            {
                 return new List<ApplicationRegistrationModel>();
             }
 
             //
             // Collect discovery urls
             //
-            foreach (var ep in ports) {
+            foreach (var ep in ports)
+            {
                 request.Token.ThrowIfCancellationRequested();
                 var resolved = await ep.TryResolveAsync().ConfigureAwait(false);
                 var url = new Uri("opc.tcp://" + resolved);
@@ -405,12 +467,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <returns></returns>
         private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
             DiscoveryRequest request, Dictionary<IPEndPoint, Uri> discoveryUrls,
-            List<string> locales) {
+            List<string> locales)
+        {
             kDiscoverServersAsync.Inc();
             var discovered = new List<ApplicationRegistrationModel>();
             var count = 0;
             _progress.OnServerDiscoveryStarted(request.Request, 1, count, discoveryUrls.Count);
-            foreach (var item in discoveryUrls) {
+            foreach (var item in discoveryUrls)
+            {
                 request.Token.ThrowIfCancellationRequested();
                 var url = item.Value;
 
@@ -418,13 +482,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                     discovered.Count, url, item.Key.Address);
 
                 // Find endpoints at the real accessible ip address
-                var eps = await _client.FindEndpointsAsync(new UriBuilder(url) {
+                var eps = await _client.FindEndpointsAsync(new UriBuilder(url)
+                {
                     Host = item.Key.Address.ToString()
                 }.Uri, locales, request.Token).ConfigureAwait(false);
 
                 count++;
                 var endpoints = 0;
-                foreach (var ep in eps) {
+                foreach (var ep in eps)
+                {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
                         _identity.SiteId, _identity.ProcessId, _identity.Id, _serializer));
                     endpoints++;
@@ -445,15 +511,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <param name="discoveryUrls"></param>
         /// <returns></returns>
         private async Task<Dictionary<IPEndPoint, Uri>> GetDiscoveryUrlsAsync(
-            IEnumerable<Uri> discoveryUrls) {
+            IEnumerable<Uri> discoveryUrls)
+        {
             var result = new Dictionary<IPEndPoint, Uri>();
-            if (discoveryUrls?.Any() ?? false) {
+            if (discoveryUrls?.Any() ?? false)
+            {
                 var results = await Task.WhenAll(discoveryUrls
                     .Select(GetHostEntryAsync)
                     .ToArray()).ConfigureAwait(false);
                 foreach (var entry in results
                     .SelectMany(v => v)
-                    .Where(a => a.Item2 != null)) {
+                    .Where(a => a.Item2 != null))
+                {
                     result.AddOrUpdate(entry.Item1, entry.Item2);
                 }
             }
@@ -466,41 +535,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
         private Task<List<Tuple<IPEndPoint, Uri>>> GetHostEntryAsync(
-            Uri discoveryUrl) {
-            return Try.Async(async () => {
+            Uri discoveryUrl)
+        {
+            return Try.Async(async () =>
+            {
                 var host = discoveryUrl.DnsSafeHost;
                 var list = new List<Tuple<IPEndPoint, Uri>>();
 
                 // check first if host is an IP Address since the Dns.GetHostEntryAsync
                 // throws a socket exception when called with an IP address
-                try {
+                try
+                {
                     var hostIp = IPAddress.Parse(host);
                     var ep = new IPEndPoint(hostIp,
                             discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
                     list.Add(Tuple.Create(ep, discoveryUrl));
                     return list;
                 }
-                catch {
+                catch
+                {
                     // Parsing failed, therefore not an IP address, continue with dns
                     // resolution
                 }
 
-                while (!string.IsNullOrEmpty(host)) {
-                    try {
+                while (!string.IsNullOrEmpty(host))
+                {
+                    try
+                    {
                         var entry = await Dns.GetHostEntryAsync(host).ConfigureAwait(false);
                         // only pick-up the IPV4 addresses
                         var foundIpv4 = false;
                         foreach (var address in entry.AddressList
-                            .Where(a => a.AddressFamily == AddressFamily.InterNetwork)) {
+                            .Where(a => a.AddressFamily == AddressFamily.InterNetwork))
+                        {
                             var ep = new IPEndPoint(address,
                                 discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
                             list.Add(Tuple.Create(ep, discoveryUrl));
                             foundIpv4 = true;
                         }
-                        if (!foundIpv4) {
+                        if (!foundIpv4)
+                        {
                             // if no IPV4 responsive, try IPV6 as fallback
                             foreach (var address in entry.AddressList
-                                .Where(a => a.AddressFamily != AddressFamily.InterNetwork)) {
+                                .Where(a => a.AddressFamily != AddressFamily.InterNetwork))
+                            {
                                 var ep = new IPEndPoint(address,
                                     discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
                                 list.Add(Tuple.Create(ep, discoveryUrl));
@@ -508,19 +586,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                         }
 
                         // Check local host
-                        if (host.EqualsIgnoreCase("localhost") && Host.IsContainer) {
+                        if (host.EqualsIgnoreCase("localhost") && Host.IsContainer)
+                        {
                             // Also resolve docker internal since we are in a container
                             host = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
                             continue;
                         }
                         break;
                     }
-                    catch (SocketException se) {
+                    catch (SocketException se)
+                    {
                         _logger.LogWarning("Failed to resolve the host for {DiscoveryUrl} due to {Message}",
                             discoveryUrl, se.Message);
                         return list;
                     }
-                    catch (Exception e) {
+                    catch (Exception e)
+                    {
                         _logger.LogError(e, "Failed to resolve the host for {DiscoveryUrl}", discoveryUrl);
                         return list;
                     }
@@ -534,13 +615,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// </summary>
         /// <param name="addresses"></param>
         /// <returns></returns>
-        private async Task AddLoopbackAddressesAsync(List<IPAddress> addresses) {
+        private async Task AddLoopbackAddressesAsync(List<IPAddress> addresses)
+        {
             // Check local host
             var hostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
-            try {
-                if (Host.IsContainer) {
+            try
+            {
+                if (Host.IsContainer)
+                {
                     // Resolve docker host since we are running in a container
-                    if (string.IsNullOrEmpty(hostName)) {
+                    if (string.IsNullOrEmpty(hostName))
+                    {
                         _logger.LogInformation("Gateway host name not set");
                         return;
                     }
@@ -548,21 +633,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                     var entry = await Dns.GetHostEntryAsync(hostName).ConfigureAwait(false);
                     foreach (var address in entry.AddressList
                                 .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
-                                .Where(a => !addresses.Any(b => a.Equals(b)))) {
+                                .Where(a => !addresses.Any(b => a.Equals(b))))
+                    {
                         _logger.LogInformation("Including gateway host address {Address}", address);
                         addresses.Add(address);
                     }
                 }
-                else {
+                else
+                {
                     // Add loopback address
                     addresses.Add(IPAddress.Loopback);
                 }
             }
-            catch (SocketException se) {
+            catch (SocketException se)
+            {
                 _logger.LogWarning("Failed to add address for gateway host {HostName} due to {Error}.",
                     hostName, se.Message);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 _logger.LogError(e, "Failed to add address for gateway host {HostName}.", hostName);
             }
         }
@@ -578,18 +667,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <returns></returns>
         private async Task SendDiscoveryResultsAsync(DiscoveryRequest request,
             List<ApplicationRegistrationModel> discovered, DateTime timestamp,
-            object diagnostics, CancellationToken ct) {
+            object diagnostics, CancellationToken ct)
+        {
             _logger.LogInformation("Uploading {Count} results...", discovered.Count);
             var messages = discovered
                 .SelectMany(server => server.Endpoints
-                    .Select(registration => new DiscoveryEventModel {
+                    .Select(registration => new DiscoveryEventModel
+                    {
                         Application = server.Application,
                         Registration = registration,
                         TimeStamp = timestamp
                     }))
-                .Append(new DiscoveryEventModel {
+                .Append(new DiscoveryEventModel
+                {
                     Registration = null, // last
-                    Result = new DiscoveryResultModel {
+                    Result = new DiscoveryResultModel
+                    {
                         DiscoveryConfig = request.Configuration,
                         Id = request.Request.Id,
                         Context = request.Request.Context,
@@ -599,7 +692,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                     },
                     TimeStamp = timestamp
                 })
-                .Select((discovery, i) => {
+                .Select((discovery, i) =>
+                {
                     discovery.Index = i;
                     return discovery;
                 });
@@ -613,17 +707,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// Cancel all remaining pending requests
         /// </summary>
         /// <returns></returns>
-        private async Task CancelPendingRequestsAsync() {
+        private async Task CancelPendingRequestsAsync()
+        {
             _logger.LogInformation("Cancelling all pending requests...");
             await _lock.WaitAsync().ConfigureAwait(false);
-            try {
-                foreach (var request in _pending) {
+            try
+            {
+                foreach (var request in _pending)
+                {
                     _progress.OnDiscoveryCancelled(request.Request);
                     Try.Op(() => request.Dispose());
                 }
                 _pending.Clear();
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
             _logger.LogInformation("Pending requests cancelled...");
@@ -633,21 +731,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// Send pending queue size
         /// </summary>
         /// <returns></returns>
-        private async Task ReportPendingRequestsAsync() {
+        private async Task ReportPendingRequestsAsync()
+        {
             // Notify all listeners about the request's place in queue
             await _lock.WaitAsync().ConfigureAwait(false);
-            try {
-                for (var pos = 0; pos < _pending.Count; pos++) {
+            try
+            {
+                for (var pos = 0; pos < _pending.Count; pos++)
+                {
                     var item = _pending[pos];
-                    if (!item.Token.IsCancellationRequested) {
+                    if (!item.Token.IsCancellationRequested)
+                    {
                         _progress.OnDiscoveryPending(item.Request, pos);
                     }
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogWarning(ex, "Failed to send pending event");
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
@@ -656,8 +760,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// Called in intervals to check and log progress.
         /// </summary>
         /// <param name="log"></param>
-        private void ProgressTimer(Action log) {
-            if ((_counter % 3) == 0) {
+        private void ProgressTimer(Action log)
+        {
+            if ((_counter % 3) == 0)
+            {
                 _logger.LogInformation("GC Mem: {Gcmem} kb, Working set / Private Mem: " +
                     "{Privmem} kb / {Privmemsize} kb, Handles: {Handles}",
                     GC.GetTotalMemory(false) / 1024,
@@ -667,8 +773,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
             }
             ++_counter;
 #if !NO_WATCHDOG
-            if ((_counter % 200) == 0) {
-                if (_counter >= 2000) {
+            if ((_counter % 200) == 0)
+            {
+                if (_counter >= 2000)
+                {
                     throw new ThreadStateException("Stuck");
                 }
             }

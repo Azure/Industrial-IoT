@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher
+{
     using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Publisher configuration
     /// </summary>
-    public interface IPublisherConfiguration {
+    public interface IPublisherConfiguration
+    {
         /// <summary>
         /// Site of the publisher
         /// </summary>

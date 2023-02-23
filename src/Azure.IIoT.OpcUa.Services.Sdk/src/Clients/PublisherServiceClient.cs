@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
+namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -16,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
     /// <summary>
     /// Implementation of twin service api.
     /// </summary>
-    public sealed class PublisherServiceClient : IPublisherServiceApi {
+    public sealed class PublisherServiceClient : IPublisherServiceApi
+    {
         /// <summary>
         /// Create service client
         /// </summary>
@@ -25,7 +27,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serializer"></param>
         public PublisherServiceClient(IHttpClient httpClient, IServiceApiConfig config,
             ISerializer serializer) :
-            this(httpClient, config?.ServiceUrl, serializer) {
+            this(httpClient, config?.ServiceUrl, serializer)
+        {
         }
 
         /// <summary>
@@ -35,8 +38,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serviceUri"></param>
         /// <param name="serializer"></param>
         public PublisherServiceClient(IHttpClient httpClient, string serviceUri,
-            ISerializer serializer) {
-            if (string.IsNullOrWhiteSpace(serviceUri)) {
+            ISerializer serializer)
+        {
+            if (string.IsNullOrWhiteSpace(serviceUri))
+            {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the endpoint micro service.");
             }
@@ -46,29 +51,36 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<string> GetServiceStatusAsync(CancellationToken ct) {
+        public async Task<string> GetServiceStatusAsync(CancellationToken ct)
+        {
             var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
                 Resource.Platform);
-            try {
+            try
+            {
                 var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
                 return response.GetContentAsString();
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return ex.Message;
             }
         }
 
         /// <inheritdoc/>
         public async Task<PublishStartResponseModel> NodePublishStartAsync(string endpointId,
-            PublishStartRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            PublishStartRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.Item == null) {
+            if (content.Item == null)
+            {
                 throw new ArgumentNullException(nameof(content.Item));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/start",
@@ -81,11 +93,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishBulkResponseModel> NodePublishBulkAsync(string endpointId,
-            PublishBulkRequestModel content, CancellationToken ct = default) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            PublishBulkRequestModel content, CancellationToken ct = default)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/bulk",
@@ -98,8 +113,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishedItemListResponseModel> NodePublishListAsync(
-            string endpointId, PublishedItemListRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            string endpointId, PublishedItemListRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}",
@@ -112,11 +129,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<PublishStopResponseModel> NodePublishStopAsync(string endpointId,
-            PublishStopRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            PublishStopRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/stop",

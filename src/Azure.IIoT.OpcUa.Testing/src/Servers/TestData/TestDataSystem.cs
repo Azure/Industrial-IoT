@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace TestData {
+namespace TestData
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Xml;
 
-    public interface ITestDataSystemCallback {
+    public interface ITestDataSystemCallback
+    {
         void OnDataChange(
             BaseVariableState variable,
             object value,
@@ -42,25 +44,31 @@ namespace TestData {
             DateTime timestamp);
     }
 
-    public class TestDataSystem : IDisposable {
+    public class TestDataSystem : IDisposable
+    {
         public TestDataSystem(ITestDataSystemCallback callback,
-            NamespaceTable namespaceUris, StringTable serverUris) {
+            NamespaceTable namespaceUris, StringTable serverUris)
+        {
             _callback = callback;
             _minimumSamplingInterval = int.MaxValue;
             _monitoredNodes = new Dictionary<uint, BaseVariableState>();
-            _generator = new Opc.Ua.Test.TestDataGenerator() {
+            _generator = new Opc.Ua.Test.TestDataGenerator()
+            {
                 NamespaceUris = namespaceUris,
                 ServerUris = serverUris
             };
             _historyArchive = new HistoryArchive();
         }
 
-        public void Dispose() {
-            if (_historyArchive != null) {
+        public void Dispose()
+        {
+            if (_historyArchive != null)
+            {
                 _historyArchive.Dispose();
                 _historyArchive = null;
             }
-            if (_timer != null) {
+            if (_timer != null)
+            {
                 _timer.Dispose();
                 _timer = null;
             }
@@ -69,10 +77,14 @@ namespace TestData {
         /// <summary>
         /// The number of nodes being monitored.
         /// </summary>
-        public int MonitoredNodeCount {
-            get {
-                lock (_lock) {
-                    if (_monitoredNodes == null) {
+        public int MonitoredNodeCount
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    if (_monitoredNodes == null)
+                    {
                         return 0;
                     }
 
@@ -84,15 +96,20 @@ namespace TestData {
         /// <summary>
         /// Gets or sets the current system status.
         /// </summary>
-        public StatusCode SystemStatus {
-            get {
-                lock (_lock) {
+        public StatusCode SystemStatus
+        {
+            get
+            {
+                lock (_lock)
+                {
                     return _systemStatus;
                 }
             }
 
-            set {
-                lock (_lock) {
+            set
+            {
+                lock (_lock)
+                {
                     _systemStatus = value;
                 }
             }
@@ -101,12 +118,15 @@ namespace TestData {
         /// <summary>
         /// Creates an archive for the variable.
         /// </summary>
-        public void EnableHistoryArchiving(BaseVariableState variable) {
-            if (variable == null) {
+        public void EnableHistoryArchiving(BaseVariableState variable)
+        {
+            if (variable == null)
+            {
                 return;
             }
 
-            if (variable.ValueRank == ValueRanks.Scalar) {
+            if (variable.ValueRank == ValueRanks.Scalar)
+            {
                 _historyArchive.CreateRecord(variable.NodeId, TypeInfo.GetBuiltInType(variable.DataType));
             }
         }
@@ -114,8 +134,10 @@ namespace TestData {
         /// <summary>
         /// Returns the history file for the variable.
         /// </summary>
-        public IHistoryDataSource GetHistoryFile(BaseVariableState variable) {
-            if (variable == null) {
+        public IHistoryDataSource GetHistoryFile(BaseVariableState variable)
+        {
+            if (variable == null)
+            {
                 return null;
             }
 
@@ -125,9 +147,12 @@ namespace TestData {
         /// <summary>
         /// Returns a new value for the variable.
         /// </summary>
-        public object ReadValue(BaseVariableState variable) {
-            lock (_lock) {
-                switch (variable.NumericId) {
+        public object ReadValue(BaseVariableState variable)
+        {
+            lock (_lock)
+            {
+                switch (variable.NumericId)
+                {
                     case Variables.ScalarValueObjectType_BooleanValue:
                     case Variables.UserScalarValueObjectType_BooleanValue:
                         return _generator.GetRandom<bool>();
@@ -301,82 +326,104 @@ namespace TestData {
                         return _generator.GetRandomArray(BuiltInType.Integer, 100, false);
                     case Variables.ArrayValueObjectType_UIntegerValue:
                         return _generator.GetRandomArray(BuiltInType.UInteger, 100, false);
-                    case Variables.AnalogArrayValueObjectType_SByteValue: {
+                    case Variables.AnalogArrayValueObjectType_SByteValue:
+                        {
                             var values = _generator.GetRandomArray<sbyte>();
-                            for (var i = 0; i < values.Length; i++) {
+                            for (var i = 0; i < values.Length; i++)
+                            {
                                 values[i] = (sbyte)(((int)(_generator.GetRandom<uint>() % 201)) - 100);
                             }
                             return values;
                         }
-                    case Variables.AnalogArrayValueObjectType_ByteValue: {
+                    case Variables.AnalogArrayValueObjectType_ByteValue:
+                        {
                             var values = _generator.GetRandomArray<byte>();
-                            for (var i = 0; i < values.Length; i++) {
+                            for (var i = 0; i < values.Length; i++)
+                            {
                                 values[i] = (byte)((_generator.GetRandom<uint>() % 201) + 50);
                             }
                             return values;
                         }
-                    case Variables.AnalogArrayValueObjectType_Int16Value: {
+                    case Variables.AnalogArrayValueObjectType_Int16Value:
+                        {
                             var values = _generator.GetRandomArray<short>();
-                            for (var i = 0; i < values.Length; i++) {
+                            for (var i = 0; i < values.Length; i++)
+                            {
                                 values[i] = (short)(((int)(_generator.GetRandom<uint>() % 201)) - 100);
                             }
                             return values;
                         }
-                    case Variables.AnalogArrayValueObjectType_UInt16Value: {
+                    case Variables.AnalogArrayValueObjectType_UInt16Value:
+                        {
                             var values = _generator.GetRandomArray<ushort>();
-                            for (var i = 0; i < values.Length; i++) {
+                            for (var i = 0; i < values.Length; i++)
+                            {
                                 values[i] = (ushort)((_generator.GetRandom<uint>() % 201) + 50);
                             }
                             return values;
                         }
                     case Variables.AnalogArrayValueObjectType_Int32Value:
-                    case Variables.AnalogArrayValueObjectType_IntegerValue: {
+                    case Variables.AnalogArrayValueObjectType_IntegerValue:
+                        {
                             var values = _generator.GetRandomArray<int>();
-                            for (var i = 0; i < values.Length; i++) {
+                            for (var i = 0; i < values.Length; i++)
+                            {
                                 values[i] = ((int)(_generator.GetRandom<uint>() % 201)) - 100;
                             }
                             return values;
                         }
                     case Variables.AnalogArrayValueObjectType_UInt32Value:
-                    case Variables.AnalogArrayValueObjectType_UIntegerValue: {
+                    case Variables.AnalogArrayValueObjectType_UIntegerValue:
+                        {
                             var values = _generator.GetRandomArray<uint>();
-                            for (var i = 0; i < values.Length; i++) {
+                            for (var i = 0; i < values.Length; i++)
+                            {
                                 values[i] = (_generator.GetRandom<uint>() % 201) + 50;
                             }
                             return values;
                         }
-                    case Variables.AnalogArrayValueObjectType_Int64Value: {
+                    case Variables.AnalogArrayValueObjectType_Int64Value:
+                        {
                             var values = _generator.GetRandomArray<long>();
-                            for (var i = 0; i < values.Length; i++) {
+                            for (var i = 0; i < values.Length; i++)
+                            {
                                 values[i] = ((int)(_generator.GetRandom<uint>() % 201)) - 100;
                             }
                             return values;
                         }
-                    case Variables.AnalogArrayValueObjectType_UInt64Value: {
+                    case Variables.AnalogArrayValueObjectType_UInt64Value:
+                        {
                             var values = _generator.GetRandomArray<ulong>();
-                            for (var i = 0; i < values.Length; i++) {
+                            for (var i = 0; i < values.Length; i++)
+                            {
                                 values[i] = (_generator.GetRandom<uint>() % 201) + 50;
                             }
                             return values;
                         }
-                    case Variables.AnalogArrayValueObjectType_FloatValue: {
+                    case Variables.AnalogArrayValueObjectType_FloatValue:
+                        {
                             var values = _generator.GetRandomArray<float>();
-                            for (var i = 0; i < values.Length; i++) {
+                            for (var i = 0; i < values.Length; i++)
+                            {
                                 values[i] = ((int)(_generator.GetRandom<uint>() % 201)) - 100;
                             }
                             return values;
                         }
                     case Variables.AnalogArrayValueObjectType_DoubleValue:
-                    case Variables.AnalogArrayValueObjectType_NumberValue: {
+                    case Variables.AnalogArrayValueObjectType_NumberValue:
+                        {
                             var values = _generator.GetRandomArray<double>();
-                            for (var i = 0; i < values.Length; i++) {
+                            for (var i = 0; i < values.Length; i++)
+                            {
                                 values[i] = ((int)(_generator.GetRandom<uint>() % 201)) - 100;
                             }
                             return values;
                         }
-                    case Variables.ArrayValueObjectType_StructureValue: {
+                    case Variables.ArrayValueObjectType_StructureValue:
+                        {
                             var values = _generator.GetRandomArray<ExtensionObject>(10);
-                            for (var i = 0; values != null && i < values.Length; i++) {
+                            for (var i = 0; values != null && i < values.Length; i++)
+                            {
                                 values[i] = GetRandomStructure();
                             }
                             return values;
@@ -389,9 +436,12 @@ namespace TestData {
         /// <summary>
         /// Returns a random structure.
         /// </summary>
-        private ExtensionObject GetRandomStructure() {
-            if (_generator.GetRandomBoolean()) {
-                var value = new ScalarValueDataType {
+        private ExtensionObject GetRandomStructure()
+        {
+            if (_generator.GetRandomBoolean())
+            {
+                var value = new ScalarValueDataType
+                {
                     BooleanValue = _generator.GetRandom<bool>(),
                     SByteValue = _generator.GetRandom<sbyte>(),
                     ByteValue = _generator.GetRandom<byte>(),
@@ -417,8 +467,10 @@ namespace TestData {
                 };
                 return new ExtensionObject(value);
             }
-            else {
-                var value = new ArrayValueDataType {
+            else
+            {
+                var value = new ArrayValueDataType
+                {
                     BooleanValue = _generator.GetRandomArray<bool>(10),
                     SByteValue = _generator.GetRandomArray<sbyte>(10),
                     ByteValue = _generator.GetRandomArray<byte>(10),
@@ -443,7 +495,8 @@ namespace TestData {
                 };
 
                 var values = _generator.GetRandomArray<object>(10);
-                for (var i = 0; values != null && i < values.Length; i++) {
+                for (var i = 0; values != null && i < values.Length; i++)
+                {
                     value.VariantValue.Add(new Variant(values[i]));
                 }
 
@@ -451,21 +504,27 @@ namespace TestData {
             }
         }
 
-        public void StartMonitoringValue(uint monitoredItemId, double samplingInterval, BaseVariableState variable) {
-            lock (_lock) {
+        public void StartMonitoringValue(uint monitoredItemId, double samplingInterval, BaseVariableState variable)
+        {
+            lock (_lock)
+            {
                 _monitoredNodes ??= new Dictionary<uint, BaseVariableState>();
                 _monitoredNodes[monitoredItemId] = variable;
                 SetSamplingInterval(samplingInterval);
             }
         }
 
-        public void SetSamplingInterval(double samplingInterval) {
-            lock (_lock) {
-                if (samplingInterval < 0) {
+        public void SetSamplingInterval(double samplingInterval)
+        {
+            lock (_lock)
+            {
+                if (samplingInterval < 0)
+                {
                     // _samplingEvent.Set();
                     _minimumSamplingInterval = int.MaxValue;
 
-                    if (_timer != null) {
+                    if (_timer != null)
+                    {
                         _timer.Dispose();
                         _timer = null;
                     }
@@ -473,14 +532,17 @@ namespace TestData {
                     return;
                 }
 
-                if (_minimumSamplingInterval > samplingInterval) {
+                if (_minimumSamplingInterval > samplingInterval)
+                {
                     _minimumSamplingInterval = (int)samplingInterval;
 
-                    if (_minimumSamplingInterval < 100) {
+                    if (_minimumSamplingInterval < 100)
+                    {
                         _minimumSamplingInterval = 100;
                     }
 
-                    if (_timer != null) {
+                    if (_timer != null)
+                    {
                         _timer.Dispose();
                         _timer = null;
                     }
@@ -491,18 +553,23 @@ namespace TestData {
             }
         }
 
-        private void DoSample(object state) {
+        private void DoSample(object state)
+        {
             Utils.Trace("DoSample HiRes={0:ss.ffff} Now={1:ss.ffff}", HiResClock.UtcNow, DateTime.UtcNow);
 
             var samples = new Queue<Sample>();
 
-            lock (_lock) {
-                if (_monitoredNodes == null) {
+            lock (_lock)
+            {
+                if (_monitoredNodes == null)
+                {
                     return;
                 }
 
-                foreach (var variable in _monitoredNodes.Values) {
-                    var sample = new Sample {
+                foreach (var variable in _monitoredNodes.Values)
+                {
+                    var sample = new Sample
+                    {
                         Variable = variable
                     };
                     sample.Value = ReadValue(sample.Variable);
@@ -513,7 +580,8 @@ namespace TestData {
                 }
             }
 
-            while (samples.Count > 0) {
+            while (samples.Count > 0)
+            {
                 var sample = samples.Dequeue();
 
                 _callback.OnDataChange(
@@ -524,21 +592,26 @@ namespace TestData {
             }
         }
 
-        public void StopMonitoringValue(uint monitoredItemId) {
-            lock (_lock) {
-                if (_monitoredNodes == null) {
+        public void StopMonitoringValue(uint monitoredItemId)
+        {
+            lock (_lock)
+            {
+                if (_monitoredNodes == null)
+                {
                     return;
                 }
 
                 _monitoredNodes.Remove(monitoredItemId);
 
-                if (_monitoredNodes.Count == 0) {
+                if (_monitoredNodes.Count == 0)
+                {
                     SetSamplingInterval(-1);
                 }
             }
         }
 
-        private class Sample {
+        private class Sample
+        {
             public BaseVariableState Variable;
             public object Value;
             public StatusCode StatusCode;

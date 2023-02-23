@@ -27,11 +27,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     /// <summary>
     /// The possible types of bounding values.
     /// </summary>
-    public enum BoundingValueType {
+    public enum BoundingValueType
+    {
         /// <summary>
         /// No bounding value.
         /// </summary>

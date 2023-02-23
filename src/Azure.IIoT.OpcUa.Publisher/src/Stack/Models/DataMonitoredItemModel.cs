@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Collections.Generic;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// <summary>
     /// Data monitored item
     /// </summary>
-    public class DataMonitoredItemModel : BaseMonitoredItemModel {
+    public class DataMonitoredItemModel : BaseMonitoredItemModel
+    {
         /// <summary>
         /// Field id in class
         /// </summary>
@@ -41,8 +43,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// Clone
         /// </summary>
         /// <returns>A copy of this object</returns>
-        public override BaseMonitoredItemModel Clone() {
-            return new DataMonitoredItemModel {
+        public override BaseMonitoredItemModel Clone()
+        {
+            return new DataMonitoredItemModel
+            {
                 Id = Id,
                 StartNodeId = StartNodeId,
                 SamplingInterval = SamplingInterval,
@@ -66,7 +70,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         /// <param name="obj"></param>
         /// <returns>If the objects are equal</returns>
-        public override bool Equals(object obj) {
+        public override bool Equals(object obj)
+        {
             return obj is DataMonitoredItemModel model &&
                 base.Equals(obj) &&
                 DataSetClassFieldId == model.DataSetClassFieldId &&
@@ -80,7 +85,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// Calculate hash code
         /// </summary>
         /// <returns>The hash code</returns>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hash = new HashCode();
             hash.Add(DataSetClassFieldId);
             hash.Add(base.GetHashCode());

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging.SignalR {
+namespace Microsoft.Azure.IIoT.Messaging.SignalR
+{
     using System;
     using System.Reflection;
 
@@ -11,12 +12,14 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR {
     /// Name of the hub
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public class NameAttribute : Attribute {
+    public class NameAttribute : Attribute
+    {
         /// <summary>
         /// Create attribute
         /// </summary>
         /// <param name="name"></param>
-        public NameAttribute(string name) {
+        public NameAttribute(string name)
+        {
             Name = name;
         }
 
@@ -30,11 +33,14 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR {
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static string GetName(Type type) {
+        public static string GetName(Type type)
+        {
             var name = type.GetCustomAttribute<NameAttribute>(false)?.Name;
-            if (string.IsNullOrEmpty(name)) {
+            if (string.IsNullOrEmpty(name))
+            {
                 name = type.Name.ToLowerInvariant();
-                if (name.EndsWith(nameof(Hub), StringComparison.OrdinalIgnoreCase)) {
+                if (name.EndsWith(nameof(Hub), StringComparison.OrdinalIgnoreCase))
+                {
                     name = name.Replace(nameof(Hub), "", StringComparison.OrdinalIgnoreCase);
                 }
             }

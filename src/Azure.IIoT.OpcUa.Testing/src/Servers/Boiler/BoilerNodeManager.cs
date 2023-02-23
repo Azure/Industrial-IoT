@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Boiler {
+namespace Boiler
+{
     using Opc.Ua;
     using Opc.Ua.Sample;
     using System.Collections.Generic;
@@ -36,7 +37,8 @@ namespace Boiler {
     /// <summary>
     /// A node manager the diagnostic information exposed by the server.
     /// </summary>
-    public class BoilerNodeManager : SampleNodeManager {
+    public class BoilerNodeManager : SampleNodeManager
+    {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
@@ -44,7 +46,8 @@ namespace Boiler {
             Opc.Ua.Server.IServerInternal server,
             ApplicationConfiguration configuration)
         :
-            base(server) {
+            base(server)
+        {
             System.Diagnostics.Contracts.Contract.Assume(configuration != null);
             var namespaceUris = new List<string> {
                 Namespaces.Boiler,
@@ -58,10 +61,14 @@ namespace Boiler {
             _boilers = new List<BoilerState>();
         }
 
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
-                if (_boilers != null) {
-                    foreach (var boiler in _boilers) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_boilers != null)
+                {
+                    foreach (var boiler in _boilers)
+                    {
                         boiler.Dispose();
                     }
                     _boilers = null;
@@ -76,7 +83,8 @@ namespace Boiler {
         /// <param name="context">The context.</param>
         /// <param name="node">The node.</param>
         /// <returns>The new NodeId.</returns>
-        public override NodeId New(ISystemContext context, NodeState node) {
+        public override NodeId New(ISystemContext context, NodeState node)
+        {
             var id = Utils.IncrementIdentifier(ref _lastUsedId);
             return new NodeId(id, _namespaceIndex);
         }
@@ -89,8 +97,10 @@ namespace Boiler {
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
         /// should have a reference to the root folder node(s) exposed by this node manager.
         /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Lock) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Lock)
+            {
                 base.CreateAddressSpace(externalReferences);
                 CreateBoiler(SystemContext, 2);
             }
@@ -101,7 +111,8 @@ namespace Boiler {
         /// </summary>
         /// <param name="context">The context to use.</param>
         /// <param name="unitNumber">The unit number for the boiler.</param>
-        private void CreateBoiler(SystemContext context, int unitNumber) {
+        private void CreateBoiler(SystemContext context, int unitNumber)
+        {
             var boiler = new BoilerState(null);
 
             var name = Utils.Format("Boiler #{0}", unitNumber);
@@ -147,13 +158,16 @@ namespace Boiler {
         /// <param name="instance">The instance to update.</param>
         /// <param name="unitLabel">The label to apply.</param>
         /// <remarks>This method assumes the DisplayName has the form NameX001 where X0 is the unit label placeholder.</remarks>
-        private static void UpdateDisplayName(BaseInstanceState instance, string unitLabel) {
+        private static void UpdateDisplayName(BaseInstanceState instance, string unitLabel)
+        {
             var displayName = instance.DisplayName;
 
-            if (displayName != null) {
+            if (displayName != null)
+            {
                 var text = displayName.Text;
 
-                if (text != null) {
+                if (text != null)
+                {
                     text = text.Replace("X0", unitLabel);
                 }
 
@@ -166,7 +180,8 @@ namespace Boiler {
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
-        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context) {
+        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
+        {
             var type = GetType().GetTypeInfo();
             var predefinedNodes = new NodeStateCollection();
             predefinedNodes.LoadFromBinaryResource(context,
@@ -178,20 +193,26 @@ namespace Boiler {
         /// <summary>
         /// Replaces the generic node with a node specific to the model.
         /// </summary>
-        protected override NodeState AddBehaviourToPredefinedNode(ISystemContext context, NodeState predefinedNode) {
-            if (!(predefinedNode is BaseObjectState passiveNode)) {
+        protected override NodeState AddBehaviourToPredefinedNode(ISystemContext context, NodeState predefinedNode)
+        {
+            if (!(predefinedNode is BaseObjectState passiveNode))
+            {
                 return predefinedNode;
             }
 
             var typeId = passiveNode.TypeDefinitionId;
 
-            if (!IsNodeIdInNamespace(typeId) || typeId.IdType != IdType.Numeric) {
+            if (!IsNodeIdInNamespace(typeId) || typeId.IdType != IdType.Numeric)
+            {
                 return predefinedNode;
             }
 
-            switch ((uint)typeId.Identifier) {
-                case ObjectTypes.BoilerType: {
-                        if (passiveNode is BoilerState) {
+            switch ((uint)typeId.Identifier)
+            {
+                case ObjectTypes.BoilerType:
+                    {
+                        if (passiveNode is BoilerState)
+                        {
                             break;
                         }
 
@@ -223,7 +244,8 @@ namespace Boiler {
             ISystemContext systemContext,
             MonitoredItemCreateRequest itemToCreate,
             MonitoredNode monitoredNode,
-            DataChangeMonitoredItem monitoredItem) {
+            DataChangeMonitoredItem monitoredItem)
+        {
             // TBD
         }
 
@@ -235,7 +257,8 @@ namespace Boiler {
             MonitoredItemModifyRequest itemToModify,
             MonitoredNode monitoredNode,
             DataChangeMonitoredItem monitoredItem,
-            double previousSamplingInterval) {
+            double previousSamplingInterval)
+        {
             // TBD
         }
 
@@ -245,7 +268,8 @@ namespace Boiler {
         protected override void OnDeleteMonitoredItem(
             ISystemContext systemContext,
             MonitoredNode monitoredNode,
-            DataChangeMonitoredItem monitoredItem) {
+            DataChangeMonitoredItem monitoredItem)
+        {
             // TBD
         }
 
@@ -257,7 +281,8 @@ namespace Boiler {
             MonitoredNode monitoredNode,
             DataChangeMonitoredItem monitoredItem,
             MonitoringMode previousMode,
-            MonitoringMode currentMode) {
+            MonitoringMode currentMode)
+        {
             // TBD
         }
 

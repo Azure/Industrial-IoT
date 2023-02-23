@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Tasks.Default {
+namespace Microsoft.Azure.IIoT.Tasks.Default
+{
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -14,7 +15,8 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
     /// Provides a task scheduler that ensures a maximum concurrency level
     /// while running on top of the ThreadPool.
     /// </summary>
-    public sealed class LimitingScheduler : ITaskScheduler {
+    public sealed class LimitingScheduler : ITaskScheduler
+    {
         /// <inheritdoc/>
         public TaskFactory Factory => kFactory;
 
@@ -22,7 +24,8 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         /// Initialize factory
         /// </summary>
         /// <returns></returns>
-        static LimitingScheduler() {
+        static LimitingScheduler()
+        {
             kScheduler = new LimitingTaskScheduler(Environment.ProcessorCount);
             kFactory = new TaskFactory(default,
                 TaskCreationOptions.DenyChildAttach, TaskContinuationOptions.None,
@@ -32,7 +35,8 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         /// <summary>
         /// Scheduler implementation
         /// </summary>
-        private class LimitingTaskScheduler : TaskScheduler {
+        private class LimitingTaskScheduler : TaskScheduler
+        {
             /// <summary>
             /// Gets the maximum concurrency level supported by this scheduler.
             /// </summary>
@@ -45,8 +49,10 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             /// <param name="maxDegreeOfParallelism">
             /// The maximum degree of parallelism provided by this scheduler.
             /// </param>
-            public LimitingTaskScheduler(int maxDegreeOfParallelism) {
-                if (maxDegreeOfParallelism < 1) {
+            public LimitingTaskScheduler(int maxDegreeOfParallelism)
+            {
+                if (maxDegreeOfParallelism < 1)
+                {
                     throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism));
                 }
                 _maxDegreeOfParallelism = maxDegreeOfParallelism;
@@ -56,15 +62,18 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             /// Queues a task to the scheduler.
             /// </summary>
             /// <param name="task">The task to be queued.</param>
-            protected sealed override void QueueTask(Task task) {
+            protected sealed override void QueueTask(Task task)
+            {
                 //
                 // Add the task to the list of tasks to be processed.
                 // If there aren't enough delegates currently queued
                 // or running to process tasks, schedule another.
                 //
-                lock (_tasks) {
+                lock (_tasks)
+                {
                     _tasks.AddLast(task);
-                    if (_delegatesQueuedOrRunning < _maxDegreeOfParallelism) {
+                    if (_delegatesQueuedOrRunning < _maxDegreeOfParallelism)
+                    {
                         ++_delegatesQueuedOrRunning;
                         NotifyThreadPoolOfPendingWork();
                     }
@@ -75,19 +84,25 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             /// Informs the ThreadPool that there's work to be executed
             /// for this scheduler.
             /// </summary>
-            private void NotifyThreadPoolOfPendingWork() {
-                ThreadPool.UnsafeQueueUserWorkItem(_ => {
+            private void NotifyThreadPoolOfPendingWork()
+            {
+                ThreadPool.UnsafeQueueUserWorkItem(_ =>
+                {
                     // Note that the current thread is now processing work items.
                     // This is necessary to enable inlining of tasks into this thread.
                     _currentThreadIsProcessingItems = true;
-                    try {
+                    try
+                    {
                         // Process all available items in the queue.
-                        while (true) {
+                        while (true)
+                        {
                             Task item;
-                            lock (_tasks) {
+                            lock (_tasks)
+                            {
                                 // When there are no more items to be processed,
                                 // note that we're done processing, and get out.
-                                if (_tasks.Count == 0) {
+                                if (_tasks.Count == 0)
+                                {
                                     --_delegatesQueuedOrRunning;
                                     break;
                                 }
@@ -100,7 +115,8 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                         }
                     }
                     // We're done processing items on the current thread
-                    finally {
+                    finally
+                    {
                         _currentThreadIsProcessingItems = false;
                     }
                 }, null);
@@ -114,13 +130,16 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             /// <param name="taskWasPreviouslyQueued"></param>
             /// <returns>Whether the task could be executed on the current thread.</returns>
             protected sealed override bool TryExecuteTaskInline(Task task,
-                bool taskWasPreviouslyQueued) {
+                bool taskWasPreviouslyQueued)
+            {
                 // If this thread isn't already processing a task, we don't support inlining
-                if (!_currentThreadIsProcessingItems) {
+                if (!_currentThreadIsProcessingItems)
+                {
                     return false;
                 }
                 // If the task was previously queued, remove it from the queue
-                if (taskWasPreviouslyQueued) {
+                if (taskWasPreviouslyQueued)
+                {
                     TryDequeue(task);
                 }
                 // Try to run the task.
@@ -135,8 +154,10 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             /// <returns>
             /// Whether the task could be found and removed.
             /// </returns>
-            protected sealed override bool TryDequeue(Task task) {
-                lock (_tasks) {
+            protected sealed override bool TryDequeue(Task task)
+            {
+                lock (_tasks)
+                {
                     return _tasks.Remove(task);
                 }
             }
@@ -148,17 +169,22 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             /// <returns>
             /// An enumerable of the tasks currently scheduled.
             /// </returns>
-            protected sealed override IEnumerable<Task> GetScheduledTasks() {
+            protected sealed override IEnumerable<Task> GetScheduledTasks()
+            {
                 var lockTaken = false;
-                try {
+                try
+                {
                     Monitor.TryEnter(_tasks, ref lockTaken);
-                    if (lockTaken) {
+                    if (lockTaken)
+                    {
                         return _tasks.ToArray();
                     }
                     throw new NotSupportedException();
                 }
-                finally {
-                    if (lockTaken) {
+                finally
+                {
+                    if (lockTaken)
+                    {
                         Monitor.Exit(_tasks);
                     }
                 }

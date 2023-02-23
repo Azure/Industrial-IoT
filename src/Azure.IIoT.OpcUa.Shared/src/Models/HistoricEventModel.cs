@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Historic event
     /// </summary>
     [DataContract]
-    public sealed record class HistoricEventModel {
+    public sealed record class HistoricEventModel
+    {
         /// <summary>
         /// The selected fields of the event
         /// </summary>

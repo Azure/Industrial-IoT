@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models {
+namespace Azure.IIoT.OpcUa.Services.Models
+{
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Device twin registration
     /// </summary>
     [DataContract]
-    public abstract class EntityRegistration {
+    public abstract class EntityRegistration
+    {
         /// <summary>
         /// Device id for registration
         /// </summary>
@@ -75,23 +77,30 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         public string Version { get; set; }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) {
-            if (obj is not EntityRegistration registration) {
+        public override bool Equals(object obj)
+        {
+            if (obj is not EntityRegistration registration)
+            {
                 return false;
             }
-            if (DeviceId != registration.DeviceId) {
+            if (DeviceId != registration.DeviceId)
+            {
                 return false;
             }
-            if (DeviceType != registration.DeviceType) {
+            if (DeviceType != registration.DeviceType)
+            {
                 return false;
             }
-            if (SiteId != registration.SiteId) {
+            if (SiteId != registration.SiteId)
+            {
                 return false;
             }
-            if ((IsDisabled ?? false) != (registration.IsDisabled ?? false)) {
+            if ((IsDisabled ?? false) != (registration.IsDisabled ?? false))
+            {
                 return false;
             }
-            if (NotSeenSince != registration.NotSeenSince) {
+            if (NotSeenSince != registration.NotSeenSince)
+            {
                 return false;
             }
             return true;
@@ -106,7 +115,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             !(r1 == r2);
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hashCode = 479558466;
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(DeviceId);

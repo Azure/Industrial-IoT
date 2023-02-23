@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client
+{
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// <summary>
     /// Twin client
     /// </summary>
-    public interface ITwinClient {
+    public interface ITwinClient
+    {
         /// <summary>
         /// Retrieve a device twin object for the current device.
         /// </summary>

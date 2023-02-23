@@ -3,24 +3,29 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Certificate extension
     /// </summary>
-    public static class X509CertificateModelEx {
+    public static class X509CertificateModelEx
+    {
         /// <summary>
         /// To service model
         /// </summary>
         /// <param name="cert"></param>
         /// <returns></returns>
-        public static X509CertificateModel ToServiceModel(this X509Certificate2 cert) {
-            if (cert == null) {
+        public static X509CertificateModel ToServiceModel(this X509Certificate2 cert)
+        {
+            if (cert == null)
+            {
                 return null;
             }
-            return new X509CertificateModel {
+            return new X509CertificateModel
+            {
                 Certificate = cert.RawData,
                 NotAfterUtc = cert.NotAfter,
                 NotBeforeUtc = cert.NotBefore,
@@ -36,7 +41,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="cert"></param>
         /// <returns></returns>
-        private static bool IsSelfIssued(this X509Certificate2 cert) {
+        private static bool IsSelfIssued(this X509Certificate2 cert)
+        {
             return cert.IssuerName.RawData
                 .SequenceEqualsSafe(cert.SubjectName.RawData);
         }

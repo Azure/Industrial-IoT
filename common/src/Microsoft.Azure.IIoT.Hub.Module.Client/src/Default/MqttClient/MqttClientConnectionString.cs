@@ -3,19 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
+{
     using MQTTnet.Formatter;
     using System;
 
     /// <summary>
     /// This class represent the MQTT client connection string
     /// </summary>
-    public sealed class MqttClientConnectionString {
+    public sealed class MqttClientConnectionString
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="MqttClientConnectionString"/> class.
         /// </summary>
-        public MqttClientConnectionString(MqttClientConnectionStringBuilder builder) {
-            if (builder == null) {
+        public MqttClientConnectionString(MqttClientConnectionStringBuilder builder)
+        {
+            if (builder == null)
+            {
                 throw new ArgumentNullException(nameof(builder));
             }
 

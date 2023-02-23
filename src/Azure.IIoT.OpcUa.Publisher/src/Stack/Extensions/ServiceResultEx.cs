@@ -3,21 +3,25 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Opc.Ua;
     using System;
 
     /// <summary>
     /// Service result model extensions
     /// </summary>
-    internal static class ServiceResultEx {
+    internal static class ServiceResultEx
+    {
         /// <summary>
         /// Convert exception to service result model
         /// </summary>
         /// <param name="sr"></param>
         /// <returns></returns>
-        public static ServiceResultModel? ToServiceResultModel(this ServiceResult sr) {
-            return new ServiceResultModel {
+        public static ServiceResultModel? ToServiceResultModel(this ServiceResult sr)
+        {
+            return new ServiceResultModel
+            {
                 StatusCode = sr.Code,
                 ErrorMessage = sr.LocalizedText?.Text,
                 Locale = sr.LocalizedText?.Locale,
@@ -35,8 +39,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="e"></param>
         /// <returns></returns>
-        public static ServiceResultModel? ToServiceResultModel(this Exception e) {
-            switch (e) {
+        public static ServiceResultModel? ToServiceResultModel(this Exception e)
+        {
+            switch (e)
+            {
                 case null:
                     return null;
                 case ServiceResultException sre:
@@ -45,7 +51,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                 case OperationCanceledException:
                     return null;
                 default:
-                    return new ServiceResultModel {
+                    return new ServiceResultModel
+                    {
                         ErrorMessage = e.Message,
                         SymbolicId = StatusCode.LookupSymbolicId(StatusCodes.Bad),
                         StatusCode = StatusCodes.Bad
@@ -61,8 +68,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="stringTable"></param>
         /// <returns></returns>
         public static ServiceResultModel CreateResultModel(this StatusCode statusCode,
-            DiagnosticInfo? diagnostics = null, StringCollection? stringTable = null) {
-            return new ServiceResultModel {
+            DiagnosticInfo? diagnostics = null, StringCollection? stringTable = null)
+        {
+            return new ServiceResultModel
+            {
                 // The last operation result is the one that caused the service to fail.
                 StatusCode = statusCode.Code,
                 SymbolicId = stringTable?.GetStringFromTable(diagnostics?.SymbolicId) ??
@@ -85,14 +94,17 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="index"></param>
         /// <returns></returns>
         private static string? GetStringFromTable(
-            this StringCollection stringTable, int? index) {
+            this StringCollection stringTable, int? index)
+        {
             if (index == null || stringTable == null ||
                 index.Value >= stringTable.Count ||
-                index.Value < 0) {
+                index.Value < 0)
+            {
                 return null;
             }
             var str = stringTable[index.Value];
-            if (string.IsNullOrWhiteSpace(str)) {
+            if (string.IsNullOrWhiteSpace(str))
+            {
                 return null;
             }
             return str;

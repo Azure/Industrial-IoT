@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Collections.Generic;
@@ -11,12 +12,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// <summary>
     /// Lookup key for connections
     /// </summary>
-    public sealed class ConnectionIdentifier {
+    public sealed class ConnectionIdentifier
+    {
         /// <summary>
         /// Create new key
         /// </summary>
         /// <param name="connection"></param>
-        public ConnectionIdentifier(ConnectionModel connection) {
+        public ConnectionIdentifier(ConnectionModel connection)
+        {
             Connection = connection?.Clone() ??
                 throw new ArgumentNullException(nameof(connection));
             _hash = Connection.CreateConsistentHash();
@@ -26,11 +29,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// Create new key
         /// </summary>
         /// <param name="endpoint"></param>
-        public ConnectionIdentifier(EndpointModel endpoint) {
-            if (endpoint == null) {
+        public ConnectionIdentifier(EndpointModel endpoint)
+        {
+            if (endpoint == null)
+            {
                 throw new ArgumentNullException(nameof(endpoint));
             }
-            Connection = new ConnectionModel {
+            Connection = new ConnectionModel
+            {
                 Endpoint = endpoint.Clone()
             };
             _hash = Connection.CreateConsistentHash();
@@ -42,14 +48,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         public ConnectionModel Connection { get; }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) {
-            if (obj is string s) {
+        public override bool Equals(object obj)
+        {
+            if (obj is string s)
+            {
                 return s == ToString();
             }
-            if (obj is not ConnectionIdentifier key) {
+            if (obj is not ConnectionIdentifier key)
+            {
                 return false;
             }
-            if (!Connection.IsSameAs(key.Connection)) {
+            if (!Connection.IsSameAs(key.Connection))
+            {
                 return false;
             }
             return true;
@@ -65,12 +75,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             !(r1 == r2);
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return _hash;
         }
 
         /// <inheritdoc/>
-        public override string ToString() {
+        public override string ToString()
+        {
             return Connection.CreateConnectionId();
         }
 

@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub {
+namespace Microsoft.Azure.IIoT.Hub
+{
     /// <summary>
     /// Special method names
     /// </summary>
-    public static class MethodNames {
+    public static class MethodNames
+    {
         /// <summary>
         /// Used by clients to call chunk
         /// server method.

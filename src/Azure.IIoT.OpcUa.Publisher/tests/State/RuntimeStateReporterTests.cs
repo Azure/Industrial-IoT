@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Tests.State {
+namespace Azure.IIoT.OpcUa.Publisher.Tests.State
+{
     using Azure.IIoT.OpcUa.Publisher.State;
     using FluentAssertions;
     using Furly.Extensions.Logging;
@@ -17,9 +18,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State {
     using System.Threading.Tasks;
     using Xunit;
 
-    public class RuntimeStateReporterTests {
+    public class RuntimeStateReporterTests
+    {
         [Fact]
-        public async Task ReportingDisabledTest() {
+        public async Task ReportingDisabledTest()
+        {
             var _client = new Mock<IClient>();
             var _clientAccessorMock = new Mock<IClientAccessor>();
             _clientAccessorMock.Setup(m => m.Client).Returns(_client.Object);
@@ -48,7 +51,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State {
         }
 
         [Fact]
-        public async Task ClientNotInitializedTest() {
+        public async Task ClientNotInitializedTest()
+        {
             var _clientAccessorMock = new Mock<IClientAccessor>();
             _clientAccessorMock.Setup(m => m.Client).Returns((IClient)null);
 
@@ -75,7 +79,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State {
         }
 
         [Fact]
-        public async Task ReportingTest() {
+        public async Task ReportingTest()
+        {
             var receivedParameters = new List<ITelemetryEvent>();
 
             var _client = new Mock<IClient>();

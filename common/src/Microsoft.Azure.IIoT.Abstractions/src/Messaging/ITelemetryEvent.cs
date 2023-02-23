@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging {
+namespace Microsoft.Azure.IIoT.Messaging
+{
     using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Telemetry message event to send
     /// </summary>
-    public interface ITelemetryEvent : IDisposable {
+    public interface ITelemetryEvent : IDisposable
+    {
         /// <summary>
         /// Processing timestamp
         /// </summary>

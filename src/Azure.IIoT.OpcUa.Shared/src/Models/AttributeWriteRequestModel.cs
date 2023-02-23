@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Furly.Extensions.Serializers;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Attribute and value to write to it
     /// </summary>
     [DataContract]
-    public sealed record class AttributeWriteRequestModel {
+    public sealed record class AttributeWriteRequestModel
+    {
         /// <summary>
         /// Node to write to (mandatory)
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http {
+namespace Microsoft.Azure.IIoT.Http
+{
     using System.Net.Http.Headers;
     using System.Net.Security;
     using System.Security.Cryptography.X509Certificates;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Http {
     /// <summary>
     /// Implement to validate server certificates
     /// </summary>
-    public interface IHttpCertificateValidator : IHttpHandler {
+    public interface IHttpCertificateValidator : IHttpHandler
+    {
         /// <summary>
         /// Validate ssl certificate
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Utils {
+namespace Microsoft.Azure.IIoT.Utils
+{
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -12,7 +13,8 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// <summary>
     /// Configuration base helper class
     /// </summary>
-    public abstract class ConfigBase {
+    public abstract class ConfigBase
+    {
         /// <summary>
         /// Configuration
         /// </summary>
@@ -22,7 +24,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        protected ConfigBase(IConfiguration configuration) {
+        protected ConfigBase(IConfiguration configuration)
+        {
             configuration ??= new ConfigurationBuilder()
                     .Build();
             Configuration = configuration;
@@ -34,10 +37,13 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected string GetStringOrDefault(string key, Func<string> defaultValue = null) {
+        protected string GetStringOrDefault(string key, Func<string> defaultValue = null)
+        {
             var value = Configuration.GetValue<string>(key);
-            if (string.IsNullOrEmpty(value)) {
-                if (defaultValue == null) {
+            if (string.IsNullOrEmpty(value))
+            {
+                if (defaultValue == null)
+                {
                     return string.Empty;
                 }
                 return defaultValue.Invoke();
@@ -51,7 +57,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected bool GetBoolOrDefault(string key, Func<bool> defaultValue = null) {
+        protected bool GetBoolOrDefault(string key, Func<bool> defaultValue = null)
+        {
             var result = GetBoolOrNull(key);
             return result ?? defaultValue?.Invoke() ?? false;
         }
@@ -62,14 +69,17 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected bool? GetBoolOrNull(string key, Func<bool?> defaultValue = null) {
+        protected bool? GetBoolOrNull(string key, Func<bool?> defaultValue = null)
+        {
             var value = GetStringOrDefault(key, () => "").ToLowerInvariant();
             var knownTrue = new HashSet<string> { "true", "yes", "y", "1" };
             var knownFalse = new HashSet<string> { "false", "no", "n", "0" };
-            if (knownTrue.Contains(value)) {
+            if (knownTrue.Contains(value))
+            {
                 return true;
             }
-            if (knownFalse.Contains(value)) {
+            if (knownFalse.Contains(value))
+            {
                 return false;
             }
             return defaultValue?.Invoke();
@@ -82,10 +92,13 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         protected TimeSpan GetDurationOrDefault(string key,
-            Func<TimeSpan> defaultValue = null) {
+            Func<TimeSpan> defaultValue = null)
+        {
             var result = GetDurationOrNull(key);
-            if (result == null) {
-                if (defaultValue != null) {
+            if (result == null)
+            {
+                if (defaultValue != null)
+                {
                     return defaultValue.Invoke();
                 }
                 throw new InvalidConfigurationException(
@@ -101,8 +114,10 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         protected TimeSpan? GetDurationOrNull(string key,
-            Func<TimeSpan?> defaultValue = null) {
-            if (!TimeSpan.TryParse(GetStringOrDefault(key), out var result)) {
+            Func<TimeSpan?> defaultValue = null)
+        {
+            if (!TimeSpan.TryParse(GetStringOrDefault(key), out var result))
+            {
                 return defaultValue?.Invoke();
             }
             return result;
@@ -114,7 +129,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected int GetIntOrDefault(string key, Func<int> defaultValue = null) {
+        protected int GetIntOrDefault(string key, Func<int> defaultValue = null)
+        {
             var value = GetIntOrNull(key);
             return value ?? defaultValue?.Invoke() ?? 0;
         }
@@ -125,15 +141,19 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected int? GetIntOrNull(string key, Func<int?> defaultValue = null) {
-            try {
+        protected int? GetIntOrNull(string key, Func<int?> defaultValue = null)
+        {
+            try
+            {
                 var value = GetStringOrDefault(key, null);
-                if (string.IsNullOrEmpty(value)) {
+                if (string.IsNullOrEmpty(value))
+                {
                     return defaultValue?.Invoke();
                 }
                 return Convert.ToInt32(value);
             }
-            catch {
+            catch
+            {
                 return defaultValue?.Invoke();
             }
         }
@@ -146,12 +166,15 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         protected string GetConnectonStringTokenOrDefault(string key,
-            Func<ConnectionString, string> getter, Func<string> defaultValue = null) {
+            Func<ConnectionString, string> getter, Func<string> defaultValue = null)
+        {
             var value = Configuration.GetValue<string>(key);
             if (string.IsNullOrEmpty(value)
                 || !ConnectionString.TryParse(value.Trim(), out var cs)
-                || string.IsNullOrEmpty(value = getter(cs))) {
-                if (defaultValue == null) {
+                || string.IsNullOrEmpty(value = getter(cs)))
+            {
+                if (defaultValue == null)
+                {
                     return string.Empty;
                 }
                 return defaultValue.Invoke();

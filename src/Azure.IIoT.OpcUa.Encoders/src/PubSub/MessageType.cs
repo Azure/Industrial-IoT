@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     /// <summary>
     /// Message type
     /// </summary>
-    public enum MessageType {
+    public enum MessageType
+    {
         /// <summary>
         /// Delta frame
         /// </summary>

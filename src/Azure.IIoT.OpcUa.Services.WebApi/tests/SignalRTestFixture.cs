@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi {
-    using Azure.IIoT.OpcUa.Services.WebApi.Tests;
+namespace Azure.IIoT.OpcUa.Services.WebApi
+{
     using Autofac.Extensions.Hosting;
+    using Azure.IIoT.OpcUa.Services.WebApi.Tests;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
@@ -14,12 +15,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Xunit;
 
     [CollectionDefinition(Name)]
-    public class WebAppCollection : ICollectionFixture<SignalRTestFixture> {
+    public class WebAppCollection : ICollectionFixture<SignalRTestFixture>
+    {
         public const string Name = "WebApp";
     }
 
     /// <inheritdoc/>
-    public class SignalRTestFixture : IDisposable {
+    public class SignalRTestFixture : IDisposable
+    {
         /// <summary>
         /// Base address
         /// </summary>
@@ -32,15 +35,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
             new Random().Next(40000, 60000);
 
         /// <inheritdoc/>
-        public SignalRTestFixture() {
+        public SignalRTestFixture()
+        {
             _server = Host.CreateDefaultBuilder()
                 .UseAutofac()
                 .ConfigureWebHostDefaults(builder => builder
                     .UseContentRoot(".")
                     .UseUrls("http://*:" + Port)
-                    .ConfigureAppConfiguration((_, builder) => {
+                    .ConfigureAppConfiguration((_, builder) =>
+                    {
                         builder
-                            .AddInMemoryCollection(new Dictionary<string, string> {
+                            .AddInMemoryCollection(new Dictionary<string, string>
+                            {
                                 ["PCS_EVENTS_SERVICE_URL"] = BaseAddress
                             });
                     }
@@ -56,12 +62,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Resolve<T>() {
+        public T Resolve<T>()
+        {
             return (T)_server.Services.GetService(typeof(T));
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             _server.Dispose();
         }
 

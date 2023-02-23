@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace System.Security.Claims {
+namespace System.Security.Claims
+{
     /// <summary>
     /// Model extensions
     /// </summary>
-    public static class ClaimsPrincipalEx {
+    public static class ClaimsPrincipalEx
+    {
         /// <summary>
         /// Gets the unique object ID associated with the <see cref="ClaimsPrincipal"/>
         /// </summary>
@@ -15,9 +17,11 @@ namespace System.Security.Claims {
         /// <param name="throwIfNotFound"></param>
         /// <returns></returns>
         public static string GetObjectId(this ClaimsPrincipal principal,
-            bool throwIfNotFound = true) {
+            bool throwIfNotFound = true)
+        {
             var userIdentifier = principal.FindFirstValue("oid");
-            if (string.IsNullOrEmpty(userIdentifier)) {
+            if (string.IsNullOrEmpty(userIdentifier))
+            {
                 return principal.FindFirstValue(
                 "http://schemas.microsoft.com/identity/claims/objectidentifier",
                 throwIfNotFound);
@@ -30,9 +34,11 @@ namespace System.Security.Claims {
         /// </summary>
         /// <param name="principal"></param>
         /// <returns></returns>
-        public static string GetTenantId(this ClaimsPrincipal principal) {
+        public static string GetTenantId(this ClaimsPrincipal principal)
+        {
             var tenantId = principal.FindFirstValue("tid");
-            if (string.IsNullOrEmpty(tenantId)) {
+            if (string.IsNullOrEmpty(tenantId))
+            {
                 return principal.FindFirstValue(
                     "http://schemas.microsoft.com/identity/claims/tenantid");
             }
@@ -45,7 +51,8 @@ namespace System.Security.Claims {
         /// </summary>
         /// <param name="principal"></param>
         /// <returns></returns>
-        public static string GetLoginHint(this ClaimsPrincipal principal) {
+        public static string GetLoginHint(this ClaimsPrincipal principal)
+        {
             return GetDisplayName(principal);
         }
 
@@ -54,11 +61,14 @@ namespace System.Security.Claims {
         /// </summary>
         /// <param name="principal"></param>
         /// <returns></returns>
-        public static string GetDisplayName(this ClaimsPrincipal principal) {
+        public static string GetDisplayName(this ClaimsPrincipal principal)
+        {
             var displayName = principal.FindFirstValue("preferred_username");
-            if (string.IsNullOrWhiteSpace(displayName)) {
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
                 displayName = principal.FindFirstValue(ClaimsIdentity.DefaultNameClaimType);
-                if (string.IsNullOrWhiteSpace(displayName)) {
+                if (string.IsNullOrWhiteSpace(displayName))
+                {
                     displayName = principal.FindFirstValue("name");
                 }
             }
@@ -70,9 +80,11 @@ namespace System.Security.Claims {
         /// </summary>
         /// <param name="principal"></param>
         /// <returns></returns>
-        public static string GetUserFlowId(this ClaimsPrincipal principal) {
+        public static string GetUserFlowId(this ClaimsPrincipal principal)
+        {
             var userFlowId = principal.FindFirstValue("tfp");
-            if (string.IsNullOrEmpty(userFlowId)) {
+            if (string.IsNullOrEmpty(userFlowId))
+            {
                 return principal.FindFirstValue(
                     "http://schemas.microsoft.com/claims/authnclassreference");
             }
@@ -84,7 +96,8 @@ namespace System.Security.Claims {
         /// </summary>
         /// <param name="principal"></param>
         /// <returns></returns>
-        public static string GetNameIdentifierId(this ClaimsPrincipal principal) {
+        public static string GetNameIdentifierId(this ClaimsPrincipal principal)
+        {
             return principal.FindFirstValue("utid");
         }
 
@@ -96,9 +109,11 @@ namespace System.Security.Claims {
         /// <param name="throwIfNotFound"></param>
         /// <returns></returns>
         public static string FindFirstValue(this ClaimsPrincipal principal,
-            string claimType, bool throwIfNotFound = false) {
+            string claimType, bool throwIfNotFound = false)
+        {
             var value = principal.FindFirst(claimType)?.Value;
-            if (throwIfNotFound && string.IsNullOrWhiteSpace(value)) {
+            if (throwIfNotFound && string.IsNullOrWhiteSpace(value))
+            {
                 throw new InvalidOperationException(
                     $"The supplied principal does not contain a claim of type {claimType}");
             }

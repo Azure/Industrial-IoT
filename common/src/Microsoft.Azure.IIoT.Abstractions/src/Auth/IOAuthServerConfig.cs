@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
+namespace Microsoft.Azure.IIoT.Auth
+{
     using System;
 
     /// <summary>
     /// Configuration interface for server token validation
     /// </summary>
-    public interface IOAuthServerConfig : IOAuthConfig {
+    public interface IOAuthServerConfig : IOAuthConfig
+    {
         /// <summary>
         /// Our service's id or url that was registered and
         /// that we must validate to be the audience of the

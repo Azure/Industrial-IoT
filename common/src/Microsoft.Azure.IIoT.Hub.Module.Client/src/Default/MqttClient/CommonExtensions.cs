@@ -3,19 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
+{
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Text.RegularExpressions;
 
-    internal static class CommonExtensionMethods {
+    internal static class CommonExtensionMethods
+    {
         private const char ValuePairDelimiter = ';';
         private const char ValuePairSeparator = '=';
 
-        public static IDictionary<string, string> ToDictionary(this string valuePairString, char kvpDelimiter, char kvpSeparator) {
-            if (string.IsNullOrWhiteSpace(valuePairString)) {
+        public static IDictionary<string, string> ToDictionary(this string valuePairString, char kvpDelimiter, char kvpSeparator)
+        {
+            if (string.IsNullOrWhiteSpace(valuePairString))
+            {
                 throw new ArgumentException("Malformed Token");
             }
 
@@ -31,14 +35,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                         (m.NextMatch().Success ? m.NextMatch().Index : valuePairString.Length) - (m.Index + m.Value.Length))
                 });
 
-            if (!parts.Any() || parts.Any(p => p.Length != 2)) {
+            if (!parts.Any() || parts.Any(p => p.Length != 2))
+            {
                 throw new FormatException("Malformed Token");
             }
             return parts.ToDictionary(kvp => kvp[0], (kvp) => kvp[1], StringComparer.OrdinalIgnoreCase);
         }
 
-        public static void AppendKeyValuePairIfNotEmpty(this StringBuilder builder, string name, object value) {
-            if (value != null) {
+        public static void AppendKeyValuePairIfNotEmpty(this StringBuilder builder, string name, object value)
+        {
+            if (value != null)
+            {
                 builder.Append(name);
                 builder.Append(ValuePairSeparator);
                 builder.Append(value);
@@ -53,7 +60,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="propertyName">The property to get.</param>
         /// <returns>A converted value for the property.</returns>
         public static T GetRequired<T>(this IDictionary<string, string> properties, string propertyName)
-            where T : IConvertible {
+            where T : IConvertible
+        {
             return (T)Convert.ChangeType(properties[propertyName], typeof(T));
         }
 
@@ -65,12 +73,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="defaultValue">The default value for the property.</param>
         /// <returns>A converted or default value for the property.</returns>
         public static T GetOptional<T>(this IDictionary<string, string> properties, string propertyName, T defaultValue = default(T))
-            where T : IConvertible {
+            where T : IConvertible
+        {
             properties.TryGetValue(propertyName, out var value);
-            try {
+            try
+            {
                 return (T)Convert.ChangeType(value, typeof(T));
             }
-            catch {
+            catch
+            {
                 return defaultValue;
             }
         }

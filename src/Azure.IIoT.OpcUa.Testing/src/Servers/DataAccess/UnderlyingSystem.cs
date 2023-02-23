@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace DataAccess {
+namespace DataAccess
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -36,25 +37,29 @@ namespace DataAccess {
     /// <summary>
     /// An object that provides access to the underlying system.
     /// </summary>
-    public class UnderlyingSystem : IDisposable {
+    public class UnderlyingSystem : IDisposable
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="UnderlyingSystem"/> class.
         /// </summary>
-        public UnderlyingSystem() {
+        public UnderlyingSystem()
+        {
             _blocks = new Dictionary<string, UnderlyingSystemBlock>();
         }
 
         /// <summary>
         /// The finializer implementation.
         /// </summary>
-        ~UnderlyingSystem() {
+        ~UnderlyingSystem()
+        {
             Dispose(false);
         }
 
         /// <summary>
         /// Frees any unmanaged reblocks.
         /// </summary>
-        public void Dispose() {
+        public void Dispose()
+        {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -62,9 +67,12 @@ namespace DataAccess {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected virtual void Dispose(bool disposing) {
-            if (disposing) {
-                if (_simulationTimer != null) {
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_simulationTimer != null)
+                {
                     _simulationTimer.Dispose();
                     _simulationTimer = null;
                 }
@@ -144,10 +152,13 @@ namespace DataAccess {
         /// </summary>
         /// <param name="segmentPath">The path to the segment.</param>
         /// <returns>The segment. Null if the segment path does not exist.</returns>
-        public UnderlyingSystemSegment FindSegment(string segmentPath) {
-            lock (_lock) {
+        public UnderlyingSystemSegment FindSegment(string segmentPath)
+        {
+            lock (_lock)
+            {
                 // check for invalid path.
-                if (string.IsNullOrEmpty(segmentPath)) {
+                if (string.IsNullOrEmpty(segmentPath))
+                {
                     return null;
                 }
 
@@ -156,27 +167,33 @@ namespace DataAccess {
 
                 var index = segmentPath.LastIndexOf('/');
 
-                if (index != -1) {
+                if (index != -1)
+                {
                     segmentName = segmentName.Substring(index + 1);
                 }
 
-                if (string.IsNullOrEmpty(segmentName)) {
+                if (string.IsNullOrEmpty(segmentName))
+                {
                     return null;
                 }
 
                 // see if there is a block path that includes the segment.
                 index = segmentPath.Length;
 
-                for (var ii = 0; ii < s_BlockPathDatabase.Length; ii++) {
+                for (var ii = 0; ii < s_BlockPathDatabase.Length; ii++)
+                {
                     var blockPath = s_BlockPathDatabase[ii];
 
-                    if (index >= blockPath.Length || blockPath[index] != '/') {
+                    if (index >= blockPath.Length || blockPath[index] != '/')
+                    {
                         continue;
                     }
 
                     // segment found - return the info.
-                    if (blockPath.StartsWith(segmentPath, StringComparison.Ordinal)) {
-                        return new UnderlyingSystemSegment {
+                    if (blockPath.StartsWith(segmentPath, StringComparison.Ordinal))
+                    {
+                        return new UnderlyingSystemSegment
+                        {
                             Id = segmentPath,
                             Name = segmentName,
                             SegmentType = null
@@ -193,10 +210,13 @@ namespace DataAccess {
         /// </summary>
         /// <param name="segmentPath">The path to the segment to search.</param>
         /// <returns>The list of segments found. Null if the segment path does not exist.</returns>
-        public IList<UnderlyingSystemSegment> FindSegments(string segmentPath) {
-            lock (_lock) {
+        public IList<UnderlyingSystemSegment> FindSegments(string segmentPath)
+        {
+            lock (_lock)
+            {
                 // check for invalid path.
-                if (string.IsNullOrEmpty(segmentPath)) {
+                if (string.IsNullOrEmpty(segmentPath))
+                {
                     segmentPath = string.Empty;
                 }
 
@@ -205,16 +225,20 @@ namespace DataAccess {
                 // find all block paths that start with the specified segment.
                 var length = segmentPath.Length;
 
-                for (var ii = 0; ii < s_BlockPathDatabase.Length; ii++) {
+                for (var ii = 0; ii < s_BlockPathDatabase.Length; ii++)
+                {
                     var blockPath = s_BlockPathDatabase[ii];
 
                     // check for segment path prefix in block path.
-                    if (length > 0) {
-                        if (length >= blockPath.Length || blockPath[length] != '/') {
+                    if (length > 0)
+                    {
+                        if (length >= blockPath.Length || blockPath[length] != '/')
+                        {
                             continue;
                         }
 
-                        if (!blockPath.StartsWith(segmentPath, StringComparison.Ordinal)) {
+                        if (!blockPath.StartsWith(segmentPath, StringComparison.Ordinal))
+                        {
                             continue;
                         }
 
@@ -224,19 +248,23 @@ namespace DataAccess {
                     // extract segment name.
                     var index = blockPath.IndexOf('/');
 
-                    if (index != -1) {
+                    if (index != -1)
+                    {
                         var segmentName = blockPath.Substring(0, index);
 
-                        if (!segments.ContainsKey(segmentName)) {
+                        if (!segments.ContainsKey(segmentName))
+                        {
                             var segmentId = segmentName;
 
-                            if (!string.IsNullOrEmpty(segmentPath)) {
+                            if (!string.IsNullOrEmpty(segmentPath))
+                            {
                                 segmentId = segmentPath;
                                 segmentId += "/";
                                 segmentId += segmentName;
                             }
 
-                            var segment = new UnderlyingSystemSegment {
+                            var segment = new UnderlyingSystemSegment
+                            {
                                 Id = segmentId,
                                 Name = segmentName,
                                 SegmentType = null
@@ -257,10 +285,13 @@ namespace DataAccess {
         /// </summary>
         /// <param name="segmentPath">The path to the segment to search.</param>
         /// <returns>The list of blocks found. Null if the segment path does not exist.</returns>
-        public IList<string> FindBlocks(string segmentPath) {
-            lock (_lock) {
+        public IList<string> FindBlocks(string segmentPath)
+        {
+            lock (_lock)
+            {
                 // check for invalid path.
-                if (string.IsNullOrEmpty(segmentPath)) {
+                if (string.IsNullOrEmpty(segmentPath))
+                {
                     segmentPath = string.Empty;
                 }
 
@@ -269,16 +300,20 @@ namespace DataAccess {
                 // look up the segment in the "DB".
                 var length = segmentPath.Length;
 
-                for (var ii = 0; ii < s_BlockPathDatabase.Length; ii++) {
+                for (var ii = 0; ii < s_BlockPathDatabase.Length; ii++)
+                {
                     var blockPath = s_BlockPathDatabase[ii];
 
                     // check for segment path prefix in block path.
-                    if (length > 0) {
-                        if (length >= blockPath.Length || blockPath[length] != '/') {
+                    if (length > 0)
+                    {
+                        if (length >= blockPath.Length || blockPath[length] != '/')
+                        {
                             continue;
                         }
 
-                        if (!blockPath.StartsWith(segmentPath, StringComparison.Ordinal)) {
+                        if (!blockPath.StartsWith(segmentPath, StringComparison.Ordinal))
+                        {
                             continue;
                         }
 
@@ -288,10 +323,12 @@ namespace DataAccess {
                     // check if there are no more segments in the path.
                     var index = blockPath.IndexOf('/');
 
-                    if (index == -1) {
+                    if (index == -1)
+                    {
                         blockPath = blockPath.Substring(index + 1);
 
-                        if (!blocks.Contains(blockPath)) {
+                        if (!blocks.Contains(blockPath))
+                        {
                             blocks.Add(blockPath);
                         }
                     }
@@ -306,34 +343,41 @@ namespace DataAccess {
         /// </summary>
         /// <param name="segmentPath">The segment path.</param>
         /// <returns>The segment path for the parent.</returns>
-        public UnderlyingSystemSegment FindParentForSegment(string segmentPath) {
-            lock (_lock) {
+        public UnderlyingSystemSegment FindParentForSegment(string segmentPath)
+        {
+            lock (_lock)
+            {
                 // check for invalid segment.
                 var segment = FindSegment(segmentPath);
 
-                if (segment == null) {
+                if (segment == null)
+                {
                     return null;
                 }
 
                 // check for root segment.
                 var index = segmentPath.LastIndexOf('/');
 
-                if (index == -1) {
+                if (index == -1)
+                {
                     return null;
                 }
 
                 // construct the parent.
-                var parent = new UnderlyingSystemSegment {
+                var parent = new UnderlyingSystemSegment
+                {
                     Id = segmentPath.Substring(0, index),
                     SegmentType = null
                 };
 
                 index = parent.Id.LastIndexOf('/');
 
-                if (index == -1) {
+                if (index == -1)
+                {
                     parent.Name = parent.Id;
                 }
-                else {
+                else
+                {
                     parent.Name = parent.Id.Substring(0, index);
                 }
 
@@ -346,17 +390,21 @@ namespace DataAccess {
         /// </summary>
         /// <param name="blockId">The block identifier.</param>
         /// <returns>The block.</returns>
-        public UnderlyingSystemBlock FindBlock(string blockId) {
+        public UnderlyingSystemBlock FindBlock(string blockId)
+        {
             UnderlyingSystemBlock block = null;
 
-            lock (_lock) {
+            lock (_lock)
+            {
                 // check for invalid name.
-                if (string.IsNullOrEmpty(blockId)) {
+                if (string.IsNullOrEmpty(blockId))
+                {
                     return null;
                 }
 
                 // look for cached block.
-                if (_blocks.TryGetValue(blockId, out block)) {
+                if (_blocks.TryGetValue(blockId, out block))
+                {
                     return block;
                 }
 
@@ -364,14 +412,17 @@ namespace DataAccess {
                 string blockType = null;
                 var length = blockId.Length;
 
-                for (var ii = 0; ii < s_BlockDatabase.Length; ii++) {
+                for (var ii = 0; ii < s_BlockDatabase.Length; ii++)
+                {
                     blockType = s_BlockDatabase[ii];
 
-                    if (length >= blockType.Length || blockType[length] != '/') {
+                    if (length >= blockType.Length || blockType[length] != '/')
+                    {
                         continue;
                     }
 
-                    if (blockType.StartsWith(blockId, StringComparison.Ordinal)) {
+                    if (blockType.StartsWith(blockId, StringComparison.Ordinal))
+                    {
                         blockType = blockType.Substring(length + 1);
                         break;
                     }
@@ -380,12 +431,14 @@ namespace DataAccess {
                 }
 
                 // block not found.
-                if (blockType == null) {
+                if (blockType == null)
+                {
                     return null;
                 }
 
                 // create a new block.
-                block = new UnderlyingSystemBlock {
+                block = new UnderlyingSystemBlock
+                {
                     // create the block.
                     Id = blockId,
                     Name = blockId,
@@ -397,20 +450,24 @@ namespace DataAccess {
                 // add the tags based on the block type.
                 // note that the block and tag types used here are types defined by the underlying system.
                 // the node manager will need to map these types to UA defined types.
-                switch (block.BlockType) {
-                    case "FlowSensor": {
+                switch (block.BlockType)
+                {
+                    case "FlowSensor":
+                        {
                             block.CreateTag("Measurement", UnderlyingSystemDataType.Real4, UnderlyingSystemTagType.Analog, "liters/sec", false);
                             block.CreateTag("Online", UnderlyingSystemDataType.Integer1, UnderlyingSystemTagType.Digital, null, false);
                             break;
                         }
 
-                    case "LevelSensor": {
+                    case "LevelSensor":
+                        {
                             block.CreateTag("Measurement", UnderlyingSystemDataType.Real4, UnderlyingSystemTagType.Analog, "liters", false);
                             block.CreateTag("Online", UnderlyingSystemDataType.Integer1, UnderlyingSystemTagType.Digital, null, false);
                             break;
                         }
 
-                    case "Controller": {
+                    case "Controller":
+                        {
                             block.CreateTag("SetPoint", UnderlyingSystemDataType.Real4, UnderlyingSystemTagType.Normal, null, true);
                             block.CreateTag("Measurement", UnderlyingSystemDataType.Real4, UnderlyingSystemTagType.Normal, null, false);
                             block.CreateTag("Output", UnderlyingSystemDataType.Real4, UnderlyingSystemTagType.Normal, null, false);
@@ -418,7 +475,8 @@ namespace DataAccess {
                             break;
                         }
 
-                    case "CustomController": {
+                    case "CustomController":
+                        {
                             block.CreateTag("Input1", UnderlyingSystemDataType.Real4, UnderlyingSystemTagType.Normal, null, true);
                             block.CreateTag("Input2", UnderlyingSystemDataType.Real4, UnderlyingSystemTagType.Normal, null, true);
                             block.CreateTag("Input3", UnderlyingSystemDataType.Real4, UnderlyingSystemTagType.Normal, null, true);
@@ -437,10 +495,13 @@ namespace DataAccess {
         /// </summary>
         /// <param name="blockId">The block id.</param>
         /// <returns>The list of segments.</returns>
-        public IList<UnderlyingSystemSegment> FindSegmentsForBlock(string blockId) {
-            lock (_lock) {
+        public IList<UnderlyingSystemSegment> FindSegmentsForBlock(string blockId)
+        {
+            lock (_lock)
+            {
                 // check for invalid path.
-                if (string.IsNullOrEmpty(blockId)) {
+                if (string.IsNullOrEmpty(blockId))
+                {
                     return null;
                 }
 
@@ -449,31 +510,37 @@ namespace DataAccess {
                 // look up the segment in the block path database.
                 var length = blockId.Length;
 
-                for (var ii = 0; ii < s_BlockPathDatabase.Length; ii++) {
+                for (var ii = 0; ii < s_BlockPathDatabase.Length; ii++)
+                {
                     var blockPath = s_BlockPathDatabase[ii];
 
-                    if (length >= blockPath.Length || blockPath[blockPath.Length - length] != '/') {
+                    if (length >= blockPath.Length || blockPath[blockPath.Length - length] != '/')
+                    {
                         continue;
                     }
 
-                    if (!blockPath.EndsWith(blockId, StringComparison.Ordinal)) {
+                    if (!blockPath.EndsWith(blockId, StringComparison.Ordinal))
+                    {
                         continue;
                     }
 
                     var segmentPath = blockPath.Substring(0, blockPath.Length - length - 1);
 
                     // construct segment.
-                    var segment = new UnderlyingSystemSegment {
+                    var segment = new UnderlyingSystemSegment
+                    {
                         Id = segmentPath,
                         SegmentType = null
                     };
 
                     var index = segmentPath.LastIndexOf('/');
 
-                    if (index == -1) {
+                    if (index == -1)
+                    {
                         segment.Name = segmentPath;
                     }
-                    else {
+                    else
+                    {
                         segment.Name = segmentPath.Substring(0, index);
                     }
 
@@ -493,9 +560,12 @@ namespace DataAccess {
         /// Once an tag is confirmed it go to the inactive state.
         /// If the tag stays active the severity will be gradually increased.
         /// </remarks>
-        public void StartSimulation() {
-            lock (_lock) {
-                if (_simulationTimer != null) {
+        public void StartSimulation()
+        {
+            lock (_lock)
+            {
+                if (_simulationTimer != null)
+                {
                     _simulationTimer.Dispose();
                     _simulationTimer = null;
                 }
@@ -508,9 +578,12 @@ namespace DataAccess {
         /// <summary>
         /// Stops the simulation.
         /// </summary>
-        public void StopSimulation() {
-            lock (_lock) {
-                if (_simulationTimer != null) {
+        public void StopSimulation()
+        {
+            lock (_lock)
+            {
+                if (_simulationTimer != null)
+                {
                     _simulationTimer.Dispose();
                     _simulationTimer = null;
                 }
@@ -520,22 +593,27 @@ namespace DataAccess {
         /// <summary>
         /// Simulates a block by updating the state of the tags belonging to the condition.
         /// </summary>
-        private void DoSimulation(object state) {
-            try {
+        private void DoSimulation(object state)
+        {
+            try
+            {
                 // get the list of blocks.
                 List<UnderlyingSystemBlock> blocks = null;
 
-                lock (_lock) {
+                lock (_lock)
+                {
                     _simulationCounter++;
                     blocks = new List<UnderlyingSystemBlock>(_blocks.Values);
                 }
 
                 // run simulation for each block.
-                for (var ii = 0; ii < blocks.Count; ii++) {
+                for (var ii = 0; ii < blocks.Count; ii++)
+                {
                     blocks[ii].DoSimulation(_simulationCounter, ii, _generator);
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Unexpected error running simulation for system");
             }
         }

@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client
+{
     using Microsoft.Azure.IIoT.Messaging;
     using System.Collections.Generic;
 
     /// <summary>
     /// Message client extensions
     /// </summary>
-    public static class MessageClientEx {
+    public static class MessageClientEx
+    {
         /// <summary>
         /// Create message
         /// </summary>
@@ -24,7 +26,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public static ITelemetryEvent CreateMessage(this IMessageClient client,
             IReadOnlyList<byte[]> data, string contentEncoding,
             string contentType, string messageSchema,
-            string routingInfo = null) {
+            string routingInfo = null)
+        {
             var msg = client.CreateTelemetryEvent();
             msg.Buffers = data;
             msg.ContentType = contentType;

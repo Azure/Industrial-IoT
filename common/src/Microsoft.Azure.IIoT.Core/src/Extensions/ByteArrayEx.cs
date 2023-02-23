@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace System {
+namespace System
+{
     using System.IO;
     using System.Linq;
     using System.Security.Cryptography;
@@ -11,7 +12,8 @@ namespace System {
     /// <summary>
     /// Byte buffer extensions
     /// </summary>
-    public static class ByteArrayEx {
+    public static class ByteArrayEx
+    {
         /// <summary>
         /// Hashes the string
         /// </summary>
@@ -19,8 +21,10 @@ namespace System {
         /// <returns></returns>
         [Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5350:Do Not Use Weak Cryptographic Algorithms",
             Justification = "SHA1 not used for crypto operation.")]
-        public static string ToSha1Hash(this byte[] bytestr) {
-            if (bytestr == null) {
+        public static string ToSha1Hash(this byte[] bytestr)
+        {
+            if (bytestr == null)
+            {
                 return null;
             }
             var hash = SHA1.HashData(bytestr);
@@ -32,8 +36,10 @@ namespace System {
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static byte[] Zip(this byte[] str) {
-            using (var input = new MemoryStream(str)) {
+        public static byte[] Zip(this byte[] str)
+        {
+            using (var input = new MemoryStream(str))
+            {
                 return input.Zip();
             }
         }
@@ -43,8 +49,10 @@ namespace System {
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static byte[] Unzip(this byte[] bytes) {
-            using (var input = new MemoryStream(bytes)) {
+        public static byte[] Unzip(this byte[] bytes)
+        {
+            using (var input = new MemoryStream(bytes))
+            {
                 return input.Unzip();
             }
         }

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Events {
+namespace Azure.IIoT.OpcUa.Services.Events
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Messaging;
     using System;
@@ -12,29 +13,34 @@ namespace Azure.IIoT.OpcUa.Services.Events {
     /// <summary>
     /// Supervisor registry event publisher
     /// </summary>
-    public class SupervisorEventPublisher<THub> : ISupervisorRegistryListener {
+    public class SupervisorEventPublisher<THub> : ISupervisorRegistryListener
+    {
         /// <inheritdoc/>
-        public SupervisorEventPublisher(ICallbackInvokerT<THub> callback) {
+        public SupervisorEventPublisher(ICallbackInvokerT<THub> callback)
+        {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
 
         /// <inheritdoc/>
         public Task OnSupervisorDeletedAsync(OperationContextModel context,
-            string supervisorId) {
+            string supervisorId)
+        {
             return PublishAsync(SupervisorEventType.Deleted, context,
                 supervisorId, null);
         }
 
         /// <inheritdoc/>
         public Task OnSupervisorNewAsync(OperationContextModel context,
-            SupervisorModel supervisor) {
+            SupervisorModel supervisor)
+        {
             return PublishAsync(SupervisorEventType.New, context,
                 supervisor.Id, supervisor);
         }
 
         /// <inheritdoc/>
         public Task OnSupervisorUpdatedAsync(OperationContextModel context,
-            SupervisorModel supervisor) {
+            SupervisorModel supervisor)
+        {
             return PublishAsync(SupervisorEventType.Updated, context,
                 supervisor.Id, supervisor);
         }
@@ -49,7 +55,8 @@ namespace Azure.IIoT.OpcUa.Services.Events {
         /// <returns></returns>
         public Task PublishAsync(SupervisorEventType type,
             OperationContextModel context, string supervisorId,
-            SupervisorModel supervisor) {
+            SupervisorModel supervisor)
+        {
             var arguments = new object[] {
                 new SupervisorEventModel {
                     EventType = type,

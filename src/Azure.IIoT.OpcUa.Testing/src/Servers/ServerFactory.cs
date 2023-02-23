@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
+{
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
@@ -20,7 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
     /// <summary>
     /// Sample server factory
     /// </summary>
-    public class ServerFactory : IServerFactory {
+    public class ServerFactory : IServerFactory
+    {
         /// <summary>
         /// Whether to log status
         /// </summary>
@@ -31,7 +33,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="nodes"></param>
-        public ServerFactory(ILogger logger, IEnumerable<INodeManagerFactory> nodes) {
+        public ServerFactory(ILogger logger, IEnumerable<INodeManagerFactory> nodes)
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
         }
@@ -55,18 +58,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                 // new PerfTest.PerfTestServer(),
                 new SimpleEvents.SimpleEventsServer(),
                 new Plc.PlcServer()
-            }) {
+            })
+        {
         }
 
         /// <inheritdoc/>
         public ApplicationConfiguration CreateServer(IEnumerable<int> ports, string applicationName,
-            out ServerBase server) {
+            out ServerBase server)
+        {
             server = new Server(LogStatus, _nodes, _logger);
             return Server.CreateServerConfiguration(ports, applicationName);
         }
 
         /// <inheritdoc/>
-        private class Server : StandardServer {
+        private class Server : StandardServer
+        {
             /// <summary>
             /// Create server
             /// </summary>
@@ -74,7 +80,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// <param name="nodes"></param>
             /// <param name="logger"></param>
             public Server(bool logStatus, IEnumerable<INodeManagerFactory> nodes,
-                ILogger logger) {
+                ILogger logger)
+            {
                 _logger = logger;
                 _logStatus = logStatus;
                 _nodes = nodes;
@@ -86,7 +93,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// <param name="ports"></param>
             /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(
-                IEnumerable<int> ports, string pkiRootPath) {
+                IEnumerable<int> ports, string pkiRootPath)
+            {
                 var extensions = new List<object> {
                     new MemoryBuffer.MemoryBufferConfiguration {
                         Buffers = new MemoryBuffer.MemoryBufferInstanceCollection {
@@ -105,10 +113,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
 
                     /// ...
                 };
-                if (string.IsNullOrEmpty(pkiRootPath)) {
+                if (string.IsNullOrEmpty(pkiRootPath))
+                {
                     pkiRootPath = "pki";
                 }
-                return new ApplicationConfiguration {
+                return new ApplicationConfiguration
+                {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
                     ApplicationUri = $"urn:{Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
@@ -116,21 +126,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                         extensions.Select(XmlElementEx.SerializeObject)),
 
                     ProductUri = "http://opcfoundation.org/UA/SampleServer",
-                    SecurityConfiguration = new SecurityConfiguration {
-                        ApplicationCertificate = new CertificateIdentifier {
+                    SecurityConfiguration = new SecurityConfiguration
+                    {
+                        ApplicationCertificate = new CertificateIdentifier
+                        {
                             StoreType = CertificateStoreType.Directory,
                             StorePath = $"{pkiRootPath}/own",
                             SubjectName = "UA Core Sample Server",
                         },
-                        TrustedPeerCertificates = new CertificateTrustList {
+                        TrustedPeerCertificates = new CertificateTrustList
+                        {
                             StoreType = CertificateStoreType.Directory,
                             StorePath = $"{pkiRootPath}/trusted",
                         },
-                        TrustedIssuerCertificates = new CertificateTrustList {
+                        TrustedIssuerCertificates = new CertificateTrustList
+                        {
                             StoreType = CertificateStoreType.Directory,
                             StorePath = $"{pkiRootPath}/issuer",
                         },
-                        RejectedCertificateStore = new CertificateTrustList {
+                        RejectedCertificateStore = new CertificateTrustList
+                        {
                             StoreType = CertificateStoreType.Directory,
                             StorePath = $"{pkiRootPath}/rejected",
                         },
@@ -142,7 +157,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                     },
                     TransportConfigurations = new TransportConfigurationCollection(),
                     TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),
-                    ServerConfiguration = new ServerConfiguration {
+                    ServerConfiguration = new ServerConfiguration
+                    {
                         // Sample server specific
                         ServerProfileArray = new StringCollection {
                              "Standard UA Server Profile",
@@ -220,15 +236,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                         MaxRegistrationInterval = 0, // TODO
                         RegistrationEndpoint = null
                     },
-                    TraceConfiguration = new TraceConfiguration {
+                    TraceConfiguration = new TraceConfiguration
+                    {
                         TraceMasks = 1
                     }
                 };
             }
 
             /// <inheritdoc/>
-            protected override ServerProperties LoadServerProperties() {
-                return new ServerProperties {
+            protected override ServerProperties LoadServerProperties()
+            {
+                return new ServerProperties
+                {
                     ManufacturerName = "OPC Foundation",
                     ProductName = "OPC UA Sample Servers",
                     ProductUri = "http://opcfoundation.org/UA/Samples/v1.0",
@@ -240,7 +259,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
 
             /// <inheritdoc/>
             protected override MasterNodeManager CreateMasterNodeManager(
-                IServerInternal server, ApplicationConfiguration configuration) {
+                IServerInternal server, ApplicationConfiguration configuration)
+            {
                 _logger.LogInformation("Creating the Node Managers.");
                 var nodeManagers = _nodes
                     .Select(n => n.Create(server, configuration));
@@ -249,7 +269,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             }
 
             /// <inheritdoc/>
-            protected override void OnServerStopping() {
+            protected override void OnServerStopping()
+            {
                 _logger.LogDebug("The server is stopping.");
                 base.OnServerStopping();
                 _cts.Cancel();
@@ -257,10 +278,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             }
 
             /// <inheritdoc/>
-            protected override void OnServerStarted(IServerInternal server) {
+            protected override void OnServerStarted(IServerInternal server)
+            {
                 // start the status thread
                 _cts = new CancellationTokenSource();
-                if (_logStatus) {
+                if (_logStatus)
+                {
                     _statusLogger = Task.Run(() => LogStatusAsync(_cts.Token));
 
                     // print notification on session events
@@ -274,20 +297,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             }
 
             /// <inheritdoc/>
-            protected override void OnServerStarting(ApplicationConfiguration configuration) {
+            protected override void OnServerStarting(ApplicationConfiguration configuration)
+            {
                 _logger.LogDebug("The server is starting.");
                 CreateUserIdentityValidators(configuration);
                 base.OnServerStarting(configuration);
             }
 
             /// <inheritdoc/>
-            protected override void OnNodeManagerStarted(IServerInternal server) {
+            protected override void OnNodeManagerStarted(IServerInternal server)
+            {
                 _logger.LogInformation("The NodeManagers have started.");
                 base.OnNodeManagerStarted(server);
             }
 
             /// <inheritdoc/>
-            protected override void Dispose(bool disposing) {
+            protected override void Dispose(bool disposing)
+            {
                 base.Dispose(disposing);
                 _cts?.Dispose();
             }
@@ -297,7 +323,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// </summary>
             /// <param name="session"></param>
             /// <param name="reason"></param>
-            private void OnEvent(Session session, SessionEventReason reason) {
+            private void OnEvent(Session session, SessionEventReason reason)
+            {
                 _lastEventTime = DateTime.UtcNow;
                 LogSessionStatus(session, reason.ToString());
             }
@@ -306,10 +333,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// Continously log session status if not logged during events
             /// </summary>
             /// <returns></returns>
-            private async Task LogStatusAsync(CancellationToken ct) {
-                while (!ct.IsCancellationRequested) {
-                    if (DateTime.UtcNow - _lastEventTime > TimeSpan.FromMilliseconds(6000)) {
-                        foreach (var session in CurrentInstance.SessionManager.GetSessions()) {
+            private async Task LogStatusAsync(CancellationToken ct)
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    if (DateTime.UtcNow - _lastEventTime > TimeSpan.FromMilliseconds(6000))
+                    {
+                        foreach (var session in CurrentInstance.SessionManager.GetSessions())
+                        {
                             LogSessionStatus(session, "-Status-", true);
                         }
                         _lastEventTime = DateTime.UtcNow;
@@ -324,16 +355,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// <param name="session"></param>
             /// <param name="reason"></param>
             /// <param name="lastContact"></param>
-            private void LogSessionStatus(Session session, string reason, bool lastContact = false) {
-                lock (session.DiagnosticsLock) {
+            private void LogSessionStatus(Session session, string reason, bool lastContact = false)
+            {
+                lock (session.DiagnosticsLock)
+                {
                     var item = string.Format("{0,9}:{1,20}:", reason,
                         session.SessionDiagnostics.SessionName);
-                    if (lastContact) {
+                    if (lastContact)
+                    {
                         item += string.Format("Last Event:{0:HH:mm:ss}",
                             session.SessionDiagnostics.ClientLastContactTime.ToLocalTime());
                     }
-                    else {
-                        if (session.Identity != null) {
+                    else
+                    {
+                        if (session.Identity != null)
+                        {
                             item += string.Format(":{0,20}", session.Identity.DisplayName);
                         }
                         item += string.Format(":{0}", session.Id);
@@ -344,24 +380,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// <summary>
             /// Creates the objects used to validate the user identity tokens supported by the server.
             /// </summary>
-            private void CreateUserIdentityValidators(ApplicationConfiguration configuration) {
-                for (var ii = 0; ii < configuration.ServerConfiguration.UserTokenPolicies.Count; ii++) {
+            private void CreateUserIdentityValidators(ApplicationConfiguration configuration)
+            {
+                for (var ii = 0; ii < configuration.ServerConfiguration.UserTokenPolicies.Count; ii++)
+                {
                     var policy = configuration.ServerConfiguration.UserTokenPolicies[ii];
 
                     // ignore policies without an explicit id.
-                    if (string.IsNullOrEmpty(policy.PolicyId)) {
+                    if (string.IsNullOrEmpty(policy.PolicyId))
+                    {
                         continue;
                     }
 
                     // create a validator for an issued token policy.
-                    if (policy.TokenType == UserTokenType.IssuedToken) {
+                    if (policy.TokenType == UserTokenType.IssuedToken)
+                    {
                         // the name of the element in the configuration file.
                         var qname = new XmlQualifiedName(policy.PolicyId, Namespaces.OpcUa);
 
                         // find the id for the issuer certificate.
                         var id = configuration.ParseExtension<CertificateIdentifier>(qname);
 
-                        if (id == null) {
+                        if (id == null)
+                        {
                             Utils.Trace(
                                 Utils.TraceMasks.Error,
                                 "Could not load CertificateIdentifier for UserTokenPolicy {0}",
@@ -372,14 +413,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                     }
 
                     // create a validator for a certificate token policy.
-                    if (policy.TokenType == UserTokenType.Certificate) {
+                    if (policy.TokenType == UserTokenType.Certificate)
+                    {
                         // the name of the element in the configuration file.
                         var qname = new XmlQualifiedName(policy.PolicyId, Namespaces.OpcUa);
 
                         // find the location of the trusted issuers.
                         var trustedIssuers = configuration.ParseExtension<CertificateTrustList>(qname);
 
-                        if (trustedIssuers == null) {
+                        if (trustedIssuers == null)
+                        {
                             Utils.Trace(
                                 Utils.TraceMasks.Error,
                                 "Could not load CertificateTrustList for UserTokenPolicy {0}",
@@ -398,22 +441,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// Called when a client tries to change its user identity.
             /// </summary>
             private void SessionManager_ImpersonateUser(Session session,
-                ImpersonateEventArgs args) {
-                if (session == null) {
+                ImpersonateEventArgs args)
+            {
+                if (session == null)
+                {
                     throw new ArgumentNullException(nameof(session));
                 }
 
-                if (args.NewIdentity is AnonymousIdentityToken guest) {
+                if (args.NewIdentity is AnonymousIdentityToken guest)
+                {
                     args.Identity = new UserIdentity(guest);
                     Utils.Trace("Guest access accepted: {0}", args.Identity.DisplayName);
                     return;
                 }
 
                 // check for a user name token.
-                if (args.NewIdentity is UserNameIdentityToken userNameToken) {
+                if (args.NewIdentity is UserNameIdentityToken userNameToken)
+                {
                     var admin = VerifyPassword(userNameToken.UserName, userNameToken.DecryptedPassword);
                     args.Identity = new UserIdentity(userNameToken);
-                    if (admin) {
+                    if (admin)
+                    {
                         args.Identity = new SystemConfigurationIdentity(args.Identity);
                     }
                     Utils.Trace("UserName Token accepted: {0}", args.Identity.DisplayName);
@@ -421,10 +469,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                 }
 
                 // check for x509 user token.
-                if (args.NewIdentity is X509IdentityToken x509Token) {
+                if (args.NewIdentity is X509IdentityToken x509Token)
+                {
                     var admin = VerifyCertificate(x509Token.Certificate);
                     args.Identity = new UserIdentity(x509Token);
-                    if (admin) {
+                    if (admin)
+                    {
                         args.Identity = new SystemConfigurationIdentity(args.Identity);
                     }
                     Utils.Trace("X509 Token accepted: {0}", args.Identity.DisplayName);
@@ -432,10 +482,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                 }
 
                 // check for x509 user token.
-                if (args.NewIdentity is IssuedIdentityToken wssToken) {
+                if (args.NewIdentity is IssuedIdentityToken wssToken)
+                {
                     var admin = VerifyToken(wssToken);
                     args.Identity = new UserIdentity(wssToken);
-                    if (admin) {
+                    if (admin)
+                    {
                         args.Identity = new SystemConfigurationIdentity(args.Identity);
                     }
                     Utils.Trace("Issued Token accepted: {0}", args.Identity.DisplayName);
@@ -455,8 +507,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// Validates the token
             /// </summary>
             /// <param name="wssToken"></param>
-            private static bool VerifyToken(IssuedIdentityToken wssToken) {
-                if ((wssToken.TokenData?.Length ?? 0) == 0) {
+            private static bool VerifyToken(IssuedIdentityToken wssToken)
+            {
+                if ((wssToken.TokenData?.Length ?? 0) == 0)
+                {
                     var info = new TranslationInfo("InvalidToken", "en-US",
                         "Specified token is empty.");
                     // create an exception with a vendor defined sub-code.
@@ -470,8 +524,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// <summary>
             /// Validates the password for a username token.
             /// </summary>
-            private static bool VerifyPassword(string userName, string password) {
-                if (string.IsNullOrEmpty(password)) {
+            private static bool VerifyPassword(string userName, string password)
+            {
+                if (string.IsNullOrEmpty(password))
+                {
                     // construct translation object with default text.
                     var info = new TranslationInfo(
                         "InvalidPassword", "en-US",
@@ -483,7 +539,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                         kServerNamespaceUri, new LocalizedText(info)));
                 }
 
-                if (userName.EqualsIgnoreCase("test") && password == "test") {
+                if (userName.EqualsIgnoreCase("test") && password == "test")
+                {
                     // Testing purposes only
                     return true;
                 }
@@ -493,12 +550,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
             /// <summary>
             /// Verifies that a certificate user token is trusted.
             /// </summary>
-            private bool VerifyCertificate(X509Certificate2 certificate) {
-                try {
-                    if (_certificateValidator != null) {
+            private bool VerifyCertificate(X509Certificate2 certificate)
+            {
+                try
+                {
+                    if (_certificateValidator != null)
+                    {
                         _certificateValidator.Validate(certificate);
                     }
-                    else {
+                    else
+                    {
                         CertificateValidator.Validate(certificate);
                     }
 
@@ -507,16 +568,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
                         certificate.Subject, certificate.Issuer);
 
                     // do not allow self signed application certs as user token
-                    if (isSelfSigned && X509Utils.HasApplicationURN(certificate)) {
+                    if (isSelfSigned && X509Utils.HasApplicationURN(certificate))
+                    {
                         throw new ServiceResultException(StatusCodes.BadCertificateUseNotAllowed);
                     }
                     return false;
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     TranslationInfo info;
                     StatusCode result = StatusCodes.BadIdentityTokenRejected;
                     if (e is ServiceResultException se &&
-                        se.StatusCode == StatusCodes.BadCertificateUseNotAllowed) {
+                        se.StatusCode == StatusCodes.BadCertificateUseNotAllowed)
+                    {
                         info = new TranslationInfo(
                             "InvalidCertificate",
                             "en-US",
@@ -525,7 +589,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
 
                         result = StatusCodes.BadIdentityTokenInvalid;
                     }
-                    else {
+                    else
+                    {
                         // construct translation object with default text.
                         info = new TranslationInfo(
                             "UntrustedCertificate",

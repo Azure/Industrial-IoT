@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Represents one aggregation interval within an aggregation query.
     /// </summary>
-    public abstract class TimeSlice {
+    public abstract class TimeSlice
+    {
         /// <summary>
         /// Start date of the time slice, which may be later than the end date.
         /// </summary>
@@ -77,7 +79,8 @@ namespace Opc.Ua.Aggregates {
         /// </summary>
         /// <param name="millis"></param>
         /// <returns></returns>
-        protected static long MillisecondsToTicks(double millis) {
+        protected static long MillisecondsToTicks(double millis)
+        {
             return (long)Math.Round(millis * 10000);
         }
 
@@ -88,20 +91,24 @@ namespace Opc.Ua.Aggregates {
         /// <param name="to"></param>
         /// <param name="inc"></param>
         /// <returns></returns>
-        public static TimeSlice CreateInitial(DateTime from, DateTime to, double inc) {
+        public static TimeSlice CreateInitial(DateTime from, DateTime to, double inc)
+        {
             TimeSlice retval = null;
             var incomplete = false;
             DateTime later;
-            if (from > to) {
+            if (from > to)
+            {
                 later = from;
-                if (inc > 0.0) {
+                if (inc > 0.0)
+                {
                     var intMillis = MillisecondsToTicks(inc);
                     var totMillis = MillisecondsToTicks((from - to).TotalMilliseconds);
                     var remMillis = totMillis % intMillis;
                     later = (remMillis > 0) ? to + new TimeSpan(remMillis) : to + new TimeSpan(intMillis);
                     incomplete = remMillis > 0;
                 }
-                retval = new BackwardTimeSlice {
+                retval = new BackwardTimeSlice
+                {
                     From = later,
                     To = to,
                     Incomplete = incomplete,
@@ -109,16 +116,20 @@ namespace Opc.Ua.Aggregates {
                     LateBound = new BoundingValue { Timestamp = later }
                 };
             }
-            else if (to > from) {
+            else if (to > from)
+            {
                 later = to;
-                if (inc > 0.0) {
+                if (inc > 0.0)
+                {
                     later = from + new TimeSpan(MillisecondsToTicks(inc));
-                    if (later > to) {
+                    if (later > to)
+                    {
                         later = to;
                         incomplete = true;
                     }
                 }
-                retval = new ForwardTimeSlice {
+                retval = new ForwardTimeSlice
+                {
                     From = from,
                     To = later,
                     Incomplete = incomplete,
@@ -137,7 +148,8 @@ namespace Opc.Ua.Aggregates {
         /// <param name="inc"></param>
         /// <param name="predecessor"></param>
         /// <returns></returns>
-        public static TimeSlice CreateNext(DateTime latest, double inc, TimeSlice predecessor) {
+        public static TimeSlice CreateNext(DateTime latest, double inc, TimeSlice predecessor)
+        {
             return predecessor.CreateSuccessor(latest, inc);
         }
 
@@ -148,7 +160,8 @@ namespace Opc.Ua.Aggregates {
         /// </summary>
         /// <param name="timestamp"></param>
         /// <returns></returns>
-        public bool ExactMatch(DateTime timestamp) {
+        public bool ExactMatch(DateTime timestamp)
+        {
             return timestamp.Equals(From);
         }
 
@@ -158,7 +171,8 @@ namespace Opc.Ua.Aggregates {
         /// </summary>
         /// <param name="timestamp"></param>
         /// <returns></returns>
-        public bool EndMatch(DateTime timestamp) {
+        public bool EndMatch(DateTime timestamp)
+        {
             return timestamp.Equals(To);
         }
 
@@ -167,16 +181,20 @@ namespace Opc.Ua.Aggregates {
         /// </summary>
         /// <param name="rawValue"></param>
         /// <returns>true if the data value was added</returns>
-        public bool AcceptValue(DataValue rawValue) {
-            if (ContainsTime(rawValue.SourceTimestamp)) {
+        public bool AcceptValue(DataValue rawValue)
+        {
+            if (ContainsTime(rawValue.SourceTimestamp))
+            {
                 Accumulator.Add(rawValue);
-                if (rawValue.StatusCode.Equals(StatusCodes.BadNoData)) {
+                if (rawValue.StatusCode.Equals(StatusCodes.BadNoData))
+                {
                     Incomplete = true;
                 }
 
                 return true;
             }
-            else {
+            else
+            {
                 return false;
             }
         }
@@ -208,23 +226,28 @@ namespace Opc.Ua.Aggregates {
     /// <summary>
     /// A TimeSlice for forward motion through time.
     /// </summary>
-    public class ForwardTimeSlice : TimeSlice {
+    public class ForwardTimeSlice : TimeSlice
+    {
         /// <summary>
         /// Create the TimeSlice that immediately follows this one in time.
         /// </summary>
         /// <param name="latest"></param>
         /// <param name="inc"></param>
         /// <returns></returns>
-        protected override TimeSlice CreateSuccessor(DateTime latest, double inc) {
+        protected override TimeSlice CreateSuccessor(DateTime latest, double inc)
+        {
             TimeSlice retval = null;
-            if (To < latest) {
+            if (To < latest)
+            {
                 var incomplete = false;
                 var target = To + new TimeSpan(MillisecondsToTicks(inc));
-                if (target > latest) {
+                if (target > latest)
+                {
                     target = latest;
                     incomplete = true;
                 }
-                retval = new ForwardTimeSlice {
+                retval = new ForwardTimeSlice
+                {
                     From = To,
                     To = target,
                     Incomplete = incomplete,
@@ -240,7 +263,8 @@ namespace Opc.Ua.Aggregates {
         /// </summary>
         /// <param name="time"></param>
         /// <returns>true if the DateTime is within the TimeSlice</returns>
-        public override bool ContainsTime(DateTime time) {
+        public override bool ContainsTime(DateTime time)
+        {
             return (time >= From) && (time < To);
         }
 
@@ -250,7 +274,8 @@ namespace Opc.Ua.Aggregates {
         /// </summary>
         /// <param name="timestamp"></param>
         /// <returns></returns>
-        public override bool Releasable(DateTime timestamp) {
+        public override bool Releasable(DateTime timestamp)
+        {
             return timestamp >= To;
         }
     }
@@ -258,18 +283,22 @@ namespace Opc.Ua.Aggregates {
     /// <summary>
     /// A TimeSlice for backward motion through time.
     /// </summary>
-    public class BackwardTimeSlice : TimeSlice {
+    public class BackwardTimeSlice : TimeSlice
+    {
         /// <summary>
         /// Create the TimeSlice that immediately follows this one in time.
         /// </summary>
         /// <param name="latest"></param>
         /// <param name="inc"></param>
         /// <returns></returns>
-        protected override TimeSlice CreateSuccessor(DateTime latest, double inc) {
+        protected override TimeSlice CreateSuccessor(DateTime latest, double inc)
+        {
             TimeSlice retval = null;
-            if (From < latest) {
+            if (From < latest)
+            {
                 var target = From + new TimeSpan(MillisecondsToTicks(inc));
-                retval = new BackwardTimeSlice {
+                retval = new BackwardTimeSlice
+                {
                     From = target,
                     To = From,
                     Incomplete = false,
@@ -285,7 +314,8 @@ namespace Opc.Ua.Aggregates {
         /// </summary>
         /// <param name="time"></param>
         /// <returns>true if the DateTime is within the TimeSlice</returns>
-        public override bool ContainsTime(DateTime time) {
+        public override bool ContainsTime(DateTime time)
+        {
             return (time <= From) && (time > To);
         }
 
@@ -295,7 +325,8 @@ namespace Opc.Ua.Aggregates {
         /// </summary>
         /// <param name="timestamp"></param>
         /// <returns></returns>
-        public override bool Releasable(DateTime timestamp) {
+        public override bool Releasable(DateTime timestamp)
+        {
             return timestamp > From;
         }
     }

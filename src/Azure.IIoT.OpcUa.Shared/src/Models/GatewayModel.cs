@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Gateway registration model
     /// </summary>
     [DataContract]
-    public sealed record class GatewayModel {
+    public sealed record class GatewayModel
+    {
         /// <summary>
         /// Gateway id
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
+{
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
@@ -15,7 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
     using System;
     using System.Collections.Generic;
 
-    public sealed class NetworkMessage : ITelemetryEvent {
+    public sealed class NetworkMessage : ITelemetryEvent
+    {
         public DateTime Timestamp { get; set; }
         public string ContentType { get; set; }
         public string ContentEncoding { get; set; }
@@ -26,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         public TimeSpan Ttl { get; set; }
         public IReadOnlyList<byte[]> Buffers { get; set; }
 
-        public static ITelemetryEvent Create() {
+        public static ITelemetryEvent Create()
+        {
             return new NetworkMessage();
         }
 
@@ -34,24 +37,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             uint numOfMessages, bool eventList = false,
             MessageEncoding encoding = MessageEncoding.Json,
             NetworkMessageContentMask extraNetworkMessageMask = 0,
-            bool isSampleMode = false) {
+            bool isSampleMode = false)
+        {
             var messages = new List<SubscriptionNotificationModel>();
             const string publisherId = "Publisher";
-            var writer = new DataSetWriterModel {
-                DataSet = new PublishedDataSetModel {
-                    DataSetSource = new PublishedDataSetSourceModel {
-                        PublishedVariables = new PublishedDataItemsModel {
+            var writer = new DataSetWriterModel
+            {
+                DataSet = new PublishedDataSetModel
+                {
+                    DataSetSource = new PublishedDataSetSourceModel
+                    {
+                        PublishedVariables = new PublishedDataItemsModel
+                        {
                             PublishedData = new List<PublishedDataSetVariableModel>()
                         }
                     },
-                    DataSetMetaData = new DataSetMetaDataModel {
+                    DataSetMetaData = new DataSetMetaDataModel
+                    {
                         Name = "testdataset",
                         DataSetClassId = Guid.NewGuid()
                     }
                 }
             };
-            var writerGroup = new WriterGroupModel {
-                MessageSettings = new WriterGroupMessageSettingsModel {
+            var writerGroup = new WriterGroupModel
+            {
+                MessageSettings = new WriterGroupMessageSettingsModel
+                {
                     NetworkMessageContentMask =
                         NetworkMessageContentMask.PublisherId |
                         NetworkMessageContentMask.WriterGroupId |
@@ -67,20 +78,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                 MessageType = encoding
             };
             var seq = 1u;
-            for (uint i = 0; i < numOfMessages; i++) {
+            for (uint i = 0; i < numOfMessages; i++)
+            {
                 var suffix = $"-{i}";
 
                 var notifications = new List<MonitoredItemNotificationModel>();
 
-                for (uint k = 0; k < i + 1; k++) {
+                for (uint k = 0; k < i + 1; k++)
+                {
                     var notificationSuffix = suffix + $"-{k}";
 
-                    var monitoredItem = new MonitoredItem {
+                    var monitoredItem = new MonitoredItem
+                    {
                         DisplayName = "DisplayName" + notificationSuffix,
                         StartNodeId = new NodeId("NodeId" + notificationSuffix),
                         AttributeId = k
                     };
-                    if (eventList) {
+                    if (eventList)
+                    {
                         var handle = new OpcUaMonitoredItem(new EventMonitoredItemModel(), Log.Console<OpcUaMonitoredItem>());
                         handle.Fields.Add(("1", default));
                         handle.Fields.Add(("2", default));
@@ -89,21 +104,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                         handle.Fields.Add(("5", default));
                         handle.Fields.Add(("6", default));
                         monitoredItem.Handle = handle;
-                        var eventFieldList = new EventFieldList {
+                        var eventFieldList = new EventFieldList
+                        {
                             ClientHandle = k,
                             EventFields = new Variant[] { 1, 2, 3, 4, 5, 6 },
-                            Message = new NotificationMessage {
+                            Message = new NotificationMessage
+                            {
                                 SequenceNumber = seq++
                             }
                         };
                         var notification = eventFieldList.ToMonitoredItemNotifications(monitoredItem);
                         notifications.AddRange(notification);
                     }
-                    else {
-                        var monitoredItemNotification = new MonitoredItemNotification {
+                    else
+                    {
+                        var monitoredItemNotification = new MonitoredItemNotification
+                        {
                             ClientHandle = k,
                             Value = new DataValue(new Variant(k), new StatusCode(0), DateTime.UtcNow),
-                            Message = new NotificationMessage {
+                            Message = new NotificationMessage
+                            {
                                 SequenceNumber = seq++
                             }
                         };
@@ -112,8 +132,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                     }
                 }
 
-                var message = new SubscriptionNotificationModel {
-                    Context = new WriterGroupMessageContext {
+                var message = new SubscriptionNotificationModel
+                {
+                    Context = new WriterGroupMessageContext
+                    {
                         SequenceNumber = i,
                         PublisherId = publisherId,
                         Writer = writer,
@@ -135,7 +157,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             return messages;
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
         }
     }
 }

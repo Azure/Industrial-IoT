@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Components.Drawer {
+namespace Microsoft.Azure.IIoT.App.Components.Drawer
+{
     using Microsoft.AspNetCore.Components;
     using System;
 
-    public partial class Drawer {
+    public partial class Drawer
+    {
         [Parameter]
         public string HeaderText { get; set; }
 
@@ -23,12 +25,14 @@ namespace Microsoft.Azure.IIoT.App.Components.Drawer {
         private string DivClass { get; set; } = "drawer";
         private string CloseIcon { get; set; } = "oi oi-x closebtn";
 
-        private void OpenPanel() {
+        private void OpenPanel()
+        {
             DivClass = "drawer drawer-right-open";
             CloseIcon = "oi oi-x closebtn";
         }
 
-        private void ClosePanel() {
+        private void ClosePanel()
+        {
             DivClass = "drawer drawer-close";
             CloseIcon = string.Empty;
             IsOpen = false;

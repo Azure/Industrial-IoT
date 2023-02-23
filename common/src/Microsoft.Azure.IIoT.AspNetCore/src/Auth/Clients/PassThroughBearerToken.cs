@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Models;
+namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
+{
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -16,7 +17,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// <summary>
     /// Authenticate using the current token.
     /// </summary>
-    public class PassThroughBearerToken : ITokenClient {
+    public class PassThroughBearerToken : ITokenClient
+    {
         /// <summary>
         /// Create auth provider. Need to also inject the http context accessor
         /// to be able to get at the http context here.
@@ -24,36 +26,45 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="ctx"></param>
         /// <param name="config"></param>
         public PassThroughBearerToken(IHttpContextAccessor ctx,
-            IClientAuthConfig config = null) {
+            IClientAuthConfig config = null)
+        {
             _providers = config?.Providers?.Select(s => s.Provider).Distinct().ToList();
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
         }
 
         /// <inheritdoc/>
-        public bool Supports(string resource) {
+        public bool Supports(string resource)
+        {
             return _providers.Count > 0;
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
-            IEnumerable<string> scopes) {
+            IEnumerable<string> scopes)
+        {
             const string kAccessTokenKey = "access_token";
-            if (_ctx.HttpContext == null) {
+            if (_ctx.HttpContext == null)
+            {
                 return null;
             }
             string token = null;
-            if (_providers == null) {
+            if (_providers == null)
+            {
                 token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey).ConfigureAwait(false);
             }
-            else {
-                foreach (var provider in _providers) {
+            else
+            {
+                foreach (var provider in _providers)
+                {
                     token = await _ctx.HttpContext.GetTokenAsync(provider, kAccessTokenKey).ConfigureAwait(false);
-                    if (token != null) {
+                    if (token != null)
+                    {
                         break; // Use first found token
                     }
                 }
             }
-            if (string.IsNullOrEmpty(token)) {
+            if (string.IsNullOrEmpty(token))
+            {
                 return null;
             }
             var result = JwtSecurityTokenEx.Parse(token);
@@ -66,7 +77,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// </summary>
         /// <param name="resource"></param>
         /// <returns></returns>
-        public Task InvalidateAsync(string resource) {
+        public Task InvalidateAsync(string resource)
+        {
             // TODO
             return Task.CompletedTask;
         }

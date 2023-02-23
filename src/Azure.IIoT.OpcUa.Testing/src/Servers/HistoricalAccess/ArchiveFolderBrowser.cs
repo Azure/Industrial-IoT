@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalAccess {
+namespace HistoricalAccess
+{
     using Opc.Ua;
     using System.Collections.Generic;
 
     /// <summary>
     /// Browses the references for an archive folder.
     /// </summary>
-    public class ArchiveFolderBrowser : NodeBrowser {
+    public class ArchiveFolderBrowser : NodeBrowser
+    {
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
@@ -66,7 +68,8 @@ namespace HistoricalAccess {
                 browseDirection,
                 browseName,
                 additionalReferences,
-                internalOnly) {
+                internalOnly)
+        {
             _source = source;
             _stage = Stage.Begin;
         }
@@ -75,37 +78,45 @@ namespace HistoricalAccess {
         /// Returns the next reference.
         /// </summary>
         /// <returns>The next reference that meets the browse criteria.</returns>
-        public override IReference Next() {
+        public override IReference Next()
+        {
             var system = (UnderlyingSystem)SystemContext.SystemHandle;
 
-            lock (DataLock) {
+            lock (DataLock)
+            {
                 IReference reference = null;
 
                 // enumerate pre-defined references.
                 // always call first to ensure any pushed-back references are returned first.
                 reference = base.Next();
 
-                if (reference != null) {
+                if (reference != null)
+                {
                     return reference;
                 }
 
-                if (_stage == Stage.Begin) {
+                if (_stage == Stage.Begin)
+                {
                     _folders = _source.ArchiveFolder.GetChildFolders();
                     _stage = Stage.Folders;
                     _position = 0;
                 }
 
                 // don't start browsing huge number of references when only internal references are requested.
-                if (InternalOnly) {
+                if (InternalOnly)
+                {
                     return null;
                 }
 
                 // enumerate folders.
-                if (_stage == Stage.Folders) {
-                    if (IsRequired(ReferenceTypeIds.Organizes, false)) {
+                if (_stage == Stage.Folders)
+                {
+                    if (IsRequired(ReferenceTypeIds.Organizes, false))
+                    {
                         reference = NextChild();
 
-                        if (reference != null) {
+                        if (reference != null)
+                        {
                             return reference;
                         }
                     }
@@ -116,11 +127,14 @@ namespace HistoricalAccess {
                 }
 
                 // enumerate items.
-                if (_stage == Stage.Items) {
-                    if (IsRequired(ReferenceTypeIds.Organizes, false)) {
+                if (_stage == Stage.Items)
+                {
+                    if (IsRequired(ReferenceTypeIds.Organizes, false))
+                    {
                         reference = NextChild();
 
-                        if (reference != null) {
+                        if (reference != null)
+                        {
                             return reference;
                         }
 
@@ -130,11 +144,14 @@ namespace HistoricalAccess {
                 }
 
                 // enumerate parents.
-                if (_stage == Stage.Parents) {
-                    if (IsRequired(ReferenceTypeIds.Organizes, true)) {
+                if (_stage == Stage.Parents)
+                {
+                    if (IsRequired(ReferenceTypeIds.Organizes, true))
+                    {
                         reference = NextChild();
 
-                        if (reference != null) {
+                        if (reference != null)
+                        {
                             return reference;
                         }
 
@@ -151,27 +168,34 @@ namespace HistoricalAccess {
         /// <summary>
         /// Returns the next child.
         /// </summary>
-        private IReference NextChild() {
+        private IReference NextChild()
+        {
             var system = (UnderlyingSystem)SystemContext.SystemHandle;
 
             NodeId targetId = null;
 
             // check if a specific browse name is requested.
-            if (!QualifiedName.IsNull(BrowseName)) {
+            if (!QualifiedName.IsNull(BrowseName))
+            {
                 // check if match found previously.
-                if (_position == int.MaxValue) {
+                if (_position == int.MaxValue)
+                {
                     return null;
                 }
 
                 // browse name must be qualified by the correct namespace.
-                if (_source.BrowseName.NamespaceIndex != BrowseName.NamespaceIndex) {
+                if (_source.BrowseName.NamespaceIndex != BrowseName.NamespaceIndex)
+                {
                     return null;
                 }
 
                 // look for matching folder.
-                if (_stage == Stage.Folders && _folders != null) {
-                    for (var ii = 0; ii < _folders.Length; ii++) {
-                        if (BrowseName.Name == _folders[ii].Name) {
+                if (_stage == Stage.Folders && _folders != null)
+                {
+                    for (var ii = 0; ii < _folders.Length; ii++)
+                    {
+                        if (BrowseName.Name == _folders[ii].Name)
+                        {
                             targetId = ArchiveFolderState.ConstructId(_folders[ii].UniquePath, _source.NodeId.NamespaceIndex);
                             break;
                         }
@@ -179,9 +203,12 @@ namespace HistoricalAccess {
                 }
 
                 // look for matching item.
-                else if (_stage == Stage.Items && _items != null) {
-                    for (var ii = 0; ii < _items.Length; ii++) {
-                        if (BrowseName.Name == _items[ii].Name) {
+                else if (_stage == Stage.Items && _items != null)
+                {
+                    for (var ii = 0; ii < _items.Length; ii++)
+                    {
+                        if (BrowseName.Name == _items[ii].Name)
+                        {
                             targetId = ArchiveItemState.ConstructId(_items[ii].UniquePath, _source.NodeId.NamespaceIndex);
                             break;
                         }
@@ -189,10 +216,12 @@ namespace HistoricalAccess {
                 }
 
                 // look for matching parent.
-                else if (_stage == Stage.Parents) {
+                else if (_stage == Stage.Parents)
+                {
                     var parent = _source.ArchiveFolder.GetParentFolder();
 
-                    if (BrowseName.Name == parent.Name) {
+                    if (BrowseName.Name == parent.Name)
+                    {
                         targetId = ArchiveFolderState.ConstructId(parent.UniquePath, _source.NodeId.NamespaceIndex);
                     }
                 }
@@ -201,10 +230,13 @@ namespace HistoricalAccess {
             }
 
             // return the child at the next position.
-            else {
+            else
+            {
                 // look for next folder.
-                if (_stage == Stage.Folders && _folders != null) {
-                    if (_position >= _folders.Length) {
+                if (_stage == Stage.Folders && _folders != null)
+                {
+                    if (_position >= _folders.Length)
+                    {
                         return null;
                     }
 
@@ -212,8 +244,10 @@ namespace HistoricalAccess {
                 }
 
                 // look for next item.
-                else if (_stage == Stage.Items && _items != null) {
-                    if (_position >= _items.Length) {
+                else if (_stage == Stage.Items && _items != null)
+                {
+                    if (_position >= _items.Length)
+                    {
                         return null;
                     }
 
@@ -221,17 +255,20 @@ namespace HistoricalAccess {
                 }
 
                 // look for matching parent.
-                else if (_stage == Stage.Parents) {
+                else if (_stage == Stage.Parents)
+                {
                     var parent = _source.ArchiveFolder.GetParentFolder();
 
-                    if (parent != null) {
+                    if (parent != null)
+                    {
                         targetId = ArchiveFolderState.ConstructId(parent.UniquePath, _source.NodeId.NamespaceIndex);
                     }
                 }
             }
 
             // create reference.
-            if (targetId != null) {
+            if (targetId != null)
+            {
                 return new NodeStateReference(ReferenceTypeIds.Organizes, false, targetId);
             }
 
@@ -241,7 +278,8 @@ namespace HistoricalAccess {
         /// <summary>
         /// The stages available in a browse operation.
         /// </summary>
-        private enum Stage {
+        private enum Stage
+        {
             Begin,
             Folders,
             Items,

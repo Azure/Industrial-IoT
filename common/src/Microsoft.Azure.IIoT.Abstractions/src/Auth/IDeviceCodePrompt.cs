@@ -2,13 +2,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
+namespace Microsoft.Azure.IIoT.Auth
+{
     using System;
 
     /// <summary>
     /// Device code prompt
     /// </summary>
-    public interface IDeviceCodePrompt {
+    public interface IDeviceCodePrompt
+    {
         /// <summary>
         /// Prompt device code and message
         /// </summary>

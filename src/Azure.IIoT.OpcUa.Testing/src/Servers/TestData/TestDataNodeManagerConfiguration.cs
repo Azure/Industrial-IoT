@@ -27,18 +27,21 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace TestData {
+namespace TestData
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Stores the configuration the test node manager
     /// </summary>
     [DataContract(Namespace = Namespaces.TestData)]
-    public class TestDataNodeManagerConfiguration {
+    public class TestDataNodeManagerConfiguration
+    {
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public TestDataNodeManagerConfiguration() {
+        public TestDataNodeManagerConfiguration()
+        {
             Initialize();
         }
 
@@ -46,14 +49,16 @@ namespace TestData {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private void Initialize()
+        {
             SaveFilePath = null;
             MaxQueueSize = 100;
         }

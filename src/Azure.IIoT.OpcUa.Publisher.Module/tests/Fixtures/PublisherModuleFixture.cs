@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
+{
+    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter;
     using Azure.IIoT.OpcUa.Testing.Runtime;
-    using Autofac;
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
@@ -32,7 +33,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     /// Harness for opc publisher module
     /// </summary>
     public class PublisherModuleFixture : IInjector,
-        ISdkConfig, IDisposable {
+        ISdkConfig, IDisposable
+    {
         /// <summary>
         /// Device id
         /// </summary>
@@ -61,7 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <summary>
         /// Create fixture
         /// </summary>
-        public PublisherModuleFixture() {
+        public PublisherModuleFixture()
+        {
             DeviceId = Utils.GetHostName();
             ModuleId = Guid.NewGuid().ToString();
 
@@ -80,7 +83,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             _hub = HubContainer.Resolve<IIoTHubTwinServices>();
 
             // Create module identitity
-            var twin = _hub.CreateOrUpdateAsync(new DeviceTwinModel {
+            var twin = _hub.CreateOrUpdateAsync(new DeviceTwinModel
+            {
                 Id = DeviceId,
                 ModuleId = ModuleId
             }).Result;
@@ -98,27 +102,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
-            if (_running) {
+        public void Dispose()
+        {
+            if (_running)
+            {
                 _module.Exit(1);
                 var result = _process.Result;
                 Assert.Equal(1, result);
                 _running = false;
             }
-            if (Directory.Exists(ServerPkiRootPath)) {
+            if (Directory.Exists(ServerPkiRootPath))
+            {
                 Try.Op(() => Directory.Delete(ServerPkiRootPath, true));
             }
             HubContainer.Dispose();
         }
 
         /// <inheritdoc/>
-        public void Inject(ContainerBuilder builder) {
+        public void Inject(ContainerBuilder builder)
+        {
             // Register mock iot hub
             builder.RegisterInstance(_hub)
                 .AsImplementedInterfaces().ExternallyOwned();
 
             // Only configure if not yet running - otherwise we use twin host config.
-            if (!_running) {
+            if (!_running)
+            {
                 builder.RegisterInstance(new TestModuleConfig(_device))
                     .AsImplementedInterfaces();
             }
@@ -133,9 +142,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         }
 
         /// <inheritdoc/>
-        public class TestModuleConfig : IModuleConfig {
+        public class TestModuleConfig : IModuleConfig
+        {
             /// <inheritdoc/>
-            public TestModuleConfig(DeviceModel device) {
+            public TestModuleConfig(DeviceModel device)
+            {
                 _device = device;
             }
 
@@ -166,7 +177,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         }
 
         /// <inheritdoc/>
-        public class TestIoTHubConfig : IIoTHubConfig {
+        public class TestIoTHubConfig : IIoTHubConfig
+        {
             /// <inheritdoc/>
             public string IoTHubConnString =>
                 ConnectionString.CreateServiceConnectionString(
@@ -178,7 +190,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// Create hub container
         /// </summary>
         /// <returns></returns>
-        private IContainer CreateHubContainer() {
+        private IContainer CreateHubContainer()
+        {
             var builder = new ContainerBuilder();
 
             builder.AddNewtonsoftJsonSerializer();

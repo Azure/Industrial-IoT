@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalAccess {
+namespace HistoricalAccess
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -39,20 +40,23 @@ namespace HistoricalAccess {
     /// <summary>
     /// A node manager for a server that exposes several variables.
     /// </summary>
-    public class HistoricalAccessServerNodeManager : CustomNodeManager2 {
+    public class HistoricalAccessServerNodeManager : CustomNodeManager2
+    {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         public HistoricalAccessServerNodeManager(IServerInternal server, ApplicationConfiguration configuration)
         :
-            base(server, configuration, Namespaces.HistoricalAccess) {
+            base(server, configuration, Namespaces.HistoricalAccess)
+        {
             AliasRoot = "HDA";
 
             // get the configuration for the node manager.
             _configuration = configuration.ParseExtension<HistoricalAccessServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            _configuration ??= new HistoricalAccessServerConfiguration {
+            _configuration ??= new HistoricalAccessServerConfiguration
+            {
                 ArchiveRoot = "Historian"
             };
 
@@ -63,9 +67,12 @@ namespace HistoricalAccess {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
-                if (_simulationTimer != null) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_simulationTimer != null)
+                {
                     _simulationTimer.Dispose();
                     _simulationTimer = null;
                 }
@@ -85,8 +92,10 @@ namespace HistoricalAccess {
         /// strings. Other implementations could assign unique integers or Guids and save the new
         /// Node in a dictionary for later lookup.
         /// </remarks>
-        public override NodeId New(ISystemContext context, NodeState node) {
-            if (node is BaseInstanceState instance && instance.Parent != null) {
+        public override NodeId New(ISystemContext context, NodeState node)
+        {
+            if (node is BaseInstanceState instance && instance.Parent != null)
+            {
                 return NodeTypes.ConstructIdForComponent(instance, instance.Parent.NodeId.NamespaceIndex);
             }
 
@@ -96,8 +105,10 @@ namespace HistoricalAccess {
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Server.DiagnosticsLock) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Server.DiagnosticsLock)
+            {
                 var capabilities = Server.DiagnosticsNodeManager.GetDefaultHistoryCapabilities();
                 capabilities.AccessHistoryDataCapability.Value = true;
                 capabilities.InsertDataCapability.Value = true;
@@ -108,8 +119,10 @@ namespace HistoricalAccess {
                 capabilities.InsertAnnotationCapability.Value = true;
             }
 
-            lock (Lock) {
-                if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references)) {
+            lock (Lock)
+            {
+                if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references))
+                {
                     externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
                 }
 
@@ -125,8 +138,10 @@ namespace HistoricalAccess {
         /// <summary>
         /// Creates items from embedded resources.
         /// </summary>
-        private void CreateFolderFromResources(NodeState root, string folderName) {
-            var dataFolder = new FolderState(root) {
+        private void CreateFolderFromResources(NodeState root, string folderName)
+        {
+            var dataFolder = new FolderState(root)
+            {
                 ReferenceTypeId = ReferenceTypeIds.Organizes,
                 TypeDefinitionId = ObjectTypeIds.FolderType,
                 NodeId = new NodeId(folderName, NamespaceIndex),
@@ -140,8 +155,10 @@ namespace HistoricalAccess {
             AddPredefinedNode(SystemContext, root);
 
             var type = GetType().GetTypeInfo();
-            foreach (var resourcePath in Assembly.GetExecutingAssembly().GetManifestResourceNames()) {
-                if (!resourcePath.StartsWith($"{type.Assembly.GetName().Name}.Servers.HistoricalAccess.Data.{folderName}.", StringComparison.Ordinal)) {
+            foreach (var resourcePath in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            {
+                if (!resourcePath.StartsWith($"{type.Assembly.GetName().Name}.Servers.HistoricalAccess.Data.{folderName}.", StringComparison.Ordinal))
+                {
                     continue;
                 }
 
@@ -159,8 +176,10 @@ namespace HistoricalAccess {
         /// <summary>
         /// Frees any resources allocated for the address space.
         /// </summary>
-        public override void DeleteAddressSpace() {
-            lock (Lock) {
+        public override void DeleteAddressSpace()
+        {
+            lock (Lock)
+            {
                 // TBD
             }
         }
@@ -168,17 +187,22 @@ namespace HistoricalAccess {
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache) {
-            lock (Lock) {
+        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
+        {
+            lock (Lock)
+            {
                 // quickly exclude nodes that are not in the namespace.
-                if (!IsNodeIdInNamespace(nodeId)) {
+                if (!IsNodeIdInNamespace(nodeId))
+                {
                     return null;
                 }
 
                 // check for check for nodes that are being currently monitored.
 
-                if (MonitoredNodes.TryGetValue(nodeId, out var monitoredNode)) {
-                    return new NodeHandle {
+                if (MonitoredNodes.TryGetValue(nodeId, out var monitoredNode))
+                {
+                    return new NodeHandle
+                    {
                         NodeId = nodeId,
                         Validated = true,
                         Node = monitoredNode.Node
@@ -187,8 +211,10 @@ namespace HistoricalAccess {
 
                 // check for predefined nodes,
 
-                if (PredefinedNodes.TryGetValue(nodeId, out var node)) {
-                    return new NodeHandle {
+                if (PredefinedNodes.TryGetValue(nodeId, out var node))
+                {
+                    return new NodeHandle
+                    {
                         NodeId = nodeId,
                         Node = node,
                         Validated = true
@@ -198,8 +224,10 @@ namespace HistoricalAccess {
                 // parse the identifier.
                 var parsedNodeId = ParsedNodeId.Parse(nodeId);
 
-                if (parsedNodeId != null) {
-                    return new NodeHandle {
+                if (parsedNodeId != null)
+                {
+                    return new NodeHandle
+                    {
                         NodeId = nodeId,
                         Validated = false,
                         Node = null,
@@ -217,11 +245,13 @@ namespace HistoricalAccess {
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
-            IDictionary<NodeId, NodeState> cache) {
+            IDictionary<NodeId, NodeState> cache)
+        {
             // lookup in cache.
             var target = FindNodeInCache(context, handle, cache);
 
-            if (target != null) {
+            if (target != null)
+            {
                 handle.Node = target;
                 handle.Validated = true;
                 return handle.Node;
@@ -230,13 +260,16 @@ namespace HistoricalAccess {
             var pnd = (ParsedNodeId)handle.ParsedNodeId;
 
             // check for a new node.
-            switch (pnd.RootType) {
-                case NodeTypes.Folder: {
+            switch (pnd.RootType)
+            {
+                case NodeTypes.Folder:
+                    {
                         target = _system.GetFolderState(SystemContext, pnd.RootId);
                         break;
                     }
 
-                case NodeTypes.Item: {
+                case NodeTypes.Item:
+                    {
                         var item = _system.GetItemState(SystemContext, pnd);
                         item.LoadConfiguration(context);
                         target = item;
@@ -245,16 +278,19 @@ namespace HistoricalAccess {
             }
 
             // root is not valid.
-            if (target == null) {
+            if (target == null)
+            {
                 return null;
             }
 
             // validate component.
-            if (!string.IsNullOrEmpty(pnd.ComponentPath)) {
+            if (!string.IsNullOrEmpty(pnd.ComponentPath))
+            {
                 NodeState component = target.FindChildBySymbolicName(context, pnd.ComponentPath);
 
                 // component does not exist.
-                if (component == null) {
+                if (component == null)
+                {
                     return null;
                 }
 
@@ -262,7 +298,8 @@ namespace HistoricalAccess {
             }
 
             // put root into cache.
-            if (cache != null) {
+            if (cache != null)
+            {
                 cache[handle.NodeId] = target;
             }
 
@@ -280,21 +317,26 @@ namespace HistoricalAccess {
             IList<DataValue> values,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToValidate,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToValidate.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToValidate.Count; ii++)
+            {
                 var handle = nodesToValidate[ii];
 
-                lock (Lock) {
+                lock (Lock)
+                {
                     // validate node.
                     var source = ValidateNode(context, handle, cache);
 
-                    if (source == null) {
+                    if (source == null)
+                    {
                         continue;
                     }
 
                     // check if the node needs to be initialized from disk.
 
-                    if (source.GetHierarchyRoot() is ArchiveItemState item && item.ArchiveItem.LastLoadTime.AddMinutes(10) < DateTime.UtcNow) {
+                    if (source.GetHierarchyRoot() is ArchiveItemState item && item.ArchiveItem.LastLoadTime.AddMinutes(10) < DateTime.UtcNow)
+                    {
                         item.LoadConfiguration(context);
                     }
 
@@ -321,14 +363,17 @@ namespace HistoricalAccess {
         protected override ServiceResult ReadInitialValue(
             ISystemContext context,
             NodeHandle handle,
-            IDataChangeMonitoredItem2 dataChangeMonitoredItem) {
-            if (handle.Node is not ArchiveItemState item || dataChangeMonitoredItem.AttributeId != Attributes.Value) {
+            IDataChangeMonitoredItem2 dataChangeMonitoredItem)
+        {
+            if (handle.Node is not ArchiveItemState item || dataChangeMonitoredItem.AttributeId != Attributes.Value)
+            {
                 return base.ReadInitialValue(context, handle, dataChangeMonitoredItem);
             }
 
             var monitoredItem = dataChangeMonitoredItem as MonitoredItem;
 
-            if (monitoredItem.Filter is not AggregateFilter filter || filter.StartTime >= DateTime.UtcNow.AddMilliseconds(-filter.ProcessingInterval)) {
+            if (monitoredItem.Filter is not AggregateFilter filter || filter.StartTime >= DateTime.UtcNow.AddMilliseconds(-filter.ProcessingInterval))
+            {
                 return base.ReadInitialValue(context, handle, dataChangeMonitoredItem);
             }
 
@@ -345,15 +390,18 @@ namespace HistoricalAccess {
             nodeToRead.NodeId = handle.NodeId;
             nodeToRead.ParsedIndexRange = NumericRange.Empty;
 
-            try {
+            try
+            {
                 var request = CreateHistoryReadRequest(
                     context,
                     details,
                     handle,
                     nodeToRead);
 
-                while (request.Values.Count > 0) {
-                    if (request.Values.Count == 0) {
+                while (request.Values.Count > 0)
+                {
+                    if (request.Values.Count == 0)
+                    {
                         break;
                     }
 
@@ -362,7 +410,8 @@ namespace HistoricalAccess {
                     monitoredItem.QueueValue(value, null);
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 error = ServiceResult.Create(e, StatusCodes.BadUnexpectedError, "Unexpected error fetching initial values.");
                 monitoredItem.QueueValue(null, error);
             }
@@ -372,15 +421,20 @@ namespace HistoricalAccess {
         /// <summary>
         /// Called after creating a MonitoredItem.
         /// </summary>
-        protected override void OnMonitoredItemCreated(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem) {
-            lock (Lock) {
+        protected override void OnMonitoredItemCreated(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
+        {
+            lock (Lock)
+            {
                 var root = handle.Node.GetHierarchyRoot();
 
-                if (root != null) {
-                    if (root is ArchiveItemState item) {
+                if (root != null)
+                {
+                    if (root is ArchiveItemState item)
+                    {
                         _monitoredItems ??= new Dictionary<string, ArchiveItemState>();
 
-                        if (!_monitoredItems.ContainsKey(item.ArchiveItem.UniquePath)) {
+                        if (!_monitoredItems.ContainsKey(item.ArchiveItem.UniquePath))
+                        {
                             _monitoredItems.Add(item.ArchiveItem.UniquePath, item);
                         }
 
@@ -406,17 +460,21 @@ namespace HistoricalAccess {
             NodeHandle handle,
             double samplingInterval,
             uint queueSize,
-            ServerAggregateFilter filterToUse) {
+            ServerAggregateFilter filterToUse)
+        {
             // use the sampling interval to limit the processing interval.
-            if (filterToUse.ProcessingInterval < samplingInterval) {
+            if (filterToUse.ProcessingInterval < samplingInterval)
+            {
                 filterToUse.ProcessingInterval = samplingInterval;
             }
 
             // check if an archive item.
 
-            if (!(handle.Node is ArchiveItemState item)) {
+            if (!(handle.Node is ArchiveItemState item))
+            {
                 // no historial data so must start in the future.
-                while (filterToUse.StartTime < DateTime.UtcNow) {
+                while (filterToUse.StartTime < DateTime.UtcNow)
+                {
                     filterToUse.StartTime = filterToUse.StartTime.AddMilliseconds(filterToUse.ProcessingInterval);
                 }
 
@@ -428,14 +486,17 @@ namespace HistoricalAccess {
                 filterToUse.AggregateConfiguration.PercentDataGood = 100;
                 filterToUse.Stepped = true;
             }
-            else {
+            else
+            {
                 // use the archive acquisition sampling interval to limit the processing interval.
-                if (filterToUse.ProcessingInterval < item.ArchiveItem.SamplingInterval) {
+                if (filterToUse.ProcessingInterval < item.ArchiveItem.SamplingInterval)
+                {
                     filterToUse.ProcessingInterval = item.ArchiveItem.SamplingInterval;
                 }
 
                 // ensure the buffer does not get overfilled.
-                while (filterToUse.StartTime.AddMilliseconds(queueSize * filterToUse.ProcessingInterval) < DateTime.UtcNow) {
+                while (filterToUse.StartTime.AddMilliseconds(queueSize * filterToUse.ProcessingInterval) < DateTime.UtcNow)
+                {
                     filterToUse.StartTime = filterToUse.StartTime.AddMilliseconds(filterToUse.ProcessingInterval);
                 }
 
@@ -457,13 +518,16 @@ namespace HistoricalAccess {
         private void ReviseAggregateConfiguration(
             ServerSystemContext context,
             ArchiveItemState item,
-            AggregateConfiguration configurationToUse) {
+            AggregateConfiguration configurationToUse)
+        {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
             // set configuration from defaults.
-            if (configurationToUse.UseServerCapabilitiesDefaults) {
+            if (configurationToUse.UseServerCapabilitiesDefaults)
+            {
                 var configuration = item.ArchiveItem.AggregateConfiguration;
 
-                if (configuration?.UseServerCapabilitiesDefaults != false) {
+                if (configuration?.UseServerCapabilitiesDefaults != false)
+                {
                     configuration = Server.AggregateManager.GetDefaultConfiguration(null);
                 }
 
@@ -476,7 +540,8 @@ namespace HistoricalAccess {
             // override configuration when it does not make sense for the item.
             configurationToUse.UseServerCapabilitiesDefaults = false;
 
-            if (item.ArchiveItem.Stepped) {
+            if (item.ArchiveItem.Stepped)
+            {
                 configurationToUse.UseSlopedExtrapolation = false;
             }
         }
@@ -484,23 +549,31 @@ namespace HistoricalAccess {
         /// <summary>
         /// Called after deleting a MonitoredItem.
         /// </summary>
-        protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem) {
-            lock (Lock) {
+        protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
+        {
+            lock (Lock)
+            {
                 var root = handle.Node.GetHierarchyRoot();
 
-                if (root != null) {
-                    if (root is ArchiveItemState item) {
+                if (root != null)
+                {
+                    if (root is ArchiveItemState item)
+                    {
                         var item2 = root as ArchiveItemState;
 
-                        if (_monitoredItems.TryGetValue(item.ArchiveItem.UniquePath, out item2)) {
+                        if (_monitoredItems.TryGetValue(item.ArchiveItem.UniquePath, out item2))
+                        {
                             item2.SubscribeCount--;
 
-                            if (item2.SubscribeCount == 0) {
+                            if (item2.SubscribeCount == 0)
+                            {
                                 _monitoredItems.Remove(item.ArchiveItem.UniquePath);
                             }
 
-                            if (_monitoredItems.Count == 0) {
-                                if (_simulationTimer != null) {
+                            if (_monitoredItems.Count == 0)
+                            {
+                                if (_simulationTimer != null)
+                                {
                                     _simulationTimer.Dispose();
                                     _simulationTimer = null;
                                 }
@@ -522,34 +595,41 @@ namespace HistoricalAccess {
             IList<HistoryReadResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToRead.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToRead.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToRead = nodesToRead[handle.Index];
                 var result = results[handle.Index];
 
                 HistoryReadRequest request = null;
 
-                try {
+                try
+                {
                     // validate node.
                     var source = ValidateNode(context, handle, cache);
 
-                    if (source == null) {
+                    if (source == null)
+                    {
                         continue;
                     }
 
                     // load an exising request.
-                    if (nodeToRead.ContinuationPoint != null) {
+                    if (nodeToRead.ContinuationPoint != null)
+                    {
                         request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
-                        if (request == null) {
+                        if (request == null)
+                        {
                             errors[handle.Index] = StatusCodes.BadContinuationPointInvalid;
                             continue;
                         }
                     }
 
                     // create a new request.
-                    else {
+                    else
+                    {
                         request = CreateHistoryReadRequest(
                             context,
                             details,
@@ -560,8 +640,10 @@ namespace HistoricalAccess {
                     // process values until the max is reached.
                     var data = details.IsReadModified ? new HistoryModifiedData() : new HistoryData();
 
-                    while (request.NumValuesPerNode == 0 || data.DataValues.Count < request.NumValuesPerNode) {
-                        if (request.Values.Count == 0) {
+                    while (request.NumValuesPerNode == 0 || data.DataValues.Count < request.NumValuesPerNode)
+                    {
+                        if (request.Values.Count == 0)
+                        {
                             break;
                         }
 
@@ -569,10 +651,12 @@ namespace HistoricalAccess {
                         request.Values.RemoveFirst();
                         data.DataValues.Add(value);
 
-                        if (data is HistoryModifiedData modifiedData) {
+                        if (data is HistoryModifiedData modifiedData)
+                        {
                             ModificationInfo modificationInfo = null;
 
-                            if (request.ModificationInfos?.Count > 0) {
+                            if (request.ModificationInfos?.Count > 0)
+                            {
                                 modificationInfo = request.ModificationInfos.First.Value;
                                 request.ModificationInfos.RemoveFirst();
                             }
@@ -584,22 +668,26 @@ namespace HistoricalAccess {
                     errors[handle.Index] = ServiceResult.Good;
 
                     // check if a continuation point is requred.
-                    if (request.Values.Count > 0) {
+                    if (request.Values.Count > 0)
+                    {
                         // only set if both end time and start time are specified.
-                        if (details.StartTime != DateTime.MinValue && details.EndTime != DateTime.MinValue) {
+                        if (details.StartTime != DateTime.MinValue && details.EndTime != DateTime.MinValue)
+                        {
                             result.ContinuationPoint = SaveContinuationPoint(context, request);
                         }
                     }
 
                     // check if no data returned.
-                    else {
+                    else
+                    {
                         errors[handle.Index] = StatusCodes.GoodNoData;
                     }
 
                     // return the data.
                     result.HistoryData = new ExtensionObject(data);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     errors[handle.Index] = ServiceResult.Create(e, StatusCodes.BadUnexpectedError, "Unexpected error processing request.");
                 }
             }
@@ -616,36 +704,44 @@ namespace HistoricalAccess {
             IList<HistoryReadResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToRead.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToRead.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToRead = nodesToRead[handle.Index];
                 var result = results[handle.Index];
 
                 HistoryReadRequest request = null;
 
-                try {
+                try
+                {
                     // validate node.
                     var source = ValidateNode(context, handle, cache);
 
-                    if (source == null) {
+                    if (source == null)
+                    {
                         continue;
                     }
 
                     // load an exising request.
-                    if (nodeToRead.ContinuationPoint != null) {
+                    if (nodeToRead.ContinuationPoint != null)
+                    {
                         request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
-                        if (request == null) {
+                        if (request == null)
+                        {
                             errors[handle.Index] = StatusCodes.BadContinuationPointInvalid;
                             continue;
                         }
                     }
 
                     // create a new request.
-                    else {
+                    else
+                    {
                         // validate aggregate type.
-                        if (details.AggregateType.Count <= ii || !Server.AggregateManager.IsSupported(details.AggregateType[ii])) {
+                        if (details.AggregateType.Count <= ii || !Server.AggregateManager.IsSupported(details.AggregateType[ii]))
+                        {
                             errors[handle.Index] = StatusCodes.BadAggregateNotSupported;
                             continue;
                         }
@@ -661,8 +757,10 @@ namespace HistoricalAccess {
                     // process values until the max is reached.
                     var data = new HistoryData();
 
-                    while (request.NumValuesPerNode == 0 || data.DataValues.Count < request.NumValuesPerNode) {
-                        if (request.Values.Count == 0) {
+                    while (request.NumValuesPerNode == 0 || data.DataValues.Count < request.NumValuesPerNode)
+                    {
+                        if (request.Values.Count == 0)
+                        {
                             break;
                         }
 
@@ -674,19 +772,22 @@ namespace HistoricalAccess {
                     errors[handle.Index] = ServiceResult.Good;
 
                     // check if a continuation point is requred.
-                    if (request.Values.Count > 0) {
+                    if (request.Values.Count > 0)
+                    {
                         result.ContinuationPoint = SaveContinuationPoint(context, request);
                     }
 
                     // check if no data returned.
-                    else {
+                    else
+                    {
                         errors[handle.Index] = StatusCodes.GoodNoData;
                     }
 
                     // return the data.
                     result.HistoryData = new ExtensionObject(data);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     errors[handle.Index] = ServiceResult.Create(e, StatusCodes.BadUnexpectedError, "Unexpected error processing request.");
                 }
             }
@@ -703,34 +804,41 @@ namespace HistoricalAccess {
             IList<HistoryReadResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToRead.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToRead.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToRead = nodesToRead[handle.Index];
                 var result = results[handle.Index];
 
                 HistoryReadRequest request = null;
 
-                try {
+                try
+                {
                     // validate node.
                     var source = ValidateNode(context, handle, cache);
 
-                    if (source == null) {
+                    if (source == null)
+                    {
                         continue;
                     }
 
                     // load an exising request.
-                    if (nodeToRead.ContinuationPoint != null) {
+                    if (nodeToRead.ContinuationPoint != null)
+                    {
                         request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
-                        if (request == null) {
+                        if (request == null)
+                        {
                             errors[handle.Index] = StatusCodes.BadContinuationPointInvalid;
                             continue;
                         }
                     }
 
                     // create a new request.
-                    else {
+                    else
+                    {
                         request = CreateHistoryReadRequest(
                             context,
                             details,
@@ -741,8 +849,10 @@ namespace HistoricalAccess {
                     // process values until the max is reached.
                     var data = new HistoryData();
 
-                    while (request.NumValuesPerNode == 0 || data.DataValues.Count < request.NumValuesPerNode) {
-                        if (request.Values.Count == 0) {
+                    while (request.NumValuesPerNode == 0 || data.DataValues.Count < request.NumValuesPerNode)
+                    {
+                        if (request.Values.Count == 0)
+                        {
                             break;
                         }
 
@@ -754,19 +864,22 @@ namespace HistoricalAccess {
                     errors[handle.Index] = ServiceResult.Good;
 
                     // check if a continuation point is requred.
-                    if (request.Values.Count > 0) {
+                    if (request.Values.Count > 0)
+                    {
                         result.ContinuationPoint = SaveContinuationPoint(context, request);
                     }
 
                     // check if no data returned.
-                    else {
+                    else
+                    {
                         errors[handle.Index] = StatusCodes.GoodNoData;
                     }
 
                     // return the data.
                     result.HistoryData = new ExtensionObject(data);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     errors[handle.Index] = ServiceResult.Create(e, StatusCodes.BadUnexpectedError, "Unexpected error processing request.");
                 }
             }
@@ -781,42 +894,50 @@ namespace HistoricalAccess {
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToProcess.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToProcess.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToUpdate = nodesToUpdate[handle.Index];
                 var result = results[handle.Index];
 
-                try {
+                try
+                {
                     // remove not supported.
-                    if (nodeToUpdate.PerformInsertReplace == PerformUpdateType.Remove) {
+                    if (nodeToUpdate.PerformInsertReplace == PerformUpdateType.Remove)
+                    {
                         continue;
                     }
 
                     // validate node.
                     var source = ValidateNode(context, handle, cache);
 
-                    if (source == null) {
+                    if (source == null)
+                    {
                         continue;
                     }
 
                     // load the archive.
 
-                    if (!(handle.Node is ArchiveItemState item)) {
+                    if (!(handle.Node is ArchiveItemState item))
+                    {
                         continue;
                     }
 
                     item.ReloadFromSource(context);
 
                     // process each item.
-                    for (var jj = 0; jj < nodeToUpdate.UpdateValues.Count; jj++) {
+                    for (var jj = 0; jj < nodeToUpdate.UpdateValues.Count; jj++)
+                    {
                         StatusCode error = item.UpdateHistory(context, nodeToUpdate.UpdateValues[jj], nodeToUpdate.PerformInsertReplace);
                         result.OperationResults.Add(error);
                     }
 
                     errors[handle.Index] = ServiceResult.Good;
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     errors[handle.Index] = ServiceResult.Create(e, StatusCodes.BadUnexpectedError, "Unexpected error processing request.");
                 }
             }
@@ -831,35 +952,43 @@ namespace HistoricalAccess {
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToProcess.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToProcess.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToUpdate = nodesToUpdate[handle.Index];
                 var result = results[handle.Index];
 
-                try {
+                try
+                {
                     // validate node.
                     var source = ValidateNode(context, handle, cache);
 
-                    if (source == null) {
+                    if (source == null)
+                    {
                         continue;
                     }
 
                     // only support annotations.
-                    if (handle.Node.BrowseName != BrowseNames.Annotations) {
+                    if (handle.Node.BrowseName != BrowseNames.Annotations)
+                    {
                         continue;
                     }
 
                     // load the archive.
                     var item = Reload(context, handle);
 
-                    if (item == null) {
+                    if (item == null)
+                    {
                         continue;
                     }
 
                     // process each item.
-                    for (var jj = 0; jj < nodeToUpdate.UpdateValues.Count; jj++) {
-                        if (!(ExtensionObject.ToEncodeable(nodeToUpdate.UpdateValues[jj].Value as ExtensionObject) is Annotation annotation)) {
+                    for (var jj = 0; jj < nodeToUpdate.UpdateValues.Count; jj++)
+                    {
+                        if (!(ExtensionObject.ToEncodeable(nodeToUpdate.UpdateValues[jj].Value as ExtensionObject) is Annotation annotation))
+                        {
                             result.OperationResults.Add(StatusCodes.BadTypeMismatch);
                             continue;
                         }
@@ -875,7 +1004,8 @@ namespace HistoricalAccess {
 
                     errors[handle.Index] = ServiceResult.Good;
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     errors[handle.Index] = ServiceResult.Create(e, StatusCodes.BadUnexpectedError, "Unexpected error processing request.");
                 }
             }
@@ -890,23 +1020,28 @@ namespace HistoricalAccess {
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToProcess.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToProcess.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToUpdate = nodesToUpdate[handle.Index];
                 var result = results[handle.Index];
 
-                try {
+                try
+                {
                     // validate node.
                     var source = ValidateNode(context, handle, cache);
 
-                    if (source == null) {
+                    if (source == null)
+                    {
                         continue;
                     }
 
                     // load the archive.
 
-                    if (!(handle.Node is ArchiveItemState item)) {
+                    if (!(handle.Node is ArchiveItemState item))
+                    {
                         continue;
                     }
 
@@ -916,7 +1051,8 @@ namespace HistoricalAccess {
                     item.DeleteHistory(context, nodeToUpdate.StartTime, nodeToUpdate.EndTime, nodeToUpdate.IsDeleteModified);
                     errors[handle.Index] = ServiceResult.Good;
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     errors[handle.Index] = ServiceResult.Create(e, StatusCodes.BadUnexpectedError, "Error deleting data from archive.");
                 }
             }
@@ -931,37 +1067,44 @@ namespace HistoricalAccess {
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToProcess.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToProcess.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToUpdate = nodesToUpdate[handle.Index];
                 var result = results[handle.Index];
 
-                try {
+                try
+                {
                     // validate node.
                     var source = ValidateNode(context, handle, cache);
 
-                    if (source == null) {
+                    if (source == null)
+                    {
                         continue;
                     }
 
                     // load the archive.
 
-                    if (!(handle.Node is ArchiveItemState item)) {
+                    if (!(handle.Node is ArchiveItemState item))
+                    {
                         continue;
                     }
 
                     item.ReloadFromSource(context);
 
                     // process each item.
-                    for (var jj = 0; jj < nodeToUpdate.ReqTimes.Count; jj++) {
+                    for (var jj = 0; jj < nodeToUpdate.ReqTimes.Count; jj++)
+                    {
                         StatusCode error = item.DeleteHistory(context, nodeToUpdate.ReqTimes[jj]);
                         result.OperationResults.Add(error);
                     }
 
                     errors[handle.Index] = ServiceResult.Good;
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     errors[handle.Index] = ServiceResult.Create(e, StatusCodes.BadUnexpectedError, "Unexpected error processing request.");
                 }
             }
@@ -970,11 +1113,14 @@ namespace HistoricalAccess {
         /// <summary>
         /// Loads the archive item state from the underlying source.
         /// </summary>
-        private static ArchiveItemState Reload(ISystemContext context, NodeHandle handle) {
+        private static ArchiveItemState Reload(ISystemContext context, NodeHandle handle)
+        {
             var item = handle.Node as ArchiveItemState;
 
-            if (item == null) {
-                if (handle.Node is BaseInstanceState property) {
+            if (item == null)
+            {
+                if (handle.Node is BaseInstanceState property)
+                {
                     item = property.Parent as ArchiveItemState;
                 }
             }
@@ -991,7 +1137,8 @@ namespace HistoricalAccess {
             ISystemContext context,
             ReadRawModifiedDetails details,
             NodeHandle handle,
-            HistoryReadValueId nodeToRead) {
+            HistoryReadValueId nodeToRead)
+        {
             var sizeLimited = details.StartTime == DateTime.MinValue || details.EndTime == DateTime.MinValue;
             var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding);
             var returnBounds = !details.IsReadModified && details.ReturnBounds;
@@ -1000,14 +1147,16 @@ namespace HistoricalAccess {
             // find the archive item.
             var item = Reload(context, handle);
 
-            if (item == null) {
+            if (item == null)
+            {
                 throw new ServiceResultException(StatusCodes.BadNotSupported);
             }
 
             var values = new LinkedList<DataValue>();
             LinkedList<ModificationInfo> modificationInfos = null;
 
-            if (details.IsReadModified) {
+            if (details.IsReadModified)
+            {
                 modificationInfos = new LinkedList<ModificationInfo>();
             }
 
@@ -1018,26 +1167,35 @@ namespace HistoricalAccess {
             var endBound = -1;
             var ii = timeFlowsBackward ? view.Count - 1 : 0;
 
-            while (ii >= 0 && ii < view.Count) {
-                try {
+            while (ii >= 0 && ii < view.Count)
+            {
+                try
+                {
                     var timestamp = (DateTime)view[ii].Row[0];
 
                     // check if looking for start of data.
-                    if (values.Count == 0) {
-                        if (timeFlowsBackward) {
-                            if ((details.StartTime != DateTime.MinValue && timestamp >= details.StartTime) || (details.StartTime == DateTime.MinValue && timestamp >= details.EndTime)) {
+                    if (values.Count == 0)
+                    {
+                        if (timeFlowsBackward)
+                        {
+                            if ((details.StartTime != DateTime.MinValue && timestamp >= details.StartTime) || (details.StartTime == DateTime.MinValue && timestamp >= details.EndTime))
+                            {
                                 startBound = ii;
 
-                                if (timestamp > details.StartTime) {
+                                if (timestamp > details.StartTime)
+                                {
                                     continue;
                                 }
                             }
                         }
-                        else {
-                            if (timestamp <= details.StartTime) {
+                        else
+                        {
+                            if (timestamp <= details.StartTime)
+                            {
                                 startBound = ii;
 
-                                if (timestamp < details.StartTime) {
+                                if (timestamp < details.StartTime)
+                                {
                                     continue;
                                 }
                             }
@@ -1045,22 +1203,29 @@ namespace HistoricalAccess {
                     }
 
                     // check if absolute max values specified.
-                    if (sizeLimited) {
-                        if (details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count) {
+                    if (sizeLimited)
+                    {
+                        if (details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count)
+                        {
                             break;
                         }
                     }
 
                     // check for end bound.
-                    if (details.EndTime != DateTime.MinValue && timestamp >= details.EndTime) {
-                        if (timeFlowsBackward) {
-                            if (timestamp <= details.EndTime) {
+                    if (details.EndTime != DateTime.MinValue && timestamp >= details.EndTime)
+                    {
+                        if (timeFlowsBackward)
+                        {
+                            if (timestamp <= details.EndTime)
+                            {
                                 endBound = ii;
                                 break;
                             }
                         }
-                        else {
-                            if (timestamp >= details.EndTime) {
+                        else
+                        {
+                            if (timestamp >= details.EndTime)
+                            {
                                 endBound = ii;
                                 break;
                             }
@@ -1068,18 +1233,23 @@ namespace HistoricalAccess {
                     }
 
                     // check if the start bound needs to be returned.
-                    if (returnBounds && values.Count == 0 && startBound != ii && details.StartTime != DateTime.MinValue) {
+                    if (returnBounds && values.Count == 0 && startBound != ii && details.StartTime != DateTime.MinValue)
+                    {
                         // add start bound.
-                        if (startBound == -1) {
+                        if (startBound == -1)
+                        {
                             values.AddLast(new DataValue(Variant.Null, StatusCodes.BadBoundNotFound, details.StartTime, details.StartTime));
                         }
-                        else {
+                        else
+                        {
                             values.AddLast(RowToDataValue(context, nodeToRead, view[startBound], applyIndexRangeOrEncoding));
                         }
 
                         // check if absolute max values specified.
-                        if (sizeLimited) {
-                            if (details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count) {
+                        if (sizeLimited)
+                        {
+                            if (details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count)
+                            {
                                 break;
                             }
                         }
@@ -1090,47 +1260,59 @@ namespace HistoricalAccess {
 
                     modificationInfos?.AddLast((ModificationInfo)view[ii].Row[6]);
                 }
-                finally {
-                    if (timeFlowsBackward) {
+                finally
+                {
+                    if (timeFlowsBackward)
+                    {
                         ii--;
                     }
-                    else {
+                    else
+                    {
                         ii++;
                     }
                 }
             }
 
             // add late bound.
-            while (returnBounds && details.EndTime != DateTime.MinValue) {
+            while (returnBounds && details.EndTime != DateTime.MinValue)
+            {
                 // add start bound.
-                if (values.Count == 0) {
-                    if (startBound == -1) {
+                if (values.Count == 0)
+                {
+                    if (startBound == -1)
+                    {
                         values.AddLast(new DataValue(Variant.Null, StatusCodes.BadBoundNotFound, details.StartTime, details.StartTime));
                     }
-                    else {
+                    else
+                    {
                         values.AddLast(RowToDataValue(context, nodeToRead, view[startBound], applyIndexRangeOrEncoding));
                     }
                 }
 
                 // check if absolute max values specified.
-                if (sizeLimited) {
-                    if (details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count) {
+                if (sizeLimited)
+                {
+                    if (details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count)
+                    {
                         break;
                     }
                 }
 
                 // add end bound.
-                if (endBound == -1) {
+                if (endBound == -1)
+                {
                     values.AddLast(new DataValue(Variant.Null, StatusCodes.BadBoundNotFound, details.EndTime, details.EndTime));
                 }
-                else {
+                else
+                {
                     values.AddLast(RowToDataValue(context, nodeToRead, view[endBound], applyIndexRangeOrEncoding));
                 }
 
                 break;
             }
 
-            return new HistoryReadRequest {
+            return new HistoryReadRequest
+            {
                 Values = values,
                 ModificationInfos = modificationInfos,
                 NumValuesPerNode = details.NumValuesPerNode,
@@ -1146,11 +1328,13 @@ namespace HistoricalAccess {
             ReadProcessedDetails details,
             NodeHandle handle,
             HistoryReadValueId nodeToRead,
-            NodeId aggregateId) {
+            NodeId aggregateId)
+        {
             var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding);
             var timeFlowsBackward = details.EndTime < details.StartTime;
 
-            if (!(handle.Node is ArchiveItemState item)) {
+            if (!(handle.Node is ArchiveItemState item))
+            {
                 throw new ServiceResultException(StatusCodes.BadNotSupported);
             }
 
@@ -1176,8 +1360,10 @@ namespace HistoricalAccess {
                 item.ArchiveItem.Stepped,
                 configuration);
 
-            while (ii >= 0 && ii < view.Count) {
-                try {
+            while (ii >= 0 && ii < view.Count)
+            {
+                try
+                {
                     var value = (DataValue)view[ii].Row[2];
                     calculator.QueueRawValue(value);
 
@@ -1191,11 +1377,14 @@ namespace HistoricalAccess {
                         false,
                         values);
                 }
-                finally {
-                    if (timeFlowsBackward) {
+                finally
+                {
+                    if (timeFlowsBackward)
+                    {
                         ii--;
                     }
-                    else {
+                    else
+                    {
                         ii++;
                     }
                 }
@@ -1211,7 +1400,8 @@ namespace HistoricalAccess {
                 true,
                 values);
 
-            return new HistoryReadRequest {
+            return new HistoryReadRequest
+            {
                 Values = values,
                 NumValuesPerNode = 0,
                 Filter = null
@@ -1225,10 +1415,12 @@ namespace HistoricalAccess {
             ServerSystemContext context,
             ReadAtTimeDetails details,
             NodeHandle handle,
-            HistoryReadValueId nodeToRead) {
+            HistoryReadValueId nodeToRead)
+        {
             var applyIndexRangeOrEncoding = nodeToRead.ParsedIndexRange != NumericRange.Empty || !QualifiedName.IsNull(nodeToRead.DataEncoding);
 
-            if (!(handle.Node is ArchiveItemState item)) {
+            if (!(handle.Node is ArchiveItemState item))
+            {
                 throw new ServiceResultException(StatusCodes.BadNotSupported);
             }
 
@@ -1238,12 +1430,15 @@ namespace HistoricalAccess {
             var startTime = DateTime.MaxValue;
             var endTime = DateTime.MinValue;
 
-            for (var ii = 0; ii < details.ReqTimes.Count; ii++) {
-                if (startTime > details.ReqTimes[ii]) {
+            for (var ii = 0; ii < details.ReqTimes.Count; ii++)
+            {
+                if (startTime > details.ReqTimes[ii])
+                {
                     startTime = details.ReqTimes[ii];
                 }
 
-                if (endTime < details.ReqTimes[ii]) {
+                if (endTime < details.ReqTimes[ii])
+                {
                     endTime = details.ReqTimes[ii];
                 }
             }
@@ -1252,17 +1447,20 @@ namespace HistoricalAccess {
 
             var values = new LinkedList<DataValue>();
 
-            for (var ii = 0; ii < details.ReqTimes.Count; ii++) {
+            for (var ii = 0; ii < details.ReqTimes.Count; ii++)
+            {
                 // find the value at the time.
                 var index = ArchiveItemState.FindValueAtOrBefore(view, details.ReqTimes[ii], !details.UseSimpleBounds, out var dataBeforeIgnored);
 
-                if (index < 0) {
+                if (index < 0)
+                {
                     values.AddLast(new DataValue(StatusCodes.BadNoData, details.ReqTimes[ii]));
                     continue;
                 }
 
                 // nothing more to do if a raw value exists.
-                if ((DateTime)view[index].Row[0] == details.ReqTimes[ii]) {
+                if ((DateTime)view[index].Row[0] == details.ReqTimes[ii])
+                {
                     values.AddLast((DataValue)view[index].Row[2]);
                     continue;
                 }
@@ -1273,11 +1471,13 @@ namespace HistoricalAccess {
                 // find the value after the time.
                 var afterIndex = ArchiveItemState.FindValueAfter(view, index, !details.UseSimpleBounds, out var dataAfterIgnored);
 
-                if (afterIndex < 0) {
+                if (afterIndex < 0)
+                {
                     // use stepped interpolation if no end bound exists.
                     value = AggregateCalculator.SteppedInterpolate(details.ReqTimes[ii], before);
 
-                    if (StatusCode.IsNotBad(value.StatusCode) && dataBeforeIgnored) {
+                    if (StatusCode.IsNotBad(value.StatusCode) && dataBeforeIgnored)
+                    {
                         value.StatusCode = value.StatusCode.SetCodeBits(StatusCodes.UncertainDataSubNormal);
                     }
 
@@ -1286,17 +1486,21 @@ namespace HistoricalAccess {
                 }
 
                 // use stepped or slopped interpolation depending on the value.
-                if (item.ArchiveItem.Stepped) {
+                if (item.ArchiveItem.Stepped)
+                {
                     value = AggregateCalculator.SteppedInterpolate(details.ReqTimes[ii], before);
 
-                    if (StatusCode.IsNotBad(value.StatusCode) && dataBeforeIgnored) {
+                    if (StatusCode.IsNotBad(value.StatusCode) && dataBeforeIgnored)
+                    {
                         value.StatusCode = value.StatusCode.SetCodeBits(StatusCodes.UncertainDataSubNormal);
                     }
                 }
-                else {
+                else
+                {
                     value = AggregateCalculator.SlopedInterpolate(details.ReqTimes[ii], before, (DataValue)view[afterIndex].Row[2]);
 
-                    if (StatusCode.IsNotBad(value.StatusCode) && (dataBeforeIgnored || dataAfterIgnored)) {
+                    if (StatusCode.IsNotBad(value.StatusCode) && (dataBeforeIgnored || dataAfterIgnored))
+                    {
                         value.StatusCode = value.StatusCode.SetCodeBits(StatusCodes.UncertainDataSubNormal);
                     }
                 }
@@ -1304,7 +1508,8 @@ namespace HistoricalAccess {
                 values.AddLast(value);
             }
 
-            return new HistoryReadRequest {
+            return new HistoryReadRequest
+            {
                 Values = values,
                 NumValuesPerNode = 0,
                 Filter = null
@@ -1321,19 +1526,24 @@ namespace HistoricalAccess {
             QualifiedName dataEncoding,
             bool applyIndexRangeOrEncoding,
             bool returnPartial,
-            LinkedList<DataValue> values) {
+            LinkedList<DataValue> values)
+        {
             var proccessedValue = calculator.GetProcessedValue(returnPartial);
 
-            while (proccessedValue != null) {
+            while (proccessedValue != null)
+            {
                 // apply any index range or encoding.
-                if (applyIndexRangeOrEncoding) {
+                if (applyIndexRangeOrEncoding)
+                {
                     var rawValue = proccessedValue.Value;
                     var result = BaseVariableState.ApplyIndexRangeAndDataEncoding(context, indexRange, dataEncoding, ref rawValue);
 
-                    if (ServiceResult.IsBad(result)) {
+                    if (ServiceResult.IsBad(result))
+                    {
                         proccessedValue.Value = rawValue;
                     }
-                    else {
+                    else
+                    {
                         proccessedValue.Value = null;
                         proccessedValue.StatusCode = result.StatusCode;
                     }
@@ -1352,18 +1562,22 @@ namespace HistoricalAccess {
             ISystemContext context,
             HistoryReadValueId nodeToRead,
             DataRowView row,
-            bool applyIndexRangeOrEncoding) {
+            bool applyIndexRangeOrEncoding)
+        {
             var value = (DataValue)row[2];
 
             // apply any index range or encoding.
-            if (applyIndexRangeOrEncoding) {
+            if (applyIndexRangeOrEncoding)
+            {
                 var rawValue = value.Value;
                 var result = BaseVariableState.ApplyIndexRangeAndDataEncoding(context, nodeToRead.ParsedIndexRange, nodeToRead.DataEncoding, ref rawValue);
 
-                if (ServiceResult.IsBad(result)) {
+                if (ServiceResult.IsBad(result))
+                {
                     value.Value = rawValue;
                 }
-                else {
+                else
+                {
                     value.Value = null;
                     value.StatusCode = result.StatusCode;
                 }
@@ -1375,7 +1589,8 @@ namespace HistoricalAccess {
         /// <summary>
         /// Stores a read history request.
         /// </summary>
-        private class HistoryReadRequest {
+        private class HistoryReadRequest
+        {
             public byte[] ContinuationPoint { get; set; }
             public LinkedList<DataValue> Values { get; set; }
             public LinkedList<ModificationInfo> ModificationInfos { get; set; }
@@ -1391,15 +1606,18 @@ namespace HistoricalAccess {
             IList<HistoryReadValueId> nodesToRead,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
-            IDictionary<NodeId, NodeState> cache) {
-            for (var ii = 0; ii < nodesToProcess.Count; ii++) {
+            IDictionary<NodeId, NodeState> cache)
+        {
+            for (var ii = 0; ii < nodesToProcess.Count; ii++)
+            {
                 var handle = nodesToProcess[ii];
                 var nodeToRead = nodesToRead[handle.Index];
 
                 // find the continuation point.
                 var request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
-                if (request == null) {
+                if (request == null)
+                {
                     errors[handle.Index] = StatusCodes.BadContinuationPointInvalid;
                     continue;
                 }
@@ -1414,14 +1632,17 @@ namespace HistoricalAccess {
         /// </summary>
         private static HistoryReadRequest LoadContinuationPoint(
             ServerSystemContext context,
-            byte[] continuationPoint) {
+            byte[] continuationPoint)
+        {
             var session = context.OperationContext.Session;
 
-            if (session == null) {
+            if (session == null)
+            {
                 return null;
             }
 
-            if (!(session.RestoreHistoryContinuationPoint(continuationPoint) is HistoryReadRequest request)) {
+            if (!(session.RestoreHistoryContinuationPoint(continuationPoint) is HistoryReadRequest request))
+            {
                 return null;
             }
 
@@ -1433,10 +1654,12 @@ namespace HistoricalAccess {
         /// </summary>
         private static byte[] SaveContinuationPoint(
             ServerSystemContext context,
-            HistoryReadRequest request) {
+            HistoryReadRequest request)
+        {
             var session = context.OperationContext.Session;
 
-            if (session == null) {
+            if (session == null)
+            {
                 return null;
             }
 
@@ -1449,15 +1672,21 @@ namespace HistoricalAccess {
         /// <summary>
         /// Runs the simulation.
         /// </summary>
-        private void DoSimulation(object state) {
-            try {
-                lock (Lock) {
-                    foreach (var item in _monitoredItems.Values) {
-                        if (item.ArchiveItem.LastLoadTime.AddSeconds(10) < DateTime.UtcNow) {
+        private void DoSimulation(object state)
+        {
+            try
+            {
+                lock (Lock)
+                {
+                    foreach (var item in _monitoredItems.Values)
+                    {
+                        if (item.ArchiveItem.LastLoadTime.AddSeconds(10) < DateTime.UtcNow)
+                        {
                             item.LoadConfiguration(SystemContext);
                         }
 
-                        foreach (var value in item.NewSamples(SystemContext)) {
+                        foreach (var value in item.NewSamples(SystemContext))
+                        {
                             item.WrappedValue = value.WrappedValue;
                             item.Timestamp = value.SourceTimestamp;
                             item.StatusCode = value.StatusCode;
@@ -1466,7 +1695,8 @@ namespace HistoricalAccess {
                     }
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace("Unexpected error during simulation: {0}", e.Message);
             }
         }

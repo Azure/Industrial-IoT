@@ -3,18 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Model.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Collections.Generic;
     using Xunit;
 
-    public class MonitoredItemModelTests {
-        private readonly DataMonitoredItemModel _dataModel = new() {
+    public class MonitoredItemModelTests
+    {
+        private readonly DataMonitoredItemModel _dataModel = new()
+        {
             StartNodeId = "DataStartNodeId",
-            AggregateFilter = new AggregateFilterModel() {
-                AggregateConfiguration = new AggregateConfigurationModel() {
+            AggregateFilter = new AggregateFilterModel()
+            {
+                AggregateConfiguration = new AggregateConfigurationModel()
+                {
                     PercentDataBad = 10,
                     PercentDataGood = 20,
                     TreatUncertainAsBad = false,
@@ -28,7 +33,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests {
             SamplingInterval = TimeSpan.FromMilliseconds(5000),
             QueueSize = 10,
             AttributeId = NodeAttribute.DataType,
-            DataChangeFilter = new DataChangeFilterModel() {
+            DataChangeFilter = new DataChangeFilterModel()
+            {
                 DataChangeTrigger = DataChangeTriggerType.StatusValue,
                 DeadbandType = DeadbandType.Absolute,
                 DeadbandValue = 45
@@ -42,7 +48,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests {
             MonitoringMode = MonitoringMode.Sampling,
             RelativePath = new string[] { "DataRelativePath" },
         };
-        private readonly EventMonitoredItemModel _eventModel = new() {
+        private readonly EventMonitoredItemModel _eventModel = new()
+        {
             StartNodeId = "EventStartNodeId",
             SamplingInterval = TimeSpan.FromMilliseconds(5000),
             QueueSize = 10,
@@ -53,7 +60,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests {
             IndexRange = "EventIndexRange",
             MonitoringMode = MonitoringMode.Sampling,
             RelativePath = new string[] { "EventRelativePath" },
-            EventFilter = new EventFilterModel() {
+            EventFilter = new EventFilterModel()
+            {
                 SelectClauses = new List<SimpleAttributeOperandModel>() {
                     new SimpleAttributeOperandModel() {
                         AttributeId = NodeAttribute.DataType,
@@ -68,7 +76,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests {
         };
 
         [Fact]
-        public void CloneDataModelTest() {
+        public void CloneDataModelTest()
+        {
             var clone = _dataModel.Clone();
 
             // Should be equal
@@ -77,7 +86,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests {
         }
 
         [Fact]
-        public void CompareDataModelTest_ShouldSucceed() {
+        public void CompareDataModelTest_ShouldSucceed()
+        {
             var clone = _dataModel.Clone();
 
             // Should be equal
@@ -86,7 +96,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests {
         }
 
         [Fact]
-        public void CompareDataModelTest_ShouldFail() {
+        public void CompareDataModelTest_ShouldFail()
+        {
             var clone = _dataModel.Clone();
             clone.QueueSize = 47000;
 
@@ -96,7 +107,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests {
         }
 
         [Fact]
-        public void CloneEventModelTest() {
+        public void CloneEventModelTest()
+        {
             var clone = _eventModel.Clone();
 
             // Should be equal
@@ -105,7 +117,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests {
         }
 
         [Fact]
-        public void CompareEventModelTest_ShouldSucceed() {
+        public void CompareEventModelTest_ShouldSucceed()
+        {
             var clone = _eventModel.Clone();
 
             // Should be equal
@@ -114,7 +127,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests {
         }
 
         [Fact]
-        public void CompareEventModelTest_ShouldFail() {
+        public void CompareEventModelTest_ShouldFail()
+        {
             var clone = _eventModel.Clone();
             clone.StartNodeId = "SomethingElse";
 

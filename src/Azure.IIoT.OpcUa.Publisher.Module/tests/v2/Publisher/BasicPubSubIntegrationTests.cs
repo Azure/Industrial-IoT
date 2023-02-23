@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher
+{
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using System;
@@ -18,19 +19,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
     /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
     /// </summary>
     [Collection(ReferenceServerReadCollection.Name)]
-    public class BasicPubSubIntegrationTests : PublisherIoTHubIntegrationTestBase {
+    public class BasicPubSubIntegrationTests : PublisherIoTHubIntegrationTestBase
+    {
         internal const string kEventId = "EventId";
         internal const string kMessage = "Message";
         internal const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
         internal const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private readonly ITestOutputHelper _output;
 
-        public BasicPubSubIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture) {
+        public BasicPubSubIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture)
+        {
             _output = output;
         }
 
         [Fact]
-        public async Task CanSendDataItemToIoTHubTest() {
+        public async Task CanSendDataItemToIoTHubTest()
+        {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json",
@@ -46,7 +50,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Fact]
-        public async Task CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTest() {
+        public async Task CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTest()
+        {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json",
@@ -62,7 +67,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Fact]
-        public async Task CanSendDataItemAsDataSetMessagesToIoTHubWithCompliantEncodingTest() {
+        public async Task CanSendDataItemAsDataSetMessagesToIoTHubWithCompliantEncodingTest()
+        {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json",
@@ -78,7 +84,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Fact]
-        public async Task CanSendDataItemAsRawDataSetsToIoTHubWithCompliantEncodingTest() {
+        public async Task CanSendDataItemAsRawDataSetsToIoTHubWithCompliantEncodingTest()
+        {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json",
@@ -95,7 +102,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
 
         [Theory]
         [InlineData("./PublishedNodes/SimpleEvents.json")]
-        public async Task CanEncodeWithoutReversibleEncodingTest(string publishedNodesFile) {
+        public async Task CanEncodeWithoutReversibleEncodingTest(string publishedNodesFile)
+        {
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
@@ -111,7 +119,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
 
             // Assert
             Assert.NotEmpty(messages);
-            Assert.All(messages, m => {
+            Assert.All(messages, m =>
+            {
                 var value = m.GetProperty("Payload");
 
                 // Variant encoding is the default
@@ -132,7 +141,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
 
         [Theory]
         [InlineData("./PublishedNodes/SimpleEvents.json")]
-        public async Task CanEncodeWithReversibleEncodingTest(string publishedNodesFile) {
+        public async Task CanEncodeWithReversibleEncodingTest(string publishedNodesFile)
+        {
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
@@ -146,7 +156,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
 
             // Assert
             Assert.NotEmpty(messages);
-            Assert.All(messages, m => {
+            Assert.All(messages, m =>
+            {
                 var body = m.GetProperty("Payload");
                 var eventId = body.GetProperty(kEventId).GetProperty("Value");
                 Assert.Equal("ByteString", eventId.GetProperty("Type").GetString());
@@ -175,7 +186,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
 
         [Theory]
         [InlineData("./PublishedNodes/SimpleEvents.json")]
-        public async Task CanEncodeEventWithCompliantEncodingTestTest(string publishedNodesFile) {
+        public async Task CanEncodeEventWithCompliantEncodingTestTest(string publishedNodesFile)
+        {
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
@@ -191,7 +203,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
 
             // Assert
             Assert.NotEmpty(messages);
-            Assert.All(messages, m => {
+            Assert.All(messages, m =>
+            {
                 var value = m.GetProperty("Payload");
 
                 // Variant encoding is the default
@@ -212,7 +225,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
 
         [Theory]
         [InlineData("./PublishedNodes/SimpleEvents.json")]
-        public async Task CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestTest(string publishedNodesFile) {
+        public async Task CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestTest(string publishedNodesFile)
+        {
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
@@ -226,7 +240,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
 
             // Assert
             Assert.NotEmpty(messages);
-            Assert.All(messages, m => {
+            Assert.All(messages, m =>
+            {
                 var body = m.GetProperty("Payload");
                 var eventId = body.GetProperty(kEventId).GetProperty("Value");
                 Assert.Equal(15, eventId.GetProperty("Type").GetInt32());
@@ -254,7 +269,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Fact]
-        public async Task CanSendPendingConditionsToIoTHubTest() {
+        public async Task CanSendPendingConditionsToIoTHubTest()
+        {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/PendingAlarms.json", GetAlarmCondition,
@@ -270,11 +286,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
             Assert.NotNull(metadata);
         }
 
-        internal static JsonElement GetAlarmCondition(JsonElement jsonElement) {
+        internal static JsonElement GetAlarmCondition(JsonElement jsonElement)
+        {
             var messages = jsonElement.GetProperty("Messages");
             return messages.ValueKind != JsonValueKind.Array
                 ? default
-                : messages.EnumerateArray().FirstOrDefault(element => {
+                : messages.EnumerateArray().FirstOrDefault(element =>
+                {
                     return element.GetProperty("MessageType").GetString() == "ua-condition" &&
                         element.GetProperty("Payload").TryGetProperty("SourceNode", out var node) &&
                             node.TryGetProperty("Value", out node) &&
@@ -284,24 +302,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
                 });
         }
 
-        internal static void AssertCompliantSimpleEventsMetadata(JsonElement? metadata) {
+        internal static void AssertCompliantSimpleEventsMetadata(JsonElement? metadata)
+        {
             Assert.NotNull(metadata);
             var eventFields = metadata.Value.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, eventFields.ValueKind);
             Assert.Collection(eventFields.EnumerateArray(),
-                v => {
+                v =>
+                {
                     Assert.Equal("EventId", v.GetProperty("Name").GetString());
                     Assert.Equal(15, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                 },
-                v => {
+                v =>
+                {
                     Assert.Equal("Message", v.GetProperty("Name").GetString());
                     Assert.Equal(21, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                 },
-                v => {
+                v =>
+                {
                     Assert.Equal("http://opcfoundation.org/SimpleEvents#CycleId", v.GetProperty("Name").GetString());
                     Assert.Equal(12, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                 },
-                v => {
+                v =>
+                {
                     Assert.Equal("http://opcfoundation.org/SimpleEvents#CurrentStep", v.GetProperty("Name").GetString());
                     Assert.Equal(183, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                     Assert.Equal("http://opcfoundation.org/SimpleEvents",
@@ -318,34 +341,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
             var structureFields = s.GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, structureFields.ValueKind);
             Assert.Collection(structureFields.EnumerateArray(),
-                v => {
+                v =>
+                {
                     Assert.Equal("Name", v.GetProperty("Name").GetString());
                     Assert.Equal(12, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                 },
-                v => {
+                v =>
+                {
                     Assert.Equal("Duration", v.GetProperty("Name").GetString());
                     Assert.Equal(11, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                 });
         }
 
-        internal static void AssertSimpleEventsMetadata(JsonElement? metadata) {
+        internal static void AssertSimpleEventsMetadata(JsonElement? metadata)
+        {
             Assert.NotNull(metadata);
             var eventFields = metadata.Value.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, eventFields.ValueKind);
             Assert.Collection(eventFields.EnumerateArray(),
-                v => {
+                v =>
+                {
                     Assert.Equal("EventId", v.GetProperty("Name").GetString());
                     Assert.Equal("ByteString", v.GetProperty("DataType").GetString());
                 },
-                v => {
+                v =>
+                {
                     Assert.Equal("Message", v.GetProperty("Name").GetString());
                     Assert.Equal("LocalizedText", v.GetProperty("DataType").GetString());
                 },
-                v => {
+                v =>
+                {
                     Assert.Equal("http://opcfoundation.org/SimpleEvents#CycleId", v.GetProperty("Name").GetString());
                     Assert.Equal("String", v.GetProperty("DataType").GetString());
                 },
-                v => {
+                v =>
+                {
                     Assert.Equal("http://opcfoundation.org/SimpleEvents#CurrentStep", v.GetProperty("Name").GetString());
                     Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", v.GetProperty("DataType").GetString());
                 });
@@ -360,11 +390,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
             var structureFields = s.GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, structureFields.ValueKind);
             Assert.Collection(structureFields.EnumerateArray(),
-                v => {
+                v =>
+                {
                     Assert.Equal("Name", v.GetProperty("Name").GetString());
                     Assert.Equal("String", v.GetProperty("DataType").GetString());
                 },
-                v => {
+                v =>
+                {
                     Assert.Equal("Duration", v.GetProperty("Name").GetString());
                     Assert.Equal("Double", v.GetProperty("DataType").GetString());
                 });

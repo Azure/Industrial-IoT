@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
     using Autofac;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Configuration;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// <summary>
     /// Service client
     /// </summary>
-    public class ServiceClient : IDisposable {
+    public class ServiceClient : IDisposable
+    {
         /// <summary>
         /// Twin API
         /// </summary>
@@ -55,7 +57,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         public ServiceClient(bool useMsgPack = false) : this(new ConfigurationBuilder()
             .AddFromDotEnvFile()
             .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-            .Build(), useMsgPack) {
+            .Build(), useMsgPack)
+        {
         }
 
         /// <summary>
@@ -63,7 +66,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="useMsgPack"></param>
-        public ServiceClient(IConfiguration configuration, bool useMsgPack = false) {
+        public ServiceClient(IConfiguration configuration, bool useMsgPack = false)
+        {
             var container = ConfigureContainer(configuration, useMsgPack);
             _scope = container.BeginLifetimeScope();
             Twin = _scope.Resolve<ITwinServiceApi>();
@@ -76,7 +80,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             _scope.Dispose();
         }
 
@@ -87,12 +92,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <param name="useMsgPack"></param>
         /// <returns></returns>
         private static IContainer ConfigureContainer(IConfiguration configuration,
-            bool useMsgPack) {
+            bool useMsgPack)
+        {
             var builder = new ContainerBuilder();
             builder.RegisterInstance(configuration)
                 .AsImplementedInterfaces();
             builder.RegisterModule<ServiceSdk>();
-            if (useMsgPack) {
+            if (useMsgPack)
+            {
                 builder.AddMessagePackSerializer();
             }
             return builder.Build();

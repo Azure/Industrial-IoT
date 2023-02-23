@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Default {
-    using Microsoft.Azure.IIoT.Module.Models;
+namespace Microsoft.Azure.IIoT.Module.Default
+{
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Extensions.Logging;
-    using Furly.Extensions.Serializers;
     using System;
     using System.IO;
     using System.Text;
@@ -18,7 +19,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     /// <summary>
     /// Chunked method provide reliable any size send/receive
     /// </summary>
-    public sealed class ChunkMethodClient : IMethodClient {
+    public sealed class ChunkMethodClient : IMethodClient
+    {
         /// <summary>
         /// Create client wrapping a json method client
         /// </summary>
@@ -26,7 +28,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public ChunkMethodClient(IJsonMethodClient client, IJsonSerializer serializer,
-            ILogger logger) {
+            ILogger logger)
+        {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -35,7 +38,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             // plus the additional overhead of the model payload.
             //
             _maxSize = (int)(_client.MaxMethodPayloadCharacterCount * 0.66);
-            if (_maxSize == 0) {
+            if (_maxSize == 0)
+            {
                 _maxSize = 1;
             }
         }
@@ -43,8 +47,10 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         /// <inheritdoc/>
         public async Task<byte[]> CallMethodAsync(string deviceId, string moduleId,
             string method, byte[] payload, string contentType, TimeSpan? timeout,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(method)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(method))
+            {
                 throw new ArgumentNullException(nameof(method));
             }
             payload ??= new byte[] { (byte)' ' };
@@ -52,51 +58,62 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             // Send chunks
             var buffer = payload.Zip(); // Gzip payload
             var status = 200;
-            using (var received = new MemoryStream()) {
+            using (var received = new MemoryStream())
+            {
                 string handle = null;
-                for (var offset = 0; offset < buffer.Length; offset += _maxSize) {
+                for (var offset = 0; offset < buffer.Length; offset += _maxSize)
+                {
                     var length = Math.Min(buffer.Length - offset, _maxSize);
                     var chunk = buffer.AsSpan(offset, length).ToArray();
                     var result = await _client.CallMethodAsync(deviceId, moduleId,
                         MethodNames.Call, _serializer.SerializeToString(offset == 0 ?
-                            new MethodChunkModel {
+                            new MethodChunkModel
+                            {
                                 Timeout = timeout,
                                 MethodName = method,
                                 ContentType = contentType,
                                 ContentLength = buffer.Length,
                                 MaxChunkLength = _maxSize,
                                 Payload = chunk
-                            } : new MethodChunkModel {
+                            } : new MethodChunkModel
+                            {
                                 Handle = handle,
                                 Payload = chunk
                             }),
                         timeout, ct).ConfigureAwait(false);
                     var response = _serializer.Deserialize<MethodChunkModel>(result);
-                    if (response.Payload != null) {
+                    if (response.Payload != null)
+                    {
                         received.Write(response.Payload);
                     }
-                    if (response.Status != null) {
+                    if (response.Status != null)
+                    {
                         status = response.Status.Value;
                     }
                     handle = response.Handle;
                 }
                 // Receive all responses
-                while (!string.IsNullOrEmpty(handle)) {
+                while (!string.IsNullOrEmpty(handle))
+                {
                     var result = await _client.CallMethodAsync(deviceId, moduleId,
-                        MethodNames.Call, _serializer.SerializeToString(new MethodChunkModel {
+                        MethodNames.Call, _serializer.SerializeToString(new MethodChunkModel
+                        {
                             Handle = handle,
                         }), timeout, ct).ConfigureAwait(false);
                     var response = _serializer.Deserialize<MethodChunkModel>(result);
-                    if (response.Payload != null) {
+                    if (response.Payload != null)
+                    {
                         received.Write(response.Payload);
                     }
-                    if (response.Status != null) {
+                    if (response.Status != null)
+                    {
                         status = response.Status.Value;
                     }
                     handle = response.Handle;
                 }
                 payload = received.ToArray().Unzip();
-                if (status != 200) {
+                if (status != 200)
+                {
                     var result = AsString(payload);
                     _logger.LogDebug("Chunked call on {Method} on {DeviceId} ({ModuleId}) with {Payload} " +
                          "returned with error {Status}: {Result}",
@@ -112,14 +129,18 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        private static string AsString(byte[] buffer) {
-            try {
-                if (buffer == null) {
+        private static string AsString(byte[] buffer)
+        {
+            try
+            {
+                if (buffer == null)
+                {
                     return string.Empty;
                 }
                 return Encoding.UTF8.GetString(buffer);
             }
-            catch {
+            catch
+            {
                 return Convert.ToBase64String(buffer);
             }
         }

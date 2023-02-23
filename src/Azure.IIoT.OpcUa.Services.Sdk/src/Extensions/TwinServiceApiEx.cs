@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Utils;
     using System;
@@ -15,7 +16,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// <summary>
     /// Twin service api extensions
     /// </summary>
-    public static class TwinServiceApiEx {
+    public static class TwinServiceApiEx
+    {
         /// <summary>
         /// Browse all references if max references is null and user
         /// wants all. If user has requested maximum to return uses
@@ -28,20 +30,26 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <returns></returns>
         public static async Task<BrowseFirstResponseModel> NodeBrowseAsync(
             this ITwinServiceApi service, string endpoint, BrowseFirstRequestModel request,
-            CancellationToken ct = default) {
-            if (request.MaxReferencesToReturn != null) {
+            CancellationToken ct = default)
+        {
+            if (request.MaxReferencesToReturn != null)
+            {
                 return await service.NodeBrowseFirstAsync(endpoint, request, ct).ConfigureAwait(false);
             }
-            while (true) {
+            while (true)
+            {
                 // Limit size of batches to a reasonable default to avoid communication timeouts.
                 request.MaxReferencesToReturn = 500;
                 var result = await service.NodeBrowseFirstAsync(endpoint, request, ct).ConfigureAwait(false);
                 var references = result.References?.ToList();
-                while (result.ContinuationToken != null) {
+                while (result.ContinuationToken != null)
+                {
                     Debug.Assert(references != null);
-                    try {
+                    try
+                    {
                         var next = await service.NodeBrowseNextAsync(endpoint,
-                            new BrowseNextRequestModel {
+                            new BrowseNextRequestModel
+                            {
                                 ContinuationToken = result.ContinuationToken,
                                 Header = request.Header,
                                 ReadVariableValues = request.ReadVariableValues,
@@ -50,9 +58,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
                         references.AddRange(next.References);
                         result.ContinuationToken = next.ContinuationToken;
                     }
-                    catch (Exception) {
+                    catch (Exception)
+                    {
                         await Try.Async(() => service.NodeBrowseNextAsync(endpoint,
-                            new BrowseNextRequestModel {
+                            new BrowseNextRequestModel
+                            {
                                 ContinuationToken = result.ContinuationToken,
                                 Abort = true
                             })).ConfigureAwait(false);

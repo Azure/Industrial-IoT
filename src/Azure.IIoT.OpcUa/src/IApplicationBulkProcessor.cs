@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa {
+namespace Azure.IIoT.OpcUa
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System.Collections.Generic;
     using System.Threading;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa {
     /// <summary>
     /// Import, update or delete applications in bulk
     /// </summary>
-    public interface IApplicationBulkProcessor {
+    public interface IApplicationBulkProcessor
+    {
         /// <summary>
         /// Merge applications and endpoints
         /// </summary>

@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging {
+namespace Microsoft.Azure.IIoT.Messaging
+{
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Send events
     /// </summary>
-    public interface IEventClient {
+    public interface IEventClient
+    {
         /// <summary>
         /// Send event
         /// </summary>

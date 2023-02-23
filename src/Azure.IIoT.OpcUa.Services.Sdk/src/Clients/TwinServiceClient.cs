@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
+namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -17,7 +18,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
     /// <summary>
     /// Implementation of twin service api.
     /// </summary>
-    public sealed class TwinServiceClient : ITwinServiceApi {
+    public sealed class TwinServiceClient : ITwinServiceApi
+    {
         /// <summary>
         /// Create service client
         /// </summary>
@@ -26,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serializer"></param>
         public TwinServiceClient(IHttpClient httpClient, IServiceApiConfig config,
             ISerializer serializer) :
-            this(httpClient, config?.ServiceUrl, serializer) {
+            this(httpClient, config?.ServiceUrl, serializer)
+        {
         }
 
         /// <summary>
@@ -36,8 +39,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serviceUri"></param>
         /// <param name="serializer"></param>
         public TwinServiceClient(IHttpClient httpClient, string serviceUri,
-            ISerializer serializer = null) {
-            if (string.IsNullOrWhiteSpace(serviceUri)) {
+            ISerializer serializer = null)
+        {
+            if (string.IsNullOrWhiteSpace(serviceUri))
+            {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the endpoint micro service.");
             }
@@ -47,23 +52,28 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<string> GetServiceStatusAsync(CancellationToken ct) {
+        public async Task<string> GetServiceStatusAsync(CancellationToken ct)
+        {
             var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
                 Resource.Platform);
-            try {
+            try
+            {
                 var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
                 return response.GetContentAsString();
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return ex.Message;
             }
         }
 
         /// <inheritdoc/>
         public async Task<BrowseFirstResponseModel> NodeBrowseFirstAsync(string endpointId,
-            BrowseFirstRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            BrowseFirstRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/browse/{endpointId}",
@@ -76,14 +86,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<BrowseNextResponseModel> NodeBrowseNextAsync(string endpointId,
-            BrowseNextRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            BrowseNextRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.ContinuationToken == null) {
+            if (content.ContinuationToken == null)
+            {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/browse/{endpointId}/next",
@@ -96,15 +110,19 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<BrowsePathResponseModel> NodeBrowsePathAsync(string endpointId,
-            BrowsePathRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            BrowsePathRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             if (content.BrowsePaths == null || content.BrowsePaths.Count == 0 ||
-                content.BrowsePaths.Any(p => p == null || p.Count == 0)) {
+                content.BrowsePaths.Any(p => p == null || p.Count == 0))
+            {
                 throw new ArgumentNullException(nameof(content.BrowsePaths));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/browse/{endpointId}/path",
@@ -117,14 +135,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<ReadResponseModel> NodeReadAsync(string endpointId,
-            ReadRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            ReadRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.Attributes == null || content.Attributes.Count == 0) {
+            if (content.Attributes == null || content.Attributes.Count == 0)
+            {
                 throw new ArgumentException(nameof(content.Attributes));
             }
             var request = _httpClient.NewRequest(
@@ -137,14 +159,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<WriteResponseModel> NodeWriteAsync(string endpointId,
-            WriteRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            WriteRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.Attributes == null || content.Attributes.Count == 0) {
+            if (content.Attributes == null || content.Attributes.Count == 0)
+            {
                 throw new ArgumentException(nameof(content.Attributes));
             }
             var request = _httpClient.NewRequest(
@@ -157,11 +183,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<ValueReadResponseModel> NodeValueReadAsync(string endpointId,
-            ValueReadRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            ValueReadRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/read/{endpointId}",
@@ -174,14 +203,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<ValueWriteResponseModel> NodeValueWriteAsync(string endpointId,
-            ValueWriteRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            ValueWriteRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.Value is null) {
+            if (content.Value is null)
+            {
                 throw new ArgumentNullException(nameof(content.Value));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/write/{endpointId}",
@@ -194,11 +227,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<MethodMetadataResponseModel> NodeMethodGetMetadataAsync(
-            string endpointId, MethodMetadataRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            string endpointId, MethodMetadataRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/call/{endpointId}/metadata",
@@ -211,11 +247,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<MethodCallResponseModel> NodeMethodCallAsync(
-            string endpointId, MethodCallRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            string endpointId, MethodCallRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/call/{endpointId}",
@@ -228,11 +267,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(string endpointId,
-            NodeMetadataRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            NodeMetadataRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/metadata/{endpointId}",
@@ -245,8 +287,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(string endpointId,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/applications/v2/capabilities/{endpointId}",
@@ -258,8 +302,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(string endpointId,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/applications/v2/capabilities/{endpointId}/history",
@@ -271,14 +317,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(string endpointId,
-            HistoryConfigurationRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            HistoryConfigurationRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.NodeId == null) {
+            if (content.NodeId == null)
+            {
                 throw new ArgumentNullException(nameof(content.NodeId));
             }
             var request = _httpClient.NewRequest(
@@ -291,14 +341,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
-            string endpointId, HistoryReadRequestModel<VariantValue> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            string endpointId, HistoryReadRequestModel<VariantValue> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.Details == null) {
+            if (content.Details == null)
+            {
                 throw new ArgumentNullException(nameof(content.Details));
             }
             var request = _httpClient.NewRequest(
@@ -311,14 +365,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
-            string endpointId, HistoryReadNextRequestModel content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            string endpointId, HistoryReadNextRequestModel content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (string.IsNullOrEmpty(content.ContinuationToken)) {
+            if (string.IsNullOrEmpty(content.ContinuationToken))
+            {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
             var request = _httpClient.NewRequest(
@@ -331,14 +389,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
-            string endpointId, HistoryUpdateRequestModel<VariantValue> content, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
+            string endpointId, HistoryUpdateRequestModel<VariantValue> content, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(endpointId))
+            {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null) {
+            if (content == null)
+            {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.Details == null) {
+            if (content.Details == null)
+            {
                 throw new ArgumentNullException(nameof(content.Details));
             }
             var request = _httpClient.NewRequest(

@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace MemoryBuffer {
+namespace MemoryBuffer
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -35,25 +36,30 @@ namespace MemoryBuffer {
     using System.Diagnostics;
     using System.Threading;
 
-    public partial class MemoryBufferState {
+    public partial class MemoryBufferState
+    {
         /// <summary>
         /// Initializes the buffer from the configuration.
         /// </summary>
         public MemoryBufferState(ISystemContext context, MemoryBufferInstance configuration) :
-            base(null) {
+            base(null)
+        {
             Initialize(context);
             var dataType = "UInt32";
             var name = dataType;
             var count = 10;
 
-            if (configuration != null) {
+            if (configuration != null)
+            {
                 count = configuration.TagCount;
 
-                if (!string.IsNullOrEmpty(configuration.DataType)) {
+                if (!string.IsNullOrEmpty(configuration.DataType))
+                {
                     dataType = configuration.DataType;
                 }
 
-                if (!string.IsNullOrEmpty(configuration.Name)) {
+                if (!string.IsNullOrEmpty(configuration.Name))
+                {
                     name = dataType;
                 }
             }
@@ -62,8 +68,10 @@ namespace MemoryBuffer {
 
             var elementType = BuiltInType.UInt32;
 
-            switch (dataType) {
-                case "Double": {
+            switch (dataType)
+            {
+                case "Double":
+                    {
                         elementType = BuiltInType.Double;
                         break;
                     }
@@ -72,9 +80,12 @@ namespace MemoryBuffer {
             CreateBuffer(elementType, count);
         }
 
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
-                if (_scanTimer != null) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_scanTimer != null)
+                {
                     _scanTimer.Dispose();
                     _scanTimer = null;
                 }
@@ -112,15 +123,19 @@ namespace MemoryBuffer {
         /// </summary>
         /// <param name="elementName">The type of element.</param>
         /// <param name="noOfElements">The number of elements.</param>
-        public void CreateBuffer(string elementName, int noOfElements) {
-            if (string.IsNullOrEmpty(elementName)) {
+        public void CreateBuffer(string elementName, int noOfElements)
+        {
+            if (string.IsNullOrEmpty(elementName))
+            {
                 elementName = "UInt32";
             }
 
             var elementType = BuiltInType.UInt32;
 
-            switch (elementName) {
-                case "Double": {
+            switch (elementName)
+            {
+                case "Double":
+                    {
                         elementType = BuiltInType.Double;
                         break;
                     }
@@ -134,18 +149,23 @@ namespace MemoryBuffer {
         /// </summary>
         /// <param name="elementType">The type of element.</param>
         /// <param name="noOfElements">The number of elements.</param>
-        public void CreateBuffer(BuiltInType elementType, int noOfElements) {
-            lock (_dataLock) {
+        public void CreateBuffer(BuiltInType elementType, int noOfElements)
+        {
+            lock (_dataLock)
+            {
                 ElementType = elementType;
                 _elementSize = 1;
 
-                switch (ElementType) {
-                    case BuiltInType.UInt32: {
+                switch (ElementType)
+                {
+                    case BuiltInType.UInt32:
+                        {
                             _elementSize = 4;
                             break;
                         }
 
-                    case BuiltInType.Double: {
+                    case BuiltInType.Double:
+                        {
                             _elementSize = 8;
                             break;
                         }
@@ -170,7 +190,8 @@ namespace MemoryBuffer {
             BrowseDirection browseDirection,
             QualifiedName browseName,
             IEnumerable<IReference> additionalReferences,
-            bool internalOnly) {
+            bool internalOnly)
+        {
             NodeBrowser browser = new MemoryBufferBrowser(
                 context,
                 view,
@@ -199,27 +220,34 @@ namespace MemoryBuffer {
             QualifiedName dataEncoding,
             ref object value,
             ref StatusCode statusCode,
-            ref DateTime timestamp) {
-            if (node is not MemoryTagState tag) {
+            ref DateTime timestamp)
+        {
+            if (node is not MemoryTagState tag)
+            {
                 return StatusCodes.BadNodeIdUnknown;
             }
 
-            if (NumericRange.Empty != indexRange) {
+            if (NumericRange.Empty != indexRange)
+            {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
-            if (!QualifiedName.IsNull(dataEncoding)) {
+            if (!QualifiedName.IsNull(dataEncoding))
+            {
                 return StatusCodes.BadDataEncodingInvalid;
             }
 
             var offset = (int)tag.Offset;
 
-            lock (_dataLock) {
-                if (offset < 0 || offset >= _buffer.Length) {
+            lock (_dataLock)
+            {
+                if (offset < 0 || offset >= _buffer.Length)
+                {
                     return StatusCodes.BadNodeIdUnknown;
                 }
 
-                if (_buffer == null) {
+                if (_buffer == null)
+                {
                     return StatusCodes.BadOutOfService;
                 }
 
@@ -244,64 +272,83 @@ namespace MemoryBuffer {
             QualifiedName dataEncoding,
             ref object value,
             ref StatusCode statusCode,
-            ref DateTime timestamp) {
-            if (node is not MemoryTagState tag) {
+            ref DateTime timestamp)
+        {
+            if (node is not MemoryTagState tag)
+            {
                 return StatusCodes.BadNodeIdUnknown;
             }
 
-            if (NumericRange.Empty != indexRange) {
+            if (NumericRange.Empty != indexRange)
+            {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
-            if (!QualifiedName.IsNull(dataEncoding)) {
+            if (!QualifiedName.IsNull(dataEncoding))
+            {
                 return StatusCodes.BadDataEncodingInvalid;
             }
 
-            if (statusCode != StatusCodes.Good) {
+            if (statusCode != StatusCodes.Good)
+            {
                 return StatusCodes.BadWriteNotSupported;
             }
 
-            if (timestamp != DateTime.MinValue) {
+            if (timestamp != DateTime.MinValue)
+            {
                 return StatusCodes.BadWriteNotSupported;
             }
 
             var changed = false;
             var offset = (int)tag.Offset;
 
-            lock (_dataLock) {
-                if (offset < 0 || offset >= _buffer.Length) {
+            lock (_dataLock)
+            {
+                if (offset < 0 || offset >= _buffer.Length)
+                {
                     return StatusCodes.BadNodeIdUnknown;
                 }
 
-                if (_buffer == null) {
+                if (_buffer == null)
+                {
                     return StatusCodes.BadOutOfService;
                 }
 
                 byte[] bytes = null;
 
-                if (ElementType == BuiltInType.UInt32) {
-                    if (value is uint?) {
+                if (ElementType == BuiltInType.UInt32)
+                {
+                    if (value is uint?)
+                    {
                         bytes = BitConverter.GetBytes(((uint?)value).Value);
                     }
-                    else {
+                    else
+                    {
                         return StatusCodes.BadTypeMismatch;
                     }
                 }
-                else if (ElementType == BuiltInType.Double) {
-                    if (value is double?) {
+                else if (ElementType == BuiltInType.Double)
+                {
+                    if (value is double?)
+                    {
                         bytes = BitConverter.GetBytes(((double?)value).Value);
                     }
-                    else {
+                    else
+                    {
                         return StatusCodes.BadTypeMismatch;
                     }
                 }
-                else {
+                else
+                {
                     return StatusCodes.BadNodeIdUnknown;
                 }
 
-                for (var ii = 0; ii < bytes.Length; ii++) {
-                    if (!changed) {
-                        if (_buffer[offset + ii] != bytes[ii]) {
+                for (var ii = 0; ii < bytes.Length; ii++)
+                {
+                    if (!changed)
+                    {
+                        if (_buffer[offset + ii] != bytes[ii])
+                        {
                             changed = true;
                         }
                     }
@@ -310,7 +357,8 @@ namespace MemoryBuffer {
                 }
             }
 
-            if (changed) {
+            if (changed)
+            {
                 OnBufferChanged(offset);
             }
 
@@ -320,22 +368,29 @@ namespace MemoryBuffer {
         /// <summary>
         /// Returns the value at the specified offset.
         /// </summary>
-        public Variant GetValueAtOffset(int offset) {
-            lock (_dataLock) {
-                if (offset < 0 || offset >= _buffer.Length) {
+        public Variant GetValueAtOffset(int offset)
+        {
+            lock (_dataLock)
+            {
+                if (offset < 0 || offset >= _buffer.Length)
+                {
                     return Variant.Null;
                 }
 
-                if (_buffer == null) {
+                if (_buffer == null)
+                {
                     return Variant.Null;
                 }
 
-                switch (ElementType) {
-                    case BuiltInType.UInt32: {
+                switch (ElementType)
+                {
+                    case BuiltInType.UInt32:
+                        {
                             return new Variant(BitConverter.ToUInt32(_buffer, offset));
                         }
 
-                    case BuiltInType.Double: {
+                    case BuiltInType.Double:
+                        {
                             return new Variant(BitConverter.ToDouble(_buffer, offset));
                         }
                 }
@@ -349,8 +404,10 @@ namespace MemoryBuffer {
         /// </summary>
         public void InitializeMonitoring(
             IServerInternal server,
-            INodeManager nodeManager) {
-            lock (_dataLock) {
+            INodeManager nodeManager)
+        {
+            lock (_dataLock)
+            {
                 Server = server;
                 NodeManager = nodeManager;
                 _nonValueMonitoredItems = new Dictionary<uint, MemoryBufferMonitoredItem>();
@@ -369,8 +426,10 @@ namespace MemoryBuffer {
             TimestampsToReturn timestampsToReturn,
             MonitoringMode monitoringMode,
             uint clientHandle,
-            double samplingInterval) {
-            lock (_dataLock) {
+            double samplingInterval)
+        {
+            lock (_dataLock)
+            {
                 var monitoredItem = new MemoryBufferMonitoredItem(
                     Server,
                     NodeManager,
@@ -391,14 +450,16 @@ namespace MemoryBuffer {
                     false,
                     0);
 
-                if (itemToMonitor.AttributeId != Attributes.Value) {
+                if (itemToMonitor.AttributeId != Attributes.Value)
+                {
                     _nonValueMonitoredItems.Add(monitoredItem.Id, monitoredItem);
                     return monitoredItem;
                 }
 
                 var elementCount = (int)(SizeInBytes.Value / ElementSize);
 
-                if (_monitoringTable == null) {
+                if (_monitoringTable == null)
+                {
                     _monitoringTable = new MemoryBufferMonitoredItem[elementCount][];
                     _scanTimer = new Timer(DoScan, null, 100, 100);
                 }
@@ -407,10 +468,12 @@ namespace MemoryBuffer {
 
                 var monitoredItems = _monitoringTable[elementOffet];
 
-                if (monitoredItems == null) {
+                if (monitoredItems == null)
+                {
                     monitoredItems = new MemoryBufferMonitoredItem[1];
                 }
-                else {
+                else
+                {
                     monitoredItems = new MemoryBufferMonitoredItem[monitoredItems.Length + 1];
                     _monitoringTable[elementOffet].CopyTo(monitoredItems, 0);
                 }
@@ -426,11 +489,14 @@ namespace MemoryBuffer {
         /// <summary>
         /// Scans the buffer and updates every other element.
         /// </summary>
-        private void DoScan(object state) {
+        private void DoScan(object state)
+        {
             var start1 = DateTime.UtcNow;
 
-            lock (_dataLock) {
-                for (var ii = 0; ii < _buffer.Length; ii += _elementSize) {
+            lock (_dataLock)
+            {
+                for (var ii = 0; ii < _buffer.Length; ii += _elementSize)
+                {
                     _buffer[ii]++;
 
                     // notify any monitored items that the value has changed.
@@ -444,7 +510,8 @@ namespace MemoryBuffer {
 
             var delta1 = ((double)(end1.Ticks - start1.Ticks)) / TimeSpan.TicksPerMillisecond;
 
-            if (delta1 > 100) {
+            if (delta1 > 100)
+            {
                 Debug.WriteLine("SAMPLING DELAY ({0}ms)", delta1);
             }
         }
@@ -452,35 +519,45 @@ namespace MemoryBuffer {
         /// <summary>
         /// Deletes the monitored item.
         /// </summary>
-        public void DeleteItem(MemoryBufferMonitoredItem monitoredItem) {
-            lock (_dataLock) {
-                if (monitoredItem.AttributeId != Attributes.Value) {
+        public void DeleteItem(MemoryBufferMonitoredItem monitoredItem)
+        {
+            lock (_dataLock)
+            {
+                if (monitoredItem.AttributeId != Attributes.Value)
+                {
                     _nonValueMonitoredItems.Remove(monitoredItem.Id);
                     return;
                 }
 
-                if (_monitoringTable != null) {
+                if (_monitoringTable != null)
+                {
                     var elementOffet = (int)(monitoredItem.Offset / ElementSize);
 
                     var monitoredItems = _monitoringTable[elementOffet];
 
-                    if (monitoredItems != null) {
+                    if (monitoredItems != null)
+                    {
                         var index = -1;
 
-                        for (var ii = 0; ii < monitoredItems.Length; ii++) {
-                            if (ReferenceEquals(monitoredItems[ii], monitoredItem)) {
+                        for (var ii = 0; ii < monitoredItems.Length; ii++)
+                        {
+                            if (ReferenceEquals(monitoredItems[ii], monitoredItem))
+                            {
                                 index = ii;
                                 break;
                             }
                         }
 
-                        if (index >= 0) {
+                        if (index >= 0)
+                        {
                             _itemCount--;
 
-                            if (monitoredItems.Length == 1) {
+                            if (monitoredItems.Length == 1)
+                            {
                                 monitoredItems = null;
                             }
-                            else {
+                            else
+                            {
                                 monitoredItems = new MemoryBufferMonitoredItem[monitoredItems.Length - 1];
 
                                 Array.Copy(_monitoringTable[elementOffet], 0, monitoredItems, 0, index);
@@ -497,22 +574,28 @@ namespace MemoryBuffer {
         /// <summary>
         /// Handles change events raised by the node.
         /// </summary>
-        public void OnBufferChanged(int offset) {
-            lock (_dataLock) {
-                if (_monitoringTable != null) {
+        public void OnBufferChanged(int offset)
+        {
+            lock (_dataLock)
+            {
+                if (_monitoringTable != null)
+                {
                     var elementOffet = (int)(offset / ElementSize);
 
                     var monitoredItems = _monitoringTable[elementOffet];
 
-                    if (monitoredItems != null) {
-                        var value = new DataValue {
+                    if (monitoredItems != null)
+                    {
+                        var value = new DataValue
+                        {
                             WrappedValue = GetValueAtOffset(offset),
                             StatusCode = StatusCodes.Good,
                             ServerTimestamp = DateTime.UtcNow,
                             SourceTimestamp = _lastScanTime
                         };
 
-                        for (var ii = 0; ii < monitoredItems.Length; ii++) {
+                        for (var ii = 0; ii < monitoredItems.Length; ii++)
+                        {
                             monitoredItems[ii].QueueValue(value, null);
                             _updateCount++;
                         }
@@ -521,15 +604,19 @@ namespace MemoryBuffer {
             }
         }
 
-        private void ScanTimer_Tick(object sender, EventArgs e) {
+        private void ScanTimer_Tick(object sender, EventArgs e)
+        {
             DoScan(null);
         }
 
-        private void PublishTimer_Tick(object sender, EventArgs e) {
+        private void PublishTimer_Tick(object sender, EventArgs e)
+        {
             var start1 = DateTime.UtcNow;
 
-            lock (_dataLock) {
-                if (_itemCount > 0 && _updateCount < _itemCount) {
+            lock (_dataLock)
+            {
+                if (_itemCount > 0 && _updateCount < _itemCount)
+                {
                     Debug.WriteLine("{0:HH:mm:ss.fff} MEMORYBUFFER Reported  {1}/{2} items ***.", DateTime.Now, _updateCount, _itemCount);
                 }
 
@@ -540,7 +627,8 @@ namespace MemoryBuffer {
 
             var delta1 = ((double)(end1.Ticks - start1.Ticks)) / TimeSpan.TicksPerMillisecond;
 
-            if (delta1 > 100) {
+            if (delta1 > 100)
+            {
                 Debug.WriteLine("****** PUBLISH DELAY ({0}ms) ******", delta1);
             }
         }

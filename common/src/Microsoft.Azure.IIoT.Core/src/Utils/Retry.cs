@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Utils {
+namespace Microsoft.Azure.IIoT.Utils
+{
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Extensions.Logging;
     using System;
@@ -13,7 +14,8 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// <summary>
     /// Retry helper class with different retry policies
     /// </summary>
-    public static class Retry2 {
+    public static class Retry2
+    {
         /// <summary>Retry count max</summary>
         public static int DefaultMaxRetryCount { get; set; } = 10;
 
@@ -53,8 +55,10 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="increment"></param>
         /// <param name="maxRetry"></param>
         /// <returns></returns>
-        public static int GetExponentialDelay(int k, int increment, int maxRetry) {
-            if (k > maxRetry) {
+        public static int GetExponentialDelay(int k, int increment, int maxRetry)
+        {
+            if (k > maxRetry)
+            {
                 k = maxRetry;
             }
 #pragma warning disable CA5394 // Do not use insecure randomness
@@ -77,16 +81,21 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task DoAsync(ILogger logger, Func<Task> work, Func<Exception, bool> cont,
-            Func<int, Exception, int> policy, int maxRetry, CancellationToken ct) {
-            for (var k = 1; ; k++) {
-                if (ct.IsCancellationRequested) {
+            Func<int, Exception, int> policy, int maxRetry, CancellationToken ct)
+        {
+            for (var k = 1; ; k++)
+            {
+                if (ct.IsCancellationRequested)
+                {
                     throw new TaskCanceledException();
                 }
-                try {
+                try
+                {
                     await work().ConfigureAwait(false);
                     return;
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     await DelayOrThrowAsync(logger, cont, policy, maxRetry, k, ex, ct).ConfigureAwait(false);
                 }
             }
@@ -104,15 +113,20 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<T> DoAsync<T>(ILogger logger, Func<Task<T>> work, Func<Exception, bool> cont,
-            Func<int, Exception, int> policy, int maxRetry, CancellationToken ct) {
-            for (var k = 1; ; k++) {
-                if (ct.IsCancellationRequested) {
+            Func<int, Exception, int> policy, int maxRetry, CancellationToken ct)
+        {
+            for (var k = 1; ; k++)
+            {
+                if (ct.IsCancellationRequested)
+                {
                     throw new TaskCanceledException();
                 }
-                try {
+                try
+                {
                     return await work().ConfigureAwait(false);
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     await DelayOrThrowAsync(logger, cont, policy, maxRetry, k, ex, ct).ConfigureAwait(false);
                 }
             }
@@ -129,16 +143,21 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task DoAsync(ILogger logger, Action work, Func<Exception, bool> cont,
-            Func<int, Exception, int> policy, int maxRetry, CancellationToken ct) {
-            for (var k = 1; ; k++) {
-                if (ct.IsCancellationRequested) {
+            Func<int, Exception, int> policy, int maxRetry, CancellationToken ct)
+        {
+            for (var k = 1; ; k++)
+            {
+                if (ct.IsCancellationRequested)
+                {
                     throw new TaskCanceledException();
                 }
-                try {
+                try
+                {
                     work();
                     return;
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     await DelayOrThrowAsync(logger, cont, policy, maxRetry, k, ex, ct).ConfigureAwait(false);
                 }
             }
@@ -154,7 +173,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task WithLinearBackoffAsync(ILogger logger, Func<Task> work,
-            Func<Exception, bool> cont, CancellationToken ct, int? maxRetry = null) {
+            Func<Exception, bool> cont, CancellationToken ct, int? maxRetry = null)
+        {
             return DoAsync(logger, work, cont, Linear, maxRetry ?? DefaultMaxRetryCount, ct);
         }
 
@@ -168,7 +188,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task WithExponentialBackoffAsync(ILogger logger, Func<Task> work,
-            Func<Exception, bool> cont, CancellationToken ct, int? maxRetry = null) {
+            Func<Exception, bool> cont, CancellationToken ct, int? maxRetry = null)
+        {
             return DoAsync(logger, work, cont, Exponential, maxRetry ?? ExponentialMaxRetryCount, ct);
         }
 
@@ -181,7 +202,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task WithExponentialBackoffAsync(ILogger logger, Func<Task> work,
-            CancellationToken ct, int? maxRetry = null) {
+            CancellationToken ct, int? maxRetry = null)
+        {
             return WithExponentialBackoffAsync(logger, work, ex => ex is ITransientException, ct, maxRetry);
         }
 
@@ -193,7 +215,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task WithExponentialBackoffAsync(ILogger logger, Func<Task> work,
-            int? maxRetry = null) {
+            int? maxRetry = null)
+        {
             return WithExponentialBackoffAsync(logger, work, default, maxRetry);
         }
 
@@ -208,7 +231,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task<T> WithExponentialBackoffAsync<T>(ILogger logger, Func<Task<T>> work,
-            Func<Exception, bool> cont, CancellationToken ct, int? maxRetry = null) {
+            Func<Exception, bool> cont, CancellationToken ct, int? maxRetry = null)
+        {
             return DoAsync(logger, work, cont, Exponential, maxRetry ?? ExponentialMaxRetryCount, ct);
         }
 
@@ -222,7 +246,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task<T> WithExponentialBackoffAsync<T>(ILogger logger, Func<Task<T>> work,
-            CancellationToken ct, int? maxRetry = null) {
+            CancellationToken ct, int? maxRetry = null)
+        {
             return WithExponentialBackoffAsync(logger, work, (ex) => ex is ITransientException, ct, maxRetry);
         }
 
@@ -235,7 +260,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task<T> WithExponentialBackoffAsync<T>(ILogger logger, Func<Task<T>> work,
-            int? maxRetry = null) {
+            int? maxRetry = null)
+        {
             return WithExponentialBackoffAsync(logger, work, default, maxRetry);
         }
 
@@ -249,7 +275,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task WithExponentialBackoffAsync(ILogger logger, Action work,
-            Func<Exception, bool> cont, CancellationToken ct, int? maxRetry = null) {
+            Func<Exception, bool> cont, CancellationToken ct, int? maxRetry = null)
+        {
             return DoAsync(logger, work, cont, Exponential, maxRetry ?? ExponentialMaxRetryCount, ct);
         }
 
@@ -262,7 +289,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task WithExponentialBackoffAsync(ILogger logger, Action work,
-            CancellationToken ct, int? maxRetry = null) {
+            CancellationToken ct, int? maxRetry = null)
+        {
             return WithExponentialBackoffAsync(logger, work, ex => ex is ITransientException, ct, maxRetry);
         }
 
@@ -273,7 +301,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="work"></param>
         /// <param name="maxRetry"></param>
         /// <returns></returns>
-        public static Task WithExponentialBackoffAsync(ILogger logger, Action work, int? maxRetry = null) {
+        public static Task WithExponentialBackoffAsync(ILogger logger, Action work, int? maxRetry = null)
+        {
             return WithExponentialBackoffAsync(logger, work, default, maxRetry);
         }
 
@@ -290,20 +319,25 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <returns></returns>
         private static async Task DelayOrThrowAsync(ILogger logger, Func<Exception, bool> cont,
             Func<int, Exception, int> policy, int maxRetry, int k, Exception ex,
-            CancellationToken ct) {
-            if (k > maxRetry || !cont(ex)) {
+            CancellationToken ct)
+        {
+            if (k > maxRetry || !cont(ex))
+            {
                 logger?.LogTrace(ex, "Give up after {Attempt}", k);
                 throw ex;
             }
-            if (ex is TemporarilyBusyException tbx && tbx.RetryAfter != null) {
+            if (ex is TemporarilyBusyException tbx && tbx.RetryAfter != null)
+            {
                 var delay = tbx.RetryAfter.Value;
                 Log(logger, k, (int)delay.TotalMilliseconds, ex);
                 await Task.Delay(delay, ct).ConfigureAwait(false);
             }
-            else {
+            else
+            {
                 var delay = policy(k, ex);
                 Log(logger, k, delay, ex);
-                if (delay != 0) {
+                if (delay != 0)
+                {
                     await Task.Delay(delay, ct).ConfigureAwait(false);
                 }
             }
@@ -316,12 +350,16 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="retry"></param>
         /// <param name="delay"></param>
         /// <param name="ex"></param>
-        private static void Log(ILogger logger, int retry, int delay, Exception ex) {
-            if (logger != null) {
-                if (logger.IsEnabled(LogLevel.Trace)) {
+        private static void Log(ILogger logger, int retry, int delay, Exception ex)
+        {
+            if (logger != null)
+            {
+                if (logger.IsEnabled(LogLevel.Trace))
+                {
                     logger.LogTrace(ex, "Retry {Attempt} in {Delay} ms...", retry, delay);
                 }
-                else {
+                else
+                {
                     logger.LogDebug("  ... Retry {Attempt} in {Delay} ms...", retry, delay);
                 }
             }

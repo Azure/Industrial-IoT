@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Azure.IIoT.OpcUa.Publisher;
 
     /// <summary>
     /// Extensions for data set writer
     /// </summary>
-    public static class WriterGroupModelEx {
+    public static class WriterGroupModelEx
+    {
         /// <summary>
         /// Convert to message trigger configuration
         /// </summary>
@@ -17,8 +19,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="publisherId"></param>
         /// <returns></returns>
         public static IWriterGroupConfig ToWriterGroupJobConfiguration(
-            this WriterGroupJobModel model, string publisherId) {
-            var writerGroupJobConfig = new WriterGroupJobConfig {
+            this WriterGroupJobModel model, string publisherId)
+        {
+            var writerGroupJobConfig = new WriterGroupJobConfig
+            {
                 BatchSize = model.Engine?.BatchSize,
                 BatchTriggerInterval = model.Engine?.BatchTriggerInterval,
                 PublisherId = publisherId,
@@ -30,8 +34,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                 UseStandardsCompliantEncoding = model.Engine?.UseStandardsCompliantEncoding ?? false,
             };
 
-            if (writerGroupJobConfig.WriterGroup != null) {
-                if (writerGroupJobConfig.WriterGroup.MessageSettings == null) {
+            if (writerGroupJobConfig.WriterGroup != null)
+            {
+                if (writerGroupJobConfig.WriterGroup.MessageSettings == null)
+                {
                     writerGroupJobConfig.WriterGroup.MessageSettings = new WriterGroupMessageSettingsModel();
                 }
                 //
@@ -39,7 +45,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                 // backwards compatibility with existing database stored writer group models.
                 //
                 if (model.MessagingMode == MessagingMode.Samples ||
-                    model.MessagingMode == MessagingMode.FullSamples) {
+                    model.MessagingMode == MessagingMode.FullSamples)
+                {
                     writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
                         |= NetworkMessageContentMask.MonitoredItemMessage;
                     writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
@@ -47,7 +54,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                     writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
                         &= ~NetworkMessageContentMask.NetworkMessageHeader;
                 }
-                else if (model.MessagingMode != null) {
+                else if (model.MessagingMode != null)
+                {
                     writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
                         &= ~NetworkMessageContentMask.MonitoredItemMessage;
                 }

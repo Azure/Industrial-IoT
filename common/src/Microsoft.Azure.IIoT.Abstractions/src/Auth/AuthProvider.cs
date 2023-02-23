@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
+namespace Microsoft.Azure.IIoT.Auth
+{
     /// <summary>
     /// Industrial IoT defined auth providers
     /// </summary>
-    public static class AuthProvider {
+    public static class AuthProvider
+    {
         /// <summary>
         /// Unknown provider
         /// </summary>

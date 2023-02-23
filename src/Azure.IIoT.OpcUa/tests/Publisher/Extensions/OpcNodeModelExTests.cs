@@ -3,16 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
+namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models
+{
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Globalization;
     using Xunit;
 
-    public class OpcNodeModelExTests {
+    public class OpcNodeModelExTests
+    {
         [Fact]
-        public void ComparerTest() {
+        public void ComparerTest()
+        {
             var comparer = OpcNodeModelEx.Comparer;
 
             var opcNode1 = new OpcNodeModel();
@@ -21,7 +24,8 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             Assert.True(comparer.Equals(opcNode1, opcNode2));
             Assert.True(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
 
-            opcNode1 = new OpcNodeModel {
+            opcNode1 = new OpcNodeModel
+            {
                 Id = "id",
                 OpcPublishingInterval = 1500,
                 OpcSamplingInterval = 2500,
@@ -32,7 +36,8 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
                 DeadbandValue = 0.1
             };
 
-            static OpcNodeModel NewNode() => new() {
+            static OpcNodeModel NewNode() => new()
+            {
                 Id = "id",
                 OpcPublishingIntervalTimespan = TimeSpan.Parse("00:00:01.5", CultureInfo.InvariantCulture),
                 OpcSamplingIntervalTimespan = TimeSpan.Parse("00:00:02.500", CultureInfo.InvariantCulture),

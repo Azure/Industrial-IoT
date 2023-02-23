@@ -27,14 +27,17 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace TestData {
+namespace TestData
+{
     using Opc.Ua;
 
-    public partial class TestSystemConditionState {
+    public partial class TestSystemConditionState
+    {
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
-        protected override void OnAfterCreate(ISystemContext context, NodeState node) {
+        protected override void OnAfterCreate(ISystemContext context, NodeState node)
+        {
             base.OnAfterCreate(context, node);
 
             MonitoredNodeCount.OnSimpleReadValue = OnReadMonitoredNodeCount;
@@ -46,8 +49,10 @@ namespace TestData {
         protected virtual ServiceResult OnReadMonitoredNodeCount(
             ISystemContext context,
             NodeState node,
-            ref object value) {
-            if (!(context.SystemHandle is TestDataSystem system)) {
+            ref object value)
+        {
+            if (!(context.SystemHandle is TestDataSystem system))
+            {
                 return StatusCodes.BadOutOfService;
             }
 

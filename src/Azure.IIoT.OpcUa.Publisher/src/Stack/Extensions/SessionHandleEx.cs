@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
+{
+    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Opc.Ua;
@@ -20,7 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
     /// <summary>
     /// Session Handle extensions
     /// </summary>
-    public static class SessionHandleEx {
+    public static class SessionHandleEx
+    {
         /// <summary>
         /// Async browse service
         /// </summary>
@@ -40,7 +42,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
             RequestHeader requestHeader, ViewDescription? view, NodeId nodeToBrowse,
             uint maxResultsToReturn, Opc.Ua.BrowseDirection browseDirection,
             NodeId referenceTypeId, bool includeSubtypes, uint nodeClassMask,
-            BrowseResultMask resultMask = BrowseResultMask.All, CancellationToken ct = default) {
+            BrowseResultMask resultMask = BrowseResultMask.All, CancellationToken ct = default)
+        {
             return client.Session.BrowseAsync(requestHeader, view, maxResultsToReturn,
                 new BrowseDescriptionCollection {
                     new BrowseDescription {
@@ -60,7 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <param name="results"></param>
         /// <param name="diagnostics"></param>
         public static void Validate<T>(IEnumerable<T> results,
-            DiagnosticInfoCollection diagnostics) {
+            DiagnosticInfoCollection diagnostics)
+        {
             Validate<T, object>(results, diagnostics, null);
         }
 
@@ -73,20 +77,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <param name="diagnostics"></param>
         /// <param name="requested"></param>
         public static void Validate<T, R>(IEnumerable<T> results,
-            DiagnosticInfoCollection diagnostics, IEnumerable<R>? requested) {
+            DiagnosticInfoCollection diagnostics, IEnumerable<R>? requested)
+        {
             var resultsWithStatus = results?.ToList();
             if (resultsWithStatus == null || (resultsWithStatus.Count == 0 &&
-                diagnostics.Count == 0)) {
+                diagnostics.Count == 0))
+            {
                 throw new ServiceResultException(StatusCodes.BadUnexpectedError,
                     "The server returned no results or diagnostics information.");
             }
             // Throw on bad responses.
             var expected = requested?.Count() ?? 1;
-            if (resultsWithStatus.Count != expected) {
+            if (resultsWithStatus.Count != expected)
+            {
                 throw new ServiceResultException(StatusCodes.BadUnexpectedError,
                     "The server returned a list without the expected number of elements.");
             }
-            if (diagnostics != null && diagnostics.Count != 0 && diagnostics.Count != expected) {
+            if (diagnostics != null && diagnostics.Count != 0 && diagnostics.Count != expected)
+            {
                 throw new ServiceResultException(StatusCodes.BadUnexpectedError,
                     "The server forgot to fill in the DiagnosticInfos array correctly.");
             }
@@ -102,7 +110,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <returns></returns>
         public static async Task<(T?, ServiceResultModel?)> ReadAttributeAsync<T>(
             this ISessionHandle session, RequestHeader header, NodeId nodeIds,
-            uint attributeId, CancellationToken ct = default) {
+            uint attributeId, CancellationToken ct = default)
+        {
             var attributes = await session.ReadAttributeAsync<T>(header,
                 nodeIds.YieldReturn(), attributeId, ct).ConfigureAwait(false);
             return attributes.SingleOrDefault();
@@ -119,12 +128,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <returns></returns>
         public static async Task<IEnumerable<(T?, ServiceResultModel?)>> ReadAttributeAsync<T>(
             this ISessionHandle session, RequestHeader header, IEnumerable<NodeId> nodeIds,
-            uint attributeId, CancellationToken ct = default) {
-            if (!nodeIds.Any()) {
+            uint attributeId, CancellationToken ct = default)
+        {
+            if (!nodeIds.Any())
+            {
                 return Enumerable.Empty<(T?, ServiceResultModel?)>();
             }
             var itemsToRead = new ReadValueIdCollection(nodeIds
-                .Select(nodeId => new ReadValueId {
+                .Select(nodeId => new ReadValueId
+                {
                     NodeId = nodeId,
                     AttributeId = attributeId
                 }));
@@ -134,10 +146,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
             var results = response.Validate(response.Results,
                 s => s.StatusCode, response.DiagnosticInfos, itemsToRead);
 
-            if (results.ErrorInfo != null) {
+            if (results.ErrorInfo != null)
+            {
                 return (default(T), (ServiceResultModel?)results.ErrorInfo).YieldReturn();
             }
-            return results.Select(result => {
+            return results.Select(result =>
+            {
                 var errorInfo = result.ErrorInfo;
                 var value = result.ErrorInfo != null ? default :
                     result.Result.GetValue<T?>(default);
@@ -159,11 +173,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
             this ISessionHandle session, RequestHeader header,
             IEnumerable<NodeId> nodeIds, IEnumerable<uint> attributeIds,
             Dictionary<NodeId, Dictionary<uint, DataValue>> results,
-            CancellationToken ct = default) {
+            CancellationToken ct = default)
+        {
             var itemsToRead = new ReadValueIdCollection(nodeIds
                 .SelectMany(nodeId => attributeIds
                     .Select(attributeId =>
-                        new ReadValueId {
+                        new ReadValueId
+                        {
                             NodeId = nodeId,
                             AttributeId = attributeId
                         })));
@@ -172,10 +188,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                 ct).ConfigureAwait(false);
             var readresults = response.Validate(response.Results,
                 s => s.StatusCode, response.DiagnosticInfos, itemsToRead);
-            if (readresults.ErrorInfo != null) {
+            if (readresults.ErrorInfo != null)
+            {
                 return readresults.ErrorInfo;
             }
-            foreach (var group in readresults.GroupBy(g => g.Request.NodeId)) {
+            foreach (var group in readresults.GroupBy(g => g.Request.NodeId))
+            {
                 results.AddOrUpdate(group.Key,
                     group.ToDictionary(r => r.Request.AttributeId, r => r.Result));
             }
@@ -193,7 +211,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <exception cref="ServiceResultException"></exception>
         public static async Task<(DataValue?, ServiceResultModel?)> ReadValueAsync(
             this ISessionHandle session, RequestHeader header,
-            NodeId nodeId, CancellationToken ct = default) {
+            NodeId nodeId, CancellationToken ct = default)
+        {
             var itemsToRead = new ReadValueIdCollection {
                 new ReadValueId {
                     NodeId = nodeId,
@@ -224,8 +243,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         internal static async Task<ServiceResponse<uint, DataValue>> ReadNodeAttributesAsync(
             this ISessionHandle session, RequestHeader requestHeader, NodeId nodeId,
             bool skipValueRead = false, Opc.Ua.NodeClass? nodeClass = null,
-            CancellationToken ct = default) {
-            if (nodeClass == null || nodeClass.Value == Opc.Ua.NodeClass.Unspecified) {
+            CancellationToken ct = default)
+        {
+            if (nodeClass == null || nodeClass.Value == Opc.Ua.NodeClass.Unspecified)
+            {
                 // First read node class
                 var nodeClassRead = new ReadValueIdCollection {
                     new ReadValueId {
@@ -243,13 +264,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                     readResults[0].Result.GetValueOrDefault<Opc.Ua.NodeClass>();
             }
             System.Diagnostics.Debug.Assert(nodeClass != null);
-            if (nodeClass == Opc.Ua.NodeClass.VariableType) {
+            if (nodeClass == Opc.Ua.NodeClass.VariableType)
+            {
                 skipValueRead = false; // read default values
             }
             var attributes = TypeMaps.Attributes.Value.Identifiers
                 .Where(a => !skipValueRead || a != Attributes.Value);
             var readValueCollection = new ReadValueIdCollection(attributes
-                .Select(a => new ReadValueId {
+                .Select(a => new ReadValueId
+                {
                     NodeId = nodeId,
                     AttributeId = a
                 }));
@@ -260,13 +283,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
             var results = readResponse.Validate(readResponse.Results, s => s.StatusCode,
                 readResponse.DiagnosticInfos, attributes);
             var errorInfo = results.ErrorInfo ?? results[0].ErrorInfo;
-            if (errorInfo != null) {
+            if (errorInfo != null)
+            {
                 return results;
             }
             // Fix up responses based on node class
-            for (var i = 0; i < results.Count; i++) {
+            for (var i = 0; i < results.Count; i++)
+            {
                 if (results[i].ErrorInfo?.StatusCode ==
-                        StatusCodes.BadAttributeIdInvalid) {
+                        StatusCodes.BadAttributeIdInvalid)
+                {
                     // Update result with default and set status to good.
                     readResponse.Results[i].Value = AttributeMap.GetDefaultValue(
                         nodeClass.Value, results[i].Request, true);
@@ -289,36 +315,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <returns></returns>
         internal static async Task<ServiceResultModel?> ReadNodeStateAsync(
             this ISessionHandle session, RequestHeader requestHeader, NodeState nodeState,
-            NodeId rootId, RelativePath? relativePath = null, CancellationToken ct = default) {
+            NodeId rootId, RelativePath? relativePath = null, CancellationToken ct = default)
+        {
             var valuesToRead = new List<ReadValueId>();
             var objectsToBrowse = new List<BrowseDescription>();
             var resolveBrowsePaths = session.GetBrowsePathFromNodeState(rootId,
                 nodeState, relativePath);
-            if (resolveBrowsePaths.Count == 0) {
+            if (resolveBrowsePaths.Count == 0)
+            {
                 // Nothing to do
                 return ((StatusCode)StatusCodes.GoodNoData).CreateResultModel();
             }
             var resolveBrowsePathsBatches = resolveBrowsePaths
                 .Batch((int)session.Session.OperationLimits.MaxNodesPerTranslateBrowsePathsToNodeIds);
-            foreach (var batch in resolveBrowsePathsBatches) {
+            foreach (var batch in resolveBrowsePathsBatches)
+            {
                 // translate browse paths.
                 var response = await session.Session.TranslateBrowsePathsToNodeIdsAsync(
                     requestHeader, new BrowsePathCollection(batch), ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, s => s.StatusCode,
                     response.DiagnosticInfos, batch);
-                if (results.ErrorInfo != null) {
+                if (results.ErrorInfo != null)
+                {
                     return results.ErrorInfo;
                 }
-                foreach (var result in results) {
-                    if (result.Request.Handle is not NodeState node) {
+                foreach (var result in results)
+                {
+                    if (result.Request.Handle is not NodeState node)
+                    {
                         continue;
                     }
-                    if (StatusCode.IsBad(result.StatusCode)) {
+                    if (StatusCode.IsBad(result.StatusCode))
+                    {
                         if (result.StatusCode.Code is StatusCodes.BadNodeIdUnknown or
-                            StatusCodes.BadUnexpectedError) {
+                            StatusCodes.BadUnexpectedError)
+                        {
                             return result.ErrorInfo;
                         }
-                        if (node is BaseVariableState v) {
+                        if (node is BaseVariableState v)
+                        {
                             // Initialize the variable
                             v.Value = null;
                             v.StatusCode = result.StatusCode;
@@ -327,23 +362,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                     }
                     if (result.Result.Targets.Count == 1 &&
                         result.Result.Targets[0].RemainingPathIndex == uint.MaxValue &&
-                        !result.Result.Targets[0].TargetId.IsAbsolute) {
+                        !result.Result.Targets[0].TargetId.IsAbsolute)
+                    {
                         node.NodeId = (NodeId)result.Result.Targets[0].TargetId;
                     }
-                    else {
-                        if (node is BaseVariableState v) {
+                    else
+                    {
+                        if (node is BaseVariableState v)
+                        {
                             // Initialize the variable
                             v.Value = null;
                             v.StatusCode = StatusCodes.BadNotSupported;
                         }
                         continue;
                     }
-                    switch (node) {
+                    switch (node)
+                    {
                         case BaseVariableState variable:
                             // Initialize the variable
                             variable.Value = null;
                             variable.StatusCode = StatusCodes.BadNotSupported;
-                            valuesToRead.Add(new ReadValueId {
+                            valuesToRead.Add(new ReadValueId
+                            {
                                 NodeId = node.NodeId,
                                 AttributeId = Attributes.Value,
                                 Handle = node
@@ -351,7 +391,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                             break;
                         case FolderState folder:
                             // Save for browsing
-                            objectsToBrowse.Add(new BrowseDescription {
+                            objectsToBrowse.Add(new BrowseDescription
+                            {
                                 BrowseDirection = Opc.Ua.BrowseDirection.Forward,
                                 Handle = folder,
                                 IncludeSubtypes = true,
@@ -367,23 +408,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                 }
             }
 
-            if (objectsToBrowse.Count > 0) {
+            if (objectsToBrowse.Count > 0)
+            {
                 var objectsToBrowseBatches = objectsToBrowse
                     .Batch((int)session.Session.OperationLimits.MaxNodesPerBrowse);
-                foreach (var batch in objectsToBrowseBatches) {
+                foreach (var batch in objectsToBrowseBatches)
+                {
                     // Browse folders with objects and variables in it
                     var browseResults = session.BrowseAsync(requestHeader, null,
                         new BrowseDescriptionCollection(batch), ct).ConfigureAwait(false);
-                    await foreach (var (description, references, errorInfo) in browseResults) {
+                    await foreach (var (description, references, errorInfo) in browseResults)
+                    {
                         var obj = (BaseObjectState?)description?.Handle;
-                        if (obj == null || references == null) {
+                        if (obj == null || references == null)
+                        {
                             continue;
                         }
-                        foreach (var reference in references) {
-                            switch (reference.NodeClass) {
+                        foreach (var reference in references)
+                        {
+                            switch (reference.NodeClass)
+                            {
                                 case Opc.Ua.NodeClass.Variable:
                                     // Add variable to the folder and set it to be read.
-                                    var variable = new BaseDataVariableState(obj) {
+                                    var variable = new BaseDataVariableState(obj)
+                                    {
                                         NodeId = (NodeId)reference.NodeId,
                                         BrowseName = reference.BrowseName,
                                         DisplayName = reference.DisplayName,
@@ -392,7 +440,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                                         Value = null
                                     };
                                     obj.AddChild(variable);
-                                    valuesToRead.Add(new ReadValueId {
+                                    valuesToRead.Add(new ReadValueId
+                                    {
                                         NodeId = variable.NodeId,
                                         AttributeId = Attributes.Value,
                                         Handle = variable
@@ -400,7 +449,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                                     break;
                                 case Opc.Ua.NodeClass.Object:
                                     // Add object
-                                    var child = new BaseObjectState(obj) {
+                                    var child = new BaseObjectState(obj)
+                                    {
                                         NodeId = (NodeId)reference.NodeId,
                                         BrowseName = reference.BrowseName,
                                         DisplayName = reference.DisplayName,
@@ -414,10 +464,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                 }
             }
 
-            if (valuesToRead.Count > 0) {
+            if (valuesToRead.Count > 0)
+            {
                 var valuesToReadBatches = valuesToRead
                     .Batch((int)session.Session.OperationLimits.MaxNodesPerRead);
-                foreach (var batch in valuesToReadBatches) {
+                foreach (var batch in valuesToReadBatches)
+                {
                     // read the values.
                     var readResponse = await session.Session.ReadAsync(
                         requestHeader, 0, Opc.Ua.TimestampsToReturn.Neither,
@@ -425,10 +477,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                     var readResults = readResponse.Validate(readResponse.Results,
                         s => s.StatusCode, readResponse.DiagnosticInfos,
                         batch);
-                    if (readResults.ErrorInfo != null) {
+                    if (readResults.ErrorInfo != null)
+                    {
                         return readResults.ErrorInfo;
                     }
-                    foreach (var readResult in readResults) {
+                    foreach (var readResult in readResults)
+                    {
                         var variable = (BaseVariableState)readResult.Request.Handle;
                         variable.WrappedValue = readResult.Result.WrappedValue;
                         variable.DataType = TypeInfo.GetDataTypeId(readResult.Result.Value);
@@ -452,7 +506,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <returns></returns>
         public static async Task CollectTypeHierarchyAsync(this ISessionHandle session,
             RequestHeader header, NodeId typeId, IList<(NodeId, ReferenceDescription)> hierarchy,
-            CancellationToken ct = default) {
+            CancellationToken ct = default)
+        {
             // find all of the children of the field.
             var nodeToBrowse = new BrowseDescriptionCollection {
                 new BrowseDescription {
@@ -464,21 +519,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                     ResultMask = (uint)BrowseResultMask.All,
                 }
             };
-            while (true) {
+            while (true)
+            {
                 var response = await session.Session.BrowseAsync(header, null, 0, nodeToBrowse,
                     ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, s => s.StatusCode,
                     response.DiagnosticInfos, nodeToBrowse);
-                if (results.ErrorInfo != null) {
+                if (results.ErrorInfo != null)
+                {
                     break;
                 }
                 if (results[0].Result.References == null ||
-                    results[0].Result.References.Count == 0) {
+                    results[0].Result.References.Count == 0)
+                {
                     // should never be more than one supertype.
                     break;
                 }
                 var reference = results[0].Result.References[0];
-                if (reference.NodeId.IsAbsolute) {
+                if (reference.NodeId.IsAbsolute)
+                {
                     break;
                 }
                 hierarchy.Add((nodeToBrowse[0].NodeId, reference));
@@ -492,7 +551,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         internal static async Task<ServiceResultModel?> CollectInstanceDeclarationsAsync(
             this ISessionHandle session, RequestHeader requestHeader, NodeId typeId,
             InstanceDeclarationModel? parent, List<InstanceDeclarationModel> instances,
-            IDictionary<string, InstanceDeclarationModel> map, CancellationToken ct) {
+            IDictionary<string, InstanceDeclarationModel> map, CancellationToken ct)
+        {
             // find the children of the type.
             var nodeToBrowse = new BrowseDescriptionCollection {
                 new BrowseDescription {
@@ -508,11 +568,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                 }
             };
             var browseresults = session.BrowseAsync(requestHeader, null, nodeToBrowse, ct);
-            await foreach (var result in browseresults.ConfigureAwait(false)) {
-                if (result.ErrorInfo != null) {
+            await foreach (var result in browseresults.ConfigureAwait(false))
+            {
+                if (result.ErrorInfo != null)
+                {
                     return result.ErrorInfo;
                 }
-                if (result.References == null) {
+                if (result.References == null)
+                {
                     continue;
                 }
                 var references = result.References
@@ -529,13 +592,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
 
                 // Get the children.
                 var children = new Dictionary<NodeId, InstanceDeclarationModel>();
-                foreach (var (modellingRule, reference) in referencesWithRules) {
+                foreach (var (modellingRule, reference) in referencesWithRules)
+                {
                     var browsePath = reference.BrowseName.AsString(session.MessageContext);
-                    if (parent != null) {
+                    if (parent != null)
+                    {
                         browsePath = $"{parent.BrowsePath}/{browsePath}";
                     }
                     var nodeClass = reference.NodeClass.ToServiceType();
-                    if (NodeId.IsNull(modellingRule.Item2) || nodeClass == null) {
+                    if (NodeId.IsNull(modellingRule.Item2) || nodeClass == null)
+                    {
                         // if the modelling rule is null then the instance is not part
                         // of the type declaration.
                         map.Remove(browsePath);
@@ -547,7 +613,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                     var displayName =
                         LocalizedText.IsNullOrEmpty(reference.DisplayName) ?
                         reference.BrowseName.Name : reference.DisplayName.Text;
-                    var child = new InstanceDeclarationModel {
+                    var child = new InstanceDeclarationModel
+                    {
                         RootTypeId = typeId.AsString(session.MessageContext),
                         NodeId = reference.NodeId.AsString(session.MessageContext),
                         BrowseName = reference.BrowseName.AsString(session.MessageContext),
@@ -567,7 +634,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                     children.Add((NodeId)reference.NodeId, child);
                 }
                 // check if nothing more to do.
-                if (children.Count == 0) {
+                if (children.Count == 0)
+                {
                     return null;
                 }
 
@@ -578,10 +646,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                 var variableMetadata = new List<VariableMetadataModel>();
                 var errorInfo = await session.CollectVariableMetadataAsync(requestHeader,
                     variables, variableMetadata, ct).ConfigureAwait(false);
-                if (errorInfo != null) {
+                if (errorInfo != null)
+                {
                     return errorInfo;
                 }
-                foreach (var (nodeId, variable) in variables.Zip(variableMetadata)) {
+                foreach (var (nodeId, variable) in variables.Zip(variableMetadata))
+                {
                     children[nodeId] = children[nodeId] with { VariableMetadata = variable };
                 }
 
@@ -592,27 +662,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                 var methodMetadata = new List<MethodMetadataModel>();
                 errorInfo = await session.CollectMethodMetadataAsync(requestHeader,
                     variables, methodMetadata, ct).ConfigureAwait(false);
-                if (errorInfo != null) {
+                if (errorInfo != null)
+                {
                     return errorInfo;
                 }
-                foreach (var (nodeId, method) in methods.Zip(methodMetadata)) {
+                foreach (var (nodeId, method) in methods.Zip(methodMetadata))
+                {
                     children[nodeId] = children[nodeId] with { MethodMetadata = method };
                 }
 
                 // Add descriptions
                 var attributes = await session.ReadAttributeAsync<LocalizedText>(requestHeader,
                     children.Keys, Attributes.Description, ct).ConfigureAwait(false);
-                if (errorInfo != null) {
+                if (errorInfo != null)
+                {
                     return errorInfo;
                 }
-                foreach (var (nodeId, description) in children.Keys.Zip(attributes)) {
-                    children[nodeId] = children[nodeId] with {
+                foreach (var (nodeId, description) in children.Keys.Zip(attributes))
+                {
+                    children[nodeId] = children[nodeId] with
+                    {
                         Description = description.Item1?.Text
                     };
                 }
 
                 // recusively collect instance declarations for the tree below.
-                foreach (var child in children.Values) {
+                foreach (var child in children.Values)
+                {
                     instances.Add(child);
                     await session.CollectInstanceDeclarationsAsync(requestHeader,
                         typeId, child, instances, map, ct).ConfigureAwait(false);
@@ -630,11 +706,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(VariableMetadataModel?, ServiceResultModel?)> GetVariableMetadataAsync(
-            this ISessionHandle session, RequestHeader requestHeader, NodeId nodeId, CancellationToken ct) {
+            this ISessionHandle session, RequestHeader requestHeader, NodeId nodeId, CancellationToken ct)
+        {
             var results = new List<VariableMetadataModel>();
             var errorInfo = await session.CollectVariableMetadataAsync(requestHeader,
                 nodeId.YieldReturn(), results, ct).ConfigureAwait(false);
-            if (errorInfo != null) {
+            if (errorInfo != null)
+            {
                 return (null, errorInfo);
             }
             return (results.Single(), null);
@@ -651,8 +729,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <returns></returns>
         internal static async Task<ServiceResultModel?> CollectVariableMetadataAsync(
             this ISessionHandle session, RequestHeader requestHeader, IEnumerable<NodeId> nodeIds,
-            List<VariableMetadataModel> metadata, CancellationToken ct) {
-            if (!nodeIds.Any()) {
+            List<VariableMetadataModel> metadata, CancellationToken ct)
+        {
+            if (!nodeIds.Any())
+            {
                 return null;
             }
             var attributeIds = new uint[] {
@@ -663,13 +743,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
             var attributes = new Dictionary<NodeId, Dictionary<uint, DataValue>>();
             var errorInfo = await session.ReadAttributesAsync(requestHeader,
                 nodeIds, attributeIds, attributes, ct).ConfigureAwait(false);
-            if (errorInfo != null) {
+            if (errorInfo != null)
+            {
                 return errorInfo;
             }
-            metadata.AddRange(attributes.Select(node => new VariableMetadataModel {
+            metadata.AddRange(attributes.Select(node => new VariableMetadataModel
+            {
                 ArrayDimensions = node.Value[Attributes.ArrayDimensions]
                     .GetValueOrDefault<uint[]>()?.ToList(),
-                DataType = new DataTypeMetadataModel {
+                DataType = new DataTypeMetadataModel
+                {
                     DataType = node.Value[Attributes.DataType]
                         .GetValueOrDefault<NodeId>().AsString(session.MessageContext)
                 },
@@ -688,11 +771,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(MethodMetadataModel?, ServiceResultModel?)> GetMethodMetadataAsync(
-            this ISessionHandle session, RequestHeader requestHeader, NodeId nodeId, CancellationToken ct) {
+            this ISessionHandle session, RequestHeader requestHeader, NodeId nodeId, CancellationToken ct)
+        {
             var results = new List<MethodMetadataModel>();
             var errorInfo = await session.CollectMethodMetadataAsync(requestHeader,
                 nodeId.YieldReturn(), results, ct).ConfigureAwait(false);
-            if (errorInfo != null) {
+            if (errorInfo != null)
+            {
                 return (null, errorInfo);
             }
             return (results.Single(), null);
@@ -709,12 +794,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <returns></returns>
         internal static async Task<ServiceResultModel?> CollectMethodMetadataAsync(
             this ISessionHandle session, RequestHeader requestHeader, IEnumerable<NodeId> nodeIds,
-            List<MethodMetadataModel> metadata, CancellationToken ct) {
-            if (!nodeIds.Any()) {
+            List<MethodMetadataModel> metadata, CancellationToken ct)
+        {
+            if (!nodeIds.Any())
+            {
                 return null;
             }
             var browseDescriptions = new BrowseDescriptionCollection(nodeIds.Select(nodeId =>
-                new BrowseDescription {
+                new BrowseDescription
+                {
                     BrowseDirection = Opc.Ua.BrowseDirection.Both,
                     IncludeSubtypes = true,
                     NodeClassMask = 0,
@@ -728,11 +816,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
 
             var results = response.Validate(response.Results, r => r.StatusCode,
                 response.DiagnosticInfos, browseDescriptions);
-            if (results.ErrorInfo != null) {
+            if (results.ErrorInfo != null)
+            {
                 return results.ErrorInfo;
             }
-            foreach (var result in results) {
-                if (result.ErrorInfo != null) {
+            foreach (var result in results)
+            {
+                if (result.ErrorInfo != null)
+                {
                     return result.ErrorInfo;
                 }
                 var continuationPoint = result.Result.ContinuationPoint;
@@ -740,35 +831,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                 IReadOnlyList<MethodMetadataArgumentModel>? outputArguments = null;
                 IReadOnlyList<MethodMetadataArgumentModel>? inputArguments = null;
                 string? objectId = null;
-                foreach (var nodeReference in references) {
+                foreach (var nodeReference in references)
+                {
                     if (outputArguments != null &&
                         inputArguments != null &&
-                        !string.IsNullOrEmpty(objectId)) {
+                        !string.IsNullOrEmpty(objectId))
+                    {
                         break;
                     }
-                    if (!nodeReference.IsForward) {
-                        if (nodeReference.ReferenceTypeId == ReferenceTypeIds.HasComponent) {
+                    if (!nodeReference.IsForward)
+                    {
+                        if (nodeReference.ReferenceTypeId == ReferenceTypeIds.HasComponent)
+                        {
                             objectId = nodeReference.NodeId.AsString(session.MessageContext);
                         }
                         continue;
                     }
                     var isInput = nodeReference.BrowseName == BrowseNames.InputArguments;
-                    if (!isInput && nodeReference.BrowseName != BrowseNames.OutputArguments) {
+                    if (!isInput && nodeReference.BrowseName != BrowseNames.OutputArguments)
+                    {
                         continue;
                     }
 
                     var node = nodeReference.NodeId.ToNodeId(session.Session.NamespaceUris);
                     var (value, _) = await session.ReadValueAsync(requestHeader, node,
                         ct).ConfigureAwait(false);
-                    if (value?.Value is not ExtensionObject[] argumentsList) {
+                    if (value?.Value is not ExtensionObject[] argumentsList)
+                    {
                         continue;
                     }
 
                     var argList = new List<MethodMetadataArgumentModel>();
-                    foreach (var argument in argumentsList.Select(a => (Argument)a.Body)) {
+                    foreach (var argument in argumentsList.Select(a => (Argument)a.Body))
+                    {
                         var (dataTypeIdNode, _) = await session.ReadNodeAsync(requestHeader,
                             argument.DataType, null, false, false, false, ct).ConfigureAwait(false);
-                        var arg = new MethodMetadataArgumentModel {
+                        var arg = new MethodMetadataArgumentModel
+                        {
                             Name = argument.Name,
                             DefaultValue = argument.Value == null ? VariantValue.Null :
                                 session.Codec.Encode(new Variant(argument.Value), out var tmp),
@@ -780,14 +879,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                         };
                         argList.Add(arg);
                     }
-                    if (isInput) {
+                    if (isInput)
+                    {
                         inputArguments = argList;
                     }
-                    else {
+                    else
+                    {
                         outputArguments = argList;
                     }
                 }
-                metadata.Add(new MethodMetadataModel {
+                metadata.Add(new MethodMetadataModel
+                {
                     InputArguments = inputArguments,
                     OutputArguments = outputArguments,
                     ObjectId = objectId
@@ -811,12 +913,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         internal static async Task<(NodeModel, ServiceResultModel?)> ReadNodeAsync(
             this ISessionHandle session, RequestHeader header, NodeId nodeId,
             Opc.Ua.NodeClass? nodeClass, bool skipValue, bool rawMode,
-            bool? children = null, CancellationToken ct = default) {
-            if (rawMode) {
+            bool? children = null, CancellationToken ct = default)
+        {
+            if (rawMode)
+            {
                 var id = nodeId.AsString(session.MessageContext);
                 System.Diagnostics.Debug.Assert(id != null);
                 System.Diagnostics.Debug.Assert(!string.IsNullOrEmpty(id));
-                return (new NodeModel {
+                return (new NodeModel
+                {
                     NodeId = id,
                     NodeClass = nodeClass?.ToServiceType()
                 }, null);
@@ -839,7 +944,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         internal static async Task<(NodeModel, ServiceResultModel?)> ReadNodeAsync(
             this ISessionHandle session, RequestHeader header, NodeId nodeId,
             Opc.Ua.NodeClass? nodeClass = null, bool skipValue = true, bool? children = null,
-            CancellationToken ct = default) {
+            CancellationToken ct = default)
+        {
             var results = await session.ReadNodeAttributesAsync(header, nodeId, skipValue,
                 nodeClass, ct).ConfigureAwait(false);
             var lookup = results.AsLookupTable();
@@ -848,7 +954,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
             System.Diagnostics.Debug.Assert(id != null);
             System.Diagnostics.Debug.Assert(!string.IsNullOrEmpty(id));
             lookup.TryGetValue(Attributes.Value, out var value);
-            var nodeModel = new NodeModel {
+            var nodeModel = new NodeModel
+            {
                 Children = children,
                 NodeId = id,
                 Value = value.Item1 == null ? null :
@@ -901,7 +1008,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                         .GetValueOrDefault<int?>(),
                 AccessLevel = (NodeAccessLevel?)
                     lookup[Attributes.AccessLevelEx].Item1?
-                        .GetValueOrDefault<uint?>(l => {
+                        .GetValueOrDefault<uint?>(l =>
+                        {
                             // Or both if available
                             var v = (l ?? 0) |
                             lookup[Attributes.AccessLevel].Item1?
@@ -970,10 +1078,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         internal static async Task<IEnumerable<(QualifiedName, NodeId)>> FindTargetOfReferenceAsync(
             this ISessionHandle session, RequestHeader requestHeader,
             IEnumerable<NodeId> nodeIds, NodeId referenceTypeId,
-            CancellationToken ct = default) {
+            CancellationToken ct = default)
+        {
             // construct browse request.
             var nodesToBrowse = new BrowseDescriptionCollection(nodeIds
-                .Select(nodeId => new BrowseDescription {
+                .Select(nodeId => new BrowseDescription
+                {
                     NodeId = nodeId,
                     BrowseDirection = Opc.Ua.BrowseDirection.Forward,
                     ReferenceTypeId = referenceTypeId,
@@ -987,25 +1097,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
             var results = response.Validate(response.Results, s => s.StatusCode,
                 response.DiagnosticInfos, nodesToBrowse);
             var targetIds = new List<(QualifiedName, NodeId)>();
-            if (results.ErrorInfo != null) {
+            if (results.ErrorInfo != null)
+            {
                 return targetIds;
             }
 
             var continuationPoints = new ByteStringCollection();
-            foreach (var result in results) {
+            foreach (var result in results)
+            {
                 // check for error.
-                if (result.ErrorInfo != null) {
+                if (result.ErrorInfo != null)
+                {
                     targetIds.Add((QualifiedName.Null, NodeId.Null));
                     continue;
                 }
                 // check for continuation point.
-                if (result.Result.ContinuationPoint?.Length > 0) {
+                if (result.Result.ContinuationPoint?.Length > 0)
+                {
                     continuationPoints.Add(result.Result.ContinuationPoint);
                 }
                 // get the node id.
-                if (result.Result.References.Count > 0) {
+                if (result.Result.References.Count > 0)
+                {
                     if (NodeId.IsNull(result.Result.References[0].NodeId) ||
-                        result.Result.References[0].NodeId.IsAbsolute) {
+                        result.Result.References[0].NodeId.IsAbsolute)
+                    {
                         targetIds.Add((QualifiedName.Null, NodeId.Null));
                         continue;
                     }
@@ -1016,7 +1132,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
             }
 
             // release continuation points.
-            if (continuationPoints.Count > 0) {
+            if (continuationPoints.Count > 0)
+            {
                 await session.Session.BrowseNextAsync(requestHeader, true,
                     continuationPoints, ct).ConfigureAwait(false);
             }
@@ -1041,34 +1158,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         internal static async IAsyncEnumerable<BrowseResult> BrowseAsync(
             this ISessionHandle session, RequestHeader requestHeader,
             ViewDescription? view, BrowseDescriptionCollection nodesToBrowse,
-            [EnumeratorCancellation] CancellationToken ct = default) {
+            [EnumeratorCancellation] CancellationToken ct = default)
+        {
             var firstResponse = await session.Session.BrowseAsync(requestHeader, view,
                 0, nodesToBrowse, ct).ConfigureAwait(false);
             var firstResults = firstResponse.Validate(firstResponse.Results,
                 s => s.StatusCode, firstResponse.DiagnosticInfos, nodesToBrowse);
-            if (firstResults.ErrorInfo != null) {
+            if (firstResults.ErrorInfo != null)
+            {
                 yield return new BrowseResult(null, null, firstResults.ErrorInfo);
             }
             var continuationPoints = firstResults
                 .Where(r =>
                     r.Result.ContinuationPoint?.Length > 0)
                 .ToDictionary(r => r.Request, r => r.Result.ContinuationPoint);
-            try {
-                foreach (var result in firstResults) {
+            try
+            {
+                foreach (var result in firstResults)
+                {
                     yield return new BrowseResult(result.Request,
                         result.Result.References, result.ErrorInfo);
                 }
-                while (continuationPoints.Count != 0) {
+                while (continuationPoints.Count != 0)
+                {
                     var nextResponse = await session.Session.BrowseNextAsync(requestHeader,
                         false, new ByteStringCollection(continuationPoints.Values),
                         ct).ConfigureAwait(false);
                     var nextResults = firstResponse.Validate(nextResponse.Results,
                         s => s.StatusCode, nextResponse.DiagnosticInfos,
                         continuationPoints);
-                    if (nextResults.ErrorInfo != null) {
+                    if (nextResults.ErrorInfo != null)
+                    {
                         yield return new BrowseResult(null, null, nextResults.ErrorInfo);
                     }
-                    foreach (var result in nextResults) {
+                    foreach (var result in nextResults)
+                    {
                         yield return new BrowseResult(
                             result.Request.Key, result.Result.References, result.ErrorInfo);
                     }
@@ -1078,8 +1202,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
                         .ToDictionary(r => r.Request.Key, r => r.Result.ContinuationPoint);
                 }
             }
-            finally {
-                if (continuationPoints.Count != 0) {
+            finally
+            {
+                if (continuationPoints.Count != 0)
+                {
                     await session.Session.BrowseNextAsync(requestHeader,
                         true, new ByteStringCollection(continuationPoints.Values),
                         ct).ConfigureAwait(false);
@@ -1098,19 +1224,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         /// <param name="browsePaths"></param>
         private static List<BrowsePath> GetBrowsePathFromNodeState(
             this ISessionHandle session, NodeId rootId, NodeState parent,
-            RelativePath? parentPath, List<BrowsePath>? browsePaths = null) {
+            RelativePath? parentPath, List<BrowsePath>? browsePaths = null)
+        {
             browsePaths ??= new List<BrowsePath>();
             var children = new List<BaseInstanceState>();
             parent.GetChildren(session.Session.SystemContext, children);
-            foreach (var child in children) {
-                var browsePath = new BrowsePath {
+            foreach (var child in children)
+            {
+                var browsePath = new BrowsePath
+                {
                     StartingNode = rootId,
                     Handle = child
                 };
-                if (parentPath != null) {
+                if (parentPath != null)
+                {
                     browsePath.RelativePath.Elements.AddRange(parentPath.Elements);
                 }
-                var element = new RelativePathElement {
+                var element = new RelativePathElement
+                {
                     ReferenceTypeId = child.ReferenceTypeId,
                     IsInverse = false,
                     IncludeSubtypes = false,

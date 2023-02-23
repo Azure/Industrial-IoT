@@ -5,14 +5,16 @@
 
 // #define USE_TASK_RUN
 
-namespace Opc.Ua.Client {
+namespace Opc.Ua.Client
+{
     using System;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Discovery Client async extensions
     /// </summary>
-    public static class DiscoveryClientEx {
+    public static class DiscoveryClientEx
+    {
         /// <summary>
         /// Async find servers service
         /// </summary>
@@ -24,12 +26,14 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         public static Task<FindServersResponse> FindServersAsync(this DiscoveryClient client,
             RequestHeader requestHeader, string endpointUrl, StringCollection localeIds,
-            StringCollection serverUris) {
+            StringCollection serverUris)
+        {
 #if !USE_TASK_RUN
             return Task.Factory.FromAsync(
                 (callback, state) => client.BeginFindServers(requestHeader, endpointUrl,
                     localeIds, serverUris, callback, state),
-                result => {
+                result =>
+                {
                     var response = client.EndFindServers(result, out var results);
                     return NewFindServersResponse(response, results);
                 }, TaskCreationOptions.DenyChildAttach);
@@ -54,13 +58,15 @@ namespace Opc.Ua.Client {
         public static Task<FindServersOnNetworkResponse> FindServersOnNetworkAsync(
             this DiscoveryClient client, RequestHeader requestHeader,
             uint startingRecordId, uint maxRecordsToReturn,
-            StringCollection serverCapabilityFilter) {
+            StringCollection serverCapabilityFilter)
+        {
 #if !USE_TASK_RUN
             return Task.Factory.FromAsync(
                 (callback, state) => client.BeginFindServersOnNetwork(requestHeader,
                     startingRecordId, maxRecordsToReturn, serverCapabilityFilter,
                     callback, state),
-                result => {
+                result =>
+                {
                     var response = client.EndFindServersOnNetwork(result,
                         out var lastCounterResetTime, out var servers);
                     return NewFindServersOnNetworkResponse(response,
@@ -88,12 +94,14 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         public static Task<GetEndpointsResponse> GetEndpointsAsync(
             this DiscoveryClient client, RequestHeader requestHeader,
-            string endpointUrl, StringCollection localeIds, StringCollection profileUris) {
+            string endpointUrl, StringCollection localeIds, StringCollection profileUris)
+        {
 #if !USE_TASK_RUN
             return Task.Factory.FromAsync(
                 (callback, state) => client.BeginGetEndpoints(requestHeader,
                     endpointUrl, localeIds, profileUris, callback, state),
-                result => {
+                result =>
+                {
                     var response = client.EndGetEndpoints(result, out var endpoints);
                     return NewGetEndpointsResponse(response, endpoints);
                 }, TaskCreationOptions.DenyChildAttach);
@@ -113,8 +121,10 @@ namespace Opc.Ua.Client {
         /// <param name="endpoints"></param>
         /// <returns></returns>
         private static GetEndpointsResponse NewGetEndpointsResponse(ResponseHeader response,
-            EndpointDescriptionCollection endpoints) {
-            return new GetEndpointsResponse {
+            EndpointDescriptionCollection endpoints)
+        {
+            return new GetEndpointsResponse
+            {
                 Endpoints = endpoints,
                 ResponseHeader = response
             };
@@ -129,8 +139,10 @@ namespace Opc.Ua.Client {
         /// <returns></returns>
         private static FindServersOnNetworkResponse NewFindServersOnNetworkResponse(
             ResponseHeader response, DateTime lastCounterResetTime,
-            ServerOnNetworkCollection servers) {
-            return new FindServersOnNetworkResponse {
+            ServerOnNetworkCollection servers)
+        {
+            return new FindServersOnNetworkResponse
+            {
                 ResponseHeader = response,
                 Servers = servers,
                 LastCounterResetTime = lastCounterResetTime
@@ -144,8 +156,10 @@ namespace Opc.Ua.Client {
         /// <param name="results"></param>
         /// <returns></returns>
         private static FindServersResponse NewFindServersResponse(ResponseHeader response,
-            ApplicationDescriptionCollection results) {
-            return new FindServersResponse {
+            ApplicationDescriptionCollection results)
+        {
+            return new FindServersResponse
+            {
                 ResponseHeader = response,
                 Servers = results
             };

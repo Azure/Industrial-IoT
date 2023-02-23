@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api
+{
+    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
-    using Autofac;
     using Furly.Extensions.Utils;
     using Opc.Ua;
     using System.Linq;
@@ -18,19 +19,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api {
     using Xunit;
 
     [Collection(TestServerReadCollection.Name)]
-    public class BrowsePathTests : IClassFixture<PublisherModuleFixture> {
-        public BrowsePathTests(TestServerFixture server, PublisherModuleFixture module) {
+    public class BrowsePathTests : IClassFixture<PublisherModuleFixture>
+    {
+        public BrowsePathTests(TestServerFixture server, PublisherModuleFixture module)
+        {
             _server = server;
             _module = module;
             _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
-        private BrowsePathTests<ConnectionModel> GetTests() {
+        private BrowsePathTests<ConnectionModel> GetTests()
+        {
             return new BrowsePathTests<ConnectionModel>(
                 () => _module.HubContainer.Resolve<INodeServices<ConnectionModel>>(),
-                new ConnectionModel {
-                    Endpoint = new EndpointModel {
+                new ConnectionModel
+                {
+                    Endpoint = new EndpointModel
+                    {
                         Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                         AlternativeUrls = _hostEntry?.AddressList
                         .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
@@ -45,22 +51,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api {
         private readonly IPHostEntry _hostEntry;
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test1Async() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test1Async()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethod3Test1Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test2Async() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test2Async()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethod3Test2Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test3Async() {
+        public async Task NodeBrowsePathStaticScalarMethod3Test3Async()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethod3Test3Async().ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethodsTestAsync() {
+        public async Task NodeBrowsePathStaticScalarMethodsTestAsync()
+        {
             await GetTests().NodeBrowsePathStaticScalarMethodsTestAsync().ConfigureAwait(false);
         }
     }

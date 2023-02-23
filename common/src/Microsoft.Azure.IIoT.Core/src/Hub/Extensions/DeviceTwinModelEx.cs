@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Models {
+namespace Microsoft.Azure.IIoT.Hub.Models
+{
     using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
@@ -12,13 +13,15 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// <summary>
     /// Model extensions
     /// </summary>
-    public static class DeviceTwinModelEx {
+    public static class DeviceTwinModelEx
+    {
         /// <summary>
         /// Check whether twin is connected
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static bool? IsConnected(this DeviceTwinModel twin) {
+        public static bool? IsConnected(this DeviceTwinModel twin)
+        {
             return twin.ConnectionState?.EqualsIgnoreCase("Connected");
         }
 
@@ -27,7 +30,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static bool? IsDisabled(this DeviceTwinModel twin) {
+        public static bool? IsDisabled(this DeviceTwinModel twin)
+        {
             return twin.Status?.EqualsIgnoreCase("disabled");
         }
 
@@ -36,13 +40,17 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DeviceTwinModel Clone(this DeviceTwinModel model) {
-            if (model == null) {
+        public static DeviceTwinModel Clone(this DeviceTwinModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new DeviceTwinModel {
+            return new DeviceTwinModel
+            {
                 Capabilities = model.Capabilities == null ? null :
-                    new DeviceCapabilitiesModel {
+                    new DeviceCapabilitiesModel
+                    {
                         IotEdge = model.Capabilities.IotEdge
                     },
                 ConnectionState = model.ConnectionState,
@@ -67,10 +75,12 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="model"></param>
         /// <returns></returns>
         public static Dictionary<string, VariantValue> GetConsolidatedProperties(
-            this DeviceTwinModel model) {
+            this DeviceTwinModel model)
+        {
             var desired = model.Properties?.Desired;
             var reported = model.Properties?.Reported;
-            if (reported == null || desired == null) {
+            if (reported == null || desired == null)
+            {
                 return (reported ?? desired) ??
                     new Dictionary<string, VariantValue>();
             }
@@ -78,19 +88,25 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
             var properties = new Dictionary<string, VariantValue>(desired);
 
             // Merge with reported
-            foreach (var prop in reported) {
-                if (properties.TryGetValue(prop.Key, out var existing)) {
-                    if (existing.IsNull() || prop.Value.IsNull()) {
-                        if (existing.IsNull() && prop.Value.IsNull()) {
+            foreach (var prop in reported)
+            {
+                if (properties.TryGetValue(prop.Key, out var existing))
+                {
+                    if (existing.IsNull() || prop.Value.IsNull())
+                    {
+                        if (existing.IsNull() && prop.Value.IsNull())
+                        {
                             continue;
                         }
                     }
-                    else if (VariantValue.DeepEquals(existing, prop.Value)) {
+                    else if (VariantValue.DeepEquals(existing, prop.Value))
+                    {
                         continue;
                     }
                     properties[prop.Key] = prop.Value;
                 }
-                else {
+                else
+                {
                     properties.Add(prop.Key, prop.Value);
                 }
             }

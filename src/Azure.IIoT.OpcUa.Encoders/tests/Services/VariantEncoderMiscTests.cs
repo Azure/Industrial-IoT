@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders {
+namespace Azure.IIoT.OpcUa.Encoders
+{
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
@@ -11,9 +12,11 @@ namespace Azure.IIoT.OpcUa.Encoders {
     using System.Xml;
     using Xunit;
 
-    public class VariantEncoderMiscTests {
+    public class VariantEncoderMiscTests
+    {
         [Fact]
-        public void DecodeEncodeStringAsUInt32() {
+        public void DecodeEncodeStringAsUInt32()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "123";
             var context = new ServiceMessageContext();
@@ -25,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeStringAsInt32() {
+        public void DecodeEncodeStringAsInt32()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "-1";
             var variant = codec.Decode(str, BuiltInType.Int32);
@@ -36,7 +40,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeStringAsSbyte() {
+        public void DecodeEncodeStringAsSbyte()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "-12";
             var variant = codec.Decode(str, BuiltInType.SByte);
@@ -47,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeStringAsByte() {
+        public void DecodeEncodeStringAsByte()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "1";
             var variant = codec.Decode(str, BuiltInType.Byte);
@@ -58,7 +64,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeString1() {
+        public void DecodeEncodeString1()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "\\\"fffffffff\\\"";
             var variant = codec.Decode(str, BuiltInType.String);
@@ -69,7 +76,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeString2() {
+        public void DecodeEncodeString2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "fffffffff";
             var variant = codec.Decode(str, BuiltInType.String);
@@ -80,7 +88,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeString3() {
+        public void DecodeEncodeString3()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "\"fffffffff\"";
             var variant = codec.Decode(str, BuiltInType.String);
@@ -91,7 +100,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeIntArray1() {
+        public void DecodeEncodeIntArray1()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "1,2,3,4,5,6";
             var variant = codec.Decode(str, BuiltInType.Int32);
@@ -101,7 +111,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeIntArray2() {
+        public void DecodeEncodeIntArray2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[1,2,3,4,5,6]";
             var variant = codec.Decode(str, BuiltInType.Int32);
@@ -111,7 +122,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEncodeStringArray() {
+        public void DecodeEncodeStringArray()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "\"test1\", \"test2\"";
             var variant = codec.Decode(str, BuiltInType.String);
@@ -121,7 +133,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEmptyStringArray() {
+        public void DecodeEmptyStringArray()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.String);
@@ -133,7 +146,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void DecodeEmptyShortArray() {
+        public void DecodeEmptyShortArray()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[]";
             var variant = codec.Decode(str, BuiltInType.Int16);
@@ -145,7 +159,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void EncodeDecodeXmlElement() {
+        public void EncodeDecodeXmlElement()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var doc = new XmlDocument();
             doc.LoadXml(
@@ -165,7 +180,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void EncodeDecodeLocalizedText() {
+        public void EncodeDecodeLocalizedText()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var expected = new Variant(new LocalizedText("en-US", "text"));
             var encoded = codec.Encode(expected);
@@ -174,7 +190,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void EncodeDecodeLocalizedTextFromString1() {
+        public void EncodeDecodeLocalizedTextFromString1()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "text@en-US";
             var expected = new Variant(new LocalizedText("en-US", "text"));
@@ -184,7 +201,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void EncodeDecodeLocalizedTextFromString2() {
+        public void EncodeDecodeLocalizedTextFromString2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "text";
             var expected = new Variant(new LocalizedText("text"));
@@ -194,7 +212,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void EncodeDecodeNodeId() {
+        public void EncodeDecodeNodeId()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
 
             var expected = new Variant(new NodeId(2354));
@@ -205,7 +224,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeId1() {
+        public void EncodeDecodeExpandedNodeId1()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
 
             var expected = new Variant(new ExpandedNodeId(2354u, 0, "http://test.org/test", 0));
@@ -216,7 +236,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeId2() {
+        public void EncodeDecodeExpandedNodeId2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
 
             var expected = new Variant(new ExpandedNodeId(2354u, 0, "http://test/", 0));
@@ -227,7 +248,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeId3() {
+        public void EncodeDecodeExpandedNodeId3()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
 
             var expected1 = new Variant(new ExpandedNodeId(2354u, 0, "http://test/", 0));
@@ -256,11 +278,14 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void EncodeDecodeArgument1() {
+        public void EncodeDecodeArgument1()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
 
-            var expected = new Variant(new ExtensionObject {
-                Body = new Argument("something1", new NodeId(2354), -1, "somedesciroeioi") {
+            var expected = new Variant(new ExtensionObject
+            {
+                Body = new Argument("something1", new NodeId(2354), -1, "somedesciroeioi")
+                {
                     ArrayDimensions = System.Array.Empty<uint>()
                 },
                 TypeId = DataTypeIds.Argument
@@ -277,11 +302,14 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void EncodeDecodeArgument2() {
+        public void EncodeDecodeArgument2()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
 
-            var expected = new Variant(new ExtensionObject {
-                Body = new Argument("something2", new NodeId(2334), -1, "asdfsadfffd") {
+            var expected = new Variant(new ExtensionObject
+            {
+                Body = new Argument("something2", new NodeId(2334), -1, "asdfsadfffd")
+                {
                     ArrayDimensions = System.Array.Empty<uint>()
                 }.AsXmlElement(ServiceMessageContext.GlobalContext),
                 TypeId = "http://test.org/i=444444"
@@ -298,11 +326,14 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         [Fact]
-        public void EncodeDecodeArgument3() {
+        public void EncodeDecodeArgument3()
+        {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
 
-            var expected = new Variant(new ExtensionObject {
-                Body = new Argument("something3", new NodeId(2364), -1, "dd f s fdd fd") {
+            var expected = new Variant(new ExtensionObject
+            {
+                Body = new Argument("something3", new NodeId(2364), -1, "dd f s fdd fd")
+                {
                     ArrayDimensions = System.Array.Empty<uint>()
                 }.AsBinary(ServiceMessageContext.GlobalContext),
                 TypeId = "http://test.org/i=444445"

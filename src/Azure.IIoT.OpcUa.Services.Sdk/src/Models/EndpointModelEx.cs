@@ -3,21 +3,25 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
 
     /// <summary>
     /// Endpoint api model extensions
     /// </summary>
-    public static class EndpointModelEx {
+    public static class EndpointModelEx
+    {
         /// <summary>
         /// Update an endpoint
         /// </summary>
         /// <param name="update"></param>
         /// <param name="endpoint"></param>
         public static EndpointModel Patch(this EndpointModel update,
-            EndpointModel endpoint) {
-            if (update == null) {
+            EndpointModel endpoint)
+        {
+            if (update == null)
+            {
                 return endpoint;
             }
             endpoint ??= new EndpointModel();

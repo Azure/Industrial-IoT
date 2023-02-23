@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
+{
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -16,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
     /// <summary>
     /// Uadp encoder decoder tests
     /// </summary>
-    public class UadpNetworkMessageEncoderDecoderTests : IDataSetMetaDataResolver {
+    public class UadpNetworkMessageEncoderDecoderTests : IDataSetMetaDataResolver
+    {
         public const UadpNetworkMessageContentMask NetworkMessageContentMaskDefault =
             (UadpNetworkMessageContentMask)0x7ff; // All
 
@@ -45,7 +47,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [InlineData(MessageType.DeltaFrame, 1)]
         [InlineData(MessageType.DeltaFrame, 3)]
         [InlineData(MessageType.DeltaFrame, 10)]
-        public void EncodeDecodeNetworkMessage(MessageType type, int numberOfMessages) {
+        public void EncodeDecodeNetworkMessage(MessageType type, int numberOfMessages)
+        {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber))
@@ -95,7 +98,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [InlineData(MessageType.DeltaFrame, 1, 256 * 1024)]
         [InlineData(MessageType.DeltaFrame, 5, 256 * 1024)]
         [InlineData(MessageType.DeltaFrame, 194, 256 * 1024)]
-        public void EncodeDecodeNetworkMessages(MessageType type, int numberOfMessages, int maxMessageSize) {
+        public void EncodeDecodeNetworkMessages(MessageType type, int numberOfMessages, int maxMessageSize)
+        {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber))
@@ -140,7 +144,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [InlineData(MessageType.Event, 1, 1024)]
         [InlineData(MessageType.Event, 194, 1024)]
         [InlineData(MessageType.Event, 194, 256 * 1024)]
-        public void EncodeDecodeNetworkMessagesNoGroupHeader(MessageType type, int numberOfMessages, int maxMessageSize) {
+        public void EncodeDecodeNetworkMessagesNoGroupHeader(MessageType type, int numberOfMessages, int maxMessageSize)
+        {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber))
@@ -186,7 +191,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [InlineData(MessageType.Event, 1, 1024)]
         [InlineData(MessageType.Event, 194, 1024)]
         [InlineData(MessageType.Event, 194, 256 * 1024)]
-        public void EncodeDecodeNetworkMessagesNoPayloadHeader(MessageType type, int numberOfMessages, int maxMessageSize) {
+        public void EncodeDecodeNetworkMessagesNoPayloadHeader(MessageType type, int numberOfMessages, int maxMessageSize)
+        {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber))
@@ -230,7 +236,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [InlineData(MessageType.Event, 1, 1024)]
         [InlineData(MessageType.Event, 194, 1024)]
         [InlineData(MessageType.Event, 194, 256 * 1024)]
-        public void EncodeDecodeNetworkMessagesNoHeaders(MessageType type, int numberOfMessages, int maxMessageSize) {
+        public void EncodeDecodeNetworkMessagesNoHeaders(MessageType type, int numberOfMessages, int maxMessageSize)
+        {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber))
@@ -275,7 +282,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [InlineData(MessageType.Event, 1, 1024)]
         [InlineData(MessageType.Event, 194, 1024)]
         [InlineData(MessageType.Event, 194, 256 * 1024)]
-        public void EncodeDecodeNetworkMessagesNoHeaderRaw(MessageType type, int numberOfMessages, int maxMessageSize) {
+        public void EncodeDecodeNetworkMessagesNoHeaderRaw(MessageType type, int numberOfMessages, int maxMessageSize)
+        {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber,
@@ -313,11 +321,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         /// <summary>
         /// Convert timestamps of payload to OpcUa Utc.
         /// </summary>
-        private static void ConvertToOpcUaUniversalTime(BaseNetworkMessage networkMessage) {
+        private static void ConvertToOpcUaUniversalTime(BaseNetworkMessage networkMessage)
+        {
             // convert DataSet Payload DataValue timestamps to OpcUa Utc
-            foreach (var dataSetMessage in networkMessage.Messages) {
+            foreach (var dataSetMessage in networkMessage.Messages)
+            {
                 var expectedPayload = new Dictionary<string, DataValue>();
-                foreach (var entry in dataSetMessage.Payload) {
+                foreach (var entry in dataSetMessage.Payload)
+                {
                     expectedPayload[entry.Key] = new DataValue(entry.Value).ToOpcUaUniversalTime();
                 }
                 dataSetMessage.Payload = new DataSet(expectedPayload, (uint)(
@@ -330,8 +341,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         /// Create network message
         /// </summary>
         private UadpNetworkMessage CreateNetworkMessage(
-            UadpNetworkMessageContentMask contentMask, List<BaseDataSetMessage> messages) {
-            return new UadpNetworkMessage {
+            UadpNetworkMessageContentMask contentMask, List<BaseDataSetMessage> messages)
+        {
+            return new UadpNetworkMessage
+            {
                 Messages = messages,
                 WriterGroupId = 4,
                 Timestamp = DateTime.UtcNow,
@@ -349,8 +362,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         /// </summary>
         private static UadpDataSetMessage CreateDataSetMessage(MessageType type, int sequenceNumber,
             UadpDataSetMessageContentMask dataSetMessageContentMask = DataSetMessageContentMaskDefault,
-            DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault) {
-            return new UadpDataSetMessage {
+            DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
+        {
+            return new UadpDataSetMessage
+            {
                 DataSetWriterId = 3,
                 MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
                 SequenceNumber = (ushort)sequenceNumber,
@@ -363,11 +378,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
             };
         }
 
-        public DataSetMetaDataType Find(ushort writerId, uint majorVersion = 0, uint minorVersion = 0) {
+        public DataSetMetaDataType Find(ushort writerId, uint majorVersion = 0, uint minorVersion = 0)
+        {
             // Return independent on whether we receive valid writer id or major minor versions
             // In raw mode without payload headers there is no way to decode key frames without
             // preconfigured writer id and versioning, so we assume we have it by some means
-            return new DataSetMetaDataType {
+            return new DataSetMetaDataType
+            {
                 Fields = new FieldMetaDataCollection {
                     new FieldMetaData { Name = "1", BuiltInType = (byte)BuiltInType.Int32, ValueRank = ValueRanks.Scalar },
                     new FieldMetaData { Name = "2", BuiltInType = (byte)BuiltInType.Float, ValueRank = ValueRanks.Scalar },
@@ -380,7 +397,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         /// Create dataset
         /// </summary>
         private static DataSet CreateDataSet(bool deltaFrame,
-            DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault) {
+            DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
+        {
             return !deltaFrame ? new DataSet(new Dictionary<string, DataValue> {
                 { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
                 { "2", new DataValue(new Variant(0.5), StatusCodes.Good, DateTime.Now) },
@@ -390,9 +408,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
             }, (uint)dataSetFieldContentMask);
         }
 
-        private static Queue<byte[]> CreateReader(IReadOnlyList<byte[]> buffers) {
+        private static Queue<byte[]> CreateReader(IReadOnlyList<byte[]> buffers)
+        {
             var reader = new Queue<byte[]>();
-            foreach (var buffer in buffers) {
+            foreach (var buffer in buffers)
+            {
                 reader.Enqueue(buffer);
             }
             return reader;

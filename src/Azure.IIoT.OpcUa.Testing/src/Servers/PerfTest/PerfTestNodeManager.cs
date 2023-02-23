@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace PerfTest {
+namespace PerfTest
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System.Collections.Generic;
@@ -35,13 +36,15 @@ namespace PerfTest {
     /// <summary>
     /// A node manager for a server that exposes several variables.
     /// </summary>
-    public class PerfTestNodeManager : CustomNodeManager2 {
+    public class PerfTestNodeManager : CustomNodeManager2
+    {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         public PerfTestNodeManager(IServerInternal server, ApplicationConfiguration configuration)
         :
-            base(server, configuration, Namespaces.PerfTest) {
+            base(server, configuration, Namespaces.PerfTest)
+        {
             SystemContext.NodeIdFactory = this;
             SystemContext.SystemHandle = _system = new UnderlyingSystem();
 
@@ -55,8 +58,10 @@ namespace PerfTest {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
                 // TBD
             }
         }
@@ -64,7 +69,8 @@ namespace PerfTest {
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        public override NodeId New(ISystemContext context, NodeState node) {
+        public override NodeId New(ISystemContext context, NodeState node)
+        {
             return node.NodeId;
         }
 
@@ -76,16 +82,20 @@ namespace PerfTest {
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
         /// should have a reference to the root folder node(s) exposed by this node manager.
         /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Lock) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Lock)
+            {
                 _system.Initialize();
 
                 var registers = _system.GetRegisters();
 
-                for (var ii = 0; ii < registers.Count; ii++) {
+                for (var ii = 0; ii < registers.Count; ii++)
+                {
                     var targetId = ModelUtils.GetRegisterId(registers[ii], NamespaceIndex);
 
-                    if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references)) {
+                    if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references))
+                    {
                         externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
                     }
 
@@ -97,8 +107,10 @@ namespace PerfTest {
         /// <summary>
         /// Frees any resources allocated for the address space.
         /// </summary>
-        public override void DeleteAddressSpace() {
-            lock (Lock) {
+        public override void DeleteAddressSpace()
+        {
+            lock (Lock)
+            {
                 // TBD
             }
         }
@@ -106,14 +118,18 @@ namespace PerfTest {
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache) {
-            lock (Lock) {
+        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
+        {
+            lock (Lock)
+            {
                 // quickly exclude nodes that are not in the namespace.
-                if (!IsNodeIdInNamespace(nodeId)) {
+                if (!IsNodeIdInNamespace(nodeId))
+                {
                     return null;
                 }
 
-                var handle = new NodeHandle {
+                var handle = new NodeHandle
+                {
                     NodeId = nodeId,
                     Validated = true
                 };
@@ -124,10 +140,12 @@ namespace PerfTest {
                 var registerId = (int)((id & 0xFF000000) >> 24);
                 var index = (int)(id & 0x00FFFFFF);
 
-                if (registerId == 0) {
+                if (registerId == 0)
+                {
                     var register = _system.GetRegister(index);
 
-                    if (register == null) {
+                    if (register == null)
+                    {
                         return null;
                     }
 
@@ -135,17 +153,20 @@ namespace PerfTest {
                 }
 
                 // find register variable.
-                else {
+                else
+                {
                     var register = _system.GetRegister(registerId);
 
-                    if (register == null) {
+                    if (register == null)
+                    {
                         return null;
                     }
 
                     // find register variable.
                     var variable = ModelUtils.GetRegisterVariable(register, index, NamespaceIndex);
 
-                    if (variable == null) {
+                    if (variable == null)
+                    {
                         return null;
                     }
 
@@ -162,14 +183,17 @@ namespace PerfTest {
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
-            IDictionary<NodeId, NodeState> cache) {
+            IDictionary<NodeId, NodeState> cache)
+        {
             // not valid if no root.
-            if (handle == null) {
+            if (handle == null)
+            {
                 return null;
             }
 
             // check if previously validated.
-            if (handle.Validated) {
+            if (handle.Validated)
+            {
                 return handle.Node;
             }
 
@@ -178,33 +202,41 @@ namespace PerfTest {
             return null;
         }
 
-        protected override void OnCreateMonitoredItemsComplete(ServerSystemContext context, IList<IMonitoredItem> monitoredItems) {
-            for (var ii = 0; ii < monitoredItems.Count; ii++) {
+        protected override void OnCreateMonitoredItemsComplete(ServerSystemContext context, IList<IMonitoredItem> monitoredItems)
+        {
+            for (var ii = 0; ii < monitoredItems.Count; ii++)
+            {
                 var handle = IsHandleInNamespace(monitoredItems[ii].ManagerHandle);
 
-                if (handle == null) {
+                if (handle == null)
+                {
                     continue;
                 }
 
                 var variable = handle.Node as BaseVariableState;
 
-                if (handle.Node.Handle is MemoryRegister register) {
+                if (handle.Node.Handle is MemoryRegister register)
+                {
                     register.Subscribe((int)variable.NumericId, (IDataChangeMonitoredItem2)monitoredItems[ii]);
                 }
             }
         }
 
-        protected override void OnDeleteMonitoredItemsComplete(ServerSystemContext context, IList<IMonitoredItem> monitoredItems) {
-            for (var ii = 0; ii < monitoredItems.Count; ii++) {
+        protected override void OnDeleteMonitoredItemsComplete(ServerSystemContext context, IList<IMonitoredItem> monitoredItems)
+        {
+            for (var ii = 0; ii < monitoredItems.Count; ii++)
+            {
                 var handle = IsHandleInNamespace(monitoredItems[ii].ManagerHandle);
 
-                if (handle == null) {
+                if (handle == null)
+                {
                     continue;
                 }
 
                 var variable = handle.Node as BaseVariableState;
 
-                if (handle.Node.Handle is MemoryRegister register) {
+                if (handle.Node.Handle is MemoryRegister register)
+                {
                     register.Unsubscribe((int)variable.NumericId, (IDataChangeMonitoredItem2)monitoredItems[ii]);
                 }
             }

@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Autofac {
+namespace Autofac
+{
     /// <summary>
     /// Inject extra components
     /// </summary>
-    public interface IInjector {
+    public interface IInjector
+    {
         /// <summary>
         /// Injects extra components into the container
         /// </summary>

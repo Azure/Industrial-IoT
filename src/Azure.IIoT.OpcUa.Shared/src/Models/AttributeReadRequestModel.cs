@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Attribute to read
     /// </summary>
     [DataContract]
-    public sealed record class AttributeReadRequestModel {
+    public sealed record class AttributeReadRequestModel
+    {
         /// <summary>
         /// Node to read from or write to (mandatory)
         /// </summary>

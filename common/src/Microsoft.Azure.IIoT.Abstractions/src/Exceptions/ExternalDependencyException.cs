@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Exceptions {
+namespace Microsoft.Azure.IIoT.Exceptions
+{
     using System;
 
     /// <summary>
@@ -11,19 +12,23 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// the current process fails to perform its task.  It is meant to
     /// be extended to provide more detailed semantics.
     /// </summary>
-    public class ExternalDependencyException : Exception {
+    public class ExternalDependencyException : Exception
+    {
         /// <inheritdoc />
-        public ExternalDependencyException() {
+        public ExternalDependencyException()
+        {
         }
 
         /// <inheritdoc />
         public ExternalDependencyException(string message) :
-            base(message) {
+            base(message)
+        {
         }
 
         /// <inheritdoc />
         public ExternalDependencyException(string message, Exception innerException) :
-            base(message, innerException) {
+            base(message, innerException)
+        {
         }
     }
 }

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients {
+namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients
+{
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Messaging;
@@ -13,27 +14,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients {
     /// <summary>
     /// Telemetry message publishing
     /// </summary>
-    public sealed class TelemetryEventPublisher<THub> : ISubscriberMessageProcessor {
+    public sealed class TelemetryEventPublisher<THub> : ISubscriberMessageProcessor
+    {
         /// <summary>
         /// Create publisher
         /// </summary>
         /// <param name="callback"></param>
-        public TelemetryEventPublisher(ICallbackInvokerT<THub> callback) {
+        public TelemetryEventPublisher(ICallbackInvokerT<THub> callback)
+        {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
 
         /// <inheritdoc/>
-        public async Task HandleSampleAsync(MonitoredItemMessageModel sample) {
+        public async Task HandleSampleAsync(MonitoredItemMessageModel sample)
+        {
             var arguments = new object[] { sample };
-            if (!string.IsNullOrEmpty(sample.EndpointId)) {
+            if (!string.IsNullOrEmpty(sample.EndpointId))
+            {
                 // Send to endpoint listeners
                 await _callback.MulticastAsync(sample.EndpointId,
                     EventTargets.PublisherSampleTarget, arguments).ConfigureAwait(false);
             }
         }
         /// <inheritdoc/>
-        public async Task HandleMessageAsync(DataSetMessageModel message) {
-            foreach (var datapoint in message.Payload) {
+        public async Task HandleMessageAsync(DataSetMessageModel message)
+        {
+            foreach (var datapoint in message.Payload)
+            {
                 var arguments = new object[] {
                      new MonitoredItemMessageModel {
                         Timestamp = message.Timestamp,
@@ -52,7 +59,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients {
                         EndpointId = null // TODO Remove
                     }
                 };
-                if (!string.IsNullOrEmpty(message.DataSetWriterId)) {
+                if (!string.IsNullOrEmpty(message.DataSetWriterId))
+                {
                     // Send to endpoint listeners
                     await _callback.MulticastAsync(message.DataSetWriterId,
                         EventTargets.PublisherSampleTarget, arguments).ConfigureAwait(false);

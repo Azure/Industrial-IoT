@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging.EventHub {
+namespace Microsoft.Azure.IIoT.Messaging.EventHub
+{
     /// <summary>
     /// Event hub configuration
     /// </summary>
-    public interface IEventHubConfig {
+    public interface IEventHubConfig
+    {
         /// <summary>
         /// Event hub connection string
         /// </summary>

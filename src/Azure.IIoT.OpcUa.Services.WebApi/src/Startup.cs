@@ -3,17 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi {
-    using Azure.IIoT.OpcUa.Services.WebApi.Auth;
-    using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
+namespace Azure.IIoT.OpcUa.Services.WebApi
+{
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
     using Azure.IIoT.OpcUa.Services;
     using Azure.IIoT.OpcUa.Services.Clients;
     using Azure.IIoT.OpcUa.Services.Events;
     using Azure.IIoT.OpcUa.Services.Registry;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
+    using Azure.IIoT.OpcUa.Services.WebApi.Auth;
+    using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
@@ -41,7 +42,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     /// <summary>
     /// Webservice startup
     /// </summary>
-    public class Startup {
+    public class Startup
+    {
         /// <summary>
         /// Configuration - Initialized in constructor
         /// </summary>
@@ -71,7 +73,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
                 // Above configuration providers will provide connection
                 // details for KeyVault configuration provider.
                 .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
-                .Build())) {
+                .Build()))
+        {
         }
 
         /// <summary>
@@ -79,7 +82,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IWebHostEnvironment env, Config configuration) {
+        public Startup(IWebHostEnvironment env, Config configuration)
+        {
             Environment = env;
             Config = configuration;
         }
@@ -89,7 +93,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public void ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services)
+        {
             services.AddLogging(o => o.AddConsole().AddDebug());
 
             services.AddHeaderForwarding();
@@ -124,7 +129,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
+        {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
             var log = applicationContainer.Resolve<ILogger>();
 
@@ -141,7 +147,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
             app.UseSwagger();
             app.UseMetricServer();
             app.UseHttpMetrics();
-            app.UseEndpoints(endpoints => {
+            app.UseEndpoints(endpoints =>
+            {
                 endpoints.MapHubs();
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");
@@ -160,7 +167,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         /// Autofac configuration.
         /// </summary>
         /// <param name="builder"></param>
-        public virtual void ConfigureContainer(ContainerBuilder builder) {
+        public virtual void ConfigureContainer(ContainerBuilder builder)
+        {
             // Register service info and configuration interfaces
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces();

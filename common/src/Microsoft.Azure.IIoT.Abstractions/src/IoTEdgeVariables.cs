@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Abstractions {
+namespace Microsoft.Azure.IIoT.Abstractions
+{
     /// <summary>
     /// Common IoT Edge runtime environment variables.
     /// </summary>
-    public static class IoTEdgeVariables {
+    public static class IoTEdgeVariables
+    {
 #pragma warning disable CA1707 // Identifiers should not contain underscores
         /// <summary> IoT Edge device id </summary>
         public const string IOTEDGE_DEVICEID = "IOTEDGE_DEVICEID";

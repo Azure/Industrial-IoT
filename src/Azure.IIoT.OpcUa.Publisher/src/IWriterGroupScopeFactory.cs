@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher
+{
     /// <summary>
     /// Creates writer group scopes
     /// </summary>
-    public interface IWriterGroupScopeFactory {
+    public interface IWriterGroupScopeFactory
+    {
         /// <summary>
         /// Create a writer group container containing everything
         /// needed to resolve the writer group processing engine.

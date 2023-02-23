@@ -2,12 +2,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Json;
+namespace Azure.IIoT.OpcUa.Shared.Models.Tests
+{
     using AutoFixture;
     using AutoFixture.Kernel;
     using FluentAssertions;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Json;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -17,10 +18,12 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
     using Xunit.Categories;
 
     [UnitTest]
-    public class JsonSerializerTests {
+    public class JsonSerializerTests
+    {
         [Theory]
         [MemberData(nameof(TypeFixture.GetDataContractTypes), MemberType = typeof(TypeFixture))]
-        public void SerializerDeserializeScalarTypeToBuffer(Type type) {
+        public void SerializerDeserializeScalarTypeToBuffer(Type type)
+        {
             var instance = Activator.CreateInstance(type);
 
             var buffer = _serializer.SerializeObjectToMemory(instance, type);
@@ -31,7 +34,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
 
         [Theory]
         [MemberData(nameof(TypeFixture.GetDataContractTypes), MemberType = typeof(TypeFixture))]
-        public void SerializerDeserializeScalarTypeToString(Type type) {
+        public void SerializerDeserializeScalarTypeToString(Type type)
+        {
             var instance = Activator.CreateInstance(type);
 
             var str = _serializer.SerializeObjectToString(instance);
@@ -44,7 +48,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
 
         [Theory]
         [MemberData(nameof(TypeFixture.GetDataContractTypes), MemberType = typeof(TypeFixture))]
-        public void SerializerDeserializeScalarTypeToBufferWithFixture(Type type) {
+        public void SerializerDeserializeScalarTypeToBufferWithFixture(Type type)
+        {
             var fixture = new Fixture();
             fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlySet<>), typeof(HashSet<>)));
             fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyList<>), typeof(List<>)));
@@ -69,7 +74,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
 
         [Theory]
         [MemberData(nameof(TypeFixture.GetDataContractTypes), MemberType = typeof(TypeFixture))]
-        public void SerializerDeserializeArrayTypeToBufferWithFixture(Type type) {
+        public void SerializerDeserializeArrayTypeToBufferWithFixture(Type type)
+        {
             var fixture = new Fixture();
             fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlySet<>), typeof(HashSet<>)));
             fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyList<>), typeof(List<>)));

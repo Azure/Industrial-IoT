@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Opc.Ua;
     using System;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// <summary>
     /// Represents validity and default value map for attributes
     /// </summary>
-    public static class AttributeMap {
+    public static class AttributeMap
+    {
         internal const int Object = 0;
         internal const int Variable = 1;
         internal const int Method = 2;
@@ -27,8 +29,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         /// <param name="attributeId"></param>
         /// <returns></returns>
-        public static BuiltInType GetBuiltInType(uint attributeId) {
-            switch (attributeId) {
+        public static BuiltInType GetBuiltInType(uint attributeId)
+        {
+            switch (attributeId)
+            {
                 case Attributes.Value:
                     return BuiltInType.Variant;
                 case Attributes.DisplayName:
@@ -95,9 +99,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         /// <param name="attributeId"></param>
         /// <returns></returns>
-        public static string GetBrowseName(uint attributeId) {
+        public static string GetBrowseName(uint attributeId)
+        {
             if (TypeMaps.Attributes.Value.TryGetBrowseName(attributeId,
-                out var value)) {
+                out var value))
+            {
                 return value;
             }
             System.Diagnostics.Debug.Assert(false, "Unknown attribute");
@@ -109,9 +115,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         /// <param name="nodeClass"></param>
         /// <returns></returns>
-        public static IEnumerable<uint> GetNodeClassAttributes(NodeClass nodeClass) {
-            for (uint i = 0; i < 32; i++) {
-                if (kMap[NodeClassId(nodeClass), i] != null) {
+        public static IEnumerable<uint> GetNodeClassAttributes(NodeClass nodeClass)
+        {
+            for (uint i = 0; i < 32; i++)
+            {
+                if (kMap[NodeClassId(nodeClass), i] != null)
+                {
                     yield return i;
                 }
             }
@@ -125,13 +134,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// <param name="returnNullIfOptional"></param>
         /// <returns></returns>
         public static object? GetDefaultValue(NodeClass nodeClass,
-            uint attributeId, bool returnNullIfOptional) {
-            if (attributeId > 32) {
+            uint attributeId, bool returnNullIfOptional)
+        {
+            if (attributeId > 32)
+            {
                 return null;
             }
             var entry = kMap[NodeClassId(nodeClass), attributeId];
-            if (entry != null) {
-                if (!entry.Optional || !returnNullIfOptional) {
+            if (entry != null)
+            {
+                if (!entry.Optional || !returnNullIfOptional)
+                {
                     return entry.Value;
                 }
             }
@@ -142,7 +155,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// Initialize attribute map
         /// See Part 3 Table 20 – Overview of Attributes
         /// </summary>
-        static AttributeMap() {
+        static AttributeMap()
+        {
             kMap[Variable, Attributes.AccessLevel] =
                 new MapEntry((byte)1);
             kMap[Variable, Attributes.ArrayDimensions] =
@@ -367,8 +381,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         /// <param name="nodeClass"></param>
         /// <returns></returns>
-        private static int NodeClassId(NodeClass nodeClass) {
-            switch (nodeClass) {
+        private static int NodeClassId(NodeClass nodeClass)
+        {
+            switch (nodeClass)
+            {
                 case NodeClass.Object:
                     return Object;
                 case NodeClass.Variable:
@@ -389,13 +405,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             throw new ServiceResultException(StatusCodes.BadNodeClassInvalid);
         }
 
-        private class MapEntry {
+        private class MapEntry
+        {
             /// <summary>
             /// Attribute map entry
             /// </summary>
             /// <param name="value"></param>
             /// <param name="optional"></param>
-            public MapEntry(object value, bool optional = false) {
+            public MapEntry(object value, bool optional = false)
+            {
                 Value = value;
                 Optional = optional;
             }

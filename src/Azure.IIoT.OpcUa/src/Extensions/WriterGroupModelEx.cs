@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Linq;
 
     /// <summary>
     /// Writer group Model extensions
     /// </summary>
-    public static class WriterGroupModelEx {
+    public static class WriterGroupModelEx
+    {
         /// <summary>
         /// Check if same writer group configuration
         /// Excludes writers.
@@ -18,44 +20,58 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="other"></param>
         /// <returns></returns>
         public static bool IsSameAs(this WriterGroupModel model,
-            WriterGroupModel other) {
-            if (model == null && other == null) {
+            WriterGroupModel other)
+        {
+            if (model == null && other == null)
+            {
                 return true;
             }
-            if (model == null || other == null) {
+            if (model == null || other == null)
+            {
                 return false;
             }
-            if (model.PublishingInterval != other.PublishingInterval) {
+            if (model.PublishingInterval != other.PublishingInterval)
+            {
                 return false;
             }
-            if (model.WriterGroupId != other.WriterGroupId) {
+            if (model.WriterGroupId != other.WriterGroupId)
+            {
                 return false;
             }
-            if (model.KeepAliveTime != other.KeepAliveTime) {
+            if (model.KeepAliveTime != other.KeepAliveTime)
+            {
                 return false;
             }
-            if (model.Priority != other.Priority) {
+            if (model.Priority != other.Priority)
+            {
                 return false;
             }
-            if (model.HeaderLayoutUri != other.HeaderLayoutUri) {
+            if (model.HeaderLayoutUri != other.HeaderLayoutUri)
+            {
                 return false;
             }
-            if (model.SecurityMode != other.SecurityMode) {
+            if (model.SecurityMode != other.SecurityMode)
+            {
                 return false;
             }
-            if (model.SecurityGroupId != other.SecurityGroupId) {
+            if (model.SecurityGroupId != other.SecurityGroupId)
+            {
                 return false;
             }
-            if (model.MessageType != other.MessageType) {
+            if (model.MessageType != other.MessageType)
+            {
                 return false;
             }
-            if (!model.MessageSettings.IsSameAs(other.MessageSettings)) {
+            if (!model.MessageSettings.IsSameAs(other.MessageSettings))
+            {
                 return false;
             }
-            if (model.Name != other.Name) {
+            if (model.Name != other.Name)
+            {
                 return false;
             }
-            if (model.MaxNetworkMessageSize != other.MaxNetworkMessageSize) {
+            if (model.MaxNetworkMessageSize != other.MaxNetworkMessageSize)
+            {
                 return false;
             }
             return true;
@@ -66,11 +82,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static WriterGroupModel Clone(this WriterGroupModel model) {
-            if (model?.DataSetWriters == null) {
+        public static WriterGroupModel Clone(this WriterGroupModel model)
+        {
+            if (model?.DataSetWriters == null)
+            {
                 return null;
             }
-            return new WriterGroupModel {
+            return new WriterGroupModel
+            {
                 WriterGroupId = model.WriterGroupId,
                 DataSetWriters = model.DataSetWriters
                     .ConvertAll(f => f.Clone())

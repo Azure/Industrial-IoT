@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
-    using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
+namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests
+{
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
     using Microsoft.Extensions.Logging;
     using Moq;
     using MQTTnet;
@@ -24,12 +25,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
     using Xunit;
 
     [Collection("MqttClientTests")]
-    public class MqttClientAdapterTests : MqttClientConnectionStringBuilderTestsBase {
+    public class MqttClientAdapterTests : MqttClientConnectionStringBuilderTestsBase
+    {
         private readonly ILogger _logger;
         private readonly IMetricsContext _metrics;
         private readonly MqttClientConnectionStringBuilder _mqttClientConnectionStringBuilder;
 
-        public MqttClientAdapterTests() {
+        public MqttClientAdapterTests()
+        {
             _logger = new Mock<ILogger>().Object;
             var m = new Mock<IMetricsContext>();
             m.SetupGet(m => m.TagList).Returns(new System.Diagnostics.TagList());
@@ -39,7 +42,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         }
 
         [Fact]
-        public async Task ConnectTest() {
+        public async Task ConnectTest()
+        {
             var mock = new Mock<IManagedMqttClient>();
             mock.SetupGet(x => x.IsStarted).Returns(false);
             mock.SetupGet(x => x.InternalClient).Returns(new Mock<IMqttClient>().Object);
@@ -75,7 +79,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         }
 
         [Fact]
-        public async Task SendIoTHubEventTest() {
+        public async Task SendIoTHubEventTest()
+        {
             const string payload = @"{ ""key"": ""value"" }";
             var payloadBytes = Encoding.UTF8.GetBytes(payload);
             var mock = new Mock<IManagedMqttClient>();
@@ -105,7 +110,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         }
 
         [Fact]
-        public async Task SendBrokerEventTest1() {
+        public async Task SendBrokerEventTest1()
+        {
             const string payload = @"{ ""key"": ""value"" }";
             var payloadBytes = Encoding.UTF8.GetBytes(payload);
             var mock = new Mock<IManagedMqttClient>();
@@ -137,7 +143,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         }
 
         [Fact]
-        public async Task SendBrokerEventTest2() {
+        public async Task SendBrokerEventTest2()
+        {
             const string payload = @"{ ""key"": ""value"" }";
             var payloadBytes = Encoding.UTF8.GetBytes(payload);
             var mock = new Mock<IManagedMqttClient>();
@@ -166,7 +173,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         }
 
         [Fact]
-        public async Task GetTwinTest() {
+        public async Task GetTwinTest()
+        {
             var mock = new Mock<IManagedMqttClient>();
             mock.SetupGet(x => x.IsStarted).Returns(true);
             var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder,
@@ -180,7 +188,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         }
 
         [Fact]
-        public async Task IsClosedTest() {
+        public async Task IsClosedTest()
+        {
             const string payload = @"{ ""key"": ""value"" }";
             var payloadBytes = Encoding.UTF8.GetBytes(payload);
 
@@ -211,16 +220,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         }
 
         [Fact]
-        public async Task ConnectCanceledTest() {
+        public async Task ConnectCanceledTest()
+        {
             var mock = new Mock<IManagedMqttClient>();
             mock.SetupGet(x => x.IsStarted).Returns(false);
             mock.SetupGet(x => x.InternalClient).Returns(new Mock<IMqttClient>().Object);
             mock.Setup(x => x.StartAsync(It.IsAny<ManagedMqttClientOptions>())).Returns(() => throw new TaskCanceledException());
-            try {
+            try
+            {
                 await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder,
                     "device1", "/topic/{device_id}", TimeSpan.Zero, _logger, _metrics).ConfigureAwait(false);
             }
-            catch (TaskCanceledException) {
+            catch (TaskCanceledException)
+            {
             }
             mock.VerifyAdd(x => x.ConnectedAsync += It.IsAny<Func<MqttClientConnectedEventArgs, Task>>());
             mock.VerifyAdd(x => x.ConnectingFailedAsync += It.IsAny<Func<ConnectingFailedEventArgs, Task>>());
@@ -245,8 +257,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             mock.VerifyNoOtherCalls();
         }
 
-        private static uint GetExpectedBufferSize() {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+        private static uint GetExpectedBufferSize()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
                 return 64 * 1024;
             }
             return 8 * 1024;

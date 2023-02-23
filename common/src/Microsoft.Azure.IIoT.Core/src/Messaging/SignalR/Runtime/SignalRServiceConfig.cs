@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging.SignalR.Runtime {
+namespace Microsoft.Azure.IIoT.Messaging.SignalR.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Runtime {
     /// <summary>
     /// SignalR configuration
     /// </summary>
-    public class SignalRServiceConfig : ConfigBase, ISignalRServiceConfig {
+    public class SignalRServiceConfig : ConfigBase, ISignalRServiceConfig
+    {
         private const string kSignalRConnectionStringKey = "SignalR:ConnectionString";
         private const string kSignalRServiceModeKey = "SignalR:ServiceMode";
         private const string kSignalRServerLessMode = "Serverless";
@@ -31,7 +33,8 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public SignalRServiceConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
 
     /// <summary>
     /// Data set message emitted by writer in a writer group.
     /// </summary>
-    public class WriterGroupMessageContext {
+    public class WriterGroupMessageContext
+    {
         /// <summary>
         /// Sequence number inside the writer group and based
         /// on message type

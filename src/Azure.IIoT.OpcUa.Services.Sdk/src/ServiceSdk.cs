@@ -3,20 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
+    using Autofac;
     using Azure.IIoT.OpcUa.Services.Sdk.Clients;
     using Azure.IIoT.OpcUa.Services.Sdk.Runtime;
     using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
-    using Autofac;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Default;
 
     /// <summary>
     /// Service sdk module
     /// </summary>
-    public class ServiceSdk : Module {
+    public class ServiceSdk : Module
+    {
         /// <inheritdoc/>
-        protected override void Load(ContainerBuilder builder) {
+        protected override void Load(ContainerBuilder builder)
+        {
             builder.RegisterType<ApiConfig>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AadApiClientConfig>()

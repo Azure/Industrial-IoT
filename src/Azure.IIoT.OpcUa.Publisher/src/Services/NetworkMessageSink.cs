@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services {
+namespace Azure.IIoT.OpcUa.Publisher.Services
+{
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
@@ -16,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// <summary>
     /// Network message sink
     /// </summary>
-    public class NetworkMessageSink : IMessageSink {
+    public class NetworkMessageSink : IMessageSink
+    {
         /// <inheritdoc/>
         public int MaxMessageSize => _clientAccessor.Client.MaxEventBufferSize;
 
@@ -27,7 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <param name="metrics"></param>
         /// <param name="logger"></param>
         public NetworkMessageSink(IClientAccessor clientAccessor, IMetricsContext metrics,
-            ILogger logger) : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
+            ILogger logger) : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
+        {
             _clientAccessor = clientAccessor
                 ?? throw new ArgumentNullException(nameof(clientAccessor));
             _logger = logger
@@ -35,28 +38,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         }
 
         /// <inheritdoc/>
-        public ITelemetryEvent CreateMessage() {
+        public ITelemetryEvent CreateMessage()
+        {
             return _clientAccessor.Client.CreateTelemetryEvent();
         }
 
         /// <inheritdoc/>
-        public async Task SendAsync(ITelemetryEvent message) {
-            if (message == null) {
+        public async Task SendAsync(ITelemetryEvent message)
+        {
+            if (message == null)
+            {
                 return;
             }
-            try {
+            try
+            {
                 var sw = Stopwatch.StartNew();
-                try {
+                try
+                {
                     await _clientAccessor.Client.SendEventAsync(message).ConfigureAwait(false);
                     _messagesSentCount++;
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     kMessagesErrors.Add(1, _tagList);
                     _logger.LogError(e, "Error sending network message(s)");
                 }
                 kSendingDuration.Record(sw.ElapsedMilliseconds, _tagList);
             }
-            finally {
+            finally
+            {
                 message.Dispose();
             }
         }
@@ -64,7 +74,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Create observable metric registrations
         /// </summary>
-        private NetworkMessageSink(IMetricsContext metrics) {
+        private NetworkMessageSink(IMetricsContext metrics)
+        {
             _tagList = metrics.TagList;
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_sent_iot_messages",
                 () => new Measurement<long>(_messagesSentCount, _tagList), "Messages",

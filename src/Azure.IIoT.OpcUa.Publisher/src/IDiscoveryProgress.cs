@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Net;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// <summary>
     /// Discovery progress listener
     /// </summary>
-    public interface IDiscoveryProgress {
+    public interface IDiscoveryProgress
+    {
         /// <summary>
         /// Pending requests ahead of this one.
         /// </summary>

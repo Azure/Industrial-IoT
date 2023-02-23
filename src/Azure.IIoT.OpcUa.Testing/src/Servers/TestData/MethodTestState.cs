@@ -27,16 +27,19 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace TestData {
+namespace TestData
+{
     using Opc.Ua;
     using System;
     using System.Xml;
 
-    public partial class MethodTestState {
+    public partial class MethodTestState
+    {
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
-        protected override void OnAfterCreate(ISystemContext context, NodeState node) {
+        protected override void OnAfterCreate(ISystemContext context, NodeState node)
+        {
             base.OnAfterCreate(context, node);
 
             ScalarMethod1.OnCall = OnScalarValue1;
@@ -76,7 +79,8 @@ namespace TestData {
             ref long int64Out,
             ref ulong uInt64Out,
             ref float floatOut,
-            ref double doubleOut) {
+            ref double doubleOut)
+        {
             booleanOut = booleanIn;
             sByteOut = sByteIn;
             byteOut = byteIn;
@@ -115,7 +119,8 @@ namespace TestData {
             ref ExpandedNodeId expandedNodeIdOut,
             ref QualifiedName qualifiedNameOut,
             ref LocalizedText localizedTextOut,
-            ref StatusCode statusCodeOut) {
+            ref StatusCode statusCodeOut)
+        {
             stringOut = stringIn;
             dateTimeOut = dateTimeIn;
             guidOut = guidIn;
@@ -139,7 +144,8 @@ namespace TestData {
             ExtensionObject structureIn,
             ref object variantOut,
             ref int enumerationOut,
-            ref ExtensionObject structureOut) {
+            ref ExtensionObject structureOut)
+        {
             variantOut = variantIn;
             enumerationOut = enumerationIn;
             structureOut = structureIn;
@@ -172,7 +178,8 @@ namespace TestData {
             ref long[] int64Out,
             ref ulong[] uInt64Out,
             ref float[] floatOut,
-            ref double[] doubleOut) {
+            ref double[] doubleOut)
+        {
             booleanOut = booleanIn;
             sByteOut = sByteIn;
             byteOut = byteIn;
@@ -211,7 +218,8 @@ namespace TestData {
             ref ExpandedNodeId[] expandedNodeIdOut,
             ref QualifiedName[] qualifiedNameOut,
             ref LocalizedText[] localizedTextOut,
-            ref StatusCode[] statusCodeOut) {
+            ref StatusCode[] statusCodeOut)
+        {
             stringOut = stringIn;
             dateTimeOut = dateTimeIn;
             guidOut = guidIn;
@@ -235,7 +243,8 @@ namespace TestData {
             ExtensionObject[] structureIn,
             ref Variant[] variantOut,
             ref int[] enumerationOut,
-            ref ExtensionObject[] structureOut) {
+            ref ExtensionObject[] structureOut)
+        {
             variantOut = variantIn;
             enumerationOut = enumerationIn;
             structureOut = structureIn;
@@ -270,7 +279,8 @@ namespace TestData {
             ref ulong uInt64Out,
             ref float floatOut,
             ref double doubleOut,
-            ref string stringOut) {
+            ref string stringOut)
+        {
             booleanOut = booleanIn;
             sByteOut = sByteIn;
             byteOut = byteIn;
@@ -310,7 +320,8 @@ namespace TestData {
             ref QualifiedName qualifiedNameOut,
             ref LocalizedText localizedTextOut,
             ref StatusCode statusCodeOut,
-            ref object variantOut) {
+            ref object variantOut)
+        {
             dateTimeOut = dateTimeIn;
             guidOut = guidIn;
             byteStringOut = byteStringIn;
@@ -352,7 +363,8 @@ namespace TestData {
             ref ulong[] uInt64Out,
             ref float[] floatOut,
             ref double[] doubleOut,
-            ref string[] stringOut) {
+            ref string[] stringOut)
+        {
             booleanOut = booleanIn;
             sByteOut = sByteIn;
             byteOut = byteIn;
@@ -392,7 +404,8 @@ namespace TestData {
             ref QualifiedName[] qualifiedNameOut,
             ref LocalizedText[] localizedTextOut,
             ref StatusCode[] statusCodeOut,
-            ref Variant[] variantOut) {
+            ref Variant[] variantOut)
+        {
             dateTimeOut = dateTimeIn;
             guidOut = guidIn;
             byteStringOut = byteStringIn;

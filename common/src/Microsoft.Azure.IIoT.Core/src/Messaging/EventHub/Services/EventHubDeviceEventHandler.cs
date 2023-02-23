@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
+namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub
+{
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
-    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -16,13 +17,16 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
     /// <summary>
     /// Default Event Hub message handler implementation
     /// </summary>
-    public sealed class EventHubDeviceEventHandler : IEventProcessingHandler {
+    public sealed class EventHubDeviceEventHandler : IEventProcessingHandler
+    {
         /// <summary>
         /// Create processor factory
         /// </summary>
         /// <param name="handlers"></param>
-        public EventHubDeviceEventHandler(IEnumerable<IDeviceTelemetryHandler> handlers) {
-            if (handlers == null) {
+        public EventHubDeviceEventHandler(IEnumerable<IDeviceTelemetryHandler> handlers)
+        {
+            if (handlers == null)
+            {
                 throw new ArgumentNullException(nameof(handlers));
             }
             _handlers = new ConcurrentDictionary<string, IDeviceTelemetryHandler>(
@@ -31,12 +35,15 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
 
         /// <inheritdoc/>
         public async Task HandleAsync(byte[] eventData, IDictionary<string, string> properties,
-            Func<Task> checkpoint) {
-            if (properties.TryGetValue(CommonProperties.EventSchemaType, out var schemaType)) {
+            Func<Task> checkpoint)
+        {
+            if (properties.TryGetValue(CommonProperties.EventSchemaType, out var schemaType))
+            {
                 properties.TryGetValue(CommonProperties.DeviceId, out var deviceId);
                 properties.TryGetValue(CommonProperties.ModuleId, out var moduleId);
 
-                if (_handlers.TryGetValue(schemaType, out var handler)) {
+                if (_handlers.TryGetValue(schemaType, out var handler))
+                {
                     _used.Enqueue(handler);
                     await handler.HandleAsync(deviceId, moduleId, eventData, properties, checkpoint).ConfigureAwait(false);
                 }
@@ -44,8 +51,10 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
         }
 
         /// <inheritdoc/>
-        public async Task OnBatchCompleteAsync() {
-            while (_used.TryDequeue(out var handler)) {
+        public async Task OnBatchCompleteAsync()
+        {
+            while (_used.TryDequeue(out var handler))
+            {
                 await Try.Async(handler.OnBatchCompleteAsync).ConfigureAwait(false);
             }
         }

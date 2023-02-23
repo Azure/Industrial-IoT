@@ -3,37 +3,46 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Furly.Extensions.Serializers;
     using System.Collections.Generic;
 
     /// <summary>
     /// Connection endpoint model extensions
     /// </summary>
-    public static class ConnectionModelEx {
+    public static class ConnectionModelEx
+    {
         /// <summary>
         /// Equality comparison
         /// </summary>
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this ConnectionModel model, ConnectionModel that) {
-            if (model == that) {
+        public static bool IsSameAs(this ConnectionModel model, ConnectionModel that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
-            if (that.Group != model.Group) {
+            if (that.Group != model.Group)
+            {
                 return false;
             }
-            if (!that.Endpoint.IsSameAs(model.Endpoint)) {
+            if (!that.Endpoint.IsSameAs(model.Endpoint))
+            {
                 return false;
             }
-            if (that.Diagnostics?.AuditId != model.Diagnostics?.AuditId) {
+            if (that.Diagnostics?.AuditId != model.Diagnostics?.AuditId)
+            {
                 return false;
             }
-            if (!VariantValue.DeepEquals(that.User?.Value, model.User?.Value)) {
+            if (!VariantValue.DeepEquals(that.User?.Value, model.User?.Value))
+            {
                 return false;
             }
             return true;
@@ -44,7 +53,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int CreateConsistentHash(this ConnectionModel model) {
+        public static int CreateConsistentHash(this ConnectionModel model)
+        {
             var hashCode = -1971667340;
             hashCode = (hashCode * -1521134295) +
                 model.Endpoint.CreateConsistentHash();
@@ -60,11 +70,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ConnectionModel Clone(this ConnectionModel model) {
-            if (model == null) {
+        public static ConnectionModel Clone(this ConnectionModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new ConnectionModel {
+            return new ConnectionModel
+            {
                 Group = model.Group,
                 Endpoint = model.Endpoint.Clone(),
                 User = model.User.Clone(),
@@ -76,8 +89,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// Returns a string that uniquiely identifies the connection based on
         /// endpoint url, hash and associated group
         /// </summary>
-        public static string CreateConnectionId(this ConnectionModel model) {
-            if (string.IsNullOrEmpty(model?.Endpoint?.Url)) {
+        public static string CreateConnectionId(this ConnectionModel model)
+        {
+            if (string.IsNullOrEmpty(model?.Endpoint?.Url))
+            {
                 return null;
             }
             return !string.IsNullOrEmpty(model.Group) ?

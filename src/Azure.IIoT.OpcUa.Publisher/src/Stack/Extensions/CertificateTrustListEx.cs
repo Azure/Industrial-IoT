@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua {
+namespace Opc.Ua
+{
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
@@ -11,7 +12,8 @@ namespace Opc.Ua {
     /// <summary>
     /// Certificate trust list extensions
     /// </summary>
-    public static class CertificateTrustListEx {
+    public static class CertificateTrustListEx
+    {
         /// <summary>
         /// Remove certficates
         /// </summary>
@@ -19,13 +21,17 @@ namespace Opc.Ua {
         /// <param name="certificates"></param>
         /// <returns></returns>
         public static void Remove(this CertificateTrustList trustList,
-            IEnumerable<X509Certificate2> certificates) {
-            if (certificates == null) {
+            IEnumerable<X509Certificate2> certificates)
+        {
+            if (certificates == null)
+            {
                 throw new ArgumentNullException(nameof(certificates));
             }
-            using (var trustedStore = trustList.OpenStore()) {
+            using (var trustedStore = trustList.OpenStore())
+            {
                 trustedStore.Remove(certificates);
-                foreach (var cert in certificates) {
+                foreach (var cert in certificates)
+                {
                     trustList.TrustedCertificates.Remove(new CertificateIdentifier(cert));
                 }
             }
@@ -39,13 +45,17 @@ namespace Opc.Ua {
         /// <param name="noCopy"></param>
         /// <returns></returns>
         public static void Add(this CertificateTrustList trustList,
-            IEnumerable<X509Certificate2> certificates, bool noCopy = false) {
-            if (certificates == null) {
+            IEnumerable<X509Certificate2> certificates, bool noCopy = false)
+        {
+            if (certificates == null)
+            {
                 throw new ArgumentNullException(nameof(certificates));
             }
-            using (var trustedStore = trustList.OpenStore()) {
+            using (var trustedStore = trustList.OpenStore())
+            {
                 trustedStore.Add(certificates, noCopy);
-                foreach (var cert in certificates) {
+                foreach (var cert in certificates)
+                {
                     trustList.TrustedCertificates.Add(new CertificateIdentifier(
                         noCopy ? cert : new X509Certificate2(cert)));
                 }

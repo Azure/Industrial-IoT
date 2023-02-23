@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Utils {
+namespace Microsoft.Azure.IIoT.Utils
+{
     using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
@@ -13,19 +14,23 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// <summary>
     /// Helper to dispose a disposable and run cleanup
     /// </summary>
-    public class AsyncDisposable : IAsyncDisposable {
+    public class AsyncDisposable : IAsyncDisposable
+    {
         /// <summary>
         /// Create disposable
         /// </summary>
         /// <param name="disposable"></param>
         /// <param name="disposeAsync"></param>
         public AsyncDisposable(IDisposable disposable = null,
-            Func<Task> disposeAsync = null) {
+            Func<Task> disposeAsync = null)
+        {
             _disposable = disposable;
-            if (disposeAsync != null) {
+            if (disposeAsync != null)
+            {
                 _disposeAsync = () => Try.Async(() => disposeAsync.Invoke());
             }
-            else {
+            else
+            {
                 _disposeAsync = () => Task.CompletedTask;
             }
         }
@@ -34,16 +39,20 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Create disposable
         /// </summary>
         /// <param name="disposables"></param>
-        public AsyncDisposable(IEnumerable<IAsyncDisposable> disposables) {
+        public AsyncDisposable(IEnumerable<IAsyncDisposable> disposables)
+        {
             _disposeAsync = () => DisposeAsync(disposables);
         }
 
         /// <inheritdoc/>
-        public async ValueTask DisposeAsync() {
-            if (_disposable != null) {
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposable != null)
+            {
                 Try.Op(_disposable.Dispose);
             }
-            if (_disposeAsync != null) {
+            if (_disposeAsync != null)
+            {
                 await _disposeAsync.Invoke().ConfigureAwait(false);
             }
         }
@@ -55,14 +64,19 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <returns></returns>
 #pragma warning disable IDE1006 // Naming Styles
         public static async Task<IAsyncDisposable[]> WhenAll(
-            IEnumerable<Task<IAsyncDisposable>> tasks) {
+            IEnumerable<Task<IAsyncDisposable>> tasks)
+        {
 #pragma warning restore IDE1006 // Naming Styles
-            try {
+            try
+            {
                 return await Task.WhenAll(tasks).ConfigureAwait(false);
             }
-            catch {
-                foreach (var task in tasks) {
-                    if (task.IsCompleted) {
+            catch
+            {
+                foreach (var task in tasks)
+                {
+                    if (task.IsCompleted)
+                    {
                         await Try.Async(() => task.Result.DisposeAsync().AsTask()).ConfigureAwait(false);
                     }
                 }
@@ -75,7 +89,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="disposables"></param>
         /// <returns></returns>
-        public static Task DisposeAsync(IEnumerable<IAsyncDisposable> disposables) {
+        public static Task DisposeAsync(IEnumerable<IAsyncDisposable> disposables)
+        {
             return Try.Async(() => Task.WhenAll(disposables
                 .Where(d => d != null)
                 .Select(d => d.DisposeAsync().AsTask())));

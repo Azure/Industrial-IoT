@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport
+{
     using System;
     using System.Net.Sockets;
 
     /// <summary>
     /// Async port probe
     /// </summary>
-    public interface IAsyncProbe : IDisposable {
+    public interface IAsyncProbe : IDisposable
+    {
         /// <summary>
         /// Complete probe using the passed in socket
         /// event arg.

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Extensions.DependencyInjection {
+namespace Microsoft.Extensions.DependencyInjection
+{
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Routing;
     using Microsoft.AspNetCore.SignalR;
@@ -14,16 +15,19 @@ namespace Microsoft.Extensions.DependencyInjection {
     /// <summary>
     /// SignalR hub extensions
     /// </summary>
-    public static class SignalRHubEx {
+    public static class SignalRHubEx
+    {
         /// <summary>
         /// Map all hubs
         /// </summary>
         /// <param name="endpoints"></param>
         /// <param name="assembly"></param>
         /// <returns></returns>
-        public static void MapHubs(this IEndpointRouteBuilder endpoints, Assembly assembly = null) {
+        public static void MapHubs(this IEndpointRouteBuilder endpoints, Assembly assembly = null)
+        {
             foreach (var hub in (assembly ?? Assembly.GetCallingAssembly()).GetExportedTypes()
-                .Where(t => typeof(Hub).IsAssignableFrom(t))) {
+                .Where(t => typeof(Hub).IsAssignableFrom(t)))
+            {
                 var result = typeof(SignalRHubEx).GetMethod(nameof(MapHub)).MakeGenericMethod(hub)
                     .Invoke(null, new object[] { endpoints });
             }
@@ -36,16 +40,20 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// <param name="endpoints"></param>
         /// <returns></returns>
         public static void MapHub<THub>(this IEndpointRouteBuilder endpoints)
-            where THub : Hub {
+            where THub : Hub
+        {
             var type = typeof(THub);
             var results = type.GetCustomAttributes<RouteAttribute>(false)
                 .Select(m => m.MapTo.TrimStart('/'))
                 .ToList();
-            if (results.Count == 0) {
+            if (results.Count == 0)
+            {
                 results.Add(NameAttribute.GetName(type));
             }
-            foreach (var map in results) {
-                var builder = endpoints.MapHub<THub>("/" + map, options => {
+            foreach (var map in results)
+            {
+                var builder = endpoints.MapHub<THub>("/" + map, options =>
+                {
                     // ?
                 });
             }

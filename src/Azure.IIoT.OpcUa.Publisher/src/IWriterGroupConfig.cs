@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher
+{
     using Azure.IIoT.OpcUa.Shared.Models;
 
     /// <summary>
     /// Writer group configuration provider
     /// </summary>
-    public interface IWriterGroupConfig {
+    public interface IWriterGroupConfig
+    {
         /// <summary>
         /// Publisher id
         /// </summary>

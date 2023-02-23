@@ -3,22 +3,26 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
-    using Microsoft.Azure.IIoT.Hub;
+namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
+{
     using Autofac;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Microsoft.Azure.IIoT.Hub;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
 
-    public class SettingsRouterTests {
+    public class SettingsRouterTests
+    {
         [Fact]
-        public async Task TestSettingDesiredPropertyAndCheckReported1() {
+        public async Task TestSettingDesiredPropertyAndCheckReported1()
+        {
             var controller = new TestController1();
             await ModuleHostHarness.RunTestAsync(controller.YieldReturn(),
-                async (deviceId, moduleId, services) => {
+                async (deviceId, moduleId, services) =>
+                {
                     var test = _serializer.FromObject("test4");
                     // Act
                     var hub = services.Resolve<IIoTHubTwinServices>();
@@ -34,10 +38,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         [Fact]
-        public async Task TestSetting2DesiredPropertyAndCheckReported1() {
+        public async Task TestSetting2DesiredPropertyAndCheckReported1()
+        {
             var controller = new TestController1();
             await ModuleHostHarness.RunTestAsync(controller.YieldReturn(),
-                async (deviceId, moduleId, services) => {
+                async (deviceId, moduleId, services) =>
+                {
                     var test = _serializer.FromObject("test");
                     var test2 = _serializer.FromObject("test2");
                     // Act
@@ -58,10 +64,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         [Fact]
-        public async Task TestSetting3DesiredPropertyAndCheckReported1() {
+        public async Task TestSetting3DesiredPropertyAndCheckReported1()
+        {
             var controller = new TestController1();
             await ModuleHostHarness.RunTestAsync(controller.YieldReturn(),
-                async (deviceId, moduleId, services) => {
+                async (deviceId, moduleId, services) =>
+                {
                     var test = _serializer.FromObject("test");
                     var test2 = _serializer.FromObject("test2");
                     var test3 = _serializer.FromObject("test3");
@@ -88,11 +96,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         [Fact]
-        public async Task TestSettingDesiredPropertyAndCheckReported2Async() {
+        public async Task TestSettingDesiredPropertyAndCheckReported2Async()
+        {
             var controller = new TestController2();
             await ModuleHostHarness.RunTestAsync(controller.YieldReturn(),
-                async (deviceId, moduleId, services) => {
-                    var expected = new Test {
+                async (deviceId, moduleId, services) =>
+                {
+                    var expected = new Test
+                    {
                         Item1 = "test",
                         Item2 = 5454,
                         Item3 = DateTime.UtcNow
@@ -114,10 +125,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         [Fact]
-        public async Task TestPresetSettingIsReportedOnModuleStart() {
+        public async Task TestPresetSettingIsReportedOnModuleStart()
+        {
             var controller = new TestController1();
             await ModuleHostHarness.RunTestAsync(controller.YieldReturn(),
-                async (deviceId, moduleId, services) => {
+                async (deviceId, moduleId, services) =>
+                {
                     // Act
                     var hub = services.Resolve<IIoTHubTwinServices>();
                     var twin = await hub.GetAsync(deviceId, moduleId).ConfigureAwait(false);
@@ -131,10 +144,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         [Fact]
-        public async Task TestSettingDesiredPropertyToNullAndCheckReported1() {
+        public async Task TestSettingDesiredPropertyToNullAndCheckReported1()
+        {
             var controller = new TestController1();
             await ModuleHostHarness.RunTestAsync(controller.YieldReturn(),
-                async (deviceId, moduleId, services) => {
+                async (deviceId, moduleId, services) =>
+                {
                     var hub = services.Resolve<IIoTHubTwinServices>();
                     var twin = await hub.GetAsync(deviceId, moduleId).ConfigureAwait(false);
 
@@ -154,7 +169,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }).ConfigureAwait(false);
         }
 
-        public class TestController1 : ISettingsController {
+        public class TestController1 : ISettingsController
+        {
             public bool _applyCalled;
             public bool _throwCalled;
 
@@ -164,39 +180,46 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             public string TestSetting3 { get; set; } = "yearn";
 
-            public Task ThrowAsync() {
+            public Task ThrowAsync()
+            {
                 _throwCalled = true;
                 return Task.FromException(new InvalidOperationException());
             }
 
-            public Task ApplyAsync() {
+            public Task ApplyAsync()
+            {
                 _applyCalled = true;
                 return Task.CompletedTask;
             }
         }
 
-        public class Test {
+        public class Test
+        {
             public string Item1 { get; set; }
             public int Item2 { get; set; }
             public DateTime Item3 { get; set; }
 
-            public override bool Equals(object obj) {
+            public override bool Equals(object obj)
+            {
                 return obj is Test test &&
                        Item1 == test.Item1 &&
                        Item2 == test.Item2 &&
                        Item3 == test.Item3;
             }
-            public override int GetHashCode() {
+            public override int GetHashCode()
+            {
                 return HashCode.Combine(Item1, Item2, Item3);
             }
         }
 
-        public class TestController2 : ISettingsController {
+        public class TestController2 : ISettingsController
+        {
             public bool _applyCalled;
 
             public Test TestSetting { get; set; }
 
-            public Task ApplyAsync() {
+            public Task ApplyAsync()
+            {
                 _applyCalled = true;
                 return Task.CompletedTask;
             }

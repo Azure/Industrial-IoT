@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
+namespace Microsoft.Azure.IIoT.Auth
+{
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Auth {
     /// <summary>
     /// Configuration extensions
     /// </summary>
-    public static class OAuthClientConfigEx {
+    public static class OAuthClientConfigEx
+    {
         /// <summary>
         /// Get Resource or audience
         /// </summary>
@@ -19,9 +21,11 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// <param name="scopes"></param>
         /// <returns></returns>
         public static string GetAudience(this IOAuthClientConfig config,
-            IEnumerable<string> scopes = null) {
+            IEnumerable<string> scopes = null)
+        {
             var audience = config?.Audience;
-            if (!string.IsNullOrEmpty(audience)) {
+            if (!string.IsNullOrEmpty(audience))
+            {
                 return audience;
             }
             // Get audience uri from scopes
@@ -35,9 +39,11 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// <param name="scopes"></param>
         /// <returns></returns>
         public static IEnumerable<string> GetScopeNames(this IOAuthClientConfig config,
-            IEnumerable<string> scopes = null) {
+            IEnumerable<string> scopes = null)
+        {
             var audience = config?.Audience;
-            if (string.IsNullOrEmpty(audience)) {
+            if (string.IsNullOrEmpty(audience))
+            {
                 return scopes;
             }
             return scopes?.Select(s => SplitScope(s).Item2);
@@ -48,7 +54,8 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static string GetName(this IOAuthClientConfig config) {
+        public static string GetName(this IOAuthClientConfig config)
+        {
             return $"{config.GetProviderName()}:{config.ClientId}->{GetAudience(config)}";
         }
 
@@ -57,16 +64,21 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// </summary>
         /// <param name="scope"></param>
         /// <returns></returns>
-        private static (string, string) SplitScope(string scope) {
-            if (!string.IsNullOrEmpty(scope)) {
-                if (Uri.TryCreate(scope, UriKind.RelativeOrAbsolute, out var uri)) {
+        private static (string, string) SplitScope(string scope)
+        {
+            if (!string.IsNullOrEmpty(scope))
+            {
+                if (Uri.TryCreate(scope, UriKind.RelativeOrAbsolute, out var uri))
+                {
                     var scopeName = uri.PathAndQuery;
                     var idx = scopeName.LastIndexOf('/');
                     var pathRemaining = string.Empty;
-                    if (idx != -1) {
+                    if (idx != -1)
+                    {
                         pathRemaining = scopeName.Substring(0, idx);
                     }
-                    var audience = new UriBuilder(uri) {
+                    var audience = new UriBuilder(uri)
+                    {
                         Path = pathRemaining
                     }.Uri.ToString().TrimEnd('/');
                     return (audience, scopeName.TrimStart('/'));

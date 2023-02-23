@@ -3,13 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Tests
+{
     using System.Net.NetworkInformation;
     using Xunit;
 
-    public class NetworkInformationExTests {
+    public class NetworkInformationExTests
+    {
         [Fact]
-        public void TestCopy() {
+        public void TestCopy()
+        {
             var addr1 = new PhysicalAddress(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             var addr2 = new PhysicalAddress(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             var addr3 = addr1.Copy();
@@ -22,7 +25,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Tests {
         }
 
         [Fact]
-        public void TestNotEqual() {
+        public void TestNotEqual()
+        {
             var addr1 = new PhysicalAddress(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             var addr2 = new PhysicalAddress(new byte[] { 1, 1, 2, 3, 4, 5, 6, 7 });
             var addr3 = new PhysicalAddress(new byte[] { 1, 1, 2, 3, 4, 5, 6 });

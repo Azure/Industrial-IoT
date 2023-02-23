@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module {
+namespace Microsoft.Azure.IIoT.Module
+{
     using System;
     using System.Text;
     using System.Threading;
@@ -12,7 +13,8 @@ namespace Microsoft.Azure.IIoT.Module {
     /// <summary>
     /// Method client extensions
     /// </summary>
-    public static class MethodClientEx {
+    public static class MethodClientEx
+    {
         /// <summary>
         /// Call method with json payload.
         /// </summary>
@@ -26,7 +28,8 @@ namespace Microsoft.Azure.IIoT.Module {
         /// <returns></returns>
         public static async Task<string> CallMethodAsync(this IMethodClient client,
             string deviceId, string moduleId, string method, string json,
-            TimeSpan? timeout = null, CancellationToken ct = default) {
+            TimeSpan? timeout = null, CancellationToken ct = default)
+        {
             var response = await client.CallMethodAsync(deviceId, moduleId, method,
                 json == null ? null : Encoding.UTF8.GetBytes(json),
                 ContentMimeType.Json, timeout, ct).ConfigureAwait(false);

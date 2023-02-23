@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
 
     /// <summary>
     /// Represents a standard OPC UA Subscription
     /// </summary>
-    public class SubscriptionConfigurationModel {
+    public class SubscriptionConfigurationModel
+    {
         /// <summary>
         /// Publishing interval
         /// </summary>

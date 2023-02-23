@@ -3,20 +3,24 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Logger extensions
     /// </summary>
-    public static class LoggerEx {
+    public static class LoggerEx
+    {
         /// <summary>
         /// Log ev.Progress from event model
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="ev"></param>
-        public static void LogProgress(this ILogger logger, DiscoveryProgressModel ev) {
-            switch (ev.EventType) {
+        public static void LogProgress(this ILogger logger, DiscoveryProgressModel ev)
+        {
+            switch (ev.EventType)
+            {
                 case DiscoveryProgressType.Pending:
                     logger.LogTrace("{Request}: Discovery operations pending.",
                         ev.Request.Id);
@@ -86,7 +90,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                         ev.Request.Id, ev.RequestDetails["url"]);
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryFinished:
-                    if (!ev.Discovered.HasValue || ev.Discovered == 0) {
+                    if (!ev.Discovered.HasValue || ev.Discovered == 0)
+                    {
                         logger.LogInformation(
                             "{Request}: No endpoints ev.Discovered on {Details}.",
                             ev.Request.Id, ev.RequestDetails["url"]);

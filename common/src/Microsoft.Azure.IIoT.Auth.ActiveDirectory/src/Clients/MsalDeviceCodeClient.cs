@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
+namespace Microsoft.Azure.IIoT.Auth.Clients.Default
+{
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Extensions.Logging;
@@ -15,14 +16,16 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Authenticate using device code
     /// </summary>
-    public sealed class MsalDeviceCodeClient : MsalPublicClientBase {
+    public sealed class MsalDeviceCodeClient : MsalPublicClientBase
+    {
         /// <summary>
         /// Create console output device code based token provider
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public MsalDeviceCodeClient(IClientAuthConfig config, ILogger logger) :
-            this(new ConsolePrompt(), config, logger) {
+            this(new ConsolePrompt(), config, logger)
+        {
         }
 
         /// <summary>
@@ -32,16 +35,19 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public MsalDeviceCodeClient(IDeviceCodePrompt prompt,
-            IClientAuthConfig config, ILogger logger) : base(config, logger) {
+            IClientAuthConfig config, ILogger logger) : base(config, logger)
+        {
             _prompt = prompt ?? throw new ArgumentNullException(nameof(prompt));
         }
 
         /// <inheritdoc/>
         protected override async Task<TokenResultModel> GetTokenAsync(
-            IPublicClientApplication client, string resource, IEnumerable<string> scopes) {
+            IPublicClientApplication client, string resource, IEnumerable<string> scopes)
+        {
             // Go and get it through device code.
             var result = await client.AcquireTokenWithDeviceCode(
-                scopes, deviceCodeCallback => {
+                scopes, deviceCodeCallback =>
+                {
                     _prompt.Prompt(deviceCodeCallback.DeviceCode, deviceCodeCallback.ExpiresOn,
                         deviceCodeCallback.Message);
                     return Task.CompletedTask;
@@ -52,10 +58,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <summary>
         /// Console prompt
         /// </summary>
-        private sealed class ConsolePrompt : IDeviceCodePrompt {
+        private sealed class ConsolePrompt : IDeviceCodePrompt
+        {
             /// <inheritdoc/>
             public void Prompt(string deviceCode, DateTimeOffset expiresOn,
-                string message) {
+                string message)
+            {
                 Console.WriteLine(message);
             }
         }

@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
-    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher
+{
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using FluentAssertions;
@@ -27,19 +28,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
     /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
     /// </summary>
     [Collection(ReferenceServerReadCollection.Name)]
-    public class BasicSamplesIntegrationTests : PublisherIoTHubIntegrationTestBase {
+    public class BasicSamplesIntegrationTests : PublisherIoTHubIntegrationTestBase
+    {
         private const string kEventId = "EventId";
         private const string kMessage = "Message";
         private const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
         private const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private readonly ITestOutputHelper _output;
 
-        public BasicSamplesIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture) {
+        public BasicSamplesIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture)
+        {
             _output = output;
         }
 
         [Fact]
-        public async Task CanSendDataItemToIoTHubTest() {
+        public async Task CanSendDataItemToIoTHubTest()
+        {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync("./PublishedNodes/DataItems.json").ConfigureAwait(false);
@@ -52,7 +56,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Fact]
-        public async Task CanSendDeadbandItemsToIoTHubTest() {
+        public async Task CanSendDeadbandItemsToIoTHubTest()
+        {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync("./PublishedNodes/Deadband.json",
@@ -63,11 +68,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
                 .Where(message => message.GetProperty("DisplayName").GetString() == "DoubleValues" &&
                     message.GetProperty("Value").TryGetProperty("Value", out _));
             double? dvalue = null;
-            foreach (var message in doubleValues) {
+            foreach (var message in doubleValues)
+            {
                 Assert.Equal("http://test.org/UA/Data/#i=11224", message.GetProperty("NodeId").GetString());
                 var value1 = message.GetProperty("Value").GetProperty("Value").GetDouble();
                 _output.WriteLine(JsonSerializer.Serialize(message));
-                if (dvalue != null) {
+                if (dvalue != null)
+                {
                     var abs = Math.Abs(dvalue.Value - value1);
                     Assert.True(abs >= 5.0, $"Value within absolute deadband limit {abs} < 5");
                 }
@@ -77,11 +84,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
                 .Where(message => message.GetProperty("DisplayName").GetString() == "Int64Values" &&
                     message.GetProperty("Value").TryGetProperty("Value", out _));
             long? lvalue = null;
-            foreach (var message in int64Values) {
+            foreach (var message in int64Values)
+            {
                 Assert.Equal("http://test.org/UA/Data/#i=11206", message.GetProperty("NodeId").GetString());
                 var value1 = message.GetProperty("Value").GetProperty("Value").GetInt64();
                 _output.WriteLine(JsonSerializer.Serialize(message));
-                if (lvalue != null) {
+                if (lvalue != null)
+                {
                     var abs = Math.Abs(lvalue.Value - value1);
                     // TODO: Investigate this, it should be 10%
                     Assert.True(abs >= 3, $"Value within percent deadband limit {abs} < 3%");
@@ -91,7 +100,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Fact]
-        public async Task CanSendEventToIoTHubTest() {
+        public async Task CanSendEventToIoTHubTest()
+        {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync("./PublishedNodes/SimpleEvents.json").ConfigureAwait(false);
@@ -106,7 +116,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Fact]
-        public async Task CanSendEventToIoTHubTestFulLFeaturedMessage() {
+        public async Task CanSendEventToIoTHubTestFulLFeaturedMessage()
+        {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync("./PublishedNodes/SimpleEvents.json",
@@ -123,7 +134,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
 
         [Theory]
         [InlineData("./PublishedNodes/SimpleEvents.json")]
-        public async Task CanEncodeWithReversibleEncodingSamplesTest(string publishedNodesFile) {
+        public async Task CanEncodeWithReversibleEncodingSamplesTest(string publishedNodesFile)
+        {
             // Arrange
             // Act
             var result = await ProcessMessagesAsync(
@@ -174,7 +186,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
             var serviceMessageContext = new ServiceMessageContext();
             serviceMessageContext.Factory.AddEncodeableType(typeof(EncodeableDictionary));
 
-            using (var stream = new MemoryStream(buffer)) {
+            using (var stream = new MemoryStream(buffer))
+            {
                 using var decoder = new JsonDecoderEx(stream, serviceMessageContext);
                 var actual = new EncodeableDictionary();
                 actual.Decode(decoder);
@@ -189,7 +202,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Fact]
-        public async Task CanSendPendingConditionsToIoTHubTest() {
+        public async Task CanSendPendingConditionsToIoTHubTest()
+        {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync("./PublishedNodes/PendingAlarms.json", GetAlarmCondition).ConfigureAwait(false);
@@ -209,10 +223,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
         }
 
         [Fact]
-        public async Task CanSendDataItemToIoTHubTestWithDeviceMethod() {
+        public async Task CanSendDataItemToIoTHubTestWithDeviceMethod()
+        {
             var testInput = GetEndpointsFromFile("./PublishedNodes/DataItems.json");
             await StartPublisherAsync(arguments: new string[] { "--mm=FullSamples" }).ConfigureAwait(false); // Alternative to --fm=True
-            try {
+            try
+            {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
 
@@ -238,16 +254,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
             }
-            finally {
+            finally
+            {
                 StopPublisher();
             }
         }
 
         [Fact]
-        public async Task CanSendEventToIoTHubTestWithDeviceMethod() {
+        public async Task CanSendEventToIoTHubTestWithDeviceMethod()
+        {
             var testInput = GetEndpointsFromFile("./PublishedNodes/SimpleEvents.json");
             await StartPublisherAsync().ConfigureAwait(false);
-            try {
+            try
+            {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
 
@@ -272,16 +291,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
             }
-            finally {
+            finally
+            {
                 StopPublisher();
             }
         }
 
         [Fact]
-        public async Task CanSendPendingConditionsToIoTHubTestWithDeviceMethod() {
+        public async Task CanSendPendingConditionsToIoTHubTestWithDeviceMethod()
+        {
             var testInput = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
             await StartPublisherAsync().ConfigureAwait(false);
-            try {
+            try
+            {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
 
@@ -314,18 +336,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
             }
-            finally {
+            finally
+            {
                 StopPublisher();
             }
         }
 
         [Fact]
-        public async Task CanSendDataItemToIoTHubTestWithDeviceMethod2() {
+        public async Task CanSendDataItemToIoTHubTestWithDeviceMethod2()
+        {
             var testInput1 = GetEndpointsFromFile("./PublishedNodes/DataItems.json");
             var testInput2 = GetEndpointsFromFile("./PublishedNodes/SimpleEvents.json");
             var testInput3 = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
             await StartPublisherAsync().ConfigureAwait(false);
-            try {
+            try
+            {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
 
@@ -372,16 +397,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
                 var diag = Assert.Single(diagnostics);
                 Assert.Equal(e.EndpointUrl, diag.Endpoint.EndpointUrl);
             }
-            finally {
+            finally
+            {
                 StopPublisher();
             }
         }
 
         [Fact]
-        public async Task CanSendPendingConditionsToIoTHubTestWithDeviceMethod2() {
+        public async Task CanSendPendingConditionsToIoTHubTestWithDeviceMethod2()
+        {
             var testInput = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
             await StartPublisherAsync().ConfigureAwait(false);
-            try {
+            try
+            {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
 
@@ -436,17 +464,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
                 Assert.Empty(endpoints.Endpoints);
             }
-            finally {
+            finally
+            {
                 StopPublisher();
             }
         }
 
-        private JsonElement GetDataFrame(JsonElement jsonElement) {
+        private JsonElement GetDataFrame(JsonElement jsonElement)
+        {
             return jsonElement.GetProperty("NodeId").GetString() != "i=2253"
                     ? jsonElement : default;
         }
 
-        private static JsonElement GetAlarmCondition(JsonElement jsonElement) {
+        private static JsonElement GetAlarmCondition(JsonElement jsonElement)
+        {
             return jsonElement
                 .TryGetProperty("Value", out var node) && node
                 .TryGetProperty("SourceNode", out node) && node

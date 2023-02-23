@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models {
+namespace Azure.IIoT.OpcUa.Services.Models
+{
     using Furly.Extensions.Serializers;
     using System;
     using System.Runtime.Serialization;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Data value model
     /// </summary>
     [DataContract]
-    public class DataValueModel {
+    public class DataValueModel
+    {
         /// <summary>
         /// Value
         /// </summary>

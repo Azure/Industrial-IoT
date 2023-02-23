@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
+namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime
+{
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
@@ -12,7 +13,8 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
     /// <summary>
     /// Module configuration
     /// </summary>
-    public class ModuleConfig : ConfigBase {
+    public class ModuleConfig : ConfigBase
+    {
         /// <summary>
         /// Module configuration
         /// </summary>
@@ -58,7 +60,8 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public ModuleConfig(IConfiguration configuration = null) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

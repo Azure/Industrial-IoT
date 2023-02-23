@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
+    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
-    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -25,12 +26,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
-    public class PublishController : ControllerBase {
+    public class PublishController : ControllerBase
+    {
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="publisher"></param>
-        public PublishController(IPublishServices<string> publisher) {
+        public PublishController(IPublishServices<string> publisher)
+        {
             _publisher = publisher;
         }
 
@@ -47,8 +50,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The publish response</returns>
         [HttpPost("{endpointId}/start")]
         public async Task<PublishStartResponseModel> StartPublishingValuesAsync(
-            string endpointId, [FromBody][Required] PublishStartRequestModel request) {
-            if (request == null) {
+            string endpointId, [FromBody][Required] PublishStartRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _publisher.NodePublishStartAsync(
@@ -67,8 +72,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The bulk publish response</returns>
         [HttpPost("{endpointId}/bulk")]
         public async Task<PublishBulkResponseModel> BulkPublishValuesAsync(
-            string endpointId, [FromBody][Required] PublishBulkRequestModel request) {
-            if (request == null) {
+            string endpointId, [FromBody][Required] PublishBulkRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _publisher.NodePublishBulkAsync(
@@ -88,8 +95,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The unpublish response</returns>
         [HttpPost("{endpointId}/stop")]
         public async Task<PublishStopResponseModel> StopPublishingValuesAsync(
-            string endpointId, [FromBody][Required] PublishStopRequestModel request) {
-            if (request == null) {
+            string endpointId, [FromBody][Required] PublishStopRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _publisher.NodePublishStopAsync(
@@ -109,8 +118,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The list of published nodes</returns>
         [HttpPost("{endpointId}")]
         public async Task<PublishedItemListResponseModel> GetFirstListOfPublishedNodesAsync(
-            string endpointId, [FromBody][Required] PublishedItemListRequestModel request) {
-            if (request == null) {
+            string endpointId, [FromBody][Required] PublishedItemListRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _publisher.NodePublishListAsync(
@@ -131,12 +142,15 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpGet("{endpointId}")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<PublishedItemListResponseModel> GetNextListOfPublishedNodesAsync(
-            string endpointId, [FromQuery][Required] string continuationToken) {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
+            string endpointId, [FromQuery][Required] string continuationToken)
+        {
+            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
             }
             return await _publisher.NodePublishListAsync(endpointId,
-                new PublishedItemListRequestModel {
+                new PublishedItemListRequestModel
+                {
                     ContinuationToken = continuationToken
                 }).ConfigureAwait(false);
         }

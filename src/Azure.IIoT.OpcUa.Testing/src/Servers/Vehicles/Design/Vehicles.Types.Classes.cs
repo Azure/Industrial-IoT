@@ -27,11 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using Opc.Ua;
 using System;
 using System.Collections.Generic;
-using Opc.Ua;
 
-namespace Vehicles.Types {
+namespace Vehicles.Types
+{
     #region DriverState Class
 #if (!OPCUA_EXCLUDE_DriverState)
     /// <summary>
@@ -39,18 +40,21 @@ namespace Vehicles.Types {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class DriverState : BaseObjectState {
+    public partial class DriverState : BaseObjectState
+    {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public DriverState(NodeState parent) : base(parent) {
+        public DriverState(NodeState parent) : base(parent)
+        {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
+        {
             return Opc.Ua.NodeId.Create(Vehicles.Types.ObjectTypes.DriverType, Vehicles.Types.Namespaces.Vehicles, namespaceUris);
         }
 
@@ -58,7 +62,8 @@ namespace Vehicles.Types {
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context) {
+        protected override void Initialize(ISystemContext context)
+        {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -66,7 +71,8 @@ namespace Vehicles.Types {
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source) {
+        protected override void Initialize(ISystemContext context, NodeState source)
+        {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -74,7 +80,8 @@ namespace Vehicles.Types {
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context) {
+        protected override void InitializeOptionalChildren(ISystemContext context)
+        {
             base.InitializeOptionalChildren(context);
         }
 
@@ -99,13 +106,17 @@ namespace Vehicles.Types {
 
         #region Public Properties
         /// <remarks />
-        public PropertyState<VehicleType> PrimaryVehicle {
-            get {
+        public PropertyState<VehicleType> PrimaryVehicle
+        {
+            get
+            {
                 return m_primaryVehicle;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_primaryVehicle, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_primaryVehicle, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -114,13 +125,17 @@ namespace Vehicles.Types {
         }
 
         /// <remarks />
-        public PropertyState<VehicleType[]> OwnedVehicles {
-            get {
+        public PropertyState<VehicleType[]> OwnedVehicles
+        {
+            get
+            {
                 return m_ownedVehicles;
             }
 
-            set {
-                if (!Object.ReferenceEquals(m_ownedVehicles, value)) {
+            set
+            {
+                if (!Object.ReferenceEquals(m_ownedVehicles, value))
+                {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -137,12 +152,15 @@ namespace Vehicles.Types {
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children) {
-            if (m_primaryVehicle != null) {
+            IList<BaseInstanceState> children)
+        {
+            if (m_primaryVehicle != null)
+            {
                 children.Add(m_primaryVehicle);
             }
 
-            if (m_ownedVehicles != null) {
+            if (m_ownedVehicles != null)
+            {
                 children.Add(m_ownedVehicles);
             }
 
@@ -156,21 +174,29 @@ namespace Vehicles.Types {
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement) {
-            if (QualifiedName.IsNull(browseName)) {
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name) {
-                case Vehicles.Types.BrowseNames.PrimaryVehicle: {
-                        if (createOrReplace) {
-                            if (PrimaryVehicle == null) {
-                                if (replacement == null) {
+            switch (browseName.Name)
+            {
+                case Vehicles.Types.BrowseNames.PrimaryVehicle:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (PrimaryVehicle == null)
+                            {
+                                if (replacement == null)
+                                {
                                     PrimaryVehicle = new PropertyState<VehicleType>(this);
                                 }
-                                else {
+                                else
+                                {
                                     PrimaryVehicle = (PropertyState<VehicleType>)replacement;
                                 }
                             }
@@ -180,13 +206,18 @@ namespace Vehicles.Types {
                         break;
                     }
 
-                case Vehicles.Types.BrowseNames.OwnedVehicles: {
-                        if (createOrReplace) {
-                            if (OwnedVehicles == null) {
-                                if (replacement == null) {
+                case Vehicles.Types.BrowseNames.OwnedVehicles:
+                    {
+                        if (createOrReplace)
+                        {
+                            if (OwnedVehicles == null)
+                            {
+                                if (replacement == null)
+                                {
                                     OwnedVehicles = new PropertyState<VehicleType[]>(this);
                                 }
-                                else {
+                                else
+                                {
                                     OwnedVehicles = (PropertyState<VehicleType[]>)replacement;
                                 }
                             }
@@ -197,7 +228,8 @@ namespace Vehicles.Types {
                     }
             }
 
-            if (instance != null) {
+            if (instance != null)
+            {
                 return instance;
             }
 

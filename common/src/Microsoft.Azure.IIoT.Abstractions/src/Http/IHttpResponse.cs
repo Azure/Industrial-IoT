@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http {
+namespace Microsoft.Azure.IIoT.Http
+{
     using System.Net;
     using System.Net.Http.Headers;
 
     /// <summary>
     /// Response interface
     /// </summary>
-    public interface IHttpResponse {
+    public interface IHttpResponse
+    {
         /// <summary>
         /// Id of the resource that responded
         /// </summary>

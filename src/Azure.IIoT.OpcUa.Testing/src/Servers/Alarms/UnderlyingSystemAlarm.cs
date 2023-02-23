@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Alarms {
+namespace Alarms
+{
     using Opc.Ua;
     using System;
 
@@ -39,7 +40,8 @@ namespace Alarms {
     /// system has no concept of the UA information model and the NodeManager must
     /// convert the information stored in this class into the UA equivalent.
     /// </remarks>
-    public class UnderlyingSystemAlarm {
+    public class UnderlyingSystemAlarm
+    {
         /// <summary>
         /// The source that the alarm belongs to
         /// </summary>
@@ -132,7 +134,8 @@ namespace Alarms {
         /// Creates a snapshort of the alarm.
         /// </summary>
         /// <returns>The snapshot,</returns>
-        public UnderlyingSystemAlarm CreateSnapshot() {
+        public UnderlyingSystemAlarm CreateSnapshot()
+        {
             return (UnderlyingSystemAlarm)MemberwiseClone();
         }
 
@@ -142,8 +145,10 @@ namespace Alarms {
         /// <param name="bits">The bits.</param>
         /// <param name="isSet">if set to <c>true</c> the bits are set; otherwise they are cleared.</param>
         /// <returns>True if the state changed as a result of setting the bits.</returns>
-        public bool SetStateBits(UnderlyingSystemAlarmStates bits, bool isSet) {
-            if (isSet) {
+        public bool SetStateBits(UnderlyingSystemAlarmStates bits, bool isSet)
+        {
+            if (isSet)
+            {
                 var currentlySet = (State & bits) == bits;
                 State |= bits;
                 return !currentlySet;

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// <summary>
     /// Service model extensions for discovery service
     /// </summary>
-    public static class ApplicationInfoModelEx {
+    public static class ApplicationInfoModelEx
+    {
         /// <summary>
         /// Get logical equality comparer
         /// </summary>
@@ -23,12 +25,15 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static string CreateApplicationId(ApplicationInfoModel model) {
-            if (model == null) {
+        public static string CreateApplicationId(ApplicationInfoModel model)
+        {
+            if (model == null)
+            {
                 throw new ArgumentNullException(nameof(model));
             }
             var siteOrGatewayId = model.SiteId;
-            if (siteOrGatewayId == null && model.DiscovererId != null) {
+            if (siteOrGatewayId == null && model.DiscovererId != null)
+            {
                 siteOrGatewayId = PublisherModelEx.ParseDeviceId(model.DiscovererId, out _);
             }
             return CreateApplicationId(siteOrGatewayId, model.ApplicationUri,
@@ -43,8 +48,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="applicationType"></param>
         /// <returns></returns>
         public static string CreateApplicationId(string siteOrGatewayId,
-            string applicationUri, ApplicationType? applicationType) {
-            if (string.IsNullOrEmpty(applicationUri)) {
+            string applicationUri, ApplicationType? applicationType)
+        {
+            if (string.IsNullOrEmpty(applicationUri))
+            {
                 return null;
             }
             applicationUri = applicationUri.ToLowerInvariant();
@@ -61,18 +68,24 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="that"></param>
         /// <returns></returns>
         public static bool IsSameAs(this IEnumerable<ApplicationInfoModel> model,
-            IEnumerable<ApplicationInfoModel> that) {
-            if (model == that) {
+            IEnumerable<ApplicationInfoModel> that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
-            if (model.Count() != that.Count()) {
+            if (model.Count() != that.Count())
+            {
                 return false;
             }
-            foreach (var a in model) {
-                if (!that.Any(b => b.IsSameAs(a))) {
+            foreach (var a in model)
+            {
+                if (!that.Any(b => b.IsSameAs(a)))
+                {
                     return false;
                 }
             }
@@ -86,11 +99,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="that"></param>
         /// <returns></returns>
         public static bool IsSameAs(this ApplicationInfoModel model,
-            ApplicationInfoModel that) {
-            if (model == that) {
+            ApplicationInfoModel that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
             return
@@ -103,11 +119,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ApplicationInfoModel Clone(this ApplicationInfoModel model) {
-            if (model == null) {
+        public static ApplicationInfoModel Clone(this ApplicationInfoModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new ApplicationInfoModel {
+            return new ApplicationInfoModel
+            {
                 ApplicationId = model.ApplicationId,
                 ApplicationName = model.ApplicationName,
                 Locale = model.Locale,
@@ -139,8 +158,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="context"></param>
         /// <returns></returns>
         public static ApplicationRegistrationRequestModel ToRegistrationRequest(
-            this ApplicationInfoModel model, OperationContextModel context = null) {
-            return new ApplicationRegistrationRequestModel {
+            this ApplicationInfoModel model, OperationContextModel context = null)
+        {
+            return new ApplicationRegistrationRequestModel
+            {
                 ApplicationName = model.ApplicationName,
                 ApplicationType = model.ApplicationType,
                 Capabilities = model.Capabilities,
@@ -166,8 +187,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         public static ApplicationInfoModel ToApplicationInfo(
             this ApplicationRegistrationRequestModel request,
             OperationContextModel context,
-            bool disabled = true) {
-            return new ApplicationInfoModel {
+            bool disabled = true)
+        {
+            return new ApplicationInfoModel
+            {
                 ApplicationName = request.ApplicationName,
                 LocalizedNames = request.LocalizedNames,
                 ProductUri = request.ProductUri,
@@ -194,7 +217,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="application"></param>
         /// <param name="model"></param>
         public static ApplicationInfoModel Update(this ApplicationInfoModel application,
-            ApplicationInfoModel model) {
+            ApplicationInfoModel model)
+        {
             application.ApplicationId = model.ApplicationId;
             application.ApplicationName = model.ApplicationName;
             application.LocalizedNames = model.LocalizedNames;
@@ -221,36 +245,45 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="application"></param>
         /// <param name="request"></param>
         public static ApplicationInfoModel Patch(this ApplicationInfoModel application,
-            ApplicationRegistrationUpdateModel request) {
+            ApplicationRegistrationUpdateModel request)
+        {
             // Update from update request
-            if (request.ApplicationName != null) {
+            if (request.ApplicationName != null)
+            {
                 application.ApplicationName = string.IsNullOrEmpty(request.ApplicationName) ?
                     null : request.ApplicationName;
             }
-            if (request.LocalizedNames != null) {
+            if (request.LocalizedNames != null)
+            {
                 application.LocalizedNames = request.LocalizedNames;
             }
-            if (request.ProductUri != null) {
+            if (request.ProductUri != null)
+            {
                 application.ProductUri = string.IsNullOrEmpty(request.ProductUri) ?
                     null : request.ProductUri;
             }
-            if (request.GatewayServerUri != null) {
+            if (request.GatewayServerUri != null)
+            {
                 application.GatewayServerUri = string.IsNullOrEmpty(request.GatewayServerUri) ?
                     null : request.GatewayServerUri;
             }
-            if (request.Capabilities != null) {
+            if (request.Capabilities != null)
+            {
                 application.Capabilities = request.Capabilities.Count == 0 ?
                     null : request.Capabilities;
             }
-            if (request.DiscoveryUrls != null) {
+            if (request.DiscoveryUrls != null)
+            {
                 application.DiscoveryUrls = request.DiscoveryUrls.Count == 0 ?
                     null : request.DiscoveryUrls;
             }
-            if (request.Locale != null) {
+            if (request.Locale != null)
+            {
                 application.Locale = string.IsNullOrEmpty(request.Locale) ?
                     null : request.Locale;
             }
-            if (request.DiscoveryProfileUri != null) {
+            if (request.DiscoveryProfileUri != null)
+            {
                 application.DiscoveryProfileUri = string.IsNullOrEmpty(request.DiscoveryProfileUri) ?
                     null : request.DiscoveryProfileUri;
             }
@@ -262,8 +295,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static string GetSiteOrGatewayId(this ApplicationInfoModel model) {
-            if (string.IsNullOrEmpty(model.SiteId)) {
+        public static string GetSiteOrGatewayId(this ApplicationInfoModel model)
+        {
+            if (string.IsNullOrEmpty(model.SiteId))
+            {
                 return model.DiscovererId;
             }
             return model.SiteId;
@@ -273,23 +308,29 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// Compares for logical equality - applications are logically equivalent if they
         /// have the same uri, type, and site location or supervisor that registered.
         /// </summary>
-        private class LogicalComparer : IEqualityComparer<ApplicationInfoModel> {
+        private class LogicalComparer : IEqualityComparer<ApplicationInfoModel>
+        {
             /// <inheritdoc />
-            public bool Equals(ApplicationInfoModel x, ApplicationInfoModel y) {
-                if (x.GetSiteOrGatewayId() != y.GetSiteOrGatewayId()) {
+            public bool Equals(ApplicationInfoModel x, ApplicationInfoModel y)
+            {
+                if (x.GetSiteOrGatewayId() != y.GetSiteOrGatewayId())
+                {
                     return false;
                 }
-                if (x.ApplicationType != y.ApplicationType) {
+                if (x.ApplicationType != y.ApplicationType)
+                {
                     return false;
                 }
-                if (!x.ApplicationUri.EqualsIgnoreCase(y.ApplicationUri)) {
+                if (!x.ApplicationUri.EqualsIgnoreCase(y.ApplicationUri))
+                {
                     return false;
                 }
                 return true;
             }
 
             /// <inheritdoc />
-            public int GetHashCode(ApplicationInfoModel obj) {
+            public int GetHashCode(ApplicationInfoModel obj)
+            {
                 var hashCode = 1200389859;
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<ApplicationType?>.Default.GetHashCode(obj.ApplicationType);

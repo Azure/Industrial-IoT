@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http.Ssl {
+namespace Microsoft.Azure.IIoT.Http.Ssl
+{
     using Microsoft.Extensions.Logging;
     using System;
     using System.Net.Http.Headers;
@@ -13,14 +14,16 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
     /// <summary>
     /// Validates using pinned certificate
     /// </summary>
-    public class ThumbprintValidator : NoOpCertValidator {
+    public class ThumbprintValidator : NoOpCertValidator
+    {
         /// <summary>
         /// Create validator
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public ThumbprintValidator(IThumbprintValidatorConfig config,
-            ILogger logger) : this(config?.CertThumbprint, logger) {
+            ILogger logger) : this(config?.CertThumbprint, logger)
+        {
         }
 
         /// <summary>
@@ -28,16 +31,19 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
         /// </summary>
         /// <param name="thumbprint"></param>
         /// <param name="logger"></param>
-        public ThumbprintValidator(string thumbprint, ILogger logger) {
+        public ThumbprintValidator(string thumbprint, ILogger logger)
+        {
             _thumbprint = thumbprint ?? throw new ArgumentNullException(nameof(thumbprint));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public override bool Validate(HttpRequestHeaders headers,
-            X509Certificate2 cert, X509Chain chain, SslPolicyErrors? errors) {
+            X509Certificate2 cert, X509Chain chain, SslPolicyErrors? errors)
+        {
             var sslThumbprint = cert.Thumbprint.ToLowerInvariant();
-            if (sslThumbprint != _thumbprint) {
+            if (sslThumbprint != _thumbprint)
+            {
                 _logger.LogError(
                     "The remote endpoint is using an unknown/invalid SSL " +
                     "certificate, the thumbprint of the certificate doesn't " +

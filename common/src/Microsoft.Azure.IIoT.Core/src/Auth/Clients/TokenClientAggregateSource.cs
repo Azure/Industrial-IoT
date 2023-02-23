@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients {
+namespace Microsoft.Azure.IIoT.Auth.Clients
+{
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Extensions.Logging;
-    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -17,7 +18,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// Token client aggregator token source - combines token clients into a
     /// source for tokens for a particular resource.
     /// </summary>
-    public class TokenClientAggregateSource : ITokenSource {
+    public class TokenClientAggregateSource : ITokenSource
+    {
         /// <inheritdoc/>
         public string Resource { get; }
 
@@ -30,7 +32,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <param name="clients"></param>
         /// <param name="logger"></param>
         public TokenClientAggregateSource(IEnumerable<ITokenClient> clients, ILogger logger) :
-            this(Reorder(clients), Http.Resource.Platform, logger) {
+            this(Reorder(clients), Http.Resource.Platform, logger)
+        {
         }
 
         /// <summary>
@@ -42,7 +45,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <param name="prefer"></param>
         protected TokenClientAggregateSource(IEnumerable<ITokenClient> clients,
             string resource, ILogger logger, params ITokenClient[] prefer)
-            : this(Reorder(clients, prefer), resource, logger) {
+            : this(Reorder(clients, prefer), resource, logger)
+        {
         }
 
         /// <summary>
@@ -52,7 +56,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <param name="resource"></param>
         /// <param name="logger"></param>
         private TokenClientAggregateSource(List<ITokenClient> clients, string resource,
-            ILogger logger) {
+            ILogger logger)
+        {
             _clients = clients ?? throw new ArgumentNullException(nameof(clients));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             Resource = resource ?? throw new ArgumentNullException(nameof(resource));
@@ -60,24 +65,30 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
 
         /// <inheritdoc/>
         public virtual async Task<TokenResultModel> GetTokenAsync(
-            IEnumerable<string> scopes = null) {
+            IEnumerable<string> scopes = null)
+        {
             var exceptions = new List<Exception>();
-            foreach (var client in _clients) {
+            foreach (var client in _clients)
+            {
                 _logger.LogDebug("Try acquiring token for {Resource} using {Client}.",
                     Resource, client.GetType());
-                try {
+                try
+                {
                     var token = await client.GetTokenForAsync(Resource, scopes).ConfigureAwait(false);
-                    if (token != null) {
+                    if (token != null)
+                    {
                         _logger.LogDebug("Successfully acquired token for {Resource} using {Client}.",
                             Resource, client.GetType());
                         return token;
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     exceptions.Add(ex);
                 }
             }
-            if (exceptions.Count != 0) {
+            if (exceptions.Count != 0)
+            {
                 var aex = new AggregateException(exceptions).Flatten();
                 _logger.LogError(aex, "Failed to acquire a token for {Resource}.", Resource);
             }
@@ -85,7 +96,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         }
 
         /// <inheritdoc/>
-        public virtual Task InvalidateAsync() {
+        public virtual Task InvalidateAsync()
+        {
             return Try.Async(() => Task.WhenAll(_clients
                 .Select(p => p.InvalidateAsync(Resource))));
         }
@@ -97,8 +109,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <param name="prefer"></param>
         /// <returns></returns>
         private static List<ITokenClient> Reorder(IEnumerable<ITokenClient> clients,
-            params ITokenClient[] prefer) {
-            if (clients == null) {
+            params ITokenClient[] prefer)
+        {
+            if (clients == null)
+            {
                 return prefer?.ToList();
             }
             return prefer

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// <summary>
     /// Registry service events
     /// </summary>
-    public interface IRegistryServiceEvents {
+    public interface IRegistryServiceEvents
+    {
         /// <summary>
         /// Subscribe to application events
         /// </summary>

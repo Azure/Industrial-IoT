@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Pages {
-    using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.AspNetCore.Components;
+namespace Microsoft.Azure.IIoT.App.Pages
+{
     using global::Azure.IIoT.OpcUa.Shared.Models;
+    using Microsoft.AspNetCore.Components;
+    using Microsoft.Azure.IIoT.App.Models;
     using System.Threading.Tasks;
 
-    public partial class _DrawerPublisherContent {
+    public partial class _DrawerPublisherContent
+    {
         [Parameter]
         public ListNode NodeData { get; set; }
 
@@ -21,8 +23,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// OnInitialized
         /// </summary>
-        protected override void OnInitialized() {
-            if (NodeData.PublishedItem == null) {
+        protected override void OnInitialized()
+        {
+            if (NodeData.PublishedItem == null)
+            {
                 NodeData.PublishedItem = new PublishedItemModel();
             }
 
@@ -33,7 +37,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Close Drawer and update discovery
         /// </summary>
         /// <param name="discoverer"></param>
-        private async Task UpdatePublishedNodeConfigAsync() {
+        private async Task UpdatePublishedNodeConfigAsync()
+        {
             NodeData.TryUpdateData(InputData);
             await Onclick.InvokeAsync(NodeData).ConfigureAwait(false);
         }

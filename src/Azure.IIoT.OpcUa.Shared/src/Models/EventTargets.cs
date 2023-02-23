@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     /// <summary>
     /// Event target constants
     /// </summary>
-    public static class EventTargets {
+    public static class EventTargets
+    {
         /// <summary>
         /// Discovery progress event targets
         /// </summary>

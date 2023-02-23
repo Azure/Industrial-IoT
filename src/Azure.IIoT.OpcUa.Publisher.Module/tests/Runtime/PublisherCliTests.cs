@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
+{
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using FluentAssertions;
     using Microsoft.Azure.IIoT.Abstractions;
@@ -13,8 +14,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime {
     /// <summary>
     /// Class to test Cli options
     /// </summary>
-    public class PublisherCliTests {
-        public PublisherCliTests() {
+    public class PublisherCliTests
+    {
+        public PublisherCliTests()
+        {
             Environment.SetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID, "deviceId");
         }
 
@@ -28,7 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime {
         [InlineData("testValue", new string[] { "--ec", "testValue" })]
         [InlineData("testValue", new string[] { "-deviceconnectionstring", "testValue" })]
         [InlineData("testValue", new string[] { "--deviceconnectionstring", "testValue" })]
-        public void ValidOptionTest(string expected, string[] param) {
+        public void ValidOptionTest(string expected, string[] param)
+        {
             var result = new PublisherCliOptions(param);
 
             result.Count
@@ -57,7 +61,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime {
         [InlineData("False", new string[] { "--acceptuntrusted=False" })]
         [InlineData("True", new string[] { "--AutoAcceptUntrustedCertificates" })]
         [InlineData("True", new string[] { "--AutoAcceptUntrustedCertificates=True" })]
-        public void ValidAutoAcceptUntrustedCertificatesOptionTest(string expected, string[] param) {
+        public void ValidAutoAcceptUntrustedCertificatesOptionTest(string expected, string[] param)
+        {
             var result = new PublisherCliOptions(param);
 
             result.Count
@@ -78,7 +83,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime {
         [InlineData("tc|telemetryconfigfile", new string[] { "--tc", "testValue" })]
         [InlineData("tc|telemetryconfigfile", new string[] { "-telemetryconfigfile", "testValue" })]
         [InlineData("tc|telemetryconfigfile", new string[] { "--telemetryconfigfile", "testValue" })]
-        public void LegacyOptionTest(string cliOption, string[] param) {
+        public void LegacyOptionTest(string cliOption, string[] param)
+        {
             var result = new PublisherCliOptionsTest(param);
 
             result.Count.Should().Be(0);
@@ -99,14 +105,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime {
         [InlineData("--unknown")]
         [InlineData("-unknown", "testValue")]
         [InlineData("unknown=testValue")]
-        public void UnsupportedOptionTest(params string[] param) {
+        public void UnsupportedOptionTest(params string[] param)
+        {
             var result = new PublisherCliOptionsTest(param);
 
             result.Count.Should().Be(0);
 
             result.Warnings.Count.Should().Be(param.Length);
 
-            for (var i = 0; i < result.Warnings.Count; ++i) {
+            for (var i = 0; i < result.Warnings.Count; ++i)
+            {
                 var warning = result.Warnings[i];
                 warning.Should().Be(
                     "Option {option} wrong or not supported, please use -h option to get all the supported options."
@@ -123,7 +131,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime {
         [InlineData("--dc")]
         [InlineData("-deviceconnectionstring")]
         [InlineData("--deviceconnectionstring")]
-        public void MissingOptionParameterTest(params string[] param) {
+        public void MissingOptionParameterTest(params string[] param)
+        {
             var result = new PublisherCliOptionsTest(param);
 
             result.ExitCode.Should().Be(160);
@@ -140,7 +149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime {
         [InlineData(new object[] { new string[] { "--h" } })]
         [InlineData(new object[] { new string[] { "-help" } })]
         [InlineData(new object[] { new string[] { "--help" } })]
-        public void HelpOptionParameterTest(string[] param) {
+        public void HelpOptionParameterTest(string[] param)
+        {
             var result = new PublisherCliOptionsTest(param);
 
             result.ExitCode

@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients {
+namespace Microsoft.Azure.IIoT.Auth.Clients
+{
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Storage;
-    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -17,23 +18,29 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// <summary>
     /// Caching token provider
     /// </summary>
-    public class CachingTokenProvider : DefaultTokenProvider {
+    public class CachingTokenProvider : DefaultTokenProvider
+    {
         /// <inheritdoc/>
         public CachingTokenProvider(IEnumerable<ITokenSource> tokenSources,
-            ICache cache) : base(tokenSources) {
+            ICache cache) : base(tokenSources)
+        {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
         /// <inheritdoc/>
         public override async Task<TokenResultModel> GetTokenForAsync(
-            string resource, IEnumerable<string> scopes = null) {
-            if (string.IsNullOrEmpty(resource)) {
+            string resource, IEnumerable<string> scopes = null)
+        {
+            if (string.IsNullOrEmpty(resource))
+            {
                 resource = Http.Resource.Platform;
             }
             var token = await Try.Async(() => GetTokenFromCacheAsync(resource, scopes)).ConfigureAwait(false);
-            if (token == null) {
+            if (token == null)
+            {
                 token = await base.GetTokenForAsync(resource, scopes).ConfigureAwait(false);
-                if (token?.Cached == false) {
+                if (token?.Cached == false)
+                {
                     await Try.Async(() => _cache.SetAsync(GetKey(resource),
                         Encoding.UTF8.GetBytes(token.RawToken), token.ExpiresOn)).ConfigureAwait(false);
                 }
@@ -42,8 +49,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         }
 
         /// <inheritdoc/>
-        public override async Task InvalidateAsync(string resource) {
-            if (string.IsNullOrEmpty(resource)) {
+        public override async Task InvalidateAsync(string resource)
+        {
+            if (string.IsNullOrEmpty(resource))
+            {
                 resource = Http.Resource.Platform;
             }
             await _cache.RemoveAsync(GetKey(resource)).ConfigureAwait(false);
@@ -55,14 +64,19 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// </summary>
         /// <returns></returns>
         private async Task<TokenResultModel> GetTokenFromCacheAsync(string resource,
-            IEnumerable<string> scopes) {
+            IEnumerable<string> scopes)
+        {
             var cached = await _cache.GetAsync(GetKey(resource)).ConfigureAwait(false);
-            if (cached != null) {
+            if (cached != null)
+            {
                 var token = JwtSecurityTokenEx.Parse(Encoding.UTF8.GetString(cached));
-                if (token.ExpiresOn >= DateTimeOffset.UtcNow + TimeSpan.FromSeconds(30)) {
-                    if (scopes != null) {
+                if (token.ExpiresOn >= DateTimeOffset.UtcNow + TimeSpan.FromSeconds(30))
+                {
+                    if (scopes != null)
+                    {
                         // TODO: Check token has all scope is part of the token
-                        if (!scopes.All(scope => string.IsNullOrEmpty(scope))) {
+                        if (!scopes.All(scope => string.IsNullOrEmpty(scope)))
+                        {
                             return null;
                         }
                     }
@@ -77,7 +91,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// </summary>
         /// <param name="resource"></param>
         /// <returns></returns>
-        private string GetKey(string resource) {
+        private string GetKey(string resource)
+        {
             return resource + nameof(CachingTokenProvider);
         }
 

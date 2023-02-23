@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Config.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Collections.Generic;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
     /// <summary>
     /// Dataset source extensions
     /// </summary>
-    public static class OpcNodeModelEx {
+    public static class OpcNodeModelEx
+    {
         /// <summary>
         /// Get comparer class for OpcNodeModel objects.
         /// </summary>
@@ -21,59 +23,73 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary>
         /// Check if nodes are equal
         /// </summary>
-        public static bool IsSame(this OpcNodeModel model, OpcNodeModel that) {
-            if (model == that) {
+        public static bool IsSame(this OpcNodeModel model, OpcNodeModel that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
 
             if (!string.Equals(model.Id ?? string.Empty,
-                that.Id ?? string.Empty, StringComparison.OrdinalIgnoreCase)) {
+                that.Id ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
             }
 
             if (!string.Equals(model.DisplayName ?? string.Empty,
-                that.DisplayName ?? string.Empty, StringComparison.OrdinalIgnoreCase)) {
+                that.DisplayName ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
             }
 
             if (!string.Equals(model.DataSetFieldId ?? string.Empty,
-                that.DataSetFieldId ?? string.Empty, StringComparison.OrdinalIgnoreCase)) {
+                that.DataSetFieldId ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
             }
 
-            if (model.DataSetClassFieldId != that.DataSetClassFieldId) {
+            if (model.DataSetClassFieldId != that.DataSetClassFieldId)
+            {
                 return false;
             }
 
             if (!string.Equals(model.ExpandedNodeId,
-                that.ExpandedNodeId, StringComparison.OrdinalIgnoreCase)) {
+                that.ExpandedNodeId, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
             }
 
-            if (model.GetNormalizedPublishingInterval() != that.GetNormalizedPublishingInterval()) {
+            if (model.GetNormalizedPublishingInterval() != that.GetNormalizedPublishingInterval())
+            {
                 return false;
             }
 
-            if (model.GetNormalizedSamplingInterval() != that.GetNormalizedSamplingInterval()) {
+            if (model.GetNormalizedSamplingInterval() != that.GetNormalizedSamplingInterval())
+            {
                 return false;
             }
 
-            if (model.GetNormalizedHeartbeatInterval() != that.GetNormalizedHeartbeatInterval()) {
+            if (model.GetNormalizedHeartbeatInterval() != that.GetNormalizedHeartbeatInterval())
+            {
                 return false;
             }
 
-            if ((model.SkipFirst ?? false) != (that.SkipFirst ?? false)) {
+            if ((model.SkipFirst ?? false) != (that.SkipFirst ?? false))
+            {
                 return false;
             }
 
-            if ((model.DiscardNew ?? false) != (that.DiscardNew ?? false)) {
+            if ((model.DiscardNew ?? false) != (that.DiscardNew ?? false))
+            {
                 return false;
             }
 
-            if (model.QueueSize != that.QueueSize) {
+            if (model.QueueSize != that.QueueSize)
+            {
                 return false;
             }
 
@@ -82,20 +98,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
             // to be set specifically to enable a user to force a data filter to be
             // applied (otherwise it is not if nothing else is set)
             //
-            if (model.DataChangeTrigger != that.DataChangeTrigger) {
+            if (model.DataChangeTrigger != that.DataChangeTrigger)
+            {
                 return false;
             }
 
             // Null is None == no deadband
-            if (model.DeadbandType != that.DeadbandType) {
+            if (model.DeadbandType != that.DeadbandType)
+            {
                 return false;
             }
 
-            if (model.DeadbandValue != that.DeadbandValue) {
+            if (model.DeadbandValue != that.DeadbandValue)
+            {
                 return false;
             }
 
-            if (!model.EventFilter.IsSameAs(that.EventFilter)) {
+            if (!model.EventFilter.IsSameAs(that.EventFilter))
+            {
                 return false;
             }
 
@@ -105,7 +125,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary>
         /// Returns the hashcode for a node
         /// </summary>
-        public static int GetHashCode(this OpcNodeModel model) {
+        public static int GetHashCode(this OpcNodeModel model)
+        {
             var hash = new HashCode();
             hash.Add(model.Id);
             hash.Add(model.DisplayName);
@@ -118,7 +139,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.SkipFirst ?? false);
             hash.Add(model.DiscardNew ?? false);
             hash.Add(model.QueueSize);
-            if (model.DataChangeTrigger == null) {
+            if (model.DataChangeTrigger == null)
+            {
                 //
                 // Null is default and equals to StatusValue, but we allow StatusValue == 1
                 // to be set specifically to enable a user to force a data filter to be
@@ -126,15 +148,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
                 //
                 hash.Add(-1);
             }
-            else {
+            else
+            {
                 hash.Add(model.DataChangeTrigger);
             }
             hash.Add(model.DeadbandValue);
-            if (model.DeadbandType == null) {
+            if (model.DeadbandType == null)
+            {
                 // Null is None == no deadband
                 hash.Add(-1);
             }
-            else {
+            else
+            {
                 hash.Add(model.DeadbandType);
             }
             return hash.ToHashCode();
@@ -145,7 +170,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// </summary>
         /// <returns></returns>
         public static TimeSpan? GetNormalizedHeartbeatInterval(
-            this OpcNodeModel model, TimeSpan? defaultHeatbeatTimespan = null) {
+            this OpcNodeModel model, TimeSpan? defaultHeatbeatTimespan = null)
+        {
             return model.HeartbeatIntervalTimespan
                 .GetTimeSpanFromSeconds(model.HeartbeatInterval, defaultHeatbeatTimespan);
         }
@@ -154,7 +180,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// Retrieves the timespan flavor of a node's PublishingInterval
         /// </summary>
         public static TimeSpan? GetNormalizedPublishingInterval(
-            this OpcNodeModel model, TimeSpan? defaultPublishingTimespan = null) {
+            this OpcNodeModel model, TimeSpan? defaultPublishingTimespan = null)
+        {
             return model.OpcPublishingIntervalTimespan
                 .GetTimeSpanFromMiliseconds(model.OpcPublishingInterval, defaultPublishingTimespan);
         }
@@ -163,7 +190,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// Retrieves the timespan flavor of a node's SamplingInterval
         /// </summary>
         public static TimeSpan? GetNormalizedSamplingInterval(
-            this OpcNodeModel model, TimeSpan? defaultSamplingTimespan = null) {
+            this OpcNodeModel model, TimeSpan? defaultSamplingTimespan = null)
+        {
             return model.OpcSamplingIntervalTimespan
                 .GetTimeSpanFromMiliseconds(model.OpcSamplingInterval, defaultSamplingTimespan);
         }
@@ -175,7 +203,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
         public static TimeSpan? GetTimeSpanFromSeconds(
             this TimeSpan? timespan,
             int? seconds,
-            TimeSpan? defaultTimespan = null) {
+            TimeSpan? defaultTimespan = null)
+        {
             return timespan.HasValue
                 ? timespan
                 : seconds.HasValue
@@ -190,7 +219,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
         public static TimeSpan? GetTimeSpanFromMiliseconds(
             this TimeSpan? timespan,
             int? miliseconds,
-            TimeSpan? defaultTimespan = null) {
+            TimeSpan? defaultTimespan = null)
+        {
             return timespan.HasValue
                 ? timespan
                 : miliseconds.HasValue
@@ -201,14 +231,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary>
         /// Equality comparer for OpcNodeModel objects.
         /// </summary>
-        private class OpcNodeModelComparer : EqualityComparer<OpcNodeModel> {
+        private class OpcNodeModelComparer : EqualityComparer<OpcNodeModel>
+        {
             /// <inheritdoc/>
-            public override bool Equals(OpcNodeModel node1, OpcNodeModel node2) {
+            public override bool Equals(OpcNodeModel node1, OpcNodeModel node2)
+            {
                 return node1.IsSame(node2);
             }
 
             /// <inheritdoc/>
-            public override int GetHashCode(OpcNodeModel node) {
+            public override int GetHashCode(OpcNodeModel node)
+            {
                 return OpcNodeModelEx.GetHashCode(node);
             }
         }

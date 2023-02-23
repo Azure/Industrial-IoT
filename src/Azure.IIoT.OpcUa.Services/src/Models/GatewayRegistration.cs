@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models {
+namespace Azure.IIoT.OpcUa.Services.Models
+{
     using Microsoft.Azure.IIoT.Hub;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Edge gateway registration
     /// </summary>
     [DataContract]
-    public sealed class GatewayRegistration : EntityRegistration {
+    public sealed class GatewayRegistration : EntityRegistration
+    {
         /// <inheritdoc/>
         [DataMember]
         public override string DeviceType => IdentityType.Gateway;
@@ -21,12 +23,14 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// Create registration - for testing purposes
         /// </summary>
         /// <param name="deviceId"></param>
-        public GatewayRegistration(string deviceId = null) {
+        public GatewayRegistration(string deviceId = null)
+        {
             DeviceId = deviceId;
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) {
+        public override bool Equals(object obj)
+        {
             var registration = obj as GatewayRegistration;
             return base.Equals(registration);
         }
@@ -40,11 +44,13 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             GatewayRegistration r2) => !(r1 == r2);
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return base.GetHashCode();
         }
 
-        internal bool IsConnected() {
+        internal bool IsConnected()
+        {
             return Connected;
         }
     }

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Endpoint info
     /// </summary>
     [DataContract]
-    public sealed record class EndpointInfoModel {
+    public sealed record class EndpointInfoModel
+    {
         /// <summary>
         /// Endpoint registration
         /// </summary>

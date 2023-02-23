@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests
+{
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Xunit;
 
     [CollectionDefinition(Name)]
-    public class ReadCollection : ICollectionFixture<TestServerFixture> {
+    public class ReadCollection : ICollectionFixture<TestServerFixture>
+    {
         public const string Name = "Read";
     }
 }

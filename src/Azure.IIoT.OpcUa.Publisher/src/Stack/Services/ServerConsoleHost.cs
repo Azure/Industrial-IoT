@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
+{
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Furly.Exceptions;
     using Microsoft.Extensions.Logging;
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     /// <summary>
     /// Console host for servers
     /// </summary>
-    public class ServerConsoleHost : IServerHost {
+    public class ServerConsoleHost : IServerHost
+    {
         /// <inheritdoc/>
         public X509Certificate2 Certificate { get; private set; }
         /// <inheritdoc/>
@@ -31,33 +33,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="logger"></param>
-        public ServerConsoleHost(IServerFactory factory, ILogger logger) {
+        public ServerConsoleHost(IServerFactory factory, ILogger logger)
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync() {
-            if (_server != null) {
+        public async Task StopAsync()
+        {
+            if (_server != null)
+            {
                 await _lock.WaitAsync().ConfigureAwait(false);
-                try {
-                    if (_server != null) {
+                try
+                {
+                    if (_server != null)
+                    {
                         _logger.LogInformation("Stopping server.");
-                        try {
+                        try
+                        {
                             _server.Stop();
                         }
                         catch (OperationCanceledException) { }
-                        catch (Exception se) {
+                        catch (Exception se)
+                        {
                             _logger.LogError(se, "Server not cleanly stopped.");
                         }
                         _server.Dispose();
                     }
                     _logger.LogInformation("Server stopped.");
                 }
-                catch (Exception ce) {
+                catch (Exception ce)
+                {
                     _logger.LogError(ce, "Stopping server caused exception.");
                 }
-                finally {
+                finally
+                {
                     _server = null;
                     Certificate = null;
                     _lock.Release();
@@ -66,22 +77,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync(IEnumerable<int> ports) {
-            if (_server == null) {
+        public async Task StartAsync(IEnumerable<int> ports)
+        {
+            if (_server == null)
+            {
                 await _lock.WaitAsync().ConfigureAwait(false);
-                try {
-                    if (_server == null) {
+                try
+                {
+                    if (_server == null)
+                    {
                         await StartServerInternalAsync(ports, PkiRootPath).ConfigureAwait(false);
                         return;
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _logger.LogError(ex, "Starting server caused exception.");
                     _server?.Dispose();
                     _server = null;
                     throw;
                 }
-                finally {
+                finally
+                {
                     _lock.Release();
                 }
             }
@@ -89,7 +106,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             StopAsync().Wait();
             _lock.Dispose();
         }
@@ -100,7 +118,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <param name="ports"></param>
         /// <param name="pkiRootPath"></param>
         /// <returns></returns>
-        private async Task StartServerInternalAsync(IEnumerable<int> ports, string pkiRootPath) {
+        private async Task StartServerInternalAsync(IEnumerable<int> ports, string pkiRootPath)
+        {
             ApplicationInstance.MessageDlg = new DummyDialog();
 
             var config = _factory.CreateServer(ports, pkiRootPath, out _server);
@@ -119,13 +138,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             var hasAppCertificate =
                 await application.CheckApplicationInstanceCertificate(true,
                     CertificateFactory.DefaultKeySize).ConfigureAwait(false);
-            if (!hasAppCertificate) {
+            if (!hasAppCertificate)
+            {
                 _logger.LogError("Failed validating own certificate!");
                 throw new InvalidConfigurationException("Application instance certificate invalid!");
             }
 
-            config.CertificateValidator.CertificateValidation += (v, e) => {
-                if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
+            config.CertificateValidator.CertificateValidation += (v, e) =>
+            {
+                if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+                {
                     e.Accept = AutoAccept;
                     _logger.LogInformation("{Action} Certificate {Subject}",
                         e.Accept ? "Accepted" : "Rejected", e.Certificate.Subject);
@@ -135,11 +157,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             await config.CertificateValidator.Update(config.SecurityConfiguration).ConfigureAwait(false);
 
             // Set Certificate
-            try {
+            try
+            {
                 // just take the public key
                 Certificate = new X509Certificate2(config.SecurityConfiguration.ApplicationCertificate.Certificate.RawData);
             }
-            catch {
+            catch
+            {
                 Certificate = config.SecurityConfiguration.ApplicationCertificate.Certificate;
             }
 
@@ -147,18 +171,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             // start the server.
             await application.Start(_server).ConfigureAwait(false);
 
-            foreach (var ep in config.ServerConfiguration.BaseAddresses) {
+            foreach (var ep in config.ServerConfiguration.BaseAddresses)
+            {
                 _logger.LogInformation("Listening on {Endpoint}", ep);
             }
             _logger.LogInformation("Server started.");
         }
 
         /// <inheritdoc/>
-        private class DummyDialog : IApplicationMessageDlg {
+        private class DummyDialog : IApplicationMessageDlg
+        {
             /// <inheritdoc/>
             public override void Message(string text, bool ask) { }
             /// <inheritdoc/>
-            public override Task<bool> ShowAsync() {
+            public override Task<bool> ShowAsync()
+            {
                 return Task.FromResult(true);
             }
         }

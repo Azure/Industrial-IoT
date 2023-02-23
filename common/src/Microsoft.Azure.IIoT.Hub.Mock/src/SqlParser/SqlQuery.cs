@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
-    using Microsoft.Azure.IIoT.Hub.Models;
+namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser
+{
     using Antlr4.Runtime;
     using Antlr4.Runtime.Tree;
     using Furly.Extensions.Serializers;
+    using Microsoft.Azure.IIoT.Hub.Models;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -17,11 +18,13 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
     /// <summary>
     /// Mock device registry query processor
     /// </summary>
-    internal sealed class SqlQuery {
+    internal sealed class SqlQuery
+    {
         /// <summary>
         /// Create Registry
         /// </summary>
-        public SqlQuery(IIoTHub hub, IJsonSerializer serializer) {
+        public SqlQuery(IIoTHub hub, IJsonSerializer serializer)
+        {
             _hub = hub;
             _serializer = serializer;
         }
@@ -31,7 +34,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="sqlSelectString"></param>
         /// <returns></returns>
-        public IEnumerable<VariantValue> Query(string sqlSelectString) {
+        public IEnumerable<VariantValue> Query(string sqlSelectString)
+        {
             // Parse
             var lexer = new SqlSelectLexer(new AntlrInputStream(sqlSelectString));
             lexer.RemoveErrorListeners();
@@ -42,12 +46,14 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
             var context = parser.parse();
 
             // Select
-            if (context.collection()?.DEVICES_MODULES() != null) {
+            if (context.collection()?.DEVICES_MODULES() != null)
+            {
                 return Project(Select(
                     _hub.Modules.Select(m => m.Twin), context)
                         .Select(o => _serializer.FromObject(o)), context);
             }
-            if (context.collection()?.DEVICES() != null) {
+            if (context.collection()?.DEVICES() != null)
+            {
                 return Project(Select(
                     _hub.Devices.Select(d => d.Twin), context)
                         .Select(o => _serializer.FromObject(o)), context);
@@ -63,18 +69,21 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="context"></param>
         /// <returns></returns>
         private IEnumerable<T> Select<T>(IEnumerable<T> records,
-            SqlSelectParser.ParseContext context) {
+            SqlSelectParser.ParseContext context)
+        {
             var pe = Expression.Parameter(typeof(T));
 
             // Top
-            if (context.selectList().topExpr() != null) {
+            if (context.selectList().topExpr() != null)
+            {
                 var maxCount = double.Parse(context.selectList().topExpr().maxCount().GetText(),
                     CultureInfo.InvariantCulture);
                 records = records.Take((int)maxCount);
             }
 
             // Where
-            if (context.expr() != null) {
+            if (context.expr() != null)
+            {
                 var where = (Expression<Func<T, bool>>)Expression.Lambda(
                     ParseWhereExpression(pe, context.expr()), pe);
                 var compiled = where.Compile();
@@ -91,8 +100,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="context"></param>
         /// <returns></returns>
         private static IEnumerable<VariantValue> Project(IEnumerable<VariantValue> records,
-            SqlSelectParser.ParseContext context) {
-            if (context == null) {
+            SqlSelectParser.ParseContext context)
+        {
+            if (context == null)
+            {
                 throw new ArgumentNullException(nameof(context));
             }
 
@@ -107,14 +118,17 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="context"></param>
         /// <returns></returns>
         private Expression<Func<VariantValue, VariantValue>> ParseScalarLambda(
-            SqlSelectParser.ScalarFunctionContext context) {
-            if (context.STARTS_WITH() != null) {
+            SqlSelectParser.ScalarFunctionContext context)
+        {
+            if (context.STARTS_WITH() != null)
+            {
                 return s => _serializer.FromObject(
                     ((string)s).StartsWith(ParseStringValue(context.STRING_LITERAL()),
                         StringComparison.Ordinal));
             }
 
-            if (context.ENDS_WITH() != null) {
+            if (context.ENDS_WITH() != null)
+            {
                 return s => _serializer.FromObject(
                     ((string)s).EndsWith(ParseStringValue(context.STRING_LITERAL()),
                         StringComparison.Ordinal));
@@ -128,23 +142,30 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="context"></param>
         /// <returns></returns>
         private Expression<Func<VariantValue, VariantValue>> ParseScalarLambda(
-            SqlSelectParser.ScalarTypeFunctionContext context) {
-            if (context.IS_DEFINED() != null) {
+            SqlSelectParser.ScalarTypeFunctionContext context)
+        {
+            if (context.IS_DEFINED() != null)
+            {
                 return s => _serializer.FromObject(s != null);
             }
-            if (context.IS_NULL() != null) {
+            if (context.IS_NULL() != null)
+            {
                 return s => _serializer.FromObject(s != null && s.IsNull());
             }
-            if (context.IS_BOOL() != null) {
+            if (context.IS_BOOL() != null)
+            {
                 return s => _serializer.FromObject(s != null && s.IsBoolean);
             }
-            if (context.IS_NUMBER() != null) {
+            if (context.IS_NUMBER() != null)
+            {
                 return s => _serializer.FromObject(s != null && s.IsDecimal);
             }
-            if (context.IS_STRING() != null) {
+            if (context.IS_STRING() != null)
+            {
                 return s => _serializer.FromObject(s != null && s.IsString);
             }
-            if (context.IS_OBJECT() != null) {
+            if (context.IS_OBJECT() != null)
+            {
                 return s => _serializer.FromObject(s != null && s.IsObject);
             }
             return s => _serializer.FromObject(true);
@@ -157,27 +178,33 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="context"></param>
         /// <returns></returns>
         private Expression ParseWhereExpression(ParameterExpression parameter,
-            SqlSelectParser.ExprContext context) {
-            if (context.NOT() != null) {
+            SqlSelectParser.ExprContext context)
+        {
+            if (context.NOT() != null)
+            {
                 return Expression.Not(
                     ParseWhereExpression(parameter, context.expr(0)));
             }
-            if (context.AND() != null) {
+            if (context.AND() != null)
+            {
                 return Expression.And(
                     ParseWhereExpression(parameter, context.expr(0)),
                     ParseWhereExpression(parameter, context.expr(1)));
             }
-            if (context.OR() != null) {
+            if (context.OR() != null)
+            {
                 return Expression.Or(
                     ParseWhereExpression(parameter, context.expr(0)),
                     ParseWhereExpression(parameter, context.expr(1)));
             }
 
-            if (context.scalarFunction() != null) {
+            if (context.scalarFunction() != null)
+            {
                 return ParseScalarFunction(parameter, context);
             }
 
-            if (context.BR_OPEN() != null) {
+            if (context.BR_OPEN() != null)
+            {
                 return ParseWhereExpression(parameter, context.expr(0));
             }
             return ParseComparisonExpression(parameter, context);
@@ -190,7 +217,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="context"></param>
         /// <returns></returns>
         private Expression ParseScalarFunction(ParameterExpression parameter,
-            SqlSelectParser.ExprContext context) {
+            SqlSelectParser.ExprContext context)
+        {
             var scalarFunctionContext = context.scalarFunction();
 
             var expr = scalarFunctionContext.scalarTypeFunction() != null ?
@@ -213,18 +241,22 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="context"></param>
         /// <returns></returns>
         private Expression ParseComparisonExpression(ParameterExpression parameter,
-            SqlSelectParser.ExprContext context) {
+            SqlSelectParser.ExprContext context)
+        {
             var lhs = ParseParameterBinding(parameter, context.columnName(0));
             Expression rhs;
-            if (context.columnName().Length > 1) {
+            if (context.columnName().Length > 1)
+            {
                 rhs = ParseParameterBinding(parameter, context.columnName(1));
             }
-            else if (context.array_literal() != null) {
+            else if (context.array_literal() != null)
+            {
                 rhs = Expression.Constant(context.array_literal().literal_value()
                     .Select(ParseLiteralValue)
                     .ToArray());
             }
-            else {
+            else
+            {
                 rhs = Expression.Constant(ParseLiteralValue(context.literal_value()));
             }
             return CreateBinaryExpression(context.COMPARISON_OPERATOR().GetText(), lhs, rhs);
@@ -236,8 +268,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="identifier"></param>
         /// <returns></returns>
         private Expression<Func<DeviceTwinModel, string, VariantValue>> CreateBindingLambda(
-            string identifier) {
-            switch (identifier.ToLowerInvariant()) {
+            string identifier)
+        {
+            switch (identifier.ToLowerInvariant())
+            {
                 case "tags":
                     return (t, s) => GetByPath(t.Tags, s);
                 case "deviceid":
@@ -269,8 +303,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="target"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        private VariantValue GetByPath<T>(T target, string path) where T : class {
-            if (target == null) {
+        private VariantValue GetByPath<T>(T target, string path) where T : class
+        {
+            if (target == null)
+            {
                 return null;
             }
             var root = _serializer.FromObject(target);
@@ -285,8 +321,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="aggregateResultColumnNames"></param>
         /// <returns></returns>
         private Expression ParseParameterBinding(ParameterExpression parameter,
-            SqlSelectParser.ColumnNameContext context, List<string> aggregateResultColumnNames = null) {
-            if (aggregateResultColumnNames != null) {
+            SqlSelectParser.ColumnNameContext context, List<string> aggregateResultColumnNames = null)
+        {
+            if (aggregateResultColumnNames != null)
+            {
                 // ...
             }
             //    var property = new QueryProperty {
@@ -302,7 +340,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
 
             var identifiers = context.propertyName().IDENTIFIER().AsEnumerable();
             var root = ParseIdentifier(identifiers.First());
-            if (root.Equals("properties", StringComparison.OrdinalIgnoreCase) && identifiers.Count() > 2) {
+            if (root.Equals("properties", StringComparison.OrdinalIgnoreCase) && identifiers.Count() > 2)
+            {
                 identifiers = identifiers.Skip(1);
                 root = ParseIdentifier(identifiers.First());
             }
@@ -317,8 +356,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="lhs"></param>
         /// <param name="rhs"></param>
         /// <returns></returns>
-        private static Expression CreateBinaryExpression(string op, Expression lhs, Expression rhs) {
-            switch (op.ToLowerInvariant()) {
+        private static Expression CreateBinaryExpression(string op, Expression lhs, Expression rhs)
+        {
+            switch (op.ToLowerInvariant())
+            {
                 case "=":
                     return Expression.Equal(lhs, rhs);
                 case "!=":
@@ -346,13 +387,16 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="identifierNode"></param>
         /// <returns></returns>
-        private string ParseIdentifier(ITerminalNode identifierNode) {
-            if (identifierNode == null) {
+        private string ParseIdentifier(ITerminalNode identifierNode)
+        {
+            if (identifierNode == null)
+            {
                 return null;
             }
             var identifier = identifierNode.GetText();
             if (identifier.StartsWith("[[", StringComparison.OrdinalIgnoreCase) &&
-                identifier.EndsWith("]]", StringComparison.OrdinalIgnoreCase)) {
+                identifier.EndsWith("]]", StringComparison.OrdinalIgnoreCase))
+            {
                 return identifier.Substring(2, identifier.Length - 4);
             }
             return identifier;
@@ -363,7 +407,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private VariantValue ParseLiteralValue(SqlSelectParser.Literal_valueContext context) {
+        private VariantValue ParseLiteralValue(SqlSelectParser.Literal_valueContext context)
+        {
             return context.object_literal() != null ?
                 ParseObjectLiteralValue(context.object_literal()) :
                 ParseScalarLiteralValue(context.scalar_literal());
@@ -375,9 +420,11 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="context"></param>
         /// <returns></returns>
         private VariantValue ParseObjectLiteralValue(
-            SqlSelectParser.Object_literalContext context) {
+            SqlSelectParser.Object_literalContext context)
+        {
             var result = new Dictionary<string, VariantValue>();
-            foreach (var kvpContext in context.keyValuePair()) {
+            foreach (var kvpContext in context.keyValuePair())
+            {
                 var key = ParseIdentifier(kvpContext.IDENTIFIER());
                 var value = kvpContext.scalar_literal() != null
                     ? ParseScalarLiteralValue(kvpContext.scalar_literal())
@@ -393,15 +440,19 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private VariantValue ParseScalarLiteralValue(SqlSelectParser.Scalar_literalContext context) {
-            if (context.BOOLEAN() != null) {
+        private VariantValue ParseScalarLiteralValue(SqlSelectParser.Scalar_literalContext context)
+        {
+            if (context.BOOLEAN() != null)
+            {
                 return _serializer.FromObject(bool.Parse(context.BOOLEAN().GetText()));
             }
-            if (context.NUMERIC_LITERAL() != null) {
+            if (context.NUMERIC_LITERAL() != null)
+            {
                 return _serializer.FromObject(double.Parse(context.NUMERIC_LITERAL().GetText(),
                     CultureInfo.InvariantCulture));
             }
-            if (context.STRING_LITERAL() != null) {
+            if (context.STRING_LITERAL() != null)
+            {
                 return _serializer.FromObject(ParseStringValue(context.STRING_LITERAL()));
             }
             return null;
@@ -412,16 +463,19 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="stringLiteralContext"></param>
         /// <returns></returns>
-        private static string ParseStringValue(ITerminalNode stringLiteralContext) {
+        private static string ParseStringValue(ITerminalNode stringLiteralContext)
+        {
             return stringLiteralContext.GetText().TrimQuotes();
         }
 
         /// <summary>
         /// Error callback
         /// </summary>
-        private class RaiseException<T> : IAntlrErrorListener<T> {
+        private class RaiseException<T> : IAntlrErrorListener<T>
+        {
             public void SyntaxError(IRecognizer recognizer, T offendingSymbol,
-                int line, int charPositionInLine, string msg, RecognitionException e) {
+                int line, int charPositionInLine, string msg, RecognitionException e)
+            {
                 throw new FormatException(
                     $"{offendingSymbol} at #{line}:{charPositionInLine} : {msg} ", e);
             }

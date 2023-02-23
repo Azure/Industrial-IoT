@@ -3,33 +3,38 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services {
-    using Azure.IIoT.OpcUa.Publisher;
+namespace Azure.IIoT.OpcUa.Publisher.Services
+{
     using Autofac;
+    using Autofac.Core.Lifetime;
+    using Azure.IIoT.OpcUa.Publisher;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Diagnostics;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
-    using Furly.Extensions.Serializers;
-    using Autofac.Core.Lifetime;
 
     /// <summary>
     /// Container builder for data set writer jobs
     /// </summary>
-    public class WriterGroupScopeFactory : IWriterGroupScopeFactory {
+    public class WriterGroupScopeFactory : IWriterGroupScopeFactory
+    {
         /// <summary>
         /// Create job scope factory
         /// </summary>
         /// <param name="lifetimeScope"></param>
-        public WriterGroupScopeFactory(ILifetimeScope lifetimeScope) {
+        public WriterGroupScopeFactory(ILifetimeScope lifetimeScope)
+        {
             _lifetimeScope = lifetimeScope;
             lifetimeScope.TryResolve(out _collector);
         }
 
         /// <inheritdoc/>
-        public IWriterGroupScope Create(IWriterGroupConfig config) {
-            if (config is null) {
+        public IWriterGroupScope Create(IWriterGroupConfig config)
+        {
+            if (config is null)
+            {
                 throw new ArgumentNullException(nameof(config));
             }
             return new WriterGroupScope(this, config, _lifetimeScope.Resolve<IJsonSerializer>());
@@ -39,7 +44,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Scope wrapper
         /// </summary>
         private sealed class WriterGroupScope : IWriterGroupScope, IMetricsContext,
-            IWriterGroupDiagnostics {
+            IWriterGroupDiagnostics
+        {
             /// <inheritdoc/>
             public IWriterGroup WriterGroup => _scope.Resolve<IWriterGroup>();
 
@@ -53,7 +59,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// <param name="config"></param>
             /// <param name="serializer"></param>
             public WriterGroupScope(WriterGroupScopeFactory outer, IWriterGroupConfig config,
-                IJsonSerializer serializer) {
+                IJsonSerializer serializer)
+            {
                 _writerGroup = config.WriterGroup?.WriterGroupId ?? Constants.DefaultWriterGroupId;
                 _outer = outer;
 
@@ -67,7 +74,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                         CultureInfo.InvariantCulture))
                 });
 
-                _scope = _outer._lifetimeScope.BeginLifetimeScope(builder => {
+                _scope = _outer._lifetimeScope.BeginLifetimeScope(builder =>
+                {
                     // Register job configuration
                     builder.RegisterInstance(config)
                         .AsImplementedInterfaces();
@@ -94,12 +102,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             }
 
             /// <inheritdoc/>
-            public void ResetWriterGroupDiagnostics() {
+            public void ResetWriterGroupDiagnostics()
+            {
                 _outer._collector?.ResetWriterGroup(_writerGroup);
             }
 
             /// <inheritdoc/>
-            public void Dispose() {
+            public void Dispose()
+            {
                 _outer._collector?.RemoveWriterGroup(_writerGroup);
                 _scope.Dispose();
             }

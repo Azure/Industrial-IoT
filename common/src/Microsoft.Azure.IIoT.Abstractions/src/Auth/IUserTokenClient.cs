@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
+namespace Microsoft.Azure.IIoT.AspNetCore.Auth
+{
     using Microsoft.Azure.IIoT.Auth.Models;
     using System.Collections.Generic;
     using System.Security.Claims;
@@ -12,7 +13,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     /// <summary>
     /// Code redemption and user token cache support
     /// </summary>
-    public interface IUserTokenClient {
+    public interface IUserTokenClient
+    {
         /// <summary>
         /// Provider name
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Exceptions {
+namespace Microsoft.Azure.IIoT.Exceptions
+{
     using System;
 
     /// <summary>
@@ -12,19 +13,23 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     /// identifier. The client should change the identifier or assume the
     /// resource has already been created.
     /// </summary>
-    public class ConflictingResourceException : Exception {
+    public class ConflictingResourceException : Exception
+    {
         /// <inheritdoc />
-        public ConflictingResourceException() {
+        public ConflictingResourceException()
+        {
         }
 
         /// <inheritdoc />
         public ConflictingResourceException(string message) :
-            base(message) {
+            base(message)
+        {
         }
 
         /// <inheritdoc />
         public ConflictingResourceException(string message, Exception innerException) :
-            base(message, innerException) {
+            base(message, innerException)
+        {
         }
     }
 }

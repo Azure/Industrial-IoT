@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Storage {
+namespace Microsoft.Azure.IIoT.Auth.Storage
+{
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Identity.Client;
     using System.Threading.Tasks;
@@ -12,7 +13,8 @@ namespace Microsoft.Azure.IIoT.Auth.Storage {
     /// Decorates a client with a cache to keep tokens
     /// </summary>
     public class MsalConfidentialClientDecorator :
-        MsalClientApplicationDecorator<IConfidentialClientApplication> {
+        MsalClientApplicationDecorator<IConfidentialClientApplication>
+    {
         /// <summary>
         /// Create token cache
         /// </summary>
@@ -21,13 +23,15 @@ namespace Microsoft.Azure.IIoT.Auth.Storage {
         /// <param name="applicationKey"></param>
         /// <param name="userKey"></param>
         public MsalConfidentialClientDecorator(IConfidentialClientApplication client,
-            ICache cache, string applicationKey, string userKey) : base(client, cache, userKey) {
+            ICache cache, string applicationKey, string userKey) : base(client, cache, userKey)
+        {
             _appTokenCache = new MsalTokenCacheDecorator(cache,
                 client.AppTokenCache, applicationKey);
         }
 
         /// <inheritdoc/>
-        public override async Task ClearCacheAsync() {
+        public override async Task ClearCacheAsync()
+        {
             await _appTokenCache.ClearAsync().ConfigureAwait(false);
             await base.ClearCacheAsync().ConfigureAwait(false);
         }

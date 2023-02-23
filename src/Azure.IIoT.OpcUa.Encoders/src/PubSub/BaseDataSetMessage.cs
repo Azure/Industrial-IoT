@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
+{
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Opc.Ua;
     using System;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     /// <summary>
     /// Data set message
     /// </summary>
-    public abstract class BaseDataSetMessage {
+    public abstract class BaseDataSetMessage
+    {
         /// <summary>
         /// Content mask
         /// </summary>
@@ -58,11 +60,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         public DataSet Payload { get; set; } = new DataSet();
 
         /// <inheritdoc/>
-        public override bool Equals(object value) {
-            if (ReferenceEquals(this, value)) {
+        public override bool Equals(object value)
+        {
+            if (ReferenceEquals(this, value))
+            {
                 return true;
             }
-            if (!(value is BaseDataSetMessage wrapper)) {
+            if (!(value is BaseDataSetMessage wrapper))
+            {
                 return false;
             }
             if (!Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
@@ -70,17 +75,20 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                 !Utils.IsEqual(wrapper.Status, Status) ||
                 !Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
                 !Utils.IsEqual(wrapper.MessageType, MessageType) ||
-                !Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion)) {
+                !Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion))
+            {
                 return false;
             }
-            if (wrapper.Payload == null || Payload == null) {
+            if (wrapper.Payload == null || Payload == null)
+            {
                 return wrapper.Payload == Payload;
             }
             return wrapper.Payload.Equals(Payload);
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hash = new HashCode();
             hash.Add(MessageType);
             hash.Add(DataSetWriterId);

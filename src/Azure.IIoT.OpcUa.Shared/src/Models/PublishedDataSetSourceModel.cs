@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Data set source akin to a monitored item subscription.
     /// </summary>
     [DataContract]
-    public sealed record class PublishedDataSetSourceModel {
+    public sealed record class PublishedDataSetSourceModel
+    {
         /// <summary>
         /// Either published data variables
         /// </summary>

@@ -3,20 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services {
+namespace Azure.IIoT.OpcUa.Services
+{
+    using Autofac;
     using Azure.IIoT.OpcUa.Services.Registry;
     using Azure.IIoT.OpcUa.Services.Services;
-    using Autofac;
 
     /// <summary>
     /// Injected registry services
     /// </summary>
-    public sealed class RegistryServices : Module {
+    public sealed class RegistryServices : Module
+    {
         /// <summary>
         /// Load the module
         /// </summary>
         /// <param name="builder"></param>
-        protected override void Load(ContainerBuilder builder) {
+        protected override void Load(ContainerBuilder builder)
+        {
             // Services
             builder.RegisterType<ApplicationRegistry>()
                 .AsImplementedInterfaces().SingleInstance();

@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client
+{
+    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Shared;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Shared;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -20,7 +21,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// <summary>
     /// Adapts device client to interface
     /// </summary>
-    public sealed class DeviceClientAdapter : IClient {
+    public sealed class DeviceClientAdapter : IClient
+    {
         /// <summary>
         /// Whether the client is closed
         /// </summary>
@@ -36,7 +38,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="metrics"></param>
         ///
         internal DeviceClientAdapter(DeviceClient client, IMetricsContext metrics)
-            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
+        {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
@@ -57,7 +60,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             IotHubConnectionStringBuilder cs, string deviceId,
             ITransportSettings transportSetting, TimeSpan timeout,
             IRetryPolicy retry, Action onConnectionLost, ILogger logger,
-            IMetricsContext metrics) {
+            IMetricsContext metrics)
+        {
             var client = Create(cs, transportSetting);
             var adapter = new DeviceClientAdapter(client, metrics);
 
@@ -65,7 +69,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
             client.SetConnectionStatusChangesHandler((s, r) =>
                 adapter.OnConnectionStatusChange(deviceId, onConnectionLost, logger, s, r));
-            if (retry != null) {
+            if (retry != null)
+            {
                 client.SetRetryPolicy(retry);
             }
             client.ProductInfo = product;
@@ -75,8 +80,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async ValueTask DisposeAsync() {
-            if (IsClosed) {
+        public async ValueTask DisposeAsync()
+        {
+            if (IsClosed)
+            {
                 return;
             }
             _client.OperationTimeoutInMilliseconds = 3000;
@@ -86,47 +93,59 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public ITelemetryEvent CreateTelemetryEvent() {
+        public ITelemetryEvent CreateTelemetryEvent()
+        {
             return new DeviceMessage();
         }
 
         /// <inheritdoc />
-        public async Task SendEventAsync(ITelemetryEvent message) {
-            if (IsClosed) {
+        public async Task SendEventAsync(ITelemetryEvent message)
+        {
+            if (IsClosed)
+            {
                 return;
             }
             var messages = ((DeviceMessage)message).AsMessages();
-            try {
-                if (messages.Count == 1) {
+            try
+            {
+                if (messages.Count == 1)
+                {
                     await _client.SendEventAsync(messages[0]).ConfigureAwait(false);
                 }
                 await _client.SendEventBatchAsync(messages).ConfigureAwait(false);
             }
-            finally {
-                foreach (var hubMessage in messages) {
+            finally
+            {
+                foreach (var hubMessage in messages)
+                {
                     hubMessage.Dispose();
                 }
             }
         }
 
         /// <inheritdoc />
-        public Task SetMethodHandlerAsync(MethodCallback methodHandler) {
+        public Task SetMethodHandlerAsync(MethodCallback methodHandler)
+        {
             return _client.SetMethodDefaultHandlerAsync(methodHandler, null);
         }
 
         /// <inheritdoc />
-        public Task SetDesiredPropertyUpdateCallbackAsync(DesiredPropertyUpdateCallback callback) {
+        public Task SetDesiredPropertyUpdateCallbackAsync(DesiredPropertyUpdateCallback callback)
+        {
             return _client.SetDesiredPropertyUpdateCallbackAsync(callback, null);
         }
 
         /// <inheritdoc />
-        public Task<Twin> GetTwinAsync() {
+        public Task<Twin> GetTwinAsync()
+        {
             return _client.GetTwinAsync();
         }
 
         /// <inheritdoc />
-        public async Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
-            if (IsClosed) {
+        public async Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties)
+        {
+            if (IsClosed)
+            {
                 return;
             }
             await _client.UpdateReportedPropertiesAsync(reportedProperties).ConfigureAwait(false);
@@ -134,12 +153,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
         /// <inheritdoc />
         public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
-            MethodRequest methodRequest, CancellationToken cancellationToken) {
+            MethodRequest methodRequest, CancellationToken cancellationToken)
+        {
             throw new NotSupportedException("Device client does not support methods");
         }
 
         /// <inheritdoc />
-        public void Dispose() {
+        public void Dispose()
+        {
             IsClosed = true;
             _client?.Dispose();
         }
@@ -154,10 +175,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="reason"></param>
         private void OnConnectionStatusChange(string deviceId,
             Action onConnectionLost, ILogger logger, ConnectionStatus status,
-            ConnectionStatusChangeReason reason) {
+            ConnectionStatusChangeReason reason)
+        {
             _status = status;
             _reason = reason;
-            if (status == ConnectionStatus.Connected) {
+            if (status == ConnectionStatus.Connected)
+            {
                 logger.LogInformation("{Counter}: Device {DeviceId} reconnected " +
                     "due to {Reason}.", _reconnectCounter, deviceId, reason);
                 _reconnectCounter++;
@@ -166,12 +189,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             logger.LogInformation("{Counter}: Device {DeviceId} disconnected " +
                 "due to {Reason} - now {Status}...", _reconnectCounter, deviceId,
                     reason, status);
-            if (IsClosed) {
+            if (IsClosed)
+            {
                 // Already closed - nothing to do
                 return;
             }
             if (status == ConnectionStatus.Disconnected ||
-                status == ConnectionStatus.Disabled) {
+                status == ConnectionStatus.Disabled)
+            {
                 // Force
                 IsClosed = true;
                 onConnectionLost?.Invoke();
@@ -185,11 +210,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="transportSetting"></param>
         /// <returns></returns>
         private static DeviceClient Create(IotHubConnectionStringBuilder cs,
-            ITransportSettings transportSetting) {
-            if (cs == null) {
+            ITransportSettings transportSetting)
+        {
+            if (cs == null)
+            {
                 throw new ArgumentNullException(nameof(cs));
             }
-            if (transportSetting != null) {
+            if (transportSetting != null)
+            {
                 return DeviceClient.CreateFromConnectionString(cs.ToString(),
                     new ITransportSettings[] { transportSetting });
             }
@@ -199,11 +227,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <summary>
         /// Message wrapper
         /// </summary>
-        internal sealed class DeviceMessage : ITelemetryEvent {
+        internal sealed class DeviceMessage : ITelemetryEvent
+        {
             /// <summary>
             /// Build message
             /// </summary>
-            internal IReadOnlyList<Message> AsMessages() {
+            internal IReadOnlyList<Message> AsMessages()
+            {
                 return Buffers
                     .Where(b => b != null)
                     .Select(m => _template.CloneWithBody(m))
@@ -214,12 +244,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             public DateTime Timestamp { get; set; }
 
             /// <inheritdoc/>
-            public string ContentType {
-                get {
+            public string ContentType
+            {
+                get
+                {
                     return _template.ContentType;
                 }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
+                set
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
                         _template.ContentType = value;
                         _template.Properties.AddOrUpdate(SystemProperties.MessageSchema, value);
                     }
@@ -227,12 +261,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc/>
-            public string ContentEncoding {
-                get {
+            public string ContentEncoding
+            {
+                get
+                {
                     return _template.ContentEncoding;
                 }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
+                set
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
                         _template.ContentEncoding = value;
                         _template.Properties.AddOrUpdate(CommonProperties.ContentEncoding, value);
                     }
@@ -240,30 +278,40 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc/>
-            public string MessageSchema {
-                get {
-                    if (_template.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value)) {
+            public string MessageSchema
+            {
+                get
+                {
+                    if (_template.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value))
+                    {
                         return value;
                     }
                     return null;
                 }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
+                set
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
                         _template.Properties.AddOrUpdate(CommonProperties.EventSchemaType, value);
                     }
                 }
             }
 
             /// <inheritdoc/>
-            public string RoutingInfo {
-                get {
-                    if (_template.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value)) {
+            public string RoutingInfo
+            {
+                get
+                {
+                    if (_template.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value))
+                    {
                         return value;
                     }
                     return null;
                 }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
+                set
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
                         _template.Properties.AddOrUpdate(CommonProperties.RoutingInfo, value);
                     }
                 }
@@ -280,7 +328,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             public TimeSpan Ttl { get; set; }
 
             /// <inheritdoc/>
-            public void Dispose() {
+            public void Dispose()
+            {
                 // TODO: Return to pool
                 _template.Dispose();
             }
@@ -292,7 +341,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Create observable metrics
         /// </summary>
         /// <param name="metrics"></param>
-        private DeviceClientAdapter(IMetricsContext metrics) {
+        private DeviceClientAdapter(IMetricsContext metrics)
+        {
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_device_reconnected",
                 () => new Measurement<int>(_reconnectCounter, metrics.TagList), "times",
                 "Device client reconnected count.");

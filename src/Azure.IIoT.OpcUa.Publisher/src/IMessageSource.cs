@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
@@ -13,7 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher {
     /// <summary>
     /// Writer group
     /// </summary>
-    public interface IMessageSource : IAsyncDisposable {
+    public interface IMessageSource : IAsyncDisposable
+    {
         /// <summary>
         /// Subscribe to writer messages
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Events {
+namespace Azure.IIoT.OpcUa.Services.Events
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Messaging;
     using System;
@@ -12,29 +13,34 @@ namespace Azure.IIoT.OpcUa.Services.Events {
     /// <summary>
     /// Gateway registry event publisher
     /// </summary>
-    public class GatewayEventPublisher<THub> : IGatewayRegistryListener {
+    public class GatewayEventPublisher<THub> : IGatewayRegistryListener
+    {
         /// <inheritdoc/>
-        public GatewayEventPublisher(ICallbackInvokerT<THub> callback) {
+        public GatewayEventPublisher(ICallbackInvokerT<THub> callback)
+        {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
 
         /// <inheritdoc/>
         public Task OnGatewayDeletedAsync(OperationContextModel context,
-            string gatewayId) {
+            string gatewayId)
+        {
             return PublishAsync(GatewayEventType.Deleted, context,
                 gatewayId, null);
         }
 
         /// <inheritdoc/>
         public Task OnGatewayNewAsync(OperationContextModel context,
-            GatewayModel gateway) {
+            GatewayModel gateway)
+        {
             return PublishAsync(GatewayEventType.New, context,
                 gateway.Id, gateway);
         }
 
         /// <inheritdoc/>
         public Task OnGatewayUpdatedAsync(OperationContextModel context,
-            GatewayModel gateway) {
+            GatewayModel gateway)
+        {
             return PublishAsync(GatewayEventType.Updated, context,
                 gateway.Id, gateway);
         }
@@ -49,7 +55,8 @@ namespace Azure.IIoT.OpcUa.Services.Events {
         /// <returns></returns>
         public Task PublishAsync(GatewayEventType type,
             OperationContextModel context, string gatewayId,
-            GatewayModel gateway) {
+            GatewayModel gateway)
+        {
             var arguments = new object[] {
                 new GatewayEventModel {
                     EventType = type,

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Models {
+namespace Azure.IIoT.OpcUa.Encoders.Models
+{
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using System;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
     /// <summary>
     /// Encodeable wrapper for Json tokens
     /// </summary>
-    public sealed class EncodeableVariantValue : IEncodeable {
+    public sealed class EncodeableVariantValue : IEncodeable
+    {
         /// <summary>
         /// The encoded object
         /// </summary>
@@ -22,7 +24,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
         /// </summary>
         /// <param name="serializer"></param>
         /// <param name="value"></param>
-        public EncodeableVariantValue(IJsonSerializer serializer, VariantValue value = null) {
+        public EncodeableVariantValue(IJsonSerializer serializer, VariantValue value = null)
+        {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             Value = value;
         }
@@ -40,18 +43,22 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
             nameof(EncodeableVariantValue) + "_Encoding_DefaultXml";
 
         /// <inheritdoc/>
-        public void Decode(IDecoder decoder) {
+        public void Decode(IDecoder decoder)
+        {
             Value = _serializer.Parse(decoder.ReadString(nameof(Value)));
         }
 
         /// <inheritdoc/>
-        public void Encode(IEncoder encoder) {
+        public void Encode(IEncoder encoder)
+        {
             encoder.WriteString(nameof(Value), _serializer.SerializeToString(Value));
         }
 
         /// <inheritdoc/>
-        public bool IsEqual(IEncodeable encodeable) {
-            if (encodeable is EncodeableVariantValue wrapper) {
+        public bool IsEqual(IEncodeable encodeable)
+        {
+            if (encodeable is EncodeableVariantValue wrapper)
+            {
                 return wrapper.Value == Value;
             }
             return false;

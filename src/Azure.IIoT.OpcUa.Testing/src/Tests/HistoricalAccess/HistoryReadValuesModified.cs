@@ -3,32 +3,38 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Tests {
+namespace Azure.IIoT.OpcUa.Testing.Tests
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
 
-    public class HistoryReadValuesModifiedTests<T> {
+    public class HistoryReadValuesModifiedTests<T>
+    {
         /// <summary>
         /// Create history services tests
         /// </summary>
         /// <param name="services"></param>
         /// <param name="connection"></param>
-        public HistoryReadValuesModifiedTests(Func<IHistoryServices<T>> services, T connection) {
+        public HistoryReadValuesModifiedTests(Func<IHistoryServices<T>> services, T connection)
+        {
             _services = services;
             _connection = connection;
         }
 
-        public async Task HistoryReadInt16ValuesModifiedTestAsync() {
+        public async Task HistoryReadInt16ValuesModifiedTestAsync()
+        {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int16.txt";
 
             var results = await services.HistoryReadModifiedValuesAsync(_connection,
-                new HistoryReadRequestModel<ReadModifiedValuesDetailsModel> {
+                new HistoryReadRequestModel<ReadModifiedValuesDetailsModel>
+                {
                     NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadModifiedValuesDetailsModel {
+                    Details = new ReadModifiedValuesDetailsModel
+                    {
                         StartTime = DateTime.UtcNow - TimeSpan.FromDays(600),
                         EndTime = DateTime.UtcNow + TimeSpan.FromDays(1),
                         NumValues = 14
@@ -40,14 +46,17 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Empty(results.History);
         }
 
-        public async Task HistoryStreamInt16ValuesModifiedTestAsync() {
+        public async Task HistoryStreamInt16ValuesModifiedTestAsync()
+        {
             var services = _services();
             const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int16.txt";
 
             var history = await services.HistoryStreamModifiedValuesAsync(_connection,
-                new HistoryReadRequestModel<ReadModifiedValuesDetailsModel> {
+                new HistoryReadRequestModel<ReadModifiedValuesDetailsModel>
+                {
                     NodeId = "http://opcfoundation.org/HistoricalAccess#" + samples,
-                    Details = new ReadModifiedValuesDetailsModel {
+                    Details = new ReadModifiedValuesDetailsModel
+                    {
                         EndTime = DateTime.UtcNow + TimeSpan.FromDays(1),
                         NumValues = 10
                     }

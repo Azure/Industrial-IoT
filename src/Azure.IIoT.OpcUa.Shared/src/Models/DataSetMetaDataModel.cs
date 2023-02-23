@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Metadata for the published dataset
     /// </summary>
     [DataContract]
-    public sealed record class DataSetMetaDataModel {
+    public sealed record class DataSetMetaDataModel
+    {
         /// <summary>
         /// Name of the dataset
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
+namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
+{
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Messaging;
@@ -17,7 +18,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
     /// <summary>
     /// Hub client factory for signalr
     /// </summary>
-    public sealed class SignalRHubClient : ICallbackClient, IDisposable, IAsyncDisposable {
+    public sealed class SignalRHubClient : ICallbackClient, IDisposable, IAsyncDisposable
+    {
         /// <summary>
         /// Create client
         /// </summary>
@@ -26,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
         /// <param name="provider"></param>
         /// <param name="jsonSettings"></param>
         public SignalRHubClient(ISignalRClientConfig config, ILogger logger,
-            ITokenProvider provider = null, INewtonsoftSerializerSettingsProvider jsonSettings = null) {
+            ITokenProvider provider = null, INewtonsoftSerializerSettingsProvider jsonSettings = null)
+        {
             _jsonSettings = jsonSettings;
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -37,22 +40,29 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
 
         /// <inheritdoc/>
         public async Task<ICallbackRegistrar> GetHubAsync(string endpointUrl,
-            string resourceId) {
-            if (_disposed) {
+            string resourceId)
+        {
+            if (_disposed)
+            {
                 throw new ObjectDisposedException(nameof(SignalRHubClient));
             }
-            if (string.IsNullOrEmpty(endpointUrl)) {
+            if (string.IsNullOrEmpty(endpointUrl))
+            {
                 throw new ArgumentNullException(nameof(endpointUrl));
             }
             await _lock.WaitAsync().ConfigureAwait(false);
-            try {
+            try
+            {
                 var lookup = endpointUrl;
-                if (!string.IsNullOrEmpty(resourceId)) {
+                if (!string.IsNullOrEmpty(resourceId))
+                {
                     lookup += resourceId;
                 }
                 if (!_clients.TryGetValue(lookup, out var client) ||
-                    client.ConnectionId == null) {
-                    if (client != null) {
+                    client.ConnectionId == null)
+                {
+                    if (client != null)
+                    {
                         await client.DisposeAsync().ConfigureAwait(false);
                         _clients.Remove(lookup);
                     }
@@ -62,13 +72,15 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
                 }
                 return client;
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
@@ -76,18 +88,23 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
         /// Dispose
         /// </summary>
         /// <returns></returns>
-        public async ValueTask DisposeAsync() {
-            if (_disposed) {
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+            {
                 return;
             }
             await _lock.WaitAsync().ConfigureAwait(false);
-            try {
-                foreach (var client in _clients.Values) {
+            try
+            {
+                foreach (var client in _clients.Values)
+                {
                     await client.DisposeAsync().ConfigureAwait(false);
                 }
                 _clients.Clear();
             }
-            finally {
+            finally
+            {
                 _lock.Release();
                 _disposed = true;
             }
@@ -97,18 +114,23 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
         /// <summary>
         /// SignalR client registry that manages consumed handles to it
         /// </summary>
-        private sealed class SignalRClientRegistrar : ICallbackRegistrar {
+        private sealed class SignalRClientRegistrar : ICallbackRegistrar
+        {
             /// <inheritdoc/>
-            public string ConnectionId {
-                get {
-                    if (_disposed) {
+            public string ConnectionId
+            {
+                get
+                {
+                    if (_disposed)
+                    {
                         throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
                     }
                     return _client.ConnectionId;
                 }
             }
 
-            private SignalRClientRegistrar(SignalRHubClientHost client) {
+            private SignalRClientRegistrar(SignalRHubClientHost client)
+            {
                 _client = client;
             }
 
@@ -125,8 +147,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
             internal static async Task<SignalRClientRegistrar> CreateAsync(
                 ISignalRClientConfig config, string endpointUrl, ILogger logger,
                 string resourceId, ITokenProvider provider,
-                INewtonsoftSerializerSettingsProvider jsonSettings = null) {
-                if (string.IsNullOrEmpty(endpointUrl)) {
+                INewtonsoftSerializerSettingsProvider jsonSettings = null)
+            {
+                if (string.IsNullOrEmpty(endpointUrl))
+                {
                     throw new ArgumentException(nameof(endpointUrl));
                 }
 
@@ -141,8 +165,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
 
             /// <inheritdoc/>
             public IDisposable Register(Func<object[], object, Task> handler,
-                object thiz, string method, Type[] arguments) {
-                if (_disposed) {
+                object thiz, string method, Type[] arguments)
+            {
+                if (_disposed)
+                {
                     throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
                 }
                 return _client.Register(handler, thiz, method, arguments);
@@ -152,8 +178,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
             /// Dispose
             /// </summary>
             /// <returns></returns>
-            public async ValueTask DisposeAsync() {
-                if (_disposed) {
+            public async ValueTask DisposeAsync()
+            {
+                if (_disposed)
+                {
                     throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
                 }
                 _disposed = true;

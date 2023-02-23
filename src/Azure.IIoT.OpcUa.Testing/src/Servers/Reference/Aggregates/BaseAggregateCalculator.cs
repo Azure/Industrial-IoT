@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Coordinates aggregation over a time series of raw data points to yield a time series of processed data points.
     /// </summary>
-    public abstract class BaseAggregateCalculator : IAggregateCalculator, IAggregationContext, IAggregationActor, IAggregator {
+    public abstract class BaseAggregateCalculator : IAggregateCalculator, IAggregationContext, IAggregationActor, IAggregator
+    {
         /// <summary>
         /// The start time.
         /// </summary>
@@ -83,8 +85,10 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Processes the next value returns the calculated values up until the last complete interval.
         /// </summary>
-        public IList<DataValue> ProcessValue(DataValue value, ServiceResult result) {
-            if (_state == null) {
+        public IList<DataValue> ProcessValue(DataValue value, ServiceResult result)
+        {
+            if (_state == null)
+            {
                 InitializeAggregation();
             }
 
@@ -95,8 +99,10 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Processes all remaining intervals.
         /// </summary>
-        public IList<DataValue> ProcessTermination(ServiceResult result) {
-            if (_state == null) {
+        public IList<DataValue> ProcessTermination(ServiceResult result)
+        {
+            if (_state == null)
+            {
                 InitializeAggregation();
             }
 
@@ -107,27 +113,33 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Updates the data processed by the aggregator.
         /// </summary>
-        public void UpdateProcessedData(DataValue rawValue, AggregateState state) {
+        public void UpdateProcessedData(DataValue rawValue, AggregateState state)
+        {
             // step 1: compute new TimeSlice instances to enqueue, until we reach the one the
             // rawValue belongs in or we've reached the one that goes to the EndTime. Ensure
             // that the raw value is added to the last one created.
             TimeSlice tmpTS = null;
             _pending ??= new Queue<TimeSlice>();
 
-            if (_latest == null) {
+            if (_latest == null)
+            {
                 tmpTS = TimeSlice.CreateInitial(StartTime, EndTime, ProcessingInterval);
-                if (tmpTS != null) {
+                if (tmpTS != null)
+                {
                     _pending.Enqueue(tmpTS);
                     _latest = tmpTS;
                 }
             }
-            else {
+            else
+            {
                 tmpTS = _latest;
             }
             var latestTime = (StartTime > EndTime) ? StartTime : EndTime;
-            while ((tmpTS != null) && (state.HasTerminated || !tmpTS.AcceptValue(rawValue))) {
+            while ((tmpTS != null) && (state.HasTerminated || !tmpTS.AcceptValue(rawValue)))
+            {
                 tmpTS = TimeSlice.CreateNext(latestTime, ProcessingInterval, tmpTS);
-                if (tmpTS != null) {
+                if (tmpTS != null)
+                {
                     _pending.Enqueue(tmpTS);
                     _latest = tmpTS;
                 }
@@ -139,23 +151,28 @@ namespace Opc.Ua.Aggregates {
             // run out of enqueued TimeSlices (should only happen on termination).
             _released ??= new List<DataValue>();
 
-            foreach (var b in _pending) {
+            foreach (var b in _pending)
+            {
                 UpdateBoundingValues(b, state);
             }
 
             var active = true;
-            while ((_pending.Count > 0) && active) {
+            while ((_pending.Count > 0) && active)
+            {
                 var top = _pending.Peek();
                 DataValue computed = null;
-                if (!WaitForMoreData(top, state)) {
+                if (!WaitForMoreData(top, state))
+                {
                     computed = Compute(this, top, state);
                 }
 
-                if (computed != null) {
+                if (computed != null)
+                {
                     _released.Add(computed);
                     _pending.Dequeue();
                 }
-                else {
+                else
+                {
                     active = false;
                 }
             }
@@ -164,7 +181,8 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Returns the values processed by the aggregator.
         /// </summary>
-        public IList<DataValue> ProcessedValues() {
+        public IList<DataValue> ProcessedValues()
+        {
             IList<DataValue> retval = null;
             retval = _released ?? new List<DataValue>();
             _released = null;
@@ -195,22 +213,27 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Computes the status code for the processing interval using the percent good/bad information in the context.
         /// </summary>
-        protected virtual StatusCode ComputeStatus(IAggregationContext context, int numGood, int numBad, TimeSlice bucket) {
+        protected virtual StatusCode ComputeStatus(IAggregationContext context, int numGood, int numBad, TimeSlice bucket)
+        {
             var total = numGood + numBad;
-            if (total > 0) {
+            if (total > 0)
+            {
                 double pbad = numBad * 100 / total;
-                if (pbad > context.PercentDataBad) {
+                if (pbad > context.PercentDataBad)
+                {
                     return StatusCodes.Bad;
                 }
 
                 double pgood = numGood * 100 / total;
-                if (pgood >= context.PercentDataGood) {
+                if (pgood >= context.PercentDataGood)
+                {
                     return StatusCodes.Good;
                 }
 
                 return StatusCodes.Uncertain;
             }
-            else {
+            else
+            {
                 return StatusCodes.GoodNoData;
             }
         }
@@ -218,7 +241,8 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Initializes the aggregation.
         /// </summary>
-        private void InitializeAggregation() {
+        private void InitializeAggregation()
+        {
             _state = new AggregateState(this, this);
         }
 

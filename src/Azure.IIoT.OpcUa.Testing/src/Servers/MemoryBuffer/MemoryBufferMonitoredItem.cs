@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace MemoryBuffer {
+namespace MemoryBuffer
+{
     using Opc.Ua;
     using Opc.Ua.Server;
 
     /// <summary>
     /// Provides a basic monitored item implementation which does not support queuing.
     /// </summary>
-    public class MemoryBufferMonitoredItem : MonitoredItem {
+    public class MemoryBufferMonitoredItem : MonitoredItem
+    {
         /// <summary>
         /// Initializes the object with its node type.
         /// </summary>
@@ -75,7 +77,8 @@ namespace MemoryBuffer {
                 samplingInterval,
                 queueSize,
                 discardOldest,
-                minimumSamplingInterval) {
+                minimumSamplingInterval)
+        {
             Offset = offset;
         }
 
@@ -86,7 +89,8 @@ namespace MemoryBuffer {
             DiagnosticsMasks diagnosticsMasks,
             TimestampsToReturn timestampsToReturn,
             uint clientHandle,
-            double samplingInterval) {
+            double samplingInterval)
+        {
             return ModifyAttributes(diagnosticsMasks,
                 timestampsToReturn,
                 clientHandle,

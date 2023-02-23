@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa {
+namespace Azure.IIoT.OpcUa
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Supervisor registry change listener
     /// </summary>
-    public interface ISupervisorRegistryListener {
+    public interface ISupervisorRegistryListener
+    {
         /// <summary>
         /// Called when supervisor is created
         /// </summary>

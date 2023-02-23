@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http {
+namespace Microsoft.Azure.IIoT.Http
+{
     using System;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -12,7 +13,8 @@ namespace Microsoft.Azure.IIoT.Http {
     /// <summary>
     /// Http request extensions
     /// </summary>
-    public static class HttpRequestEx {
+    public static class HttpRequestEx
+    {
         /// <summary>
         /// Add header value
         /// </summary>
@@ -21,9 +23,11 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="value"></param>
         /// <returns>this</returns>
         public static IHttpRequest AddHeader(this IHttpRequest request, string name,
-            string value) {
+            string value)
+        {
             if (!request.Headers.TryAddWithoutValidation(name, value) &&
-                !string.Equals(name, "content-type", StringComparison.OrdinalIgnoreCase)) {
+                !string.Equals(name, "content-type", StringComparison.OrdinalIgnoreCase))
+            {
                 throw new ArgumentOutOfRangeException(name, "Invalid header name");
             }
             return request;
@@ -38,10 +42,12 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="encoding"></param>
         /// <returns>this</returns>
         public static IHttpRequest SetByteArrayContent(this IHttpRequest request, byte[] content,
-            string mediaType = null, Encoding encoding = null) {
+            string mediaType = null, Encoding encoding = null)
+        {
             var headerValue = new MediaTypeHeaderValue(
                 string.IsNullOrEmpty(mediaType) ? ContentMimeType.Binary : mediaType);
-            if (encoding != null) {
+            if (encoding != null)
+            {
                 headerValue.CharSet = encoding.WebName;
             }
             request.Content = new ByteArrayContent(content);

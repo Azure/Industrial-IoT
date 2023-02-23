@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Collections.Generic;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// <summary>
     /// Subscription identifier
     /// </summary>
-    public sealed class SubscriptionIdentifier : IEquatable<SubscriptionIdentifier> {
+    public sealed class SubscriptionIdentifier : IEquatable<SubscriptionIdentifier>
+    {
         /// <summary>
         /// Id of the subscription
         /// </summary>
@@ -27,14 +29,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="id"></param>
-        public SubscriptionIdentifier(ConnectionModel connection, string id) {
+        public SubscriptionIdentifier(ConnectionModel connection, string id)
+        {
             Id = id;
             _id = new ConnectionIdentifier(connection);
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) {
-            if (obj is not SubscriptionIdentifier that) {
+        public override bool Equals(object obj)
+        {
+            if (obj is not SubscriptionIdentifier that)
+            {
                 return false;
             }
             return that.Equals(this);
@@ -50,7 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             !(r1 == r2);
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hashCode = 2082053542;
             hashCode = (hashCode * -1521134295) +
                 Connection.CreateConsistentHash();
@@ -60,13 +66,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         /// <inheritdoc/>
-        public bool Equals(SubscriptionIdentifier other) {
+        public bool Equals(SubscriptionIdentifier other)
+        {
             return Connection.IsSameAs(other.Connection) &&
                 Id == other.Id;
         }
 
         /// <inheritdoc/>
-        public override string ToString() {
+        public override string ToString()
+        {
             return $"{Connection.CreateConnectionId()}:{Id}";
         }
 

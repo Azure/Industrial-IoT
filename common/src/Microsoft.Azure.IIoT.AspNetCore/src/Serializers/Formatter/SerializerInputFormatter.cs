@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.Serializers {
+namespace Microsoft.Azure.IIoT.AspNetCore.Serializers
+{
+    using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Mvc.Formatters;
     using Microsoft.Net.Http.Headers;
-    using Furly.Extensions.Serializers;
     using System;
     using System.IO;
     using System.Reflection;
@@ -15,20 +16,24 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Serializers {
     /// <summary>
     /// Input Formatter
     /// </summary>
-    public sealed class SerializerInputFormatter : InputFormatter {
+    public sealed class SerializerInputFormatter : InputFormatter
+    {
         /// <summary>
         /// Create formatter
         /// </summary>
         /// <param name="serializer"></param>
-        public SerializerInputFormatter(ISerializer serializer) {
+        public SerializerInputFormatter(ISerializer serializer)
+        {
             _serializer = serializer;
             SupportedMediaTypes.Add(new MediaTypeHeaderValue(serializer.MimeType));
         }
 
         /// <inheritdoc/>
         public override async Task<InputFormatterResult> ReadRequestBodyAsync(
-            InputFormatterContext context) {
-            if (context == null) {
+            InputFormatterContext context)
+        {
+            if (context == null)
+            {
                 throw new ArgumentNullException(nameof(context));
             }
             var request = context.HttpContext.Request;
@@ -36,7 +41,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Serializers {
             // read everything into a buffer, and then seek back to the beginning.
             var memoryThreshold = kDefaultMemoryThreshold;
             var contentLength = request.ContentLength.GetValueOrDefault();
-            if (contentLength > 0 && contentLength < memoryThreshold) {
+            if (contentLength > 0 && contentLength < memoryThreshold)
+            {
                 memoryThreshold = (int)contentLength;
             }
             var memory = await request.Body.ReadAsMemoryAsync(memoryThreshold).ConfigureAwait(false);
@@ -45,8 +51,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Serializers {
         }
 
         /// <inheritdoc/>
-        protected override bool CanReadType(Type type) {
-            if (type == null) {
+        protected override bool CanReadType(Type type)
+        {
+            if (type == null)
+            {
                 throw new ArgumentException("Type cannot be null");
             }
             var typeInfo = type.GetTypeInfo();
@@ -54,17 +62,21 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Serializers {
         }
 
         /// <inheritdoc/>
-        public override bool CanRead(InputFormatterContext context) {
-            if (!base.CanRead(context)) {
+        public override bool CanRead(InputFormatterContext context)
+        {
+            if (!base.CanRead(context))
+            {
                 return false;
             }
-            if (_serializer.ContentEncoding != null) {
+            if (_serializer.ContentEncoding != null)
+            {
                 var requestContentType = context.HttpContext.Request.ContentType;
                 var requestMediaType = requestContentType == null ? default :
                     new MediaType(requestContentType);
                 if (requestMediaType.Charset.HasValue &&
                     requestMediaType.Encoding != null &&
-                    _serializer.ContentEncoding.WebName != requestMediaType.Encoding.WebName) {
+                    _serializer.ContentEncoding.WebName != requestMediaType.Encoding.WebName)
+                {
                     return false;
                 }
             }

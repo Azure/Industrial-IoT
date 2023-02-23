@@ -3,7 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Runtime {
+namespace Microsoft.Azure.IIoT.App.Runtime
+{
+    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Auth.Runtime;
@@ -11,13 +13,13 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Extensions.Configuration;
-    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
 
     /// <summary>
     /// Configuration aggregation
     /// </summary>
     public class Config : ApiConfig, ISignalRServiceConfig,
-        IWebHostConfig, IForwardedHeadersConfig {
+        IWebHostConfig, IForwardedHeadersConfig
+    {
         /// <summary>Url</summary>
         public string TsiDataAccessFQDN =>
             GetStringOrDefault(PcsVariable.PCS_TSI_URL)?.Trim();
@@ -62,7 +64,8 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public Config(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
             _host = new WebHostConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);

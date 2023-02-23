@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
-    using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Extensions.Logging;
+namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
+{
     using Furly.Extensions.Serializers;
+    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Module.Default;
+    using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -21,13 +22,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     /// <summary>
     /// Provides request routing to module controllers
     /// </summary>
-    public sealed class MethodRouter : IMethodRouter, IMethodHandler {
+    public sealed class MethodRouter : IMethodRouter, IMethodHandler
+    {
         /// <summary>
         /// Property Di to prevent circular dependency between host and controller
         /// </summary>
-        public IEnumerable<IMethodController> Controllers {
-            set {
-                foreach (var controller in value) {
+        public IEnumerable<IMethodController> Controllers
+        {
+            set
+            {
+                foreach (var controller in value)
+                {
                     AddToCallTable(controller);
                 }
             }
@@ -36,9 +41,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <summary>
         /// Property Di to prevent circular dependency between host and invoker
         /// </summary>
-        public IEnumerable<IMethodInvoker> ExternalInvokers {
-            set {
-                foreach (var invoker in value) {
+        public IEnumerable<IMethodInvoker> ExternalInvokers
+        {
+            set
+            {
+                foreach (var invoker in value)
+                {
                     _calltable.AddOrUpdate(invoker.MethodName, invoker);
                 }
             }
@@ -49,7 +57,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// </summary>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public MethodRouter(IJsonSerializer serializer, ILogger logger) {
+        public MethodRouter(IJsonSerializer serializer, ILogger logger)
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
 
@@ -61,31 +70,38 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task<MethodResponse> InvokeMethodAsync(MethodRequest request) {
+        public async Task<MethodResponse> InvokeMethodAsync(MethodRequest request)
+        {
             const int kMaxMessageSize = 127 * 1024;
-            try {
+            try
+            {
                 var result = await InvokeAsync(request.Name, request.Data,
                     ContentMimeType.Json).ConfigureAwait(false);
-                if (result.Length > kMaxMessageSize) {
+                if (result.Length > kMaxMessageSize)
+                {
                     _logger.LogError("Result (Payload too large => {Length}", result.Length);
                     return new MethodResponse((int)HttpStatusCode.RequestEntityTooLarge);
                 }
                 return new MethodResponse(result, 200);
             }
-            catch (MethodCallStatusException mex) {
+            catch (MethodCallStatusException mex)
+            {
                 var payload = Encoding.UTF8.GetBytes(mex.ResponsePayload);
                 return new MethodResponse(payload.Length > kMaxMessageSize ? null : payload,
                     mex.Result);
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 return new MethodResponse((int)HttpStatusCode.InternalServerError);
             }
         }
 
         /// <inheritdoc/>
         public async Task<byte[]> InvokeAsync(string method, byte[] payload,
-            string contentType) {
-            if (!_calltable.TryGetValue(method.ToLowerInvariant(), out var invoker)) {
+            string contentType)
+        {
+            if (!_calltable.TryGetValue(method.ToLowerInvariant(), out var invoker))
+            {
                 throw new NotSupportedException(
                     $"Unknown controller method {method} called.");
             }
@@ -96,46 +112,57 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Add target to calltable
         /// </summary>
         /// <param name="target"></param>
-        private void AddToCallTable(object target) {
+        private void AddToCallTable(object target)
+        {
             var versions = target.GetType().GetCustomAttributes<VersionAttribute>(true)
                 .Select(v => v.Value)
                 .ToList();
-            if (versions.Count == 0) {
+            if (versions.Count == 0)
+            {
                 versions.Add(string.Empty);
             }
-            foreach (var methodInfo in target.GetType().GetMethods()) {
-                if (methodInfo.GetCustomAttribute<IgnoreAttribute>() != null) {
+            foreach (var methodInfo in target.GetType().GetMethods())
+            {
+                if (methodInfo.GetCustomAttribute<IgnoreAttribute>() != null)
+                {
                     // Should be ignored
                     continue;
                 }
-                if (!typeof(Task).IsAssignableFrom(methodInfo.ReturnType)) {
+                if (!typeof(Task).IsAssignableFrom(methodInfo.ReturnType))
+                {
                     // must be assignable from task
                     continue;
                 }
                 var tArgs = methodInfo.ReturnParameter.ParameterType
                     .GetGenericArguments();
-                if (tArgs.Length > 1) {
+                if (tArgs.Length > 1)
+                {
                     // must have exactly 0 or one (serializable) type to return
                     continue;
                 }
                 var name = methodInfo.Name;
-                if (name.EndsWith("Async", StringComparison.Ordinal)) {
+                if (name.EndsWith("Async", StringComparison.Ordinal))
+                {
                     name = name.Substring(0, name.Length - 5);
                 }
                 name = name.ToLowerInvariant();
 
                 // Register for all defined versions
-                foreach (var version in versions) {
+                foreach (var version in versions)
+                {
                     var versionedName = name + version;
                     versionedName = versionedName.ToLowerInvariant();
-                    if (!_calltable.TryGetValue(versionedName, out var invoker)) {
+                    if (!_calltable.TryGetValue(versionedName, out var invoker))
+                    {
                         invoker = new DynamicInvoker(_logger);
                         _calltable.Add(versionedName, invoker);
                     }
-                    if (invoker is DynamicInvoker dynamicInvoker) {
+                    if (invoker is DynamicInvoker dynamicInvoker)
+                    {
                         dynamicInvoker.Add(target, methodInfo, _serializer);
                     }
-                    else {
+                    else
+                    {
                         // Should never happen...
                         throw new InvalidOperationException(
                             $"Cannot add {versionedName} since invoker is private.");
@@ -147,14 +174,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <summary>
         /// Encapsulates invoking a matching service on the controller
         /// </summary>
-        private class DynamicInvoker : IMethodInvoker {
+        private class DynamicInvoker : IMethodInvoker
+        {
             /// <inheritdoc/>
             public string MethodName { get; private set; }
 
             /// <summary>
             /// Create dynamic invoker
             /// </summary>
-            public DynamicInvoker(ILogger logger) {
+            public DynamicInvoker(ILogger logger)
+            {
                 _logger = logger;
                 _invokers = new List<JsonMethodInvoker>();
             }
@@ -165,7 +194,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="controller"></param>
             /// <param name="controllerMethod"></param>
             /// <param name="serializer"></param>
-            public void Add(object controller, MethodInfo controllerMethod, IJsonSerializer serializer) {
+            public void Add(object controller, MethodInfo controllerMethod, IJsonSerializer serializer)
+            {
                 _logger.LogTrace("Adding {Controller}.{Method} method to invoker...",
                     controller.GetType().Name, controllerMethod.Name);
                 _invokers.Add(new JsonMethodInvoker(controller, controllerMethod, serializer, _logger));
@@ -174,13 +204,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             /// <inheritdoc/>
             public async Task<byte[]> InvokeAsync(byte[] payload, string contentType,
-                IMethodHandler handler) {
+                IMethodHandler handler)
+            {
                 Exception e = null;
-                foreach (var invoker in _invokers) {
-                    try {
+                foreach (var invoker in _invokers)
+                {
+                    try
+                    {
                         return await invoker.InvokeAsync(payload, contentType, handler).ConfigureAwait(false);
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         // Save last, and continue
                         e = ex;
                     }
@@ -190,8 +224,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
 
             /// <inheritdoc/>
-            public void Dispose() {
-                foreach (var invoker in _invokers) {
+            public void Dispose()
+            {
+                foreach (var invoker in _invokers)
+                {
                     invoker.Dispose();
                 }
             }
@@ -203,15 +239,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <summary>
         /// Invokes a method with json payload
         /// </summary>
-        private class JsonMethodInvoker : IMethodInvoker {
+        private class JsonMethodInvoker : IMethodInvoker
+        {
             /// <inheritdoc/>
             public string MethodName => _controllerMethod.Name;
 
             /// <summary>
             /// Default filter implementation if none is specified
             /// </summary>
-            private class DefaultFilter : ExceptionFilterAttribute {
-                public override Exception Filter(Exception exception, out int status) {
+            private class DefaultFilter : ExceptionFilterAttribute
+            {
+                public override Exception Filter(Exception exception, out int status)
+                {
                     status = 400;
                     return exception;
                 }
@@ -225,7 +264,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="serializer"></param>
             /// <param name="logger"></param>
             public JsonMethodInvoker(object controller, MethodInfo controllerMethod,
-                IJsonSerializer serializer, ILogger logger) {
+                IJsonSerializer serializer, ILogger logger)
+            {
                 _logger = logger;
                 _serializer = serializer;
                 _controller = controller;
@@ -235,7 +275,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     controller.GetType().GetCustomAttribute<ExceptionFilterAttribute>(true) ??
                     new DefaultFilter();
                 var returnArgs = _controllerMethod.ReturnParameter.ParameterType.GetGenericArguments();
-                if (returnArgs.Length > 0) {
+                if (returnArgs.Length > 0)
+                {
                     _methodTaskContinuation = _methodResponseAsContinuation.MakeGenericMethod(
                         returnArgs[0]);
                 }
@@ -243,21 +284,28 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             /// <inheritdoc/>
             public Task<byte[]> InvokeAsync(byte[] payload, string contentType,
-                IMethodHandler handler) {
+                IMethodHandler handler)
+            {
                 object task;
-                try {
+                try
+                {
                     object[] inputs;
-                    if (_methodParams.Length == 0) {
+                    if (_methodParams.Length == 0)
+                    {
                         inputs = Array.Empty<object>();
                     }
-                    else if (_methodParams.Length == 1) {
+                    else if (_methodParams.Length == 1)
+                    {
                         var data = _serializer.Deserialize(payload, _methodParams[0].ParameterType);
                         inputs = new[] { data };
                     }
-                    else {
+                    else
+                    {
                         var data = _serializer.Parse(payload);
-                        inputs = _methodParams.Select(param => {
-                            if (data.TryGetProperty(param.Name, out var value /*, StringComparison.InvariantCultureIgnoreCase*/)) {
+                        inputs = _methodParams.Select(param =>
+                        {
+                            if (data.TryGetProperty(param.Name, out var value /*, StringComparison.InvariantCultureIgnoreCase*/))
+                            {
                                 return value.ConvertTo(param.ParameterType);
                             }
                             return param.HasDefaultValue ? param.DefaultValue : null;
@@ -265,10 +313,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     }
                     task = _controllerMethod.Invoke(_controller, inputs);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     task = Task.FromException(e);
                 }
-                if (_methodTaskContinuation == null) {
+                if (_methodTaskContinuation == null)
+                {
                     return VoidContinuationAsync((Task)task);
                 }
                 return (Task<byte[]>)_methodTaskContinuation.Invoke(this, new[] {
@@ -277,7 +327,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
 
             /// <inheritdoc/>
-            public void Dispose() {
+            public void Dispose()
+            {
             }
 
             /// <summary>
@@ -287,14 +338,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <typeparam name="T"></typeparam>
             /// <param name="task"></param>
             /// <returns></returns>
-            public Task<byte[]> MethodResultConverterContinuationAsync<T>(Task<T> task) {
-                return task.ContinueWith(tr => {
-                    if (tr.IsFaulted || tr.IsCanceled) {
+            public Task<byte[]> MethodResultConverterContinuationAsync<T>(Task<T> task)
+            {
+                return task.ContinueWith(tr =>
+                {
+                    if (tr.IsFaulted || tr.IsCanceled)
+                    {
                         var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
                         ex ??= new TaskCanceledException(tr);
                         _logger.LogTrace(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
-                        if (ex is MethodCallStatusException) {
+                        if (ex is MethodCallStatusException)
+                        {
                             throw ex;
                         }
                         throw new MethodCallStatusException(ex != null ?
@@ -310,14 +365,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             /// <param name="task"></param>
             /// <returns></returns>
-            public Task<byte[]> VoidContinuationAsync(Task task) {
-                return task.ContinueWith(tr => {
-                    if (tr.IsFaulted || tr.IsCanceled) {
+            public Task<byte[]> VoidContinuationAsync(Task task)
+            {
+                return task.ContinueWith(tr =>
+                {
+                    if (tr.IsFaulted || tr.IsCanceled)
+                    {
                         var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
                         ex ??= new TaskCanceledException(tr);
                         _logger.LogTrace(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
-                        if (ex is MethodCallStatusException) {
+                        if (ex is MethodCallStatusException)
+                        {
                             throw ex;
                         }
                         throw new MethodCallStatusException(ex != null ?

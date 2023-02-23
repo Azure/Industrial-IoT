@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace System {
+namespace System
+{
     using System.Collections.Generic;
     using System.Diagnostics.Contracts;
     using System.Text;
@@ -11,14 +12,16 @@ namespace System {
     /// <summary>
     /// String helper extensions
     /// </summary>
-    public static class StringEx {
+    public static class StringEx
+    {
         /// <summary>
         /// Yet another case insensitve equals
         /// </summary>
         /// <param name="str"></param>
         /// <param name="to"></param>
         /// <returns></returns>
-        public static bool EqualsIgnoreCase(this string str, string to) {
+        public static bool EqualsIgnoreCase(this string str, string to)
+        {
             return StringComparer.OrdinalIgnoreCase.Equals(str, to);
         }
 
@@ -27,8 +30,10 @@ namespace System {
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static byte[] DecodeAsBase64(this string str) {
-            if (str == null) {
+        public static byte[] DecodeAsBase64(this string str)
+        {
+            if (str == null)
+            {
                 return null;
             }
             return Convert.FromBase64String(str);
@@ -39,12 +44,15 @@ namespace System {
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static bool IsBase16(this string str) {
-            try {
+        public static bool IsBase16(this string str)
+        {
+            try
+            {
                 DecodeAsBase16(str);
                 return true;
             }
-            catch {
+            catch
+            {
                 return false;
             }
         }
@@ -54,15 +62,19 @@ namespace System {
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static byte[] DecodeAsBase16(this string str) {
-            if (str == null) {
+        public static byte[] DecodeAsBase16(this string str)
+        {
+            if (str == null)
+            {
                 return null;
             }
-            if (str.Length % 2 != 0) {
+            if (str.Length % 2 != 0)
+            {
                 throw new ArgumentException("Invalid length", nameof(str));
             }
             var bytes = new byte[str.Length / 2];
-            for (var i = 0; i < str.Length; i += 2) {
+            for (var i = 0; i < str.Length; i += 2)
+            {
                 var s = str.Substring(i, 2);
                 bytes[i / 2] = byte.Parse(s, Globalization.NumberStyles.HexNumber, null);
             }
@@ -74,7 +86,8 @@ namespace System {
         /// </summary>
         /// <param name="str">string to hash</param>
         /// <returns></returns>
-        public static string ToSha1Hash(this string str) {
+        public static string ToSha1Hash(this string str)
+        {
             return Encoding.UTF8.GetBytes(str).ToSha1Hash();
         }
 
@@ -83,18 +96,23 @@ namespace System {
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string SingleSpacesNoLineBreak(this string value) {
-            if (string.IsNullOrEmpty(value)) {
+        public static string SingleSpacesNoLineBreak(this string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
                 return value;
             }
             var builder = new StringBuilder();
             var lastCharWasWs = false;
-            foreach (var c in value) {
-                if (char.IsWhiteSpace(c)) {
+            foreach (var c in value)
+            {
+                if (char.IsWhiteSpace(c))
+                {
                     lastCharWasWs = true;
                     continue;
                 }
-                if (lastCharWasWs) {
+                if (lastCharWasWs)
+                {
                     builder.Append(' ');
                     lastCharWasWs = false;
                 }

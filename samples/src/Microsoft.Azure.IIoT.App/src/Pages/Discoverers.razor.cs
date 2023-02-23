@@ -3,16 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Pages {
+namespace Microsoft.Azure.IIoT.App.Pages
+{
+    using global::Azure.IIoT.OpcUa.Shared.Models;
+    using Microsoft.AspNetCore.Components;
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.AspNetCore.Components;
-    using global::Azure.IIoT.OpcUa.Shared.Models;
     using System;
-    using System.Threading.Tasks;
     using System.Globalization;
+    using System.Threading.Tasks;
 
-    public sealed partial class Discoverers {
+    public sealed partial class Discoverers
+    {
         [Parameter]
         public string Page { get; set; } = "1";
 
@@ -36,17 +38,20 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="page"></param>
         /// <returns></returns>
-        public async Task PagerPageChangedAsync(int page) {
+        public async Task PagerPageChangedAsync(int page)
+        {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
             DiscovererList = CommonHelper.UpdatePage(RegistryHelper.GetDiscovererListAsync, page, DiscovererList, ref _pagedDiscovererList, CommonHelper.PageLengthSmall);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "discoverers/" + page);
-            foreach (var discoverer in _pagedDiscovererList.Results) {
+            foreach (var discoverer in _pagedDiscovererList.Results)
+            {
                 discoverer.DiscovererModel = await RegistryService.GetDiscovererAsync(discoverer.DiscovererModel.Id).ConfigureAwait(false);
                 discoverer.ScanStatus = discoverer.DiscovererModel.Discovery is not DiscoveryMode.Off and not null;
                 var applicationModel = new ApplicationRegistrationQueryModel { DiscovererId = discoverer.DiscovererModel.Id };
                 var applications = await RegistryService.QueryApplicationsAsync(applicationModel, 1).ConfigureAwait(false);
-                if (applications != null) {
+                if (applications != null)
+                {
                     discoverer.HasApplication = true;
                 }
             }
@@ -57,7 +62,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// OnInitialized
         /// </summary>
-        protected override Task OnInitializedAsync() {
+        protected override Task OnInitializedAsync()
+        {
             CommonHelper.Spinner = "loader-big";
             return base.OnInitializedAsync();
         }
@@ -66,8 +72,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// OnAfterRenderAsync
         /// </summary>
         /// <param name="firstRender"></param>
-        protected override async Task OnAfterRenderAsync(bool firstRender) {
-            if (firstRender) {
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
                 DiscovererList = await RegistryHelper.GetDiscovererListAsync().ConfigureAwait(false);
                 Page = "1";
                 _pagedDiscovererList = DiscovererList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
@@ -85,13 +93,17 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Enable discoverer scan
         /// </summary>
         /// <param name="discoverer"></param>
-        private async Task SetScanAsync(DiscovererInfo discoverer, bool checkStatus) {
-            try {
+        private async Task SetScanAsync(DiscovererInfo discoverer, bool checkStatus)
+        {
+            try
+            {
                 discoverer.ScanStatus = checkStatus;
                 EventResult = string.Empty;
 
-                if (discoverer.ScanStatus) {
-                    if (!IsDiscoveryEventSubscribed) {
+                if (discoverer.ScanStatus)
+                {
+                    if (!IsDiscoveryEventSubscribed)
+                    {
                         Discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
                             discoverer.DiscovererModel.Id, async data => await InvokeAsync(() => ScanProgress(data)).ConfigureAwait(false)).ConfigureAwait(false);
                     }
@@ -101,18 +113,22 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                     ScanResult = "displayBlock";
                     DiscovererData = discoverer;
                 }
-                else {
+                else
+                {
                     discoverer.IsSearching = false;
                     ScanResult = "displayNone";
-                    if (Discovery != null) {
+                    if (Discovery != null)
+                    {
                         await Discovery.DisposeAsync().ConfigureAwait(false);
                     }
                     IsDiscoveryEventSubscribed = false;
                 }
                 Status = await RegistryHelper.SetDiscoveryAsync(discoverer).ConfigureAwait(false);
             }
-            catch {
-                if (Discovery != null) {
+            catch
+            {
+                if (Discovery != null)
+                {
                     await Discovery.DisposeAsync().ConfigureAwait(false);
                 }
                 IsDiscoveryEventSubscribed = false;
@@ -123,15 +139,18 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Start ad-hoc scan
         /// </summary>
         /// <param name="discoverer"></param>
-        private async Task SetAdHocScanAsync(DiscovererInfo discoverer) {
-            if (!IsDiscoveryEventSubscribed) {
+        private async Task SetAdHocScanAsync(DiscovererInfo discoverer)
+        {
+            if (!IsDiscoveryEventSubscribed)
+            {
                 discoverer.DiscoveryRequestId = Guid.NewGuid().ToString();
                 Discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(
                 discoverer.DiscoveryRequestId, async data => await InvokeAsync(() => ScanProgress(data)).ConfigureAwait(false)).ConfigureAwait(false);
                 IsDiscoveryEventSubscribed = true;
             }
 
-            try {
+            try
+            {
                 EventResult = string.Empty;
 
                 discoverer.IsSearching = true;
@@ -139,8 +158,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 DiscovererData = discoverer;
                 Status = await RegistryHelper.DiscoverServersAsync(discoverer).ConfigureAwait(false);
             }
-            catch {
-                if (Discovery != null) {
+            catch
+            {
+                if (Discovery != null)
+                {
                     await Discovery.DisposeAsync().ConfigureAwait(false);
                 }
                 IsDiscoveryEventSubscribed = false;
@@ -151,7 +172,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Open then Drawer
         /// </summary>
         /// <param name="OpenDrawer"></param>
-        private void OpenDrawer(DiscovererInfo discoverer) {
+        private void OpenDrawer(DiscovererInfo discoverer)
+        {
             IsOpen = true;
             DiscovererData = discoverer;
         }
@@ -159,7 +181,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// Close the Drawer
         /// </summary>
-        private void CloseDrawer() {
+        private void CloseDrawer()
+        {
             IsOpen = false;
             StateHasChanged();
         }
@@ -168,9 +191,11 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// display discoverers scan events
         /// </summary>
         /// <param name="ev"></param>
-        private void ScanProgress(DiscoveryProgressModel ev) {
+        private void ScanProgress(DiscoveryProgressModel ev)
+        {
             var ts = ev.TimeStamp.ToLocalTime();
-            switch (ev.EventType) {
+            switch (ev.EventType)
+            {
                 case DiscoveryProgressType.Pending:
                     EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Total} waiting..." + System.Environment.NewLine;
                     break;
@@ -217,21 +242,24 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 case DiscoveryProgressType.Cancelled:
                     EventResult += "==========================================" + System.Environment.NewLine;
                     EventResult += $"[{ts}] {ev.DiscovererId}: Cancelled." + System.Environment.NewLine;
-                    if (DiscovererData != null) {
+                    if (DiscovererData != null)
+                    {
                         DiscovererData.IsSearching = false;
                     }
                     break;
                 case DiscoveryProgressType.Error:
                     EventResult += "==========================================" + System.Environment.NewLine;
                     EventResult += $"[{ts}] {ev.DiscovererId}: Failure." + System.Environment.NewLine;
-                    if (DiscovererData != null) {
+                    if (DiscovererData != null)
+                    {
                         DiscovererData.IsSearching = false;
                     }
                     break;
                 case DiscoveryProgressType.Finished:
                     EventResult += "==========================================" + System.Environment.NewLine;
                     EventResult += $"[{ts}] {ev.DiscovererId}: Completed." + System.Environment.NewLine;
-                    if (DiscovererData != null) {
+                    if (DiscovererData != null)
+                    {
                         DiscovererData.IsSearching = false;
                     }
                     break;
@@ -242,12 +270,15 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// ClickHandler
         /// </summary>
-        private async Task ClickHandlerAsync(DiscovererInfo discoverer) {
+        private async Task ClickHandlerAsync(DiscovererInfo discoverer)
+        {
             CloseDrawer();
-            if (discoverer.isAdHocDiscovery) {
+            if (discoverer.isAdHocDiscovery)
+            {
                 await SetAdHocScanAsync(discoverer).ConfigureAwait(false);
             }
-            else {
+            else
+            {
                 await OnAfterRenderAsync(true).ConfigureAwait(false);
             }
         }
@@ -256,7 +287,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// refresh UI on DiscovererEvent
         /// </summary>
         /// <param name="ev"></param>
-        private Task DiscovererEventAsync(DiscovererEventModel ev) {
+        private Task DiscovererEventAsync(DiscovererEventModel ev)
+        {
             DiscovererList.Results.Update(ev);
             _pagedDiscovererList = DiscovererList.GetPaged(int.Parse(Page, CultureInfo.InvariantCulture),
                 CommonHelper.PageLength, DiscovererList.Error);
@@ -267,16 +299,20 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// Close the scan result view
         /// </summary>
-        public void CloseScanResultView() {
+        public void CloseScanResultView()
+        {
             ScanResult = "displayNone";
         }
 
-        public async ValueTask DisposeAsync() {
-            if (_discovererEvent != null) {
+        public async ValueTask DisposeAsync()
+        {
+            if (_discovererEvent != null)
+            {
                 await _discovererEvent.DisposeAsync().ConfigureAwait(false);
             }
 
-            if (Discovery != null) {
+            if (Discovery != null)
+            {
                 await Discovery.DisposeAsync().ConfigureAwait(false);
             }
         }

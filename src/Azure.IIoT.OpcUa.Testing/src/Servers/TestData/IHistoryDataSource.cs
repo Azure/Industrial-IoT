@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace TestData {
+namespace TestData
+{
     using Opc.Ua;
     using System;
 
     /// <summary>
     /// An interface to an object which can access historical data for a variable.
     /// </summary>
-    public interface IHistoryDataSource {
+    public interface IHistoryDataSource
+    {
         /// <summary>
         /// Returns the next value in the archive.
         /// </summary>

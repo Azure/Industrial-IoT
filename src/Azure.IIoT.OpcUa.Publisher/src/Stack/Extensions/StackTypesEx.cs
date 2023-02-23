@@ -3,9 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using System;
+    using System.Collections.Generic;
+    using JsonDataSetMessageContentMask = Opc.Ua.JsonDataSetMessageContentMask;
+    using JsonNetworkMessageContentMask = Opc.Ua.JsonNetworkMessageContentMask;
     using UaAggregateBits = Opc.Ua.AggregateBits;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
@@ -13,31 +18,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     using UaDataSetFieldContentMask = Opc.Ua.DataSetFieldContentMask;
     using UaDeadbandType = Opc.Ua.DeadbandType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
+    using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
+    using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
     using UaExceptionDeviationFormat = Opc.Ua.ExceptionDeviationFormat;
     using UaFilterOperator = Opc.Ua.FilterOperator;
-    using JsonDataSetMessageContentMask = Opc.Ua.JsonDataSetMessageContentMask;
-    using JsonNetworkMessageContentMask = Opc.Ua.JsonNetworkMessageContentMask;
-    using UaSecurityMode = Opc.Ua.MessageSecurityMode;
     using UaMonitoringMode = Opc.Ua.MonitoringMode;
     using UaNodeClass = Opc.Ua.NodeClass;
     using UaPermissionType = Opc.Ua.PermissionType;
+    using UaSecurityMode = Opc.Ua.MessageSecurityMode;
     using UaTimestampsToReturn = Opc.Ua.TimestampsToReturn;
-    using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
-    using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
-    using System;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Stack types conversions
     /// </summary>
-    internal static class StackTypesEx {
+    internal static class StackTypesEx
+    {
         /// <summary>
         /// Convert node class
         /// </summary>
         /// <param name="nodeClass"></param>
         /// <returns></returns>
-        public static NodeClass? ToServiceType(this UaNodeClass nodeClass) {
-            switch (nodeClass) {
+        public static NodeClass? ToServiceType(this UaNodeClass nodeClass)
+        {
+            switch (nodeClass)
+            {
                 case UaNodeClass.Object:
                     return NodeClass.Object;
                 case UaNodeClass.ObjectType:
@@ -64,8 +68,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="nodeClass"></param>
         /// <returns></returns>
-        public static UaNodeClass ToStackType(this NodeClass nodeClass) {
-            switch (nodeClass) {
+        public static UaNodeClass ToStackType(this NodeClass nodeClass)
+        {
+            switch (nodeClass)
+            {
                 case NodeClass.Object:
                     return UaNodeClass.Object;
                 case NodeClass.ObjectType:
@@ -92,34 +98,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="nodeClasses"></param>
         /// <returns></returns>
-        public static IReadOnlyList<NodeClass> ToServiceMask(this UaNodeClass nodeClasses) {
-            if (nodeClasses == UaNodeClass.Unspecified) {
+        public static IReadOnlyList<NodeClass> ToServiceMask(this UaNodeClass nodeClasses)
+        {
+            if (nodeClasses == UaNodeClass.Unspecified)
+            {
                 return null;
             }
             var result = new List<NodeClass>();
             var mask = (uint)nodeClasses;
-            if (0 != (mask & (uint)UaNodeClass.Object)) {
+            if (0 != (mask & (uint)UaNodeClass.Object))
+            {
                 result.Add(NodeClass.Object);
             }
-            if (0 != (mask & (uint)UaNodeClass.Variable)) {
+            if (0 != (mask & (uint)UaNodeClass.Variable))
+            {
                 result.Add(NodeClass.Variable);
             }
-            if (0 != (mask & (uint)UaNodeClass.Method)) {
+            if (0 != (mask & (uint)UaNodeClass.Method))
+            {
                 result.Add(NodeClass.Method);
             }
-            if (0 != (mask & (uint)UaNodeClass.ObjectType)) {
+            if (0 != (mask & (uint)UaNodeClass.ObjectType))
+            {
                 result.Add(NodeClass.ObjectType);
             }
-            if (0 != (mask & (uint)UaNodeClass.VariableType)) {
+            if (0 != (mask & (uint)UaNodeClass.VariableType))
+            {
                 result.Add(NodeClass.VariableType);
             }
-            if (0 != (mask & (uint)UaNodeClass.ReferenceType)) {
+            if (0 != (mask & (uint)UaNodeClass.ReferenceType))
+            {
                 result.Add(NodeClass.ReferenceType);
             }
-            if (0 != (mask & (uint)UaNodeClass.DataType)) {
+            if (0 != (mask & (uint)UaNodeClass.DataType))
+            {
                 result.Add(NodeClass.DataType);
             }
-            if (0 != (mask & (uint)UaNodeClass.View)) {
+            if (0 != (mask & (uint)UaNodeClass.View))
+            {
                 result.Add(NodeClass.View);
             }
             return result;
@@ -130,10 +146,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="nodeClasses"></param>
         /// <returns></returns>
-        public static UaNodeClass ToStackMask(this IReadOnlyList<NodeClass> nodeClasses) {
+        public static UaNodeClass ToStackMask(this IReadOnlyList<NodeClass> nodeClasses)
+        {
             var mask = 0u;
-            if (nodeClasses != null) {
-                foreach (var nodeClass in nodeClasses) {
+            if (nodeClasses != null)
+            {
+                foreach (var nodeClass in nodeClasses)
+                {
                     mask |= (uint)nodeClass.ToStackType();
                 }
             }
@@ -145,8 +164,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static UaBrowseDirection ToStackType(this BrowseDirection mode) {
-            switch (mode) {
+        public static UaBrowseDirection ToStackType(this BrowseDirection mode)
+        {
+            switch (mode)
+            {
                 case BrowseDirection.Forward:
                     return UaBrowseDirection.Forward;
                 case BrowseDirection.Backward:
@@ -163,8 +184,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="permissions"></param>
         /// <returns></returns>
-        public static RolePermissions? ToServiceType(this UaPermissionType permissions) {
-            if (permissions == UaPermissionType.None) {
+        public static RolePermissions? ToServiceType(this UaPermissionType permissions)
+        {
+            if (permissions == UaPermissionType.None)
+            {
                 return null;
             }
             return (RolePermissions)permissions;
@@ -175,8 +198,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static SecurityMode? ToServiceType(this UaSecurityMode mode) {
-            switch (mode) {
+        public static SecurityMode? ToServiceType(this UaSecurityMode mode)
+        {
+            switch (mode)
+            {
                 case UaSecurityMode.None:
                     return SecurityMode.None;
                 case UaSecurityMode.Sign:
@@ -193,8 +218,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static UaSecurityMode ToStackType(this SecurityMode mode) {
-            switch (mode) {
+        public static UaSecurityMode ToStackType(this SecurityMode mode)
+        {
+            switch (mode)
+            {
                 case SecurityMode.Sign:
                     return UaSecurityMode.Sign;
                 case SecurityMode.SignAndEncrypt:
@@ -209,8 +236,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static ApplicationType? ToServiceType(this UaApplicationType type) {
-            switch (type) {
+        public static ApplicationType? ToServiceType(this UaApplicationType type)
+        {
+            switch (type)
+            {
                 case UaApplicationType.Client:
                     return ApplicationType.Client;
                 case UaApplicationType.DiscoveryServer:
@@ -229,22 +258,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="level"></param>
         /// <returns></returns>
-        public static UaDiagnosticsLevel ToStackType(this DiagnosticsLevel level) {
+        public static UaDiagnosticsLevel ToStackType(this DiagnosticsLevel level)
+        {
             var result = UaDiagnosticsLevel.None;
-            if (level == DiagnosticsLevel.None) {
+            if (level == DiagnosticsLevel.None)
+            {
                 return result;
             }
             result |= UaDiagnosticsLevel.SymbolicIdAndText;
-            if (level == DiagnosticsLevel.Status) {
+            if (level == DiagnosticsLevel.Status)
+            {
                 return result;
             }
             result |= UaDiagnosticsLevel.AdditionalInfo;
-            if (level == DiagnosticsLevel.Information) {
+            if (level == DiagnosticsLevel.Information)
+            {
                 return result;
             }
             result |= UaDiagnosticsLevel.InnerStatusCode;
             result |= UaDiagnosticsLevel.InnerDiagnostics;
-            if (level == DiagnosticsLevel.Debug) {
+            if (level == DiagnosticsLevel.Debug)
+            {
                 return result;
             }
             result |= UaDiagnosticsLevel.All;
@@ -256,11 +290,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static UaMonitoringMode? ToStackType(this MonitoringMode? mode) {
-            if (mode == null) {
+        public static UaMonitoringMode? ToStackType(this MonitoringMode? mode)
+        {
+            if (mode == null)
+            {
                 return null;
             }
-            switch (mode) {
+            switch (mode)
+            {
                 case MonitoringMode.Disabled:
                     return UaMonitoringMode.Disabled;
                 case MonitoringMode.Sampling:
@@ -277,8 +314,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static UaTimestampsToReturn ToStackType(this TimestampsToReturn mode) {
-            switch (mode) {
+        public static UaTimestampsToReturn ToStackType(this TimestampsToReturn mode)
+        {
+            switch (mode)
+            {
                 case TimestampsToReturn.None:
                     return UaTimestampsToReturn.Neither;
                 case TimestampsToReturn.Server:
@@ -295,11 +334,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static UaDeadbandType ToStackType(this DeadbandType? mode) {
-            if (mode == null) {
+        public static UaDeadbandType ToStackType(this DeadbandType? mode)
+        {
+            if (mode == null)
+            {
                 return UaDeadbandType.None;
             }
-            switch (mode.Value) {
+            switch (mode.Value)
+            {
                 case DeadbandType.Absolute:
                     return UaDeadbandType.Absolute;
                 case DeadbandType.Percent:
@@ -314,12 +356,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static UaDataChangeTrigger ToStackType(this DataChangeTriggerType? mode) {
-            if (mode == null) {
+        public static UaDataChangeTrigger ToStackType(this DataChangeTriggerType? mode)
+        {
+            if (mode == null)
+            {
                 // Default is status and value change triggering
                 return UaDataChangeTrigger.StatusValue;
             }
-            switch (mode.Value) {
+            switch (mode.Value)
+            {
                 case DataChangeTriggerType.Status:
                     return UaDataChangeTrigger.Status;
                 case DataChangeTriggerType.StatusValue:
@@ -336,8 +381,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static UaFilterOperator ToStackType(this FilterOperatorType type) {
-            switch (type) {
+        public static UaFilterOperator ToStackType(this FilterOperatorType type)
+        {
+            switch (type)
+            {
                 case FilterOperatorType.Equals:
                     return UaFilterOperator.Equals;
                 case FilterOperatorType.IsNull:
@@ -384,8 +431,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static FilterOperatorType ToServiceType(this UaFilterOperator type) {
-            switch (type) {
+        public static FilterOperatorType ToServiceType(this UaFilterOperator type)
+        {
+            switch (type)
+            {
                 case UaFilterOperator.Equals:
                     return FilterOperatorType.Equals;
                 case UaFilterOperator.IsNull:
@@ -433,8 +482,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="format"></param>
         /// <returns></returns>
         public static ExceptionDeviationType? ToExceptionDeviationType(
-            this UaExceptionDeviationFormat? format) {
-            switch (format) {
+            this UaExceptionDeviationFormat? format)
+        {
+            switch (format)
+            {
                 case UaExceptionDeviationFormat.AbsoluteValue:
                     return ExceptionDeviationType.AbsoluteValue;
                 case UaExceptionDeviationFormat.PercentOfValue:
@@ -453,14 +504,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="aggregateBits"></param>
         /// <returns></returns>
-        public static DataLocation? ToDataLocation(this UaAggregateBits aggregateBits) {
-            if ((aggregateBits & UaAggregateBits.Calculated) != 0) {
+        public static DataLocation? ToDataLocation(this UaAggregateBits aggregateBits)
+        {
+            if ((aggregateBits & UaAggregateBits.Calculated) != 0)
+            {
                 return DataLocation.Calculated;
             }
-            else if ((aggregateBits & UaAggregateBits.Interpolated) != 0) {
+            else if ((aggregateBits & UaAggregateBits.Interpolated) != 0)
+            {
                 return DataLocation.Interpolated;
             }
-            else {
+            else
+            {
                 return null;
             }
         }
@@ -470,18 +525,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="aggregateBits"></param>
         /// <returns></returns>
-        public static AdditionalData? ToAdditionalData(this UaAggregateBits aggregateBits) {
+        public static AdditionalData? ToAdditionalData(this UaAggregateBits aggregateBits)
+        {
             AdditionalData result = 0;
-            if ((aggregateBits & UaAggregateBits.ExtraData) != 0) {
+            if ((aggregateBits & UaAggregateBits.ExtraData) != 0)
+            {
                 result |= AdditionalData.ExtraData;
             }
-            if ((aggregateBits & UaAggregateBits.MultipleValues) != 0) {
+            if ((aggregateBits & UaAggregateBits.MultipleValues) != 0)
+            {
                 result |= AdditionalData.MultipleValues;
             }
-            if ((aggregateBits & UaAggregateBits.Partial) != 0) {
+            if ((aggregateBits & UaAggregateBits.Partial) != 0)
+            {
                 result |= AdditionalData.Partial;
             }
-            if (result == 0) {
+            if (result == 0)
+            {
                 return null;
             }
             return result;
@@ -493,14 +553,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="mask"></param>
         /// <param name="encoding"></param>
         /// <returns></returns>
-        public static uint ToStackType(this NetworkMessageContentMask? mask, MessageEncoding? encoding) {
+        public static uint ToStackType(this NetworkMessageContentMask? mask, MessageEncoding? encoding)
+        {
             mask ??=
                     NetworkMessageContentMask.NetworkMessageHeader |
                     NetworkMessageContentMask.NetworkMessageNumber |
                     NetworkMessageContentMask.DataSetMessageHeader |
                     NetworkMessageContentMask.PublisherId |
                     NetworkMessageContentMask.DataSetClassId;
-            switch (encoding) {
+            switch (encoding)
+            {
                 case MessageEncoding.Uadp:
                     return (uint)ToUadpStackType(mask.Value);
                 case MessageEncoding.Json:
@@ -517,7 +579,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="encoding"></param>
         /// <returns></returns>
         public static uint ToStackType(this DataSetContentMask? mask,
-            DataSetFieldContentMask? fieldMask, MessageEncoding? encoding) {
+            DataSetFieldContentMask? fieldMask, MessageEncoding? encoding)
+        {
             mask ??=
                     DataSetContentMask.DataSetWriterId |
                     DataSetContentMask.DataSetWriterName |
@@ -528,7 +591,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                     DataSetContentMask.Timestamp |
                     DataSetContentMask.MessageType |
                     DataSetContentMask.Status;
-            switch (encoding) {
+            switch (encoding)
+            {
                 case MessageEncoding.Uadp:
                     return (uint)ToUadpStackType(mask.Value);
                 case MessageEncoding.Json:
@@ -542,32 +606,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        private static JsonNetworkMessageContentMask ToJsonStackType(this NetworkMessageContentMask mask) {
+        private static JsonNetworkMessageContentMask ToJsonStackType(this NetworkMessageContentMask mask)
+        {
             var result = JsonNetworkMessageContentMask.None;
-            if (0 != (mask & NetworkMessageContentMask.PublisherId)) {
+            if (0 != (mask & NetworkMessageContentMask.PublisherId))
+            {
                 result |= JsonNetworkMessageContentMask.PublisherId;
             }
-            if (0 != (mask & NetworkMessageContentMask.DataSetClassId)) {
+            if (0 != (mask & NetworkMessageContentMask.DataSetClassId))
+            {
                 result |= JsonNetworkMessageContentMask.DataSetClassId;
             }
-            if (0 != (mask & NetworkMessageContentMask.ReplyTo)) {
+            if (0 != (mask & NetworkMessageContentMask.ReplyTo))
+            {
                 result |= JsonNetworkMessageContentMask.ReplyTo;
             }
-            if (0 != (mask & NetworkMessageContentMask.NetworkMessageHeader)) {
+            if (0 != (mask & NetworkMessageContentMask.NetworkMessageHeader))
+            {
                 result |= JsonNetworkMessageContentMask.NetworkMessageHeader;
             }
-            else {
+            else
+            {
                 // If not set, bits 3, 4 and 5 can also not be set
                 result = JsonNetworkMessageContentMask.None;
             }
-            if (0 != (mask & NetworkMessageContentMask.MonitoredItemMessage)) {
+            if (0 != (mask & NetworkMessageContentMask.MonitoredItemMessage))
+            {
                 // If monitored item message, then no network message header
                 result = JsonNetworkMessageContentMask.None;
             }
-            if (0 != (mask & NetworkMessageContentMask.DataSetMessageHeader)) {
+            if (0 != (mask & NetworkMessageContentMask.DataSetMessageHeader))
+            {
                 result |= JsonNetworkMessageContentMask.DataSetMessageHeader;
             }
-            if (0 != (mask & NetworkMessageContentMask.SingleDataSetMessage)) {
+            if (0 != (mask & NetworkMessageContentMask.SingleDataSetMessage))
+            {
                 result |= JsonNetworkMessageContentMask.SingleDataSetMessage;
             }
             return result;
@@ -580,47 +653,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="fieldMask"></param>
         /// <returns></returns>
         private static JsonDataSetMessageContentMask ToJsonStackType(this DataSetContentMask mask,
-            DataSetFieldContentMask? fieldMask) {
+            DataSetFieldContentMask? fieldMask)
+        {
             var result = JsonDataSetMessageContentMask.None;
-            if (0 != (mask & DataSetContentMask.Timestamp)) {
+            if (0 != (mask & DataSetContentMask.Timestamp))
+            {
                 result |= JsonDataSetMessageContentMask.Timestamp;
             }
-            if (0 != (mask & DataSetContentMask.Status)) {
+            if (0 != (mask & DataSetContentMask.Status))
+            {
                 result |= JsonDataSetMessageContentMask.Status;
             }
-            if (0 != (mask & DataSetContentMask.MetaDataVersion)) {
+            if (0 != (mask & DataSetContentMask.MetaDataVersion))
+            {
                 result |= JsonDataSetMessageContentMask.MetaDataVersion;
             }
-            if (0 != (mask & DataSetContentMask.SequenceNumber)) {
+            if (0 != (mask & DataSetContentMask.SequenceNumber))
+            {
                 result |= JsonDataSetMessageContentMask.SequenceNumber;
             }
-            if (0 != (mask & DataSetContentMask.DataSetWriterId)) {
+            if (0 != (mask & DataSetContentMask.DataSetWriterId))
+            {
                 result |= JsonDataSetMessageContentMask.DataSetWriterId;
             }
-            if (0 != (mask & DataSetContentMask.MessageType)) {
+            if (0 != (mask & DataSetContentMask.MessageType))
+            {
                 result |= JsonDataSetMessageContentMask.MessageType;
             }
-            if (0 != (mask & DataSetContentMask.DataSetWriterName)) {
+            if (0 != (mask & DataSetContentMask.DataSetWriterName))
+            {
                 result |= JsonDataSetMessageContentMask2.DataSetWriterName;
             }
-            if (0 != (mask & DataSetContentMask.ReversibleFieldEncoding)) {
+            if (0 != (mask & DataSetContentMask.ReversibleFieldEncoding))
+            {
                 result |= JsonDataSetMessageContentMask2.ReversibleFieldEncoding;
             }
 
-            if (fieldMask != null) {
-                if (0 != (fieldMask & DataSetFieldContentMask.NodeId)) {
+            if (fieldMask != null)
+            {
+                if (0 != (fieldMask & DataSetFieldContentMask.NodeId))
+                {
                     result |= JsonDataSetMessageContentMaskEx.NodeId;
                 }
-                if (0 != (fieldMask & DataSetFieldContentMask.DisplayName)) {
+                if (0 != (fieldMask & DataSetFieldContentMask.DisplayName))
+                {
                     result |= JsonDataSetMessageContentMaskEx.DisplayName;
                 }
-                if (0 != (fieldMask & DataSetFieldContentMask.ExtensionFields)) {
+                if (0 != (fieldMask & DataSetFieldContentMask.ExtensionFields))
+                {
                     result |= JsonDataSetMessageContentMaskEx.ExtensionFields;
                 }
-                if (0 != (fieldMask & DataSetFieldContentMask.EndpointUrl)) {
+                if (0 != (fieldMask & DataSetFieldContentMask.EndpointUrl))
+                {
                     result |= JsonDataSetMessageContentMaskEx.EndpointUrl;
                 }
-                if (0 != (fieldMask & DataSetFieldContentMask.ApplicationUri)) {
+                if (0 != (fieldMask & DataSetFieldContentMask.ApplicationUri))
+                {
                     result |= JsonDataSetMessageContentMaskEx.ApplicationUri;
                 }
             }
@@ -632,39 +720,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        private static UadpNetworkMessageContentMask ToUadpStackType(this NetworkMessageContentMask mask) {
+        private static UadpNetworkMessageContentMask ToUadpStackType(this NetworkMessageContentMask mask)
+        {
             var result = UadpNetworkMessageContentMask.None;
-            if (0 != (mask & NetworkMessageContentMask.PublisherId)) {
+            if (0 != (mask & NetworkMessageContentMask.PublisherId))
+            {
                 result |= UadpNetworkMessageContentMask.PublisherId;
             }
-            if (0 != (mask & NetworkMessageContentMask.GroupHeader)) {
+            if (0 != (mask & NetworkMessageContentMask.GroupHeader))
+            {
                 result |= UadpNetworkMessageContentMask.GroupHeader;
             }
-            if (0 != (mask & NetworkMessageContentMask.WriterGroupId)) {
+            if (0 != (mask & NetworkMessageContentMask.WriterGroupId))
+            {
                 result |= UadpNetworkMessageContentMask.WriterGroupId;
             }
-            if (0 != (mask & NetworkMessageContentMask.GroupVersion)) {
+            if (0 != (mask & NetworkMessageContentMask.GroupVersion))
+            {
                 result |= UadpNetworkMessageContentMask.GroupVersion;
             }
-            if (0 != (mask & NetworkMessageContentMask.NetworkMessageNumber)) {
+            if (0 != (mask & NetworkMessageContentMask.NetworkMessageNumber))
+            {
                 result |= UadpNetworkMessageContentMask.NetworkMessageNumber;
             }
-            if (0 != (mask & NetworkMessageContentMask.SequenceNumber)) {
+            if (0 != (mask & NetworkMessageContentMask.SequenceNumber))
+            {
                 result |= UadpNetworkMessageContentMask.SequenceNumber;
             }
-            if (0 != (mask & NetworkMessageContentMask.PayloadHeader)) {
+            if (0 != (mask & NetworkMessageContentMask.PayloadHeader))
+            {
                 result |= UadpNetworkMessageContentMask.PayloadHeader;
             }
-            if (0 != (mask & NetworkMessageContentMask.Timestamp)) {
+            if (0 != (mask & NetworkMessageContentMask.Timestamp))
+            {
                 result |= UadpNetworkMessageContentMask.Timestamp;
             }
-            if (0 != (mask & NetworkMessageContentMask.Picoseconds)) {
+            if (0 != (mask & NetworkMessageContentMask.Picoseconds))
+            {
                 result |= UadpNetworkMessageContentMask.PicoSeconds;
             }
-            if (0 != (mask & NetworkMessageContentMask.DataSetClassId)) {
+            if (0 != (mask & NetworkMessageContentMask.DataSetClassId))
+            {
                 result |= UadpNetworkMessageContentMask.DataSetClassId;
             }
-            if (0 != (mask & NetworkMessageContentMask.PromotedFields)) {
+            if (0 != (mask & NetworkMessageContentMask.PromotedFields))
+            {
                 result |= UadpNetworkMessageContentMask.PromotedFields;
             }
             return result;
@@ -675,24 +775,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        private static UadpDataSetMessageContentMask ToUadpStackType(this DataSetContentMask mask) {
+        private static UadpDataSetMessageContentMask ToUadpStackType(this DataSetContentMask mask)
+        {
             var result = UadpDataSetMessageContentMask.None;
-            if (0 != (mask & DataSetContentMask.Timestamp)) {
+            if (0 != (mask & DataSetContentMask.Timestamp))
+            {
                 result |= UadpDataSetMessageContentMask.Timestamp;
             }
-            if (0 != (mask & DataSetContentMask.PicoSeconds)) {
+            if (0 != (mask & DataSetContentMask.PicoSeconds))
+            {
                 result |= UadpDataSetMessageContentMask.PicoSeconds;
             }
-            if (0 != (mask & DataSetContentMask.Status)) {
+            if (0 != (mask & DataSetContentMask.Status))
+            {
                 result |= UadpDataSetMessageContentMask.Status;
             }
-            if (0 != (mask & DataSetContentMask.SequenceNumber)) {
+            if (0 != (mask & DataSetContentMask.SequenceNumber))
+            {
                 result |= UadpDataSetMessageContentMask.SequenceNumber;
             }
-            if (0 != (mask & DataSetContentMask.MinorVersion)) {
+            if (0 != (mask & DataSetContentMask.MinorVersion))
+            {
                 result |= UadpDataSetMessageContentMask.MinorVersion;
             }
-            if (0 != (mask & DataSetContentMask.MajorVersion)) {
+            if (0 != (mask & DataSetContentMask.MajorVersion))
+            {
                 result |= UadpDataSetMessageContentMask.MajorVersion;
             }
             return result;
@@ -703,7 +810,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        public static UaDataSetFieldContentMask ToStackType(this DataSetFieldContentMask? mask) {
+        public static UaDataSetFieldContentMask ToStackType(this DataSetFieldContentMask? mask)
+        {
             mask ??=
                     DataSetFieldContentMask.StatusCode |
                     DataSetFieldContentMask.SourceTimestamp |
@@ -711,22 +819,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                     DataSetFieldContentMask.ServerPicoSeconds |
                     DataSetFieldContentMask.ServerTimestamp;
             var result = UaDataSetFieldContentMask.None;
-            if (0 != (mask & DataSetFieldContentMask.StatusCode)) {
+            if (0 != (mask & DataSetFieldContentMask.StatusCode))
+            {
                 result |= UaDataSetFieldContentMask.StatusCode;
             }
-            if (0 != (mask & DataSetFieldContentMask.SourceTimestamp)) {
+            if (0 != (mask & DataSetFieldContentMask.SourceTimestamp))
+            {
                 result |= UaDataSetFieldContentMask.SourceTimestamp;
             }
-            if (0 != (mask & DataSetFieldContentMask.ServerTimestamp)) {
+            if (0 != (mask & DataSetFieldContentMask.ServerTimestamp))
+            {
                 result |= UaDataSetFieldContentMask.ServerTimestamp;
             }
-            if (0 != (mask & DataSetFieldContentMask.SourcePicoSeconds)) {
+            if (0 != (mask & DataSetFieldContentMask.SourcePicoSeconds))
+            {
                 result |= UaDataSetFieldContentMask.SourcePicoSeconds;
             }
-            if (0 != (mask & DataSetFieldContentMask.ServerPicoSeconds)) {
+            if (0 != (mask & DataSetFieldContentMask.ServerPicoSeconds))
+            {
                 result |= UaDataSetFieldContentMask.ServerPicoSeconds;
             }
-            if (0 != (mask & DataSetFieldContentMask.RawData)) {
+            if (0 != (mask & DataSetFieldContentMask.RawData))
+            {
                 result |= UaDataSetFieldContentMask.RawData;
             }
             return result;

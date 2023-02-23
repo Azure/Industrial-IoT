@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Utils {
+namespace Microsoft.Azure.IIoT.Utils
+{
     using System;
 
     /// <summary>
     /// Host context
     /// </summary>
-    public static class Host {
+    public static class Host
+    {
         /// <summary>
         /// Running in container
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Models {
+namespace Microsoft.Azure.IIoT.Hub.Models
+{
     using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
@@ -13,7 +14,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// Model of device registry / twin document
     /// </summary>
     [DataContract]
-    public class DeviceTwinModel {
+    public class DeviceTwinModel
+    {
         /// <summary>
         /// Device id
         /// </summary>

@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub {
-    using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Exceptions;
+namespace Microsoft.Azure.IIoT.Hub
+{
     using Furly.Extensions.Serializers;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Hub.Models;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -14,7 +15,8 @@ namespace Microsoft.Azure.IIoT.Hub {
     /// <summary>
     /// Twin services
     /// </summary>
-    public interface IIoTHubTwinServices {
+    public interface IIoTHubTwinServices
+    {
         /// <summary>
         /// Get the host name of the iot hub
         /// </summary>

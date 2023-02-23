@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
+namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi
+{
     /// <summary>
     /// OpenApi / Swagger configuration
     /// </summary>
-    public interface IOpenApiConfig {
+    public interface IOpenApiConfig
+    {
         /// <summary>
         /// Whether openapi should be enabled
         /// </summary>

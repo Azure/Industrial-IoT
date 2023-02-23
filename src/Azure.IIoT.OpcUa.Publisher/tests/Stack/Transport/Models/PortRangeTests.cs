@@ -3,14 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests
+{
     using System;
     using System.Linq;
     using Xunit;
 
-    public class PortRangeTests {
+    public class PortRangeTests
+    {
         [Fact]
-        public void TestSimpleRange() {
+        public void TestSimpleRange()
+        {
             var range1 = new PortRange(0, 100);
             var range2 = new PortRange(100, 0);
 
@@ -25,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestNoneEquality1() {
+        public void TestNoneEquality1()
+        {
             var range1 = new PortRange(0, 4);
             var range2 = new PortRange(1, 4);
 
@@ -36,7 +40,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestNoneEquality2() {
+        public void TestNoneEquality2()
+        {
             var range1 = new PortRange(0, 4);
             var range2 = new PortRange(7, 9);
 
@@ -47,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing1() {
+        public void TestParsing1()
+        {
             PortRange.TryParse("0-100", out var range1);
             var range2 = new PortRange(0, 100);
 
@@ -57,7 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing2() {
+        public void TestParsing2()
+        {
             PortRange.TryParse("0-100;144", out var range1);
             var range2 = new PortRange(0, 100);
             var range3 = new PortRange(144);
@@ -69,7 +76,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing2b() {
+        public void TestParsing2b()
+        {
             PortRange.TryParse("0-100;44", out var range1);
             var range2 = new PortRange(0, 100);
 
@@ -79,7 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing3() {
+        public void TestParsing3()
+        {
             PortRange.TryParse("0,3,6,,,,", out var range1);
 
             Assert.Equal(new PortRange(0), range1.First());
@@ -90,7 +99,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing3b() {
+        public void TestParsing3b()
+        {
             PortRange.TryParse("0-1,3-4,6-9,,,,", out var range1);
 
             Assert.Equal(new PortRange(0, 1), range1.First());
@@ -101,7 +111,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing3c() {
+        public void TestParsing3c()
+        {
             PortRange.TryParse("0-1;3-4;6-*", out var range1);
 
             Assert.Equal(new PortRange(0, 1), range1.First());
@@ -112,7 +123,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing3d() {
+        public void TestParsing3d()
+        {
             PortRange.TryParse("0-1,1-2,2-3,,,,", out var range1);
 
             Assert.Single(range1);
@@ -121,13 +133,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing4() {
+        public void TestParsing4()
+        {
             PortRange.TryParse(",,,,", out var range1);
             Assert.Empty(range1);
         }
 
         [Fact]
-        public void TestParsing5() {
+        public void TestParsing5()
+        {
             PortRange.TryParse("*", out var range1);
             Assert.Single(range1);
             Assert.Equal(new PortRange(0, 65536), range1.Single());
@@ -135,7 +149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing6() {
+        public void TestParsing6()
+        {
             PortRange.TryParse("100-*", out var range1);
             Assert.Single(range1);
             Assert.Equal(new PortRange(100, 65536), range1.Single());
@@ -143,7 +158,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing7() {
+        public void TestParsing7()
+        {
             PortRange.TryParse("*-100", out var range1);
             Assert.Single(range1);
             Assert.Equal(new PortRange(0, 100), range1.Single());
@@ -151,7 +167,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParseFormatExceptions() {
+        public void TestParseFormatExceptions()
+        {
             Assert.Throws<FormatException>(() => PortRange.Parse("0.0.0.0/24;x/2;;"));
             Assert.Throws<FormatException>(() => PortRange.Parse("abf,d"));
             Assert.Throws<FormatException>(() => PortRange.Parse("0-1-2"));

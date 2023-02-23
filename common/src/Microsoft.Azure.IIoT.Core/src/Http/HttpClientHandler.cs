@@ -5,7 +5,8 @@
 
 using System;
 
-namespace Microsoft.Azure.IIoT.Http.Default {
+namespace Microsoft.Azure.IIoT.Http.Default
+{
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;
@@ -23,11 +24,14 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// Adds unix domain socket capabilities to the default client handler
     /// which does not support anything outside http/https scheme.
     /// </summary>
-    internal class HttpClientHandler : System.Net.Http.HttpClientHandler {
+    internal class HttpClientHandler : System.Net.Http.HttpClientHandler
+    {
         /// <inheritdoc/>
         protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request, CancellationToken cancellationToken) {
-            if (request.Headers.TryGetValues(HttpHeader.UdsPath, out var paths)) {
+            HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (request.Headers.TryGetValues(HttpHeader.UdsPath, out var paths))
+            {
                 return SendOverUnixDomainSocketAsync(paths.FirstOrDefault(), request,
                     cancellationToken);
             }
@@ -42,20 +46,26 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="ct"></param>
         /// <returns></returns>
         private static async Task<HttpResponseMessage> SendOverUnixDomainSocketAsync(string udsPath,
-            HttpRequestMessage request, CancellationToken ct) {
-            if (request == null) {
+            HttpRequestMessage request, CancellationToken ct)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(udsPath)) {
+            if (string.IsNullOrEmpty(udsPath))
+            {
                 throw new ArgumentNullException(nameof(udsPath));
             }
             using (var socket = new Socket(AddressFamily.Unix, SocketType.Stream,
-                ProtocolType.Unspecified)) {
+                ProtocolType.Unspecified))
+            {
                 await socket.ConnectAsync(new UdsEndPoint(udsPath)).ConfigureAwait(false);
-                using (var stream = new HttpLineReader(new NetworkStream(socket, true))) {
+                using (var stream = new HttpLineReader(new NetworkStream(socket, true)))
+                {
                     var requestBytes = GetRequestBuffer(request);
                     await stream.WriteAsync(requestBytes, ct).ConfigureAwait(false);
-                    if (request.Content != null) {
+                    if (request.Content != null)
+                    {
                         await request.Content.CopyToAsync(stream, ct).ConfigureAwait(false);
                     }
                     return await ReadResponseAsync(stream, ct).ConfigureAwait(false);
@@ -68,15 +78,19 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        private static byte[] GetRequestBuffer(HttpRequestMessage request) {
-            if (request == null) {
+        private static byte[] GetRequestBuffer(HttpRequestMessage request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.RequestUri == null) {
+            if (request.RequestUri == null)
+            {
                 throw new ArgumentNullException(nameof(request.RequestUri));
             }
 
-            if (string.IsNullOrEmpty(request.Headers.Host)) {
+            if (string.IsNullOrEmpty(request.Headers.Host))
+            {
                 request.Headers.Host =
                     $"{request.RequestUri.DnsSafeHost}:{request.RequestUri.Port}";
             }
@@ -96,9 +110,11 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             // Headers
             builder.Append(request.Headers);
 
-            if (request.Content != null) {
+            if (request.Content != null)
+            {
                 var contentLength = request.Content.Headers.ContentLength;
-                if (contentLength.HasValue) {
+                if (contentLength.HasValue)
+                {
                     request.Content.Headers.ContentLength = contentLength.Value;
                 }
                 builder.Append(request.Content.Headers);
@@ -117,26 +133,31 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <param name="ct"></param>
         /// <returns></returns>
         private static async Task<HttpResponseMessage> ReadResponseAsync(
-            HttpLineReader bufferedStream, CancellationToken ct) {
+            HttpLineReader bufferedStream, CancellationToken ct)
+        {
             var response = new HttpResponseMessage();
 
             var statusLine = await bufferedStream.ReadLineAsync(ct)
                 .ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(statusLine)) {
+            if (string.IsNullOrWhiteSpace(statusLine))
+            {
                 throw new HttpRequestException("Response is empty.");
             }
             var statusParts = statusLine.Split(new[] { kSpace }, 3);
-            if (statusParts.Length < 3) {
+            if (statusParts.Length < 3)
+            {
                 throw new HttpRequestException("Status line is not valid.");
             }
             var httpVersion = statusParts[0].Split(new[] { kProtoVersionSep }, 2);
             if (httpVersion.Length < 2 ||
-                !Version.TryParse(httpVersion[1], out var version)) {
+                !Version.TryParse(httpVersion[1], out var version))
+            {
                 throw new HttpRequestException(
                     $"Version is not valid {statusParts[0]}.");
             }
             response.Version = version;
-            if (!Enum.TryParse(statusParts[1], out HttpStatusCode statusCode)) {
+            if (!Enum.TryParse(statusParts[1], out HttpStatusCode statusCode))
+            {
                 throw new HttpRequestException(
                     $"StatusCode is not valid {statusParts[1]}.");
             }
@@ -147,28 +168,35 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             var headers = new List<string>();
             var line = await bufferedStream.ReadLineAsync(ct)
                 .ConfigureAwait(false);
-            while (!string.IsNullOrWhiteSpace(line)) {
+            while (!string.IsNullOrWhiteSpace(line))
+            {
                 headers.Add(line);
                 line = await bufferedStream.ReadLineAsync(ct)
                     .ConfigureAwait(false);
             }
 
             response.Content = new StreamContent(bufferedStream);
-            foreach (var header in headers) {
-                if (string.IsNullOrWhiteSpace(header)) {
+            foreach (var header in headers)
+            {
+                if (string.IsNullOrWhiteSpace(header))
+                {
                     // headers end
                     break;
                 }
                 var headerSeparatorPosition = header.IndexOf(kHeaderSeparator, StringComparison.Ordinal);
-                if (headerSeparatorPosition <= 0) {
+                if (headerSeparatorPosition <= 0)
+                {
                     throw new HttpRequestException($"Header is invalid {header}.");
                 }
                 var name = header.Substring(0, headerSeparatorPosition).Trim();
                 var value = header.Substring(headerSeparatorPosition + 1).Trim();
                 var wasAdded = response.Headers.TryAddWithoutValidation(name, value);
-                if (!wasAdded) {
-                    if (name.EqualsIgnoreCase(kContentLength)) {
-                        if (!long.TryParse(value, out var length)) {
+                if (!wasAdded)
+                {
+                    if (name.EqualsIgnoreCase(kContentLength))
+                    {
+                        if (!long.TryParse(value, out var length))
+                        {
                             throw new HttpRequestException(
                                 $"Header value is invalid for {name}.");
                         }
@@ -184,16 +212,19 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Unix endpoint -  TODO: remove when moving to .net standard 3
         /// </summary>
-        public sealed class UdsEndPoint : EndPoint {
+        public sealed class UdsEndPoint : EndPoint
+        {
             /// <summary>
             /// Create endopint
             /// </summary>
             /// <param name="path"></param>
-            public UdsEndPoint(string path) {
+            public UdsEndPoint(string path)
+            {
                 _path = path ?? throw new ArgumentNullException(nameof(path));
                 _encodedPath = Encoding.UTF8.GetBytes(_path);
 
-                if (path.Length == 0 || _encodedPath.Length > s_nativePathLength) {
+                if (path.Length == 0 || _encodedPath.Length > s_nativePathLength)
+                {
                     throw new ArgumentOutOfRangeException(nameof(path), path);
                 }
             }
@@ -202,37 +233,45 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// Create endpoint
             /// </summary>
             /// <param name="socketAddress"></param>
-            internal UdsEndPoint(SocketAddress socketAddress) {
-                if (socketAddress == null) {
+            internal UdsEndPoint(SocketAddress socketAddress)
+            {
+                if (socketAddress == null)
+                {
                     throw new ArgumentNullException(nameof(socketAddress));
                 }
 
                 if (socketAddress.Family != AddressFamily.Unix ||
-                    socketAddress.Size > s_nativeAddressSize) {
+                    socketAddress.Size > s_nativeAddressSize)
+                {
                     throw new ArgumentOutOfRangeException(nameof(socketAddress));
                 }
 
-                if (socketAddress.Size > s_nativePathOffset) {
+                if (socketAddress.Size > s_nativePathOffset)
+                {
                     _encodedPath = new byte[socketAddress.Size - s_nativePathOffset];
-                    for (var i = 0; i < _encodedPath.Length; i++) {
+                    for (var i = 0; i < _encodedPath.Length; i++)
+                    {
                         _encodedPath[i] = socketAddress[s_nativePathOffset + i];
                     }
 
                     _path = Encoding.UTF8.GetString(_encodedPath, 0, _encodedPath.Length);
                 }
-                else {
+                else
+                {
                     _encodedPath = Array.Empty<byte>();
                     _path = string.Empty;
                 }
             }
 
             /// <inheritdoc/>
-            public override SocketAddress Serialize() {
+            public override SocketAddress Serialize()
+            {
                 var result = new SocketAddress(AddressFamily.Unix, s_nativeAddressSize);
                 Debug.Assert(_encodedPath.Length + s_nativePathOffset <= result.Size,
                     "Expected path to fit in address");
 
-                for (var index = 0; index < _encodedPath.Length; index++) {
+                for (var index = 0; index < _encodedPath.Length; index++)
+                {
                     result[s_nativePathOffset + index] = _encodedPath[index];
                 }
                 result[s_nativePathOffset + _encodedPath.Length] = 0;
@@ -241,7 +280,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             }
 
             /// <inheritdoc/>
-            public override EndPoint Create(SocketAddress socketAddress) {
+            public override EndPoint Create(SocketAddress socketAddress)
+            {
                 return new UdsEndPoint(socketAddress);
             }
 
@@ -249,7 +289,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             public override AddressFamily AddressFamily => AddressFamily.Unix;
 
             /// <inheritdoc/>
-            public override string ToString() {
+            public override string ToString()
+            {
                 return _path;
             }
 
@@ -269,13 +310,15 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Line reader stream
         /// </summary>
-        internal class HttpLineReader : StreamAdapter {
+        internal class HttpLineReader : StreamAdapter
+        {
             /// <summary>
             /// Create string
             /// </summary>
             /// <param name="stream"></param>
             public HttpLineReader(Stream stream) :
-                base(new BufferedStream(stream)) {
+                base(new BufferedStream(stream))
+            {
             }
 
             /// <summary>
@@ -283,18 +326,22 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// </summary>
             /// <param name="ct"></param>
             /// <returns></returns>
-            public async Task<string> ReadLineAsync(CancellationToken ct) {
+            public async Task<string> ReadLineAsync(CancellationToken ct)
+            {
                 const int position = 0;
                 var buffer = new byte[1];
                 var crFound = false;
                 var builder = new StringBuilder();
-                while (true) {
+                while (true)
+                {
                     var length = await _inner.ReadAsync(buffer, ct)
                         .ConfigureAwait(false);
-                    if (length == 0) {
+                    if (length == 0)
+                    {
                         throw new IOException("Unexpected end of stream.");
                     }
-                    if (crFound && (char)buffer[position] == kLF) {
+                    if (crFound && (char)buffer[position] == kLF)
+                    {
                         builder.Remove(builder.Length - 1, 1);
                         return builder.ToString();
                     }

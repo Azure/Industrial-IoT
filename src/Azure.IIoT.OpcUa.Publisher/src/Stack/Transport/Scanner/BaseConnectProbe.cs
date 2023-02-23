@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
+{
     using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics.CodeAnalysis;
@@ -17,14 +18,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
     /// implementation to interrogate the server.
     /// </summary>
     /// <returns></returns>
-    public abstract class BaseConnectProbe : IDisposable {
+    public abstract class BaseConnectProbe : IDisposable
+    {
         /// <summary>
         /// Create connect probe
         /// </summary>
         /// <param name="index"></param>
         /// <param name="probe"></param>
         /// <param name="logger"></param>
-        protected BaseConnectProbe(int index, IAsyncProbe probe, ILogger logger) {
+        protected BaseConnectProbe(int index, IAsyncProbe probe, ILogger logger)
+        {
             _probe = probe ?? throw new ArgumentNullException(nameof(probe));
             _index = index;
             _logger = logger;
@@ -33,7 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -41,16 +45,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Dispose probe
         /// </summary>
-        protected virtual void Dispose(bool disposing) {
-            if (!_disposedValue) {
-                if (disposing) {
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
                     _lock.Wait();
-                    try {
+                    try
+                    {
                         _cts.Cancel();
                         _probe?.Dispose();
                         DisposeArgsNoLock();
                     }
-                    finally {
+                    finally
+                    {
                         _cts.Dispose();
                         _lock.Release();
                         _lock.Dispose();
@@ -63,7 +72,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Start probe
         /// </summary>
-        public void Start() {
+        public void Start()
+        {
             OnBegin();
         }
 
@@ -81,7 +91,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// a failure. Default is false.
         /// </summary>
         /// <returns></returns>
-        protected virtual bool ShouldGiveUp() {
+        protected virtual bool ShouldGiveUp()
+        {
             return false;
         }
 
@@ -111,72 +122,92 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Begin connecting to next endpoint
         /// </summary>
-        private void OnBegin() {
+        private void OnBegin()
+        {
             var exit = false;
             _lock.Wait();
-            try {
-                while (!_cts.IsCancellationRequested && !exit) {
+            try
+            {
+                while (!_cts.IsCancellationRequested && !exit)
+                {
                     IPEndPoint? ep = null;
                     var timeout = 3000;
-                    try {
-                        if (!GetNext(out ep, out timeout)) {
+                    try
+                    {
+                        if (!GetNext(out ep, out timeout))
+                        {
                             exit = true;
                             break;
                         }
                     }
-                    catch (OperationCanceledException) {
+                    catch (OperationCanceledException)
+                    {
                         exit = true;
                         break;
                     }
-                    catch (InvalidOperationException) {
+                    catch (InvalidOperationException)
+                    {
                         continue;
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         _logger.LogError(ex, "Error getting endpoint for probe {Index}",
                             _index);
                         exit = true;
                         break;
                     }
 
-                    if (_arg?.IsRunning == true) {
+                    if (_arg?.IsRunning == true)
+                    {
                         // Reset args since it is in running state and cannot be used...
                         _logger.LogTrace("Disposing args in running state.");
                         DisposeArgsNoLock();
                     }
 
-                    while (!_cts.IsCancellationRequested) {
-                        if (_arg == null) {
+                    while (!_cts.IsCancellationRequested)
+                    {
+                        if (_arg == null)
+                        {
                             _arg = new AsyncConnect(this);
                         }
-                        try {
-                            if (_arg.BeginConnect(ep, timeout)) {
+                        try
+                        {
+                            if (_arg.BeginConnect(ep, timeout))
+                            {
                                 // Completed synchronously - go to next candidate
                                 break;
                             }
                             return;
                         }
-                        catch (ObjectDisposedException) {
+                        catch (ObjectDisposedException)
+                        {
                             // Try again
                         }
-                        catch (InvalidOperationException) {
+                        catch (InvalidOperationException)
+                        {
                             // Operation in progress - try again
                         }
-                        catch (SocketException sex) {
+                        catch (SocketException sex)
+                        {
                             if (sex.SocketErrorCode == SocketError.NoBufferSpaceAvailable ||
-                                sex.SocketErrorCode == SocketError.TooManyOpenSockets) {
-                                if (ShouldGiveUp()) {
+                                sex.SocketErrorCode == SocketError.TooManyOpenSockets)
+                            {
+                                if (ShouldGiveUp())
+                                {
                                     // Exit only until we hit (approx.) min probe count.
                                     exit = true;
                                     break;
                                 }
                                 // Otherwise retry...
                             }
-                            else {
+                            else
+                            {
                                 _logger.LogError(sex, "{Code} in connect of probe {Index}...",
                                     sex.SocketErrorCode, _index);
                             }
                         }
-                        catch (Exception ex) {
+                        catch (Exception ex)
+                        {
                             // Unexpected - shut probe down
                             _logger.LogError(ex,
                                 "Probe {Index} has unexpected exception during connect.",
@@ -189,22 +220,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                         DisposeArgsNoLock();
                     }
 
-                    if (exit) {
+                    if (exit)
+                    {
                         // We failed, requeue the endpoint and kill this probe
                         OnFail(ep);
                         break;
                     }
                 }
 
-                if (_cts.IsCancellationRequested) {
+                if (_cts.IsCancellationRequested)
+                {
                     return;
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
 
-            if (exit) {
+            if (exit)
+            {
                 //
                 // We are here because we either...
                 //
@@ -222,7 +257,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Dispose of args and resources
         /// </summary>
-        private void DisposeArgsNoLock() {
+        private void DisposeArgsNoLock()
+        {
             _arg?.Dispose();
             _arg = null;
         }
@@ -230,7 +266,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Internal arg state
         /// </summary>
-        private enum State {
+        private enum State
+        {
             Begin,
             Connect,
             Probe,
@@ -242,7 +279,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
         /// <summary>
         /// Wraps socket event arg and connection state
         /// </summary>
-        private class AsyncConnect : IDisposable {
+        private class AsyncConnect : IDisposable
+        {
             /// <summary>
             /// Whether the connect is running
             /// </summary>
@@ -252,7 +290,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// Create event arg wrapper
             /// </summary>
             /// <param name="outer"></param>
-            public AsyncConnect(BaseConnectProbe outer) {
+            public AsyncConnect(BaseConnectProbe outer)
+            {
                 _outer = outer;
                 _timer = new Timer(OnTimerTimeout);
                 _lock = new SemaphoreSlim(1, 1);
@@ -264,10 +303,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// <summary>
             /// Dispose probe
             /// </summary>
-            public void Dispose() {
+            public void Dispose()
+            {
                 _lock.Wait();
-                try {
-                    if (_state != State.Disposed) {
+                try
+                {
+                    if (_state != State.Disposed)
+                    {
                         Socket.CancelConnectAsync(_arg);
                         _arg.ConnectSocket.SafeDispose();
                         _socket.SafeDispose();
@@ -276,7 +318,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                         _state = State.Disposed;
                     }
                 }
-                finally {
+                finally
+                {
                     _lock.Release();
                     _lock.Dispose();
                 }
@@ -289,9 +332,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// <param name="ep"></param>
             /// <param name="timeout"></param>
             /// <returns></returns>
-            internal bool BeginConnect(IPEndPoint ep, int timeout) {
+            internal bool BeginConnect(IPEndPoint ep, int timeout)
+            {
                 _lock.Wait();
-                try {
+                try
+                {
                     _arg.RemoteEndPoint = ep;
 
                     // Reset arg, probe, and start connecting
@@ -302,9 +347,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                     // Open new socket
                     _socket.SafeDispose();
                     _socket = new Socket(SocketType.Stream, ProtocolType.IP);
-                    if (!_socket.ConnectAsync(_arg)) {
+                    if (!_socket.ConnectAsync(_arg))
+                    {
                         // Complete inline and pull next...
-                        if (OnCompleteNoLock()) {
+                        if (OnCompleteNoLock())
+                        {
                             // Go to next candidate
                             return true;
                         }
@@ -314,7 +361,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                     _timer.Change(timeout, Timeout.Infinite);
                     return false;
                 }
-                finally {
+                finally
+                {
                     _lock.Release();
                 }
             }
@@ -324,20 +372,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="arg"></param>
-            private void OnComplete(object? sender, SocketAsyncEventArgs arg) {
+            private void OnComplete(object? sender, SocketAsyncEventArgs arg)
+            {
                 _lock.Wait();
-                try {
-                    if (!OnCompleteNoLock()) {
+                try
+                {
+                    if (!OnCompleteNoLock())
+                    {
                         return; // assume next OnComplete will occur or timeout...
                     }
                     // Cancel timer and start next
                     _timer.Change(Timeout.Infinite, Timeout.Infinite);
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _outer._logger.LogDebug(ex, "Error during completion of probe {Index}",
                         _outer._index);
                 }
-                finally {
+                finally
+                {
                     _lock.Release();
                 }
                 // We are now disposed, or at begin, go to next to cleanup or continue
@@ -347,11 +400,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// <summary>
             /// No lock complete
             /// </summary>
-            private bool OnCompleteNoLock() {
-                try {
-                    switch (_state) {
+            private bool OnCompleteNoLock()
+            {
+                try
+                {
+                    switch (_state)
+                    {
                         case State.Connect:
-                            if (_arg.SocketError != SocketError.Success) {
+                            if (_arg.SocketError != SocketError.Success)
+                            {
                                 // Reset back to begin
                                 _state = State.Begin;
                                 return true;
@@ -375,15 +432,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                             throw new InvalidProgramException("Unexpected");
                     }
                 }
-                catch {
+                catch
+                {
                     // Go to error state
                     _state = State.Error;
                     return true;
                 }
-                finally {
-                    if (_state != State.Connect && _state != State.Probe) {
+                finally
+                {
+                    if (_state != State.Connect && _state != State.Probe)
+                    {
                         // Terminal - complete address now
-                        if (_arg.RemoteEndPoint is IPEndPoint ep) {
+                        if (_arg.RemoteEndPoint is IPEndPoint ep)
+                        {
                             _outer.OnComplete(ep);
                         }
                         _arg.SocketError = SocketError.NotSocket;
@@ -395,21 +456,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// Perform probe
             /// </summary>
             /// <returns></returns>
-            private bool OnProbeNoLock() {
+            private bool OnProbeNoLock()
+            {
                 var completed = _outer._probe.OnComplete(_outer._index, _arg,
                     out var ok, out var timeout);
-                if (completed) {
-                    if (_arg.RemoteEndPoint is IPEndPoint ep) {
-                        if (ok) {
+                if (completed)
+                {
+                    if (_arg.RemoteEndPoint is IPEndPoint ep)
+                    {
+                        if (ok)
+                        {
                             _outer.OnSuccess(ep);
                         }
-                        else {
+                        else
+                        {
                             _outer.OnComplete(ep);
                         }
                     }
                     _state = State.Begin;
                 }
-                else {
+                else
+                {
                     // Wait for completion or timeout after x seconds
                     _timer.Change(timeout, Timeout.Infinite);
                 }
@@ -420,13 +487,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
             /// Timeout current probe
             /// </summary>
             /// <param name="state"></param>
-            private void OnTimerTimeout(object? state) {
-                if (!_lock.Wait(0)) {
+            private void OnTimerTimeout(object? state)
+            {
+                if (!_lock.Wait(0))
+                {
                     // lock is taken either by having completed or having re-begun.
                     return;
                 }
-                try {
-                    switch (_state) {
+                try
+                {
+                    switch (_state)
+                    {
                         case State.Timeout:
                             return;
                         case State.Connect:
@@ -444,7 +515,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                                 _outer._index, _arg.RemoteEndPoint);
                             _arg.SocketError = SocketError.TimedOut;
                             _state = State.Timeout;
-                            if (_outer._probe.Reset()) {
+                            if (_outer._probe.Reset())
+                            {
                                 // We will get a disconnect complete callback now.
                                 return;
                             }
@@ -461,11 +533,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner {
                             return;
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _outer._logger.LogDebug(ex,
                         "Error during timeout of probe {Index}", _outer._index);
                 }
-                finally {
+                finally
+                {
                     _lock.Release();
                 }
             }

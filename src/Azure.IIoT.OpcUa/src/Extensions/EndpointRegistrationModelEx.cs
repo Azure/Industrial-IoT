@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
     /// Service model extensions for discovery service
     /// </summary>
-    public static class EndpointRegistrationModelEx {
+    public static class EndpointRegistrationModelEx
+    {
         /// <summary>
         /// Equality comparison
         /// </summary>
@@ -18,18 +20,24 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="that"></param>
         /// <returns></returns>
         public static bool IsSameAs(this IEnumerable<EndpointRegistrationModel> model,
-            IEnumerable<EndpointRegistrationModel> that) {
-            if (model == that) {
+            IEnumerable<EndpointRegistrationModel> that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
-            if (model.Count() != that.Count()) {
+            if (model.Count() != that.Count())
+            {
                 return false;
             }
-            foreach (var a in model) {
-                if (!that.Any(b => b.IsSameAs(a))) {
+            foreach (var a in model)
+            {
+                if (!that.Any(b => b.IsSameAs(a)))
+                {
                     return false;
                 }
             }
@@ -43,17 +51,22 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="that"></param>
         /// <returns></returns>
         public static bool IsSameAs(this EndpointRegistrationModel model,
-            EndpointRegistrationModel that) {
-            if (model == that) {
+            EndpointRegistrationModel that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
-            if (!model.Endpoint.HasSameSecurityProperties(that.Endpoint)) {
+            if (!model.Endpoint.HasSameSecurityProperties(that.Endpoint))
+            {
                 return false;
             }
-            if (!model.AuthenticationMethods.IsSameAs(that.AuthenticationMethods)) {
+            if (!model.AuthenticationMethods.IsSameAs(that.AuthenticationMethods))
+            {
                 return false;
             }
             return
@@ -68,11 +81,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static EndpointRegistrationModel Clone(this EndpointRegistrationModel model) {
-            if (model == null) {
+        public static EndpointRegistrationModel Clone(this EndpointRegistrationModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new EndpointRegistrationModel {
+            return new EndpointRegistrationModel
+            {
                 Endpoint = model.Endpoint.Clone(),
                 EndpointUrl = model.EndpointUrl,
                 Id = model.Id,

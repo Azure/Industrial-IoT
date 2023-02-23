@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Storage.Datalake {
+namespace Microsoft.Azure.IIoT.Storage.Datalake
+{
     /// <summary>
     /// Storage configuration
     /// </summary>
-    public interface IStorageConfig {
+    public interface IStorageConfig
+    {
         /// <summary>
         /// Storage endpoint
         /// </summary>

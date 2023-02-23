@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Log level
     /// </summary>
     [DataContract]
-    public enum TraceLogLevel {
+    public enum TraceLogLevel
+    {
         /// <summary>
         /// Error only
         /// </summary>

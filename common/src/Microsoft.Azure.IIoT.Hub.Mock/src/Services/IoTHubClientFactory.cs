@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Mock {
+namespace Microsoft.Azure.IIoT.Hub.Mock
+{
+    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Shared;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Shared;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -18,7 +19,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// <summary>
     /// Injectable factory that creates clients from device sdk
     /// </summary>
-    public class IoTHubClientFactory : IClientFactory {
+    public class IoTHubClientFactory : IClientFactory
+    {
         /// <inheritdoc />
         public string DeviceId { get; }
 
@@ -36,14 +38,17 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// </summary>
         /// <param name="hub">Outer hub abstraction</param>
         /// <param name="config">Module framework configuration</param>
-        public IoTHubClientFactory(IIoTHub hub, IModuleConfig config) {
+        public IoTHubClientFactory(IIoTHub hub, IModuleConfig config)
+        {
             _hub = hub ?? throw new ArgumentNullException(nameof(hub));
-            if (string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
+            if (string.IsNullOrEmpty(config.EdgeHubConnectionString))
+            {
                 throw new InvalidConfigurationException(
                     "Must have connection string or module id to create clients.");
             }
             var cs = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
-            if (string.IsNullOrEmpty(cs.DeviceId)) {
+            if (string.IsNullOrEmpty(cs.DeviceId))
+            {
                 throw new InvalidConfigurationException(
                     "Connection string is not a device or module connection string.");
             }
@@ -54,7 +59,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
         /// <inheritdoc/>
         public Task<IClient> CreateAsync(string product,
-            IMetricsContext metrics, IProcessControl ctrl) {
+            IMetricsContext metrics, IProcessControl ctrl)
+        {
             var client = new IoTHubClient();
             var connection = _hub.Connect(DeviceId, ModuleId, client);
             client.Connection = connection ??
@@ -65,7 +71,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <summary>
         /// A test client
         /// </summary>
-        public sealed class IoTHubClient : IClient, IIoTClientCallback {
+        public sealed class IoTHubClient : IClient, IIoTClientCallback
+        {
             /// <summary>
             /// Whether the client is closed
             /// </summary>
@@ -82,11 +89,13 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// <summary>
             /// Create client
             /// </summary>
-            internal IoTHubClient() {
+            internal IoTHubClient()
+            {
             }
 
             /// <inheritdoc />
-            public ValueTask DisposeAsync() {
+            public ValueTask DisposeAsync()
+            {
                 Connection.Close();
                 Connection = null;
                 IsClosed = true;
@@ -94,16 +103,20 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc />
-            public Task SendEventAsync(ITelemetryEvent message) {
-                if (!IsClosed) {
+            public Task SendEventAsync(ITelemetryEvent message)
+            {
+                if (!IsClosed)
+                {
                     Connection.SendEvent(message);
                 }
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc />
-            public Task SetMethodHandlerAsync(MethodCallback methodHandler) {
-                if (!IsClosed) {
+            public Task SetMethodHandlerAsync(MethodCallback methodHandler)
+            {
+                if (!IsClosed)
+                {
                     _methods = methodHandler;
                 }
                 return Task.CompletedTask;
@@ -111,21 +124,26 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
             /// <inheritdoc />
             public Task SetDesiredPropertyUpdateCallbackAsync(
-                DesiredPropertyUpdateCallback callback) {
-                if (!IsClosed) {
+                DesiredPropertyUpdateCallback callback)
+            {
+                if (!IsClosed)
+                {
                     _properties = callback;
                 }
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc />
-            public Task<Twin> GetTwinAsync() {
+            public Task<Twin> GetTwinAsync()
+            {
                 return Task.FromResult(IsClosed ? null : Connection.GetTwin());
             }
 
             /// <inheritdoc />
-            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
-                if (!IsClosed) {
+            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties)
+            {
+                if (!IsClosed)
+                {
                     Connection.UpdateReportedProperties(reportedProperties);
                 }
                 return Task.CompletedTask;
@@ -133,56 +151,70 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
             /// <inheritdoc />
             public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) {
+                MethodRequest methodRequest, CancellationToken cancellationToken)
+            {
                 return Task.FromResult(IsClosed ? null : Connection.CallMethod(deviceId,
                     string.IsNullOrEmpty(moduleId) ? null : moduleId, methodRequest));
             }
 
             /// <inheritdoc />
-            public void SetDesiredProperties(TwinCollection desiredProperties) {
+            public void SetDesiredProperties(TwinCollection desiredProperties)
+            {
                 _properties?.Invoke(desiredProperties, null);
             }
 
             /// <inheritdoc />
-            public MethodResponse CallMethod(MethodRequest methodRequest) {
+            public MethodResponse CallMethod(MethodRequest methodRequest)
+            {
                 var cb = _methods;
-                if (cb == null) {
+                if (cb == null)
+                {
                     return new MethodResponse(500);
                 }
-                try {
+                try
+                {
                     return cb(methodRequest, null).Result;
                 }
-                catch {
+                catch
+                {
                     return new MethodResponse(500);
                 }
             }
 
             /// <inheritdoc />
-            public void Dispose() {
-                if (!IsClosed) {
+            public void Dispose()
+            {
+                if (!IsClosed)
+                {
                     throw new ThreadStateException("Dispose but still open.");
                 }
             }
 
             /// <inheritdoc />
-            public ITelemetryEvent CreateTelemetryEvent() {
+            public ITelemetryEvent CreateTelemetryEvent()
+            {
                 return new TelemetryMessage();
             }
 
             /// <summary>
             /// Message wrapper
             /// </summary>
-            internal sealed class TelemetryMessage : ITelemetryEvent {
+            internal sealed class TelemetryMessage : ITelemetryEvent
+            {
                 /// <inheritdoc/>
                 public DateTime Timestamp { get; set; }
 
                 /// <inheritdoc/>
-                public string ContentType {
-                    get {
+                public string ContentType
+                {
+                    get
+                    {
                         return _msg.ContentType;
                     }
-                    set {
-                        if (!string.IsNullOrWhiteSpace(value)) {
+                    set
+                    {
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
                             _msg.ContentType = value;
                             _msg.Properties.AddOrUpdate(SystemProperties.MessageSchema, value);
                         }
@@ -190,12 +222,16 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 }
 
                 /// <inheritdoc/>
-                public string ContentEncoding {
-                    get {
+                public string ContentEncoding
+                {
+                    get
+                    {
                         return _msg.ContentEncoding;
                     }
-                    set {
-                        if (!string.IsNullOrWhiteSpace(value)) {
+                    set
+                    {
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
                             _msg.ContentEncoding = value;
                             _msg.Properties.AddOrUpdate(CommonProperties.ContentEncoding, value);
                         }
@@ -203,30 +239,40 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 }
 
                 /// <inheritdoc/>
-                public string MessageSchema {
-                    get {
-                        if (_msg.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value)) {
+                public string MessageSchema
+                {
+                    get
+                    {
+                        if (_msg.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value))
+                        {
                             return value;
                         }
                         return null;
                     }
-                    set {
-                        if (!string.IsNullOrWhiteSpace(value)) {
+                    set
+                    {
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
                             _msg.Properties.AddOrUpdate(CommonProperties.EventSchemaType, value);
                         }
                     }
                 }
 
                 /// <inheritdoc/>
-                public string RoutingInfo {
-                    get {
-                        if (_msg.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value)) {
+                public string RoutingInfo
+                {
+                    get
+                    {
+                        if (_msg.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value))
+                        {
                             return value;
                         }
                         return null;
                     }
-                    set {
-                        if (!string.IsNullOrWhiteSpace(value)) {
+                    set
+                    {
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
                             _msg.Properties.AddOrUpdate(CommonProperties.RoutingInfo, value);
                         }
                     }
@@ -243,7 +289,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 public TimeSpan Ttl { get; set; }
 
                 /// <inheritdoc/>
-                public void Dispose() {
+                public void Dispose()
+                {
                     // TODO: Return to pool
                     _msg.Dispose();
                 }

@@ -3,24 +3,29 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
 
     /// <summary>
     /// Handle event
     /// </summary>
-    public static class GatewayModelEx {
+    public static class GatewayModelEx
+    {
         /// <summary>
         /// Update a discover
         /// </summary>
         /// <param name="update"></param>
         /// <param name="gateway"></param>
         public static GatewayModel Patch(this GatewayModel update,
-            GatewayModel gateway) {
-            if (update == null) {
+            GatewayModel gateway)
+        {
+            if (update == null)
+            {
                 return gateway;
             }
-            if (gateway == null) {
+            if (gateway == null)
+            {
                 return new GatewayModel();
             }
             gateway.Connected = update.Connected;

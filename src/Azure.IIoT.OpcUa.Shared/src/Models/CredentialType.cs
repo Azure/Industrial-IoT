@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Type of credentials to use for authentication
     /// </summary>
     [DataContract]
-    public enum CredentialType {
+    public enum CredentialType
+    {
         /// <summary>
         /// No credentials for anonymous access
         /// </summary>

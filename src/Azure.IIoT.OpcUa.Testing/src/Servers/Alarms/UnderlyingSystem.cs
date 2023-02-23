@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Alarms {
+namespace Alarms
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -36,25 +37,29 @@ namespace Alarms {
     /// <summary>
     /// An object that provides access to the underlying system.
     /// </summary>
-    public class UnderlyingSystem : IDisposable {
+    public class UnderlyingSystem : IDisposable
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="UnderlyingSystem"/> class.
         /// </summary>
-        public UnderlyingSystem() {
+        public UnderlyingSystem()
+        {
             _sources = new Dictionary<string, UnderlyingSystemSource>();
         }
 
         /// <summary>
         /// The finializer implementation.
         /// </summary>
-        ~UnderlyingSystem() {
+        ~UnderlyingSystem()
+        {
             Dispose(false);
         }
 
         /// <summary>
         /// Frees any unmanaged resources.
         /// </summary>
-        public void Dispose() {
+        public void Dispose()
+        {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -62,9 +67,12 @@ namespace Alarms {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected virtual void Dispose(bool disposing) {
-            if (disposing) {
-                if (_simulationTimer != null) {
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_simulationTimer != null)
+                {
                     _simulationTimer.Dispose();
                     _simulationTimer = null;
                 }
@@ -77,10 +85,12 @@ namespace Alarms {
         /// <param name="sourcePath">The source path.</param>
         /// <param name="alarmChangeCallback">The callback invoked when an alarm changes.</param>
         /// <returns>The source.</returns>
-        public UnderlyingSystemSource CreateSource(string sourcePath, AlarmChangedEventHandler alarmChangeCallback) {
+        public UnderlyingSystemSource CreateSource(string sourcePath, AlarmChangedEventHandler alarmChangeCallback)
+        {
             UnderlyingSystemSource source = null;
 
-            lock (_lock) {
+            lock (_lock)
+            {
                 // create a new source.
                 source = new UnderlyingSystemSource();
 
@@ -89,7 +99,8 @@ namespace Alarms {
 
                 var index = name.LastIndexOf('/');
 
-                if (index != -1) {
+                if (index != -1)
+                {
                     name = name.Substring(index + 1);
                 }
 
@@ -98,7 +109,8 @@ namespace Alarms {
 
                 index = type.IndexOf('/');
 
-                if (index != -1) {
+                if (index != -1)
+                {
                     type = type.Substring(0, index);
                 }
 
@@ -114,15 +126,18 @@ namespace Alarms {
             // add the alarms based on the source type.
             // note that the source and alarm types used here are types defined by the underlying system.
             // the node manager will need to map these types to UA defined types.
-            switch (source.SourceType) {
-                case "Colours": {
+            switch (source.SourceType)
+            {
+                case "Colours":
+                    {
                         source.CreateAlarm("Red", "HighAlarm");
                         source.CreateAlarm("Yellow", "HighLowAlarm");
                         source.CreateAlarm("Green", "TripAlarm");
                         break;
                     }
 
-                case "Metals": {
+                case "Metals":
+                    {
                         source.CreateAlarm("Gold", "HighAlarm");
                         source.CreateAlarm("Silver", "HighLowAlarm");
                         source.CreateAlarm("Bronze", "TripAlarm");
@@ -143,9 +158,12 @@ namespace Alarms {
         /// Once an alarm is confirmed it go to the inactive state.
         /// If the alarm stays active the severity will be gradually increased.
         /// </remarks>
-        public void StartSimulation() {
-            lock (_lock) {
-                if (_simulationTimer != null) {
+        public void StartSimulation()
+        {
+            lock (_lock)
+            {
+                if (_simulationTimer != null)
+                {
                     _simulationTimer.Dispose();
                     _simulationTimer = null;
                 }
@@ -157,9 +175,12 @@ namespace Alarms {
         /// <summary>
         /// Stops the simulation.
         /// </summary>
-        public void StopSimulation() {
-            lock (_lock) {
-                if (_simulationTimer != null) {
+        public void StopSimulation()
+        {
+            lock (_lock)
+            {
+                if (_simulationTimer != null)
+                {
                     _simulationTimer.Dispose();
                     _simulationTimer = null;
                 }
@@ -169,22 +190,27 @@ namespace Alarms {
         /// <summary>
         /// Simulates a source by updating the state of the alarms belonging to the condition.
         /// </summary>
-        private void DoSimulation(object state) {
-            try {
+        private void DoSimulation(object state)
+        {
+            try
+            {
                 // get the list of sources.
                 List<UnderlyingSystemSource> sources = null;
 
-                lock (_lock) {
+                lock (_lock)
+                {
                     _simulationCounter++;
                     sources = new List<UnderlyingSystemSource>(_sources.Values);
                 }
 
                 // run simulation for each source.
-                for (var ii = 0; ii < sources.Count; ii++) {
+                for (var ii = 0; ii < sources.Count; ii++)
+                {
                     sources[ii].DoSimulation(_simulationCounter, ii);
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Unexpected error running simulation for system");
             }
         }

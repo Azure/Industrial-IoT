@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using System;
@@ -13,7 +14,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// <summary>
     /// Source model extensions
     /// </summary>
-    public static class PublishedDataSetSourceModelEx {
+    public static class PublishedDataSetSourceModelEx
+    {
         /// <summary>
         /// Create subscription
         /// </summary>
@@ -23,11 +25,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <returns></returns>
         public static SubscriptionConfigurationModel ToSubscriptionConfigurationModel(
             this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel dataSetMetaData,
-            ISubscriptionConfig configuration) {
-            if (dataSetSource == null) {
+            ISubscriptionConfig configuration)
+        {
+            if (dataSetSource == null)
+            {
                 throw new ArgumentNullException(nameof(dataSetSource));
             }
-            return new SubscriptionConfigurationModel {
+            return new SubscriptionConfigurationModel
+            {
                 Priority = dataSetSource.SubscriptionSettings?.Priority,
                 LifetimeCount = dataSetSource.SubscriptionSettings?.LifeTimeCount
                     ?? configuration?.DefaultLifeTimeCount,
@@ -50,13 +55,16 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <returns></returns>
         public static List<BaseMonitoredItemModel> ToMonitoredItems(
             this PublishedDataSetSourceModel dataSetSource,
-            ISubscriptionConfig configuration) {
+            ISubscriptionConfig configuration)
+        {
             var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();
-            if (dataSetSource.PublishedVariables?.PublishedData != null) {
+            if (dataSetSource.PublishedVariables?.PublishedData != null)
+            {
                 monitoredItems = monitoredItems
                     .Concat(dataSetSource.PublishedVariables.ToMonitoredItems(configuration));
             }
-            if (dataSetSource.PublishedEvents?.PublishedData != null) {
+            if (dataSetSource.PublishedEvents?.PublishedData != null)
+            {
                 monitoredItems = monitoredItems
                     .Concat(dataSetSource.PublishedEvents.ToMonitoredItems(configuration));
             }

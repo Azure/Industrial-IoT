@@ -3,17 +3,20 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
+namespace Microsoft.Azure.IIoT.Auth.Clients.Default
+{
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Logging;
     using System.Collections.Generic;
     using System.Linq;
 
     /// <inheritdoc/>
-    public class AppAuthenticationClient : AppAuthenticationBase {
+    public class AppAuthenticationClient : AppAuthenticationBase
+    {
         /// <inheritdoc/>
         public AppAuthenticationClient(IClientAuthConfig config, ILogger logger) :
-            base(logger) {
+            base(logger)
+        {
             _config = config?.Providers?
                 .Where(c => c.Provider == AuthProvider.AzureAD)
                 .Where(c => !string.IsNullOrEmpty(c.ClientId))
@@ -23,7 +26,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         }
 
         /// <inheritdoc/>
-        protected override IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> GetProvider(string resource) {
+        protected override IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> GetProvider(string resource)
+        {
             return _config.Where(c => c.Key == resource).Select(c => c.Value);
         }
 
@@ -32,10 +36,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// </summary>
         /// <returns></returns>
         private static KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)> CreateProvider(
-            IOAuthClientConfig config) {
+            IOAuthClientConfig config)
+        {
             // Run as app
             var cs = $"RunAs=App;AppId={config.ClientId}";
-            if (!string.IsNullOrEmpty(config.TenantId)) {
+            if (!string.IsNullOrEmpty(config.TenantId))
+            {
                 cs += $";TenantId={config.TenantId}";
             }
             cs += $";AppKey={config.ClientSecret}";

@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.State {
-    using Azure.IIoT.OpcUa.Publisher.State.Models;
+namespace Azure.IIoT.OpcUa.Publisher.State
+{
     using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Publisher.State.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Extensions.Logging;
@@ -16,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.State {
     /// <summary>
     /// This class manages reporting of runtime state.
     /// </summary>
-    public class RuntimeStateReporter : IRuntimeStateReporter {
+    public class RuntimeStateReporter : IRuntimeStateReporter
+    {
         private const string RuntimeStateReportingPath = "runtimeinfo";
 
         private readonly IClientAccessor _clientAccessor;
@@ -30,7 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher.State {
         public RuntimeStateReporter(IClientAccessor clientAccessor,
             IJsonSerializer jsonSerializer,
             IRuntimeStateReporterConfiguration config,
-            ILogger logger) {
+            ILogger logger)
+        {
             _clientAccessor = clientAccessor ?? throw new ArgumentNullException(nameof(clientAccessor));
             _jsonSerializer = jsonSerializer ?? throw new ArgumentNullException(nameof(jsonSerializer));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -38,18 +41,23 @@ namespace Azure.IIoT.OpcUa.Publisher.State {
         }
 
         /// <inheritdoc/>
-        public async Task SendRestartAnnouncement() {
-            if (!_config.EnableRuntimeStateReporting) {
+        public async Task SendRestartAnnouncement()
+        {
+            if (!_config.EnableRuntimeStateReporting)
+            {
                 return;
             }
 
-            if (_clientAccessor.Client is null) {
+            if (_clientAccessor.Client is null)
+            {
                 _logger.LogWarning("Hub client is not initialized yet. Unable to send restart announcement.");
                 return;
             }
 
-            try {
-                var body = new RuntimeStateModel {
+            try
+            {
+                var body = new RuntimeStateModel
+                {
                     MessageType = MessageTypeEnum.RestartAnnouncement
                 };
 
@@ -66,13 +74,15 @@ namespace Azure.IIoT.OpcUa.Publisher.State {
 
                 _logger.LogInformation("Restart announcement sent successfully.");
             }
-            catch (InvalidOperationException) {
+            catch (InvalidOperationException)
+            {
                 // In this case DeviceClient was used which does not support
                 // sending messages to a specific output target.
                 _logger.LogInformation("Unable to send restart announcement as " +
                     "OPC Publisher is not running in IoT Edge context.");
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Failed to send restart announcement.");
             }
         }

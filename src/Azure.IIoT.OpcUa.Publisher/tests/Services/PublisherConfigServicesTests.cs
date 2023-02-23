@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
-    using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
+namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
+{
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Shared.Models;
     using FluentAssertions;
     using Furly.Extensions.Logging;
@@ -31,7 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
     /// <summary>
     /// Tests the PublisherConfigService class
     /// </summary>
-    public class PublisherConfigServicesTests : TempFileProviderBase {
+    public class PublisherConfigServicesTests : TempFileProviderBase
+    {
         private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
         private readonly NewtonsoftJsonSerializerRaw _newtonSoftJsonSerializerRaw;
         private readonly ILogger _logger;
@@ -45,7 +47,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         /// <summary>
         /// Constructor that initializes common resources used by tests.
         /// </summary>
-        public PublisherConfigServicesTests() {
+        public PublisherConfigServicesTests()
+        {
             _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
             _newtonSoftJsonSerializerRaw = new NewtonsoftJsonSerializerRaw();
             _logger = Log.Console<PublisherConfigServicesTests>();
@@ -83,7 +86,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         /// <summary>
         /// This method should be called only after content of _tempFile is set.
         /// </summary>
-        private void InitPublisherConfigService() {
+        private void InitPublisherConfigService()
+        {
             _configService = new PublisherConfigurationService(
                 _publishedNodesJobConverter,
                 _configMock.Object,
@@ -97,7 +101,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
 
         [Theory]
         [InlineData("Publisher/pn_2.5_legacy.json")]
-        public async Task Legacy25PublishedNodesFile(string publishedNodesFile) {
+        public async Task Legacy25PublishedNodesFile(string publishedNodesFile)
+        {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
 
@@ -161,8 +166,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [Theory]
         [InlineData("Publisher/pn_2.5_legacy_error.json", false)]
         [InlineData("Publisher/pn_2.5_legacy_error.json", true)]
-        public async Task Legacy25PublishedNodesFileError(string publishedNodesFile, bool useSchemaValidation) {
-            if (!useSchemaValidation) {
+        public async Task Legacy25PublishedNodesFileError(string publishedNodesFile, bool useSchemaValidation)
+        {
+            if (!useSchemaValidation)
+            {
                 _configMock.SetupGet(m => m.PublishedNodesSchemaFile).Returns((string)null);
             }
 
@@ -179,14 +186,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [Theory]
         [InlineData("Publisher/pn_assets.json")]
         [InlineData("Publisher/pn_assets_with_optional_fields.json")]
-        public void Test_PnJson_With_Multiple_Jobs_Expect_DifferentJobIds(string publishedNodesFile) {
+        public void Test_PnJson_With_Multiple_Jobs_Expect_DifferentJobIds(string publishedNodesFile)
+        {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
             Assert.Equal(2, _publisher.WriterGroups.Count());
         }
 
         [Fact]
-        public async Task Test_SerializableExceptionResponse() {
+        public async Task Test_SerializableExceptionResponse()
+        {
             InitPublisherConfigService();
 
             var exceptionResponse = "{\"Message\":\"Response 400 null request is provided\",\"Details\":{}}";
@@ -202,7 +211,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                 .ConfigureAwait(false);
 
             // empty description
-            var exceptionModel = new MethodCallStatusExceptionModel {
+            var exceptionModel = new MethodCallStatusExceptionModel
+            {
                 Message = "Response 400 null request is provided",
                 Details = "{}",
             };
@@ -211,7 +221,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
 
             const int numberOfEndpoints = 1;
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
-                .Select(i => new OpcNodeModel {
+                .Select(i => new OpcNodeModel
+                {
                     Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
                 })
                 .ToList();
@@ -225,7 +236,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             const string details = "{\"DataSetWriterId\":\"DataSetWriterId0\",\"DataSetWriterGroup\":\"DataSetWriterGroup\",\"OpcNodes\":[{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\",\"OpcPublishingIntervalTimespan\":\"00:00:01\"}],\"EndpointUrl\":\"opc.tcp://opcplc:50000\",\"UseSecurity\":false,\"OpcAuthenticationMode\":\"anonymous\"}";
             exceptionResponse = "{\"Message\":\"Response 404 Nodes not found\",\"Details\":" + details + "}";
             var opcNodes1 = Enumerable.Range(0, numberOfEndpoints)
-                .Select(i => new OpcNodeModel {
+                .Select(i => new OpcNodeModel
+                {
                     Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt{i}",
                 })
                 .ToList();
@@ -244,7 +256,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                 .ConfigureAwait(false);
 
             // Details equal to a json string
-            exceptionModel = new MethodCallStatusExceptionModel {
+            exceptionModel = new MethodCallStatusExceptionModel
+            {
                 Message = "Response 404 Nodes not found",
                 Details = details
             };
@@ -259,7 +272,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                     .Throw<MethodCallStatusException>()
                     .WithMessage(exceptionResponse);
 
-            exceptionModel = new MethodCallStatusExceptionModel {
+            exceptionModel = new MethodCallStatusExceptionModel
+            {
                 Message = "Response 400 "
             };
             serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
@@ -267,7 +281,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         }
 
         [Fact]
-        public async Task Test_PublishNodes_NullOrEmpty() {
+        public async Task Test_PublishNodes_NullOrEmpty()
+        {
             InitPublisherConfigService();
 
             // Check null request.
@@ -280,7 +295,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                 .WithMessage("{\"Message\":\"Response 400 null request is provided\",\"Details\":{}}")
                 .ConfigureAwait(false);
 
-            var request = new PublishedNodesEntryModel {
+            var request = new PublishedNodesEntryModel
+            {
                 EndpointUrl = "opc.tcp://opcplc:50000",
             };
 
@@ -308,7 +324,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         }
 
         [Fact]
-        public async Task Test_UnpublishNodes_NullRequest() {
+        public async Task Test_UnpublishNodes_NullRequest()
+        {
             InitPublisherConfigService();
 
             // Check null request.
@@ -329,12 +346,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [InlineData(true, true)]
         public async Task Test_UnpublishNodes_NullOrEmptyOpcNodes(
             bool useEmptyOpcNodes,
-            bool customEndpoint) {
+            bool customEndpoint)
+        {
             InitPublisherConfigService();
 
             const int numberOfEndpoints = 3;
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
-                .Select(i => new OpcNodeModel {
+                .Select(i => new OpcNodeModel
+                {
                     Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
                 })
                 .ToList();
@@ -371,7 +390,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         }
 
         [Fact]
-        public async Task Test_GetConfiguredNodesOnEndpoint_NullRequest() {
+        public async Task Test_GetConfiguredNodesOnEndpoint_NullRequest()
+        {
             InitPublisherConfigService();
 
             // Check call with null.
@@ -386,7 +406,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         }
 
         [Fact]
-        public async Task Test_AddOrUpdateEndpoints_NullRequest() {
+        public async Task Test_AddOrUpdateEndpoints_NullRequest()
+        {
             InitPublisherConfigService();
 
             // Check call with null.
@@ -401,12 +422,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         }
 
         [Fact]
-        public async Task Test_AddOrUpdateEndpoints_MultipleEndpointEntries() {
+        public async Task Test_AddOrUpdateEndpoints_MultipleEndpointEntries()
+        {
             InitPublisherConfigService();
 
             const int numberOfEndpoints = 3;
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
-                .Select(i => new OpcNodeModel {
+                .Select(i => new OpcNodeModel
+                {
                     Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
                 })
                 .ToList();
@@ -432,12 +455,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         }
 
         [Fact]
-        public async Task Test_AddOrUpdateEndpoints_MultipleEndpointEntries_Timesapn() {
+        public async Task Test_AddOrUpdateEndpoints_MultipleEndpointEntries_Timesapn()
+        {
             InitPublisherConfigService();
 
             const int numberOfEndpoints = 3;
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
-                .Select(i => new OpcNodeModel {
+                .Select(i => new OpcNodeModel
+                {
                     Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
                 })
                 .ToList();
@@ -471,7 +496,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [InlineData(true)]
         public async Task Test_AddOrUpdateEndpoints_AddEndpoints(
             bool useDataSetSpecificEndpoints
-        ) {
+        )
+        {
             _configMock.SetupGet(m => m.MaxNodesPerPublishedEndpoint).Returns(2);
 
             InitPublisherConfigService();
@@ -481,7 +507,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             const int numberOfEndpoints = 3;
 
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
-                .Select(i => new OpcNodeModel {
+                .Select(i => new OpcNodeModel
+                {
                     Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
                 })
                 .ToList();
@@ -491,14 +518,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                 .ToList();
 
             var tasks = new List<Task>();
-            for (var i = 0; i < numberOfEndpoints; i++) {
+            for (var i = 0; i < numberOfEndpoints; i++)
+            {
                 tasks.Add(_configService.AddOrUpdateEndpointsAsync(
                     new List<PublishedNodesEntryModel> { endpoints[i] }));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            for (var i = 0; i < numberOfEndpoints; i++) {
+            for (var i = 0; i < numberOfEndpoints; i++)
+            {
                 var endpointNodes = await _configService
                     .GetConfiguredNodesOnEndpointAsync(endpoints[i])
                     .ConfigureAwait(false);
@@ -520,7 +549,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [InlineData("Publisher/publishednodes_with_duplicates.json")]
         [InlineData("Controller/DmApiPayloadCollection.json")]
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
-        public async Task Test_AddOrUpdateEndpoints_RemoveEndpoints(string publishedNodesFile) {
+        public async Task Test_AddOrUpdateEndpoints_RemoveEndpoints(string publishedNodesFile)
+        {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
 
@@ -528,7 +558,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             var payloadRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             var index = 0;
-            foreach (var request in payloadRequests) {
+            foreach (var request in payloadRequests)
+            {
                 request.OpcNodes = index % 2 == 0
                     ? null
                     : new List<OpcNodeModel>();
@@ -537,7 +568,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                 var shouldThrow = !_publishedNodesJobConverter.ToPublishedNodes(0, default, _publisher.WriterGroups)
                     .Select(p => p.PropagatePublishingIntervalToNodes())
                     .Any(dataSet => dataSet.HasSameDataSet(request.PropagatePublishingIntervalToNodes()));
-                if (shouldThrow) {
+                if (shouldThrow)
+                {
                     await FluentActions
                         .Invoking(async () => await _configService
                             .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request })
@@ -547,7 +579,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                         .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {request.EndpointUrl}\",\"Details\":{{}}}}")
                         .ConfigureAwait(false);
                 }
-                else {
+                else
+                {
                     await FluentActions
                         .Invoking(async () => await _configService
                             .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request })
@@ -565,7 +598,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         }
 
         [Fact]
-        public async Task Test_AddOrUpdateEndpoints_AddAndRemove() {
+        public async Task Test_AddOrUpdateEndpoints_AddAndRemove()
+        {
             _configMock.SetupGet(m => m.MaxNodesPerPublishedEndpoint).Returns(2);
 
             InitPublisherConfigService();
@@ -573,7 +607,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             Assert.Empty(_publisher.WriterGroups);
 
             var opcNodes = Enumerable.Range(0, 5)
-                .Select(i => new OpcNodeModel {
+                .Select(i => new OpcNodeModel
+                {
                     Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
                 })
                 .ToList();
@@ -583,13 +618,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                 .ToList();
 
             var tasks = new List<Task>();
-            for (var i = 0; i < 3; i++) {
+            for (var i = 0; i < 3; i++)
+            {
                 tasks.Add(_configService.PublishNodesAsync(endpoints[i]));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            for (var i = 0; i < 3; i++) {
+            for (var i = 0; i < 3; i++)
+            {
                 var endpointNodes = await _configService
                     .GetConfiguredNodesOnEndpointAsync(endpoints[i])
                     .ConfigureAwait(false);
@@ -601,7 +638,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             async Task AssertGetConfiguredNodesOnEndpointThrows(
                 PublisherConfigurationService publisherConfigurationService,
                 PublishedNodesEntryModel endpoint
-            ) {
+            )
+            {
                 await FluentActions
                     .Invoking(async () => await publisherConfigurationService
                         .GetConfiguredNodesOnEndpointAsync(endpoint)
@@ -613,7 +651,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             }
 
             // Those calls should throw.
-            for (var i = 3; i < 5; i++) {
+            for (var i = 3; i < 5; i++)
+            {
                 await AssertGetConfiguredNodesOnEndpointThrows(_configService, endpoints[i])
                     .ConfigureAwait(false);
             }
@@ -670,7 +709,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [InlineData("Publisher/pn_opc_nodes_empty.json")]
         [InlineData("Publisher/pn_opc_nodes_null.json")]
         [InlineData("Publisher/pn_opc_nodes_empty_and_null.json")]
-        public async Task Test_InitStandaloneJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile) {
+        public async Task Test_InitStandaloneJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile)
+        {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
 
@@ -687,7 +727,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
 
         [Theory]
         [InlineData("Publisher/pn_assets_with_optional_fields.json")]
-        public async Task OptionalFieldsPublishedNodesFile(string publishedNodesFile) {
+        public async Task OptionalFieldsPublishedNodesFile(string publishedNodesFile)
+        {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
 
@@ -758,12 +799,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [InlineData("Publisher/pn_assets_with_optional_fields.json")]
         [InlineData("Publisher/pn_events.json")]
         [InlineData("Publisher/pn_pending_alarms.json")]
-        public async Task PublishNodesOnEmptyConfiguration(string publishedNodesFile) {
+        public async Task PublishNodesOnEmptyConfiguration(string publishedNodesFile)
+        {
             Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
             InitPublisherConfigService();
 
             var payload = Utils.GetFileContent(publishedNodesFile);
-            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload)) {
+            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload))
+            {
                 await FluentActions
                     .Invoking(async () => await _configService.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
@@ -782,12 +825,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [InlineData("Publisher/pn_assets.json", "Publisher/pn_assets_with_optional_fields.json")]
         [InlineData("Publisher/pn_assets_with_optional_fields.json", "Publisher/pn_assets.json")]
         [InlineData("Publisher/pn_events.json", "Publisher/pn_pending_alarms.json")]
-        public async Task PublishNodesOnExistingConfiguration(string existingConfig, string newConfig) {
+        public async Task PublishNodesOnExistingConfiguration(string existingConfig, string newConfig)
+        {
             Utils.CopyContent(existingConfig, _tempFile);
             InitPublisherConfigService();
 
             var payload = Utils.GetFileContent(newConfig);
-            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload)) {
+            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload))
+            {
                 await FluentActions
                     .Invoking(async () => await _configService.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
@@ -805,12 +850,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [InlineData("Publisher/publishednodeswithoptionalfields.json", "Publisher/pn_assets_with_optional_fields.json")]
         [InlineData("Publisher/pn_assets.json", "Publisher/publishednodes.json")]
         [InlineData("Publisher/pn_assets_with_optional_fields.json", "Publisher/publishednodeswithoptionalfields.json")]
-        public async Task PublishNodesOnNewConfiguration(string existingConfig, string newConfig) {
+        public async Task PublishNodesOnNewConfiguration(string existingConfig, string newConfig)
+        {
             Utils.CopyContent(existingConfig, _tempFile);
             InitPublisherConfigService();
 
             var payload = Utils.GetFileContent(newConfig);
-            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload)) {
+            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload))
+            {
                 await FluentActions
                     .Invoking(async () => await _configService.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
@@ -828,12 +875,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [InlineData("Publisher/publishednodeswithoptionalfields.json")]
         [InlineData("Publisher/pn_assets.json")]
         [InlineData("Publisher/pn_assets_with_optional_fields.json")]
-        public async Task UnpublishNodesOnExistingConfiguration(string publishedNodesFile) {
+        public async Task UnpublishNodesOnExistingConfiguration(string publishedNodesFile)
+        {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
 
             var payload = Utils.GetFileContent(publishedNodesFile);
-            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload)) {
+            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload))
+            {
                 await FluentActions
                     .Invoking(async () => await _configService.UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
@@ -851,12 +900,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [InlineData("Publisher/publishednodeswithoptionalfields.json", "Publisher/pn_assets_with_optional_fields.json")]
         [InlineData("Publisher/pn_assets.json", "Publisher/publishednodes.json")]
         [InlineData("Publisher/pn_assets_with_optional_fields.json", "Publisher/publishednodeswithoptionalfields.json")]
-        public async Task UnpublishNodesOnNonExistingConfiguration(string existingConfig, string newConfig) {
+        public async Task UnpublishNodesOnNonExistingConfiguration(string existingConfig, string newConfig)
+        {
             Utils.CopyContent(existingConfig, _tempFile);
             InitPublisherConfigService();
 
             var payload = Utils.GetFileContent(newConfig);
-            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload)) {
+            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload))
+            {
                 await FluentActions
                     .Invoking(async () => await _configService.UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
@@ -873,21 +924,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
         [Theory]
         [InlineData(2, 10)]
         // [InlineData(100, 1000)]
-        public async Task PublishNodesStressTest(int numberOfEndpoints, int numberOfNodes) {
-            using (var fileStream = new FileStream(_tempFile, FileMode.Open, FileAccess.Write)) {
+        public async Task PublishNodesStressTest(int numberOfEndpoints, int numberOfNodes)
+        {
+            using (var fileStream = new FileStream(_tempFile, FileMode.Open, FileAccess.Write))
+            {
                 fileStream.Write(Encoding.UTF8.GetBytes("[]"));
             }
             InitPublisherConfigService();
 
             var payload = new List<PublishedNodesEntryModel>();
-            for (var endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
-                var model = new PublishedNodesEntryModel {
+            for (var endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex)
+            {
+                var model = new PublishedNodesEntryModel
+                {
                     EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
                 };
 
                 model.OpcNodes = new List<OpcNodeModel>();
-                for (var nodeIndex = 0; nodeIndex < numberOfNodes; ++nodeIndex) {
-                    model.OpcNodes.Add(new OpcNodeModel {
+                for (var nodeIndex = 0; nodeIndex < numberOfNodes; ++nodeIndex)
+                {
+                    model.OpcNodes.Add(new OpcNodeModel
+                    {
                         Id = $"ns=2;s=Node-Server-{nodeIndex}",
                     });
                 }
@@ -896,7 +953,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             }
 
             // Publish all nodes.
-            foreach (var request in payload) {
+            foreach (var request in payload)
+            {
                 await FluentActions
                     .Invoking(async () => await _configService.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
@@ -907,7 +965,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             void CheckEndpointsAndNodes(
                 int expectedNumberOfEndpoints,
                 int expectedNumberOfNodesPerEndpoint
-            ) {
+            )
+            {
                 var writerGroups = _publisher.WriterGroups;
                 writerGroups
                     .SelectMany(jobModel => jobModel.WriterGroup.DataSetWriters)
@@ -921,8 +980,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
 
             // Publish one more node for each endpoint.
             var payloadDiff = new List<PublishedNodesEntryModel>();
-            for (var endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
-                var model = new PublishedNodesEntryModel {
+            for (var endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex)
+            {
+                var model = new PublishedNodesEntryModel
+                {
                     EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
                     OpcNodes = new List<OpcNodeModel> {
                         new OpcNodeModel {
@@ -934,7 +995,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
                 payloadDiff.Add(model);
             }
 
-            foreach (var request in payloadDiff) {
+            foreach (var request in payloadDiff)
+            {
                 await FluentActions
                     .Invoking(async () => await _configService.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
@@ -946,7 +1008,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             CheckEndpointsAndNodes(numberOfEndpoints, numberOfNodes + 1);
 
             // Unpublish new nodes for each endpoint.
-            foreach (var request in payloadDiff) {
+            foreach (var request in payloadDiff)
+            {
                 await FluentActions
                     .Invoking(async () => await _configService.UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
@@ -962,8 +1025,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             int dataSetIndex,
             List<OpcNodeModel> opcNodes,
             bool customEndpoint = false
-        ) {
-            return new PublishedNodesEntryModel {
+        )
+        {
+            return new PublishedNodesEntryModel
+            {
                 EndpointUrl = customEndpoint
                     ? $"opc.tcp://opcplc:{50000 + dataSetIndex}"
                     : "opc.tcp://opcplc:50000",
@@ -974,7 +1039,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests {
             };
         }
 
-        private static void AssertSameNodes(PublishedNodesEntryModel endpoint, List<OpcNodeModel> nodes) {
+        private static void AssertSameNodes(PublishedNodesEntryModel endpoint, List<OpcNodeModel> nodes)
+        {
             endpoint.PropagatePublishingIntervalToNodes();
             Assert.True(endpoint.OpcNodes.SetEqualsSafe(nodes, (a, b) => a.IsSame(b)));
         }

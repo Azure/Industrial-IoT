@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Models {
+namespace Microsoft.Azure.IIoT.App.Models
+{
     using global::Azure.IIoT.OpcUa.Shared.Models;
 
     /// <summary>
     /// Endpoint info wrapper
     /// </summary>
-    public class EndpointInfo {
+    public class EndpointInfo
+    {
         /// <summary>
         /// Model
         /// </summary>

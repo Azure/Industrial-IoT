@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Indicate the data location
     /// </summary>
     [DataContract]
-    public enum DataLocation {
+    public enum DataLocation
+    {
         /// <summary>
         ///  A raw data value.
         /// </summary>

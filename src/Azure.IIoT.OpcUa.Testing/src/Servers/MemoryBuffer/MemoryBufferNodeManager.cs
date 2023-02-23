@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace MemoryBuffer {
+namespace MemoryBuffer
+{
     using Opc.Ua;
     using Opc.Ua.Sample;
     using Opc.Ua.Server;
@@ -38,13 +39,15 @@ namespace MemoryBuffer {
     /// <summary>
     /// A node manager for a variety of test data.
     /// </summary>
-    public class MemoryBufferNodeManager : SampleNodeManager {
+    public class MemoryBufferNodeManager : SampleNodeManager
+    {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         public MemoryBufferNodeManager(IServerInternal server,
             ApplicationConfiguration configuration) :
-            base(server) {
+            base(server)
+        {
             NamespaceUris = new List<string> {
                 Namespaces.MemoryBuffer,
                 Namespaces.MemoryBuffer + "/Instance"
@@ -63,11 +66,15 @@ namespace MemoryBuffer {
         /// Dispose
         /// </summary>
         /// <param name="disposing"></param>
-        protected override void Dispose(bool disposing) {
+        protected override void Dispose(bool disposing)
+        {
             base.Dispose(disposing);
-            if (disposing) {
-                if (_buffers != null) {
-                    foreach (var buffer in _buffers.Values) {
+            if (disposing)
+            {
+                if (_buffers != null)
+                {
+                    foreach (var buffer in _buffers.Values)
+                    {
                         buffer.Dispose();
                     }
                     _buffers.Clear();
@@ -84,8 +91,10 @@ namespace MemoryBuffer {
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
         /// should have a reference to the root folder node(s) exposed by this node manager.
         /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Lock) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Lock)
+            {
                 base.CreateAddressSpace(externalReferences);
 
                 // create the nodes from configuration.
@@ -98,8 +107,10 @@ namespace MemoryBuffer {
                 // create the nodes from configuration.
                 namespaceIndex = Server.NamespaceUris.GetIndexOrAppend(Namespaces.MemoryBuffer + "/Instance");
 
-                if (_configuration?.Buffers != null) {
-                    for (var ii = 0; ii < _configuration.Buffers.Count; ii++) {
+                if (_configuration?.Buffers != null)
+                {
+                    for (var ii = 0; ii < _configuration.Buffers.Count; ii++)
+                    {
                         var instance = _configuration.Buffers[ii];
 
                         // create a new buffer.
@@ -129,7 +140,8 @@ namespace MemoryBuffer {
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
-        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context) {
+        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
+        {
             var type = GetType().GetTypeInfo();
             var predefinedNodes = new NodeStateCollection();
             predefinedNodes.LoadFromBinaryResource(context,
@@ -141,8 +153,10 @@ namespace MemoryBuffer {
         /// <summary>
         /// Frees any resources allocated for the address space.
         /// </summary>
-        public override void DeleteAddressSpace() {
-            lock (Lock) {
+        public override void DeleteAddressSpace()
+        {
+            lock (Lock)
+            {
                 base.DeleteAddressSpace();
             }
         }
@@ -155,42 +169,52 @@ namespace MemoryBuffer {
         /// NodeManager it should return a handle that does not require the NodeId to be validated again when
         /// the handle is passed into other methods such as 'Read' or 'Write'.
         /// </remarks>
-        protected override object GetManagerHandle(ISystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache) {
-            lock (Lock) {
-                if (!IsNodeIdInNamespace(nodeId)) {
+        protected override object GetManagerHandle(ISystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
+        {
+            lock (Lock)
+            {
+                if (!IsNodeIdInNamespace(nodeId))
+                {
                     return null;
                 }
 
-                if (nodeId.Identifier is string id) {
+                if (nodeId.Identifier is string id)
+                {
                     // check for a reference to the buffer.
 
-                    if (_buffers.TryGetValue(id, out var buffer)) {
+                    if (_buffers.TryGetValue(id, out var buffer))
+                    {
                         return buffer;
                     }
 
                     // tag ids have the syntax <bufferName>[<address>]
-                    if (id[id.Length - 1] != ']') {
+                    if (id[id.Length - 1] != ']')
+                    {
                         return null;
                     }
 
                     var index = id.IndexOf('[');
 
-                    if (index == -1) {
+                    if (index == -1)
+                    {
                         return null;
                     }
 
                     var bufferName = id.Substring(0, index);
 
                     // verify the buffer.
-                    if (!_buffers.TryGetValue(bufferName, out buffer)) {
+                    if (!_buffers.TryGetValue(bufferName, out buffer))
+                    {
                         return null;
                     }
 
                     // validate the address.
                     var offsetText = id.Substring(index + 1, id.Length - index - 2);
 
-                    for (var ii = 0; ii < offsetText.Length; ii++) {
-                        if (!char.IsDigit(offsetText[ii])) {
+                    for (var ii = 0; ii < offsetText.Length; ii++)
+                    {
+                        if (!char.IsDigit(offsetText[ii]))
+                        {
                             return null;
                         }
                     }
@@ -198,7 +222,8 @@ namespace MemoryBuffer {
                     // check range on offset.
                     var offset = Convert.ToUInt32(offsetText);
 
-                    if (offset >= buffer.SizeInBytes.Value) {
+                    if (offset >= buffer.SizeInBytes.Value)
+                    {
                         return null;
                     }
 
@@ -231,12 +256,14 @@ namespace MemoryBuffer {
             MonitoredItemCreateRequest itemToCreate,
             ref long globalIdCounter,
             out MonitoringFilterResult filterError,
-            out IMonitoredItem monitoredItem) {
+            out IMonitoredItem monitoredItem)
+        {
             filterError = null;
             monitoredItem = null;
 
             // use default behavoir for non-tag sources.
-            if (!(source is MemoryTagState tag)) {
+            if (!(source is MemoryTagState tag))
+            {
                 return base.CreateMonitoredItem(
                     context,
                     source,
@@ -256,22 +283,26 @@ namespace MemoryBuffer {
             // no filters supported at this time.
             var filter = (MonitoringFilter)ExtensionObject.ToEncodeable(parameters.Filter);
 
-            if (filter != null) {
+            if (filter != null)
+            {
                 return StatusCodes.BadFilterNotAllowed;
             }
 
             // index range not supported.
-            if (itemToCreate.ItemToMonitor.ParsedIndexRange != NumericRange.Empty) {
+            if (itemToCreate.ItemToMonitor.ParsedIndexRange != NumericRange.Empty)
+            {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
             // data encoding not supported.
-            if (!QualifiedName.IsNull(itemToCreate.ItemToMonitor.DataEncoding)) {
+            if (!QualifiedName.IsNull(itemToCreate.ItemToMonitor.DataEncoding))
+            {
                 return StatusCodes.BadDataEncodingInvalid;
             }
 
             // read initial value.
-            var initialValue = new DataValue {
+            var initialValue = new DataValue
+            {
                 Value = null,
                 ServerTimestamp = DateTime.UtcNow,
                 SourceTimestamp = DateTime.MinValue,
@@ -285,13 +316,15 @@ namespace MemoryBuffer {
                 itemToCreate.ItemToMonitor.DataEncoding,
                 initialValue);
 
-            if (ServiceResult.IsBad(error)) {
+            if (ServiceResult.IsBad(error))
+            {
                 return error;
             }
 
             // get the monitored node for the containing buffer.
 
-            if (!(tag.Parent is MemoryBufferState buffer)) {
+            if (!(tag.Parent is MemoryBufferState buffer))
+            {
                 return StatusCodes.BadInternalError;
             }
 
@@ -301,7 +334,8 @@ namespace MemoryBuffer {
             // determine the sampling interval.
             var samplingInterval = itemToCreate.RequestedParameters.SamplingInterval;
 
-            if (samplingInterval < 0) {
+            if (samplingInterval < 0)
+            {
                 samplingInterval = publishingInterval;
             }
 
@@ -349,12 +383,14 @@ namespace MemoryBuffer {
             TimestampsToReturn timestampsToReturn,
             IMonitoredItem monitoredItem,
             MonitoredItemModifyRequest itemToModify,
-            out MonitoringFilterResult filterError) {
+            out MonitoringFilterResult filterError)
+        {
             filterError = null;
 
             // check for valid handle.
 
-            if (!(monitoredItem.ManagerHandle is MemoryBufferState buffer)) {
+            if (!(monitoredItem.ManagerHandle is MemoryBufferState buffer))
+            {
                 return base.ModifyMonitoredItem(
                     context,
                     diagnosticsMasks,
@@ -369,7 +405,8 @@ namespace MemoryBuffer {
 
             // get the monitored item.
 
-            if (!(monitoredItem is MemoryBufferMonitoredItem datachangeItem)) {
+            if (!(monitoredItem is MemoryBufferMonitoredItem datachangeItem))
+            {
                 return StatusCodes.BadMonitoredItemIdInvalid;
             }
 
@@ -379,7 +416,8 @@ namespace MemoryBuffer {
             // no filters supported at this time.
             var filter = (MonitoringFilter)ExtensionObject.ToEncodeable(parameters.Filter);
 
-            if (filter != null) {
+            if (filter != null)
+            {
                 return StatusCodes.BadFilterNotAllowed;
             }
 
@@ -399,12 +437,14 @@ namespace MemoryBuffer {
         protected override ServiceResult DeleteMonitoredItem(
             ISystemContext context,
             IMonitoredItem monitoredItem,
-            out bool processed) {
+            out bool processed)
+        {
             processed = false;
 
             // check for valid handle.
 
-            if (!(monitoredItem.ManagerHandle is MemoryBufferState buffer)) {
+            if (!(monitoredItem.ManagerHandle is MemoryBufferState buffer))
+            {
                 return base.DeleteMonitoredItem(
                     context,
                     monitoredItem,
@@ -416,7 +456,8 @@ namespace MemoryBuffer {
 
             // get the monitored item.
 
-            if (!(monitoredItem is MemoryBufferMonitoredItem datachangeItem)) {
+            if (!(monitoredItem is MemoryBufferMonitoredItem datachangeItem))
+            {
                 return StatusCodes.BadMonitoredItemIdInvalid;
             }
 
@@ -433,12 +474,14 @@ namespace MemoryBuffer {
             ISystemContext context,
             IMonitoredItem monitoredItem,
             MonitoringMode monitoringMode,
-            out bool processed) {
+            out bool processed)
+        {
             processed = false;
 
             // check for valid handle.
 
-            if (!(monitoredItem.ManagerHandle is MemoryBufferState buffer)) {
+            if (!(monitoredItem.ManagerHandle is MemoryBufferState buffer))
+            {
                 return base.SetMonitoringMode(
                     context,
                     monitoredItem,
@@ -451,7 +494,8 @@ namespace MemoryBuffer {
 
             // get the monitored item.
 
-            if (!(monitoredItem is MemoryBufferMonitoredItem datachangeItem)) {
+            if (!(monitoredItem is MemoryBufferMonitoredItem datachangeItem))
+            {
                 return StatusCodes.BadMonitoredItemIdInvalid;
             }
 
@@ -459,8 +503,10 @@ namespace MemoryBuffer {
             var previousMode = datachangeItem.SetMonitoringMode(monitoringMode);
 
             // need to provide an immediate update after enabling.
-            if (previousMode == MonitoringMode.Disabled && monitoringMode != MonitoringMode.Disabled) {
-                var initialValue = new DataValue {
+            if (previousMode == MonitoringMode.Disabled && monitoringMode != MonitoringMode.Disabled)
+            {
+                var initialValue = new DataValue
+                {
                     Value = null,
                     ServerTimestamp = DateTime.UtcNow,
                     SourceTimestamp = DateTime.MinValue,

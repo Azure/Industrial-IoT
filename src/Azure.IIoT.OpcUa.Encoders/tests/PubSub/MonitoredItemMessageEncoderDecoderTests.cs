@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
+{
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Opc.Ua;
     using System;
@@ -14,7 +15,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
     /// <summary>
     /// Monitored item json encoder decoder tests
     /// </summary>
-    public class MonitoredItemMessageEncoderDecoderTests {
+    public class MonitoredItemMessageEncoderDecoderTests
+    {
         public const JsonNetworkMessageContentMask NetworkMessageContentMaskDefault =
             JsonNetworkMessageContentMask.PublisherId |
             // Important: No JsonNetworkMessageContentMask.NetworkMessageHeader |
@@ -56,7 +58,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [InlineData(true, true, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
         [InlineData(true, true, true, NetworkMessageContentMaskDefault, 3)]
         public void EncodeDecodeNetworkMessage(bool useArrayEnvelope, bool compress,
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages) {
+            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages)
+        {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber))
@@ -91,7 +94,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [InlineData(true, true, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
         [InlineData(true, true, true, NetworkMessageContentMaskDefault, 3)]
         public void EncodeDecodeNetworkMessageReversible(bool useArrayEnvelope, bool compress,
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages) {
+            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages)
+        {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber,
@@ -137,7 +141,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [InlineData(true, true, true, NetworkMessageContentMaskDefault, 15, 1024)]
         [InlineData(true, true, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
         public void EncodeDecodeNetworkMessages(bool useArrayEnvelope, bool compress,
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize) {
+            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+        {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber))
@@ -184,7 +189,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         [InlineData(true, true, true, NetworkMessageContentMaskDefault, 15, 1024)]
         [InlineData(true, true, true, NetworkMessageContentMaskDefault | JsonNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
         public void EncodeDecodeNetworkMessagesReversible(bool useArrayEnvelope, bool compress,
-            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize) {
+            bool useCompatibilityMode, JsonNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+        {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber,
@@ -209,11 +215,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         /// <summary>
         /// Convert timestamps of payload to OpcUa Utc.
         /// </summary>
-        private static void ConvertToOpcUaUniversalTime(BaseNetworkMessage networkMessage) {
+        private static void ConvertToOpcUaUniversalTime(BaseNetworkMessage networkMessage)
+        {
             // convert DataSet Payload DataValue timestamps to OpcUa Utc
-            foreach (var dataSetMessage in networkMessage.Messages) {
+            foreach (var dataSetMessage in networkMessage.Messages)
+            {
                 var expectedPayload = new Dictionary<string, DataValue>();
-                foreach (var entry in dataSetMessage.Payload) {
+                foreach (var entry in dataSetMessage.Payload)
+                {
                     expectedPayload[entry.Key] = new DataValue(entry.Value).ToOpcUaUniversalTime();
                 }
                 dataSetMessage.Payload = new DataSet(expectedPayload, (uint)(
@@ -226,8 +235,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         /// Create network message
         /// </summary>
         private static JsonNetworkMessage CreateNetworkMessage(
-            JsonNetworkMessageContentMask contentMask, List<BaseDataSetMessage> messages) {
-            return new JsonNetworkMessage {
+            JsonNetworkMessageContentMask contentMask, List<BaseDataSetMessage> messages)
+        {
+            return new JsonNetworkMessage
+            {
                 MessageId = () => "9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
                 Messages = messages,
                 DataSetWriterGroup = "group",
@@ -241,8 +252,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         /// </summary>
         private static JsonDataSetMessage CreateDataSetMessage(bool useCompatibilityMode, int sequenceNumber,
             JsonDataSetMessageContentMask dataSetMessageContentMask = DataSetMessageContentMaskDefault,
-            DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault) {
-            return new MonitoredItemMessage {
+            DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
+        {
+            return new MonitoredItemMessage
+            {
                 EndpointUrl = "EndpointUrl",
                 ApplicationUri = "ApplicationUrl",
                 NodeId = "NodeId",
@@ -257,7 +270,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
         /// <summary>
         /// Create dataset
         /// </summary>
-        private static DataSet CreateDataSet(DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault) {
+        private static DataSet CreateDataSet(DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
+        {
             return new DataSet(new Dictionary<string, DataValue> {
                 { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) }
             }, (uint)dataSetFieldContentMask);

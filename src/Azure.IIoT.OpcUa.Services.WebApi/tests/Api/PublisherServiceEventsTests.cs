@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR
+{
     using Azure.IIoT.OpcUa.Services.Sdk;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
@@ -15,8 +16,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
     using Xunit;
 
     [Collection(WebAppCollection.Name)]
-    public class PublisherServiceEventsTests {
-        public PublisherServiceEventsTests(SignalRTestFixture factory) {
+    public class PublisherServiceEventsTests
+    {
+        public PublisherServiceEventsTests(SignalRTestFixture factory)
+        {
             _factory = factory;
         }
 
@@ -24,18 +27,22 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
 
         [Theory]
         [MemberData(nameof(GetScalarValues))]
-        public async Task TestPublishTelemetryEventAndReceiveAsync(VariantValue v) {
+        public async Task TestPublishTelemetryEventAndReceiveAsync(VariantValue v)
+        {
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
             var client = _factory.Resolve<IPublisherServiceEvents>();
 
             const string endpointId = "testid";
 
             var result = new TaskCompletionSource<MonitoredItemMessageModel>();
-            await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, ev => {
+            await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, ev =>
+            {
                 result.SetResult(ev);
                 return Task.CompletedTask;
-            }).ConfigureAwait(false)) {
-                var expected = new MonitoredItemMessageModel {
+            }).ConfigureAwait(false))
+            {
+                var expected = new MonitoredItemMessageModel
+                {
                     DataSetWriterId = "testid",
                     EndpointId = endpointId,
                     DisplayName = "holla",
@@ -65,12 +72,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
         [InlineData(10)]
         [InlineData(4455)]
         [InlineData(262345)]
-        public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total) {
+        public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total)
+        {
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
             var client = _factory.Resolve<IPublisherServiceEvents>();
 
             const string endpointId = "testid";
-            var expected = new MonitoredItemMessageModel {
+            var expected = new MonitoredItemMessageModel
+            {
                 DataSetWriterId = "testid",
                 EndpointId = endpointId,
                 DisplayName = "holla",
@@ -81,14 +90,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
             };
             var result = new TaskCompletionSource<bool>();
             var counter = 0;
-            await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, ev => {
+            await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, ev =>
+            {
                 counter++;
-                if (counter == total) {
+                if (counter == total)
+                {
                     result.SetResult(true);
                 }
                 return Task.CompletedTask;
-            }).ConfigureAwait(false)) {
-                for (var i = 0; i < total; i++) {
+            }).ConfigureAwait(false))
+            {
+                for (var i = 0; i < total; i++)
+                {
                     await bus.HandleSampleAsync(expected).ConfigureAwait(false);
                 }
 
@@ -97,7 +110,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
             }
         }
 
-        public static IEnumerable<(VariantValue, object)> GetStrings() {
+        public static IEnumerable<(VariantValue, object)> GetStrings()
+        {
             yield return ("", "");
             yield return ("str ing", "str ing");
             yield return ("{}", "{}");
@@ -107,7 +121,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
             yield return (Encoding.UTF8.GetBytes("utf-8-string"), Encoding.UTF8.GetBytes("utf-8-string"));
         }
 
-        public static IEnumerable<(VariantValue, object)> GetValues() {
+        public static IEnumerable<(VariantValue, object)> GetValues()
+        {
 #if FALSE
             yield return ((long?)null, (long?)null);
             yield return ((ulong?)null, (ulong?)null);
@@ -194,7 +209,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
         private static readonly DateTime kNow1 = DateTime.UtcNow;
         private static readonly DateTimeOffset kNow2 = DateTimeOffset.UtcNow;
 
-        public static IEnumerable<object[]> GetScalarValues() {
+        public static IEnumerable<object[]> GetScalarValues()
+        {
             return GetStrings()
                 .Select(v => new object[] { v.Item1 })
                 .Concat(GetValues()

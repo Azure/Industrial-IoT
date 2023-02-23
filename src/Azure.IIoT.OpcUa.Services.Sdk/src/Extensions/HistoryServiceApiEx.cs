@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System.Collections.Generic;
     using System.Linq;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
     /// <summary>
     /// Twin service api extensions
     /// </summary>
-    public static class HistoryServiceApiEx {
+    public static class HistoryServiceApiEx
+    {
         /// <summary>
         /// Read all historic values
         /// </summary>
@@ -22,7 +24,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <returns></returns>
         public static async Task<IEnumerable<HistoricValueModel>> HistoryReadAllValuesAsync(
             this IHistoryServiceApi client, string endpointId,
-            HistoryReadRequestModel<ReadValuesDetailsModel> request) {
+            HistoryReadRequestModel<ReadValuesDetailsModel> request)
+        {
             var result = await client.HistoryReadValuesAsync(endpointId, request).ConfigureAwait(false);
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable()).ConfigureAwait(false);
@@ -37,7 +40,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <returns></returns>
         public static async Task<IEnumerable<HistoricValueModel>> HistoryReadAllModifiedValuesAsync(
             this IHistoryServiceApi client, string endpointId,
-            HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request) {
+            HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request)
+        {
             var result = await client.HistoryReadModifiedValuesAsync(endpointId, request).ConfigureAwait(false);
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable()).ConfigureAwait(false);
@@ -52,7 +56,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <returns></returns>
         public static async Task<IEnumerable<HistoricValueModel>> HistoryReadAllValuesAtTimesAsync(
             this IHistoryServiceApi client, string endpointId,
-            HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request) {
+            HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request)
+        {
             var result = await client.HistoryReadValuesAtTimesAsync(endpointId, request).ConfigureAwait(false);
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable()).ConfigureAwait(false);
@@ -67,7 +72,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <returns></returns>
         public static async Task<IEnumerable<HistoricValueModel>> HistoryReadAllProcessedValuesAsync(
             this IHistoryServiceApi client, string endpointId,
-            HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request) {
+            HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request)
+        {
             var result = await client.HistoryReadProcessedValuesAsync(endpointId, request).ConfigureAwait(false);
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable()).ConfigureAwait(false);
@@ -82,7 +88,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <returns></returns>
         public static async Task<IEnumerable<HistoricEventModel>> HistoryReadAllEventsAsync(
             this IHistoryServiceApi client, string endpointId,
-            HistoryReadRequestModel<ReadEventsDetailsModel> request) {
+            HistoryReadRequestModel<ReadEventsDetailsModel> request)
+        {
             var result = await client.HistoryReadEventsAsync(endpointId, request).ConfigureAwait(false);
             return await HistoryReadAllRemainingEventsAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable()).ConfigureAwait(false);
@@ -99,9 +106,12 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <returns></returns>
         private static async Task<IEnumerable<HistoricValueModel>> HistoryReadAllRemainingValuesAsync(
             IHistoryServiceApi client, string endpointId, RequestHeaderModel header,
-            string continuationToken, IEnumerable<HistoricValueModel> returning) {
-            while (continuationToken != null) {
-                var response = await client.HistoryReadValuesNextAsync(endpointId, new HistoryReadNextRequestModel {
+            string continuationToken, IEnumerable<HistoricValueModel> returning)
+        {
+            while (continuationToken != null)
+            {
+                var response = await client.HistoryReadValuesNextAsync(endpointId, new HistoryReadNextRequestModel
+                {
                     ContinuationToken = continuationToken,
                     Header = header
                 }).ConfigureAwait(false);
@@ -122,9 +132,12 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <returns></returns>
         private static async Task<IEnumerable<HistoricEventModel>> HistoryReadAllRemainingEventsAsync(
             IHistoryServiceApi client, string endpointId, RequestHeaderModel header,
-            string continuationToken, IEnumerable<HistoricEventModel> returning) {
-            while (continuationToken != null) {
-                var response = await client.HistoryReadEventsNextAsync(endpointId, new HistoryReadNextRequestModel {
+            string continuationToken, IEnumerable<HistoricEventModel> returning)
+        {
+            while (continuationToken != null)
+            {
+                var response = await client.HistoryReadEventsNextAsync(endpointId, new HistoryReadNextRequestModel
+                {
                     ContinuationToken = continuationToken,
                     Header = header
                 }).ConfigureAwait(false);

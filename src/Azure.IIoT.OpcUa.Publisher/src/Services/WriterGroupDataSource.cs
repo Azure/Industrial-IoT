@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services {
+namespace Azure.IIoT.OpcUa.Publisher.Services
+{
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
@@ -26,7 +27,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
-    public sealed class WriterGroupDataSource : IMessageSource, IDisposable {
+    public sealed class WriterGroupDataSource : IMessageSource, IDisposable
+    {
         /// <inheritdoc/>
         public event EventHandler<SubscriptionNotificationModel> OnMessage;
 
@@ -39,7 +41,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         public WriterGroupDataSource(IWriterGroupConfig writerGroupConfig,
             ISubscriptionManager subscriptionManager, ISubscriptionConfig subscriptionConfig,
             IMetricsContext metrics, ILogger logger)
-            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
+        {
             _writerGroup = writerGroupConfig?.WriterGroup?.Clone() ??
                 throw new ArgumentNullException(nameof(writerGroupConfig.WriterGroup));
             _logger = logger ??
@@ -54,33 +57,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         }
 
         /// <inheritdoc/>
-        public async ValueTask StartAsync(CancellationToken ct) {
+        public async ValueTask StartAsync(CancellationToken ct)
+        {
             await _lock.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 Debug.Assert(_subscriptions.Count == 0);
 
-                foreach (var writer in _writerGroup.DataSetWriters) {
+                foreach (var writer in _writerGroup.DataSetWriters)
+                {
                     // Create writer subscriptions
                     var writerSubscription = await DataSetWriterSubscription.CreateAsync(
                         this, writer, ct).ConfigureAwait(false);
                     _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
 
         /// <inheritdoc/>
-        public async ValueTask UpdateAsync(WriterGroupJobModel jobConfig, CancellationToken ct) {
+        public async ValueTask UpdateAsync(WriterGroupJobModel jobConfig, CancellationToken ct)
+        {
             await _lock.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 var writerGroupConfig = jobConfig.ToWriterGroupJobConfiguration(_publisherId);
                 var writerGroup = writerGroupConfig.WriterGroup.Clone();
 
                 if (writerGroup?.DataSetWriters == null ||
-                    writerGroup.DataSetWriters.Count == 0) {
-                    foreach (var subscription in _subscriptions.Values) {
+                    writerGroup.DataSetWriters.Count == 0)
+                {
+                    foreach (var subscription in _subscriptions.Values)
+                    {
                         await subscription.DisposeAsync().ConfigureAwait(false);
                     }
                     _logger.LogInformation("Removed all subscriptions from writer group {Name}.",
@@ -93,29 +104,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 var dataSetWriterSubscriptionMap = writerGroup.DataSetWriters
                     .ToDictionary(w => w.ToSubscriptionId(writerGroup.WriterGroupId), w => w);
                 // Update or removed ones that were updated or removed.
-                foreach (var id in _subscriptions.Keys.ToList()) {
-                    if (!dataSetWriterSubscriptionMap.TryGetValue(id, out var writer)) {
-                        if (_subscriptions.Remove(id, out var s)) {
+                foreach (var id in _subscriptions.Keys.ToList())
+                {
+                    if (!dataSetWriterSubscriptionMap.TryGetValue(id, out var writer))
+                    {
+                        if (_subscriptions.Remove(id, out var s))
+                        {
                             await s.DisposeAsync().ConfigureAwait(false);
                         }
                     }
-                    else {
+                    else
+                    {
                         // Update
-                        if (_subscriptions.TryGetValue(id, out var s)) {
+                        if (_subscriptions.TryGetValue(id, out var s))
+                        {
                             await s.UpdateAsync(writer, ct).ConfigureAwait(false);
                         }
                     }
                 }
                 // Create any newly added ones
-                foreach (var writer in dataSetWriterSubscriptionMap) {
-                    if (!_subscriptions.ContainsKey(writer.Key)) {
+                foreach (var writer in dataSetWriterSubscriptionMap)
+                {
+                    if (!_subscriptions.ContainsKey(writer.Key))
+                    {
                         // Add
                         var writerSubscription = await DataSetWriterSubscription.CreateAsync(
                             this, writer.Value, ct).ConfigureAwait(false);
                         _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                     }
                 }
-                if (_writerGroup.WriterGroupId != writerGroup.WriterGroupId) {
+                if (_writerGroup.WriterGroupId != writerGroup.WriterGroupId)
+                {
                     _logger.LogInformation("Update writer group from {Previous} to writer group {Name}.",
                         _writerGroup.WriterGroupId, writerGroup.WriterGroupId);
                 }
@@ -124,19 +143,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     writerGroup.WriterGroupId);
                 _writerGroup = writerGroup;
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         /// <inheritdoc/>
-        public async ValueTask DisposeAsync() {
-            foreach (var s in _subscriptions.Values) {
+        public async ValueTask DisposeAsync()
+        {
+            foreach (var s in _subscriptions.Values)
+            {
                 await s.DisposeAsync().ConfigureAwait(false);
             }
             _subscriptions.Clear();
@@ -145,7 +168,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Helper to manage subscriptions
         /// </summary>
-        private sealed class DataSetWriterSubscription : IAsyncDisposable {
+        private sealed class DataSetWriterSubscription : IAsyncDisposable
+        {
             /// <summary>
             /// Subscription id
             /// </summary>
@@ -160,7 +184,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// Create subscription from a DataSetWriterModel template
             /// </summary>
             private DataSetWriterSubscription(WriterGroupDataSource outer,
-                DataSetWriterModel dataSetWriter) {
+                DataSetWriterModel dataSetWriter)
+            {
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
                 _dataSetWriter = dataSetWriter?.Clone() ??
                     throw new ArgumentNullException(nameof(dataSetWriter));
@@ -173,7 +198,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// </summary>
             public static async ValueTask<DataSetWriterSubscription> CreateAsync(
                 WriterGroupDataSource outer, DataSetWriterModel dataSetWriter,
-                CancellationToken ct) {
+                CancellationToken ct)
+            {
                 var dataSetSubscription = new DataSetWriterSubscription(outer, dataSetWriter);
 
                 // Open subscription which creates the underlying OPC UA subscription
@@ -185,8 +211,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// <summary>
             /// Update subscription content
             /// </summary>
-            public async ValueTask UpdateAsync(DataSetWriterModel dataSetWriter, CancellationToken ct) {
-                if (Subscription == null) {
+            public async ValueTask UpdateAsync(DataSetWriterModel dataSetWriter, CancellationToken ct)
+            {
+                if (Subscription == null)
+                {
                     _outer._logger.LogWarning("Subscription does not exist");
                     return;
                 }
@@ -208,16 +236,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             }
 
             /// <inheritdoc/>
-            public async ValueTask DisposeAsync() {
-                try {
-                    if (Subscription == null) {
+            public async ValueTask DisposeAsync()
+            {
+                try
+                {
+                    if (Subscription == null)
+                    {
                         return;
                     }
                     _metadataTimer?.Stop();
 
                     await CloseAsync().ConfigureAwait(false);
                 }
-                finally {
+                finally
+                {
                     _metadataTimer?.Dispose();
                     _metadataTimer = null;
                 }
@@ -227,7 +259,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// Open subscription
             /// </summary>
             /// <returns></returns>
-            private async ValueTask OpenAsync(CancellationToken ct) {
+            private async ValueTask OpenAsync(CancellationToken ct)
+            {
                 _outer._logger.LogDebug("Creating new subscription {Id} in writer group {Name}...",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
@@ -260,7 +293,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// Close subscription
             /// </summary>
             /// <returns></returns>
-            private async ValueTask CloseAsync() {
+            private async ValueTask CloseAsync()
+            {
                 _outer._logger.LogDebug("Removing subscription {Id} from writer group {Name}...",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
@@ -285,7 +319,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// <summary>
             /// Initializes the key frame triggering mechanism from the cconfiguration model
             /// </summary>
-            private void InitializeKeyframeTrigger() {
+            private void InitializeKeyframeTrigger()
+            {
                 _frameCount = 0;
                 _keyFrameCount = _outer._subscriptionConfig.DisableKeyFrames == true
                     ? 0 : _dataSetWriter.KeyFrameCount
@@ -295,22 +330,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// <summary>
             /// /// Initializes the Metadata triggering mechanism from the cconfiguration model
             /// </summary>
-            private void InitializeMetaDataTrigger() {
+            private void InitializeMetaDataTrigger()
+            {
                 var metaDataSendInterval = _dataSetWriter.MetaDataUpdateTime
                     .GetValueOrDefault(TimeSpan.Zero)
                     .TotalMilliseconds;
 
-                if (metaDataSendInterval > 0 && _outer._subscriptionConfig.DisableDataSetMetaData != true) {
-                    if (_metadataTimer == null) {
+                if (metaDataSendInterval > 0 && _outer._subscriptionConfig.DisableDataSetMetaData != true)
+                {
+                    if (_metadataTimer == null)
+                    {
                         _metadataTimer = new Timer(metaDataSendInterval);
                         _metadataTimer.Elapsed += MetadataTimerElapsed;
                     }
-                    else {
+                    else
+                    {
                         _metadataTimer.Interval = metaDataSendInterval;
                     }
                 }
-                else {
-                    if (_metadataTimer != null) {
+                else
+                {
+                    if (_metadataTimer != null)
+                    {
                         _metadataTimer.Stop();
                         _metadataTimer.Dispose();
                         _metadataTimer = null;
@@ -321,23 +362,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// <summary>
             /// Fired when metadata time elapsed
             /// </summary>
-            private void MetadataTimerElapsed(object sender, ElapsedEventArgs e) {
-                try {
+            private void MetadataTimerElapsed(object sender, ElapsedEventArgs e)
+            {
+                try
+                {
                     _metadataTimer.Enabled = false;
                     // Enabled again after calling message receiver delegate
                 }
-                catch (ObjectDisposedException) {
+                catch (ObjectDisposedException)
+                {
                     // Disposed while being invoked
                     return;
                 }
 
                 _outer._logger.LogDebug("Insert metadata message into Subscription {Id}...", Id);
                 var notification = Subscription.CreateKeepAlive();
-                if (notification != null) {
+                if (notification != null)
+                {
                     // This call udpates the message type, so no need to do it here.
                     CallMessageReceiverDelegates(this, notification, true);
                 }
-                else {
+                else
+                {
                     // Failed to send, try again later
                     InitializeMetaDataTrigger();
                 }
@@ -346,13 +392,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// <summary>
             /// Handle subscription data change messages
             /// </summary>
-            private void OnSubscriptionDataChangeNotification(object sender, SubscriptionNotificationModel notification) {
+            private void OnSubscriptionDataChangeNotification(object sender, SubscriptionNotificationModel notification)
+            {
                 CallMessageReceiverDelegates(sender, ProcessKeyFrame(notification));
 
-                SubscriptionNotificationModel ProcessKeyFrame(SubscriptionNotificationModel notification) {
-                    if (_keyFrameCount > 0) {
+                SubscriptionNotificationModel ProcessKeyFrame(SubscriptionNotificationModel notification)
+                {
+                    if (_keyFrameCount > 0)
+                    {
                         var frameCount = Interlocked.Increment(ref _frameCount);
-                        if ((frameCount % _keyFrameCount) == 0) {
+                        if ((frameCount % _keyFrameCount) == 0)
+                        {
                             Subscription.TryUpgradeToKeyFrame(notification);
                         }
                     }
@@ -363,10 +413,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// <summary>
             /// Handle subscription data diagnostics change messages
             /// </summary>
-            private void OnSubscriptionDataDiagnosticsChanged(object sender, int notificationCount) {
-                lock (_lock) {
+            private void OnSubscriptionDataDiagnosticsChanged(object sender, int notificationCount)
+            {
+                lock (_lock)
+                {
                     if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
-                        _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
+                        _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold)
+                    {
                         // reset both
                         _outer._logger.LogDebug("Notifications counter in subscription {Id} has been reset to prevent" +
                             " overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} " +
@@ -385,7 +438,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// <summary>
             /// Handle subscription change messages
             /// </summary>
-            private void OnSubscriptionEventNotification(object sender, SubscriptionNotificationModel notification) {
+            private void OnSubscriptionEventNotification(object sender, SubscriptionNotificationModel notification)
+            {
                 CallMessageReceiverDelegates(sender, notification);
             }
 
@@ -394,10 +448,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="notificationCount"></param>
-            private void OnSubscriptionEventDiagnosticsChanged(object sender, int notificationCount) {
-                lock (_lock) {
+            private void OnSubscriptionEventDiagnosticsChanged(object sender, int notificationCount)
+            {
+                lock (_lock)
+                {
                     if (_outer._eventCount >= kNumberOfInvokedMessagesResetThreshold ||
-                        _outer._eventNotificationCount >= kNumberOfInvokedMessagesResetThreshold) {
+                        _outer._eventNotificationCount >= kNumberOfInvokedMessagesResetThreshold)
+                    {
                         // reset both
                         _outer._logger.LogDebug("Notifications counter in subscription {Id} has been reset to prevent" +
                             " overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
@@ -420,10 +477,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// <param name="notification"></param>
             /// <param name="metaDataTimer"></param>
             private void CallMessageReceiverDelegates(object sender,
-                SubscriptionNotificationModel notification, bool metaDataTimer = false) {
-                try {
-                    lock (_lock) {
-                        if (notification.MetaData != null) {
+                SubscriptionNotificationModel notification, bool metaDataTimer = false)
+            {
+                try
+                {
+                    lock (_lock)
+                    {
+                        if (notification.MetaData != null)
+                        {
                             var sendMetadata = metaDataTimer;
                             //
                             // Only send if called from metadata timer or if the metadata version changes.
@@ -431,13 +492,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             // created when it changes so old one is not mutated and this should be safe.
                             //
                             if (_currentMetadataMajorVersion != notification.MetaData.ConfigurationVersion.MajorVersion &&
-                                _currentMetadataMinorVersion != notification.MetaData.ConfigurationVersion.MinorVersion) {
+                                _currentMetadataMinorVersion != notification.MetaData.ConfigurationVersion.MinorVersion)
+                            {
                                 _currentMetadataMajorVersion = notification.MetaData.ConfigurationVersion.MajorVersion;
                                 _currentMetadataMinorVersion = notification.MetaData.ConfigurationVersion.MinorVersion;
                                 sendMetadata = true;
                             }
-                            if (sendMetadata) {
-                                var metadata = new SubscriptionNotificationModel {
+                            if (sendMetadata)
+                            {
+                                var metadata = new SubscriptionNotificationModel
+                                {
                                     Context = CreateMessageContext(ref _metadataSequenceNumber),
                                     MessageType = Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.Metadata,
                                     SequenceNumber = notification.SequenceNumber,
@@ -454,13 +518,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             }
                         }
 
-                        if (!metaDataTimer) {
+                        if (!metaDataTimer)
+                        {
                             Debug.Assert(notification.Notifications != null);
                             notification.Context = CreateMessageContext(ref _dataSetSequenceNumber);
                             _outer.OnMessage?.Invoke(sender, notification);
 
                             if (notification.MessageType != Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.DeltaFrame &&
-                                notification.MessageType != Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.KeepAlive) {
+                                notification.MessageType != Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.KeepAlive)
+                            {
                                 // Reset keyframe trigger for events, keyframe, and conditions
                                 // which are all key frame like messages
                                 InitializeKeyframeTrigger();
@@ -468,15 +534,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                         }
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _outer._logger.LogWarning(ex, "Failed to produce message.");
                 }
 
-                WriterGroupMessageContext CreateMessageContext(ref uint sequenceNumber) {
-                    while (sequenceNumber == 0) {
+                WriterGroupMessageContext CreateMessageContext(ref uint sequenceNumber)
+                {
+                    while (sequenceNumber == 0)
+                    {
                         unchecked { sequenceNumber++; }
                     }
-                    return new WriterGroupMessageContext {
+                    return new WriterGroupMessageContext
+                    {
                         PublisherId = _outer._publisherId,
                         Writer = _dataSetWriter,
                         SequenceNumber = sequenceNumber,
@@ -502,12 +572,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Iterates the array and add up all values
         /// </summary>
         private static long CalculateSumForRingBuffer(long[] array, ref int lastPointer,
-            int bucketWidth, DateTime lastWriteTime) {
+            int bucketWidth, DateTime lastWriteTime)
+        {
             // if IncreaseRingBuffer wasn't called for some time, maybe some stale values are included
             UpdateRingBufferBuckets(array, ref lastPointer, bucketWidth, ref lastWriteTime);
             // with cleaned buffer, we can just accumulate all buckets
             long sum = 0;
-            for (var index = 0; index < array.Length; index++) {
+            for (var index = 0; index < array.Length; index++)
+            {
                 sum += array[index];
             }
             return sum;
@@ -522,7 +594,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Helper function to distribute values over array based on time
         /// </summary>
         private static void IncreaseRingBuffer(long[] array, ref int lastPointer,
-            int bucketWidth, long difference, ref DateTime lastWriteTime) {
+            int bucketWidth, long difference, ref DateTime lastWriteTime)
+        {
             var indexPointer = UpdateRingBufferBuckets(array, ref lastPointer,
                 bucketWidth, ref lastWriteTime);
             array[indexPointer] += difference;
@@ -532,21 +605,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Empty the ring buffer buckets if necessary
         /// </summary>
         private static int UpdateRingBufferBuckets(long[] array, ref int lastPointer,
-            int bucketWidth, ref DateTime lastWriteTime) {
+            int bucketWidth, ref DateTime lastWriteTime)
+        {
             var now = DateTime.UtcNow;
             var indexPointer = now.Second % bucketWidth;
 
             // if last update was > bucketsize seconds in the past delete whole array
-            if (lastWriteTime != DateTime.MinValue) {
+            if (lastWriteTime != DateTime.MinValue)
+            {
                 var deleteWholeArray = (now - lastWriteTime).TotalSeconds >= bucketWidth;
-                if (deleteWholeArray) {
+                if (deleteWholeArray)
+                {
                     Array.Clear(array, 0, array.Length);
                     lastPointer = indexPointer;
                 }
             }
 
             // reset all buckets, between last write and now
-            while (lastPointer != indexPointer) {
+            while (lastPointer != indexPointer)
+            {
                 lastPointer = (lastPointer + 1) % bucketWidth;
                 array[lastPointer] = 0;
             }
@@ -559,7 +636,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Calculate value chnages in the last minute
         /// </summary>
-        private long ValueChangesCountLastMinute {
+        private long ValueChangesCountLastMinute
+        {
             get => CalculateSumForRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges,
                 _bucketWidth, _lastWriteTimeValueChange);
             set => IncreaseRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges,
@@ -569,9 +647,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Get/Update value changes
         /// </summary>
-        private long ValueChangesCount {
+        private long ValueChangesCount
+        {
             get => _valueChangesCount;
-            set {
+            set
+            {
                 var difference = value - _valueChangesCount;
                 _valueChangesCount = value;
                 ValueChangesCountLastMinute = difference;
@@ -581,7 +661,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Datas changes last minute
         /// </summary>
-        private long DataChangesCountLastMinute {
+        private long DataChangesCountLastMinute
+        {
             get => CalculateSumForRingBuffer(_dataChangesBuffer,
                 ref _lastPointerDataChanges, _bucketWidth, _lastWriteTimeDataChange);
             set => IncreaseRingBuffer(_dataChangesBuffer,
@@ -591,9 +672,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Date changes total
         /// </summary>
-        private long DataChangesCount {
+        private long DataChangesCount
+        {
             get => _dataChangesCount;
-            set {
+            set
+            {
                 var difference = value - _dataChangesCount;
                 _dataChangesCount = value;
                 DataChangesCountLastMinute = difference;
@@ -604,7 +687,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Create observable metrics
         /// </summary>
         /// <param name="metrics"></param>
-        private WriterGroupDataSource(IMetricsContext metrics) {
+        private WriterGroupDataSource(IMetricsContext metrics)
+        {
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_events",
                 () => new Measurement<long>(_eventCount, metrics.TagList), "Events",
                 "Total Opc Events delivered for processing.");

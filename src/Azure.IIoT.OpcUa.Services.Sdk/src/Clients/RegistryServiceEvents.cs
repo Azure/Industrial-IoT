@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
+namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
     /// <summary>
     /// Registry service event client
     /// </summary>
-    public class RegistryServiceEvents : IRegistryServiceEvents, IRegistryEventApi {
+    public class RegistryServiceEvents : IRegistryServiceEvents, IRegistryEventApi
+    {
         /// <summary>
         /// Event client
         /// </summary>
@@ -28,7 +30,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serializer"></param>
         public RegistryServiceEvents(IHttpClient httpClient, ICallbackClient client,
             IServiceApiConfig config, ISerializer serializer) :
-            this(httpClient, client, config?.ServiceUrl, serializer) {
+            this(httpClient, client, config?.ServiceUrl, serializer)
+        {
         }
 
         /// <summary>
@@ -39,8 +42,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         /// <param name="serviceUri"></param>
         /// <param name="serializer"></param>
         public RegistryServiceEvents(IHttpClient httpClient, ICallbackClient client,
-            string serviceUri, ISerializer serializer = null) {
-            if (string.IsNullOrWhiteSpace(serviceUri)) {
+            string serviceUri, ISerializer serializer = null)
+        {
+            if (string.IsNullOrWhiteSpace(serviceUri))
+            {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the events micro service.");
             }
@@ -52,8 +57,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeApplicationEventsAsync(
-            Func<ApplicationEventModel, Task> callback) {
-            if (callback == null) {
+            Func<ApplicationEventModel, Task> callback)
+        {
+            if (callback == null)
+            {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/applications/events",
@@ -64,8 +71,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeEndpointEventsAsync(
-            Func<EndpointEventModel, Task> callback) {
-            if (callback == null) {
+            Func<EndpointEventModel, Task> callback)
+        {
+            if (callback == null)
+            {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/endpoints/events",
@@ -76,8 +85,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeGatewayEventsAsync(
-            Func<GatewayEventModel, Task> callback) {
-            if (callback == null) {
+            Func<GatewayEventModel, Task> callback)
+        {
+            if (callback == null)
+            {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/gateways/events",
@@ -88,8 +99,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeSupervisorEventsAsync(
-            Func<SupervisorEventModel, Task> callback) {
-            if (callback == null) {
+            Func<SupervisorEventModel, Task> callback)
+        {
+            if (callback == null)
+            {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/supervisors/events",
@@ -100,8 +113,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeDiscovererEventsAsync(
-            Func<DiscovererEventModel, Task> callback) {
-            if (callback == null) {
+            Func<DiscovererEventModel, Task> callback)
+        {
+            if (callback == null)
+            {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/discovery/events",
@@ -112,8 +127,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribePublisherEventsAsync(
-            Func<PublisherEventModel, Task> callback) {
-            if (callback == null) {
+            Func<PublisherEventModel, Task> callback)
+        {
+            if (callback == null)
+            {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events",
@@ -124,21 +141,25 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeDiscoveryProgressByDiscovererIdAsync(
-            string discovererId, Func<DiscoveryProgressModel, Task> callback) {
-            if (callback == null) {
+            string discovererId, Func<DiscoveryProgressModel, Task> callback)
+        {
+            if (callback == null)
+            {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/discovery/events",
                 Resource.Platform).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.DiscoveryProgressTarget, callback);
-            try {
+            try
+            {
                 await SubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
                     hub.ConnectionId, default).ConfigureAwait(false);
                 return new AsyncDisposable(registration,
                     () => UnsubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
                         hub.ConnectionId, default));
             }
-            catch {
+            catch
+            {
                 registration.Dispose();
                 throw;
             }
@@ -146,21 +167,25 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeDiscoveryProgressByRequestIdAsync(
-            string requestId, Func<DiscoveryProgressModel, Task> callback) {
-            if (callback == null) {
+            string requestId, Func<DiscoveryProgressModel, Task> callback)
+        {
+            if (callback == null)
+            {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/discovery/events",
                 Resource.Platform).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.DiscoveryProgressTarget, callback);
-            try {
+            try
+            {
                 await SubscribeDiscoveryProgressByRequestIdAsync(requestId, hub.ConnectionId,
                     default).ConfigureAwait(false);
                 return new AsyncDisposable(registration,
                     () => UnsubscribeDiscoveryProgressByRequestIdAsync(requestId,
                         hub.ConnectionId, default));
             }
-            catch {
+            catch
+            {
                 registration.Dispose();
                 throw;
             }
@@ -168,11 +193,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task SubscribeDiscoveryProgressByDiscovererIdAsync(string discovererId,
-            string connectionId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(discovererId)) {
+            string connectionId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(discovererId))
+            {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            if (string.IsNullOrEmpty(connectionId)) {
+            if (string.IsNullOrEmpty(connectionId))
+            {
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var request = _httpClient.NewRequest(
@@ -184,11 +212,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task SubscribeDiscoveryProgressByRequestIdAsync(string requestId,
-            string connectionId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(requestId)) {
+            string connectionId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(requestId))
+            {
                 throw new ArgumentNullException(nameof(requestId));
             }
-            if (string.IsNullOrEmpty(connectionId)) {
+            if (string.IsNullOrEmpty(connectionId))
+            {
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var request = _httpClient.NewRequest(
@@ -200,11 +231,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task UnsubscribeDiscoveryProgressByDiscovererIdAsync(string discovererId,
-            string connectionId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(discovererId)) {
+            string connectionId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(discovererId))
+            {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            if (string.IsNullOrEmpty(connectionId)) {
+            if (string.IsNullOrEmpty(connectionId))
+            {
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var request = _httpClient.NewRequest(
@@ -216,11 +250,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task UnsubscribeDiscoveryProgressByRequestIdAsync(string requestId,
-            string connectionId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(requestId)) {
+            string connectionId, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(requestId))
+            {
                 throw new ArgumentNullException(nameof(requestId));
             }
-            if (string.IsNullOrEmpty(connectionId)) {
+            if (string.IsNullOrEmpty(connectionId))
+            {
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var request = _httpClient.NewRequest(

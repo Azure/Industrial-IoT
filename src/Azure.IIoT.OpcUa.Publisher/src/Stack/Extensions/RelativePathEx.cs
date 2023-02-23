@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Opc.Ua.Extensions {
-    using Opc.Ua;
+namespace Opc.Ua.Extensions
+{
     using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,7 +14,8 @@ namespace Opc.Ua.Extensions {
     /// <summary>
     /// Relative path extensions
     /// </summary>
-    public static class RelativePathEx {
+    public static class RelativePathEx
+    {
         /// <summary>
         /// Convert to path object
         /// </summary>
@@ -21,11 +23,14 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         public static RelativePath ToRelativePath(this IReadOnlyList<string> path,
-            IServiceMessageContext context) {
-            if (path == null) {
+            IServiceMessageContext context)
+        {
+            if (path == null)
+            {
                 return new RelativePath();
             }
-            return new RelativePath {
+            return new RelativePath
+            {
                 Elements = new RelativePathElementCollection(path
                     .Where(p => !string.IsNullOrEmpty(p))
                     .Select(p => ParsePathElement(p, context)))
@@ -39,8 +44,10 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         public static IReadOnlyList<string>? AsString(this RelativePath path,
-            IServiceMessageContext context) {
-            if (path == null) {
+            IServiceMessageContext context)
+        {
+            if (path == null)
+            {
                 return null;
             }
             return path.Elements
@@ -55,12 +62,15 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         private static RelativePathElement ParsePathElement(string element,
-            IServiceMessageContext context) {
-            if (string.IsNullOrEmpty(element)) {
+            IServiceMessageContext context)
+        {
+            if (string.IsNullOrEmpty(element))
+            {
                 throw new ArgumentNullException(nameof(element));
             }
 
-            var pathElement = new RelativePathElement {
+            var pathElement = new RelativePathElement
+            {
                 IncludeSubtypes = true,
                 IsInverse = false
             };
@@ -76,10 +86,13 @@ namespace Opc.Ua.Extensions {
             var index = 0;
             var exit = false;
             var parseReference = false;
-            while (index < element.Length && !exit) {
-                switch (element[index]) {
+            while (index < element.Length && !exit)
+            {
+                switch (element[index])
+                {
                     case '<':
-                        if (pathElement.ReferenceTypeId == null) {
+                        if (pathElement.ReferenceTypeId == null)
+                        {
                             parseReference = true;
                             break;
                         }
@@ -92,7 +105,8 @@ namespace Opc.Ua.Extensions {
                         break;
                     case '/':
                         if (pathElement.ReferenceTypeId == null &&
-                            !parseReference) {
+                            !parseReference)
+                        {
                             pathElement.ReferenceTypeId =
                                 ReferenceTypeIds.HierarchicalReferences;
                             break;
@@ -100,18 +114,21 @@ namespace Opc.Ua.Extensions {
                         throw new FormatException("Reference type set.");
                     case '.':
                         if (pathElement.ReferenceTypeId == null &&
-                            !parseReference) {
+                            !parseReference)
+                        {
                             pathElement.ReferenceTypeId =
                                 ReferenceTypeIds.Aggregates;
                             break;
                         }
                         throw new FormatException("Reference type set.");
                     default:
-                        if (element[index] == '&') {
+                        if (element[index] == '&')
+                        {
                             index++;
                         }
                         if (pathElement.ReferenceTypeId == null &&
-                            !parseReference) {
+                            !parseReference)
+                        {
                             // Set to all references
                             pathElement.ReferenceTypeId =
                                 ReferenceTypeIds.References;
@@ -122,14 +139,18 @@ namespace Opc.Ua.Extensions {
                 index++;
             }
             index--;
-            if (parseReference) {
+            if (parseReference)
+            {
                 var to = index;
-                while (to < element.Length) {
-                    if (element[to] == '>' && element[to - 1] != '&') {
+                while (to < element.Length)
+                {
+                    if (element[to] == '>' && element[to - 1] != '&')
+                    {
                         break;
                     }
                     to++;
-                    if (to == element.Length) {
+                    if (to == element.Length)
+                    {
                         throw new FormatException(
                             "Reference path starts in < but does not end in >");
                     }
@@ -138,16 +159,19 @@ namespace Opc.Ua.Extensions {
                 // TODO: Deescape &<, &>, &/, &., &:, &&
                 index = to + 1;
                 pathElement.ReferenceTypeId = reference.ToNodeId(context);
-                if (NodeId.IsNull(pathElement.ReferenceTypeId)) {
+                if (NodeId.IsNull(pathElement.ReferenceTypeId))
+                {
                     if (TypeMaps.ReferenceTypes.Value.TryGetIdentifier(reference,
-                        out var id)) {
+                        out var id))
+                    {
                         pathElement.ReferenceTypeId = id;
                     }
                 }
             }
             var target = element[index..];
             // TODO: Deescape &<, &>, &/, &., &:, &&
-            if (string.IsNullOrEmpty(target)) {
+            if (string.IsNullOrEmpty(target))
+            {
                 throw new FormatException("Bad target name is empty");
             }
             pathElement.TargetName = target.ToQualifiedName(context);
@@ -161,32 +185,41 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         private static string FormatRelativePathElement(RelativePathElement element,
-            IServiceMessageContext context) {
+            IServiceMessageContext context)
+        {
             var value = "";
             var writeReference = false;
-            if (element.ReferenceTypeId == ReferenceTypeIds.HierarchicalReferences) {
+            if (element.ReferenceTypeId == ReferenceTypeIds.HierarchicalReferences)
+            {
                 value += "/";
             }
-            else if (element.ReferenceTypeId == ReferenceTypeIds.Aggregates) {
+            else if (element.ReferenceTypeId == ReferenceTypeIds.Aggregates)
+            {
                 value += ".";
             }
-            else if (element.ReferenceTypeId != ReferenceTypeIds.References) {
+            else if (element.ReferenceTypeId != ReferenceTypeIds.References)
+            {
                 value += "<";
                 writeReference = true;
             }
-            if (element.IsInverse) {
+            if (element.IsInverse)
+            {
                 value += "!";
             }
-            if (!element.IncludeSubtypes) {
+            if (!element.IncludeSubtypes)
+            {
                 value += "#";
             }
-            if (writeReference) {
+            if (writeReference)
+            {
                 string? reference = null;
                 if (element.ReferenceTypeId.NamespaceIndex == 0 &&
-                    element.ReferenceTypeId.Identifier is uint id) {
+                    element.ReferenceTypeId.Identifier is uint id)
+                {
                     TypeMaps.ReferenceTypes.Value.TryGetBrowseName(id, out reference);
                 }
-                if (string.IsNullOrEmpty(reference)) {
+                if (string.IsNullOrEmpty(reference))
+                {
                     reference = element.ReferenceTypeId.AsString(context);
                 }
                 // TODO: Escape <,>,/,:,&,.

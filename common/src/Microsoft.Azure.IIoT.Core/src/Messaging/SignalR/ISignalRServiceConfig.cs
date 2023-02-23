@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging.SignalR {
+namespace Microsoft.Azure.IIoT.Messaging.SignalR
+{
     /// <summary>
     /// SignalR service configuration
     /// </summary>
-    public interface ISignalRServiceConfig {
+    public interface ISignalRServiceConfig
+    {
         /// <summary>
         /// SignalR connection string
         /// </summary>

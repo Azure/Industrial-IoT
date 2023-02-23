@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     using System;
 
     /// <summary>
     /// An interface that allows the basic information about an aggregate query to be
     /// communicated
     /// </summary>
-    public interface IAggregationContext {
+    public interface IAggregationContext
+    {
         /// <summary>
         /// The start of the time window we are aggregating over. Note this may be later
         /// than the EndTime.

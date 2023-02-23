@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// <summary>
     /// Service model extensions for discovery service
     /// </summary>
-    public static class EndpointInfoModelEx {
+    public static class EndpointInfoModelEx
+    {
         /// <summary>
         /// Create unique endpoint
         /// </summary>
@@ -21,14 +23,17 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="securityPolicy"></param>
         /// <returns></returns>
         public static string CreateEndpointId(string applicationId, string url,
-            SecurityMode? mode, string securityPolicy) {
-            if (applicationId == null || url == null) {
+            SecurityMode? mode, string securityPolicy)
+        {
+            if (applicationId == null || url == null)
+            {
                 return null;
             }
 
             url = url.ToLowerInvariant();
 
-            if (!mode.HasValue || mode.Value == SecurityMode.None) {
+            if (!mode.HasValue || mode.Value == SecurityMode.None)
+            {
                 mode = SecurityMode.Best;
             }
             securityPolicy = securityPolicy?.ToLowerInvariant() ?? "";
@@ -42,11 +47,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="endpointId"></param>
         /// <returns></returns>
-        public static bool IsEndpointId(string endpointId) {
-            if (string.IsNullOrWhiteSpace(endpointId)) {
+        public static bool IsEndpointId(string endpointId)
+        {
+            if (string.IsNullOrWhiteSpace(endpointId))
+            {
                 return false;
             }
-            if (!endpointId.StartsWith("uat", StringComparison.Ordinal)) {
+            if (!endpointId.StartsWith("uat", StringComparison.Ordinal))
+            {
                 return false;
             }
             return endpointId.Substring(3).IsBase16();
@@ -59,14 +67,18 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="that"></param>
         /// <returns></returns>
         public static bool IsSameAs(this IEnumerable<EndpointInfoModel> model,
-            IEnumerable<EndpointInfoModel> that) {
-            if (model == that) {
+            IEnumerable<EndpointInfoModel> that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
-            if (model.Count() != that.Count()) {
+            if (model.Count() != that.Count())
+            {
                 return false;
             }
             return model.All(a => that.Any(b => b.IsSameAs(a)));
@@ -79,11 +91,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="that"></param>
         /// <returns></returns>
         public static bool IsSameAs(this EndpointInfoModel model,
-            EndpointInfoModel that) {
-            if (model == that) {
+            EndpointInfoModel that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
             return

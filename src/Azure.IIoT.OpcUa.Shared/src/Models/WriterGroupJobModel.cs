@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// PubSub writer group job
     /// </summary>
     [DataContract]
-    public sealed record class WriterGroupJobModel {
+    public sealed record class WriterGroupJobModel
+    {
         /// <summary>
         /// Writer group configuration
         /// </summary>

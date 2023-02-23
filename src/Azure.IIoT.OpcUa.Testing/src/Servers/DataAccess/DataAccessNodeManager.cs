@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace DataAccess {
+namespace DataAccess
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System.Collections.Generic;
@@ -35,12 +36,14 @@ namespace DataAccess {
     /// <summary>
     /// A node manager for a server that exposes several variables.
     /// </summary>
-    public class DataAccessNodeManager : CustomNodeManager2 {
+    public class DataAccessNodeManager : CustomNodeManager2
+    {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         public DataAccessNodeManager(IServerInternal server, ApplicationConfiguration configuration) :
-            base(server, configuration, Namespaces.DataAccess) {
+            base(server, configuration, Namespaces.DataAccess)
+        {
             AliasRoot = "DA";
 
             SystemContext.SystemHandle = _system = new UnderlyingSystem();
@@ -59,8 +62,10 @@ namespace DataAccess {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
                 _system.Dispose();
             }
         }
@@ -78,7 +83,8 @@ namespace DataAccess {
         /// strings. Other implementations could assign unique integers or Guids and save the new
         /// Node in a dictionary for later lookup.
         /// </remarks>
-        public override NodeId New(ISystemContext context, NodeState node) {
+        public override NodeId New(ISystemContext context, NodeState node)
+        {
             return ModelUtils.ConstructIdForComponent(node, NamespaceIndex);
         }
 
@@ -90,17 +96,21 @@ namespace DataAccess {
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
         /// should have a reference to the root folder node(s) exposed by this node manager.
         /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Lock) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Lock)
+            {
                 // find the top level segments and link them to the ObjectsFolder.
                 var segments = _system.FindSegments(null);
 
-                for (var ii = 0; ii < segments.Count; ii++) {
+                for (var ii = 0; ii < segments.Count; ii++)
+                {
                     // Top level areas need a reference from the Server object.
                     // These references are added to a list that is returned to the caller.
                     // The caller will update the Objects folder node.
 
-                    if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references)) {
+                    if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references))
+                    {
                         externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
                     }
 
@@ -119,8 +129,10 @@ namespace DataAccess {
         /// <summary>
         /// Frees any resources allocated for the address space.
         /// </summary>
-        public override void DeleteAddressSpace() {
-            lock (Lock) {
+        public override void DeleteAddressSpace()
+        {
+            lock (Lock)
+            {
                 _system.StopSimulation();
                 _blocks.Clear();
             }
@@ -129,26 +141,34 @@ namespace DataAccess {
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache) {
-            lock (Lock) {
+        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
+        {
+            lock (Lock)
+            {
                 // quickly exclude nodes that are not in the namespace.
-                if (!IsNodeIdInNamespace(nodeId)) {
+                if (!IsNodeIdInNamespace(nodeId))
+                {
                     return null;
                 }
 
                 // check for check for nodes that are being currently monitored.
 
-                if (MonitoredNodes.TryGetValue(nodeId, out var monitoredNode)) {
-                    return new NodeHandle {
+                if (MonitoredNodes.TryGetValue(nodeId, out var monitoredNode))
+                {
+                    return new NodeHandle
+                    {
                         NodeId = nodeId,
                         Validated = true,
                         Node = monitoredNode.Node
                     };
                 }
 
-                if (nodeId.IdType != IdType.String) {
-                    if (PredefinedNodes.TryGetValue(nodeId, out var node)) {
-                        return new NodeHandle {
+                if (nodeId.IdType != IdType.String)
+                {
+                    if (PredefinedNodes.TryGetValue(nodeId, out var node))
+                    {
+                        return new NodeHandle
+                        {
                             NodeId = nodeId,
                             Node = node,
                             Validated = true
@@ -159,8 +179,10 @@ namespace DataAccess {
                 // parse the identifier.
                 var parsedNodeId = ParsedNodeId.Parse(nodeId);
 
-                if (parsedNodeId != null) {
-                    return new NodeHandle {
+                if (parsedNodeId != null)
+                {
+                    return new NodeHandle
+                    {
                         NodeId = nodeId,
                         Validated = false,
                         Node = null,
@@ -178,24 +200,30 @@ namespace DataAccess {
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
-            IDictionary<NodeId, NodeState> cache) {
+            IDictionary<NodeId, NodeState> cache)
+        {
             // not valid if no root.
-            if (handle == null) {
+            if (handle == null)
+            {
                 return null;
             }
 
             // check if previously validated.
-            if (handle.Validated) {
+            if (handle.Validated)
+            {
                 return handle.Node;
             }
 
             NodeState target = null;
 
             // check if already in the cache.
-            if (cache != null) {
-                if (cache.TryGetValue(handle.NodeId, out target)) {
+            if (cache != null)
+            {
+                if (cache.TryGetValue(handle.NodeId, out target))
+                {
                     // nulls mean a NodeId which was previously found to be invalid has been referenced again.
-                    if (target == null) {
+                    if (target == null)
+                    {
                         return null;
                     }
 
@@ -207,20 +235,24 @@ namespace DataAccess {
                 target = null;
             }
 
-            try {
+            try
+            {
                 // check if the node id has been parsed.
-                if (!(handle.ParsedNodeId is ParsedNodeId parsedNodeId)) {
+                if (!(handle.ParsedNodeId is ParsedNodeId parsedNodeId))
+                {
                     return null;
                 }
 
                 NodeState root = null;
 
                 // validate a segment.
-                if (parsedNodeId.RootType == ModelUtils.Segment) {
+                if (parsedNodeId.RootType == ModelUtils.Segment)
+                {
                     var segment = _system.FindSegment(parsedNodeId.RootId);
 
                     // segment does not exist.
-                    if (segment == null) {
+                    if (segment == null)
+                    {
                         return null;
                     }
 
@@ -231,12 +263,14 @@ namespace DataAccess {
                 }
 
                 // validate segment.
-                else if (parsedNodeId.RootType == ModelUtils.Block) {
+                else if (parsedNodeId.RootType == ModelUtils.Block)
+                {
                     // validate the block.
                     var block = _system.FindBlock(parsedNodeId.RootId);
 
                     // block does not exist.
-                    if (block == null) {
+                    if (block == null)
+                    {
                         return null;
                     }
 
@@ -244,23 +278,27 @@ namespace DataAccess {
 
                     // check for check for blocks that are being currently monitored.
 
-                    if (_blocks.TryGetValue(rootId, out var node)) {
+                    if (_blocks.TryGetValue(rootId, out var node))
+                    {
                         root = node;
                     }
 
                     // create a temporary object to use for the operation.
-                    else {
+                    else
+                    {
                         root = new BlockState(this, rootId, block);
                     }
                 }
 
                 // unknown root type.
-                else {
+                else
+                {
                     return null;
                 }
 
                 // all done if no components to validate.
-                if (string.IsNullOrEmpty(parsedNodeId.ComponentPath)) {
+                if (string.IsNullOrEmpty(parsedNodeId.ComponentPath))
+                {
                     handle.Validated = true;
                     handle.Node = target = root;
                     return handle.Node;
@@ -270,7 +308,8 @@ namespace DataAccess {
                 NodeState component = root.FindChildBySymbolicName(context, parsedNodeId.ComponentPath);
 
                 // component does not exist.
-                if (component == null) {
+                if (component == null)
+                {
                     return null;
                 }
 
@@ -279,7 +318,8 @@ namespace DataAccess {
                 handle.Node = target = component;
                 return handle.Node;
             }
-            finally {
+            finally
+            {
                 // store the node in the cache to optimize subsequent lookups.
                 cache?.Add(handle.NodeId, target);
             }
@@ -291,8 +331,10 @@ namespace DataAccess {
         /// <param name="context">The context.</param>
         /// <param name="handle">The handle for the node.</param>
         /// <param name="monitoredItem">The monitored item.</param>
-        protected override void OnMonitoredItemCreated(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem) {
-            if (handle.Node.GetHierarchyRoot() is BlockState block) {
+        protected override void OnMonitoredItemCreated(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
+        {
+            if (handle.Node.GetHierarchyRoot() is BlockState block)
+            {
                 block.StartMonitoring(context);
 
                 // need to save the block to ensure that multiple monitored items use the same instance.
@@ -306,9 +348,12 @@ namespace DataAccess {
         /// <param name="context">The context.</param>
         /// <param name="handle">The handle for the node.</param>
         /// <param name="monitoredItem">The monitored item.</param>
-        protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem) {
-            if (handle.Node.GetHierarchyRoot() is BlockState block) {
-                if (!block.StopMonitoring(context)) {
+        protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
+        {
+            if (handle.Node.GetHierarchyRoot() is BlockState block)
+            {
+                if (!block.StopMonitoring(context))
+                {
                     // can remove the block since all monitored items for the block are gone.
                     _blocks.Remove(block.NodeId);
                 }

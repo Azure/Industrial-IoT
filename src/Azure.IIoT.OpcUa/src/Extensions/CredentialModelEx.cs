@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Credential model extensions
     /// </summary>
-    public static class CredentialModelEx {
+    public static class CredentialModelEx
+    {
         /// <summary>
         /// Equality comparison
         /// </summary>
@@ -17,24 +19,31 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="that"></param>
         /// <returns></returns>
         public static bool IsSameAs(this CredentialModel model,
-            CredentialModel that) {
-            if (model == that) {
+            CredentialModel that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
             if ((that.Type ?? CredentialType.None) !=
-                    (model.Type ?? CredentialType.None)) {
+                    (model.Type ?? CredentialType.None))
+            {
                 return false;
             }
-            if (that.Value.IsNull() || model.Value.IsNull()) {
-                if (that.Value.IsNull() && model.Value.IsNull()) {
+            if (that.Value.IsNull() || model.Value.IsNull())
+            {
+                if (that.Value.IsNull() && model.Value.IsNull())
+                {
                     return true;
                 }
                 return false;
             }
-            if (!VariantValue.DeepEquals(that.Value, model.Value)) {
+            if (!VariantValue.DeepEquals(that.Value, model.Value))
+            {
                 return false;
             }
             return true;
@@ -45,11 +54,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static string GetPassword(this CredentialModel model) {
+        public static string GetPassword(this CredentialModel model)
+        {
             if (model?.Type == CredentialType.UserName &&
                 model.Value?.IsObject == true &&
                 model.Value.TryGetProperty("password", out var password) &&
-                password.IsString) {
+                password.IsString)
+            {
                 return (string)password;
             }
             return null;
@@ -60,11 +71,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static string GetUserName(this CredentialModel model) {
+        public static string GetUserName(this CredentialModel model)
+        {
             if (model?.Type == CredentialType.UserName &&
                 model.Value?.IsObject == true &&
                 model.Value.TryGetProperty("user", out var user) &&
-                user.IsString) {
+                user.IsString)
+            {
                 return (string)user;
             }
             return null;
@@ -75,11 +88,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static CredentialModel Clone(this CredentialModel model) {
-            if (model == null) {
+        public static CredentialModel Clone(this CredentialModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new CredentialModel {
+            return new CredentialModel
+            {
                 Value = model.Value?.Copy(),
                 Type = model.Type
             };

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Azure.IIoT.OpcUa.Shared.Models;
@@ -21,12 +22,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
-    public class DeleteController : ControllerBase {
+    public class DeleteController : ControllerBase
+    {
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="historian"></param>
-        public DeleteController(IHistoryServices<string> historian) {
+        public DeleteController(IHistoryServices<string> historian)
+        {
             _historian = historian ?? throw new ArgumentNullException(nameof(historian));
         }
 
@@ -43,8 +46,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/pick")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(
             string endpointId,
-            [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request) {
-            if (request == null) {
+            [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryDeleteValuesAtTimesAsync(endpointId, request).ConfigureAwait(false);
@@ -63,8 +68,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(
             string endpointId,
-            [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request) {
-            if (request == null) {
+            [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryDeleteValuesAsync(endpointId, request).ConfigureAwait(false);
@@ -83,8 +90,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/modified")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
             string endpointId,
-            [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request) {
-            if (request == null) {
+            [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryDeleteModifiedValuesAsync(endpointId, request).ConfigureAwait(false);
@@ -103,8 +112,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(
             string endpointId,
-            [FromBody][Required] HistoryUpdateRequestModel<DeleteEventsDetailsModel> request) {
-            if (request == null) {
+            [FromBody][Required] HistoryUpdateRequestModel<DeleteEventsDetailsModel> request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _historian.HistoryDeleteEventsAsync(endpointId, request).ConfigureAwait(false);

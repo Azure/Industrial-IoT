@@ -3,17 +3,20 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
+{
     using Azure.IIoT.OpcUa.Services.Sdk;
     using System;
 
     /// <inheritdoc/>
-    public class TestConfig : IServiceApiConfig {
+    public class TestConfig : IServiceApiConfig
+    {
         /// <summary>
         /// Create test configuration
         /// </summary>
         /// <param name="baseAddress"></param>
-        public TestConfig(Uri baseAddress) {
+        public TestConfig(Uri baseAddress)
+        {
             ServiceUrl = baseAddress.ToString().TrimEnd('/');
         }
 

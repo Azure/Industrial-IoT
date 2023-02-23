@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Alarms {
+namespace Alarms
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -36,7 +37,8 @@ namespace Alarms {
     /// <summary>
     /// Maps an alarm source to a UA object node.
     /// </summary>
-    public class SourceState : BaseObjectState {
+    public class SourceState : BaseObjectState
+    {
         /// <summary>
         /// Initializes the area.
         /// </summary>
@@ -45,7 +47,8 @@ namespace Alarms {
             NodeId nodeId,
             string sourcePath)
         :
-            base(null) {
+            base(null)
+        {
             Initialize(nodeManager.SystemContext);
 
             // save the node manager that owns the source.
@@ -82,18 +85,23 @@ namespace Alarms {
         /// <param name="context">The system context.</param>
         /// <param name="events">The list of condition events to return.</param>
         /// <param name="includeChildren">Whether to recursively report events for the children.</param>
-        public override void ConditionRefresh(ISystemContext context, List<IFilterTarget> events, bool includeChildren) {
+        public override void ConditionRefresh(ISystemContext context, List<IFilterTarget> events, bool includeChildren)
+        {
             // need to check if this source has already been processed during this refresh operation.
-            for (var ii = 0; ii < events.Count; ii++) {
-                if (events[ii] is InstanceStateSnapshot e && ReferenceEquals(e.Handle, this)) {
+            for (var ii = 0; ii < events.Count; ii++)
+            {
+                if (events[ii] is InstanceStateSnapshot e && ReferenceEquals(e.Handle, this))
+                {
                     return;
                 }
             }
 
             // report the dialog.
-            if (_dialog != null) {
+            if (_dialog != null)
+            {
                 // do not refresh dialogs that are not active.
-                if (_dialog.Retain.Value) {
+                if (_dialog.Retain.Value)
+                {
                     // create a snapshot.
                     var e = new InstanceStateSnapshot();
                     e.Initialize(context, _dialog);
@@ -106,9 +114,11 @@ namespace Alarms {
             }
 
             // the alarm objects act as a cache for the last known state and are used to generate refresh events.
-            foreach (var alarm in _alarms.Values) {
+            foreach (var alarm in _alarms.Values)
+            {
                 // do not refresh alarms that are not in an interesting state.
-                if (!alarm.Retain.Value) {
+                if (!alarm.Retain.Value)
+                {
                     continue;
                 }
 
@@ -123,7 +133,8 @@ namespace Alarms {
             }
 
             // report any active branches.
-            foreach (var alarm in _branches.Values) {
+            foreach (var alarm in _branches.Values)
+            {
                 // create a snapshot.
                 var e = new InstanceStateSnapshot();
                 e.Initialize(context, alarm);
@@ -134,7 +145,8 @@ namespace Alarms {
                 events.Add(e);
             }
         }
-        protected override void Dispose(bool disposing) {
+        protected override void Dispose(bool disposing)
+        {
             base.Dispose(disposing);
             _dialog?.Dispose();
         }
@@ -142,15 +154,19 @@ namespace Alarms {
         /// <summary>
         /// Called when the state of an alarm for the source has changed.
         /// </summary>
-        private void OnAlarmChanged(UnderlyingSystemAlarm alarm) {
-            lock (_nodeManager.Lock) {
+        private void OnAlarmChanged(UnderlyingSystemAlarm alarm)
+        {
+            lock (_nodeManager.Lock)
+            {
                 // ignore archived alarms for now.
-                if (alarm.RecordNumber != 0) {
+                if (alarm.RecordNumber != 0)
+                {
                     var branchId = new NodeId(alarm.RecordNumber, NodeId.NamespaceIndex);
 
                     // find the alarm branch.
 
-                    if (!_branches.TryGetValue(alarm.Name, out var branch)) {
+                    if (!_branches.TryGetValue(alarm.Name, out var branch))
+                    {
                         _branches[branchId] = branch = CreateAlarm(alarm, branchId);
                     }
 
@@ -159,7 +175,8 @@ namespace Alarms {
                     ReportChanges(branch);
 
                     // delete the branch.
-                    if ((alarm.State & UnderlyingSystemAlarmStates.Deleted) != 0) {
+                    if ((alarm.State & UnderlyingSystemAlarmStates.Deleted) != 0)
+                    {
                         _branches.Remove(branchId);
                     }
 
@@ -168,7 +185,8 @@ namespace Alarms {
 
                 // find the alarm node.
 
-                if (!_alarms.TryGetValue(alarm.Name, out var node)) {
+                if (!_alarms.TryGetValue(alarm.Name, out var node))
+                {
                     _alarms[alarm.Name] = node = CreateAlarm(alarm, null);
                 }
 
@@ -181,10 +199,12 @@ namespace Alarms {
         /// <summary>
         /// Creates a new dialog condition
         /// </summary>
-        private DialogConditionState CreateDialog(string dialogName) {
+        private DialogConditionState CreateDialog(string dialogName)
+        {
             ISystemContext context = _nodeManager.SystemContext;
 
-            var node = new DialogConditionState(this) {
+            var node = new DialogConditionState(this)
+            {
                 SymbolicName = dialogName
             };
 
@@ -217,7 +237,8 @@ namespace Alarms {
             node.ConditionName.Value = node.SymbolicName;
             node.Time.Value = DateTime.UtcNow;
             node.ReceiveTime.Value = node.Time.Value;
-            if (node.LocalTime != null) {
+            if (node.LocalTime != null)
+            {
                 node.LocalTime.Value = Utils.GetTimeZoneInfo();
             }
 
@@ -262,21 +283,25 @@ namespace Alarms {
         /// <param name="alarm">The alarm.</param>
         /// <param name="branchId">The branch id.</param>
         /// <returns>The new alarm.</returns>
-        private AlarmConditionState CreateAlarm(UnderlyingSystemAlarm alarm, NodeId branchId) {
+        private AlarmConditionState CreateAlarm(UnderlyingSystemAlarm alarm, NodeId branchId)
+        {
             ISystemContext context = _nodeManager.SystemContext;
 
             AlarmConditionState node = null;
 
             // need to map the alarm type to a UA defined alarm type.
-            switch (alarm.AlarmType) {
-                case "HighAlarm": {
+            switch (alarm.AlarmType)
+            {
+                case "HighAlarm":
+                    {
                         var node2 = new ExclusiveDeviationAlarmState(this);
                         node = node2;
                         node2.HighLimit = new PropertyState<double>(node2);
                         break;
                     }
 
-                case "HighLowAlarm": {
+                case "HighLowAlarm":
+                    {
                         var node2 = new NonExclusiveLevelAlarmState(this);
                         node = node2;
 
@@ -293,12 +318,14 @@ namespace Alarms {
                         break;
                     }
 
-                case "TripAlarm": {
+                case "TripAlarm":
+                    {
                         node = new TripAlarmState(this);
                         break;
                     }
 
-                default: {
+                default:
+                    {
                         node = new AlarmConditionState(this);
                         break;
                     }
@@ -313,7 +340,8 @@ namespace Alarms {
             node.ConfirmedState = new TwoStateVariableState(node);
             node.Confirm = new AddCommentMethodState(node);
 
-            if (NodeId.IsNull(branchId)) {
+            if (NodeId.IsNull(branchId))
+            {
                 node.SuppressedState = new TwoStateVariableState(node);
                 node.ShelvingState = new ShelvedStateMachineState(node);
             }
@@ -352,7 +380,8 @@ namespace Alarms {
                 true);
 
             // don't add branches to the address space.
-            if (NodeId.IsNull(branchId)) {
+            if (NodeId.IsNull(branchId))
+            {
                 AddChild(node);
             }
 
@@ -363,7 +392,8 @@ namespace Alarms {
             node.ConditionName.Value = node.SymbolicName;
             node.Time.Value = DateTime.UtcNow;
             node.ReceiveTime.Value = node.Time.Value;
-            if (node.LocalTime != null) {
+            if (node.LocalTime != null)
+            {
                 node.LocalTime.Value = Utils.GetTimeZoneInfo();
             }
             node.BranchId.Value = branchId;
@@ -385,11 +415,13 @@ namespace Alarms {
         /// </summary>
         /// <param name="node">The node.</param>
         /// <param name="alarm">The alarm.</param>
-        private void UpdateAlarm(AlarmConditionState node, UnderlyingSystemAlarm alarm) {
+        private void UpdateAlarm(AlarmConditionState node, UnderlyingSystemAlarm alarm)
+        {
             ISystemContext context = _nodeManager.SystemContext;
 
             // remove old event.
-            if (node.EventId.Value != null) {
+            if (node.EventId.Value != null)
+            {
                 _events.Remove(Utils.ToHexString(node.EventId.Value));
             }
 
@@ -404,7 +436,8 @@ namespace Alarms {
             // determine the retain state.
             node.Retain.Value = true;
 
-            if (alarm != null) {
+            if (alarm != null)
+            {
                 node.Time.Value = alarm.Time;
                 node.Message.Value = new LocalizedText(alarm.Reason);
 
@@ -423,23 +456,27 @@ namespace Alarms {
                 node.ActiveState.TransitionTime.Value = alarm.ActiveTime;
 
                 // check for deleted items.
-                if ((alarm.State & UnderlyingSystemAlarmStates.Deleted) != 0) {
+                if ((alarm.State & UnderlyingSystemAlarmStates.Deleted) != 0)
+                {
                     node.Retain.Value = false;
                 }
 
                 // handle high alarms.
 
-                if (node is ExclusiveLimitAlarmState highAlarm) {
+                if (node is ExclusiveLimitAlarmState highAlarm)
+                {
                     highAlarm.HighLimit.Value = alarm.Limits[0];
 
-                    if ((alarm.State & UnderlyingSystemAlarmStates.High) != 0) {
+                    if ((alarm.State & UnderlyingSystemAlarmStates.High) != 0)
+                    {
                         highAlarm.SetLimitState(context, LimitAlarmStates.High);
                     }
                 }
 
                 // handle high-low alarms.
 
-                if (node is NonExclusiveLimitAlarmState highLowAlarm) {
+                if (node is NonExclusiveLimitAlarmState highLowAlarm)
+                {
                     highLowAlarm.HighHighLimit.Value = alarm.Limits[0];
                     highLowAlarm.HighLimit.Value = alarm.Limits[1];
                     highLowAlarm.LowLimit.Value = alarm.Limits[2];
@@ -447,19 +484,23 @@ namespace Alarms {
 
                     var limit = LimitAlarmStates.Inactive;
 
-                    if ((alarm.State & UnderlyingSystemAlarmStates.HighHigh) != 0) {
+                    if ((alarm.State & UnderlyingSystemAlarmStates.HighHigh) != 0)
+                    {
                         limit |= LimitAlarmStates.HighHigh;
                     }
 
-                    if ((alarm.State & UnderlyingSystemAlarmStates.High) != 0) {
+                    if ((alarm.State & UnderlyingSystemAlarmStates.High) != 0)
+                    {
                         limit |= LimitAlarmStates.High;
                     }
 
-                    if ((alarm.State & UnderlyingSystemAlarmStates.Low) != 0) {
+                    if ((alarm.State & UnderlyingSystemAlarmStates.Low) != 0)
+                    {
                         limit |= LimitAlarmStates.Low;
                     }
 
-                    if ((alarm.State & UnderlyingSystemAlarmStates.LowLow) != 0) {
+                    if ((alarm.State & UnderlyingSystemAlarmStates.LowLow) != 0)
+                    {
                         limit |= LimitAlarmStates.LowLow;
                     }
 
@@ -468,7 +509,8 @@ namespace Alarms {
             }
 
             // not interested in disabled or inactive alarms.
-            if (!node.EnabledState.Id.Value || !node.ActiveState.Id.Value) {
+            if (!node.EnabledState.Id.Value || !node.ActiveState.Id.Value)
+            {
                 node.Retain.Value = false;
             }
         }
@@ -479,7 +521,8 @@ namespace Alarms {
         private ServiceResult OnEnableDisableAlarm(
             ISystemContext context,
             ConditionState condition,
-            bool enabling) {
+            bool enabling)
+        {
             _source.EnableAlarm(condition.SymbolicName, enabling);
             return ServiceResult.Good;
         }
@@ -491,10 +534,12 @@ namespace Alarms {
             ISystemContext context,
             ConditionState condition,
             byte[] eventId,
-            LocalizedText comment) {
+            LocalizedText comment)
+        {
             var alarm = FindAlarmByEventId(eventId);
 
-            if (alarm == null) {
+            if (alarm == null)
+            {
                 return StatusCodes.BadEventIdUnknown;
             }
 
@@ -510,10 +555,12 @@ namespace Alarms {
             ISystemContext context,
             ConditionState condition,
             byte[] eventId,
-            LocalizedText comment) {
+            LocalizedText comment)
+        {
             var alarm = FindAlarmByEventId(eventId);
 
-            if (alarm == null) {
+            if (alarm == null)
+            {
                 return StatusCodes.BadEventIdUnknown;
             }
 
@@ -529,10 +576,12 @@ namespace Alarms {
             ISystemContext context,
             ConditionState condition,
             byte[] eventId,
-            LocalizedText comment) {
+            LocalizedText comment)
+        {
             var alarm = FindAlarmByEventId(eventId);
 
-            if (alarm == null) {
+            if (alarm == null)
+            {
                 return StatusCodes.BadEventIdUnknown;
             }
 
@@ -549,7 +598,8 @@ namespace Alarms {
             AlarmConditionState alarm,
             bool shelving,
             bool oneShot,
-            double shelvingTime) {
+            double shelvingTime)
+        {
             alarm.SetShelvingState(context, shelving, oneShot, shelvingTime);
             alarm.Message.Value = "The alarm shelved.";
 
@@ -564,7 +614,8 @@ namespace Alarms {
         /// </summary>
         private ServiceResult OnTimedUnshelve(
             ISystemContext context,
-            AlarmConditionState alarm) {
+            AlarmConditionState alarm)
+        {
             // update the alarm state and produce and event.
             alarm.SetShelvingState(context, false, false, 0);
             alarm.Message.Value = "The timed shelving period expired.";
@@ -581,14 +632,17 @@ namespace Alarms {
         private ServiceResult OnRespond(
             ISystemContext context,
             DialogConditionState dialog,
-            int selectedResponse) {
+            int selectedResponse)
+        {
             // response 0 means set the source online.
-            if (selectedResponse == 0) {
+            if (selectedResponse == 0)
+            {
                 _source.SetOfflineState(false);
             }
 
             // response 1 means set the source offine.
-            if (selectedResponse == 1) {
+            if (selectedResponse == 1)
+            {
                 _source.SetOfflineState(true);
             }
 
@@ -605,12 +659,14 @@ namespace Alarms {
         /// <summary>
         /// Reports the changes to the alarm.
         /// </summary>
-        private void ReportChanges(AlarmConditionState alarm) {
+        private void ReportChanges(AlarmConditionState alarm)
+        {
             // report changes to node attributes.
             alarm.ClearChangeMasks(_nodeManager.SystemContext, true);
 
             // check if events are being monitored for the source.
-            if (AreEventsMonitored) {
+            if (AreEventsMonitored)
+            {
                 // create a snapshot.
                 var e = new InstanceStateSnapshot();
                 e.Initialize(_nodeManager.SystemContext, alarm);
@@ -625,12 +681,15 @@ namespace Alarms {
         /// </summary>
         /// <param name="eventId">The event id.</param>
         /// <returns>The alarm. Null if not found.</returns>
-        private AlarmConditionState FindAlarmByEventId(byte[] eventId) {
-            if (eventId == null) {
+        private AlarmConditionState FindAlarmByEventId(byte[] eventId)
+        {
+            if (eventId == null)
+            {
                 return null;
             }
 
-            if (!_events.TryGetValue(Utils.ToHexString(eventId), out var alarm)) {
+            if (!_events.TryGetValue(Utils.ToHexString(eventId), out var alarm))
+            {
                 return null;
             }
 
@@ -642,12 +701,15 @@ namespace Alarms {
         /// </summary>
         /// <param name="alarm">The alarm.</param>
         /// <returns>The record number; 0 if the alarm is not an archived alarm.</returns>
-        private static uint GetRecordNumber(AlarmConditionState alarm) {
-            if (alarm == null) {
+        private static uint GetRecordNumber(AlarmConditionState alarm)
+        {
+            if (alarm == null)
+            {
                 return 0;
             }
 
-            if (alarm.BranchId == null || alarm.BranchId.Value == null) {
+            if (alarm.BranchId == null || alarm.BranchId.Value == null)
+            {
                 return 0;
             }
 
@@ -659,8 +721,10 @@ namespace Alarms {
         /// <summary>
         /// Gets the user name associated with the context.
         /// </summary>
-        private static string GetUserName(ISystemContext context) {
-            if (context.UserIdentity != null) {
+        private static string GetUserName(ISystemContext context)
+        {
+            if (context.UserIdentity != null)
+            {
                 return context.UserIdentity.DisplayName;
             }
 

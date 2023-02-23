@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
+namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi
+{
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.Extensions.Options;
@@ -15,24 +16,30 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
     /// <summary>
     /// Gather security operations
     /// </summary>
-    internal class SecurityRequirementsOperationFilter : AutoRestOperationExtensions {
+    internal class SecurityRequirementsOperationFilter : AutoRestOperationExtensions
+    {
         /// <summary>
         /// Create filter using injected and configured authorization options
         /// </summary>
         /// <param name="options"></param>
-        public SecurityRequirementsOperationFilter(IOptions<AuthorizationOptions> options) {
+        public SecurityRequirementsOperationFilter(IOptions<AuthorizationOptions> options)
+        {
             _options = options;
         }
 
         /// <inheritdoc/>
-        public override void Apply(OpenApiOperation operation, OperationFilterContext context) {
+        public override void Apply(OpenApiOperation operation, OperationFilterContext context)
+        {
             base.Apply(operation, context);
             var descriptor = context.ApiDescription.ActionDescriptor as
                 ControllerActionDescriptor;
             var claims = descriptor.GetRequiredPolicyGlaims(_options.Value);
-            if (claims.Any()) {
-                var oAuthScheme = new OpenApiSecurityScheme {
-                    Reference = new OpenApiReference {
+            if (claims.Any())
+            {
+                var oAuthScheme = new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
                         Type = ReferenceType.SecurityScheme,
                         Id = "oauth2"
                     }

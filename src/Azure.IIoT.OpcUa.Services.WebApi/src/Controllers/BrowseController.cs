@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+{
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Azure.IIoT.OpcUa.Shared.Models;
@@ -24,12 +25,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
-    public class BrowseController : ControllerBase {
+    public class BrowseController : ControllerBase
+    {
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="browser"></param>
-        public BrowseController(INodeServices<string> browser) {
+        public BrowseController(INodeServices<string> browser)
+        {
             _browser = browser;
         }
 
@@ -45,8 +48,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The browse response</returns>
         [HttpPost("{endpointId}")]
         public async Task<BrowseFirstResponseModel> BrowseAsync(string endpointId,
-            [FromBody][Required] BrowseFirstRequestModel request) {
-            if (request == null) {
+            [FromBody][Required] BrowseFirstRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _browser.BrowseAsync(endpointId, request).ConfigureAwait(false);
@@ -64,11 +69,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The browse response</returns>
         [HttpPost("{endpointId}/next")]
         public async Task<BrowseNextResponseModel> BrowseNextAsync(
-            string endpointId, [FromBody][Required] BrowseNextRequestModel request) {
-            if (request == null) {
+            string endpointId, [FromBody][Required] BrowseNextRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.ContinuationToken == null) {
+            if (request.ContinuationToken == null)
+            {
                 throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
             return await _browser.BrowseNextAsync(endpointId, request).ConfigureAwait(false);
@@ -87,8 +95,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The browse path response</returns>
         [HttpPost("{endpointId}/path")]
         public async Task<BrowsePathResponseModel> BrowseUsingPathAsync(string endpointId,
-            [FromBody][Required] BrowsePathRequestModel request) {
-            if (request == null) {
+            [FromBody][Required] BrowsePathRequestModel request)
+        {
+            if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
             return await _browser.BrowsePathAsync(endpointId, request).ConfigureAwait(false);
@@ -112,11 +122,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The browse response</returns>
         [HttpGet("{endpointId}")]
         public async Task<BrowseFirstResponseModel> GetSetOfUniqueNodesAsync(
-            string endpointId, [FromQuery] string nodeId) {
-            if (string.IsNullOrEmpty(nodeId)) {
+            string endpointId, [FromQuery] string nodeId)
+        {
+            if (string.IsNullOrEmpty(nodeId))
+            {
                 nodeId = null;
             }
-            var request = new BrowseFirstRequestModel {
+            var request = new BrowseFirstRequestModel
+            {
                 NodeId = nodeId,
                 TargetNodesOnly = true,
                 ReadVariableValues = true
@@ -141,15 +154,19 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpGet("{endpointId}/next")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<BrowseNextResponseModel> GetNextSetOfUniqueNodesAsync(
-            string endpointId, [FromQuery][Required] string continuationToken) {
-            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
+            string endpointId, [FromQuery][Required] string continuationToken)
+        {
+            if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
+            {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken]
                     .FirstOrDefault();
             }
-            if (string.IsNullOrEmpty(continuationToken)) {
+            if (string.IsNullOrEmpty(continuationToken))
+            {
                 throw new ArgumentNullException(nameof(continuationToken));
             }
-            var request = new BrowseNextRequestModel {
+            var request = new BrowseNextRequestModel
+            {
                 ContinuationToken = continuationToken,
                 TargetNodesOnly = true,
                 ReadVariableValues = true

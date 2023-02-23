@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Tests {
+namespace Azure.IIoT.OpcUa.Testing.Tests
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -16,31 +17,36 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
     using System.Xml;
     using Xunit;
 
-    public class CallScalarMethodTests<T> {
+    public class CallScalarMethodTests<T>
+    {
         /// <summary>
         /// Create node services tests
         /// </summary>
-        public CallScalarMethodTests(Func<INodeServices<T>> services, T endpoint) {
+        public CallScalarMethodTests(Func<INodeServices<T>> services, T endpoint)
+        {
             _services = services;
             _connection = endpoint;
             _serializer = new NewtonsoftJsonSerializer();
         }
 
-        public async Task NodeMethodMetadataStaticScalarMethod1TestAsync() {
+        public async Task NodeMethodMetadataStaticScalarMethod1TestAsync()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
             var result = await service.GetMethodMetadataAsync(_connection,
-                new MethodMetadataRequestModel {
+                new MethodMetadataRequestModel
+                {
                     MethodId = methodId
                 }).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
             Assert.Collection(result.InputArguments,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("BooleanIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -50,7 +56,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Boolean", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("SByteIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -60,7 +67,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("SByte", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("ByteIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -70,7 +78,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Byte", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Int16In", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -80,7 +89,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int16", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("UInt16In", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -90,7 +100,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt16", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Int32In", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -100,7 +111,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int32", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("UInt32In", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -110,7 +122,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt32", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Int64In", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -120,7 +133,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int64", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("UInt64In", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -130,7 +144,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt64", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("FloatIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -140,7 +155,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Float", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("DoubleIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -151,7 +167,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("BooleanOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -161,7 +178,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Boolean", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("SByteOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -171,7 +189,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("SByte", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("ByteOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -181,7 +200,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Byte", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Int16Out", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -191,7 +211,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int16", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("UInt16Out", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -201,7 +222,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt16", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Int32Out", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -211,7 +233,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int32", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("UInt32Out", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -221,7 +244,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt32", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("Int64Out", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -231,7 +255,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int64", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("UInt64Out", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -241,7 +266,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt64", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("FloatOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -251,7 +277,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Float", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("DoubleOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -263,21 +290,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-        public async Task NodeMethodMetadataStaticScalarMethod2TestAsync() {
+        public async Task NodeMethodMetadataStaticScalarMethod2TestAsync()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10759";
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
             var result = await service.GetMethodMetadataAsync(_connection,
-                new MethodMetadataRequestModel {
+                new MethodMetadataRequestModel
+                {
                     MethodId = methodId
                 }).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
             Assert.Collection(result.InputArguments,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("StringIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -287,7 +317,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("String", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("DateTimeIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -297,7 +328,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("DateTime", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("GuidIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -307,7 +339,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Guid", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("ByteStringIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -317,7 +350,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ByteString", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("XmlElementIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -327,7 +361,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("XmlElement", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("NodeIdIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -337,7 +372,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("NodeId", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("ExpandedNodeIdIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -347,7 +383,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ExpandedNodeId", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("QualifiedNameIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -357,7 +394,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("QualifiedName", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("LocalizedTextIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -367,7 +405,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("LocalizedText", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("StatusCodeIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -378,7 +417,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("StringOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -388,7 +428,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("String", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("DateTimeOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -398,7 +439,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("DateTime", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("GuidOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -408,7 +450,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Guid", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("ByteStringOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -418,7 +461,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ByteString", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("XmlElementOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -428,7 +472,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("XmlElement", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("NodeIdOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -438,7 +483,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("NodeId", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("ExpandedNodeIdOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -448,7 +494,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ExpandedNodeId", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("QualifiedNameOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -458,7 +505,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("QualifiedName", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("LocalizedTextOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -468,7 +516,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("LocalizedText", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("StatusCodeOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -480,21 +529,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-        public async Task NodeMethodMetadataStaticScalarMethod3TestAsync() {
+        public async Task NodeMethodMetadataStaticScalarMethod3TestAsync()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10762";
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
             var result = await service.GetMethodMetadataAsync(_connection,
-                new MethodMetadataRequestModel {
+                new MethodMetadataRequestModel
+                {
                     MethodId = methodId
                 }).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
             Assert.Collection(result.InputArguments,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("VariantIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -504,7 +556,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("EnumerationIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -514,7 +567,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("StructureIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -525,7 +579,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("VariantOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -535,7 +590,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("EnumerationOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -545,7 +601,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("StructureOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -557,7 +614,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async() {
+        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async()
+        {
             var service = _services();
             const string objectId = "http://test.org/UA/Data/#i=10755";
             var path = new[] {
@@ -566,7 +624,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.GetMethodMetadataAsync(_connection,
-                new MethodMetadataRequestModel {
+                new MethodMetadataRequestModel
+                {
                     MethodId = objectId,
                     MethodBrowsePath = path
                 }).ConfigureAwait(false);
@@ -574,7 +633,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             // Assert
             Assert.Equal(objectId, result.ObjectId);
             Assert.Collection(result.InputArguments,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("VariantIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -584,7 +644,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("EnumerationIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -594,7 +655,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("StructureIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -605,7 +667,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("VariantOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -615,7 +678,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("EnumerationOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -625,7 +689,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("StructureOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -637,7 +702,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async() {
+        public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest2Async()
+        {
             var service = _services();
             var path = new[] {
                 "Objects",
@@ -649,14 +715,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.GetMethodMetadataAsync(_connection,
-                new MethodMetadataRequestModel {
+                new MethodMetadataRequestModel
+                {
                     MethodBrowsePath = path
                 }).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("http://test.org/UA/Data/#i=10755", result.ObjectId);
             Assert.Collection(result.InputArguments,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("VariantIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -666,7 +734,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("EnumerationIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -676,7 +745,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("StructureIn", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -687,7 +757,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
-                arg => {
+                arg =>
+                {
                     Assert.Equal("VariantOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -697,7 +768,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("EnumerationOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -707,7 +779,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal("StructureOut", arg.Name);
                     Assert.Null(arg.ValueRank);
                     Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
@@ -719,7 +792,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod1Test1Async() {
+        public async Task NodeMethodCallStaticScalarMethod1Test1Async()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
             const string objectId = "http://test.org/UA/Data/#i=10755";
@@ -773,7 +847,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
@@ -794,7 +869,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 arg => Assert.Equal((double)input[10].Value, (double)arg.Value));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod1Test2Async() {
+        public async Task NodeMethodCallStaticScalarMethod1Test2Async()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
             const string objectId = "http://test.org/UA/Data/#i=10755";
@@ -816,7 +892,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
@@ -837,14 +914,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 arg => Assert.Equal(0, (double)arg.Value));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod1Test3Async() {
+        public async Task NodeMethodCallStaticScalarMethod1Test3Async()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodId = methodId,
                     ObjectId = objectId
                 }).ConfigureAwait(false);
@@ -864,14 +943,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 arg => Assert.Equal(0, (double)arg.Value));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod1Test4Async() {
+        public async Task NodeMethodCallStaticScalarMethod1Test4Async()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = new List<MethodCallArgumentModel>()
@@ -892,7 +973,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 arg => Assert.Equal(0, (double)arg.Value));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod1Test5Async() {
+        public async Task NodeMethodCallStaticScalarMethod1Test5Async()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10756";
             const string objectId = "http://test.org/UA/Data/#i=10755";
@@ -925,7 +1007,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
@@ -946,7 +1029,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 arg => Assert.Equal((double)input[10].Value, (double)arg.Value));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod2Test1Async() {
+        public async Task NodeMethodCallStaticScalarMethod2Test1Async()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10759";
             const string objectId = "http://test.org/UA/Data/#i=10755";
@@ -1004,7 +1088,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
@@ -1012,50 +1097,61 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Assert
             Assert.Collection(result.Results,
-                arg => {
+                arg =>
+                {
                     Assert.Equal(input[0].Value, arg.Value);
                     Assert.Equal(input[0].DataType, arg.DataType);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal(input[1].Value, arg.Value);
                     Assert.Equal(input[1].DataType, arg.DataType);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal(input[2].Value, arg.Value);
                     Assert.Equal(input[2].DataType, arg.DataType);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal(input[3].Value, arg.Value);
                     Assert.Equal(input[3].DataType, arg.DataType);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal(input[4].Value, arg.Value);
                     Assert.Equal(input[4].DataType, arg.DataType);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal(input[5].Value, arg.Value);
                     Assert.Equal(input[5].DataType, arg.DataType);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal(input[6].Value, arg.Value);
                     Assert.Equal(input[6].DataType, arg.DataType);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal(input[7].Value, arg.Value);
                     Assert.Equal(input[7].DataType, arg.DataType);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.True(VariantValue.DeepEquals(input[8].Value, arg.Value),
                         $"Expected: {input[8].Value} != Actual: {arg.Value}");
                     Assert.Equal(input[8].DataType, arg.DataType);
                 },
-                arg => {
+                arg =>
+                {
                     Assert.Equal(8888888, (int)arg.Value);
                     Assert.Equal(input[9].DataType, arg.DataType);
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod2Test2Async() {
+        public async Task NodeMethodCallStaticScalarMethod2Test2Async()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10759";
             const string objectId = "http://test.org/UA/Data/#i=10755";
@@ -1067,56 +1163,68 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodId = methodId,
                     ObjectId = objectId
                 }).ConfigureAwait(false);
 
             // Assert
             Assert.Collection(result.Results,
-                 arg => {
+                 arg =>
+                 {
                      Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[0], arg.DataType);
                  },
-                 arg => {
+                 arg =>
+                 {
                      Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[1], arg.DataType);
                  },
-                 arg => {
+                 arg =>
+                 {
                      Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[2], arg.DataType);
                  },
-                 arg => {
+                 arg =>
+                 {
                      Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[3], arg.DataType);
                  },
-                 arg => {
+                 arg =>
+                 {
                      Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[4], arg.DataType);
                  },
-                 arg => {
+                 arg =>
+                 {
                      Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[5], arg.DataType);
                  },
-                 arg => {
+                 arg =>
+                 {
                      Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[6], arg.DataType);
                  },
-                 arg => {
+                 arg =>
+                 {
                      Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[7], arg.DataType);
                  },
-                 arg => {
+                 arg =>
+                 {
                      Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[8], arg.DataType);
                  },
-                 arg => {
+                 arg =>
+                 {
                      Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[9], arg.DataType);
                  });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3Test1Async() {
+        public async Task NodeMethodCallStaticScalarMethod3Test1Async()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10762";
             const string objectId = "http://test.org/UA/Data/#i=10755";
@@ -1146,7 +1254,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
@@ -1156,13 +1265,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Collection(result.Results,
                 arg => Assert.Equal(50u, (uint)arg.Value),
                 arg => Assert.Equal(8, (int)arg.Value),
-                arg => {
+                arg =>
+                {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3Test2Async() {
+        public async Task NodeMethodCallStaticScalarMethod3Test2Async()
+        {
             var service = _services();
             const string methodId = "http://test.org/UA/Data/#i=10762";
             const string objectId = "http://test.org/UA/Data/#i=10755";
@@ -1188,7 +1299,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = input
@@ -1201,7 +1313,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
                 arg => Assert.Equal(input[2].Value, arg.Value));
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3WithBrowsePathNoIdsTestAsync() {
+        public async Task NodeMethodCallStaticScalarMethod3WithBrowsePathNoIdsTestAsync()
+        {
             var service = _services();
             var objectPath = new[] {
                 "Objects",
@@ -1239,7 +1352,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodBrowsePath = methodPath,
                     ObjectBrowsePath = objectPath,
                     Arguments = input
@@ -1249,13 +1363,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Collection(result.Results,
                 arg => Assert.Equal(50u, (uint)arg.Value),
                 arg => Assert.Equal(8, (int)arg.Value),
-                arg => {
+                arg =>
+                {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndBrowsePathTestAsync() {
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndBrowsePathTestAsync()
+        {
             var service = _services();
             const string objectId = "http://test.org/UA/Data/#i=10755";
             var methodPath = new[] {
@@ -1287,7 +1403,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodBrowsePath = methodPath,
                     ObjectId = objectId,
                     Arguments = input
@@ -1297,13 +1414,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Collection(result.Results,
                 arg => Assert.Equal(50u, (uint)arg.Value),
                 arg => Assert.Equal(8, (int)arg.Value),
-                arg => {
+                arg =>
+                {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndMethodIdAndBrowsePathTestAsync() {
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndMethodIdAndBrowsePathTestAsync()
+        {
             var service = _services();
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
@@ -1339,7 +1458,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodBrowsePath = methodPath,
                     ObjectId = objectId,
                     MethodId = methodId,
@@ -1350,13 +1470,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Collection(result.Results,
                 arg => Assert.Equal(50u, (uint)arg.Value),
                 arg => Assert.Equal(8, (int)arg.Value),
-                arg => {
+                arg =>
+                {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectPathAndMethodIdAndBrowsePathTestAsync() {
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectPathAndMethodIdAndBrowsePathTestAsync()
+        {
             var service = _services();
             var objectPath = new[] {
                 "Objects",
@@ -1397,7 +1519,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodBrowsePath = methodPath,
                     ObjectBrowsePath = objectPath,
                     MethodId = methodId,
@@ -1408,13 +1531,15 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Collection(result.Results,
                 arg => Assert.Equal(50u, (uint)arg.Value),
                 arg => Assert.Equal(8, (int)arg.Value),
-                arg => {
+                arg =>
+                {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
-        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndPathAndMethodIdAndPathTestAsync() {
+        public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndPathAndMethodIdAndPathTestAsync()
+        {
             var service = _services();
             const string objectId = "http://test.org/UA/Data/#i=10157"; // Data
             var objectPath = new[] {
@@ -1454,7 +1579,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodBrowsePath = methodPath,
                     ObjectBrowsePath = objectPath,
                     MethodId = methodId,
@@ -1466,20 +1592,23 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Collection(result.Results,
                 arg => Assert.Equal(50u, (uint)arg.Value),
                 arg => Assert.Equal(8, (int)arg.Value),
-                arg => {
+                arg =>
+                {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
 
-        public async Task NodeMethodCallBoiler2ResetTestAsync() {
+        public async Task NodeMethodCallBoiler2ResetTestAsync()
+        {
             var service = _services();
             const string methodId = "ns=4;i=37";
             const string objectId = "ns=4;i=31";
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodId = methodId,
                     ObjectId = objectId
                 }).ConfigureAwait(false);
@@ -1489,14 +1618,16 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Null(result.ErrorInfo);
         }
 
-        public async Task NodeMethodCallBoiler1ResetTestAsync() {
+        public async Task NodeMethodCallBoiler1ResetTestAsync()
+        {
             var service = _services();
             const string methodId = "http://opcfoundation.org/UA/Boiler/#i=15022";
             const string objectId = "http://opcfoundation.org/UA/Boiler/#i=1287";
 
             // Act
             var result = await service.MethodCallAsync(_connection,
-                new MethodCallRequestModel {
+                new MethodCallRequestModel
+                {
                     MethodId = methodId,
                     ObjectId = objectId,
                     Arguments = new List<MethodCallArgumentModel>()

@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Furly.Extensions.Serializers;
     using System;
 
     /// <summary>
     /// Request node history read extensions
     /// </summary>
-    public static class HistoryRequestModelEx {
+    public static class HistoryRequestModelEx
+    {
         /// <summary>
         /// Convert to service model
         /// </summary>
@@ -19,8 +21,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="convert"></param>
         /// <returns></returns>
         public static HistoryUpdateRequestModel<VariantValue> ToRawModel<T>(
-            this HistoryUpdateRequestModel<T> request, Func<T, VariantValue> convert) {
-            return new HistoryUpdateRequestModel<VariantValue> {
+            this HistoryUpdateRequestModel<T> request, Func<T, VariantValue> convert)
+        {
+            return new HistoryUpdateRequestModel<VariantValue>
+            {
                 Details = convert(request.Details),
                 BrowsePath = request.BrowsePath,
                 NodeId = request.NodeId,
@@ -36,8 +40,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="convert"></param>
         /// <returns></returns>
         public static HistoryReadRequestModel<VariantValue> ToRawModel<T>(
-            this HistoryReadRequestModel<T> request, Func<T, VariantValue> convert) where T : class {
-            return new HistoryReadRequestModel<VariantValue> {
+            this HistoryReadRequestModel<T> request, Func<T, VariantValue> convert) where T : class
+        {
+            return new HistoryReadRequestModel<VariantValue>
+            {
                 NodeId = request.NodeId,
                 BrowsePath = request.BrowsePath,
                 IndexRange = request.IndexRange,

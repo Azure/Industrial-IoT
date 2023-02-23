@@ -3,21 +3,25 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk {
+namespace Azure.IIoT.OpcUa.Services.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
 
     /// <summary>
     /// Discovery config api model extensions
     /// </summary>
-    public static class DiscoveryConfigModelEx {
+    public static class DiscoveryConfigModelEx
+    {
         /// <summary>
         /// Update an config
         /// </summary>
         /// <param name="update"></param>
         /// <param name="config"></param>
         public static DiscoveryConfigModel Patch(this DiscoveryConfigModel update,
-            DiscoveryConfigModel config) {
-            if (update == null) {
+            DiscoveryConfigModel config)
+        {
+            if (update == null)
+            {
                 return config;
             }
             config ??= new DiscoveryConfigModel();

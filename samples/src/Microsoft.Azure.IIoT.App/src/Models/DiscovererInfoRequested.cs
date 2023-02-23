@@ -3,10 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Models {
+namespace Microsoft.Azure.IIoT.App.Models
+{
     using System.Collections.Generic;
 
-    public class DiscovererInfoRequested {
+    public class DiscovererInfoRequested
+    {
         /// <summary>
         /// Address ranges to scan (null == all wired nics)
         /// </summary>
@@ -49,7 +51,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// Add url
         /// </summary>
-        public void AddDiscoveryUrl(string url) {
+        public void AddDiscoveryUrl(string url)
+        {
             RequestedDiscoveryUrls ??= new List<string>();
             RequestedDiscoveryUrls.Add(url);
         }
@@ -57,7 +60,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// Clear url list
         /// </summary>
-        public void ClearDiscoveryUrlList(List<string> list) {
+        public void ClearDiscoveryUrlList(List<string> list)
+        {
             list?.Clear();
         }
     }

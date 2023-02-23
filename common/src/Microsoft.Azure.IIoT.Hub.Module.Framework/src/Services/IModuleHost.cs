@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Services {
+namespace Microsoft.Azure.IIoT.Module.Framework.Services
+{
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using System;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Services {
     /// <summary>
     /// Encapsulates a runnable module
     /// </summary>
-    public interface IModuleHost : IDisposable {
+    public interface IModuleHost : IDisposable
+    {
         /// <summary>
         /// Start module host
         /// </summary>

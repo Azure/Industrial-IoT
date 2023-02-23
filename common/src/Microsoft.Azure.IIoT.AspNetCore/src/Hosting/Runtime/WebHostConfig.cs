@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Runtime {
+namespace Microsoft.Azure.IIoT.Auth.Runtime
+{
     using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     /// <summary>
     /// Web Host configuration
     /// </summary>
-    public class WebHostConfig : ConfigBase, IWebHostConfig {
+    public class WebHostConfig : ConfigBase, IWebHostConfig
+    {
         /// <summary>
         /// Host configuration
         /// </summary>
@@ -31,7 +33,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public WebHostConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

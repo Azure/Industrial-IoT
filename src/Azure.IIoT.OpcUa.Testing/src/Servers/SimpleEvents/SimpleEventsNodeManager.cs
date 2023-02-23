@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace SimpleEvents {
+namespace SimpleEvents
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -39,12 +40,14 @@ namespace SimpleEvents {
     /// <summary>
     /// A node manager for a server that exposes several variables.
     /// </summary>
-    public class SimpleEventsNodeManager : CustomNodeManager2 {
+    public class SimpleEventsNodeManager : CustomNodeManager2
+    {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         public SimpleEventsNodeManager(IServerInternal server, ApplicationConfiguration configuration) :
-            base(server, configuration) {
+            base(server, configuration)
+        {
             SystemContext.NodeIdFactory = this;
 
             // set one namespace for the type model and one names for dynamically created nodes.
@@ -62,9 +65,12 @@ namespace SimpleEvents {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
-                if (_simulationTimer != null) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_simulationTimer != null)
+                {
                     Utils.SilentDispose(_simulationTimer);
                     _simulationTimer = null;
                 }
@@ -74,14 +80,16 @@ namespace SimpleEvents {
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        public override NodeId New(ISystemContext context, NodeState node) {
+        public override NodeId New(ISystemContext context, NodeState node)
+        {
             return node.NodeId;
         }
 
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
-        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context) {
+        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
+        {
             var type = GetType().GetTypeInfo();
             var predefinedNodes = new NodeStateCollection();
             predefinedNodes.LoadFromBinaryResource(context,
@@ -98,8 +106,10 @@ namespace SimpleEvents {
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
         /// should have a reference to the root folder node(s) exposed by this node manager.
         /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Lock) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Lock)
+            {
                 LoadPredefinedNodes(SystemContext, externalReferences);
 
                 // start a simulation that changes the values of the nodes.
@@ -110,8 +120,10 @@ namespace SimpleEvents {
         /// <summary>
         /// Frees any resources allocated for the address space.
         /// </summary>
-        public override void DeleteAddressSpace() {
-            lock (Lock) {
+        public override void DeleteAddressSpace()
+        {
+            lock (Lock)
+            {
                 base.DeleteAddressSpace();
             }
         }
@@ -119,17 +131,23 @@ namespace SimpleEvents {
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache) {
-            lock (Lock) {
+        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
+        {
+            lock (Lock)
+            {
                 // quickly exclude nodes that are not in the namespace.
-                if (!IsNodeIdInNamespace(nodeId)) {
+                if (!IsNodeIdInNamespace(nodeId))
+                {
                     return null;
                 }
 
                 // check for predefined nodes.
-                if (PredefinedNodes != null) {
-                    if (PredefinedNodes.TryGetValue(nodeId, out var node)) {
-                        return new NodeHandle {
+                if (PredefinedNodes != null)
+                {
+                    if (PredefinedNodes.TryGetValue(nodeId, out var node))
+                    {
+                        return new NodeHandle
+                        {
                             NodeId = nodeId,
                             Validated = true,
                             Node = node
@@ -147,14 +165,17 @@ namespace SimpleEvents {
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
-            IDictionary<NodeId, NodeState> cache) {
+            IDictionary<NodeId, NodeState> cache)
+        {
             // not valid if no root.
-            if (handle == null) {
+            if (handle == null)
+            {
                 return null;
             }
 
             // check if previously validated.
-            if (handle.Validated) {
+            if (handle.Validated)
+            {
                 return handle.Node;
             }
 
@@ -167,9 +188,12 @@ namespace SimpleEvents {
         /// Does the simulation.
         /// </summary>
         /// <param name="state">The state.</param>
-        private void DoSimulation(object state) {
-            try {
-                for (var ii = 1; ii < 3; ii++) {
+        private void DoSimulation(object state)
+        {
+            try
+            {
+                for (var ii = 1; ii < 3; ii++)
+                {
                     // construct translation object with default text.
                     var info = new TranslationInfo(
                         "SystemCycleStarted",
@@ -191,7 +215,8 @@ namespace SimpleEvents {
                     e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.CycleId, NamespaceIndex),
                         _cycleId.ToString(CultureInfo.InvariantCulture), false);
 
-                    var step = new CycleStepDataType {
+                    var step = new CycleStepDataType
+                    {
                         Name = "Step 1",
                         Duration = 1000
                     };
@@ -203,7 +228,8 @@ namespace SimpleEvents {
                     Server.ReportEvent(e);
                 }
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Utils.Trace(e, "Unexpected error during simulation.");
             }
         }

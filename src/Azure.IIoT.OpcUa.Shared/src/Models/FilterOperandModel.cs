@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Filter operand
     /// </summary>
     [DataContract]
-    public sealed record class FilterOperandModel {
+    public sealed record class FilterOperandModel
+    {
         /// <summary>
         /// Element reference in the outer list if
         /// operand is an element operand

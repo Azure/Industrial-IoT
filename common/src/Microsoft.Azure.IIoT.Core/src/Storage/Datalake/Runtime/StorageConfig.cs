@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Storage.Datalake.Runtime {
+namespace Microsoft.Azure.IIoT.Storage.Datalake.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Blob storage configuration
     /// </summary>
-    public class StorageConfig : ConfigBase, IStorageConfig {
+    public class StorageConfig : ConfigBase, IStorageConfig
+    {
         /// <summary>
         /// Configuration keys
         /// </summary>
@@ -48,7 +50,8 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public StorageConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

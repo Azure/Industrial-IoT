@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Opc.Ua;
@@ -16,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// <summary>
     /// Represents session handle
     /// </summary>
-    public interface ISessionHandle : IAsyncDisposable {
+    public interface ISessionHandle : IAsyncDisposable
+    {
         /// <summary>
         /// Connectivity state change events
         /// </summary>

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.AspNetCore.Mvc.Controllers {
+namespace Microsoft.AspNetCore.Mvc.Controllers
+{
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Authorization.Infrastructure;
     using System.Collections.Generic;
@@ -13,7 +14,8 @@ namespace Microsoft.AspNetCore.Mvc.Controllers {
     /// <summary>
     /// Controller descriptor extensions
     /// </summary>
-    public static class ControllerDescriptorEx {
+    public static class ControllerDescriptorEx
+    {
         /// <summary>
         /// Retrieve claims from descriptor
         /// </summary>
@@ -21,7 +23,8 @@ namespace Microsoft.AspNetCore.Mvc.Controllers {
         /// <param name="options"></param>
         /// <returns></returns>
         public static IEnumerable<string> GetRequiredPolicyGlaims(
-            this ControllerActionDescriptor descriptor, AuthorizationOptions options) {
+            this ControllerActionDescriptor descriptor, AuthorizationOptions options)
+        {
             var attributes = descriptor.GetAttributes<AuthorizeAttribute>(false);
             var requirements = attributes
                 .Select(attr => attr.Policy)
@@ -34,10 +37,12 @@ namespace Microsoft.AspNetCore.Mvc.Controllers {
             var roles = requirements.OfType<RolesAuthorizationRequirement>()
                 .SelectMany(x => x.AllowedRoles)
                 .Concat(attributes.Where(a => a.Roles != null).Select(a => a.Roles));
-            if (roles.Any()) {
+            if (roles.Any())
+            {
                 claims = claims.Append(ClaimTypes.Role);
             }
-            if (requirements.OfType<DenyAnonymousAuthorizationRequirement>().Any()) {
+            if (requirements.OfType<DenyAnonymousAuthorizationRequirement>().Any())
+            {
                 claims = claims.Append(ClaimTypes.Authentication);
             }
             return claims.Distinct();
@@ -49,7 +54,8 @@ namespace Microsoft.AspNetCore.Mvc.Controllers {
         /// <param name="descriptor"></param>
         /// <returns></returns>
         public static IEnumerable<string> GetApiVersions(
-            this ControllerActionDescriptor descriptor) {
+            this ControllerActionDescriptor descriptor)
+        {
             var attributes = descriptor.ControllerTypeInfo.GetCustomAttributes(false)
                 .OfType<ApiVersionAttribute>();
             return attributes
@@ -65,7 +71,8 @@ namespace Microsoft.AspNetCore.Mvc.Controllers {
         /// <param name="version"></param>
         /// <returns></returns>
         public static bool MatchesVersion(this ControllerActionDescriptor descriptor,
-            string version) {
+            string version)
+        {
             var versions = descriptor.GetApiVersions();
             var maps = descriptor.MethodInfo.GetCustomAttributes(false)
                 .OfType<MapToApiVersionAttribute>()
@@ -83,7 +90,8 @@ namespace Microsoft.AspNetCore.Mvc.Controllers {
         /// <param name="inherit"></param>
         /// <returns></returns>
         public static IEnumerable<T> GetAttributes<T>(
-            this ControllerActionDescriptor descriptor, bool inherit) {
+            this ControllerActionDescriptor descriptor, bool inherit)
+        {
             var controllerAttributes = descriptor.ControllerTypeInfo
                 .GetCustomAttributes(inherit);
             var actionAttributes = descriptor.MethodInfo

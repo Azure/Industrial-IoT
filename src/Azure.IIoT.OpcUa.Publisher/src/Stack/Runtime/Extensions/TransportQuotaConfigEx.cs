@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using Opc.Ua;
 
     /// <summary>
     /// Transport quota config extensions
     /// </summary>
-    public static class TransportQuotaConfigEx {
+    public static class TransportQuotaConfigEx
+    {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         /// <summary>
         /// Default values for transport quotas.
@@ -27,8 +29,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <summary>
         /// Return service defaults for the TransportQuotas.
         /// </summary>
-        public static TransportQuotas DefaultTransportQuotas() {
-            return new TransportQuotas {
+        public static TransportQuotas DefaultTransportQuotas()
+        {
+            return new TransportQuotas
+            {
                 MaxMessageSize = DefaultMaxMessageSize,
                 OperationTimeout = DefaultOperationTimeout,
                 MaxStringLength = DefaultMaxStringLength,
@@ -45,8 +49,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="transportQuotaConfig"></param>
         /// <returns></returns>
-        public static TransportQuotas ToTransportQuotas(this ITransportQuotaConfig transportQuotaConfig) {
-            return new TransportQuotas {
+        public static TransportQuotas ToTransportQuotas(this ITransportQuotaConfig transportQuotaConfig)
+        {
+            return new TransportQuotas
+            {
                 OperationTimeout = transportQuotaConfig.OperationTimeout,
                 MaxStringLength = transportQuotaConfig.MaxStringLength,
                 MaxByteStringLength = transportQuotaConfig.MaxByteStringLength,

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack {
+namespace Azure.IIoT.OpcUa.Publisher.Stack
+{
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// <summary>
     /// Server host
     /// </summary>
-    public interface IServerHost : IDisposable {
+    public interface IServerHost : IDisposable
+    {
         /// <summary>
         /// Server application instance certificate
         /// </summary>

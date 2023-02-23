@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Reference {
+namespace Reference
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -37,8 +38,10 @@ namespace Reference {
     /// <summary>
     /// The interface that a server exposes to objects that it contains.
     /// </summary>
-    public static class ServerUtils {
-        private enum EventType {
+    public static class ServerUtils
+    {
+        private enum EventType
+        {
             WriteValue,
             CreateItem,
             ModifyItem,
@@ -48,7 +51,8 @@ namespace Reference {
             PublishValue
         }
 
-        private class Event {
+        private class Event
+        {
             public DateTime Timestamp;
             public EventType EventType;
             public NodeId NodeId;
@@ -64,13 +68,18 @@ namespace Reference {
         /// <summary>
         /// Whether event queuing is enabled.
         /// </summary>
-        public static bool EventsEnabled {
+        public static bool EventsEnabled
+        {
             get => _eventsEnabled;
 
-            set {
-                if (_eventsEnabled != value) {
-                    if (!value) {
-                        lock (_events) {
+            set
+            {
+                if (_eventsEnabled != value)
+                {
+                    if (!value)
+                    {
+                        lock (_events)
+                        {
                             _events.Clear();
                         }
                     }
@@ -83,8 +92,10 @@ namespace Reference {
         /// <summary>
         /// Empties the event queue and saves it in the dataset.
         /// </summary>
-        public static DataSet EmptyQueue(DataSet dataset) {
-            if (dataset == null) {
+        public static DataSet EmptyQueue(DataSet dataset)
+        {
+            if (dataset == null)
+            {
                 dataset = new DataSet();
                 dataset.Tables.Add("MonitoredItems");
 
@@ -105,8 +116,10 @@ namespace Reference {
                 dataset.Tables[0].DefaultView.Sort = "Timestamp";
             }
 
-            lock (_events) {
-                while (_events.Count > 0) {
+            lock (_events)
+            {
+                while (_events.Count > 0)
+                {
                     var e = _events.Dequeue();
 
                     var row = dataset.Tables[0].NewRow();
@@ -116,18 +129,21 @@ namespace Reference {
                     row[2] = e.EventType.ToString();
                     row[3] = e.NodeId;
 
-                    if (e.Parameters != null) {
+                    if (e.Parameters != null)
+                    {
                         row[4] = e.MonitoringMode;
                         row[5] = e.Parameters.SamplingInterval;
                         row[6] = e.Parameters.QueueSize;
                         row[7] = e.Parameters.DiscardOldest;
 
-                        if (e.Parameters.Filter != null) {
+                        if (e.Parameters.Filter != null)
+                        {
                             row[8] = e.Parameters.Filter.ToString();
                         }
                     }
 
-                    if (e.Value != null) {
+                    if (e.Value != null)
+                    {
                         row[9] = e.Value.WrappedValue;
                         row[10] = e.Value.StatusCode;
                         row[11] = e.Value.ServerTimestamp.ToLocalTime().ToString("HH:mm:ss.fff");
@@ -145,13 +161,17 @@ namespace Reference {
         /// <summary>
         /// Reports a value written.
         /// </summary>
-        public static void ReportWriteValue(NodeId nodeId, DataValue value, StatusCode error) {
-            if (!_eventsEnabled) {
+        public static void ReportWriteValue(NodeId nodeId, DataValue value, StatusCode error)
+        {
+            if (!_eventsEnabled)
+            {
                 return;
             }
 
-            lock (_events) {
-                var e = new Event {
+            lock (_events)
+            {
+                var e = new Event
+                {
                     EventType = EventType.WriteValue,
                     NodeId = nodeId,
                     ServerHandle = 0,
@@ -161,8 +181,10 @@ namespace Reference {
                     MonitoringMode = MonitoringMode.Disabled
                 };
 
-                if (StatusCode.IsBad(error)) {
-                    e.Value = new DataValue(error) {
+                if (StatusCode.IsBad(error))
+                {
+                    e.Value = new DataValue(error)
+                    {
                         WrappedValue = value.WrappedValue
                     };
                 }
@@ -174,13 +196,17 @@ namespace Reference {
         /// <summary>
         /// Reports a value queued.
         /// </summary>
-        public static void ReportQueuedValue(NodeId nodeId, uint serverHandle, DataValue value) {
-            if (!_eventsEnabled) {
+        public static void ReportQueuedValue(NodeId nodeId, uint serverHandle, DataValue value)
+        {
+            if (!_eventsEnabled)
+            {
                 return;
             }
 
-            lock (_events) {
-                var e = new Event {
+            lock (_events)
+            {
+                var e = new Event
+                {
                     EventType = EventType.QueueValue,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
@@ -196,13 +222,17 @@ namespace Reference {
         /// <summary>
         /// Reports a value excluded by the filter.
         /// </summary>
-        public static void ReportFilteredValue(NodeId nodeId, uint serverHandle, DataValue value) {
-            if (!_eventsEnabled) {
+        public static void ReportFilteredValue(NodeId nodeId, uint serverHandle, DataValue value)
+        {
+            if (!_eventsEnabled)
+            {
                 return;
             }
 
-            lock (_events) {
-                var e = new Event {
+            lock (_events)
+            {
+                var e = new Event
+                {
                     EventType = EventType.FilterValue,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
@@ -218,13 +248,17 @@ namespace Reference {
         /// <summary>
         /// Reports a value discarded because of queue overflow.
         /// </summary>
-        public static void ReportDiscardedValue(NodeId nodeId, uint serverHandle, DataValue value) {
-            if (!_eventsEnabled) {
+        public static void ReportDiscardedValue(NodeId nodeId, uint serverHandle, DataValue value)
+        {
+            if (!_eventsEnabled)
+            {
                 return;
             }
 
-            lock (_events) {
-                var e = new Event {
+            lock (_events)
+            {
+                var e = new Event
+                {
                     EventType = EventType.DiscardValue,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
@@ -240,13 +274,17 @@ namespace Reference {
         /// <summary>
         /// Reports a value published.
         /// </summary>
-        public static void ReportPublishValue(NodeId nodeId, uint serverHandle, DataValue value) {
-            if (!_eventsEnabled) {
+        public static void ReportPublishValue(NodeId nodeId, uint serverHandle, DataValue value)
+        {
+            if (!_eventsEnabled)
+            {
                 return;
             }
 
-            lock (_events) {
-                var e = new Event {
+            lock (_events)
+            {
+                var e = new Event
+                {
                     EventType = EventType.PublishValue,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
@@ -269,19 +307,24 @@ namespace Reference {
             uint queueSize,
             bool discardOldest,
             MonitoringFilter filter,
-            MonitoringMode monitoringMode) {
-            if (!_eventsEnabled) {
+            MonitoringMode monitoringMode)
+        {
+            if (!_eventsEnabled)
+            {
                 return;
             }
 
-            lock (_events) {
-                var e = new Event {
+            lock (_events)
+            {
+                var e = new Event
+                {
                     EventType = EventType.CreateItem,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
                     Timestamp = HiResClock.UtcNow,
                     Value = null,
-                    Parameters = new MonitoringParameters {
+                    Parameters = new MonitoringParameters
+                    {
                         SamplingInterval = samplingInterval,
                         QueueSize = queueSize,
                         DiscardOldest = discardOldest,
@@ -303,19 +346,24 @@ namespace Reference {
             uint queueSize,
             bool discardOldest,
             MonitoringFilter filter,
-            MonitoringMode monitoringMode) {
-            if (!_eventsEnabled) {
+            MonitoringMode monitoringMode)
+        {
+            if (!_eventsEnabled)
+            {
                 return;
             }
 
-            lock (_events) {
-                var e = new Event {
+            lock (_events)
+            {
+                var e = new Event
+                {
                     EventType = EventType.ModifyItem,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
                     Timestamp = HiResClock.UtcNow,
                     Value = null,
-                    Parameters = new MonitoringParameters {
+                    Parameters = new MonitoringParameters
+                    {
                         SamplingInterval = samplingInterval,
                         QueueSize = queueSize,
                         DiscardOldest = discardOldest,
@@ -334,10 +382,12 @@ namespace Reference {
             uint code,
             OperationContext context,
             DiagnosticInfoCollection diagnosticInfos,
-            int index) {
+            int index)
+        {
             var error = new ServiceResult(code);
 
-            if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0) {
+            if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0)
+            {
                 diagnosticInfos[index] = new DiagnosticInfo(error, context.DiagnosticsMask, false, context.StringTable);
             }
 
@@ -351,11 +401,13 @@ namespace Reference {
             uint code,
             StatusCodeCollection results,
             DiagnosticInfoCollection diagnosticInfos,
-            OperationContext context) {
+            OperationContext context)
+        {
             var error = new ServiceResult(code);
             results.Add(error.Code);
 
-            if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0) {
+            if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0)
+            {
                 diagnosticInfos.Add(new DiagnosticInfo(error, context.DiagnosticsMask, false, context.StringTable));
                 return true;
             }
@@ -371,11 +423,13 @@ namespace Reference {
             StatusCodeCollection results,
             DiagnosticInfoCollection diagnosticInfos,
             int index,
-            OperationContext context) {
+            OperationContext context)
+        {
             var error = new ServiceResult(code);
             results[index] = error.Code;
 
-            if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0) {
+            if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0)
+            {
                 diagnosticInfos[index] = new DiagnosticInfo(error, context.DiagnosticsMask, false, context.StringTable);
                 return true;
             }
@@ -389,10 +443,12 @@ namespace Reference {
         public static void CreateSuccess(
             StatusCodeCollection results,
             DiagnosticInfoCollection diagnosticInfos,
-            OperationContext context) {
+            OperationContext context)
+        {
             results.Add(StatusCodes.Good);
 
-            if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0) {
+            if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0)
+            {
                 diagnosticInfos.Add(null);
             }
         }
@@ -402,20 +458,25 @@ namespace Reference {
         /// </summary>
         public static DiagnosticInfoCollection CreateDiagnosticInfoCollection(
             OperationContext context,
-            IList<ServiceResult> errors) {
+            IList<ServiceResult> errors)
+        {
             // all done if no diagnostics requested.
-            if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) == 0) {
+            if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) == 0)
+            {
                 return null;
             }
 
             // create diagnostics.
             var results = new DiagnosticInfoCollection(errors.Count);
 
-            foreach (var error in errors) {
-                if (ServiceResult.IsBad(error)) {
+            foreach (var error in errors)
+            {
+                if (ServiceResult.IsBad(error))
+                {
                     results.Add(new DiagnosticInfo(error, context.DiagnosticsMask, false, context.StringTable));
                 }
-                else {
+                else
+                {
                     results.Add(null);
                 }
             }
@@ -429,24 +490,29 @@ namespace Reference {
         public static StatusCodeCollection CreateStatusCodeCollection(
             OperationContext context,
             IList<ServiceResult> errors,
-            out DiagnosticInfoCollection diagnosticInfos) {
+            out DiagnosticInfoCollection diagnosticInfos)
+        {
             diagnosticInfos = null;
 
             var noErrors = true;
             var results = new StatusCodeCollection(errors.Count);
 
-            foreach (var error in errors) {
-                if (ServiceResult.IsBad(error)) {
+            foreach (var error in errors)
+            {
+                if (ServiceResult.IsBad(error))
+                {
                     results.Add(error.Code);
                     noErrors = false;
                 }
-                else {
+                else
+                {
                     results.Add(StatusCodes.Good);
                 }
             }
 
             // only generate diagnostics if errors exist.
-            if (noErrors) {
+            if (noErrors)
+            {
                 diagnosticInfos = CreateDiagnosticInfoCollection(context, errors);
             }
 
@@ -463,14 +529,17 @@ namespace Reference {
         public static DiagnosticInfo CreateDiagnosticInfo(
             IServerInternal server,
             OperationContext context,
-            ServiceResult error) {
-            if (error == null) {
+            ServiceResult error)
+        {
+            if (error == null)
+            {
                 return null;
             }
 
             var translatedError = error;
 
-            if ((context.DiagnosticsMask & DiagnosticsMasks.LocalizedText) != 0) {
+            if ((context.DiagnosticsMask & DiagnosticsMasks.LocalizedText) != 0)
+            {
                 translatedError = server.ResourceManager.Translate(context.PreferredLocales, error);
             }
 

@@ -3,12 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Models {
+namespace Microsoft.Azure.IIoT.App.Models
+{
     using global::Azure.IIoT.OpcUa.Shared.Models;
     using System;
 
-    public class ListNodeRequested {
-        public ListNodeRequested(PublishedItemModel publishedItem) {
+    public class ListNodeRequested
+    {
+        public ListNodeRequested(PublishedItemModel publishedItem)
+        {
             _requestedPublishingInterval = publishedItem?.PublishingInterval;
             _requestedSamplingInterval = publishedItem?.SamplingInterval;
             _requestedHeartbeatInterval = publishedItem?.HeartbeatInterval;
@@ -23,7 +26,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// PublishingInterval
         /// </summary>
-        public string RequestedPublishingInterval {
+        public string RequestedPublishingInterval
+        {
             get => _requestedPublishingInterval != null && _requestedPublishingInterval.Value != TimeSpan.MinValue ?
                 _requestedPublishingInterval.Value.TotalMilliseconds.ToString() : null;
             set => _requestedPublishingInterval = string.IsNullOrWhiteSpace(value) ?
@@ -33,7 +37,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// SamplingInterval
         /// </summary>
-        public string RequestedSamplingInterval {
+        public string RequestedSamplingInterval
+        {
             get => _requestedSamplingInterval != null && _requestedSamplingInterval.Value != TimeSpan.MinValue ?
                 _requestedSamplingInterval.Value.TotalMilliseconds.ToString() : null;
             set => _requestedSamplingInterval = string.IsNullOrWhiteSpace(value) ?
@@ -43,7 +48,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// HeartbeatInterval
         /// </summary>
-        public string RequestedHeartbeatInterval {
+        public string RequestedHeartbeatInterval
+        {
             get => _requestedHeartbeatInterval != null && _requestedHeartbeatInterval.Value != TimeSpan.MinValue ?
                 _requestedHeartbeatInterval.Value.TotalSeconds.ToString() : null;
             set => _requestedHeartbeatInterval = string.IsNullOrWhiteSpace(value) ?

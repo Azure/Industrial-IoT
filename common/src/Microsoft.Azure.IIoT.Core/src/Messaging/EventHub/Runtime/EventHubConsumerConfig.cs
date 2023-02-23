@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging.EventHub.Runtime {
+namespace Microsoft.Azure.IIoT.Messaging.EventHub.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Event hub configuration - wraps a configuration root
     /// </summary>
-    public class EventHubConsumerConfig : ConfigBase, IEventHubConsumerConfig {
+    public class EventHubConsumerConfig : ConfigBase, IEventHubConsumerConfig
+    {
         /// <summary>
         /// Event hub configuration
         /// </summary>
@@ -42,7 +44,8 @@ namespace Microsoft.Azure.IIoT.Messaging.EventHub.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public EventHubConsumerConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

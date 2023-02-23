@@ -3,19 +3,22 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Status flags
     /// </summary>
-    public static class X509ChainStatusEx {
+    public static class X509ChainStatusEx
+    {
         /// <summary>
         /// To service model
         /// </summary>
         /// <param name="flags"></param>
         /// <returns></returns>
-        public static X509ChainStatus ToServiceModel(this X509ChainStatusFlags flags) {
+        public static X509ChainStatus ToServiceModel(this X509ChainStatusFlags flags)
+        {
             // TODO
             return (X509ChainStatus)flags;
         }

@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher {
+namespace Azure.IIoT.OpcUa.Publisher
+{
     using Microsoft.Azure.IIoT.Messaging;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Message sink
     /// </summary>
-    public interface IMessageSink {
+    public interface IMessageSink
+    {
         /// <summary>
         /// Max message size sink can handle
         /// </summary>

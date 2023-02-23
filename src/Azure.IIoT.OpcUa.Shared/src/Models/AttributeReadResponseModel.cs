@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using Furly.Extensions.Serializers;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Attribute value read
     /// </summary>
     [DataContract]
-    public sealed record class AttributeReadResponseModel {
+    public sealed record class AttributeReadResponseModel
+    {
         /// <summary>
         /// Attribute value
         /// </summary>

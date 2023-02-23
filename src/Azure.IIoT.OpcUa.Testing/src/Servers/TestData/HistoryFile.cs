@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace TestData {
+namespace TestData
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -35,11 +36,13 @@ namespace TestData {
     /// <summary>
     /// Wraps a file which contains a list of historical values.
     /// </summary>
-    internal sealed class HistoryFile : IHistoryDataSource {
+    internal sealed class HistoryFile : IHistoryDataSource
+    {
         /// <summary>
         /// Creates a new file.
         /// </summary>
-        internal HistoryFile(object dataLock, List<HistoryEntry> entries) {
+        internal HistoryFile(object dataLock, List<HistoryEntry> entries)
+        {
             _lock = dataLock;
             _entries = entries;
         }
@@ -52,34 +55,44 @@ namespace TestData {
         /// <param name="isReadModified">Whether to return modified data.</param>
         /// <param name="position">A index that must be passed to the NextRaw call. </param>
         /// <returns>The DataValue.</returns>
-        public DataValue FirstRaw(DateTime startTime, bool isForward, bool isReadModified, out int position) {
+        public DataValue FirstRaw(DateTime startTime, bool isForward, bool isReadModified, out int position)
+        {
             position = -1;
 
-            lock (_lock) {
-                if (isForward) {
-                    for (var ii = 0; ii < _entries.Count; ii++) {
-                        if (_entries[ii].Value.ServerTimestamp >= startTime) {
+            lock (_lock)
+            {
+                if (isForward)
+                {
+                    for (var ii = 0; ii < _entries.Count; ii++)
+                    {
+                        if (_entries[ii].Value.ServerTimestamp >= startTime)
+                        {
                             position = ii;
                             break;
                         }
                     }
                 }
-                else {
-                    for (var ii = _entries.Count - 1; ii >= 0; ii--) {
-                        if (_entries[ii].Value.ServerTimestamp <= startTime) {
+                else
+                {
+                    for (var ii = _entries.Count - 1; ii >= 0; ii--)
+                    {
+                        if (_entries[ii].Value.ServerTimestamp <= startTime)
+                        {
                             position = ii;
                             break;
                         }
                     }
                 }
 
-                if (position < 0 || position >= _entries.Count) {
+                if (position < 0 || position >= _entries.Count)
+                {
                     return null;
                 }
 
                 var entry = _entries[position];
 
-                return new DataValue {
+                return new DataValue
+                {
                     Value = entry.Value.Value,
                     ServerTimestamp = entry.Value.ServerTimestamp,
                     SourceTimestamp = entry.Value.SourceTimestamp,
@@ -96,17 +109,21 @@ namespace TestData {
         /// <param name="isReadModified">Whether to return modified data.</param>
         /// <param name="position">A index previously returned by the reader.</param>
         /// <returns>The DataValue.</returns>
-        public DataValue NextRaw(DateTime lastTime, bool isForward, bool isReadModified, ref int position) {
+        public DataValue NextRaw(DateTime lastTime, bool isForward, bool isReadModified, ref int position)
+        {
             position++;
 
-            lock (_lock) {
-                if (position < 0 || position >= _entries.Count) {
+            lock (_lock)
+            {
+                if (position < 0 || position >= _entries.Count)
+                {
                     return null;
                 }
 
                 var entry = _entries[position];
 
-                return new DataValue {
+                return new DataValue
+                {
                     Value = entry.Value.Value,
                     ServerTimestamp = entry.Value.ServerTimestamp,
                     SourceTimestamp = entry.Value.SourceTimestamp,

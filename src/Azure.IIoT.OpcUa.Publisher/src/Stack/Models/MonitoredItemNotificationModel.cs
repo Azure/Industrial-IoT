@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Opc.Ua;
 
     /// <summary>
     /// Monitored item notification
     /// </summary>
-    public class MonitoredItemNotificationModel {
+    public class MonitoredItemNotificationModel
+    {
         /// <summary>
         /// Identifier of the monitored item that originated the message
         /// </summary>

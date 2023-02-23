@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
+namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -11,9 +12,11 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
     using System.Collections.Generic;
     using Xunit;
 
-    public class PublishedNodesEntryModelTests {
+    public class PublishedNodesEntryModelTests
+    {
         [Fact]
-        public void UseSecurityDeserializationTest() {
+        public void UseSecurityDeserializationTest()
+        {
             var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
 
             var modelJson = @"
@@ -56,10 +59,12 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
         }
 
         [Fact]
-        public void UseSecuritySerializationTest() {
+        public void UseSecuritySerializationTest()
+        {
             var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
 
-            var model = new PublishedNodesEntryModel {
+            var model = new PublishedNodesEntryModel
+            {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 OpcNodes = new List<OpcNodeModel> {
                     new OpcNodeModel {
@@ -71,7 +76,8 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             var modeJson = newtonSoftJsonSerializer.SerializeToString(model);
             Assert.Contains("\"UseSecurity\":false", modeJson, StringComparison.Ordinal);
 
-            model = new PublishedNodesEntryModel {
+            model = new PublishedNodesEntryModel
+            {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 UseSecurity = false,
                 OpcNodes = new List<OpcNodeModel> {
@@ -84,7 +90,8 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);
             Assert.Contains("\"UseSecurity\":false", modeJson, StringComparison.Ordinal);
 
-            model = new PublishedNodesEntryModel {
+            model = new PublishedNodesEntryModel
+            {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 UseSecurity = true,
                 OpcNodes = new List<OpcNodeModel> {
@@ -99,7 +106,8 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
         }
 
         [Fact]
-        public void OpcAuthenticationModeDeserializationTest() {
+        public void OpcAuthenticationModeDeserializationTest()
+        {
             var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
 
             var modelJson = @"
@@ -142,10 +150,12 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
         }
 
         [Fact]
-        public void OpcAuthenticationModeSerializationTest() {
+        public void OpcAuthenticationModeSerializationTest()
+        {
             var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
 
-            var model = new PublishedNodesEntryModel {
+            var model = new PublishedNodesEntryModel
+            {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 OpcNodes = new List<OpcNodeModel> {
                     new OpcNodeModel {
@@ -157,7 +167,8 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             var modeJson = newtonSoftJsonSerializer.SerializeToString(model);
             Assert.Contains("\"OpcAuthenticationMode\":\"anonymous\"", modeJson, StringComparison.Ordinal);
 
-            model = new PublishedNodesEntryModel {
+            model = new PublishedNodesEntryModel
+            {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 OpcAuthenticationMode = OpcAuthenticationMode.Anonymous,
                 OpcNodes = new List<OpcNodeModel> {
@@ -170,7 +181,8 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);
             Assert.Contains("\"OpcAuthenticationMode\":\"anonymous\"", modeJson, StringComparison.Ordinal);
 
-            model = new PublishedNodesEntryModel {
+            model = new PublishedNodesEntryModel
+            {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 OpcAuthenticationMode = OpcAuthenticationMode.UsernamePassword,
                 OpcNodes = new List<OpcNodeModel> {

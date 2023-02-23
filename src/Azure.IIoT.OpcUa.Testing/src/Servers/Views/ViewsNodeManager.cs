@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Views {
+namespace Views
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System.Collections.Generic;
@@ -36,13 +37,15 @@ namespace Views {
     /// <summary>
     /// A node manager for a server that exposes several variables.
     /// </summary>
-    public class ViewsNodeManager : CustomNodeManager2 {
+    public class ViewsNodeManager : CustomNodeManager2
+    {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         public ViewsNodeManager(IServerInternal server, ApplicationConfiguration configuration)
         :
-            base(server, configuration, Model.Namespaces.Views, Model.Namespaces.Engineering, Model.Namespaces.Operations) {
+            base(server, configuration, Model.Namespaces.Views, Model.Namespaces.Engineering, Model.Namespaces.Operations)
+        {
             SystemContext.NodeIdFactory = this;
 
             // get the configuration for the node manager.
@@ -55,8 +58,10 @@ namespace Views {
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        protected override void Dispose(bool disposing) {
-            if (disposing) {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
                 // TBD
             }
         }
@@ -64,11 +69,14 @@ namespace Views {
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        public override NodeId New(ISystemContext context, NodeState node) {
-            if (node is BaseInstanceState instance && instance.Parent != null) {
+        public override NodeId New(ISystemContext context, NodeState node)
+        {
+            if (node is BaseInstanceState instance && instance.Parent != null)
+            {
                 var pnd = ParsedNodeId.Parse(instance.Parent.NodeId);
 
-                if (pnd != null) {
+                if (pnd != null)
+                {
                     return pnd.Construct(instance.SymbolicName);
                 }
             }
@@ -79,7 +87,8 @@ namespace Views {
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
-        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context) {
+        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
+        {
             var type = GetType().GetTypeInfo();
             var predefinedNodes = new NodeStateCollection();
             predefinedNodes.LoadFromBinaryResource(context,
@@ -96,8 +105,10 @@ namespace Views {
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
         /// should have a reference to the root folder node(s) exposed by this node manager.
         /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences) {
-            lock (Lock) {
+        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        {
+            lock (Lock)
+            {
                 base.CreateAddressSpace(externalReferences);
 
                 var root = FindPredefinedNode(new NodeId(Model.Objects.Plant, NamespaceIndex), typeof(NodeState));
@@ -137,18 +148,24 @@ namespace Views {
         /// <summary>
         /// Checks if the node is in the view.
         /// </summary>
-        protected override bool IsNodeInView(ServerSystemContext context, ContinuationPoint continuationPoint, NodeState node) {
-            if (continuationPoint.View != null) {
-                if (continuationPoint.View.ViewId == new NodeId(Model.Views.Engineering, NamespaceIndex)) {
+        protected override bool IsNodeInView(ServerSystemContext context, ContinuationPoint continuationPoint, NodeState node)
+        {
+            if (continuationPoint.View != null)
+            {
+                if (continuationPoint.View.ViewId == new NodeId(Model.Views.Engineering, NamespaceIndex))
+                {
                     // suppress operations properties.
-                    if (node != null && node.BrowseName.NamespaceIndex == NamespaceIndexes[2]) {
+                    if (node != null && node.BrowseName.NamespaceIndex == NamespaceIndexes[2])
+                    {
                         return false;
                     }
                 }
 
-                if (continuationPoint.View.ViewId == new NodeId(Model.Views.Operations, NamespaceIndex)) {
+                if (continuationPoint.View.ViewId == new NodeId(Model.Views.Operations, NamespaceIndex))
+                {
                     // suppress engineering properties.
-                    if (node != null && node.BrowseName.NamespaceIndex == NamespaceIndexes[1]) {
+                    if (node != null && node.BrowseName.NamespaceIndex == NamespaceIndexes[1])
+                    {
                         return false;
                     }
                 }
@@ -160,17 +177,21 @@ namespace Views {
         /// <summary>
         /// Checks if the reference is in the view.
         /// </summary>
-        protected override bool IsReferenceInView(ServerSystemContext context, ContinuationPoint continuationPoint, IReference reference) {
-            if (continuationPoint.View != null) {
+        protected override bool IsReferenceInView(ServerSystemContext context, ContinuationPoint continuationPoint, IReference reference)
+        {
+            if (continuationPoint.View != null)
+            {
                 // guard against absolute node ids.
-                if (reference.TargetId.IsAbsolute) {
+                if (reference.TargetId.IsAbsolute)
+                {
                     return true;
                 }
 
                 // find the node.
                 var node = FindPredefinedNode((NodeId)reference.TargetId, typeof(NodeState));
 
-                if (node != null) {
+                if (node != null)
+                {
                     return IsNodeInView(context, continuationPoint, node);
                 }
             }
@@ -181,30 +202,37 @@ namespace Views {
         /// <summary>
         /// Frees any resources allocated for the address space.
         /// </summary>
-        public override void DeleteAddressSpace() {
+        public override void DeleteAddressSpace()
+        {
         }
 
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache) {
-            lock (Lock) {
+        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
+        {
+            lock (Lock)
+            {
                 // quickly exclude nodes that are not in the namespace.
-                if (!IsNodeIdInNamespace(nodeId)) {
+                if (!IsNodeIdInNamespace(nodeId))
+                {
                     return null;
                 }
 
                 NodeState node = null;
 
                 // check cache (the cache is used because the same node id can appear many times in a single request).
-                if (cache != null) {
-                    if (cache.TryGetValue(nodeId, out node)) {
+                if (cache != null)
+                {
+                    if (cache.TryGetValue(nodeId, out node))
+                    {
                         return new NodeHandle(nodeId, node);
                     }
                 }
 
                 // look up predefined node.
-                if (PredefinedNodes.TryGetValue(nodeId, out node)) {
+                if (PredefinedNodes.TryGetValue(nodeId, out node))
+                {
                     var handle = new NodeHandle(nodeId, node);
 
                     cache?.Add(nodeId, node);
@@ -221,21 +249,25 @@ namespace Views {
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
-            IDictionary<NodeId, NodeState> cache) {
+            IDictionary<NodeId, NodeState> cache)
+        {
             // not valid if no root.
-            if (handle == null) {
+            if (handle == null)
+            {
                 return null;
             }
 
             // check if previously validated.
-            if (handle.Validated) {
+            if (handle.Validated)
+            {
                 return handle.Node;
             }
 
             // lookup in operation cache.
             var target = FindNodeInCache(context, handle, cache);
 
-            if (target == null) {
+            if (target == null)
+            {
                 // TBD
                 return null;
             }

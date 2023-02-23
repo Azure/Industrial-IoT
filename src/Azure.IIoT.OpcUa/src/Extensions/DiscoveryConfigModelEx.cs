@@ -3,24 +3,29 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.Linq;
 
     /// <summary>
     /// Discovery configuration model extensions
     /// </summary>
-    public static class DiscoveryConfigModelEx {
+    public static class DiscoveryConfigModelEx
+    {
         /// <summary>
         /// Clone
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DiscoveryConfigModel Clone(this DiscoveryConfigModel model) {
-            if (model == null) {
+        public static DiscoveryConfigModel Clone(this DiscoveryConfigModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new DiscoveryConfigModel {
+            return new DiscoveryConfigModel
+            {
                 DiscoveryUrls = model.DiscoveryUrls?.Count > 0 ?
                     model.DiscoveryUrls.ToList() : null,
                 Locales = model.Locales?.Count > 0 ?

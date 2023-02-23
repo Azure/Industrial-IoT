@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
+namespace Microsoft.Azure.IIoT.Auth.Clients.Default
+{
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Logging;
     using System.Collections.Generic;
@@ -14,10 +15,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Uses developer tool or Az cache as authentication
     /// </summary>
-    public class DevAuthenticationClient : AppAuthenticationBase {
+    public class DevAuthenticationClient : AppAuthenticationBase
+    {
         /// <inheritdoc/>
         public DevAuthenticationClient(IClientAuthConfig config, ILogger logger) :
-            base(logger) {
+            base(logger)
+        {
             _config = config?.Providers?
                 .Where(c => c.Provider == AuthProvider.Msi || c.Provider == AuthProvider.AzureAD)
                 .Where(c => c.Audience != null && Regex.IsMatch(c.Audience, "^[0-9a-zA-Z-.:/]+$"))
@@ -26,7 +29,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         }
 
         /// <inheritdoc/>
-        protected override IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> GetProvider(string resource) {
+        protected override IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> GetProvider(string resource)
+        {
             return _config.Where(c => c.Key == resource).Select(c => c.Value);
         }
 
@@ -35,9 +39,11 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// </summary>
         /// <returns></returns>
         private static IEnumerable<KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)>>
-            CreateProvider(IOAuthClientConfig config) {
+            CreateProvider(IOAuthClientConfig config)
+        {
             var authority = config.GetAuthorityUrl(true);
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
                 yield return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
                     (config, new AzureServiceTokenProvider(
                         "RunAs=Developer; DeveloperTool=VisualStudio", authority)));

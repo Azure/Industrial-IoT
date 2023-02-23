@@ -27,14 +27,17 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Boiler {
+namespace Boiler
+{
     using Opc.Ua;
 
-    public partial class BoilerStateMachineState {
+    public partial class BoilerStateMachineState
+    {
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
-        protected override void OnAfterCreate(ISystemContext context, NodeState node) {
+        protected override void OnAfterCreate(ISystemContext context, NodeState node)
+        {
             base.OnAfterCreate(context, node);
 
             Start.OnCallMethod = OnStart;

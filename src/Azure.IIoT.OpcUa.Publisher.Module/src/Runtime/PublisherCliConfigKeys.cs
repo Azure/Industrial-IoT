@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
+namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
+{
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Microsoft.Azure.IIoT.Hub.Module.Client.Runtime;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     /// Static class that contains the default keys for the command line arguments how they
     /// will be represented in the IConfiguration-instance.
     /// </summary>
-    public static class PublisherCliConfigKeys {
+    public static class PublisherCliConfigKeys
+    {
         /// <summary>
         /// Key for default published nodes file.
         /// </summary>

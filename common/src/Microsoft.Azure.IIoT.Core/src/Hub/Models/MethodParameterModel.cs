@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Models {
+namespace Microsoft.Azure.IIoT.Hub.Models
+{
     using System;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// Twin services method params
     /// </summary>
     [DataContract]
-    public class MethodParameterModel {
+    public class MethodParameterModel
+    {
         /// <summary>
         /// Name of method
         /// </summary>

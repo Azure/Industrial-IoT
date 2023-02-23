@@ -3,23 +3,25 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
+namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
+{
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Abstractions;
+    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
     using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Logging;
-    using Furly.Extensions.Serializers;
     using System;
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
 
     /// <summary>
     /// Edgelet client providing discovery and in the future other services
     /// </summary>
-    public sealed class EdgeletClient : ISecureElement {
+    public sealed class EdgeletClient : ISecureElement
+    {
         /// <summary>
         /// Create client
         /// </summary>
@@ -32,7 +34,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_MODULEGENERATIONID),
             Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_MODULEID),
             Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_APIVERSION),
-            logger) {
+            logger)
+        {
         }
 
         /// <summary>
@@ -47,7 +50,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="logger"></param>
         public EdgeletClient(IHttpClient client, IJsonSerializer serializer,
             string workloaduri, string genId, string moduleId, string apiVersion,
-            ILogger logger) {
+            ILogger logger)
+        {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -59,12 +63,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
         /// <inheritdoc/>
         public async Task<byte[]> EncryptAsync(
-            string initializationVector, byte[] plaintext, CancellationToken ct) {
+            string initializationVector, byte[] plaintext, CancellationToken ct)
+        {
             var request = _client.NewRequest(
                 $"{_workloaduri}/modules/{_moduleId}/genid/{_moduleGenerationId}/" +
                 $"encrypt?api-version={_apiVersion}");
             _serializer.SerializeToRequest(request, new { initializationVector, plaintext });
-            return await Retry2.WithExponentialBackoffAsync(_logger, async () => {
+            return await Retry2.WithExponentialBackoffAsync(_logger, async () =>
+            {
                 var response = await _client.PostAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
                 return _serializer.DeserializeResponse<EncryptResponse>(response).CipherText;
@@ -73,12 +79,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
         /// <inheritdoc/>
         public async Task<byte[]> DecryptAsync(
-            string initializationVector, byte[] ciphertext, CancellationToken ct) {
+            string initializationVector, byte[] ciphertext, CancellationToken ct)
+        {
             var request = _client.NewRequest(
                 $"{_workloaduri}/modules/{_moduleId}/genid/{_moduleGenerationId}/" +
                 $"decrypt?api-version={_apiVersion}");
             _serializer.SerializeToRequest(request, new { initializationVector, ciphertext });
-            return await Retry2.WithExponentialBackoffAsync(_logger, async () => {
+            return await Retry2.WithExponentialBackoffAsync(_logger, async () =>
+            {
                 var response = await _client.PostAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
                 return _serializer.DeserializeResponse<DecryptResponse>(response).Plaintext;
@@ -89,7 +97,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Encrypt response
         /// </summary>
         [DataContract]
-        public class EncryptResponse {
+        public class EncryptResponse
+        {
             /// <summary>Cypher.</summary>
             [DataMember(Name = "cipherText")]
             public byte[] CipherText { get; set; }
@@ -99,7 +108,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Decrypt response
         /// </summary>
         [DataContract]
-        public class DecryptResponse {
+        public class DecryptResponse
+        {
             /// <summary>Cypher.</summary>
             [DataMember(Name = "plaintext")]
             public byte[] Plaintext { get; set; }
@@ -109,7 +119,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Edgelet create certificate response
         /// </summary>
         [DataContract]
-        public class EdgeletCertificateResponse {
+        public class EdgeletCertificateResponse
+        {
             /// <summary>
             /// Base64 encoded PEM formatted byte array
             /// containing the certificate and its chain.
@@ -126,7 +137,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Edgelet private key
         /// </summary>
         [DataContract]
-        public class EdgeletPrivateKey {
+        public class EdgeletPrivateKey
+        {
             /// <summary>Type of private key.</summary>
             [DataMember(Name = "type")]
             public string Type { get; set; }

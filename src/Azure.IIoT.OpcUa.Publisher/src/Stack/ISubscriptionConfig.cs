@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
 
     /// <summary>
     /// Subscription configuration
     /// </summary>
-    public interface ISubscriptionConfig {
+    public interface ISubscriptionConfig
+    {
         /// <summary>
         /// The default interval for heartbeats if not configured.
         /// </summary>

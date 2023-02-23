@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module {
+namespace Microsoft.Azure.IIoT.Module
+{
     using Microsoft.Azure.IIoT.Exceptions;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Handles method call invocation
     /// </summary>
-    public interface IMethodHandler {
+    public interface IMethodHandler
+    {
         /// <summary>
         /// Method handler
         /// </summary>

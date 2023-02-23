@@ -27,18 +27,21 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace DataAccess {
+namespace DataAccess
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Stores the configuration the data access node manager.
     /// </summary>
     [DataContract(Namespace = Namespaces.DataAccess)]
-    public class DataAccessServerConfiguration {
+    public class DataAccessServerConfiguration
+    {
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public DataAccessServerConfiguration() {
+        public DataAccessServerConfiguration()
+        {
             Initialize();
         }
 
@@ -46,14 +49,16 @@ namespace DataAccess {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private static void Initialize() {
+        private static void Initialize()
+        {
         }
     }
 }

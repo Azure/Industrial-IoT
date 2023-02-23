@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Models {
+namespace Microsoft.Azure.IIoT.App.Models
+{
     using global::Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Collections.Generic;
-    public class ListNode {
+    public class ListNode
+    {
         public string Id { get; set; }
         public NodeClass NodeClass { get; set; }
         public NodeAccessLevel AccessLevel { get; set; }
@@ -25,15 +27,18 @@ namespace Microsoft.Azure.IIoT.App.Models {
         public string ErrorMessage { get; set; }
         public List<string> ParentIdList { get; set; }
 
-        public ListNode() {
+        public ListNode()
+        {
             ParentIdList = new List<string>();
         }
         public PublishedItemModel PublishedItem { get; set; }
 
         public bool Publishing { get; set; }
 
-        public bool TryUpdateData(ListNodeRequested input) {
-            try {
+        public bool TryUpdateData(ListNodeRequested input)
+        {
+            try
+            {
                 PublishedItem.PublishingInterval = string.IsNullOrWhiteSpace(input.RequestedPublishingInterval) ?
                     TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(input.RequestedPublishingInterval));
 
@@ -45,7 +50,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
 
                 return true;
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 return false;
             }
         }

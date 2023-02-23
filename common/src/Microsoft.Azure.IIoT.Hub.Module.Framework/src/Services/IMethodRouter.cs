@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Services {
+namespace Microsoft.Azure.IIoT.Module.Framework.Services
+{
     using Microsoft.Azure.Devices.Client;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Route to the right service
     /// </summary>
-    public interface IMethodRouter {
+    public interface IMethodRouter
+    {
         /// <summary>
         /// Invoke method
         /// </summary>

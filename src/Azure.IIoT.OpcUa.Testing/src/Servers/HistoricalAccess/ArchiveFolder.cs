@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalAccess {
+namespace HistoricalAccess
+{
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
@@ -35,11 +36,13 @@ namespace HistoricalAccess {
     /// <summary>
     /// Stores the metadata for a node representing a folder on a file system.
     /// </summary>
-    public class ArchiveFolder {
+    public class ArchiveFolder
+    {
         /// <summary>
         /// Creates a new instance.
         /// </summary>
-        public ArchiveFolder(string uniquePath, DirectoryInfo folder) {
+        public ArchiveFolder(string uniquePath, DirectoryInfo folder)
+        {
             UniquePath = uniquePath;
             DirectoryInfo = folder;
         }
@@ -47,14 +50,17 @@ namespace HistoricalAccess {
         /// <summary>
         /// Returns the child folders.
         /// </summary>
-        public ArchiveFolder[] GetChildFolders() {
+        public ArchiveFolder[] GetChildFolders()
+        {
             var folders = new List<ArchiveFolder>();
 
-            if (!DirectoryInfo.Exists) {
+            if (!DirectoryInfo.Exists)
+            {
                 return folders.ToArray();
             }
 
-            foreach (var directory in DirectoryInfo.GetDirectories()) {
+            foreach (var directory in DirectoryInfo.GetDirectories())
+            {
                 var buffer = new StringBuilder(UniquePath);
                 buffer.Append('/');
                 buffer.Append(directory.Name);
@@ -67,14 +73,17 @@ namespace HistoricalAccess {
         /// <summary>
         /// Returns the child folders.
         /// </summary>
-        public ArchiveItem[] GetItems() {
+        public ArchiveItem[] GetItems()
+        {
             var items = new List<ArchiveItem>();
 
-            if (!DirectoryInfo.Exists) {
+            if (!DirectoryInfo.Exists)
+            {
                 return items.ToArray();
             }
 
-            foreach (var file in DirectoryInfo.GetFiles("*.csv")) {
+            foreach (var file in DirectoryInfo.GetFiles("*.csv"))
+            {
                 var buffer = new StringBuilder(UniquePath);
                 buffer.Append('/');
                 buffer.Append(file.Name);
@@ -87,16 +96,19 @@ namespace HistoricalAccess {
         /// <summary>
         /// Returns the parent folder.
         /// </summary>
-        public ArchiveFolder GetParentFolder() {
+        public ArchiveFolder GetParentFolder()
+        {
             var parentPath = string.Empty;
 
-            if (!DirectoryInfo.Exists) {
+            if (!DirectoryInfo.Exists)
+            {
                 return null;
             }
 
             var index = UniquePath.LastIndexOf('/');
 
-            if (index > 0) {
+            if (index > 0)
+            {
                 parentPath = UniquePath.Substring(0, index);
             }
 

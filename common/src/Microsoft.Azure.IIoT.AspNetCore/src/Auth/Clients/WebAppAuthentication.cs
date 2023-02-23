@@ -3,7 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
+namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
+{
+    using Autofac;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
@@ -12,15 +14,16 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Extensions.Logging;
-    using Autofac;
     using System.Collections.Generic;
 
     /// <summary>
     /// Default web app authentication
     /// </summary>
-    public class WebAppAuthentication : Module {
+    public class WebAppAuthentication : Module
+    {
         /// <inheritdoc/>
-        protected override void Load(ContainerBuilder builder) {
+        protected override void Load(ContainerBuilder builder)
+        {
             builder.RegisterType<HttpHandlerFactory>()
                 .AsImplementedInterfaces();
             builder.RegisterType<HttpBearerAuthentication>()
@@ -56,11 +59,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <summary>
         /// First try passthrough, then try service client credentials
         /// </summary>
-        internal class UserTokenSource : TokenClientAggregateSource{
+        internal class UserTokenSource : TokenClientAggregateSource
+        {
             /// <inheritdoc/>
             public UserTokenSource(OpenIdUserTokenClient oi, MsalUserTokenClient uc,
                 IEnumerable<ITokenClient> providers, ILogger logger)
-                : base(providers, Http.Resource.Platform, logger, oi, uc) {
+                : base(providers, Http.Resource.Platform, logger, oi, uc)
+            {
             }
         }
     }

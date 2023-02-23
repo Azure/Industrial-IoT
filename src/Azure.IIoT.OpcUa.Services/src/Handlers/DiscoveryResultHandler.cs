@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Handlers {
+namespace Azure.IIoT.OpcUa.Services.Handlers
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Hub;
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
     /// <summary>
     /// Server discovery result handling
     /// </summary>
-    public sealed class DiscoveryResultHandler : IDeviceTelemetryHandler {
+    public sealed class DiscoveryResultHandler : IDeviceTelemetryHandler
+    {
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.DiscoveryEvents;
 
@@ -29,7 +31,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public DiscoveryResultHandler(IDiscoveryResultProcessor processor,
-            IJsonSerializer serializer, ILogger logger) {
+            IJsonSerializer serializer, ILogger logger)
+        {
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
             _logger = logger ??
@@ -40,42 +43,52 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
 
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
+            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint)
+        {
             DiscoveryEventModel discovery;
-            try {
+            try
+            {
                 discovery = _serializer.Deserialize<DiscoveryEventModel>(payload);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Failed to convert discovery result {Json}",
                     Encoding.UTF8.GetString(payload));
                 return;
             }
-            try {
+            try
+            {
                 var discovererId = PublisherModelEx.CreatePublisherId(
                     deviceId, moduleId?.ToString());
 
                 await ProcessServerEndpointDiscoveryAsync(discovererId,
                     discovery, checkpoint).ConfigureAwait(false);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Handling discovery event failed with exception - skip");
             }
         }
 
         /// <inheritdoc/>
-        public async Task OnBatchCompleteAsync() {
-            try {
+        public async Task OnBatchCompleteAsync()
+        {
+            try
+            {
                 await _queueLock.WaitAsync().ConfigureAwait(false);
                 var old = DateTime.UtcNow - TimeSpan.FromHours(1);
 
                 var removed = new List<KeyValuePair<DateTime, DiscovererDiscoveryResult>>();
-                foreach (var backlog in _discovererQueues.ToList()) {
+                foreach (var backlog in _discovererQueues.ToList())
+                {
                     foreach (var queue in backlog.Value
-                        .Where(kv => kv.Key < old).ToList()) {
+                        .Where(kv => kv.Key < old).ToList())
+                    {
                         backlog.Value.Remove(queue.Key);
                         removed.Add(queue);
                     }
-                    if (backlog.Value.Count == 0) {
+                    if (backlog.Value.Count == 0)
+                    {
                         _discovererQueues.Remove(backlog.Key);
                     }
                 }
@@ -85,16 +98,20 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                 var newest = removed
                     .Select(x => x.Value)
                     .OrderByDescending(x => x.Created).FirstOrDefault();
-                if (newest != null) {
-                    try {
+                if (newest != null)
+                {
+                    try
+                    {
                         await newest.Checkpoint().ConfigureAwait(false);
                     }
-                    catch {
+                    catch
+                    {
                         return;
                     }
                 }
             }
-            finally {
+            finally
+            {
                 _queueLock.Release();
             }
         }
@@ -107,26 +124,33 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <param name="checkpoint"></param>
         /// <returns></returns>
         private async Task ProcessServerEndpointDiscoveryAsync(
-            string discovererId, DiscoveryEventModel model, Func<Task> checkpoint) {
-            try {
+            string discovererId, DiscoveryEventModel model, Func<Task> checkpoint)
+        {
+            try
+            {
                 await _queueLock.WaitAsync().ConfigureAwait(false);
 
-                if (!_discovererQueues.TryGetValue(discovererId, out var backlog)) {
+                if (!_discovererQueues.TryGetValue(discovererId, out var backlog))
+                {
                     backlog = new Dictionary<DateTime, DiscovererDiscoveryResult>();
                     _discovererQueues.Add(discovererId, backlog);
                 }
-                if (!backlog.TryGetValue(model.TimeStamp, out var queue)) {
+                if (!backlog.TryGetValue(model.TimeStamp, out var queue))
+                {
                     queue = new DiscovererDiscoveryResult(checkpoint);
                     backlog.Add(model.TimeStamp, queue);
                 }
                 queue.Enqueue(model);
-                if (queue.Completed) {
-                    try {
+                if (queue.Completed)
+                {
+                    try
+                    {
                         // Process discoveries
                         await _processor.ProcessDiscoveryResultsAsync(
                                 discovererId, queue.Result, queue.Events).ConfigureAwait(false);
                     }
-                    catch (Exception ex) {
+                    catch (Exception ex)
+                    {
                         _logger.LogError(ex,
                             "Failure during discovery processing in registry. Skip.");
                     }
@@ -137,15 +161,18 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                     // If not then checkpoint this queue.
                     //
                     if (!_discovererQueues.Any(d => d.Value
-                            .Any(x => x.Value.Created <= queue.Created))) {
+                            .Any(x => x.Value.Created <= queue.Created)))
+                    {
                         await queue.Checkpoint().ConfigureAwait(false);
                     }
                 }
-                if (backlog.Count == 0) {
+                if (backlog.Count == 0)
+                {
                     _discovererQueues.Remove(discovererId);
                 }
             }
-            finally {
+            finally
+            {
                 _queueLock.Release();
             }
         }
@@ -153,7 +180,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <summary>
         /// Keeps queue of discovery messages per device
         /// </summary>
-        private class DiscovererDiscoveryResult {
+        private class DiscovererDiscoveryResult
+        {
             /// <summary>
             /// Checkpointable event data
             /// </summary>
@@ -174,8 +202,10 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
             /// Get events
             /// </summary>
             /// <returns></returns>
-            public IEnumerable<DiscoveryEventModel> Events {
-                get {
+            public IEnumerable<DiscoveryEventModel> Events
+            {
+                get
+                {
                     _endpoints.Sort((x, y) => x.Index - y.Index);
                     return _endpoints;
                 }
@@ -189,7 +219,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
             /// <summary>
             /// Create queue
             /// </summary>
-            public DiscovererDiscoveryResult(Func<Task> checkpoint) {
+            public DiscovererDiscoveryResult(Func<Task> checkpoint)
+            {
                 Checkpoint = checkpoint;
                 _endpoints = new List<DiscoveryEventModel>();
                 _maxIndex = 0;
@@ -200,12 +231,15 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
             /// </summary>
             /// <param name="model"></param>
             /// <returns></returns>
-            public void Enqueue(DiscoveryEventModel model) {
+            public void Enqueue(DiscoveryEventModel model)
+            {
                 _maxIndex = Math.Max(model.Index, _maxIndex);
-                if (model.Registration != null) {
+                if (model.Registration != null)
+                {
                     _endpoints.Add(model);
                 }
-                else {
+                else
+                {
                     Result = model.Result ?? new DiscoveryResultModel();
                 }
             }

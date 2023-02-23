@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
+namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services
+{
     using Microsoft.AspNetCore.SignalR;
+    using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Threading;
@@ -15,7 +16,8 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     /// Signalr hub for hosting inside Asp.net core host.
     /// </summary>
     public sealed class SignalRHub<THub> : ICallbackInvokerT<THub>,
-        IGroupRegistrationT<THub> where THub : Hub {
+        IGroupRegistrationT<THub> where THub : Hub
+    {
         /// <inheritdoc/>
         public string Resource { get; }
 
@@ -24,7 +26,8 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         /// </summary>
         /// <param name="hub"></param>
         /// <param name="logger"></param>
-        public SignalRHub(IHubContext<THub> hub, ILogger logger) {
+        public SignalRHub(IHubContext<THub> hub, ILogger logger)
+        {
             _hub = hub ?? throw new ArgumentNullException(nameof(hub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             Resource = NameAttribute.GetName(typeof(THub));
@@ -32,44 +35,56 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
 
         /// <inheritdoc/>
         public async Task BroadcastAsync(string method, object[] arguments,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(method)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(method))
+            {
                 throw new ArgumentNullException(nameof(method));
             }
-            try {
+            try
+            {
                 await _hub.Clients.All.SendCoreAsync(method,
                     arguments ?? Array.Empty<object>(), ct).ConfigureAwait(false);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogTrace(ex, "Failed to send broadcast message");
             }
         }
 
         /// <inheritdoc/>
         public async Task MulticastAsync(string group, string method, object[] arguments,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(method)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(method))
+            {
                 throw new ArgumentNullException(nameof(method));
             }
-            if (string.IsNullOrEmpty(group)) {
+            if (string.IsNullOrEmpty(group))
+            {
                 throw new ArgumentNullException(nameof(group));
             }
-            try {
+            try
+            {
                 await _hub.Clients.Group(group).SendCoreAsync(method,
                     arguments ?? Array.Empty<object>(), ct).ConfigureAwait(false);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogTrace(ex, "Failed to send multicast message");
             }
         }
 
         /// <inheritdoc/>
         public Task SubscribeAsync(string group, string client,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(client)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(client))
+            {
                 throw new ArgumentNullException(nameof(client));
             }
-            if (string.IsNullOrEmpty(group)) {
+            if (string.IsNullOrEmpty(group))
+            {
                 throw new ArgumentNullException(nameof(group));
             }
             return _hub.Groups.AddToGroupAsync(client, group, ct);
@@ -77,18 +92,22 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
 
         /// <inheritdoc/>
         public Task UnsubscribeAsync(string group, string client,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(client)) {
+            CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(client))
+            {
                 throw new ArgumentNullException(nameof(client));
             }
-            if (string.IsNullOrEmpty(group)) {
+            if (string.IsNullOrEmpty(group))
+            {
                 throw new ArgumentNullException(nameof(group));
             }
             return _hub.Groups.RemoveFromGroupAsync(client, group, ct);
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             // No op
         }
 

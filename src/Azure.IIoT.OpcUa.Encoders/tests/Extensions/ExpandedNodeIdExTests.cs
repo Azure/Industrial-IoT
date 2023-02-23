@@ -3,13 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Extensions {
+namespace Opc.Ua.Extensions
+{
     using System;
     using Xunit;
 
-    public class ExpandedNodeIdExTests {
+    public class ExpandedNodeIdExTests
+    {
         [Fact]
-        public void DecodeExpandedNodeIdFromStringNoUri() {
+        public void DecodeExpandedNodeIdFromStringNoUri()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             var result = ("s=" + expected).ToExpandedNodeId(context);
@@ -19,7 +22,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromStringUrlEncodedNoUri() {
+        public void DecodeExpandedNodeIdFromStringUrlEncodedNoUri()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             var result = ("s=" + expected.UrlEncode()).ToExpandedNodeId(context);
@@ -27,7 +31,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromString() {
+        public void DecodeExpandedNodeIdFromString()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "http://contosos.com/UA";
@@ -38,7 +43,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromStringUrnNamespace() {
+        public void DecodeExpandedNodeIdFromStringUrnNamespace()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "urn:contosos";
@@ -49,7 +55,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromStringInvalidUri() {
+        public void DecodeExpandedNodeIdFromStringInvalidUri()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "invalidUri";
@@ -60,7 +67,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromStringWithNamespaceIndex() {
+        public void DecodeExpandedNodeIdFromStringWithNamespaceIndex()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "http://contosos.com/UA";
@@ -72,7 +80,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromStringWithNsu() {
+        public void DecodeExpandedNodeIdFromStringWithNsu()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "http://contosos.com/UA";
@@ -87,7 +96,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromStringWithNsuBadNamespace() {
+        public void DecodeExpandedNodeIdFromStringWithNsuBadNamespace()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "contosos";
@@ -102,7 +112,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromStringWithNsuUrnNamespace() {
+        public void DecodeExpandedNodeIdFromStringWithNsuUrnNamespace()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "urn:contosos";
@@ -117,7 +128,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromStringUrlEncoded() {
+        public void DecodeExpandedNodeIdFromStringUrlEncoded()
+        {
             var context = new ServiceMessageContext();
             const string expected = "   space    tests /(%)§;#;;#;()§$\"))\"\")(§";
             const string uri = "http://contosos.com/UA";
@@ -128,7 +140,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromBufferNoUri() {
+        public void DecodeExpandedNodeIdFromBufferNoUri()
+        {
             var context = new ServiceMessageContext();
             var expected = new byte[] { 0, 34, 23, 255, 6, 34, 65, 0, 0, 2, 0 };
             var result = ("b=" + expected.ToBase64String()).ToExpandedNodeId(context);
@@ -138,7 +151,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromBufferUrlEncodedNoUri() {
+        public void DecodeExpandedNodeIdFromBufferUrlEncodedNoUri()
+        {
             var context = new ServiceMessageContext();
             var expected = new byte[] { 0, 34, 23, 255, 6, 34, 65, 0, 0, 2, 0 };
             var result = ("b=" + expected.ToBase64String().UrlEncode()).ToExpandedNodeId(context);
@@ -146,7 +160,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromBuffer() {
+        public void DecodeExpandedNodeIdFromBuffer()
+        {
             var context = new ServiceMessageContext();
             var expected = new byte[] { 0, 34, 23, 255, 6, 34, 65, 0, 0, 2, 0 };
             const string uri = "http://contosos.com/UA";
@@ -157,7 +172,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromBufferUrlEncoded() {
+        public void DecodeExpandedNodeIdFromBufferUrlEncoded()
+        {
             var context = new ServiceMessageContext();
             var expected = new byte[] { 0, 34, 23, 255, 6, 34, 65, 0, 0, 2, 0 };
             const string uri = "http://contosos.com/UA";
@@ -168,7 +184,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromBufferWithNamespaceIndex() {
+        public void DecodeExpandedNodeIdFromBufferWithNamespaceIndex()
+        {
             var context = new ServiceMessageContext();
             var expected = Guid.NewGuid().ToByteArray();
             const string uri = "http://contosos.com/UA";
@@ -181,7 +198,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromBufferWithNsu() {
+        public void DecodeExpandedNodeIdFromBufferWithNsu()
+        {
             var context = new ServiceMessageContext();
             var expected = Guid.NewGuid().ToByteArray();
             const string uri = "http://contosos.com/UA";
@@ -196,7 +214,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromGuidNoUri() {
+        public void DecodeExpandedNodeIdFromGuidNoUri()
+        {
             var context = new ServiceMessageContext();
             var expected = Guid.NewGuid();
             var result = ("g=" + expected).ToExpandedNodeId(context);
@@ -206,7 +225,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromGuidUrlEncodedNoUri() {
+        public void DecodeExpandedNodeIdFromGuidUrlEncodedNoUri()
+        {
             var context = new ServiceMessageContext();
             var expected = Guid.NewGuid();
             var result = ("g=" + expected.ToString().UrlEncode()).ToExpandedNodeId(context);
@@ -214,7 +234,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromGuid() {
+        public void DecodeExpandedNodeIdFromGuid()
+        {
             var context = new ServiceMessageContext();
             var expected = Guid.NewGuid();
             const string uri = "http://contosos.com/UA/";
@@ -225,7 +246,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromGuidUrlEncoded() {
+        public void DecodeExpandedNodeIdFromGuidUrlEncoded()
+        {
             var context = new ServiceMessageContext();
             var expected = Guid.NewGuid();
             const string uri = "http://contosos.com/UA/";
@@ -236,7 +258,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromGuidWithNamespaceIndex() {
+        public void DecodeExpandedNodeIdFromGuidWithNamespaceIndex()
+        {
             var context = new ServiceMessageContext();
             var expected = Guid.NewGuid();
             const string uri = "http://contosos.com/UA";
@@ -248,7 +271,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void DecodeExpandedNodeIdFromGuidWithNsu() {
+        public void DecodeExpandedNodeIdFromGuidWithNsu()
+        {
             var context = new ServiceMessageContext();
             var expected = Guid.NewGuid();
             const string uri = "http://contosos.com/UA";
@@ -263,7 +287,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithString() {
+        public void EncodeDecodeExpandedNodeIdWithString()
+        {
             var context = new ServiceMessageContext();
             const string uri = "http://contoso.com/UA";
             var idx = context.NamespaceUris.GetIndexOrAppend(uri);
@@ -279,7 +304,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithStringAndDefaultUri() {
+        public void EncodeDecodeExpandedNodeIdWithStringAndDefaultUri()
+        {
             var context = new ServiceMessageContext();
             var expected = new ExpandedNodeId("   space    tests /(%)§;#;;#;()§$\"))\"\")(§", 0);
 
@@ -293,7 +319,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithGuid() {
+        public void EncodeDecodeExpandedNodeIdWithGuid()
+        {
             var context = new ServiceMessageContext();
             const string uri = "http://contoso.com/UA";
             var expected = new ExpandedNodeId(Guid.NewGuid(), 0, uri, 0);
@@ -308,7 +335,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithGuidAndDefaultUri() {
+        public void EncodeDecodeExpandedNodeIdWithGuidAndDefaultUri()
+        {
             var context = new ServiceMessageContext();
             var expected = new ExpandedNodeId(Guid.NewGuid());
 
@@ -322,7 +350,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithInt() {
+        public void EncodeDecodeExpandedNodeIdWithInt()
+        {
             var context = new ServiceMessageContext();
             const string uri = "http://contoso.com/UA";
             var idx = context.NamespaceUris.GetIndexOrAppend(uri);
@@ -338,7 +367,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithIntAndDefaultUri() {
+        public void EncodeDecodeExpandedNodeIdWithIntAndDefaultUri()
+        {
             var context = new ServiceMessageContext();
             var expected = new ExpandedNodeId(111111111, 0);
 
@@ -352,7 +382,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithBuffer() {
+        public void EncodeDecodeExpandedNodeIdWithBuffer()
+        {
             var context = new ServiceMessageContext();
 
             const string uri = "http://contoso.com/UA";
@@ -369,7 +400,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithBufferAndDefaultUri() {
+        public void EncodeDecodeExpandedNodeIdWithBufferAndDefaultUri()
+        {
             var context = new ServiceMessageContext();
             var expected = new ExpandedNodeId(Guid.NewGuid().ToByteArray(), 0);
 
@@ -383,7 +415,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithEmptyString() {
+        public void EncodeDecodeExpandedNodeIdWithEmptyString()
+        {
             var context = new ServiceMessageContext();
             const string uri = "http://contoso.com/UA";
             var idx = context.NamespaceUris.GetIndexOrAppend(uri);
@@ -399,7 +432,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithEmptyStringAndDefaultUri() {
+        public void EncodeDecodeExpandedNodeIdWithEmptyStringAndDefaultUri()
+        {
             var context = new ServiceMessageContext();
             var expected = new ExpandedNodeId("", 0);
 
@@ -413,7 +447,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithNullString() {
+        public void EncodeDecodeExpandedNodeIdWithNullString()
+        {
             var context = new ServiceMessageContext();
             const string uri = "http://contoso.com/UA";
             var idx = context.NamespaceUris.GetIndexOrAppend(uri);
@@ -436,7 +471,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeExpandedNodeIdWithNullStringAndDefaultUri() {
+        public void EncodeDecodeExpandedNodeIdWithNullStringAndDefaultUri()
+        {
             var context = new ServiceMessageContext();
             var expected = new ExpandedNodeId((string)null, 0);
 
@@ -452,7 +488,8 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
-        public void EncodeDecodeNullExpandedNodeId() {
+        public void EncodeDecodeNullExpandedNodeId()
+        {
             var context = new ServiceMessageContext();
             var expected = ExpandedNodeId.Null;
 
@@ -468,7 +505,8 @@ namespace Opc.Ua.Extensions {
         }
 
         private static void AssertEqual(ExpandedNodeId expected,
-            ExpandedNodeId result1, ExpandedNodeId result2) {
+            ExpandedNodeId result1, ExpandedNodeId result2)
+        {
             Assert.Equal(expected.Identifier, result1.Identifier);
             Assert.Equal(expected.Identifier, result2.Identifier);
 

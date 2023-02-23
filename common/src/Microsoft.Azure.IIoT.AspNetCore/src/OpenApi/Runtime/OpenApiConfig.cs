@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
+namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime
+{
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// OpenApi configuration with fall back to client configuration.
     /// </summary>
-    public class OpenApiConfig : ConfigBase, IOpenApiConfig {
+    public class OpenApiConfig : ConfigBase, IOpenApiConfig
+    {
         /// <summary>
         /// OpenApi configuration
         /// </summary>
@@ -67,7 +69,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
         /// </summary>
         /// <param name="configuration"></param>
         public OpenApiConfig(IConfiguration configuration) :
-            base(configuration) {
+            base(configuration)
+        {
         }
     }
 }

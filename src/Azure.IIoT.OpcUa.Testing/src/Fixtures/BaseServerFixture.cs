@@ -3,12 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Fixtures {
-    using Azure.IIoT.OpcUa.Testing.Runtime;
+namespace Azure.IIoT.OpcUa.Testing.Fixtures
+{
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Testing.Runtime;
     using Furly.Extensions.Logging;
+    using Furly.Extensions.Serializers.Json;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using Opc.Ua.Server;
@@ -18,13 +21,12 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.Serializers.Newtonsoft;
-    using Furly.Extensions.Serializers.Json;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
     /// </summary>
-    public abstract class BaseServerFixture : IDisposable {
+    public abstract class BaseServerFixture : IDisposable
+    {
         /// <summary>
         /// Port server is listening on
         /// </summary>
@@ -53,8 +55,10 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
         /// <summary>
         /// Create fixture
         /// </summary>
-        protected BaseServerFixture(IEnumerable<INodeManagerFactory> nodes) {
-            if (nodes == null) {
+        protected BaseServerFixture(IEnumerable<INodeManagerFactory> nodes)
+        {
+            if (nodes == null)
+            {
                 throw new ArgumentNullException(nameof(nodes));
             }
             Logger = Log.Console<BaseServerFixture>(LogLevel.Debug);
@@ -63,12 +67,16 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
             PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
                Guid.NewGuid().ToByteArray().ToBase16String());
             var port = Interlocked.Increment(ref _nextPort);
-            for (var i = 0; i < 200; i++) { // Retry 200 times
-                try {
+            for (var i = 0; i < 200; i++)
+            { // Retry 200 times
+                try
+                {
                     _serverHost = new ServerConsoleHost(
-                        new ServerFactory(Logger, nodes) {
+                        new ServerFactory(Logger, nodes)
+                        {
                             LogStatus = false
-                        }, Logger) {
+                        }, Logger)
+                    {
                         PkiRootPath = PkiRootPath,
                         AutoAccept = true
                     };
@@ -78,7 +86,8 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
                     Port = port;
                     break;
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     port = Interlocked.Increment(ref _nextPort);
                     Logger.LogError(ex, "Failed to start server host, retrying {Port}...",
                         port);
@@ -87,15 +96,18 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public void Dispose()
+        {
             Logger.LogInformation("Disposing server and client fixture...");
             _serverHost.Dispose();
             // Clean up all created certificates
-            if (Directory.Exists(PkiRootPath)) {
+            if (Directory.Exists(PkiRootPath))
+            {
                 Logger.LogInformation("Server disposed - cleaning up server certificates...");
                 Try.Op(() => Directory.Delete(PkiRootPath, true));
             }
-            if (_client.IsValueCreated) {
+            if (_client.IsValueCreated)
+            {
                 Logger.LogInformation("Disposing client...");
                 Task.Run(() => _client.Value.Dispose()).Wait();
             }

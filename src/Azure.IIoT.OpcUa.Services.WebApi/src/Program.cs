@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi {
+namespace Azure.IIoT.OpcUa.Services.WebApi
+{
     using Autofac.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
@@ -11,12 +12,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     /// <summary>
     /// Main entry point
     /// </summary>
-    public static class Program {
+    public static class Program
+    {
         /// <summary>
         /// Main entry point
         /// </summary>
         /// <param name="args"></param>
-        public static void Main(string[] args) {
+        public static void Main(string[] args)
+        {
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -25,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static IHostBuilder CreateHostBuilder(string[] args) {
+        public static IHostBuilder CreateHostBuilder(string[] args)
+        {
             return Host.CreateDefaultBuilder(args)
                 .UseAutofac()
                 .ConfigureWebHostDefaults(builder => builder

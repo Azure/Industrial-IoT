@@ -3,22 +3,25 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http {
-    using Microsoft.Azure.IIoT.Http.Exceptions;
+namespace Microsoft.Azure.IIoT.Http
+{
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Http.Exceptions;
     using System;
     using System.Net;
 
     /// <summary>
     /// Http status code extensions
     /// </summary>
-    public static class HttpStatusCodeEx {
+    public static class HttpStatusCodeEx
+    {
         /// <summary>
         /// True if statusCode is an error
         /// </summary>
         /// <param name="statusCode"></param>
         /// <returns></returns>
-        public static bool IsError(this HttpStatusCode statusCode) {
+        public static bool IsError(this HttpStatusCode statusCode)
+        {
             return (int)statusCode >= 400 || statusCode == 0;
         }
 
@@ -29,8 +32,10 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="message"></param>
         /// <param name="inner"></param>
         public static void Validate(this HttpStatusCode statusCode,
-            string message, Exception inner = null) {
-            switch (statusCode) {
+            string message, Exception inner = null)
+        {
+            switch (statusCode)
+            {
                 case HttpStatusCode.OK:
                 case HttpStatusCode.Created:
                 case HttpStatusCode.Accepted:

@@ -27,14 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalAccess {
+namespace HistoricalAccess
+{
     using Opc.Ua;
     using System.Text;
 
     /// <summary>
     /// Defines the types of nodes exposed by the HistoricalAccessServer NodeManager.
     /// </summary>
-    public static class NodeTypes {
+    public static class NodeTypes
+    {
         /// <summary>
         /// A node representing a Folder.
         /// </summary>
@@ -51,20 +53,24 @@ namespace HistoricalAccess {
         /// <param name="component">The component.</param>
         /// <param name="namespaceIndex">Index of the namespace.</param>
         /// <returns>The node identifier for a component.</returns>
-        public static NodeId ConstructIdForComponent(NodeState component, ushort namespaceIndex) {
-            if (component == null) {
+        public static NodeId ConstructIdForComponent(NodeState component, ushort namespaceIndex)
+        {
+            if (component == null)
+            {
                 return null;
             }
 
             // components must be instances with a parent.
 
-            if (!(component is BaseInstanceState instance) || instance.Parent == null) {
+            if (!(component is BaseInstanceState instance) || instance.Parent == null)
+            {
                 return component.NodeId;
             }
 
             // parent must have a string identifier.
 
-            if (!(instance.Parent.NodeId.Identifier is string parentId)) {
+            if (!(instance.Parent.NodeId.Identifier is string parentId))
+            {
                 return null;
             }
 
@@ -74,10 +80,12 @@ namespace HistoricalAccess {
             // check if the parent is another component.
             var index = parentId.IndexOf('?');
 
-            if (index < 0) {
+            if (index < 0)
+            {
                 buffer.Append('?');
             }
-            else {
+            else
+            {
                 buffer.Append('/');
             }
 

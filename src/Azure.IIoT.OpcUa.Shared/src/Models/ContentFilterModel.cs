@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Content filter
     /// </summary>
     [DataContract]
-    public sealed record class ContentFilterModel {
+    public sealed record class ContentFilterModel
+    {
         /// <summary>
         /// The flat list of elements in the filter AST
         /// </summary>

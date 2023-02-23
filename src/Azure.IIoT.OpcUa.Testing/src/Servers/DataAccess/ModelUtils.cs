@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace DataAccess {
+namespace DataAccess
+{
     using Opc.Ua;
     using Opc.Ua.Server;
     using System.Text;
@@ -35,7 +36,8 @@ namespace DataAccess {
     /// <summary>
     /// A class that builds NodeIds used by the DataAccess NodeManager
     /// </summary>
-    public static class ModelUtils {
+    public static class ModelUtils
+    {
         /// <summary>
         /// The RootType for a Segment node identfier.
         /// </summary>
@@ -52,8 +54,10 @@ namespace DataAccess {
         /// <param name="segmentPath">The segment path.</param>
         /// <param name="namespaceIndex">Index of the namespace that qualifies the identifier.</param>
         /// <returns>The new node identifier.</returns>
-        public static NodeId ConstructIdForSegment(string segmentPath, ushort namespaceIndex) {
-            var parsedNodeId = new ParsedNodeId {
+        public static NodeId ConstructIdForSegment(string segmentPath, ushort namespaceIndex)
+        {
+            var parsedNodeId = new ParsedNodeId
+            {
                 RootId = segmentPath,
                 NamespaceIndex = namespaceIndex,
                 RootType = 0
@@ -67,8 +71,10 @@ namespace DataAccess {
         /// <param name="blockId">The block id.</param>
         /// <param name="namespaceIndex">Index of the namespace.</param>
         /// <returns>The new NodeId.</returns>
-        public static NodeId ConstructIdForBlock(string blockId, ushort namespaceIndex) {
-            var parsedNodeId = new ParsedNodeId {
+        public static NodeId ConstructIdForBlock(string blockId, ushort namespaceIndex)
+        {
+            var parsedNodeId = new ParsedNodeId
+            {
                 RootId = blockId,
                 NamespaceIndex = namespaceIndex,
                 RootType = 1
@@ -82,20 +88,24 @@ namespace DataAccess {
         /// <param name="component">The component.</param>
         /// <param name="namespaceIndex">Index of the namespace.</param>
         /// <returns>The node identifier for a component.</returns>
-        public static NodeId ConstructIdForComponent(NodeState component, ushort namespaceIndex) {
-            if (component == null) {
+        public static NodeId ConstructIdForComponent(NodeState component, ushort namespaceIndex)
+        {
+            if (component == null)
+            {
                 return null;
             }
 
             // components must be instances with a parent.
 
-            if (!(component is BaseInstanceState instance) || instance.Parent == null) {
+            if (!(component is BaseInstanceState instance) || instance.Parent == null)
+            {
                 return component.NodeId;
             }
 
             // parent must have a string identifier.
 
-            if (!(instance.Parent.NodeId.Identifier is string parentId)) {
+            if (!(instance.Parent.NodeId.Identifier is string parentId))
+            {
                 return null;
             }
 
@@ -105,10 +115,12 @@ namespace DataAccess {
             // check if the parent is another component.
             var index = parentId.IndexOf('?');
 
-            if (index < 0) {
+            if (index < 0)
+            {
                 buffer.Append('?');
             }
-            else {
+            else
+            {
                 buffer.Append('/');
             }
 

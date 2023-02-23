@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
+namespace Microsoft.Azure.IIoT.AspNetCore.Auth
+{
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Options;
@@ -18,7 +19,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     /// <summary>
     /// Configure authorization policies
     /// </summary>
-    public static class AuthorizationPoliciesEx {
+    public static class AuthorizationPoliciesEx
+    {
         /// <summary>
         /// Add authorization policies
         /// </summary>
@@ -26,7 +28,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="policies"></param>
         /// <returns></returns>
         public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services,
-            params string[] policies) {
+            params string[] policies)
+        {
             return services.AddAuthorizationPolicies(
                 (n, builder, p) => builder.RequireAuthenticatedUser(), policies);
         }
@@ -39,13 +42,17 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="policies"></param>
         /// <returns></returns>
         public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services,
-            Func<string, Func<AuthorizationHandlerContext, bool>> roles, params string[] policies) {
+            Func<string, Func<AuthorizationHandlerContext, bool>> roles, params string[] policies)
+        {
             return services.AddAuthorizationPolicies(
-                (n, builder, provider) => {
+                (n, builder, provider) =>
+                {
                     var config = provider.GetService<IRoleConfig>();
-                    if (config?.UseRoles == true) {
+                    if (config?.UseRoles == true)
+                    {
                         var rights = roles(n);
-                        if (rights != null) {
+                        if (rights != null)
+                        {
                             return builder.RequireAuthenticatedUser().RequireAssertion(rights);
                         }
                     }
@@ -62,11 +69,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <returns></returns>
         internal static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services,
             Func<string, AuthorizationPolicyBuilder, IServiceProvider, AuthorizationPolicyBuilder> configure,
-            params string[] policies) {
+            params string[] policies)
+        {
             services.TryAddTransient<IServerAuthConfig, ServiceAuthAggregateConfig>();
             services.AddAuthorization();
 
-            services.AddTransient<IConfigureOptions<AuthorizationOptions>>(provider => {
+            services.AddTransient<IConfigureOptions<AuthorizationOptions>>(provider =>
+            {
                 var environment = provider.GetRequiredService<IWebHostEnvironment>();
                 var auth = provider.GetService<IServerAuthConfig>();
                 var allowAnonymousAccess = auth?.AllowAnonymousAccess ?? false;
@@ -76,20 +85,23 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                     .Select(p => p.Name)
                     .ToArray();
 
-                if (allowAnonymousAccess || providers.Length == 0) {
+                if (allowAnonymousAccess || providers.Length == 0)
+                {
                     // No schemes configured - require nothing in terms of authorization
                     configure = (n, builder, p) => builder.RequireAssertion(ctx => true);
                 }
                 else configure ??= (n, builder, p) => builder.RequireAuthenticatedUser();
 
-                return new ConfigureNamedOptions<AuthorizationOptions>(Options.DefaultName, options => {
+                return new ConfigureNamedOptions<AuthorizationOptions>(Options.DefaultName, options =>
+                {
                     // Set default policy
                     var policyBuilder = new AuthorizationPolicyBuilder(providers);
                     policyBuilder = configure(string.Empty, policyBuilder, provider);
                     options.DefaultPolicy = policyBuilder.Build();
 
                     // Add custom policies
-                    foreach (var policy in policies) {
+                    foreach (var policy in policies)
+                    {
                         policyBuilder = new AuthorizationPolicyBuilder(providers);
                         configure(policy, policyBuilder, provider);
                         options.AddPolicy(policy, policyBuilder.Build());

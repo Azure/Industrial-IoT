@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 #nullable enable
-namespace Azure.IIoT.OpcUa.Encoders.Utils {
+namespace Azure.IIoT.OpcUa.Encoders.Utils
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -13,7 +14,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils {
     /// <summary>
     /// Caches constant identifier definitions of a generated type
     /// </summary>
-    public sealed class TypeMaps {
+    public sealed class TypeMaps
+    {
         /// <summary>
         /// Data types type map
         /// </summary>
@@ -51,18 +53,23 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils {
         /// <summary>
         /// Initialize map
         /// </summary>
-        private TypeMaps(Type type) {
+        private TypeMaps(Type type)
+        {
             var fields = type.GetFields(
                 BindingFlags.Public | BindingFlags.Static);
-            foreach (var field in fields) {
-                try {
+            foreach (var field in fields)
+            {
+                try
+                {
                     var value = (uint?)field.GetValue(type);
-                    if (value.HasValue) {
+                    if (value.HasValue)
+                    {
                         _reverse.Add(field.Name, value.Value);
                         _forward.Add(value.Value, field.Name);
                     }
                 }
-                catch {
+                catch
+                {
                     continue;
                 }
             }
@@ -74,8 +81,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils {
         /// <param name="id"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool TryGetBrowseName(uint id, [NotNullWhen(true)] out string? value) {
-            if (_forward.TryGetValue(id, out value) && value != null) {
+        public bool TryGetBrowseName(uint id, [NotNullWhen(true)] out string? value)
+        {
+            if (_forward.TryGetValue(id, out value) && value != null)
+            {
                 return true;
             }
             return false;
@@ -87,7 +96,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils {
         /// <param name="value"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool TryGetIdentifier(string value, out uint id) {
+        public bool TryGetIdentifier(string value, out uint id)
+        {
             return _reverse.TryGetValue(value, out id);
         }
 

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client
+{
     using Microsoft.Azure.Devices.Client;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// <summary>
     /// Method call client
     /// </summary>
-    public interface IMethodCallClient {
+    public interface IMethodCallClient
+    {
         /// <summary>
         /// Invoke a method on device or module
         /// </summary>

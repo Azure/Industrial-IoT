@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Models {
+namespace Azure.IIoT.OpcUa.Encoders.Models
+{
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
     /// <summary>
     /// Encodable dataset message payload
     /// </summary>
-    public class DataSet : Dictionary<string, DataValue> {
+    public class DataSet : Dictionary<string, DataValue>
+    {
         /// <summary>
         /// Field mask
         /// </summary>
@@ -23,8 +25,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
         /// <param name="values"></param>
         /// <param name="fieldContentMask"></param>
         public DataSet(IDictionary<string, DataValue> values, uint fieldContentMask)
-            : this(fieldContentMask) {
-            foreach (var value in values) {
+            : this(fieldContentMask)
+        {
+            foreach (var value in values)
+            {
                 this[value.Key] = value.Value;
             }
         }
@@ -36,7 +40,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
         /// <param name="value"></param>
         /// <param name="fieldContentMask"></param>
         public DataSet(string field, DataValue value, uint fieldContentMask)
-            : this(fieldContentMask) {
+            : this(fieldContentMask)
+        {
             this[field] = value;
         }
 
@@ -48,26 +53,32 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
             Opc.Ua.DataSetFieldContentMask.SourcePicoSeconds |
             Opc.Ua.DataSetFieldContentMask.SourceTimestamp |
             Opc.Ua.DataSetFieldContentMask.ServerPicoSeconds |
-            Opc.Ua.DataSetFieldContentMask.ServerTimestamp)) {
+            Opc.Ua.DataSetFieldContentMask.ServerTimestamp))
+        {
             DataSetFieldContentMask = fieldContentMask;
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) {
-            if (obj is not Dictionary<string, DataValue> set) {
+        public override bool Equals(object obj)
+        {
+            if (obj is not Dictionary<string, DataValue> set)
+            {
                 return false;
             }
-            if (!Keys.SequenceEqualsSafe(set.Keys)) {
+            if (!Keys.SequenceEqualsSafe(set.Keys))
+            {
                 return false;
             }
-            if (!Values.SequenceEqualsSafe(set.Values)) {
+            if (!Values.SequenceEqualsSafe(set.Values))
+            {
                 // return false;
             }
             return true;
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return HashCode.Combine(Keys);
         }
     }

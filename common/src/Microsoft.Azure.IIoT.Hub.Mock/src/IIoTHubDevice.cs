@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Mock {
+namespace Microsoft.Azure.IIoT.Hub.Mock
+{
     using Microsoft.Azure.IIoT.Hub.Models;
 
     /// <summary>
     /// Storage record for device plus twin
     /// </summary>
-    public interface IIoTHubDevice {
+    public interface IIoTHubDevice
+    {
         /// <summary>
         /// Device
         /// </summary>

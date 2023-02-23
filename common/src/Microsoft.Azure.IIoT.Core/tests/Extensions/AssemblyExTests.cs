@@ -3,13 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace System {
+namespace System
+{
     using System.Linq;
     using Xunit;
 
-    public class AssemblyExTests {
+    public class AssemblyExTests
+    {
         [Fact]
-        public void GetVersionInfoObjectTests() {
+        public void GetVersionInfoObjectTests()
+        {
             var o = GetType().Assembly.GetVersionInfoObject();
             Assert.NotNull(o);
             var s = o.ToString();
@@ -17,7 +20,8 @@ namespace System {
         }
 
         [Fact]
-        public void GetFileVersion() {
+        public void GetFileVersion()
+        {
             var o = GetType().Assembly.GetVersionInfoObject();
             Assert.NotNull(o);
             var v = GetType().Assembly.GetReleaseVersion().ToString();

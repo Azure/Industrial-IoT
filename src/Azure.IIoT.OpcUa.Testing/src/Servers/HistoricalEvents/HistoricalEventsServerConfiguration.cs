@@ -27,18 +27,21 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace HistoricalEvents {
+namespace HistoricalEvents
+{
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Stores the configuration the data access node manager.
     /// </summary>
     [DataContract(Namespace = Namespaces.HistoricalEvents)]
-    public class HistoricalEventsServerConfiguration {
+    public class HistoricalEventsServerConfiguration
+    {
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public HistoricalEventsServerConfiguration() {
+        public HistoricalEventsServerConfiguration()
+        {
             Initialize();
         }
 
@@ -46,14 +49,16 @@ namespace HistoricalEvents {
         /// Initializes the object during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private static void Initialize() {
+        private static void Initialize()
+        {
         }
     }
 }

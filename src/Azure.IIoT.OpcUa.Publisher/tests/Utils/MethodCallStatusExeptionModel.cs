@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils {
+namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils
+{
     using Newtonsoft.Json;
     using System.Runtime.Serialization;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils {
     /// Method call exception model.
     /// </summary>
     [DataContract]
-    public class MethodCallStatusExceptionModel {
+    public class MethodCallStatusExceptionModel
+    {
         /// <summary>
         /// Exception message.
         /// </summary>

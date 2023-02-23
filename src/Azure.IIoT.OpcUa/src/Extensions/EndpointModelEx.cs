@@ -3,31 +3,38 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
     /// Endpoint model extensions
     /// </summary>
-    public static class EndpointModelEx {
+    public static class EndpointModelEx
+    {
         /// <summary>
         /// Equality comparison
         /// </summary>
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this EndpointModel model, EndpointModel that) {
-            if (model == that) {
+        public static bool IsSameAs(this EndpointModel model, EndpointModel that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
-            if (!that.HasSameSecurityProperties(model)) {
+            if (!that.HasSameSecurityProperties(model))
+            {
                 return false;
             }
-            if (!that.GetAllUrls().SequenceEqualsSafe(model.GetAllUrls())) {
+            if (!that.GetAllUrls().SequenceEqualsSafe(model.GetAllUrls()))
+            {
                 return false;
             }
             return true;
@@ -39,22 +46,28 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool HasSameSecurityProperties(this EndpointModel model, EndpointModel that) {
-            if (model == that) {
+        public static bool HasSameSecurityProperties(this EndpointModel model, EndpointModel that)
+        {
+            if (model == that)
+            {
                 return true;
             }
-            if (model == null || that == null) {
+            if (model == null || that == null)
+            {
                 return false;
             }
-            if (!that.Certificate.SequenceEqualsSafe(model.Certificate)) {
+            if (!that.Certificate.SequenceEqualsSafe(model.Certificate))
+            {
                 return false;
             }
             if (that.SecurityPolicy != model.SecurityPolicy &&
-                that.SecurityPolicy != null && model.SecurityPolicy != null) {
+                that.SecurityPolicy != null && model.SecurityPolicy != null)
+            {
                 return false;
             }
             if ((that.SecurityMode ?? SecurityMode.Best) !=
-                    (model.SecurityMode ?? SecurityMode.Best)) {
+                    (model.SecurityMode ?? SecurityMode.Best))
+            {
                 return false;
             }
             return true;
@@ -65,7 +78,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public static int CreateConsistentHash(this EndpointModel endpoint) {
+        public static int CreateConsistentHash(this EndpointModel endpoint)
+        {
             var hashCode = -1971667340;
             hashCode = (hashCode * -1521134295) +
                 endpoint.GetAllUrls().SequenceGetHashSafe();
@@ -85,12 +99,15 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static IEnumerable<string> GetAllUrls(this EndpointModel model) {
-            if (model == null) {
+        public static IEnumerable<string> GetAllUrls(this EndpointModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
             var all = model.Url.YieldReturn();
-            if (model.AlternativeUrls != null) {
+            if (model.AlternativeUrls != null)
+            {
                 all = all.Concat(model.AlternativeUrls);
             }
             return all;
@@ -102,17 +119,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="model"></param>
         /// <param name="endpoint"></param>
         public static void UnionWith(this EndpointModel model,
-            EndpointModel endpoint) {
-            if (endpoint == null) {
+            EndpointModel endpoint)
+        {
+            if (endpoint == null)
+            {
                 return;
             }
 
             var alternativeUrls = model.AlternativeUrls.MergeWith(
                     endpoint.AlternativeUrls).ToHashSet();
-            if (model.Url == null) {
+            if (model.Url == null)
+            {
                 model.Url = endpoint.Url;
             }
-            else {
+            else
+            {
                 alternativeUrls.Add(endpoint.Url);
             }
             alternativeUrls.Remove(model.Url);
@@ -124,11 +145,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static EndpointModel Clone(this EndpointModel model) {
-            if (model == null) {
+        public static EndpointModel Clone(this EndpointModel model)
+        {
+            if (model == null)
+            {
                 return null;
             }
-            return new EndpointModel {
+            return new EndpointModel
+            {
                 Certificate = model.Certificate,
                 AlternativeUrls = model.AlternativeUrls.ToHashSetSafe(),
                 SecurityMode = model.SecurityMode,

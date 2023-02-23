@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Collections.Generic;
@@ -11,14 +12,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// <summary>
     /// Base monitored item
     /// </summary>
-    public abstract class BaseMonitoredItemModel {
+    public abstract class BaseMonitoredItemModel
+    {
         /// <summary>
         /// Identifier for this monitored item
         /// Prio 1: Id = DataSetFieldId - if already configured
         /// Prio 2: Id = DisplayName - if already configured
         /// Prio 3: NodeId as configured
         /// </summary>
-        public string Id {
+        public string Id
+        {
             get =>
                 !string.IsNullOrEmpty(_id) ? _id :
                 !string.IsNullOrEmpty(DisplayName) ? DisplayName :
@@ -82,7 +85,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         /// <param name="obj"></param>
         /// <returns>If the objects are equal</returns>
-        public override bool Equals(object obj) {
+        public override bool Equals(object obj)
+        {
             return obj is BaseMonitoredItemModel model &&
                 Id == model.Id &&
                 DisplayName == model.DisplayName &&
@@ -101,7 +105,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// Calculate hash code
         /// </summary>
         /// <returns>The hash code</returns>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
             hash.Add(Id);

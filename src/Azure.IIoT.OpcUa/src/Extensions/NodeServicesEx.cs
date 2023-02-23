@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa {
+namespace Azure.IIoT.OpcUa
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Utils;
     using System;
@@ -14,7 +15,8 @@ namespace Azure.IIoT.OpcUa {
     /// <summary>
     /// Node services extensions
     /// </summary>
-    public static class NodeServicesEx {
+    public static class NodeServicesEx
+    {
         /// <summary>
         /// Browse all references if max references is null and user
         /// wants all. If user has requested maximum to return use
@@ -27,50 +29,62 @@ namespace Azure.IIoT.OpcUa {
         /// <returns></returns>
         public static async Task<BrowseFirstResponseModel> BrowseAsync<T>(
             this INodeServices<T> service, T connection, BrowseFirstRequestModel request,
-            CancellationToken ct = default) {
-            if (service is null) {
+            CancellationToken ct = default)
+        {
+            if (service is null)
+            {
                 throw new ArgumentNullException(nameof(service));
             }
-            if (request is null) {
+            if (request is null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            if (request.MaxReferencesToReturn != null) {
+            if (request.MaxReferencesToReturn != null)
+            {
                 return await service.BrowseFirstAsync(connection,
                     request, ct).ConfigureAwait(false);
             }
             var result = await service.BrowseFirstAsync(connection,
                 request, ct).ConfigureAwait(false);
             var references = new List<NodeReferenceModel>();
-            if (result.References != null) {
+            if (result.References != null)
+            {
                 references.AddRange(result.References);
             }
             var continuationToken = result.ContinuationToken;
-            while (continuationToken != null) {
-                try {
+            while (continuationToken != null)
+            {
+                try
+                {
                     var next = await service.BrowseNextAsync(connection,
-                        new BrowseNextRequestModel {
+                        new BrowseNextRequestModel
+                        {
                             ContinuationToken = continuationToken,
                             Header = request.Header,
                             NodeIdsOnly = request.NodeIdsOnly,
                             ReadVariableValues = request.ReadVariableValues,
                             TargetNodesOnly = request.TargetNodesOnly
                         }, ct).ConfigureAwait(false);
-                    if (next.References != null) {
+                    if (next.References != null)
+                    {
                         references.AddRange(next.References);
                     }
                     continuationToken = next.ContinuationToken;
                 }
-                catch (Exception) {
+                catch (Exception)
+                {
                     await Try.Async(() => service.BrowseNextAsync(connection,
-                        new BrowseNextRequestModel {
+                        new BrowseNextRequestModel
+                        {
                             ContinuationToken = continuationToken,
                             Abort = true
                         })).ConfigureAwait(false);
                     throw;
                 }
             }
-            return result with {
+            return result with
+            {
                 References = references,
                 ContinuationToken = null
             };

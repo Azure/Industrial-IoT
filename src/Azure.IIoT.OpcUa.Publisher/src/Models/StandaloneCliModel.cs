@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Models {
+namespace Azure.IIoT.OpcUa.Publisher.Models
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System;
 
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
     /// Model that represents the command line arguments in the format of the
     /// standalone publisher mode.
     /// </summary>
-    public class StandaloneCliModel {
+    public class StandaloneCliModel
+    {
         /// <summary>
         /// Site of the publisher
         /// </summary>
@@ -128,16 +130,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// The messaging mode for outgoing messages.
         /// </summary>
-        public MessagingMode MessagingMode {
-            get {
+        public MessagingMode MessagingMode
+        {
+            get
+            {
                 // Depends on fm and standards compliant encoding mode
                 var messagingMode = _messagingMode ??
                     (UseStandardsCompliantEncoding ? MessagingMode.PubSub : MessagingMode.Samples);
-                if (_fullFeaturedMessage) {
-                    if (messagingMode == MessagingMode.PubSub) {
+                if (_fullFeaturedMessage)
+                {
+                    if (messagingMode == MessagingMode.PubSub)
+                    {
                         return MessagingMode.FullNetworkMessages;
                     }
-                    if (messagingMode == MessagingMode.Samples) {
+                    if (messagingMode == MessagingMode.Samples)
+                    {
                         return MessagingMode.FullSamples;
                     }
                 }
@@ -149,7 +156,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Set flag to demand full featured message creation from publisher
         /// </summary>
-        public void SetFullFeaturedMessage(bool value) {
+        public void SetFullFeaturedMessage(bool value)
+        {
             _fullFeaturedMessage = value;
         }
 

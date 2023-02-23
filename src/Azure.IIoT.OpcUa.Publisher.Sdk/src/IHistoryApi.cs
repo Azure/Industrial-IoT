@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Sdk {
+namespace Azure.IIoT.OpcUa.Publisher.Sdk
+{
     using Azure.IIoT.OpcUa.Shared.Models;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
     /// <summary>
     /// Represents OPC Historic Access api
     /// </summary>
-    public interface IHistoryApi {
+    public interface IHistoryApi
+    {
         /// <summary>
         /// Read raw historic values
         /// </summary>

@@ -27,7 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Aggregates {
+namespace Opc.Ua.Aggregates
+{
     using System;
     using System.Globalization;
 
@@ -38,11 +39,13 @@ namespace Opc.Ua.Aggregates {
     /// To correctly get the interpolated value, the raw data passed to this aggregator needs to have "GOOD" boundary values. That means, it's
     /// the user responsibility to find out a good value before/after the period of interest if the bounding values of that period are not good.
     /// </remarks>
-    public class InterpolativeAggregate : FloatInterpolatingCalculator {
+    public class InterpolativeAggregate : FloatInterpolatingCalculator
+    {
         /// <summary>
         /// Updates the bounding values.
         /// </summary>
-        public override void UpdateBoundingValues(TimeSlice bucket, AggregateState state) {
+        public override void UpdateBoundingValues(TimeSlice bucket, AggregateState state)
+        {
             base.UpdateBoundingValues(bucket, state);
             UpdatePriorPoint(bucket.EarlyBound, state);
         }
@@ -50,16 +53,19 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Updates the value for the time slice.
         /// </summary>
-        public override DataValue Compute(IAggregationContext context, TimeSlice bucket, AggregateState state) {
+        public override DataValue Compute(IAggregationContext context, TimeSlice bucket, AggregateState state)
+        {
             var retval = new DataValue { SourceTimestamp = bucket.From };
             StatusCode code = StatusCodes.BadNoData;
             var boundValue = context.IsReverseAggregation ? bucket.LateBound.Value : bucket.EarlyBound.Value;
-            if (boundValue != null) {
+            if (boundValue != null)
+            {
                 code = bucket.EarlyBound.Value.StatusCode.Code;
                 code.AggregateBits = bucket.EarlyBound.Value.StatusCode.AggregateBits;
                 retval.Value = Convert.ToDouble(bucket.EarlyBound.Value.Value, CultureInfo.InvariantCulture);
             }
-            if (bucket.Incomplete) {
+            if (bucket.Incomplete)
+            {
                 code.AggregateBits |= AggregateBits.Partial;
             }
 

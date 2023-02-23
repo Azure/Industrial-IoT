@@ -3,14 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests
+{
     using System;
     using System.Net;
     using Xunit;
 
-    public class IPv4AddressTests {
+    public class IPv4AddressTests
+    {
         [Fact]
-        public void TestEmptyAddress() {
+        public void TestEmptyAddress()
+        {
             var address = new IPv4Address(new byte[] { 0, 0, 0, 0 });
             uint val = address;
             long val2 = address;
@@ -20,7 +23,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestIncrementAddress() {
+        public void TestIncrementAddress()
+        {
             var address = new IPv4Address(new byte[] { 255, 255, 255, 255 });
             var any = new IPv4Address(new byte[] { 0, 0, 0, 0 });
             var incremented = address + 1;
@@ -34,7 +38,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestDecrementAddress() {
+        public void TestDecrementAddress()
+        {
             var address = new IPv4Address(new byte[] { 0, 0, 0, 0 });
             var bcast = new IPv4Address(new byte[] { 255, 255, 255, 255 });
             var decremented = address - 1;
@@ -50,7 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestSubtractAddress() {
+        public void TestSubtractAddress()
+        {
             var bcast = new IPv4Address(new byte[] { 255, 255, 255, 255 });
             var any = new IPv4Address(new byte[] { 0, 0, 0, 0 });
             var subtracted = bcast - bcast;
@@ -60,7 +66,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void ThrowForSize() {
+        public void ThrowForSize()
+        {
             Assert.Throws<ArgumentException>(() => new IPv4Address(Array.Empty<byte>()));
             Assert.Throws<ArgumentException>(() => new IPv4Address(new byte[] { 0 }));
             Assert.Throws<ArgumentException>(() => new IPv4Address(new byte[] { 0, 1, 1, 2, 1 }));

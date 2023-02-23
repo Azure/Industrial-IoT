@@ -3,16 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests
+{
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using Xunit;
 
-    public class AddressRangeTests {
+    public class AddressRangeTests
+    {
         [Fact]
-        public void TestSubnetRange1() {
+        public void TestSubnetRange1()
+        {
             var range = new AddressRange(
                 IPAddress.Parse("10.93.232.185"), 20);
 
@@ -22,7 +25,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestSubnetRange2() {
+        public void TestSubnetRange2()
+        {
             var range = new AddressRange(
                 IPAddress.Parse("10.93.232.185"), IPAddress.Parse("255.255.240.0"));
 
@@ -32,9 +36,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestSubnetNicLocal() {
+        public void TestSubnetNicLocal()
+        {
             var nics = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired);
-            if (!nics.Any()) {
+            if (!nics.Any())
+            {
                 return;
             }
             var nic = nics.First();
@@ -46,9 +52,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestSubnetNic() {
+        public void TestSubnetNic()
+        {
             var nics = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired);
-            if (!nics.Any()) {
+            if (!nics.Any())
+            {
                 return;
             }
             var nic = nics.First();
@@ -61,7 +69,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestSingleAddress() {
+        public void TestSingleAddress()
+        {
             var range = new AddressRange(IPAddress.Loopback, 32, "local");
 
             var list = new List<uint>();
@@ -74,7 +83,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestSimpleRange() {
+        public void TestSimpleRange()
+        {
             var range = new AddressRange(0, 255);
 
             Assert.Equal(0u, range.Low);
@@ -84,7 +94,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestEquality1() {
+        public void TestEquality1()
+        {
             var range1 = new AddressRange(0, 255);
             var range2 = new AddressRange(0, 255);
 
@@ -94,7 +105,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestNoneEquality1() {
+        public void TestNoneEquality1()
+        {
             var range1 = new AddressRange(0, 255);
             var range2 = new AddressRange(1, 255);
 
@@ -104,7 +116,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestEquality2() {
+        public void TestEquality2()
+        {
             var range1 = new AddressRange((IPv4Address)0u, 24);
             var range2 = new AddressRange(0, 255);
 
@@ -114,7 +127,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing1() {
+        public void TestParsing1()
+        {
             AddressRange.TryParse("0.0.0.0/24", out var range1);
             var range2 = new AddressRange(0, 255);
 
@@ -125,7 +139,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing1WithRange() {
+        public void TestParsing1WithRange()
+        {
             AddressRange.TryParse("0.0.0.0-0.0.0.255", out var range1);
             var range2 = new AddressRange(0, 255);
 
@@ -136,7 +151,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing1WithNic() {
+        public void TestParsing1WithNic()
+        {
             AddressRange.TryParse("0.0.0.0/24[abc]", out var range1);
             var range2 = new AddressRange(0, 255);
 
@@ -147,7 +163,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing2() {
+        public void TestParsing2()
+        {
             AddressRange.TryParse("0.0.0.0/24,0.0.0.0/24", out var range1);
             var range2 = new AddressRange(0, 255);
 
@@ -158,7 +175,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing2WithNic() {
+        public void TestParsing2WithNic()
+        {
             AddressRange.TryParse("0.0.0.0/24[xyz],0.0.0.0/24[abc def ]", out var range1);
             var range2 = new AddressRange(0, 255);
 
@@ -168,7 +186,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing3() {
+        public void TestParsing3()
+        {
             AddressRange.TryParse("0.0.0.0/24;0.0.0.0/24;;;", out var range1);
             var range2 = new AddressRange(0, 255);
 
@@ -178,7 +197,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing3b() {
+        public void TestParsing3b()
+        {
             AddressRange.TryParse("0.0.0.0/24;0.0.0.0-0.0.0.255;;;", out var range1);
             var range2 = new AddressRange(0, 255);
 
@@ -189,7 +209,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing4() {
+        public void TestParsing4()
+        {
             AddressRange.TryParse("0.0.0.0/24[abc];0.0.0.0/24[abc];;;", out var range1);
             var range2 = new AddressRange(0, 255);
 
@@ -199,7 +220,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing5() {
+        public void TestParsing5()
+        {
             AddressRange.TryParse("0.0.0.0/24 [abc];0.0.0.0-0.0.0.255[abc];;;", out var range1);
             var range2 = new AddressRange(0, 255);
 
@@ -209,7 +231,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing6() {
+        public void TestParsing6()
+        {
             const string str = "1.1.1.1/24[abc];2.2.2.2/24[cde];3.3.3.3/24 [efg]";
             AddressRange.TryParse(str, out var ranges);
 
@@ -218,15 +241,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
             var range3 = new AddressRange(50529024, 50529279);
 
             Assert.Collection(ranges,
-                a => {
+                a =>
+                {
                     Assert.Equal(range1, a);
                     Assert.Equal("abc", a.Nic);
                 },
-                b => {
+                b =>
+                {
                     Assert.Equal(range2, b);
                     Assert.Equal("cde", b.Nic);
                 },
-                c => {
+                c =>
+                {
                     Assert.Equal(range3, c);
                     Assert.Equal("efg", c.Nic);
                 });
@@ -235,7 +261,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParsing7() {
+        public void TestParsing7()
+        {
             const string str = "192.168.1.0-192.168.2.9[abc]";
             AddressRange.TryParse(str, out var ranges);
 
@@ -244,15 +271,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
             var range3 = new AddressRange(3232236040, 3232236041);
 
             Assert.Collection(ranges,
-                a => {
+                a =>
+                {
                     Assert.Equal(range1, a);
                     Assert.Equal("abc", a.Nic);
                 },
-                b => {
+                b =>
+                {
                     Assert.Equal(range2, b);
                     Assert.Equal("abc", b.Nic);
                 },
-                c => {
+                c =>
+                {
                     Assert.Equal(range3, c);
                     Assert.Equal("abc", c.Nic);
                 });
@@ -262,7 +292,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models.Tests {
         }
 
         [Fact]
-        public void TestParseFormatExceptions() {
+        public void TestParseFormatExceptions()
+        {
             Assert.Throws<FormatException>(() => AddressRange.Parse("0.0.0.0/24;x/2;;"));
             Assert.Throws<FormatException>(() => AddressRange.Parse("0.0.=0/24"));
             Assert.Throws<FormatException>(() => AddressRange.Parse("0.0.0.0-0..0"));

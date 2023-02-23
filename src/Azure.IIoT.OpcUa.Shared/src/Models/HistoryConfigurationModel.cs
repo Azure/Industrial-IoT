@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Shared.Models {
+namespace Azure.IIoT.OpcUa.Shared.Models
+{
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -12,7 +13,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// History configuration
     /// </summary>
     [DataContract]
-    public sealed record class HistoryConfigurationModel {
+    public sealed record class HistoryConfigurationModel
+    {
         /// <summary>
         /// specifies whether the historical data was
         /// collected in such a manner that it should

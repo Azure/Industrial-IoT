@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Extensions {
+namespace Opc.Ua.Extensions
+{
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Furly.Exceptions;
     using System;
@@ -15,7 +16,8 @@ namespace Opc.Ua.Extensions {
     /// <summary>
     /// Node id extensions
     /// </summary>
-    public static class NodeIdEx {
+    public static class NodeIdEx
+    {
         /// <summary>
         /// Creates an expanded node id from node id.
         /// </summary>
@@ -23,11 +25,14 @@ namespace Opc.Ua.Extensions {
         /// <param name="namespaces"></param>
         /// <returns></returns>
         public static ExpandedNodeId ToExpandedNodeId(this NodeId nodeId,
-            NamespaceTable namespaces) {
-            if (NodeId.IsNull(nodeId)) {
+            NamespaceTable namespaces)
+        {
+            if (NodeId.IsNull(nodeId))
+            {
                 return ExpandedNodeId.Null;
             }
-            if (nodeId.NamespaceIndex > 0 && namespaces == null) {
+            if (nodeId.NamespaceIndex > 0 && namespaces == null)
+            {
                 throw new ArgumentNullException(nameof(namespaces));
             }
             return new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex,
@@ -43,11 +48,14 @@ namespace Opc.Ua.Extensions {
         /// <param name="namespaces"></param>
         /// <returns></returns>
         public static ExpandedNodeId ToExpandedNodeId(this NodeId nodeId,
-            uint serverIndex, NamespaceTable namespaces) {
-            if (NodeId.IsNull(nodeId)) {
+            uint serverIndex, NamespaceTable namespaces)
+        {
+            if (NodeId.IsNull(nodeId))
+            {
                 return ExpandedNodeId.Null;
             }
-            if (nodeId.NamespaceIndex > 0 && namespaces == null) {
+            if (nodeId.NamespaceIndex > 0 && namespaces == null)
+            {
                 throw new ArgumentNullException(nameof(namespaces));
             }
             return new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex,
@@ -62,17 +70,22 @@ namespace Opc.Ua.Extensions {
         /// <param name="namespaces"></param>
         /// <returns></returns>
         public static NodeId ToNodeId(this ExpandedNodeId nodeId,
-            NamespaceTable namespaces) {
-            if (NodeId.IsNull(nodeId)) {
+            NamespaceTable namespaces)
+        {
+            if (NodeId.IsNull(nodeId))
+            {
                 return NodeId.Null;
             }
-            if (nodeId.NamespaceIndex > 0 && namespaces == null) {
+            if (nodeId.NamespaceIndex > 0 && namespaces == null)
+            {
                 throw new ArgumentNullException(nameof(namespaces));
             }
             int index = nodeId.NamespaceIndex;
-            if (!string.IsNullOrEmpty(nodeId.NamespaceUri)) {
+            if (!string.IsNullOrEmpty(nodeId.NamespaceUri))
+            {
                 index = namespaces.GetIndex(nodeId.NamespaceUri);
-                if (index < 0) {
+                if (index < 0)
+                {
                     throw new ArgumentException(
                         $"Namespace '{nodeId.NamespaceUri}' was not found in NamespaceTable.", nameof(nodeId));
                 }
@@ -92,8 +105,10 @@ namespace Opc.Ua.Extensions {
         /// <param name="noRelativeUriAllowed"></param>
         /// <returns></returns>
         public static string AsString(this NodeId nodeId, IServiceMessageContext context,
-            bool noRelativeUriAllowed = false) {
-            if (NodeId.IsNull(nodeId)) {
+            bool noRelativeUriAllowed = false)
+        {
+            if (NodeId.IsNull(nodeId))
+            {
                 return null;
             }
             return nodeId.ToExpandedNodeId(context?.NamespaceUris).AsString(context,
@@ -108,25 +123,32 @@ namespace Opc.Ua.Extensions {
         /// <param name="noRelativeUriAllowed"></param>
         /// <returns></returns>
         public static string AsString(this ExpandedNodeId nodeId, IServiceMessageContext context,
-            bool noRelativeUriAllowed = false) {
-            if (NodeId.IsNull(nodeId)) {
+            bool noRelativeUriAllowed = false)
+        {
+            if (NodeId.IsNull(nodeId))
+            {
                 return null;
             }
             var nsUri = nodeId.NamespaceUri;
-            if (string.IsNullOrEmpty(nsUri) && (nodeId.NamespaceIndex != 0 || noRelativeUriAllowed)) {
+            if (string.IsNullOrEmpty(nsUri) && (nodeId.NamespaceIndex != 0 || noRelativeUriAllowed))
+            {
                 nsUri = context.NamespaceUris.GetString(nodeId.NamespaceIndex);
-                if (string.IsNullOrEmpty(nsUri)) {
+                if (string.IsNullOrEmpty(nsUri))
+                {
                     nsUri = null;
                 }
             }
             string srvUri = null;
-            if (nodeId.ServerIndex != 0 && context.ServerUris != null) {
+            if (nodeId.ServerIndex != 0 && context.ServerUris != null)
+            {
                 srvUri = context.ServerUris.GetString(nodeId.ServerIndex);
-                if (string.IsNullOrEmpty(srvUri)) {
+                if (string.IsNullOrEmpty(srvUri))
+                {
                     srvUri = null;
                 }
             }
-            if (nsUri != null && !Uri.IsWellFormedUriString(nsUri, UriKind.Absolute)) {
+            if (nsUri != null && !Uri.IsWellFormedUriString(nsUri, UriKind.Absolute))
+            {
                 // Fall back to nsu= format - but strip indexes
                 return new ExpandedNodeId(nodeId.Identifier, 0, nsUri, 0).ToString();
             }
@@ -139,15 +161,19 @@ namespace Opc.Ua.Extensions {
         /// <param name="value"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static NodeId ToNodeId(this string value, IServiceMessageContext context) {
-            if (value == null) {
+        public static NodeId ToNodeId(this string value, IServiceMessageContext context)
+        {
+            if (value == null)
+            {
                 return NodeId.Null;
             }
             var parts = value.Split(';');
-            if (parts.Any(s => s.StartsWith("ns=", StringComparison.CurrentCulture))) {
+            if (parts.Any(s => s.StartsWith("ns=", StringComparison.CurrentCulture)))
+            {
                 return NodeId.Parse(value);
             }
-            if (parts.Any(s => s.StartsWith("nsu=", StringComparison.CurrentCulture))) {
+            if (parts.Any(s => s.StartsWith("nsu=", StringComparison.CurrentCulture)))
+            {
                 return ExpandedNodeId.Parse(value).ToNodeId(context.NamespaceUris);
             }
             var identifier = ParseNodeIdUri(value, out var nsUri, out var srvUri);
@@ -160,21 +186,25 @@ namespace Opc.Ua.Extensions {
         /// <param name="value"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static ExpandedNodeId ToExpandedNodeId(this string value, IServiceMessageContext context) {
-            if (value == null) {
+        public static ExpandedNodeId ToExpandedNodeId(this string value, IServiceMessageContext context)
+        {
+            if (value == null)
+            {
                 return ExpandedNodeId.Null;
             }
             var parts = value.Split(';');
             if (parts.Any(s =>
                 s.StartsWith("ns=", StringComparison.CurrentCulture) ||
-                s.StartsWith("nsu=", StringComparison.CurrentCulture))) {
+                s.StartsWith("nsu=", StringComparison.CurrentCulture)))
+            {
                 return ExpandedNodeId.Parse(value);
             }
             var identifier = ParseNodeIdUri(value, out var nsUri, out var srvUri);
 
             // Allocate entry in context if does not exist
             var nsIndex = context.NamespaceUris.GetIndexOrAppend(nsUri);
-            if (!string.IsNullOrEmpty(srvUri)) {
+            if (!string.IsNullOrEmpty(srvUri))
+            {
                 return new ExpandedNodeId(identifier, 0, nsUri == Namespaces.OpcUa ? null : nsUri,
                     context.ServerUris.GetIndexOrAppend(srvUri));
             }
@@ -190,22 +220,27 @@ namespace Opc.Ua.Extensions {
         /// <param name="identifier"></param>
         /// <returns></returns>
         public static string FormatNodeIdUri(string nsUri, string srvUri,
-            IdType idType, object identifier) {
+            IdType idType, object identifier)
+        {
             var buffer = new StringBuilder();
-            if (nsUri != null) {
+            if (nsUri != null)
+            {
                 buffer.Append(nsUri);
                 // Append node id as fragment
                 buffer.Append('#');
             }
-            switch (idType) {
+            switch (idType)
+            {
                 case IdType.Numeric:
                     if (srvUri == null && nsUri == null &&
-                        TryGetDataTypeName(identifier, out var typeName)) {
+                        TryGetDataTypeName(identifier, out var typeName))
+                    {
                         // For readability use data type name here if possible
                         return typeName;
                     }
                     buffer.Append("i=");
-                    if (identifier == null) {
+                    if (identifier == null)
+                    {
                         buffer.Append('0'); // null
                         break;
                     }
@@ -214,14 +249,16 @@ namespace Opc.Ua.Extensions {
                     break;
                 case IdType.String:
                     buffer.Append("s=");
-                    if (identifier == null) {
+                    if (identifier == null)
+                    {
                         break; // null
                     }
                     buffer.Append(identifier.ToString().UrlEncode());
                     break;
                 case IdType.Guid:
                     buffer.Append("g=");
-                    if (identifier == null) {
+                    if (identifier == null)
+                    {
                         buffer.Append(Guid.Empty); // null
                         break;
                     }
@@ -229,7 +266,8 @@ namespace Opc.Ua.Extensions {
                     break;
                 case IdType.Opaque:
                     buffer.Append("b=");
-                    if (identifier == null) {
+                    if (identifier == null)
+                    {
                         break; // null
                     }
                     buffer.AppendFormat(CultureInfo.InvariantCulture,
@@ -238,7 +276,8 @@ namespace Opc.Ua.Extensions {
                 default:
                     throw new FormatException($"Nod id type {idType} is unknown!");
             }
-            if (srvUri != null) {
+            if (srvUri != null)
+            {
                 // Pack server in front of identifier
                 buffer.Append("&srv=");
                 // srvUri = Uri.EscapeDataString(srvUri);
@@ -256,22 +295,28 @@ namespace Opc.Ua.Extensions {
         /// <param name="nsUri"></param>
         /// <param name="srvUri"></param>
         /// <returns></returns>
-        private static object ParseNodeIdUri(string value, out string nsUri, out string srvUri) {
+        private static object ParseNodeIdUri(string value, out string nsUri, out string srvUri)
+        {
             // Get resource uri
-            if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)) {
+            if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+            {
                 // Not a absolute uri, try to mitigate a potentially nonstandard namespace string
                 const string sepPattern = @"(.+)#([isgb]{1}\=.*)";
                 var match = Regex.Match(value, sepPattern);
-                if (match.Success) {
+                if (match.Success)
+                {
                     nsUri = match.Groups[1].Value;
                     value = match.Groups[2].Value;
                 }
-                else {
+                else
+                {
                     nsUri = Namespaces.OpcUa;
                 }
             }
-            else {
-                if (string.IsNullOrEmpty(uri.Fragment)) {
+            else
+            {
+                if (string.IsNullOrEmpty(uri.Fragment))
+                {
                     throw new FormatException("Bad fragment - should contain identifier.");
                 }
 
@@ -282,14 +327,17 @@ namespace Opc.Ua.Extensions {
             }
 
             var and = value?.IndexOf('&', StringComparison.Ordinal) ?? -1;
-            if (and != -1) {
+            if (and != -1)
+            {
                 var remainder = value.Substring(and);
                 // See if the query contains the server identfier
-                if (remainder.StartsWith("&srv=", StringComparison.Ordinal)) {
+                if (remainder.StartsWith("&srv=", StringComparison.Ordinal))
+                {
                     // The uri denotes an id in a namespace on a server
                     srvUri = remainder.Substring(5);
                 }
-                else {
+                else
+                {
                     throw new FormatException($"{value} does not contain ?srv=");
                 }
                 return ParseIdentifier(value.Substring(0, and));
@@ -303,22 +351,29 @@ namespace Opc.Ua.Extensions {
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        private static object ParseIdentifier(string text) {
-            if (text == null) {
+        private static object ParseIdentifier(string text)
+        {
+            if (text == null)
+            {
                 return null;
             }
-            if (text.Length > 1) {
+            if (text.Length > 1)
+            {
                 if (text[1] == '=' ||
-                    text[1] == '_') {
-                    try {
+                    text[1] == '_')
+                {
+                    try
+                    {
                         return ParseIdentifier(text[0], text.Substring(2));
                     }
-                    catch (FormatException) {
+                    catch (FormatException)
+                    {
                     }
                 }
             }
             // Try to retrieve data type identifier from text
-            if (TryGetDataTypeId(text, out var id)) {
+            if (TryGetDataTypeId(text, out var id))
+            {
                 return id;
             }
             return null;
@@ -330,26 +385,33 @@ namespace Opc.Ua.Extensions {
         /// <param name="type"></param>
         /// <param name="text"></param>
         /// <returns></returns>
-        private static object ParseIdentifier(char type, string text) {
-            switch (type) {
+        private static object ParseIdentifier(char type, string text)
+        {
+            switch (type)
+            {
                 case 'i':
-                    try {
+                    try
+                    {
                         return Convert.ToUInt32(text.UrlDecode(),
                             CultureInfo.InvariantCulture);
                     }
-                    catch {
+                    catch
+                    {
                         return Convert.ToUInt32(text,
                             CultureInfo.InvariantCulture);
                     }
                 case 'b':
-                    try {
+                    try
+                    {
                         return text.UrlDecode().DecodeAsBase64();
                     }
-                    catch {
+                    catch
+                    {
                         return text.DecodeAsBase64();
                     }
                 case 'g':
-                    if (!Guid.TryParse(text.UrlDecode(), out var guid)) {
+                    if (!Guid.TryParse(text.UrlDecode(), out var guid))
+                    {
                         return Guid.Parse(text);
                     }
                     return guid;
@@ -365,12 +427,15 @@ namespace Opc.Ua.Extensions {
         /// <param name="text"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        private static bool TryGetDataTypeId(string text, out uint id) {
-            if (Enum.TryParse<BuiltInType>(text, true, out var type)) {
+        private static bool TryGetDataTypeId(string text, out uint id)
+        {
+            if (Enum.TryParse<BuiltInType>(text, true, out var type))
+            {
                 id = (uint)type;
                 return true;
             }
-            if (TypeMaps.DataTypes.Value.TryGetIdentifier(text, out id)) {
+            if (TypeMaps.DataTypes.Value.TryGetIdentifier(text, out id))
+            {
                 return true;
             }
             return false;
@@ -382,32 +447,42 @@ namespace Opc.Ua.Extensions {
         /// <param name="identifier"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        private static bool TryGetDataTypeName(object identifier, out string name) {
+        private static bool TryGetDataTypeName(object identifier, out string name)
+        {
             name = null;
-            try {
-                if (!(identifier is uint uid)) {
+            try
+            {
+                if (!(identifier is uint uid))
+                {
                     return false;
                 }
-                if (uid <= int.MaxValue) {
+                if (uid <= int.MaxValue)
+                {
                     var id = (int)uid;
-                    if (Enum.IsDefined(typeof(BuiltInType), id)) {
+                    if (Enum.IsDefined(typeof(BuiltInType), id))
+                    {
                         name = Enum.GetName(typeof(BuiltInType), id);
-                        if (name.EqualsIgnoreCase(nameof(BuiltInType.Null))) {
+                        if (name.EqualsIgnoreCase(nameof(BuiltInType.Null)))
+                        {
                             name = null;
                         }
                     }
                 }
-                if (!string.IsNullOrEmpty(name)) {
+                if (!string.IsNullOrEmpty(name))
+                {
                     return true;
                 }
-                if (TypeMaps.DataTypes.Value.TryGetBrowseName(uid, out name)) {
-                    if (name.EqualsIgnoreCase(nameof(BuiltInType.Null))) {
+                if (TypeMaps.DataTypes.Value.TryGetBrowseName(uid, out name))
+                {
+                    if (name.EqualsIgnoreCase(nameof(BuiltInType.Null)))
+                    {
                         name = null;
                     }
                 }
                 return !string.IsNullOrEmpty(name);
             }
-            catch {
+            catch
+            {
                 return false;
             }
         }
