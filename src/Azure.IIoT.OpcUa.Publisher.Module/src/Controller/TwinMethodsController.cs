@@ -12,6 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
     using Microsoft.Azure.IIoT.Module.Framework;
     using System;
     using System.Threading.Tasks;
+    using System.Threading;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Twin method controller
@@ -38,6 +40,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
                 throw new ArgumentNullException(nameof(nodes));
             _clients = clients ??
                 throw new ArgumentNullException(nameof(clients));
+        }
+
+        /// <summary>
+        /// Get the capabilities of the server
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
+            ConnectionModel connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            return await _nodes.GetServerCapabilitiesAsync(connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -142,6 +159,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
                 throw new ArgumentNullException(nameof(connection));
             }
             return await _nodes.ValueWriteAsync(
+                connection, request).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get node metadata.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<NodeMetadataResponseModel> GetMetadataAsync(
+            ConnectionModel connection, NodeMetadataRequestModel request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            return await _nodes.GetMetadataAsync(
                 connection, request).ConfigureAwait(false);
         }
 
@@ -286,6 +324,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
             }
             return await _discovery.GetEndpointCertificateAsync(
                 endpoint).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get the historian capabilities of the server
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
+            ConnectionModel connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            return await _nodes.HistoryGetServerCapabilitiesAsync(connection).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get the historian configuration
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
+            ConnectionModel connection, HistoryConfigurationRequestModel request)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            return await _nodes.HistoryGetConfigurationAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>

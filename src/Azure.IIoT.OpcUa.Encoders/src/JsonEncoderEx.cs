@@ -824,111 +824,82 @@ namespace Azure.IIoT.OpcUa.Encoders
                 return;
             }
 
-            var encoding = value.Encoding;
-            var typeId = value.TypeId;
             var body = value.Body;
 
-            if (body is IEncodeable encodeable)
+            if (UseReversibleEncoding)
             {
-                if (NodeId.IsNull(typeId))
+                PushObject(property);
+                var typeId = value.TypeId;
+                if (body is IJsonEncodeable withType)
                 {
-                    typeId = encodeable.TypeId;
-                    value.TypeId = typeId; // Also fix the extension object
+                    typeId = withType.JsonEncodingId;
                 }
-                if (!UseReversibleEncoding)
+                if (!NodeId.IsNull(typeId))
                 {
-                    PushObject(property);
-                    encodeable.Encode(this);
-                    PopObject();
-                    return;
+                    WriteExpandedNodeId("TypeId", typeId);
+                }
+                else if (!UseAdvancedEncoding)
+                {
+                    throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                        "Cannot encode extension object without type id.");
                 }
                 if (UseAdvancedEncoding)
                 {
-                    encoding = ExtensionObjectEncoding.Json;
+                    // Backcompat
+                    if (body is XmlElement)
+                    {
+                        WriteString("Encoding", nameof(ExtensionObjectEncoding.Xml));
+                    }
+                    else if (body is not byte[] && body is not null)
+                    {
+                        WriteString("Encoding", nameof(ExtensionObjectEncoding.Json));
+                    }
                 }
-                switch (encoding)
+                else
                 {
-                    case ExtensionObjectEncoding.Binary:
-                        body = encodeable.AsBinary(Context);
-                        break;
-                    case ExtensionObjectEncoding.Json:
-                        body = encodeable; // Encode as json down below.
-                        break;
-                    case ExtensionObjectEncoding.EncodeableObject:
-                    case ExtensionObjectEncoding.None:
-                    case ExtensionObjectEncoding.Xml:
-                        // Force xml
-                        encoding = ExtensionObjectEncoding.Xml;
-                        body = encodeable.AsXmlElement(Context);
-                        break;
-                    default:
-                        throw ServiceResultException.Create(
-                            StatusCodes.BadEncodingError,
-                            "Unexpected encoding encountered while " +
-                                $"encoding ExtensionObject:{value.Encoding}");
+                    // https://reference.opcfoundation.org/Core/Part6/v105/docs/5.4.2.16
+                    WriteInt32("Encoding", body switch
+                    {
+                        byte[] => 1,        // Byte string
+                        XmlElement => 2,    // Xml
+                        _ => 0,             // Structure - omitted in default encoding.
+                    });
                 }
+                property = "Body";
             }
-            else
+            switch (body)
             {
-                if (NodeId.IsNull(typeId) && !UseAdvancedEncoding)
-                {
+                case EncodeableJToken jt:
+                    if (!string.IsNullOrEmpty(property))
+                    {
+                        _writer?.WritePropertyName(property);
+                    }
+                    _writer?.WriteRaw(jt.JToken.ToString());
+                    break;
+                case IEncodeable encodeable:
+                    PushObject(property);
+                    encodeable.Encode(this);
+                    PopObject();
+                    break;
+                case XmlElement xml:
+                    WriteXmlElement(property, xml);
+                    break;
+                case byte[] buffer:
+                    WriteByteString(property, buffer);
+                    break;
+                case null:
+                    WriteNull(property);
+                    break;
+                default:
                     throw ServiceResultException.Create(
                         StatusCodes.BadEncodingError,
-                        "Cannot encode extension object without type id.");
-                }
+                        "Unexpected value encountered while " +
+                            $"encoding body:{body}");
             }
-
-            PushObject(property);
-            WriteExpandedNodeId("TypeId", typeId);
-            if (body != null)
+            if (UseReversibleEncoding)
             {
-                switch (encoding)
-                {
-                    case ExtensionObjectEncoding.Xml:
-                        WriteEncoding("Encoding", encoding);
-                        WriteXmlElement("Body", body as XmlElement);
-                        break;
-                    case ExtensionObjectEncoding.Json:
-                        WriteEncoding("Encoding", encoding);
-                        if (body is EncodeableJToken jt)
-                        {
-                            // Write encodeable token as json raw
-                            body = jt.JToken;
-                        }
-                        else if (body is IEncodeable o)
-                        {
-                            PushObject("Body");
-                            o.Encode(this);
-                            PopObject();
-                            break;
-                        }
-                        PushObject("Body");
-                        _writer?.WritePropertyName(nameof(EncodeableJToken.JToken));
-                        switch (body)
-                        {
-                            case JToken token:
-                                _writer?.WriteRaw(token.ToString());
-                                break;
-                            case string json:
-                                _writer?.WriteRaw(json);
-                                break;
-                            case byte[] buffer:
-                                _writer?.WriteValue(buffer);
-                                break;
-                            default:
-                                throw ServiceResultException.Create(
-                                    StatusCodes.BadEncodingError,
-                                    "Unexpected value encountered while " +
-                                        $"encoding body:{body}");
-                        }
-                        PopObject();
-                        break;
-                    case ExtensionObjectEncoding.Binary:
-                        WriteByteString("Body", body as byte[]);
-                        break;
-                }
+                PopObject();
             }
-            PopObject();
         }
 
         /// <inheritdoc/>

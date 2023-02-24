@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
 {
     using Autofac;
     using Azure.IIoT.OpcUa.Publisher;
@@ -20,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine
     using Microsoft.Extensions.Logging;
     using Models;
     using Moq;
-    using Publisher.Services;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -28,6 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using Azure.IIoT.OpcUa.Publisher.Services;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
@@ -587,7 +587,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine
         /// </summary>
         /// <param name="sourcePath"></param>
         /// <returns></returns>
-        public static void CopyContent(string sourcePath, string destinationPath)
+        private static void CopyContent(string sourcePath, string destinationPath)
         {
             var content = GetFileContent(sourcePath);
 

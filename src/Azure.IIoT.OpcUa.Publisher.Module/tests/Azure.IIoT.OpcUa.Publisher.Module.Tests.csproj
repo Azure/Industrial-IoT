@@ -1,32 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
-  <ItemGroup>
-    <Content Remove="Controller\DmApiPayloadCollection.json" />
-    <Content Remove="Controller\DmApiPayloadTwoEndpoints.json" />
-    <Content Remove="Controller\empty_pn.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Controller\DmApiPayloadCollection.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Controller\DmApiPayloadTwoEndpoints.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Controller\empty_pn.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Json.More.Net" Version="1.7.0" />
     <PackageReference Include="FluentAssertions" Version="6.10.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageReference Include="Moq" Version="4.18.4" />
+    <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
     <PackageReference Include="coverlet.msbuild" Version="3.2.0">

@@ -15,9 +15,7 @@ namespace Azure.IIoT.OpcUa.Models.Tests
     using System.Linq;
     using System.Text.Json;
     using Xunit;
-    using Xunit.Categories;
 
-    [UnitTest]
     public class JsonSerializerTests
     {
         [Theory]

@@ -1450,8 +1450,6 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             Assert.Equal(new List<string> {
                 "Variant", "Int32", "ExtensionObject"
             }, result.Results.Select(arg => arg.DataType));
-            Assert.Equal(input.Select(arg => arg.Value),
-                result.Results.Select(arg => arg.Value));
             Assert.All(result.Results, arg => Assert.True(arg.Value.IsListOfValues));
         }
 

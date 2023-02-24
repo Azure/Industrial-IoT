@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
@@ -260,7 +260,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher
                 body = currentStep.GetProperty("Body");
                 Assert.Equal(22, currentStep.GetProperty("Type").GetInt32());
                 Assert.Equal(183, body.GetProperty("TypeId").GetProperty("Id").GetInt32());
-                Assert.Equal(2, body.GetProperty("Encoding").GetInt32());
                 Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("CycleStepDataType").GetProperty("Name").ValueKind);
                 Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("CycleStepDataType").GetProperty("Duration").ValueKind);
             });

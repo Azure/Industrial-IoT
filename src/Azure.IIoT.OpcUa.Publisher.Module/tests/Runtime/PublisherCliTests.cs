@@ -117,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             {
                 var warning = result.Warnings[i];
                 warning.Should().Be(
-                    "Option {option} wrong or not supported, please use -h option to get all the supported options."
+                    "Option {Option} wrong or not supported, please use -h option to get all the supported options."
                     + "::" + param[i]
                 );
             }

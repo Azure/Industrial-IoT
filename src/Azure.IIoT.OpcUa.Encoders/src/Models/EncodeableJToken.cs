@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
     /// <summary>
     /// Encodeable wrapper for Json tokens
     /// </summary>
-    public sealed class EncodeableJToken : IEncodeable
+    public sealed class EncodeableJToken : IEncodeable, IJsonEncodeable
     {
         /// <summary>
         /// The encoded object
@@ -23,14 +23,19 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// Create encodeable token
         /// </summary>
         /// <param name="jToken"></param>
-        public EncodeableJToken(JToken jToken)
+        /// <param name="typeId"></param>
+        public EncodeableJToken(JToken jToken, ExpandedNodeId typeId)
         {
             JToken = jToken ?? throw new ArgumentNullException(nameof(jToken));
+            TypeId = typeId;
         }
 
         /// <inheritdoc/>
-        public ExpandedNodeId TypeId =>
-            nameof(EncodeableJToken);
+        public ExpandedNodeId TypeId { get; private set; }
+
+        /// <inheritdoc/>
+        public ExpandedNodeId JsonEncodingId =>
+            nameof(EncodeableJToken) + "_Encoding_DefaultJson";
 
         /// <inheritdoc/>
         public ExpandedNodeId BinaryEncodingId =>
@@ -43,12 +48,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <inheritdoc/>
         public void Decode(IDecoder decoder)
         {
+            TypeId = decoder.ReadExpandedNodeId(nameof(TypeId));
             JToken = JToken.Parse(decoder.ReadString(nameof(JToken)));
         }
 
         /// <inheritdoc/>
         public void Encode(IEncoder encoder)
         {
+            encoder.WriteExpandedNodeId(nameof(TypeId), TypeId);
             encoder.WriteString(nameof(JToken), JToken.ToString());
         }
 
@@ -57,7 +64,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         {
             if (encodeable is EncodeableJToken wrapper)
             {
-                return JToken.EqualityComparer.Equals(wrapper.JToken, JToken);
+                return TypeId == wrapper.TypeId &&
+                    JToken.EqualityComparer.Equals(wrapper.JToken, JToken);
             }
             return false;
         }

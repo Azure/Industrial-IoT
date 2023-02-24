@@ -3,14 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.HistoricalAccess
 {
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Xunit;
 
     [CollectionDefinition(Name)]
-    public class HistoryServerReadCollection : ICollectionFixture<HistoricalAccessServer>
+    public class ReadCollection : ICollectionFixture<HistoricalAccessServer>
     {
-        public const string Name = "HistoryServerRead";
+        public const string Name = "HistoricalAccessServerReadModule";
     }
 }

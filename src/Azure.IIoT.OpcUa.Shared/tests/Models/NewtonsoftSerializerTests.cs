@@ -15,9 +15,7 @@ namespace Azure.IIoT.OpcUa.Models.Tests
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
-    using Xunit.Categories;
 
-    [UnitTest]
     public class NewtonsoftSerializerTests
     {
         [Theory]

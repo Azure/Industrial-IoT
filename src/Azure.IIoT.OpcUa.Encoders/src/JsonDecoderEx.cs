@@ -94,77 +94,67 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public sbyte ReadSByte(string? property)
         {
-            return ReadValue<sbyte>(property,
-                v => (sbyte)(v < sbyte.MinValue || v > sbyte.MaxValue ? 0 : v));
+            return ReadValue<sbyte>(property);
         }
 
         /// <inheritdoc/>
         public byte ReadByte(string? property)
         {
-            return ReadValue<byte>(property,
-                v => (byte)(v < byte.MinValue || v > byte.MaxValue ? 0 : v));
+            return ReadValue<byte>(property);
         }
 
         /// <inheritdoc/>
         public short ReadInt16(string? property)
         {
-            return ReadValue<short>(property,
-                v => (short)(v < short.MinValue || v > short.MaxValue ? 0 : v));
+            return ReadValue<short>(property);
         }
 
         /// <inheritdoc/>
         public ushort ReadUInt16(string? property)
         {
-            return ReadValue<ushort>(property,
-                v => (ushort)(v < ushort.MinValue || v > ushort.MaxValue ? 0 : v));
+            return ReadValue<ushort>(property);
         }
 
         /// <inheritdoc/>
         public int ReadInt32(string? property)
         {
-            return ReadValue<int>(property,
-                v => v < int.MinValue || v > int.MaxValue ? 0 : v);
+            return ReadValue<int>(property);
         }
 
         /// <inheritdoc/>
         public uint ReadUInt32(string? property)
         {
-            return ReadValue<uint>(property,
-                v => v < uint.MinValue || v > uint.MaxValue ? 0 : v);
+            return ReadValue<uint>(property);
         }
 
         /// <inheritdoc/>
         public long ReadInt64(string? property)
         {
-            return ReadValue<long>(property,
-                v => v);
+            return ReadValue<long>(property);
         }
 
         /// <inheritdoc/>
         public ulong ReadUInt64(string? property)
         {
-            return ReadValue<ulong>(property,
-                v => v);
+            return ReadValue<ulong>(property);
         }
 
         /// <inheritdoc/>
         public float ReadFloat(string? property)
         {
-            return ReadValue<float>(property,
-                v => v < float.MinValue || v > float.MaxValue ? 0 : v);
+            return ReadValue<float>(property);
         }
 
         /// <inheritdoc/>
         public double ReadDouble(string? property)
         {
-            return ReadValue<double>(property,
-                v => v);
+            return ReadValue<double>(property);
         }
 
         /// <inheritdoc/>
         public byte[]? ReadByteString(string? property)
         {
-            return ReadValue<byte[]>(property, v => v);
+            return ReadValue<byte[]>(property);
         }
 
         /// <inheritdoc/>
@@ -428,8 +418,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 _stack.Pop();
                 return code;
             }
-            return ReadValue<uint>(property, v =>
-                v < uint.MinValue || v > uint.MaxValue ? 0 : v);
+            return ReadValue<uint>(property);
         }
 
         /// <inheritdoc/>
@@ -1021,8 +1010,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return new ByteCollection();
             }
-            if (token.Type == JTokenType.Bytes ||
-                token.Type == JTokenType.String)
+            if (token.Type is JTokenType.Bytes or
+                JTokenType.String)
             {
                 var s = (string?)token;
                 if (s == null)
@@ -1048,8 +1037,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return new SByteCollection();
             }
-            if (token.Type == JTokenType.Bytes ||
-                token.Type == JTokenType.String)
+            if (token.Type is JTokenType.Bytes or
+                JTokenType.String)
             {
                 var s = (string?)token;
                 if (s == null)
@@ -1130,9 +1119,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 number = ReadVariantFromToken(token, false);
             }
             var builtInType = number.TypeInfo.BuiltInType;
-            if ((builtInType >= BuiltInType.SByte &&
-                 builtInType <= BuiltInType.UInt64) ||
-                builtInType == BuiltInType.Integer)
+            if (builtInType is >= BuiltInType.SByte and
+                 <= BuiltInType.UInt64 or
+                BuiltInType.Integer)
             {
                 return number;
             }
@@ -1174,9 +1163,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 number = ReadVariantFromToken(token, true);
             }
             var builtInType = number.TypeInfo.BuiltInType;
-            if ((builtInType >= BuiltInType.Byte &&
-                 builtInType <= BuiltInType.UInt64) ||
-                 builtInType == BuiltInType.UInteger)
+            if (builtInType is >= BuiltInType.Byte and
+                 <= BuiltInType.UInt64 or
+                 BuiltInType.UInteger)
             {
                 return number;
             }
@@ -1242,129 +1231,83 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return null;
             }
-            var nextEncoding = encoding;
             var systemType = Context.Factory.GetSystemType(typeId) ??
                 TypeInfo.GetSystemType(typeId.ToNodeId(Context.NamespaceUris),
                     Context.Factory);
-            while (true)
-            {
-                switch (nextEncoding)
-                {
-                    case ExtensionObjectEncoding.Json:
-                        if (systemType != null)
-                        {
-                            var encodeable = ReadEncodeable(property, systemType);
-                            if (encodeable == null)
-                            {
-                                break;
-                            }
-                            return new ExtensionObject(typeId, encodeable);
-                        }
 
-                        if (encoding != ExtensionObjectEncoding.Json)
+            if (body.Type == JTokenType.String && encoding != ExtensionObjectEncoding.Xml)
+            {
+                // Assume binary
+                encoding = ExtensionObjectEncoding.Binary;
+            }
+
+            switch (encoding)
+            {
+                case ExtensionObjectEncoding.Binary:
+                    var bytes = ReadByteString(property);
+                    if (bytes != null && systemType != null)
+                    {
+                        using var decoder = new BinaryDecoder(bytes, Context);
+                        var encodeable = decoder.ReadEncodeable(null, systemType);
+                        if (encodeable != null)
                         {
-                            break;
+                            return new ExtensionObject(encodeable.TypeId, encodeable);
                         }
-                        //
-                        // Return json token, update once stack supports json extension objects.
-                        //
-                        // var json = body.ToString();
-                        // return new ExtensionObject(NodeId.IsNull(typeId) ?
-                        //     DataTypeIds.String : typeId, json);
-                        var wrapper = new EncodeableJToken(body);
-                        return new ExtensionObject(NodeId.IsNull(typeId) ?
-                            wrapper.TypeId : typeId, wrapper);
-                    case ExtensionObjectEncoding.Binary:
-                        var bytes = ReadByteString(property);
-                        if (bytes != null)
+                    }
+                    //
+                    // Unknown type, or empty then return raw bytes. We return the
+                    // data type encoding as type id, we dont know otherwise
+                    //
+                    return new ExtensionObject(NodeId.IsNull(typeId) ?
+                        DataTypeIds.ByteString : typeId, bytes);
+                case ExtensionObjectEncoding.Xml:
+                    var encoded = ReadByteString(property);
+                    XmlElement? element = null;
+                    if (encoded != null)
+                    {
+                        var xml = Encoding.UTF8.GetString(encoded);
+                        if (xml != null)
                         {
                             if (systemType != null)
                             {
-                                using (var decoder = new BinaryDecoder(bytes, Context))
+                                using var stringReader = new StringReader(xml);
+                                using var reader = XmlReader.Create(stringReader);
+                                using var decoder = new XmlDecoder(systemType, reader, Context);
+                                var encodeable = decoder.ReadEncodeable(null, systemType);
+                                if (encodeable != null)
                                 {
-                                    var encodeable = decoder.ReadEncodeable(null, systemType);
-                                    if (encodeable == null)
-                                    {
-                                        break;
-                                    }
-                                    return new ExtensionObject(typeId, encodeable);
+                                    return new ExtensionObject(encodeable.TypeId, encodeable);
                                 }
                             }
-                        }
-                        //
-                        // Unknown type, or empty then return raw bytes.
-                        //
-                        return new ExtensionObject(NodeId.IsNull(typeId) ?
-                            DataTypeIds.ByteString : typeId, bytes);
-                    default:
-                        nextEncoding = ExtensionObjectEncoding.Xml;
-                        var encoded = ReadByteString(property);
-                        if (encoded != null)
-                        {
-                            var xml = Encoding.UTF8.GetString(encoded);
-                            if (xml != null)
-                            {
-                                try
-                                {
-                                    if (systemType != null)
-                                    {
-                                        using (var stringReader = new StringReader(xml))
-                                        using (var reader = XmlReader.Create(stringReader))
-                                        using (var decoder = new XmlDecoder(systemType, reader, Context))
-                                        {
-                                            var encodeable = decoder.ReadEncodeable(null, systemType);
-                                            if (encodeable == null)
-                                            {
-                                                break;
-                                            }
-                                            return new ExtensionObject(typeId, encodeable);
-                                        }
-                                    }
-                                    //
-                                    // Unknown type, return as xmlelement
-                                    //
-                                    else if (encoding == ExtensionObjectEncoding.Xml)
-                                    {
-                                        var doc = new XmlDocument();
-                                        doc.LoadXml(xml);
-                                        return new ExtensionObject(NodeId.IsNull(typeId) ?
-                                            DataTypeIds.XmlElement : typeId, doc.DocumentElement);
-                                    }
-                                }
-                                catch
-                                {
-                                    if (encoding != ExtensionObjectEncoding.Xml)
-                                    {
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (encoding != ExtensionObjectEncoding.Xml)
-                        {
-                            break;
-                        }
-                        //
-                        // Encoding was set as xml, but we could not decode to xmlelement
-                        //
-                        return null;
-                }
+                            //
+                            // Unknown type, return as xmlelement
+                            //
 
-                switch (nextEncoding)
-                {
-                    case ExtensionObjectEncoding.Json:
-                        // Try xml next
-                        nextEncoding = ExtensionObjectEncoding.Xml;
-                        break;
-                    case ExtensionObjectEncoding.Xml:
-                        // Try binary next
-                        nextEncoding = ExtensionObjectEncoding.Binary;
-                        break;
-                    default:
-                        // Give up
-                        // TODO Log or throw for bad type
-                        return null;
-                }
+                            var doc = new XmlDocument();
+                            doc.LoadXml(xml);
+                            element = doc.DocumentElement;
+                        }
+                    }
+                    //
+                    // Unknown type, or empty then return the xml elemtn. We return the
+                    // data type encoding as type id, we dont know otherwise
+                    //
+                    return new ExtensionObject(NodeId.IsNull(typeId) ?
+                        DataTypeIds.XmlElement : typeId, element);
+                default:
+                    if (systemType != null)
+                    {
+                        var encodeable = ReadEncodeable(property, systemType);
+                        if (encodeable != null)
+                        {
+                            return new ExtensionObject(encodeable.TypeId, encodeable);
+                        }
+                    }
+                    //
+                    // Return json token, update once stack supports json extension objects.
+                    //
+                    var wrapper = new EncodeableJToken(body, typeId);
+                    return new ExtensionObject(wrapper.TypeId, wrapper);
             }
         }
 
@@ -1928,9 +1871,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="property"></param>
-        /// <param name="check"></param>
         /// <returns></returns>
-        private T? ReadValue<T>(string? property, Func<T?, T?> check)
+        private T? ReadValue<T>(string? property)
         {
             if (!TryGetToken(property, out var token))
             {
@@ -1938,7 +1880,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             try
             {
-                return check(token.ToObject<T>());
+                return token.ToObject<T>();
             }
             catch
             {
@@ -1982,13 +1924,11 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return ExtensionObjectEncoding.None;
             }
-            if (token.Type == JTokenType.String)
-            {
-                if (Enum.TryParse<ExtensionObjectEncoding>((string?)token,
+            if (token.Type == JTokenType.String &&
+                Enum.TryParse<ExtensionObjectEncoding>((string?)token,
                     true, out var encoding))
-                {
-                    return encoding;
-                }
+            {
+                return encoding;
             }
             try
             {

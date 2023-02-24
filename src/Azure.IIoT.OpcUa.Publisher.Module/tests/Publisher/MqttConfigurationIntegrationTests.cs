@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Models;
@@ -201,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher
                 Assert.Equal(2, nodes.OpcNodes.Count);
                 await PublisherApi.UnpublishNodesAsync(testInput2[0]).ConfigureAwait(false);
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
-                Assert.Equal(1, nodes.OpcNodes.Count);
+                Assert.Single(nodes.OpcNodes);
 
                 var messages = WaitForMessages(GetDataFrame);
                 var message = Assert.Single(messages);
