@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Xunit;
 
     [CollectionDefinition(Name)]
-    public class HistoryServerReadCollection : ICollectionFixture<HistoryServerFixture>
+    public class HistoryServerReadCollection : ICollectionFixture<HistoricalAccessServer>
     {
         public const string Name = "HistoryServerRead";
     }

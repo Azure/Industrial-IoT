@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api
     [Collection(HistoryServerReadCollection.Name)]
     public class HistoryReadValuesTests : IClassFixture<PublisherModuleFixture>
     {
-        public HistoryReadValuesTests(HistoryServerFixture server, PublisherModuleFixture module)
+        public HistoryReadValuesTests(HistoricalAccessServer server, PublisherModuleFixture module)
         {
             _server = server;
             _module = module;
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api
                 });
         }
 
-        private readonly HistoryServerFixture _server;
+        private readonly HistoricalAccessServer _server;
         private readonly PublisherModuleFixture _module;
         private readonly IPHostEntry _hostEntry;
 

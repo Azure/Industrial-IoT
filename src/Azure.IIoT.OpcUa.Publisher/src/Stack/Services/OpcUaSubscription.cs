@@ -234,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // Try and apply configuration. If we fail session will retry
                     // periodically through the session manager
                     //
-                    await ApplyInternalAsync(session.Session).ConfigureAwait(false);
+                    await ApplyInternalAsync(session).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -260,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             await _lock.WaitAsync().ConfigureAwait(false);
             try
             {
-                await ApplyInternalAsync(session.Session).ConfigureAwait(false);
+                await ApplyInternalAsync(session).ConfigureAwait(false);
             }
             finally
             {
@@ -355,11 +355,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        private async Task ApplyInternalAsync(ISession session)
+        private async Task ApplyInternalAsync(ISessionHandle session)
         {
             try
             {
-                var rawSubscription = GetInnerSubscription(session);
+                var rawSubscription = GetInnerSubscription(session.Session);
 
                 // set the new set of monitored items
                 _subscription.MonitoredItems = _subscription.MonitoredItems?.Select(n => n.Clone()).ToList();
@@ -369,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (!rawSubscription.PublishingEnabled)
                     {
                         // Initialized subscription, resolve display names first
-                        ResolveDisplayNames(session);
+                        ResolveDisplayNames(session.Session);
                     }
 
                     await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems)

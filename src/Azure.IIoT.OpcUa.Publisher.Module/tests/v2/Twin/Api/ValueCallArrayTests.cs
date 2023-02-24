@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api
     [Collection(TestServerWriteCollection.Name)]
     public class ValueCallArrayTests : IClassFixture<PublisherModuleFixture>
     {
-        public ValueCallArrayTests(TestServerFixture server, PublisherModuleFixture module)
+        public ValueCallArrayTests(TestDataServer server, PublisherModuleFixture module)
         {
             _server = server;
             _module = module;
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api
                 });
         }
 
-        private readonly TestServerFixture _server;
+        private readonly TestDataServer _server;
         private readonly PublisherModuleFixture _module;
         private readonly IPHostEntry _hostEntry;
 

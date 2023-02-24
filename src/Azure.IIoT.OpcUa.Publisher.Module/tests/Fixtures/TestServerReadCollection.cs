@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Xunit;
 
     [CollectionDefinition(Name)]
-    public class TestServerReadCollection : ICollectionFixture<TestServerFixture>
+    public class TestServerReadCollection : ICollectionFixture<TestDataServer>
     {
         public const string Name = "TestServerRead";
     }

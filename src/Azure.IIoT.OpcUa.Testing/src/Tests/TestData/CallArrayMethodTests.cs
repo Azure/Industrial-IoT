@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
+    using Furly.Extensions.Serializers.Json;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -22,12 +22,13 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         /// Create node services tests
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="endpoint"></param>
-        public CallArrayMethodTests(Func<INodeServices<T>> services, T endpoint)
+        /// <param name="connection"></param>
+        public CallArrayMethodTests(Func<INodeServices<T>> services, T connection, bool newMetadata = false)
         {
             _services = services;
-            _connection = endpoint;
-            _serializer = new NewtonsoftJsonSerializer();
+            _connection = connection;
+            _serializer = new DefaultJsonSerializer();
+			_newMetadata = newMetadata;
         }
 
         public async Task NodeMethodMetadataStaticArrayMethod1TestAsync()
@@ -37,11 +38,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.GetMethodMetadataAsync(_connection,
-                new MethodMetadataRequestModel
-                {
-                    MethodId = methodId
-                }).ConfigureAwait(false);
+			MethodMetadataModel result;
+			if (!_newMetadata)
+			{
+            	result = await service.GetMethodMetadataAsync(_connection,
+                	new MethodMetadataRequestModel
+                	{
+                        MethodId = methodId
+                    }).ConfigureAwait(false);
+			}
+			else
+			{
+				var metadata = await service.GetMetadataAsync(_connection,
+                	new NodeMetadataRequestModel
+                	{
+						NodeId = methodId
+                	}).ConfigureAwait(false);
+            	result = metadata.MethodMetadata;
+			}
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -342,11 +356,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.GetMethodMetadataAsync(_connection,
-                new MethodMetadataRequestModel
-                {
-                    MethodId = methodId
-                }).ConfigureAwait(false);
+			MethodMetadataModel result;
+			if (!_newMetadata)
+			{
+            	result = await service.GetMethodMetadataAsync(_connection,
+                	new MethodMetadataRequestModel
+                	{
+                        MethodId = methodId
+                    }).ConfigureAwait(false);
+			}
+			else
+			{
+				var metadata = await service.GetMetadataAsync(_connection,
+                	new NodeMetadataRequestModel
+                	{
+						NodeId = methodId
+                	}).ConfigureAwait(false);
+            	result = metadata.MethodMetadata;
+			}
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -621,11 +648,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.GetMethodMetadataAsync(_connection,
-                new MethodMetadataRequestModel
-                {
-                    MethodId = methodId
-                }).ConfigureAwait(false);
+			MethodMetadataModel result;
+			if (!_newMetadata)
+			{
+            	result = await service.GetMethodMetadataAsync(_connection,
+                	new MethodMetadataRequestModel
+                	{
+                        MethodId = methodId
+                    }).ConfigureAwait(false);
+			}
+			else
+			{
+				var metadata = await service.GetMetadataAsync(_connection,
+                	new NodeMetadataRequestModel
+                	{
+						NodeId = methodId
+                	}).ConfigureAwait(false);
+            	result = metadata.MethodMetadata;
+			}
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -766,12 +806,12 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 new MethodCallArgumentModel {
                     DataType = "float",
                     Value = _serializer.FromObject(
-                        new float[] { float.MinValue, float.MaxValue, 0, 2 })
+                        new float[] { float.MinValue, float.MaxValue, 0.0f, 2.0f })
                 },
                 new MethodCallArgumentModel {
                     DataType = "DOUBLE",
                     Value = _serializer.FromObject(
-                        new double[] { double.MinValue, double.MaxValue, 0, 2 })
+                        new double[] { double.MinValue, double.MaxValue, 0.0, 2.0 })
                 }
             };
 
@@ -1437,6 +1477,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             Assert.All(result.Results, arg => Assert.Empty(arg.Value.Values));
         }
 
+        private readonly bool _newMetadata;
         private readonly T _connection;
         private readonly Func<INodeServices<T>> _services;
         private readonly ISerializer _serializer;

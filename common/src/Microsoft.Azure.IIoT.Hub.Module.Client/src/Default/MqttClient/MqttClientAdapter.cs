@@ -838,7 +838,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         private const string kContentEncodingPropertyName = "iothub-content-encoding";
         private const string kContentTypePropertyName = "iothub-content-type";
         private const string kContentType = "application/json";
-        private const string kDeviceIdTemplatePlaceholder = "{Device_id}";
+        private const string kDeviceIdTemplatePlaceholder = "{device_id}";
         private const string kOutputNamePlaceholder = "{output_name}";
         private const string kStatusCodeKey = "StatusCode";
 

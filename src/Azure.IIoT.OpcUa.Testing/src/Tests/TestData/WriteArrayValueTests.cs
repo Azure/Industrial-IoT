@@ -700,12 +700,12 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10321";
 
-            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
+            var encoder = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var values = _generator.GetRandomArray<string>();
             var expected = _serializer.FromObject(values
-                .Select(delegate (object v)
+                .Select((object v) =>
                 {
-                    var body = codec.Encode(new Variant(v), out var t);
+                    var body = encoder.Encode(new Variant(v), out var t);
                     return _serializer.FromObject(new
                     {
                         Type = t.ToString(),
@@ -788,7 +788,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             ""DateTimeValue"": ""2071-08-08T14:25:16.7814639Z"",
             ""GuidValue"": ""2f1b64e2-9b6c-9ff9-9bcb-681a5030910b"",
             ""ByteStringValue"": ""XmIaOczWGerdvT4+Y1BOuQ=="",
-            ""XmlElementValue"": null,
+            ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
             ""NodeIdValue"": ""http://samples.org/UA/memorybuffer#b=672G6bOkm2X9OQ4V"",
             ""ExpandedNodeIdValue"": ""g=b869d987-396a-5018-7e4d-556d5e591587"",
             ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Diagnostics#Dragon"",
@@ -887,7 +887,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             ""DateTimeValue"": ""1923-03-18T00:11:38.731972Z"",
             ""GuidValue"": ""82622490-4f77-4562-6290-1295bf97c2e1"",
             ""ByteStringValue"": ""g6SHNFPFKEwN8n/uLZBxf4/6s2ljkAsraA=="",
-            ""XmlElementValue"": null,
+            ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
             ""NodeIdValue"": ""s=%d0%93%d0%be%d0%bb%d1%83%d0%b1%d0%b8%d0%ba%d0%b0"",
             ""ExpandedNodeIdValue"": ""http://test.org/UA/Data/#s=%e9%a9%ac%e7%b4%ab%e8%89%b2"",
             ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Diagnostics#Elephant"",
@@ -938,7 +938,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             ""DateTimeValue"": ""1949-12-22T18:46:59.3619463Z"",
             ""GuidValue"": ""bfa4b0cc-483b-8dcf-f31c-be1ab6a22373"",
             ""ByteStringValue"": ""5k3/MiwysaJQb0S+h/ZadiHED6kKXOEV505s59Gg"",
-            ""XmlElementValue"": null,
+            ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
             ""NodeIdValue"": ""http://opcfoundation.org/UA/Diagnostics#i=407765665"",
             ""ExpandedNodeIdValue"": ""http://opcfoundation.org/UA/Boiler/#g=f16b1f33-7701-a037-4b9b-c936ae51bc40"",
             ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Boiler//Instance#%ec%bd%94%eb%81%bc%eb%a6%ac"",
@@ -986,7 +986,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             ""DateTimeValue"": ""2034-12-05T15:52:28.675232Z"",
             ""GuidValue"": ""0500899c-1c30-8180-cbc7-333928152ed2"",
             ""ByteStringValue"": ""5xRa2IKDWkNPnQk0znSUOxE="",
-            ""XmlElementValue"": null,
+            ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
             ""NodeIdValue"": ""http://opcfoundation.org/UA/Boiler//Instance#s=%e3%83%98%e3%83%93"",
             ""ExpandedNodeIdValue"": ""http://opcfoundation.org/UA/Boiler/#i=3489247698"",
             ""QualifiedNameValue"": ""DataAccess#%e9%a9%ac"",
@@ -1034,7 +1034,10 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             ""DateTimeValue"": [ ""1916-05-09T17:48:30.6223191Z"" ],
             ""GuidValue"": [ ""842d41a6-6123-30ce-5970-6c26b28dd4de"", ""9aa488f4-bf70-5b49-848a-9197639e0990"", ""63306802-aacd-cf0e-20eb-70b1d72bdbe2"", ""5763cae3-358e-e7ef-f7d1-0098d037cdbb"", ""4924dc67-715c-4910-79d4-7a844f978358"", ""99b3afae-b13b-cc01-7949-6bfbaa75ffe9"", ""fb4ab41e-9107-7285-b919-deb9bb6a975f"", ""20eaa74e-3383-b67f-da57-d01305159e03"" ],
             ""ByteStringValue"": [ ""ZppNiFEdKUHgItJIEQ+yC6wDi99l6zWUIa/Bcm2jetrkKQP9EsZVzPdCU1zjkUbBYPlpm3j1LHtkuGaiXLfUPQ=="", ""+GToC7X45q6+5yOY2bGPaf8RczrfYe79iJhaX7JwP20VteotXbarAYLtuQ0I44s="", ""1jk="", ""pWEDx5Z16oIcnof7Tqe1giTGYgtJZXK38qjg9KUNU4g="", ""FJoMEu1Tt3Mzj2L78Q=="", ""ZVNgZ0B0LhI/7kvV7pX23A9L/oI5DahvNnOqmBbWD7wAPHqgRKUT"", ""SgFaHcYXZSJ8Vn8X/G8xWKvwMMzKlvxp34/UsRpVmGk36zc3soqpHg2HG79W98CRCyL1U3VGSbQF8T43Q7MIJ74="", ""3xA3+aUgRxG/Q3o8EufOQqb4YETz8aKCMsFMcdtZfvQAQBivWhE="", ""1AxjhwY5yd9WaQANEMd6Iu1utMfj1NY1ZcSGO9HPH+iUe4s3kGqbSGni9QjbTG4thh4qQKVKmAA2LSFBs40Nh0kXeZQ7QpKD0mteAd/NWhlVWbWz"", ""3kJK4osBYkhaldvUbb7D0tnxQ4unbTnrlyBo0wjsWQ=="" ],
-            ""XmlElementValue"": [],
+            ""XmlElementValue"": [
+                ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
+                ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4=""
+            ],
             ""NodeIdValue"": [ ""http://samples.org/UA/memorybuffer#g=8c9312a3-b893-ea53-91d1-2382907eca95"", ""http://test.org/UA/Data//Instance#b=mZWnGBQiqm%2fQtuce1kejQM%2bdwkrCBDsAWl6ZeX3GfNZshJIz%2fPp%2fauhIgjOqs0w6"", ""nsu=DataAccess;s=파인애플"", ""http://test.org/UA/Data//Instance#s=%e8%9b%87%e7%8c%ab%e9%a6%99%e8%95%89"", ""http://opcfoundation.org/UA/Boiler//Instance#i=272173553"", ""nsu=DataAccess;b=b0PVHldheYEHVqYSX40/y4R9IYv92lU7yuG4V3n6mgH5hHz6JtoB6X4TUlAXoiijsj61kpDGuJXumVN2qSIIDbul"" ],
             ""ExpandedNodeIdValue"": [ ""http://samples.org/UA/memorybuffer/Instance#g=7ca9a545-0c37-87ea-0423-27b914a43b44"", ""i=2349590220"", ""urn:manipc1:OPCFoundation:CoreSampleServer#g=94450a5c-8972-934d-6c99-0c1659b9ce0e"", ""http://test.org/UA/Data//Instance#s=%e6%a1%83%e5%ad%90"", ""http://opcfoundation.org/UA/Diagnostics#g=290ee634-1839-f122-f6b0-df426fb19e6b"", ""urn:manipc1:OPCFoundation:CoreSampleServer#i=2014900536"", ""http://opcfoundation.org/UA/Boiler//Instance#s=%ec%84%9d%ed%9a%8c"", ""http://test.org/UA/Data//Instance#b=4D2jPmkygekkYgnuy3rDjlEURSuQwxxtEVEYAMgjS9Cjxg%3d%3d"", ""http://opcfoundation.org/UA/Diagnostics#g=2005172c-cc4e-6fb5-0e0c-a653cb7c979a"", ""i=405616161"" ],
             ""QualifiedNameValue"": [ ""DataAccess#%eb%b0%94%eb%82%98%eb%82%98"", ""http://samples.org/UA/memorybuffer#%d0%9a%d0%be%d1%80%d0%be%d0%b2%d0%b0"", ""%eb%b0%b1%ec%83%89"", ""http://samples.org/UA/memorybuffer/Instance#%e3%83%90%e3%83%8a%e3%83%8a"", ""DataAccess#%e3%83%91%e3%82%a4%e3%83%8a%e3%83%83%e3%83%97%e3%83%ab"", ""http://opcfoundation.org/UA/Boiler//Instance#Mango"" ],
@@ -1113,7 +1116,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             ""DateTimeValue"": ""1985-11-03T22:42:37.1296614Z"",
             ""GuidValue"": ""5b9f4a59-1a25-042a-e156-e9e08f8eed3d"",
             ""ByteStringValue"": ""wEYr6R2tv2YG6q2Z"",
-            ""XmlElementValue"": null,
+            ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
             ""NodeIdValue"": ""http://test.org/UA/Data//Instance#i=2103396786"",
             ""ExpandedNodeIdValue"": ""http://test.org/UA/Data//Instance#i=577318642"",
             ""QualifiedNameValue"": ""DataAccess#%e7%8a%ac%e3%83%96%e3%82%bf"",
@@ -1188,7 +1191,6 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10324";
-
             var values = _generator.GetRandomArray<sbyte>();
             var expected = _serializer.FromObject(values);
 
@@ -1235,7 +1237,6 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10325";
-
             var values = _generator.GetRandomArray<int>();
             var expected = _serializer.FromObject(values);
 
@@ -1282,7 +1283,6 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10326";
-
             var values = _generator.GetRandomArray<ushort>();
             var expected = _serializer.FromObject(values);
 

@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
     using System.Xml;
 
     /// <summary>
-    /// Sample server factory
+    /// Server factory
     /// </summary>
     public class ServerFactory : IServerFactory
     {
@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         }
 
         /// <summary>
-        /// Create sample servers
+        /// Full set of servers
         /// </summary>
         /// <param name="logger"></param>
         public ServerFactory(ILogger logger) :
@@ -63,8 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         }
 
         /// <inheritdoc/>
-        public ApplicationConfiguration CreateServer(IEnumerable<int> ports, string applicationName,
-            out ServerBase server)
+        public ApplicationConfiguration CreateServer(IEnumerable<int> ports,
+		    string applicationName, out ServerBase server)
         {
             server = new Server(LogStatus, _nodes, _logger);
             return Server.CreateServerConfiguration(ports, applicationName);
@@ -88,9 +88,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             }
 
             /// <summary>
-            /// Create server configuration
+            /// Create configuration
             /// </summary>
             /// <param name="ports"></param>
+            /// <param name="pkiRootPath"></param>
+            /// <param name="configure"></param>
             /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(
                 IEnumerable<int> ports, string pkiRootPath)
@@ -117,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 {
                     pkiRootPath = "pki";
                 }
-                return new ApplicationConfiguration
+                var configuration = new ApplicationConfiguration
                 {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
@@ -208,11 +210,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                             }
                         },
 
-                        MinRequestThreadCount = 20,
-                        MaxRequestThreadCount = 200,
-                        MaxQueuedRequestCount = 200000,
+                        MinRequestThreadCount = 200,
+                        MaxRequestThreadCount = 2000,
+                        MaxQueuedRequestCount = 2000000,
 
-                        MaxSessionCount = 1000,
+                        MaxSessionCount = 10000,
                         MinSessionTimeout = 10000,
                         MaxSessionTimeout = 3600000,
                         MaxBrowseContinuationPoints = 1000,
@@ -241,6 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         TraceMasks = 1
                     }
                 };
+                return configuration;
             }
 
             /// <inheritdoc/>

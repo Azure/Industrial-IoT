@@ -576,10 +576,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
             _cts.Token.ThrowIfCancellationRequested();
-            if (await GetOrCreateSessionAsync(connection, null, ct).ConfigureAwait(false) is not OpcUaClient client)
+            var session = await GetOrCreateSessionAsync(connection, null, ct).ConfigureAwait(false);
+            if (session is not OpcUaClient client)
             {
                 throw new ConnectionException("Failed to execute call, " +
                     $"no connection for {connection?.Endpoint?.Url}");

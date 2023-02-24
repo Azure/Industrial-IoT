@@ -1,16 +1,16 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services.History.Tests
+namespace Azure.IIoT.OpcUa.Publisher.Services.HistoricalEvents.Tests
 {
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Xunit;
 
     [CollectionDefinition(Name)]
-    public class HistoryReadCollection : ICollectionFixture<HistoryServerFixture>
+    public class ReadCollection : ICollectionFixture<HistoricalEventsServer>
     {
-        public const string Name = "HistoryRead";
+        public const string Name = "HistoricalEventsRead";
     }
 }

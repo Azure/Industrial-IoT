@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests
             var buffer = _serializer.SerializeObjectToMemory(instance, type);
             var result = _serializer.Deserialize(buffer.ToArray(), type);
 
-            result.Should().BeEquivalentTo(instance);
+            result.Should().BeEquivalentTo(instance, options => options.AllowingInfiniteRecursion());
         }
 
         [Theory]
@@ -82,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests
             var buffer = _serializer.SerializeObjectToMemory(instance, instance.GetType());
             var result = _serializer.Deserialize(buffer.ToArray(), type.MakeArrayType());
 
-            result.Should().BeEquivalentTo(instance);
+            result.Should().BeEquivalentTo(instance, options => options.AllowingInfiniteRecursion());
         }
 
         private readonly IBinarySerializer _serializer = new MessagePackSerializer();

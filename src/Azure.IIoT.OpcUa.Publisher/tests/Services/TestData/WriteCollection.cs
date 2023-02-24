@@ -9,8 +9,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests
     using Xunit;
 
     [CollectionDefinition(Name)]
-    public class WriteCollection : ICollectionFixture<TestServerFixture>
+    public class WriteCollection : ICollectionFixture<TestDataServer>
     {
-        public const string Name = "Write";
+        public const string Name = "TestDataWrite";
     }
 }

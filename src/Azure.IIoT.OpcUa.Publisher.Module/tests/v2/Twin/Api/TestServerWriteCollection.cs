@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api
     using Xunit;
 
     [CollectionDefinition(Name)]
-    public class TestServerWriteCollection : ICollectionFixture<TestServerFixture>
+    public class TestServerWriteCollection : ICollectionFixture<TestDataServer>
     {
         public const string Name = "Supervisor.Api.Write";
     }

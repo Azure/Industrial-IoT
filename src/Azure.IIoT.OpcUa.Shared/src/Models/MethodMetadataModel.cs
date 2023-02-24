@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models
     /// Method metadata model
     /// </summary>
     [DataContract]
-    public sealed record class MethodMetadataModel
+    public record class MethodMetadataModel
     {
         /// <summary>
         /// Id of object that the method is a component of

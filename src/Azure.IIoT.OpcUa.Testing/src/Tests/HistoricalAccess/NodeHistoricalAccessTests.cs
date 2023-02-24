@@ -39,9 +39,9 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             Assert.Equal(3, results.ServerProfiles.Length);
             Assert.NotNull(results.OperationLimits);
             Assert.Equal(0, results.OperationLimits.MinSupportedSampleRate);
-            Assert.Equal(1000, results.OperationLimits.MaxBrowseContinuationPoints);
-            Assert.Equal(1000, results.OperationLimits.MaxQueryContinuationPoints);
-            Assert.Equal(1000, results.OperationLimits.MaxHistoryContinuationPoints);
+            Assert.Equal(1000, results.OperationLimits.MaxBrowseContinuationPoints.Value);
+            Assert.Equal(1000, results.OperationLimits.MaxQueryContinuationPoints.Value);
+            Assert.Equal(1000, results.OperationLimits.MaxHistoryContinuationPoints.Value);
             Assert.Equal(2147483647u, results.OperationLimits.MaxNodesPerBrowse);
             Assert.Equal(2147483647u, results.OperationLimits.MaxNodesPerRegisterNodes);
             Assert.Equal(2147483647u, results.OperationLimits.MaxNodesPerWrite);

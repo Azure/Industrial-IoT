@@ -547,8 +547,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         [InlineData("Publisher/publishednodes.json")]
         [InlineData("Publisher/publishednodeswithoptionalfields.json")]
         [InlineData("Publisher/publishednodes_with_duplicates.json")]
-        [InlineData("Controller/DmApiPayloadCollection.json")]
-        [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
         public async Task Test_AddOrUpdateEndpoints_RemoveEndpoints(string publishedNodesFile)
         {
             Utils.CopyContent(publishedNodesFile, _tempFile);

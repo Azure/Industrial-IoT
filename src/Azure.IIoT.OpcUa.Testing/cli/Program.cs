@@ -23,21 +23,17 @@ namespace Azure.IIoT.OpcUa.Testing.Cli
     /// </summary>
     public static class Program
     {
-        private enum Op
-        {
-            None,
-            RunSampleServer
-        }
-
         /// <summary>
         /// Test client entry point
         /// </summary>
         public static void Main(string[] args)
         {
+            if (args is null)
+            {
+                throw new ArgumentNullException(nameof(args));
+            }
             AppDomain.CurrentDomain.UnhandledException +=
                 (s, e) => Console.WriteLine("unhandled: " + e.ExceptionObject);
-            var op = Op.None;
-            var endpoint = new EndpointModel();
             var host = Utils.GetHostName();
             var ports = new List<int>();
             try
@@ -48,7 +44,6 @@ namespace Azure.IIoT.OpcUa.Testing.Cli
                     {
                         case "--sample":
                         case "-s":
-                            op = Op.RunSampleServer;
                             break;
                         case "-p":
                         case "--port":
@@ -68,22 +63,18 @@ namespace Azure.IIoT.OpcUa.Testing.Cli
                             throw new ArgumentException($"Unknown {args[i]}");
                     }
                 }
-                if (op == Op.None)
+                if (ports.Count == 0)
                 {
-                    if (ports.Count == 0)
+                    var envPort = Environment.GetEnvironmentVariable("SERVER_PORT");
+                    if (!string.IsNullOrEmpty(envPort) && int.TryParse(envPort, out var port))
                     {
-                        var envPort = Environment.GetEnvironmentVariable("SERVER_PORT");
-                        if (!string.IsNullOrEmpty(envPort) && int.TryParse(envPort, out var port))
-                        {
-                            ports.Add(port);
-                        }
-                        else
-                        {
-                            throw new ArgumentException(
-                                "Missing port to run sample server or specify --sample option.");
-                        }
+                        ports.Add(port);
                     }
-                    op = Op.RunSampleServer;
+                    else
+                    {
+                        throw new ArgumentException(
+                            "Missing port to run sample server or specify --sample option.");
+                    }
                 }
             }
             catch (Exception e)
@@ -114,15 +105,8 @@ Operations (Mutually exclusive):
             }
             try
             {
-                Console.WriteLine($"Running {op}...");
-                switch (op)
-                {
-                    case Op.RunSampleServer:
-                        RunServerAsync(ports).Wait();
-                        return;
-                    default:
-                        throw new ArgumentException("Unknown.");
-                }
+                Console.WriteLine("Running ...");
+                RunServerAsync(ports).Wait();
             }
             catch (Exception e)
             {
@@ -137,7 +121,7 @@ Operations (Mutually exclusive):
         private static async Task RunServerAsync(IEnumerable<int> ports)
         {
             var logger = StackLogger.Create(Log.Console<StackLogger>());
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
             using (var server = new ServerConsoleHost(new ServerFactory(logger.Logger),
                 logger.Logger)
@@ -199,7 +183,7 @@ Operations (Mutually exclusive):
             /// <returns></returns>
             private static async Task RunSampleServerAsync(ILogger logger, CancellationToken ct)
             {
-                var tcs = new TaskCompletionSource<bool>();
+                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 ct.Register(() => tcs.TrySetResult(true));
                 using (var server = new ServerConsoleHost(new ServerFactory(logger)
                 {

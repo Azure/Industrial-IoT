@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
     /// <summary>
     /// Sample server fixture
     /// </summary>
-    public class HistoryServerFixture : BaseServerFixture
+    public class TestDataServer : BaseServerFixture
     {
         /// <summary>
         /// Sample server nodes
@@ -20,13 +20,15 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
         {
             get
             {
-                yield return new HistoricalAccess.HistoricalAccessServer();
-                yield return new HistoricalEvents.HistoricalEventsServer();
+                yield return new TestData.TestDataServer();
+                yield return new MemoryBuffer.MemoryBufferServer();
+                yield return new Boiler.BoilerServer();
+                yield return new DataAccess.DataAccessServer();
             }
         }
 
         /// <inheritdoc/>
-        public HistoryServerFixture() :
+        public TestDataServer() :
             base(SampleServer)
         {
         }

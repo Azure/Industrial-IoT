@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
+    using System.Globalization;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -31,7 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    public sealed class OpcUaClient : IAsyncDisposable, ISessionHandle, IMetricsContext
+    public sealed class OpcUaClient : IAsyncDisposable, ISessionHandle,
+        IMetricsContext, ISessionServices
     {
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityState>? OnConnectionStateChange;
@@ -41,6 +43,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ISession? Session => _session;
+
+        /// <inheritdoc/>
+        public ISessionServices Services => this;
+
+        /// <inheritdoc/>
+        public OperationLimitsModel? OperationLimits => _limits;
 
         /// <inheritdoc/>
         public TagList TagList { get; }
@@ -109,6 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(metrics));
             }
 
+            _authenticationToken = NodeId.Null;
             _connection = connection.Connection;
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -221,7 +230,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
+        public async ValueTask<OperationLimitsModel> GetOperationLimitsAsync(
+            CancellationToken ct = default)
+        {
+            if (_limits != null)
+            {
+                return _limits;
+            }
+            _limits = await FetchOperationLimitsAsync(new RequestHeader(),
+                ct).ConfigureAwait(false);
+            return _limits ?? new OperationLimitsModel();
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
             CancellationToken ct = default)
         {
             if (_server != null)
@@ -242,7 +264,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryServerCapabilitiesModel> GetHistoryCapabilitiesAsync(
+        public async ValueTask<HistoryServerCapabilitiesModel> GetHistoryCapabilitiesAsync(
             CancellationToken ct = default)
         {
             if (_history != null)
@@ -422,16 +444,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var userIdentity = _connection.User.ToStackModel()
                         ?? new UserIdentity(new AnonymousIdentityToken());
 
-                    // Create the session
+                    // Create the session with english as default and current language
+                    // locale as backup
+                    var preferredLocales = new HashSet<string>
+                    {
+                        "en-US",
+                        CultureInfo.CurrentCulture.Name
+                    }.ToList();
                     var session = await Opc.Ua.Client.Session.Create(_configuration, endpoint,
                         false, false, _sessionName, SessionLifeTime, userIdentity,
-                        Array.Empty<string>()).ConfigureAwait(false);
+                        preferredLocales).ConfigureAwait(false);
 
                     // Assign the created session
                     SetSession(session);
                     _logger.LogInformation(
                         "New Session {Name} created with endpoint {EndpointUrl} ({Original}).",
                         _sessionName, endpointUrl, _connection.Endpoint.Url);
+
+                    _limits = await FetchOperationLimitsAsync(new RequestHeader(), default).ConfigureAwait(false);
 
                     // Try and load type system - does not throw but logs error
                     Debug.Assert(_complexTypeSystem != null);
@@ -472,41 +502,427 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-#if ZOMBIE
         /// <summary>
-        /// Gets the response
+        /// Invokes the AddNodes service using async Task based request.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="response"></param>
-        /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
-        private static T ValidateResponse<T>(IServiceResponse response)
-            where T : IServiceResponse, new() {
-            if (response?.ResponseHeader == null) {
-                // Throw - this is likely an issue in the transport.
-                throw new ServiceResultException(StatusCodes.BadUnknownResponse);
+        public async Task<AddNodesResponse> AddNodesAsync(
+            RequestHeader requestHeader, AddNodesItemCollection nodesToAdd,
+            CancellationToken ct)
+        {
+            using var activity = StartRequest<AddNodesResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
             }
-            if (response is not T result) {
-                // Received a response, but not the type we expected.
-                // Promote to expected Type.
-                result = new T();
-
-                result.ResponseHeader.ServiceResult =
-                    response.ResponseHeader.ServiceResult;
-                result.ResponseHeader.StringTable =
-                    response.ResponseHeader.StringTable;
-                result.ResponseHeader.AdditionalHeader =
-                    response.ResponseHeader.AdditionalHeader;
-                result.ResponseHeader.RequestHandle =
-                    response.ResponseHeader.RequestHandle;
-                result.ResponseHeader.ServiceDiagnostics =
-                    response.ResponseHeader.ServiceDiagnostics;
-                result.ResponseHeader.Timestamp =
-                    response.ResponseHeader.Timestamp;
-            }
-            return result;
+            var request = new AddNodesRequest
+            {
+                RequestHeader = requestHeader,
+                NodesToAdd = nodesToAdd
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<AddNodesResponse>(response);
         }
-#endif
+
+        /// <summary>
+        /// Invokes the AddReferences service using async Task based request.
+        /// </summary>
+        public async Task<AddReferencesResponse> AddReferencesAsync(
+            RequestHeader requestHeader, AddReferencesItemCollection referencesToAdd,
+            CancellationToken ct)
+        {
+            using var activity = StartRequest<AddReferencesResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new AddReferencesRequest
+            {
+                RequestHeader = requestHeader,
+                ReferencesToAdd = referencesToAdd
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<AddReferencesResponse>(response);
+        }
+
+        /// <summary>
+        /// Invokes the DeleteNodes service using async Task based request.
+        /// </summary>
+        public async Task<DeleteNodesResponse> DeleteNodesAsync(
+            RequestHeader requestHeader, DeleteNodesItemCollection nodesToDelete,
+            CancellationToken ct)
+        {
+            using var activity = StartRequest<DeleteNodesResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new DeleteNodesRequest
+            {
+                RequestHeader = requestHeader,
+                NodesToDelete = nodesToDelete
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<DeleteNodesResponse>(response);
+        }
+
+        /// <summary>
+        /// Invokes the DeleteReferences service using async Task based request.
+        /// </summary>
+        public async Task<DeleteReferencesResponse> DeleteReferencesAsync(
+            RequestHeader requestHeader, DeleteReferencesItemCollection referencesToDelete,
+            CancellationToken ct)
+        {
+            using var activity = StartRequest<DeleteReferencesResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new DeleteReferencesRequest
+            {
+                RequestHeader = requestHeader,
+                ReferencesToDelete = referencesToDelete
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<DeleteReferencesResponse>(response);
+        }
+
+        /// <summary>
+        /// Browse
+        /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="view"></param>
+        /// <param name="requestedMaxReferencesPerNode"></param>
+        /// <param name="nodesToBrowse"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<BrowseResponse> BrowseAsync(
+            RequestHeader requestHeader, ViewDescription? view,
+            uint requestedMaxReferencesPerNode,
+            BrowseDescriptionCollection nodesToBrowse, CancellationToken ct)
+        {
+            using var activity = StartRequest<BrowseResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new BrowseRequest
+            {
+                RequestHeader = requestHeader,
+                View = view,
+                RequestedMaxReferencesPerNode = requestedMaxReferencesPerNode,
+                NodesToBrowse = nodesToBrowse
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<BrowseResponse>(response);
+        }
+
+        /// <summary>
+        /// Invokes the BrowseNext service using async Task based request.
+        /// </summary>
+        public async Task<BrowseNextResponse> BrowseNextAsync(
+            RequestHeader requestHeader, bool releaseContinuationPoints,
+            ByteStringCollection continuationPoints, CancellationToken ct)
+        {
+            using var activity = StartRequest<BrowseNextResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new BrowseNextRequest
+            {
+                RequestHeader = requestHeader,
+                ReleaseContinuationPoints = releaseContinuationPoints,
+                ContinuationPoints = continuationPoints
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<BrowseNextResponse>(response);
+        }
+
+        /// <summary>
+        /// Translate browse paths
+        /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="browsePaths"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<TranslateBrowsePathsToNodeIdsResponse> TranslateBrowsePathsToNodeIdsAsync(
+            RequestHeader requestHeader, BrowsePathCollection browsePaths,
+            CancellationToken ct)
+        {
+            using var activity = StartRequest<TranslateBrowsePathsToNodeIdsResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new TranslateBrowsePathsToNodeIdsRequest
+            {
+                RequestHeader = requestHeader,
+                BrowsePaths = browsePaths
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<TranslateBrowsePathsToNodeIdsResponse>(response);
+        }
+
+        /// <summary>
+        /// Register nodes
+        /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="nodesToRegister"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<RegisterNodesResponse> RegisterNodesAsync(
+            RequestHeader requestHeader, NodeIdCollection nodesToRegister,
+            CancellationToken ct)
+        {
+            using var activity = StartRequest<RegisterNodesResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new RegisterNodesRequest
+            {
+                RequestHeader = requestHeader,
+                NodesToRegister = nodesToRegister
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<RegisterNodesResponse>(response);
+        }
+
+        /// <summary>
+        /// Invokes the UnregisterNodes service using async Task based request.
+        /// </summary>
+        public async Task<UnregisterNodesResponse> UnregisterNodesAsync(
+            RequestHeader requestHeader, NodeIdCollection nodesToUnregister,
+            CancellationToken ct)
+        {
+            using var activity = StartRequest<UnregisterNodesResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new UnregisterNodesRequest
+            {
+                RequestHeader = requestHeader,
+                NodesToUnregister = nodesToUnregister
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<UnregisterNodesResponse>(response);
+        }
+
+        /// <summary>
+        /// Invokes the QueryFirst service using async Task based request.
+        /// </summary>
+        public async Task<QueryFirstResponse> QueryFirstAsync(
+            RequestHeader requestHeader, ViewDescription view,
+            NodeTypeDescriptionCollection nodeTypes, ContentFilter filter,
+            uint maxDataSetsToReturn, uint maxReferencesToReturn,
+            CancellationToken ct)
+        {
+            using var activity = StartRequest<QueryFirstResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new QueryFirstRequest
+            {
+                RequestHeader = requestHeader,
+                View = view,
+                NodeTypes = nodeTypes,
+                Filter = filter,
+                MaxDataSetsToReturn = maxDataSetsToReturn,
+                MaxReferencesToReturn = maxReferencesToReturn
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<QueryFirstResponse>(response);
+        }
+
+        /// <summary>
+        /// Invokes the QueryNext service using async Task based request.
+        /// </summary>
+        public async Task<QueryNextResponse> QueryNextAsync(
+            RequestHeader requestHeader, bool releaseContinuationPoint,
+            byte[] continuationPoint, CancellationToken ct)
+        {
+            using var activity = StartRequest<QueryNextResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new QueryNextRequest
+            {
+                RequestHeader = requestHeader,
+                ReleaseContinuationPoint = releaseContinuationPoint,
+                ContinuationPoint = continuationPoint
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<QueryNextResponse>(response);
+        }
+
+        /// <summary>
+        /// Read
+        /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="maxAge"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="nodesToRead"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<ReadResponse> ReadAsync(RequestHeader requestHeader,
+            double maxAge, Opc.Ua.TimestampsToReturn timestampsToReturn,
+            ReadValueIdCollection nodesToRead, CancellationToken ct)
+        {
+            using var activity = StartRequest<ReadResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new ReadRequest
+            {
+                RequestHeader = requestHeader,
+                MaxAge = maxAge,
+                TimestampsToReturn = timestampsToReturn,
+                NodesToRead = nodesToRead
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<ReadResponse>(response);
+        }
+
+        /// <summary>
+        /// History read
+        /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="historyReadDetails"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="releaseContinuationPoints"></param>
+        /// <param name="nodesToRead"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<HistoryReadResponse> HistoryReadAsync(
+            RequestHeader requestHeader, ExtensionObject? historyReadDetails,
+            Opc.Ua.TimestampsToReturn timestampsToReturn, bool releaseContinuationPoints,
+            HistoryReadValueIdCollection nodesToRead, CancellationToken ct)
+        {
+            using var activity = StartRequest<HistoryReadResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new HistoryReadRequest
+            {
+                RequestHeader = requestHeader,
+                HistoryReadDetails = historyReadDetails,
+                TimestampsToReturn = timestampsToReturn,
+                ReleaseContinuationPoints = releaseContinuationPoints,
+                NodesToRead = nodesToRead
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<HistoryReadResponse>(response);
+        }
+
+        /// <summary>
+        /// Write
+        /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="nodesToWrite"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<WriteResponse> WriteAsync(RequestHeader requestHeader,
+            WriteValueCollection nodesToWrite, CancellationToken ct)
+        {
+            using var activity = StartRequest<WriteResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new WriteRequest
+            {
+                RequestHeader = requestHeader,
+                NodesToWrite = nodesToWrite
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<WriteResponse>(response);
+        }
+
+        /// <summary>
+        /// History update
+        /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="historyUpdateDetails"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<HistoryUpdateResponse> HistoryUpdateAsync(
+            RequestHeader requestHeader, ExtensionObjectCollection historyUpdateDetails,
+            CancellationToken ct)
+        {
+            using var activity = StartRequest<HistoryUpdateResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new HistoryUpdateRequest
+            {
+                RequestHeader = requestHeader,
+                HistoryUpdateDetails = historyUpdateDetails
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<HistoryUpdateResponse>(response);
+        }
+
+        /// <summary>
+        /// Call
+        /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="methodsToCall"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<CallResponse> CallAsync(RequestHeader requestHeader,
+            CallMethodRequestCollection methodsToCall, CancellationToken ct)
+        {
+            using var activity = StartRequest<CallResponse>(
+                requestHeader, out var session, out var error);
+            if (error != null)
+            {
+                return error;
+            }
+            var request = new CallRequest
+            {
+                RequestHeader = requestHeader,
+                MethodsToCall = methodsToCall
+            };
+            var response = await session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<CallResponse>(response);
+        }
 
         /// <summary>
         /// Read operation limits
@@ -522,54 +938,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return null;
             }
-            var requests = new ReadValueIdCollection {
-                new ReadValueId {
-                    NodeId = Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead,
-                    AttributeId = Attributes.Value,
-                }
-            };
-            var response = await session.ReadAsync(header, 0,
-                Opc.Ua.TimestampsToReturn.Both, requests, ct).ConfigureAwait(false);
-            var results = response.Validate(response.Results, r => r.StatusCode,
-                response.DiagnosticInfos, requests);
-            results.ThrowIfError();
-            var maxNodesPerRead =
-                Validate32(results[0].Result.GetValueOrDefault<uint>());
 
+            // Fetch limits into the session using the new api
+            session.FetchOperationLimits();
+            var maxNodesPerRead = Validate32(session.OperationLimits.MaxNodesPerRead);
+
+            // Read once more to ensure we have all we need and also correctly show what is not provided.
             var nodes = new[] {
-                    Variables.Server_ServerCapabilities_MaxArrayLength,
-                    Variables.Server_ServerCapabilities_MaxBrowseContinuationPoints,
-                    Variables.Server_ServerCapabilities_MaxByteStringLength,
-                    Variables.Server_ServerCapabilities_MaxHistoryContinuationPoints,
-                    Variables.Server_ServerCapabilities_MaxQueryContinuationPoints,
-                    Variables.Server_ServerCapabilities_MaxStringLength,
-                    Variables.Server_ServerCapabilities_MinSupportedSampleRate,
-                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData,
-                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
-                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
-                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData,
-                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents,
-                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall,
-                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse,
-                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes,
-                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds,
-                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement,
-                    Variables.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall
-                };
+                Variables.Server_ServerCapabilities_MaxArrayLength,
+                Variables.Server_ServerCapabilities_MaxBrowseContinuationPoints,
+                Variables.Server_ServerCapabilities_MaxByteStringLength,
+                Variables.Server_ServerCapabilities_MaxHistoryContinuationPoints,
+                Variables.Server_ServerCapabilities_MaxQueryContinuationPoints,
+                Variables.Server_ServerCapabilities_MaxStringLength,
+                Variables.Server_ServerCapabilities_MinSupportedSampleRate,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall
+            };
 
             var values = Enumerable.Empty<DataValue>();
-            foreach (var chunk in nodes.Batch((int)maxNodesPerRead))
+            foreach (var chunk in nodes.Batch(Math.Max(1, (int)(maxNodesPerRead ?? 0))))
             {
                 // Group the reads
-                requests = new ReadValueIdCollection(chunk
+                var requests = new ReadValueIdCollection(chunk
                     .Select(n => new ReadValueId
                     {
                         NodeId = n,
                         AttributeId = Attributes.Value,
                     }));
-                response = await session.ReadAsync(header, 0,
+                var response = await session.ReadAsync(header, 0,
                     Opc.Ua.TimestampsToReturn.Both, requests, ct).ConfigureAwait(false);
-                results = response.Validate(response.Results, d => d.StatusCode,
+                var results = response.Validate(response.Results, d => d.StatusCode,
                     response.DiagnosticInfos, requests);
                 results.ThrowIfError();
                 values = values.Concat(results.Select(r => r.Result));
@@ -579,46 +987,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return new OperationLimitsModel
             {
                 MaxArrayLength =
-                    Validate32(value[0].GetValueOrDefault<uint>()),
+                    Validate32(value[0].GetValueOrDefault<uint?>()),
                 MaxBrowseContinuationPoints =
-                    Validate16(value[1].GetValueOrDefault<ushort>()),
+                    Validate16(value[1].GetValueOrDefault<ushort?>()),
                 MaxByteStringLength =
-                    Validate32(value[2].GetValueOrDefault<uint>()),
+                    Validate32(value[2].GetValueOrDefault<uint?>()),
                 MaxHistoryContinuationPoints =
-                    Validate16(value[3].GetValueOrDefault<ushort>()),
+                    Validate16(value[3].GetValueOrDefault<ushort?>()),
                 MaxQueryContinuationPoints =
-                    Validate16(value[4].GetValueOrDefault<ushort>()),
+                    Validate16(value[4].GetValueOrDefault<ushort?>()),
                 MaxStringLength =
-                    Validate32(value[5].GetValueOrDefault<uint>()),
+                    Validate32(value[5].GetValueOrDefault<uint?>()),
                 MinSupportedSampleRate =
-                    value[6].GetValueOrDefault<double>(),
+                    value[6].GetValueOrDefault<double?>(),
                 MaxNodesPerHistoryReadData =
-                    Validate32(value[7].GetValueOrDefault<uint>()),
+                    Validate32(value[7].GetValueOrDefault<uint?>()),
                 MaxNodesPerHistoryReadEvents =
-                    Validate32(value[8].GetValueOrDefault<uint>()),
+                    Validate32(value[8].GetValueOrDefault<uint?>()),
                 MaxNodesPerWrite =
-                    Validate32(value[9].GetValueOrDefault<uint>()),
+                    Validate32(value[9].GetValueOrDefault<uint?>()),
                 MaxNodesPerHistoryUpdateData =
-                    Validate32(value[10].GetValueOrDefault<uint>()),
+                    Validate32(value[10].GetValueOrDefault<uint?>()),
                 MaxNodesPerHistoryUpdateEvents =
-                    Validate32(value[11].GetValueOrDefault<uint>()),
+                    Validate32(value[11].GetValueOrDefault<uint?>()),
                 MaxNodesPerMethodCall =
-                    Validate32(value[12].GetValueOrDefault<uint>()),
+                    Validate32(value[12].GetValueOrDefault<uint?>()),
                 MaxNodesPerBrowse =
-                    Validate32(value[13].GetValueOrDefault<uint>()),
+                    Validate32(value[13].GetValueOrDefault<uint?>()),
                 MaxNodesPerRegisterNodes =
-                    Validate32(value[14].GetValueOrDefault<uint>()),
+                    Validate32(value[14].GetValueOrDefault<uint?>()),
                 MaxNodesPerTranslatePathsToNodeIds =
-                    Validate32(value[15].GetValueOrDefault<uint>()),
+                    Validate32(value[15].GetValueOrDefault<uint?>()),
                 MaxNodesPerNodeManagement =
-                    Validate32(value[16].GetValueOrDefault<uint>()),
+                    Validate32(value[16].GetValueOrDefault<uint?>()),
                 MaxMonitoredItemsPerCall =
-                    Validate32(value[17].GetValueOrDefault<uint>()),
+                    Validate32(value[17].GetValueOrDefault<uint?>()),
                 MaxNodesPerRead = maxNodesPerRead
             };
 
-            static uint Validate32(uint v) => v > 0 && v < int.MaxValue ? v : int.MaxValue;
-            static ushort Validate16(ushort v) => v > 0 ? v : ushort.MaxValue;
+            static uint? Validate32(uint? v) => v == null ? null :
+                v > 0 && v < int.MaxValue ? v : int.MaxValue;
+            static ushort? Validate16(ushort? v) => v == null ? null :
+                v > 0 ? v : ushort.MaxValue;
         }
 
         /// <summary>
@@ -942,6 +1352,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // set up keep alive callback.
                 _session.KeepAlive += Session_KeepAlive;
                 _session.Handle = this;
+
+                // Need to work around accessibility here.
+                _authenticationToken = (NodeId?)typeof(ClientBase).GetProperty(
+                    "AuthenticationToken",
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Instance)?.GetValue(session) ?? NodeId.Null;
+
                 NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
             }
             finally
@@ -958,7 +1375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var session = _session;
             _session = null;
             _complexTypeSystem = Task.FromResult<ComplexTypeSystem?>(null);
-
+            _authenticationToken = NodeId.Null;
             if (session == null)
             {
                 return;
@@ -1126,6 +1543,83 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Start request
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="header"></param>
+        /// <param name="session"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        private Activity? StartRequest<T>(RequestHeader header,
+            out ISession session, out T? error) where T : IServiceResponse, new()
+        {
+            session = _session!;
+            if (session == null)
+            {
+                error = new T();
+                error.ResponseHeader.ServiceResult = StatusCodes.BadNotConnected;
+                error.ResponseHeader.Timestamp = DateTime.UtcNow;
+                var text = error.ResponseHeader.StringTable.Count;
+                error.ResponseHeader.StringTable.Add("Session not connected.");
+                var locale = error.ResponseHeader.StringTable.Count;
+                error.ResponseHeader.StringTable.Add("en-US");
+                var symbol = error.ResponseHeader.StringTable.Count;
+                error.ResponseHeader.StringTable.Add("BadNotConnected");
+                error.ResponseHeader.ServiceDiagnostics = new DiagnosticInfo
+                {
+                    SymbolicId = symbol,
+                    Locale = locale,
+                    LocalizedText = text
+                };
+                session = null!;
+                return null;
+            }
+            header.RequestHandle = session.NewRequestHandle();
+            header.AuthenticationToken = _authenticationToken;
+            header.Timestamp = DateTime.UtcNow;
+            error = default;
+
+            return kActivity.StartActivity(typeof(T).Name[0..^8]);
+        }
+
+        /// <summary>
+        /// Gets the response
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private static T ValidateResponse<T>(IServiceResponse response)
+            where T : IServiceResponse, new()
+        {
+            if (response?.ResponseHeader == null)
+            {
+                // Throw - this is likely an issue in the transport.
+                throw new ServiceResultException(StatusCodes.BadUnknownResponse);
+            }
+            if (response is not T result)
+            {
+                // Received a response, but not the type we expected.
+                // Promote to expected Type.
+                result = new T();
+
+                result.ResponseHeader.ServiceResult =
+                    response.ResponseHeader.ServiceResult;
+                result.ResponseHeader.StringTable =
+                    response.ResponseHeader.StringTable;
+                result.ResponseHeader.AdditionalHeader =
+                    response.ResponseHeader.AdditionalHeader;
+                result.ResponseHeader.RequestHandle =
+                    response.ResponseHeader.RequestHandle;
+                result.ResponseHeader.ServiceDiagnostics =
+                    response.ResponseHeader.ServiceDiagnostics;
+                result.ResponseHeader.Timestamp =
+                    response.ResponseHeader.Timestamp;
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Create codec
         /// </summary>
         /// <param name="context"></param>
@@ -1156,6 +1650,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private Task<ComplexTypeSystem?>? _complexTypeSystem;
         private EndpointConnectivityState _lastState;
         private bool _disposed;
+        private NodeId _authenticationToken;
         private readonly SemaphoreSlim _connecting = new(1, 1);
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly ApplicationConfiguration _configuration;
@@ -1165,7 +1660,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ConnectionModel _connection;
         private readonly ILogger _logger;
         private readonly DateTime _lastActivity = DateTime.UtcNow;
-        private readonly ConcurrentDictionary<string, ISubscription> _subscriptions
-            = new();
+        private readonly ConcurrentDictionary<string, ISubscription> _subscriptions = new();
+        private static readonly ActivitySource kActivity = new(typeof(OpcUaClient).FullName!);
     }
 }

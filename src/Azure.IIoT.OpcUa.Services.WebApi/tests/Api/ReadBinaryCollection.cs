@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api
     using Xunit;
 
     [CollectionDefinition(Name)]
-    public class ReadBinaryCollection : ICollectionFixture<TestServerFixture>
+    public class ReadBinaryCollection : ICollectionFixture<TestDataServer>
     {
         public const string Name = "ReadBinaryApi";
     }

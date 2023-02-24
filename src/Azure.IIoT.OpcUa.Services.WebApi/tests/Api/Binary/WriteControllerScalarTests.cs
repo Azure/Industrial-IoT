@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary
     [Collection(WriteBinaryCollection.Name)]
     public class WriteControllerScalarTests : IClassFixture<WebApiTestFixture>
     {
-        public WriteControllerScalarTests(WebApiTestFixture factory, TestServerFixture server)
+        public WriteControllerScalarTests(WebApiTestFixture factory, TestDataServer server)
         {
             _factory = factory;
             _server = server;
@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary
         };
 
         private readonly WebApiTestFixture _factory;
-        private readonly TestServerFixture _server;
+        private readonly TestDataServer _server;
         private readonly IPHostEntry _hostEntry;
 
         [Fact]

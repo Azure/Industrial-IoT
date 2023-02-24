@@ -9,66 +9,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
-    using Furly.Extensions.Utils;
-    using Opc.Ua;
-    using System.Linq;
-    using System.Net;
-    using System.Net.Sockets;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
     public class BrowsePathTests
     {
-        public BrowsePathTests(TestServerFixture server)
+        public BrowsePathTests(TestDataServer server, ITestOutputHelper output)
         {
             _server = server;
-            _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
-                ?? Try.Op(() => Dns.GetHostEntry("localhost"));
+            _output = output;
         }
 
         private BrowsePathTests<ConnectionModel> GetTests()
         {
             return new BrowsePathTests<ConnectionModel>(
                 () => new NodeServices<ConnectionModel>(_server.Client,
-                    _server.Logger), new ConnectionModel
-                    {
-                        Endpoint = new EndpointModel
-                        {
-                            Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
-                            AlternativeUrls = _hostEntry?.AddressList
-                        .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
-                        .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
-                            Certificate = _server.Certificate?.RawData?.ToThumbprint()
-                        }
-                    });
+                    _output.BuildLogger()), _server.GetConnection());
         }
 
-        private readonly TestServerFixture _server;
-        private readonly IPHostEntry _hostEntry;
+        private readonly TestDataServer _server;
+        private readonly ITestOutputHelper _output;
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test1Async()
+        public Task NodeBrowsePathStaticScalarMethod3Test1Async()
         {
-            await GetTests().NodeBrowsePathStaticScalarMethod3Test1Async().ConfigureAwait(false);
+            return GetTests().NodeBrowsePathStaticScalarMethod3Test1Async();
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test2Async()
+        public Task NodeBrowsePathStaticScalarMethod3Test2Async()
         {
-            await GetTests().NodeBrowsePathStaticScalarMethod3Test2Async().ConfigureAwait(false);
+            return GetTests().NodeBrowsePathStaticScalarMethod3Test2Async();
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethod3Test3Async()
+        public Task NodeBrowsePathStaticScalarMethod3Test3Async()
         {
-            await GetTests().NodeBrowsePathStaticScalarMethod3Test3Async().ConfigureAwait(false);
+            return GetTests().NodeBrowsePathStaticScalarMethod3Test3Async();
         }
 
         [Fact]
-        public async Task NodeBrowsePathStaticScalarMethodsTestAsync()
+        public Task NodeBrowsePathStaticScalarMethodsTestAsync()
         {
-            await GetTests().NodeBrowsePathStaticScalarMethodsTestAsync().ConfigureAwait(false);
+            return GetTests().NodeBrowsePathStaticScalarMethodsTestAsync();
         }
     }
 }

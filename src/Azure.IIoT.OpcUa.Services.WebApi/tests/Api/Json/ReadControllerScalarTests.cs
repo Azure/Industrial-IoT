@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json
     [Collection(ReadJsonCollection.Name)]
     public class ReadControllerScalarTests : IClassFixture<WebApiTestFixture>
     {
-        public ReadControllerScalarTests(WebApiTestFixture factory, TestServerFixture server)
+        public ReadControllerScalarTests(WebApiTestFixture factory, TestDataServer server)
         {
             _factory = factory;
             _server = server;
@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json
         };
 
         private readonly WebApiTestFixture _factory;
-        private readonly TestServerFixture _server;
+        private readonly TestDataServer _server;
         private readonly IPHostEntry _hostEntry;
 
         [Fact]

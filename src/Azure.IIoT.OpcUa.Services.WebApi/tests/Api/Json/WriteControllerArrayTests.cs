@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json
     [Collection(WriteJsonCollection.Name)]
     public class WriteControllerArrayTests : IClassFixture<WebApiTestFixture>
     {
-        public WriteControllerArrayTests(WebApiTestFixture factory, TestServerFixture server)
+        public WriteControllerArrayTests(WebApiTestFixture factory, TestDataServer server)
         {
             _factory = factory;
             _server = server;
@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json
         };
 
         private readonly WebApiTestFixture _factory;
-        private readonly TestServerFixture _server;
+        private readonly TestDataServer _server;
         private readonly IPHostEntry _hostEntry;
 
         [Fact]

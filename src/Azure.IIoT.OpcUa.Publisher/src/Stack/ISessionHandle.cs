@@ -30,14 +30,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         ISession Session { get; }
 
         /// <summary>
+        /// Get services of the session
+        /// </summary>
+        ISessionServices Services { get; }
+
+        /// <summary>
         /// Underlying Session
         /// </summary>
-        IServiceMessageContext MessageContext => Session.MessageContext;
+        IServiceMessageContext MessageContext => Session?.MessageContext;
 
         /// <summary>
         /// Codec
         /// </summary>
         IVariantEncoder Codec { get; }
+
+        /// <summary>
+        /// Get complex type system for the session
+        /// </summary>
+        /// <returns></returns>
+        ValueTask<ComplexTypeSystem> GetComplexTypeSystemAsync();
+
+        /// <summary>
+        /// Get operation limits
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<OperationLimitsModel> GetOperationLimitsAsync(
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get history capabilities of the server
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<HistoryServerCapabilitiesModel> GetHistoryCapabilitiesAsync(
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get server capabilities
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
+            CancellationToken ct = default);
 
         /// <summary>
         /// Get or create a subscription
@@ -52,27 +87,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="subscription"></param>
         /// <returns></returns>
         void UnregisterSubscription(ISubscription subscription);
-
-        /// <summary>
-        /// Get complex type system for the session
-        /// </summary>
-        /// <returns></returns>
-        ValueTask<ComplexTypeSystem> GetComplexTypeSystemAsync();
-
-        /// <summary>
-        /// Get history capabilities of the server
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<HistoryServerCapabilitiesModel> GetHistoryCapabilitiesAsync(
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Get server capabilities
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
-            CancellationToken ct = default);
     }
 }

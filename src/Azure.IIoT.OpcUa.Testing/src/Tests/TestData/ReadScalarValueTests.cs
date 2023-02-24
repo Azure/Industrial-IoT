@@ -938,7 +938,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 }).ConfigureAwait(false);
 
             // Assert
-            Assert.Null(results.ErrorInfo?.ErrorMessage);
+            Assert.NotNull(results.ErrorInfo);
+            Assert.Null(results.ErrorInfo.NamespaceUri);
+            Assert.Null(results.ErrorInfo.Locale);
+            Assert.Null(results.ErrorInfo.Inner);
+            Assert.Null(results.ErrorInfo.AdditionalInfo);
+            Assert.Null(results.ErrorInfo.ErrorMessage);
+            Assert.NotNull(results.ErrorInfo.SymbolicId);
+            Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
         }
 
         public async Task NodeReadDiagnosticsStatusTestAsync()
@@ -962,11 +969,13 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
 
             // Assert
             Assert.NotNull(results.ErrorInfo);
-            Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
-            Assert.Equal("BadNodeIdUnknown", results.ErrorInfo.SymbolicId);
-            Assert.Null(results.ErrorInfo.AdditionalInfo);
+            Assert.Null(results.ErrorInfo.NamespaceUri);
+            Assert.Equal("en-US", results.ErrorInfo.Locale);
             Assert.Null(results.ErrorInfo.Inner);
-            Assert.Null(results.ErrorInfo.ErrorMessage);
+            Assert.Null(results.ErrorInfo.AdditionalInfo);
+            Assert.Equal("BadNodeIdUnknown", results.ErrorInfo.ErrorMessage);
+            Assert.NotNull(results.ErrorInfo.SymbolicId);
+            Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
         }
 
         public async Task NodeReadDiagnosticsDebugTestAsync()
@@ -990,11 +999,13 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
 
             // Assert
             Assert.NotNull(results.ErrorInfo);
+            Assert.Null(results.ErrorInfo.NamespaceUri);
+            Assert.Equal("en-US", results.ErrorInfo.Locale);
+            Assert.Null(results.ErrorInfo.Inner);
+            Assert.Null(results.ErrorInfo.AdditionalInfo);
+            Assert.Equal("BadNodeIdUnknown", results.ErrorInfo.ErrorMessage);
+            Assert.NotNull(results.ErrorInfo.SymbolicId);
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
-            Assert.Equal("BadNodeIdUnknown", results.ErrorInfo.SymbolicId);
-            Assert.NotNull(results.ErrorInfo.AdditionalInfo);
-            Assert.NotNull(results.ErrorInfo.Inner);
-            Assert.Null(results.ErrorInfo.ErrorMessage);
         }
 
         public async Task NodeReadDiagnosticsVerboseTestAsync()
@@ -1018,11 +1029,13 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
 
             // Assert
             Assert.NotNull(results.ErrorInfo);
+            Assert.Null(results.ErrorInfo.NamespaceUri);
+            Assert.Equal("en-US", results.ErrorInfo.Locale);
+            Assert.Null(results.ErrorInfo.Inner);
+            Assert.Null(results.ErrorInfo.AdditionalInfo);
+            Assert.Equal("BadNodeIdUnknown", results.ErrorInfo.ErrorMessage);
+            Assert.NotNull(results.ErrorInfo.SymbolicId);
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
-            Assert.Equal("BadNodeIdUnknown", results.ErrorInfo.SymbolicId);
-            Assert.NotNull(results.ErrorInfo.AdditionalInfo);
-            Assert.NotNull(results.ErrorInfo.Inner);
-            Assert.Null(results.ErrorInfo.ErrorMessage);
         }
 
         /// <summary>
