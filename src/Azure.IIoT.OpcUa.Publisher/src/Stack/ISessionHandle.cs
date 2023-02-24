@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;

@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Services.Cli
 {
     using Azure.IIoT.OpcUa.Services.Sdk;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;

@@ -6,7 +6,7 @@
 namespace Opc.Ua
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
 
     /// <summary>
     /// Endpoint description extensions

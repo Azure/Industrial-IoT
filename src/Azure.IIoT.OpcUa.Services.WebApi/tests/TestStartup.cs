@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
     using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
     using Azure.IIoT.OpcUa.Services.WebApi;
     using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.Auth;

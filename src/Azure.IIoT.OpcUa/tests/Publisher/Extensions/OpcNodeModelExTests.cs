@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using System;
     using System.Globalization;
     using Xunit;

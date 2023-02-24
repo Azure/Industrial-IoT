@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR
 {
     using Azure.IIoT.OpcUa.Services.Sdk;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;

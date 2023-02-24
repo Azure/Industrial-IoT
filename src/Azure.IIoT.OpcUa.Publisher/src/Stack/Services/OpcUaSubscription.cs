@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using MonitoringMode = OpcUa.Models.MonitoringMode;
 
     /// <summary>
     /// Subscription implementation
@@ -676,7 +677,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogWarning("Error monitoring node {Id} due to {Code} in subscription "
                             + "'{Name}'/'{SessionId}'", monitoredItem.Item.StartNodeId,
                             monitoredItem.Item.Status.Error.StatusCode, Name, Connection.CreateConnectionId());
-                        monitoredItem.Template.MonitoringMode = Shared.Models.MonitoringMode.Disabled;
+                        monitoredItem.Template.MonitoringMode = MonitoringMode.Disabled;
                         noErrorFound = false;
                     }
                 }
@@ -699,7 +700,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         (monitoredItem.Item.Status.Error != null &&
                         StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode)))
                     {
-                        monitoredItem.Template.MonitoringMode = Shared.Models.MonitoringMode.Disabled;
+                        monitoredItem.Template.MonitoringMode = MonitoringMode.Disabled;
                         noErrorFound = false;
                         applyChanges = true;
                     }
@@ -797,7 +798,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                         Name,
                                         Connection.CreateConnectionId(),
                                         results[i].StatusCode);
-                                    changeList[i].Template.MonitoringMode = Shared.Models.MonitoringMode.Disabled;
+                                    changeList[i].Template.MonitoringMode = MonitoringMode.Disabled;
                                     changeList[i].Item.MonitoringMode = Opc.Ua.MonitoringMode.Disabled;
                                 }
                             }

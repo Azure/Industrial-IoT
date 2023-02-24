@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;

@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Services.Events
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;

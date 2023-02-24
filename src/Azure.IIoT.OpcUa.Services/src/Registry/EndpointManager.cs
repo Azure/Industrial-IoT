@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Services.Registry
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using System;
     using System.Linq;

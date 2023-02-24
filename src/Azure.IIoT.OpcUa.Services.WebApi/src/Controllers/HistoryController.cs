@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
 {
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;

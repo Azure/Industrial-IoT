@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Collections.Generic;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
+    using DiagnosticsLevel = OpcUa.Models.DiagnosticsLevel;
 
     /// <summary>
     /// Stack models extensions
@@ -41,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="timeoutHint"></param>
         /// <returns></returns>
         public static RequestHeader ToRequestHeader(this OperationContextModel context,
-            Shared.Models.DiagnosticsLevel? level = null, DateTime? timestamp = null,
+            DiagnosticsLevel? level = null, DateTime? timestamp = null,
             uint timeoutHint = 0)
         {
             return level.ToRequestHeader(context?.AuthorityId, timestamp, timeoutHint);
@@ -55,14 +56,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="timestamp"></param>
         /// <param name="timeoutHint"></param>
         /// <returns></returns>
-        public static RequestHeader ToRequestHeader(this Shared.Models.DiagnosticsLevel? level,
+        public static RequestHeader ToRequestHeader(this DiagnosticsLevel? level,
             string auditId = null, DateTime? timestamp = null, uint timeoutHint = 0)
         {
             return new RequestHeader
             {
                 AuditEntryId = auditId ?? Guid.NewGuid().ToString(),
                 ReturnDiagnostics =
-                    (uint)(level ?? Shared.Models.DiagnosticsLevel.Status)
+                    (uint)(level ?? DiagnosticsLevel.Status)
                      .ToStackType(),
                 Timestamp = timestamp ?? DateTime.UtcNow,
                 TimeoutHint = timeoutHint,

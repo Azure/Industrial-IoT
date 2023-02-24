@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers.Json;

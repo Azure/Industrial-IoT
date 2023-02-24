@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Twin
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Module;
     using System;

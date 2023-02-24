@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Extensions.Logging;
@@ -20,6 +20,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using BrowseDirection = OpcUa.Models.BrowseDirection;
+    using NodeClass = OpcUa.Models.NodeClass;
 
     /// <summary>
     /// This class provides access to a servers address space providing node
@@ -79,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ServiceResultModel? errorInfo = null;
                 if (!excludeReferences)
                 {
-                    var direction = (request.Direction ?? Shared.Models.BrowseDirection.Forward)
+                    var direction = (request.Direction ?? BrowseDirection.Forward)
                         .ToStackType();
                     var browseDescriptions = new BrowseDescriptionCollection {
                         new BrowseDescription {
@@ -269,7 +271,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         var browseDescriptions = new BrowseDescriptionCollection {
                             new BrowseDescription {
-                                BrowseDirection = (request.Direction ?? Shared.Models.BrowseDirection.Both)
+                                BrowseDirection = (request.Direction ?? BrowseDirection.Both)
                                     .ToStackType(),
                                 IncludeSubtypes = !(request.NoSubtypes ?? false),
                                 NodeClassMask = (uint)request.NodeClassFilter.ToStackMask(),
@@ -394,8 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             ReferenceTypeId = r.ReferenceTypeId.AsString(
                                 session.MessageContext),
                             Direction = r.IsForward ?
-                                Shared.Models.BrowseDirection.Forward :
-                                Shared.Models.BrowseDirection.Backward,
+                                BrowseDirection.Forward : BrowseDirection.Backward,
                             Target = new NodeModel
                             {
                                 NodeId = id,
@@ -508,7 +509,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 MethodMetadataModel? methodMetadata = null;
                 DataTypeMetadataModel? dataTypeMetadata = null;
                 var typeId = nodeId;
-                if (node.NodeClass == Shared.Models.NodeClass.Method)
+                if (node.NodeClass == NodeClass.Method)
                 {
                     (methodMetadata, errorInfo) = await session.GetMethodMetadataAsync(
                         request.Header.ToRequestHeader(), nodeId, ct).ConfigureAwait(false);
@@ -517,13 +518,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return new NodeMetadataResponseModel { ErrorInfo = errorInfo };
                     }
                 }
-                else if (node.NodeClass == Shared.Models.NodeClass.DataType)
+                else if (node.NodeClass == NodeClass.DataType)
                 {
                     // TODO
                     dataTypeMetadata = null;
                 }
-                else if (node.NodeClass is Shared.Models.NodeClass.Variable or
-                         Shared.Models.NodeClass.Object)
+                else if (node.NodeClass is NodeClass.Variable or NodeClass.Object)
                 {
                     // Get type definition
                     var references = await session.FindTargetOfReferenceAsync(
@@ -534,7 +534,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         typeId = nodeId;
                     }
-                    if (node.NodeClass == Shared.Models.NodeClass.Variable)
+                    if (node.NodeClass == NodeClass.Variable)
                     {
                         (variableMetadata, errorInfo) = await session.GetVariableMetadataAsync(
                             request.Header.ToRequestHeader(), nodeId, ct).ConfigureAwait(false);
@@ -1709,15 +1709,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         ReferenceTypeId = reference.ReferenceTypeId.AsString(
                             session.MessageContext),
                         Direction = reference.IsForward ?
-                            Shared.Models.BrowseDirection.Forward :
-                            Shared.Models.BrowseDirection.Backward,
+                            BrowseDirection.Forward : BrowseDirection.Backward,
                         Target = model
                     });
                 }
                 catch
                 {
                     // TODO: Add trace result for trace.
-                    continue;
                 }
             }
             return continuationPoint?.ToBase64String();

@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using System;
 
     /// <summary>

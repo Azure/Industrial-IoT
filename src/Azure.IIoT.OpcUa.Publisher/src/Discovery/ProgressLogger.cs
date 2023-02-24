@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Discovery
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;

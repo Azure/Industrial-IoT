@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Text;
     using System.Threading;
-    using MonitoringMode = Shared.Models.MonitoringMode;
+    using MonitoringMode = OpcUa.Models.MonitoringMode;
     using Timer = System.Timers.Timer;
 
     /// <summary>

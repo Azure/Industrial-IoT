@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using System;
     using System.Collections.Generic;
     using JsonDataSetMessageContentMask = Opc.Ua.JsonDataSetMessageContentMask;

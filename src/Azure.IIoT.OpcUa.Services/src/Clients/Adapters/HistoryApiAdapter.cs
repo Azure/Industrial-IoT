@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter
 {
     using Azure.IIoT.OpcUa.Publisher.Sdk;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using System;
     using System.Collections.Generic;
     using System.Threading;

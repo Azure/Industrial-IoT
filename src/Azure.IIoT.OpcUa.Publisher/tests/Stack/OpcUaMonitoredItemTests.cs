@@ -6,12 +6,14 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
+    using DeadbandType = OpcUa.Models.DeadbandType;
+    using MonitoringMode = OpcUa.Models.MonitoringMode;
 
     public class OpcUaMonitoredItemTests : EventTestsBase
     {
@@ -106,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
                 AttributeId = (NodeAttribute)Attributes.Value,
                 IndexRange = "5:20",
                 RelativePath = new[] { "RelativePath1", "RelativePath2" },
-                MonitoringMode = Shared.Models.MonitoringMode.Sampling,
+                MonitoringMode = MonitoringMode.Sampling,
                 StartNodeId = "i=2258",
                 DataSetClassFieldId = Guid.NewGuid(),
                 QueueSize = 10,
@@ -136,8 +138,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
             {
                 DataChangeFilter = new DataChangeFilterModel
                 {
-                    DataChangeTrigger = Shared.Models.DataChangeTriggerType.StatusValue,
-                    DeadbandType = Shared.Models.DeadbandType.Percent,
+                    DataChangeTrigger = DataChangeTriggerType.StatusValue,
+                    DeadbandType = DeadbandType.Percent,
                     DeadbandValue = 10.0
                 }
             };

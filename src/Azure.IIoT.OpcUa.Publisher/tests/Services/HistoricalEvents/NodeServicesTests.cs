@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services.HistoricalEvents.Tests
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
     using System.Threading.Tasks;

@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Testing.Cli
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Logging;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;

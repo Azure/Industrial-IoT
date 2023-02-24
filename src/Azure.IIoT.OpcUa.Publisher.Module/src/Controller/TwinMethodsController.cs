@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
 {
     using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Module.Framework;
     using System;

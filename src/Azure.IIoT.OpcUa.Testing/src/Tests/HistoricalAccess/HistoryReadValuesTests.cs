@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Testing.Tests
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using System;
     using System.Linq;
     using System.Threading.Tasks;

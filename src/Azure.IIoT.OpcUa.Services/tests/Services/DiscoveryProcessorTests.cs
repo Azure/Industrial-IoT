@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using AutoFixture.Kernel;
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Services.Services;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Hub;

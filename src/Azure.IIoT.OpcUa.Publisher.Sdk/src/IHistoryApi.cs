@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Sdk
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using System.Threading;
     using System.Threading.Tasks;
 

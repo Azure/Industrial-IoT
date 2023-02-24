@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json
     using Azure.IIoT.OpcUa.Services.Sdk.Clients;
     using Azure.IIoT.OpcUa.Services.WebApi.Tests;
     using Azure.IIoT.OpcUa.Services.WebApi.Tests.Api;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
     using Furly.Extensions.Serializers;

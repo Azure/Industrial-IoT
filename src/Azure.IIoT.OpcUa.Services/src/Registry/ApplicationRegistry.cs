@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Services.Services
 {
     using Azure.IIoT.OpcUa.Services.Models;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;

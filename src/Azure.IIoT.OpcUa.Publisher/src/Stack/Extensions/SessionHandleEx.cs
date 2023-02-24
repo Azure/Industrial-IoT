@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using NodeClass = OpcUa.Models.NodeClass;
 
     /// <summary>
     /// Session Handle extensions
@@ -643,7 +644,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 
                 // Add variable metadata
                 var variables = children
-                    .Where(v => v.Value.NodeClass == Shared.Models.NodeClass.Variable)
+                    .Where(v => v.Value.NodeClass == NodeClass.Variable)
                     .Select(v => v.Key);
                 var variableMetadata = new List<VariableMetadataModel>();
                 var errorInfo = await session.CollectVariableMetadataAsync(requestHeader,
@@ -659,7 +660,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 
                 // Add method metadata
                 var methods = children
-                    .Where(v => v.Value.NodeClass == Shared.Models.NodeClass.Method)
+                    .Where(v => v.Value.NodeClass == NodeClass.Method)
                     .Select(v => v.Key);
                 var methodMetadata = new List<MethodMetadataModel>();
                 errorInfo = await session.CollectMethodMetadataAsync(requestHeader,

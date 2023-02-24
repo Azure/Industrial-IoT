@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using FluentAssertions;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;

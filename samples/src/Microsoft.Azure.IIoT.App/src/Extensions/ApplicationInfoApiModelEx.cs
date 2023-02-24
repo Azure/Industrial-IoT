@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Extensions
 {
     using global::Azure.IIoT.OpcUa.Services.Sdk;
-    using global::Azure.IIoT.OpcUa.Shared.Models;
+    using global::Azure.IIoT.OpcUa.Models;
     using System.Collections.Generic;
     using System.Linq;
 

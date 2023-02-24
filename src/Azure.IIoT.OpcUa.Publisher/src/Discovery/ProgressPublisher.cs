@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Discovery
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT;

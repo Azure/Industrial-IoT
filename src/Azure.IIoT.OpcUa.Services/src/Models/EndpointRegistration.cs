@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Services.Models
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Hub;
     using System.Collections.Generic;
     using System.Runtime.Serialization;

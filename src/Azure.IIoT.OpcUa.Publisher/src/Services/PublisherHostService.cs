@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Autofac;
     using Azure.IIoT.OpcUa.Publisher;
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Extensions.Logging;

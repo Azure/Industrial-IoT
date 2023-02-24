@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models
 {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using System;
