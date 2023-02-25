@@ -235,7 +235,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
             if (model?.Capability != null)
             {
                 // If Capabilities provided, filter results
-                var tag = VariantValueEx2.SanitizePropertyName(model.Capability)
+                var tag = SanitizePropertyName(model.Capability)
                     .ToUpperInvariant();
                 query += $"AND tags.{tag} = true ";
             }
@@ -1134,6 +1134,20 @@ namespace Azure.IIoT.OpcUa.Services.Services
             return registration.ToServiceModel();
         }
 
+        /// <summary>
+        /// Replace whitespace in a property name
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string SanitizePropertyName(string value)
+        {
+            var chars = new char[value.Length];
+            for (var i = 0; i < value.Length; i++)
+            {
+                chars[i] = !char.IsLetterOrDigit(value[i]) ? '_' : value[i];
+            }
+            return new string(chars);
+        }
         private static readonly Gauge kAppsAdded = Metrics
             .CreateGauge("iiot_registry_applicationAdded", "Number of applications added ");
         private static readonly Gauge kAppsUpdated = Metrics

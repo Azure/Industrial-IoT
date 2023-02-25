@@ -27,8 +27,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
     /// <summary>
     /// Module host implementation
     /// </summary>
-    public sealed class ModuleHost : IModuleHost, IEventEmitter,
-        IClientAccessor
+    public sealed class ModuleHost : IModuleHost, IClientAccessor
     {
         /// <inheritdoc/>
         public IClient Client { get; private set; }
@@ -150,84 +149,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
                 }
             }
             throw new InvalidOperationException("Already started");
-        }
-
-        /// <inheritdoc/>
-        public async Task SendEventAsync(IReadOnlyList<byte[]> batch, string contentType,
-            string eventSchema, string contentEncoding)
-        {
-            try
-            {
-                await _lock.WaitAsync().ConfigureAwait(false);
-                if (Client != null)
-                {
-                    using var message = Client.CreateMessage(batch,
-                        contentEncoding, contentType, eventSchema);
-                    await Client.SendEventAsync(message).ConfigureAwait(false);
-                }
-            }
-            finally
-            {
-                _lock.Release();
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task SendEventAsync(byte[] data, string contentType, string eventSchema,
-            string contentEncoding)
-        {
-            try
-            {
-                await _lock.WaitAsync().ConfigureAwait(false);
-                if (Client != null)
-                {
-                    using var msg = Client.CreateMessage(new[] { data },
-                        contentEncoding, contentType, eventSchema);
-                    await Client.SendEventAsync(msg).ConfigureAwait(false);
-                }
-            }
-            finally
-            {
-                _lock.Release();
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task ReportAsync(string propertyId, VariantValue value)
-        {
-            try
-            {
-                await _lock.WaitAsync().ConfigureAwait(false);
-                if (Client != null)
-                {
-                    var collection = new TwinCollection
-                    {
-                        [propertyId] = value?.ConvertTo<object>()
-                    };
-                    await Client.UpdateReportedPropertiesAsync(collection).ConfigureAwait(false);
-                    _reported.Remove(propertyId);
-                    _reported.Add(propertyId, value);
-                }
-            }
-            finally
-            {
-                _lock.Release();
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task<string> CallMethodAsync(string deviceId, string moduleId,
-            string method, string payload, TimeSpan? timeout, CancellationToken ct)
-        {
-            var request = new MethodRequest(method, Encoding.UTF8.GetBytes(payload),
-                timeout, null);
-            var response = await Client.InvokeMethodAsync(deviceId, moduleId, request, ct).ConfigureAwait(false);
-            if (response.Status != 200)
-            {
-                throw new MethodCallStatusException(
-                    response.ResultAsJson, response.Status);
-            }
-            return response.ResultAsJson;
         }
 
         /// <inheritdoc/>

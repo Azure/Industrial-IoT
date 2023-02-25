@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers.Json
             var serializer = _factory.Resolve<IJsonSerializer>();
             return new ReadScalarValueTests<string>(() => // Create an adapter over the api
                 new TwinWebApiAdapter(
-                    new ControllerTestClient(new HttpClient(_factory, log),
+                    new ControllerTestClient(_factory,
                     new TestConfig(client.BaseAddress), serializer)), endpointId,
                     (ep, n, s) => _server.Client.ReadValueAsync(new ConnectionModel { Endpoint = Endpoint }, n, s));
         }

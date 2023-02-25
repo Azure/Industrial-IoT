@@ -80,29 +80,5 @@ namespace Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions
         {
             return serializer.Parse(response.Content);
         }
-
-        /// <summary>
-        /// Serialize into indented string
-        /// </summary>
-        /// <param name="serializer"></param>
-        /// <param name="o"></param>
-        /// <returns></returns>
-        public static string SerializePretty(this ISerializer serializer, object o)
-        {
-            return serializer.SerializeObjectToString(o, format: SerializeOption.Indented);
-        }
-
-        /// <summary>
-        /// Deserialize from reader
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="serializer"></param>
-        /// <param name="reader"></param>
-        /// <returns></returns>
-        public static T Deserialize<T>(this ISerializer serializer,
-            TextReader reader)
-        {
-            return serializer.Deserialize<T>(reader.ReadToEnd());
-        }
     }
 }

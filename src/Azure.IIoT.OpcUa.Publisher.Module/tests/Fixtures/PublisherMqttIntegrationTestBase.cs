@@ -311,7 +311,6 @@ $"--ttt={topicRoot}",
                 using (var hostScope = ConfigureContainer(configurationRoot))
                 {
                     var module = hostScope.Resolve<IModuleHost>();
-                    var events = hostScope.Resolve<IEventEmitter>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     ISessionProvider<ConnectionModel> sessionManager = null;
 

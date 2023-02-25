@@ -31,6 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
 
     /// <summary>
     /// Provides discovery services
@@ -46,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="logger"></param>
         /// <param name="progress"></param>
         /// <param name="identity"></param>
-        public DiscoveryServices(IEndpointDiscovery client, IEventEmitter events,
+        public DiscoveryServices(IEndpointDiscovery client, IClientAccessor events,
             IJsonSerializer serializer, ILogger logger, IDiscoveryProgress progress = null,
             IProcessIdentity identity = null)
         {
@@ -669,6 +670,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             List<ApplicationRegistrationModel> discovered, DateTime timestamp,
             object diagnostics, CancellationToken ct)
         {
+            var client = _events.Client;
+            if (client == null)
+            {
+                return;
+            }
             _logger.LogInformation("Uploading {Count} results...", discovered.Count);
             var messages = discovered
                 .SelectMany(server => server.Endpoints
@@ -695,11 +701,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 .Select((discovery, i) =>
                 {
                     discovery.Index = i;
-                    return discovery;
-                });
-            await Task.Run(() => _events.SendEventAsync(
-                messages.Select(message => _serializer.SerializeToMemory(message).ToArray()).ToList(),
-                    ContentMimeType.Json, MessageSchemaTypes.DiscoveryEvents, "utf-8"), ct).ConfigureAwait(false);
+                    return _serializer.SerializeToMemory(discovery).ToArray();
+                })
+                .ToList();
+
+            using var message = client.CreateMessage(messages, "utf-8", ContentMimeType.Json,
+                MessageSchemaTypes.DiscoveryEvents);
+            await client.SendEventAsync(message).ConfigureAwait(false);
             _logger.LogInformation("{Count} results uploaded.", discovered.Count);
         }
 
@@ -793,7 +801,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
 
         private readonly ILogger _logger;
         private readonly IJsonSerializer _serializer;
-        private readonly IEventEmitter _events;
+        private readonly IClientAccessor _events;
         private readonly IDiscoveryProgress _progress;
         private readonly IProcessIdentity _identity;
         private readonly IEndpointDiscovery _client;

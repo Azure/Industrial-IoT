@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary
             var serializer = _factory.Resolve<IBinarySerializer>();
             return new CallScalarMethodTests<string>(() => // Create an adapter over the api
                 new TwinWebApiAdapter(
-                    new TwinServiceClient(new HttpClient(_factory, log),
+                    new TwinServiceClient(_factory,
                     new TestConfig(client.BaseAddress), serializer)), endpointId);
         }
 

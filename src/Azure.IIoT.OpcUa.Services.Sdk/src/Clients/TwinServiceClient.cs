@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
     using Microsoft.Azure.IIoT.Http;
     using System;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -26,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public TwinServiceClient(IHttpClient httpClient, IServiceApiConfig config,
+        public TwinServiceClient(IHttpClientFactory httpClient, IServiceApiConfig config,
             ISerializer serializer) :
             this(httpClient, config?.ServiceUrl, serializer)
         {
@@ -38,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
         /// <param name="serializer"></param>
-        public TwinServiceClient(IHttpClient httpClient, string serviceUri,
+        public TwinServiceClient(IHttpClientFactory httpClient, string serviceUri,
             ISerializer serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
@@ -54,13 +55,16 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <inheritdoc/>
         public async Task<string> GetServiceStatusAsync(CancellationToken ct)
         {
-            var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
-                Resource.Platform);
+            var httpRequest = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{_serviceUri}/history/healthz")
+            };
             try
             {
-                var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-                response.Validate();
-                return response.GetContentAsString();
+                using var response = await _httpClient.GetAsync(httpRequest,
+                    ct).ConfigureAwait(false);
+                response.ValidateResponse();
+                return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -70,219 +74,189 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<BrowseFirstResponseModel> NodeBrowseFirstAsync(string endpointId,
-            BrowseFirstRequestModel content, CancellationToken ct)
+            BrowseFirstRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/browse/{endpointId}",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<BrowseFirstResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/twin/v2/browse/{endpointId}");
+            return await _httpClient.PostAsync<BrowseFirstResponseModel>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<BrowseNextResponseModel> NodeBrowseNextAsync(string endpointId,
-            BrowseNextRequestModel content, CancellationToken ct)
+            BrowseNextRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (content.ContinuationToken == null)
+            if (request.ContinuationToken == null)
             {
-                throw new ArgumentNullException(nameof(content.ContinuationToken));
+                throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/browse/{endpointId}/next",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<BrowseNextResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/twin/v2/browse/{endpointId}/next");
+            return await _httpClient.PostAsync<BrowseNextResponseModel>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<BrowsePathResponseModel> NodeBrowsePathAsync(string endpointId,
-            BrowsePathRequestModel content, CancellationToken ct)
+            BrowsePathRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (content.BrowsePaths == null || content.BrowsePaths.Count == 0 ||
-                content.BrowsePaths.Any(p => p == null || p.Count == 0))
+            if (request.BrowsePaths == null || request.BrowsePaths.Count == 0 ||
+                request.BrowsePaths.Any(p => p == null || p.Count == 0))
             {
-                throw new ArgumentNullException(nameof(content.BrowsePaths));
+                throw new ArgumentNullException(nameof(request.BrowsePaths));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/browse/{endpointId}/path",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<BrowsePathResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/twin/v2/browse/{endpointId}/path");
+            return await _httpClient.PostAsync<BrowsePathResponseModel>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<ReadResponseModel> NodeReadAsync(string endpointId,
-            ReadRequestModel content, CancellationToken ct)
+            ReadRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (content.Attributes == null || content.Attributes.Count == 0)
+            if (request.Attributes == null || request.Attributes.Count == 0)
             {
-                throw new ArgumentException(nameof(content.Attributes));
+                throw new ArgumentException(nameof(request.Attributes));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/twin/v2/read/{endpointId}/attributes", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<ReadResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/twin/v2/read/{endpointId}/attributes");
+            return await _httpClient.PostAsync<ReadResponseModel>(uri, request,
+                _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<WriteResponseModel> NodeWriteAsync(string endpointId,
-            WriteRequestModel content, CancellationToken ct)
+            WriteRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (content.Attributes == null || content.Attributes.Count == 0)
+            if (request.Attributes == null || request.Attributes.Count == 0)
             {
-                throw new ArgumentException(nameof(content.Attributes));
+                throw new ArgumentException(nameof(request.Attributes));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/twin/v2/write/{endpointId}/attributes", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<WriteResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/twin/v2/write/{endpointId}/attributes");
+            return await _httpClient.PostAsync<WriteResponseModel>(uri, request,
+                _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<ValueReadResponseModel> NodeValueReadAsync(string endpointId,
-            ValueReadRequestModel content, CancellationToken ct)
+            ValueReadRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/read/{endpointId}",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<ValueReadResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/twin/v2/read/{endpointId}");
+            return await _httpClient.PostAsync<ValueReadResponseModel>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<ValueWriteResponseModel> NodeValueWriteAsync(string endpointId,
-            ValueWriteRequestModel content, CancellationToken ct)
+            ValueWriteRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (content.Value is null)
+            if (request.Value is null)
             {
-                throw new ArgumentNullException(nameof(content.Value));
+                throw new ArgumentNullException(nameof(request.Value));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/write/{endpointId}",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<ValueWriteResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/twin/v2/write/{endpointId}");
+            return await _httpClient.PostAsync<ValueWriteResponseModel>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<MethodMetadataResponseModel> NodeMethodGetMetadataAsync(
-            string endpointId, MethodMetadataRequestModel content, CancellationToken ct)
+            string endpointId, MethodMetadataRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/call/{endpointId}/metadata",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<MethodMetadataResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/twin/v2/call/{endpointId}/metadata");
+            return await _httpClient.PostAsync<MethodMetadataResponseModel>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<MethodCallResponseModel> NodeMethodCallAsync(
-            string endpointId, MethodCallRequestModel content, CancellationToken ct)
+            string endpointId, MethodCallRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/call/{endpointId}",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<MethodCallResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/twin/v2/call/{endpointId}");
+            return await _httpClient.PostAsync<MethodCallResponseModel>
+                (uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(string endpointId,
-            NodeMetadataRequestModel content, CancellationToken ct)
+            NodeMetadataRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/twin/v2/metadata/{endpointId}",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<NodeMetadataResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/twin/v2/metadata/{endpointId}");
+            return await _httpClient.PostAsync<NodeMetadataResponseModel>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -293,125 +267,109 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/applications/v2/capabilities/{endpointId}",
-                Resource.Platform);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<ServerCapabilitiesModel>(response);
+            var uri = new Uri($"{_serviceUri}/applications/v2/capabilities/{endpointId}");
+            return await _httpClient.GetAsync<ServerCapabilitiesModel>(uri,
+                _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(string endpointId,
-            CancellationToken ct)
+        public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
+            string endpointId, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/applications/v2/capabilities/{endpointId}/history",
-                Resource.Platform);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryServerCapabilitiesModel>(response);
+            var uri = new Uri($"{_serviceUri}/applications/v2/capabilities/{endpointId}/history");
+            return await _httpClient.GetAsync<HistoryServerCapabilitiesModel>(uri,
+                _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(string endpointId,
-            HistoryConfigurationRequestModel content, CancellationToken ct)
+        public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
+            string endpointId, HistoryConfigurationRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (content.NodeId == null)
+            if (request.NodeId == null)
             {
-                throw new ArgumentNullException(nameof(content.NodeId));
+                throw new ArgumentNullException(nameof(request.NodeId));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/history/read/{endpointId}/config", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryConfigurationResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/history/read/{endpointId}/config");
+            return await _httpClient.PostAsync<HistoryConfigurationResponseModel>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
-            string endpointId, HistoryReadRequestModel<VariantValue> content, CancellationToken ct)
+            string endpointId, HistoryReadRequestModel<VariantValue> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (content.Details == null)
+            if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(content.Details));
+                throw new ArgumentNullException(nameof(request.Details));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/history/read/{endpointId}", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryReadResponseModel<VariantValue>>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/history/read/{endpointId}");
+            return await _httpClient.PostAsync<HistoryReadResponseModel<VariantValue>>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
-            string endpointId, HistoryReadNextRequestModel content, CancellationToken ct)
+            string endpointId, HistoryReadNextRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(content.ContinuationToken))
+            if (string.IsNullOrEmpty(request.ContinuationToken))
             {
-                throw new ArgumentNullException(nameof(content.ContinuationToken));
+                throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/history/read/{endpointId}/next", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryReadNextResponseModel<VariantValue>>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/history/read/{endpointId}/next");
+            return await _httpClient.PostAsync<HistoryReadNextResponseModel<VariantValue>>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
-            string endpointId, HistoryUpdateRequestModel<VariantValue> content, CancellationToken ct)
+            string endpointId, HistoryUpdateRequestModel<VariantValue> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (content.Details == null)
+            if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(content.Details));
+                throw new ArgumentNullException(nameof(request.Details));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/history/update/{endpointId}", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/history/update/{endpointId}");
+            return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
-        private readonly IHttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClient;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
     }

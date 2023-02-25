@@ -44,7 +44,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
                     ModuleId = "TestModule"
                 }).ConfigureAwait(false);
                 var etag = twin.Etag;
-                var device = await services.GetRegistrationAsync(twin.Id, twin.ModuleId).ConfigureAwait(false);
+                var device = await services.GetRegistrationAsync(twin.Id,
+                    twin.ModuleId).ConfigureAwait(false);
 
                 // Create module host with controller
                 using (var moduleContainer = CreateModuleContainer(services, device,

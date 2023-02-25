@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// <summary>
     /// Harness for opc publisher module
     /// </summary>
-    public class PublisherModuleFixture : IInjector,
+    public sealed class PublisherModuleFixture : IInjector,
         ISdkConfig, IDisposable
     {
         /// <summary>

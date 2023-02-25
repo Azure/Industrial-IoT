@@ -335,7 +335,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 using (var hostScope = ConfigureContainer(configurationRoot, devices))
                 {
                     var module = hostScope.Resolve<IModuleHost>();
-                    var events = hostScope.Resolve<IEventEmitter>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
 
                     Events = hostScope.Resolve<IIoTHub>().Events;

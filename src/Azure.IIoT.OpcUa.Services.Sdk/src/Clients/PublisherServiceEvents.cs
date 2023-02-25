@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Utils;
     using System;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -28,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <param name="client"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public PublisherServiceEvents(IHttpClient httpClient, ICallbackClient client,
+        public PublisherServiceEvents(IHttpClientFactory httpClient, ICallbackClient client,
             IServiceApiConfig config, ISerializer serializer) :
             this(httpClient, client, config?.ServiceUrl, serializer)
         {
@@ -41,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <param name="client"></param>
         /// <param name="serviceUri"></param>
         /// <param name="serializer"></param>
-        public PublisherServiceEvents(IHttpClient httpClient, ICallbackClient client,
+        public PublisherServiceEvents(IHttpClientFactory httpClient, ICallbackClient client,
             string serviceUri, ISerializer serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
@@ -63,7 +64,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events", Resource.Platform).ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events",
+                null).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.PublisherSampleTarget, callback);
             try
             {
@@ -81,8 +83,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         }
 
         /// <inheritdoc/>
-        public async Task NodePublishSubscribeByEndpointAsync(string endpointId, string connectionId,
-            CancellationToken ct)
+        public async Task NodePublishSubscribeByEndpointAsync(string endpointId,
+            string connectionId, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
@@ -92,11 +94,9 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(connectionId));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/telemetry/{endpointId}/samples", Resource.Platform);
-            _serializer.SerializeToRequest(request, connectionId);
-            var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/telemetry/{endpointId}/samples");
+            await _httpClient.PutAsync(uri, connectionId, _serializer,
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -111,13 +111,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(connectionId));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/telemetry/{endpointId}/samples/{connectionId}", Resource.Platform);
-            var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/telemetry/{endpointId}/samples/{connectionId}");
+            await _httpClient.DeleteAsync(uri, ct: ct).ConfigureAwait(false);
         }
 
-        private readonly IHttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClient;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
         private readonly ICallbackClient _client;

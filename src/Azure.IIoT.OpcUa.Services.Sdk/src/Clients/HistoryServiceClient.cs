@@ -8,9 +8,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
-    using Microsoft.Azure.IIoT.Http;
     using System;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -25,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public HistoryServiceClient(IHttpClient httpClient, IServiceApiConfig config,
+        public HistoryServiceClient(IHttpClientFactory httpClient, IServiceApiConfig config,
             ISerializer serializer) :
             this(httpClient, config?.ServiceUrl, serializer)
         {
@@ -37,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
         /// <param name="serializer"></param>
-        public HistoryServiceClient(IHttpClient httpClient, string serviceUri,
+        public HistoryServiceClient(IHttpClientFactory httpClient, string serviceUri,
             ISerializer serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
@@ -53,12 +52,16 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <inheritdoc/>
         public async Task<string> GetServiceStatusAsync(CancellationToken ct)
         {
-            var request = _httpClient.NewRequest($"{_serviceUri}/history/healthz", Resource.Platform);
+            var httpRequest = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{_serviceUri}/history/healthz")
+            };
             try
             {
-                var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-                response.Validate();
-                return response.GetContentAsString();
+                using var response = await _httpClient.GetAsync(httpRequest,
+                    ct).ConfigureAwait(false);
+                response.ValidateResponse();
+                return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -68,358 +71,307 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
-            string endpointId, HistoryReadRequestModel<ReadValuesDetailsModel> content,
+            string endpointId, HistoryReadRequestModel<ReadValuesDetailsModel> request,
             CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/read/{endpointId}/values", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryReadResponseModel<HistoricValueModel[]>>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/values");
+            return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
-            string endpointId, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> content,
+            string endpointId, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
             CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/read/{endpointId}/values/modified", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryReadResponseModel<HistoricValueModel[]>>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/values/modified");
+            return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
-            string endpointId, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> content,
+            string endpointId, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
             CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/read/{endpointId}/values/pick", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryReadResponseModel<HistoricValueModel[]>>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/values/pick");
+            return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
-            string endpointId, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> content,
+            string endpointId, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
             CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/read/{endpointId}/values/processed", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryReadResponseModel<HistoricValueModel[]>>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/values/processed");
+            return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
-            string endpointId, HistoryReadNextRequestModel content, CancellationToken ct)
+            string endpointId, HistoryReadNextRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(content.ContinuationToken))
+            if (string.IsNullOrEmpty(request.ContinuationToken))
             {
-                throw new ArgumentNullException(nameof(content.ContinuationToken));
+                throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/read/{endpointId}/values/next", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryReadNextResponseModel<HistoricValueModel[]>>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/values/next");
+            return await _httpClient.PostAsync<HistoryReadNextResponseModel<HistoricValueModel[]>>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
-            string endpointId, HistoryReadRequestModel<ReadEventsDetailsModel> content,
+            string endpointId, HistoryReadRequestModel<ReadEventsDetailsModel> request,
             CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/read/{endpointId}/events", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryReadResponseModel<HistoricEventModel[]>>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/events");
+            return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricEventModel[]>>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
-            string endpointId, HistoryReadNextRequestModel content, CancellationToken ct)
+            string endpointId, HistoryReadNextRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(content.ContinuationToken))
+            if (string.IsNullOrEmpty(request.ContinuationToken))
             {
-                throw new ArgumentNullException(nameof(content.ContinuationToken));
+                throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/read/{endpointId}/events/next", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryReadNextResponseModel<HistoricEventModel[]>>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/events/next");
+            return await _httpClient.PostAsync<HistoryReadNextResponseModel<HistoricEventModel[]>>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateValuesDetailsModel> content, CancellationToken ct)
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/replace/{endpointId}/values", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/replace/{endpointId}/values");
+            return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateEventsDetailsModel> content, CancellationToken ct)
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/replace/{endpointId}/events", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/replace/{endpointId}/events");
+            return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateValuesDetailsModel> content, CancellationToken ct)
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/insert/{endpointId}/values", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/insert/{endpointId}/values");
+            return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateValuesDetailsModel> content, CancellationToken ct)
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/upsert/{endpointId}/values", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/upsert/{endpointId}/values");
+            return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateEventsDetailsModel> content, CancellationToken ct)
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/insert/{endpointId}/events", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/insert/{endpointId}/events");
+            return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(string endpointId,
-            HistoryUpdateRequestModel<UpdateEventsDetailsModel> content, CancellationToken ct)
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/upsert/{endpointId}/events", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/upsert/{endpointId}/events");
+            return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<DeleteValuesDetailsModel> content, CancellationToken ct)
+            HistoryUpdateRequestModel<DeleteValuesDetailsModel> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/delete/{endpointId}/values", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/delete/{endpointId}/values");
+            return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(string endpointId,
-            HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> content, CancellationToken ct)
+            HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/delete/{endpointId}/values/pick", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/delete/{endpointId}/values/pick");
+            return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<DeleteValuesDetailsModel> content, CancellationToken ct)
+            HistoryUpdateRequestModel<DeleteValuesDetailsModel> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/delete/{endpointId}/values/modified", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/delete/{endpointId}/values/modified");
+            return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(string endpointId,
-            HistoryUpdateRequestModel<DeleteEventsDetailsModel> content, CancellationToken ct)
+            HistoryUpdateRequestModel<DeleteEventsDetailsModel> request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/history/v2/delete/{endpointId}/events", Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/history/v2/delete/{endpointId}/events");
+            return await _httpClient.PostAsync<HistoryUpdateResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
-        private readonly IHttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClient;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
     }

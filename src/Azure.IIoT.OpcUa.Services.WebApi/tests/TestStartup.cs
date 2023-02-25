@@ -23,6 +23,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
     using Microsoft.Extensions.Configuration;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using System;
+    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// Startup class for tests
@@ -58,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
 
             // Override real IoT hub and edge services with the mocks.
             builder.RegisterModule<IoTHubMockService>();
-            builder.RegisterType<PublisherIdentity>()
+            builder.RegisterType<TestIdentity>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -95,6 +99,23 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
             {
                 return true;
             }
+        }
+
+        /// <summary>
+        /// Test identity
+        /// </summary>
+        public sealed class TestIdentity : IProcessIdentity
+        {
+            /// <inheritdoc/>
+            public string ProcessId => "a";
+            /// <inheritdoc/>
+            public string SiteId => "site";
+            /// <inheritdoc/>
+            public string Id => "b";
+            /// <inheritdoc/>
+            public string Name => "OPC Publisher";
+            /// <inheritdoc/>
+            public string Description => "Publisher";
         }
     }
 }

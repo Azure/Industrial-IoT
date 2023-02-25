@@ -2085,54 +2085,10 @@ namespace Azure.IIoT.OpcUa.Services.Cli
         /// <summary>
         /// Print event
         /// </summary>
-        private Task PrintEventAsync(EndpointEventModel ev)
+        private Task PrintEventAsync<T>(T ev)
         {
-            Console.WriteLine(_client.Serializer.SerializePretty(ev));
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print event
-        /// </summary>
-        private Task PrintEventAsync(ApplicationEventModel ev)
-        {
-            Console.WriteLine(_client.Serializer.SerializePretty(ev));
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print event
-        /// </summary>
-        private Task PrintEventAsync(SupervisorEventModel ev)
-        {
-            Console.WriteLine(_client.Serializer.SerializePretty(ev));
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print event
-        /// </summary>
-        private Task PrintEventAsync(GatewayEventModel ev)
-        {
-            Console.WriteLine(_client.Serializer.SerializePretty(ev));
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print event
-        /// </summary>
-        private Task PrintEventAsync(DiscovererEventModel ev)
-        {
-            Console.WriteLine(_client.Serializer.SerializePretty(ev));
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print event
-        /// </summary>
-        private Task PrintEventAsync(PublisherEventModel ev)
-        {
-            Console.WriteLine(_client.Serializer.SerializePretty(ev));
+            Console.WriteLine(_client.Serializer.SerializeObjectToString(
+                ev, format: SerializeOption.Indented));
             return Task.CompletedTask;
         }
 

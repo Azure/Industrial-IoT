@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models
                 using (var gs = new GZipStream(input, CompressionMode.Decompress))
                 using (var reader = new StreamReader(gs))
                 {
-                    return serializer.Deserialize<QueryContinuation>(reader);
+                    return serializer.Deserialize<QueryContinuation>(reader.ReadToEnd());
                 }
             }
             catch (Exception ex)

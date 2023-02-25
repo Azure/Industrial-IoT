@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Publisher.Twin;
     using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
@@ -68,7 +67,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             if (Host.IsContainer)
             {
                 // Set timer to kill the entire process after 5 minutes.
-                _ = new Timer(o => Process.GetCurrentProcess().Kill(), null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+                _ = new Timer(o => Process.GetCurrentProcess().Kill(),
+                    null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
             }
         }
 
@@ -89,7 +89,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
-                    var events = hostScope.Resolve<IEventEmitter>();
                     var client = hostScope.Resolve<IClientHost>();
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
@@ -178,8 +177,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherDiagnosticCollector>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<TwinServices>()
-                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<NodeServices<ConnectionModel>>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<HistoryServices<ConnectionModel>>()

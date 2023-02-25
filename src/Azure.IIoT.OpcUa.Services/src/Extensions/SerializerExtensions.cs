@@ -9,9 +9,9 @@ namespace Furly.Extensions.Serializers
     using System.Collections.Generic;
 
     /// <summary>
-    /// Variant extensions
+    /// Serializer extensions
     /// </summary>
-    public static class VariantValueEx2
+    internal static class SerializerExtensions
     {
         /// <summary>
         /// Helper to get values from token dictionary
@@ -107,21 +107,6 @@ namespace Furly.Extensions.Serializers
                 }
             }
             return defaultValue();
-        }
-
-        /// <summary>
-        /// Replace whitespace in a property name
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static string SanitizePropertyName(string value)
-        {
-            var chars = new char[value.Length];
-            for (var i = 0; i < value.Length; i++)
-            {
-                chars[i] = !char.IsLetterOrDigit(value[i]) ? '_' : value[i];
-            }
-            return new string(chars);
         }
     }
 }

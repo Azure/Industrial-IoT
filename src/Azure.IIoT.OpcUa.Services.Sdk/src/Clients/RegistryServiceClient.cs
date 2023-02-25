@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
     using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
     using Microsoft.Azure.IIoT.Http;
     using System;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -25,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public RegistryServiceClient(IHttpClient httpClient, IServiceApiConfig config,
+        public RegistryServiceClient(IHttpClientFactory httpClient, IServiceApiConfig config,
             ISerializer serializer) :
             this(httpClient, config?.ServiceUrl, serializer)
         {
@@ -37,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
         /// <param name="serializer"></param>
-        public RegistryServiceClient(IHttpClient httpClient, string serviceUri,
+        public RegistryServiceClient(IHttpClientFactory httpClient, string serviceUri,
             ISerializer serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
@@ -53,13 +54,16 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <inheritdoc/>
         public async Task<string> GetServiceStatusAsync(CancellationToken ct)
         {
-            var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
-                Resource.Platform);
+            var httpRequest = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{_serviceUri}/healthz")
+            };
             try
             {
-                var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-                response.Validate();
-                return response.GetContentAsString();
+                using var response = await _httpClient.GetAsync(httpRequest,
+                    ct).ConfigureAwait(false);
+                response.ValidateResponse();
+                return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -69,41 +73,38 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task UpdateDiscovererAsync(string discovererId,
-            DiscovererUpdateModel content, CancellationToken ct)
+            DiscovererUpdateModel request, CancellationToken ct)
         {
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
             if (string.IsNullOrEmpty(discovererId))
             {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/discovery/{discovererId}",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/discovery/{discovererId}");
+            await _httpClient.PatchAsync(uri, request, _serializer,
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<DiscovererListModel> ListDiscoverersAsync(
             string continuation, int? pageSize, CancellationToken ct)
         {
-            var uri = new UriBuilder($"{_serviceUri}/v2/discovery");
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (continuation != null)
+            var uri = new Uri($"{_serviceUri}/v2/discovery");
+            return await _httpClient.GetAsync<DiscovererListModel>(uri,
+                _serializer, request =>
             {
-                request.AddHeader(HttpHeader.ContinuationToken, continuation);
-            }
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<DiscovererListModel>(response);
+                if (continuation != null)
+                {
+                    request.AddHeader(HttpHeader.ContinuationToken, continuation);
+                }
+                if (pageSize != null)
+                {
+                    request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                }
+            }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -111,32 +112,28 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             DiscovererQueryModel query, int? pageSize,
             CancellationToken ct)
         {
-            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/query");
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SerializeToRequest(request, query);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<DiscovererListModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/discovery/query");
+            return await _httpClient.PostAsync<DiscovererListModel>(uri, query,
+                _serializer, httpRequest =>
+                {
+                    if (pageSize != null)
+                    {
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    }
+                }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<DiscovererModel> GetDiscovererAsync(
-            string discovererId, CancellationToken ct)
+        public async Task<DiscovererModel> GetDiscovererAsync(string discovererId,
+            CancellationToken ct)
         {
             if (string.IsNullOrEmpty(discovererId))
             {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}");
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<DiscovererModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/discovery/{discovererId}");
+            return await _httpClient.GetAsync<DiscovererModel>(uri, _serializer,
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -151,29 +148,24 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 Query = $"mode={mode}"
             };
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            _serializer.SerializeToRequest(request, config);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            await _httpClient.PostAsync(uri.Uri, config, _serializer,
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task UpdateSupervisorAsync(string supervisorId,
-            SupervisorUpdateModel content, CancellationToken ct)
+            SupervisorUpdateModel request, CancellationToken ct)
         {
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
             if (string.IsNullOrEmpty(supervisorId))
             {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/supervisors/{supervisorId}",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/supervisors/{supervisorId}");
+            await _httpClient.PatchAsync(uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -185,19 +177,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (continuation != null)
+            return await _httpClient.GetAsync<SupervisorListModel>(uri.Uri,
+                _serializer, request =>
             {
-                request.AddHeader(HttpHeader.ContinuationToken, continuation);
-            }
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<SupervisorListModel>(response);
+                if (continuation != null)
+                {
+                    request.AddHeader(HttpHeader.ContinuationToken, continuation);
+                }
+                if (pageSize != null)
+                {
+                    request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                }
+            }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -210,15 +201,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SerializeToRequest(request, query);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<SupervisorListModel>(response);
+            return await _httpClient.PostAsync<SupervisorListModel>(uri.Uri, query,
+                _serializer, httpRequest =>
+                {
+                    if (pageSize != null)
+                    {
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    }
+                }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -234,85 +224,77 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<SupervisorModel>(response);
+            return await _httpClient.GetAsync<SupervisorModel>(uri.Uri,
+                _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task RegisterAsync(ServerRegistrationRequestModel content,
+        public async Task RegisterAsync(ServerRegistrationRequestModel request,
             CancellationToken ct)
         {
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (content.DiscoveryUrl == null)
+            if (request.DiscoveryUrl == null)
             {
-                throw new ArgumentNullException(nameof(content.DiscoveryUrl));
+                throw new ArgumentNullException(nameof(request.DiscoveryUrl));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            if (request.Options.Timeout == null)
+            var uri = new Uri($"{_serviceUri}/v2/applications");
+            await _httpClient.PostAsync(uri, request, _serializer, request =>
             {
-                request.Options.Timeout = TimeSpan.FromMinutes(3);
-            }
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+               // if (request.Options.Timeout == null)
+                {
+               //     request.Options.Timeout = TimeSpan.FromMinutes(3);
+                }
+
+            }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task DiscoverAsync(DiscoveryRequestModel content, CancellationToken ct)
+        public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct)
         {
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/discover",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            if (request.Options.Timeout == null)
+            var uri = new Uri($"{_serviceUri}/v2/applications/discover");
+            await _httpClient.PostAsync(uri, request, _serializer, request =>
             {
-                request.Options.Timeout = TimeSpan.FromMinutes(3);
-            }
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+                // if (request.Options.Timeout == null)
+                {
+                    //     request.Options.Timeout = TimeSpan.FromMinutes(3);
+                }
+
+            }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task CancelAsync(DiscoveryCancelRequestModel content, CancellationToken ct)
+        public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct)
         {
-            if (content?.Id == null)
+            if (request?.Id == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/applications/discover/${content.Id}", Resource.Platform);
-            var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/applications/discover/${request.Id}");
+            await _httpClient.DeleteAsync(uri, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationResponseModel> RegisterAsync(
-            ApplicationRegistrationRequestModel content, CancellationToken ct)
+            ApplicationRegistrationRequestModel request, CancellationToken ct)
         {
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(content.ApplicationUri))
+            if (string.IsNullOrEmpty(request.ApplicationUri))
             {
-                throw new ArgumentNullException(nameof(content.ApplicationUri));
+                throw new ArgumentNullException(nameof(request.ApplicationUri));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<ApplicationRegistrationResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/applications");
+            return await _httpClient.PutAsync<ApplicationRegistrationResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -322,10 +304,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var uri = $"{_serviceUri}/v2/applications/{applicationId}/enable";
-            var request = _httpClient.NewRequest(uri);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}/enable");
+            await _httpClient.PostAsync(uri, null, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -335,29 +315,25 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var uri = $"{_serviceUri}/v2/applications/{applicationId}/disable";
-            var request = _httpClient.NewRequest(uri);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}/disable");
+            await _httpClient.PostAsync(uri, null, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task UpdateApplicationAsync(string applicationId,
-            ApplicationRegistrationUpdateModel content, CancellationToken ct)
+            ApplicationRegistrationUpdateModel request, CancellationToken ct)
         {
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
             if (string.IsNullOrEmpty(applicationId))
             {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}");
+            await _httpClient.PatchAsync(uri, request, _serializer,
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -368,68 +344,62 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
-                Resource.Platform);
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<ApplicationRegistrationModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}");
+            return await _httpClient.GetAsync<ApplicationRegistrationModel>(
+                uri, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
             ApplicationRegistrationQueryModel query, int? pageSize, CancellationToken ct)
         {
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/query",
-                Resource.Platform);
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SerializeToRequest(request, query);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<ApplicationInfoListModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/applications/query");
+            return await _httpClient.PostAsync<ApplicationInfoListModel>(uri, query,
+                _serializer, httpRequest =>
+                {
+                    if (pageSize != null)
+                    {
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    }
+                }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> ListApplicationsAsync(
             string continuation, int? pageSize, CancellationToken ct)
         {
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
-                Resource.Platform);
-            if (continuation != null)
-            {
-                request.AddHeader(HttpHeader.ContinuationToken, continuation);
-            }
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<ApplicationInfoListModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/applications");
+            return await _httpClient.GetAsync<ApplicationInfoListModel>(uri,
+                _serializer, request =>
+                {
+                    if (continuation != null)
+                    {
+                        request.AddHeader(HttpHeader.ContinuationToken, continuation);
+                    }
+                    if (pageSize != null)
+                    {
+                        request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    }
+                }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<ApplicationSiteListModel> ListSitesAsync(
             string continuation, int? pageSize, CancellationToken ct)
         {
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/sites",
-                Resource.Platform);
-            if (continuation != null)
-            {
-                request.AddHeader(HttpHeader.ContinuationToken, continuation);
-            }
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<ApplicationSiteListModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/applications/sites");
+            return await _httpClient.GetAsync<ApplicationSiteListModel>(uri,
+                _serializer, request =>
+                {
+                    if (continuation != null)
+                    {
+                        request.AddHeader(HttpHeader.ContinuationToken, continuation);
+                    }
+                    if (pageSize != null)
+                    {
+                        request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    }
+                }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -439,33 +409,25 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(applicationId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
-                Resource.Platform);
-            var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}");
+            await _httpClient.DeleteAsync(uri, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task PurgeDisabledApplicationsAsync(TimeSpan notSeenFor,
             CancellationToken ct)
         {
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/applications?notSeenFor={notSeenFor}", Resource.Platform);
-            var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/applications?notSeenFor={notSeenFor}");
+            await _httpClient.DeleteAsync(uri, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
             CancellationToken ct)
         {
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/endpoints", Resource.Platform);
-
-            _serializer.SerializeToRequest(request, query);
-            var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<string>(response);
+            var uri = new Uri($"{_serviceUri}/v2/endpoints");
+            return await _httpClient.PutAsync<string>(uri, query,
+                _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -477,19 +439,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (continuation != null)
-            {
-                request.AddHeader(HttpHeader.ContinuationToken, continuation);
-            }
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<EndpointInfoListModel>(response);
+            return await _httpClient.GetAsync<EndpointInfoListModel>(uri.Uri,
+                _serializer, request =>
+                {
+                    if (continuation != null)
+                    {
+                        request.AddHeader(HttpHeader.ContinuationToken, continuation);
+                    }
+                    if (pageSize != null)
+                    {
+                        request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    }
+                }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -502,15 +463,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SerializeToRequest(request, query);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<EndpointInfoListModel>(response);
+            return await _httpClient.PostAsync<EndpointInfoListModel>(uri.Uri, query,
+                _serializer, httpRequest =>
+                {
+                    if (pageSize != null)
+                    {
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    }
+                }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -526,11 +486,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<EndpointInfoModel>(response);
+            return await _httpClient.GetAsync<EndpointInfoModel>(uri.Uri,
+                _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -541,12 +498,9 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v2/endpoints/{endpointId}/certificate");
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<X509CertificateChainModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/certificate");
+            return await _httpClient.GetAsync<X509CertificateChainModel>(uri,
+                _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -556,10 +510,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/endpoints/{endpointId}/activate", Resource.Platform);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/activate");
+            await _httpClient.PostAsync(uri, null, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -569,10 +521,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/endpoints/{endpointId}/deactivate", Resource.Platform);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/deactivate");
+            await _httpClient.PostAsync(uri, null, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -584,38 +534,35 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (continuation != null)
-            {
-                request.AddHeader(HttpHeader.ContinuationToken, continuation);
-            }
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<PublisherListModel>(response);
+            return await _httpClient.GetAsync<PublisherListModel>(uri.Uri,
+                _serializer, request =>
+                {
+                    if (continuation != null)
+                    {
+                        request.AddHeader(HttpHeader.ContinuationToken, continuation);
+                    }
+                    if (pageSize != null)
+                    {
+                        request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    }
+                }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task UpdatePublisherAsync(string publisherId,
-            PublisherUpdateModel content, CancellationToken ct)
+            PublisherUpdateModel request, CancellationToken ct)
         {
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
             if (string.IsNullOrEmpty(publisherId))
             {
                 throw new ArgumentNullException(nameof(publisherId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/publishers/{publisherId}",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/publishers/{publisherId}");
+            await _httpClient.PatchAsync(uri, request, _serializer,
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -628,15 +575,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SerializeToRequest(request, query);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<PublisherListModel>(response);
+            return await _httpClient.PostAsync<PublisherListModel>(uri.Uri, query,
+                _serializer, httpRequest =>
+                {
+                    if (pageSize != null)
+                    {
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    }
+                }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -652,50 +598,43 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<PublisherModel>(response);
+            return await _httpClient.GetAsync<PublisherModel>(uri.Uri, _serializer,
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<GatewayListModel> ListGatewaysAsync(
             string continuation, int? pageSize, CancellationToken ct)
         {
-            var uri = new UriBuilder($"{_serviceUri}/v2/gateways");
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (continuation != null)
+            var uri = new Uri($"{_serviceUri}/v2/gateways");
+            return await _httpClient.GetAsync<GatewayListModel>(uri, _serializer, request =>
             {
-                request.AddHeader(HttpHeader.ContinuationToken, continuation);
-            }
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<GatewayListModel>(response);
+                if (continuation != null)
+                {
+                    request.AddHeader(HttpHeader.ContinuationToken, continuation);
+                }
+                if (pageSize != null)
+                {
+                    request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                }
+            }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task UpdateGatewayAsync(string gatewayId,
-            GatewayUpdateModel content, CancellationToken ct)
+            GatewayUpdateModel request, CancellationToken ct)
         {
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
             if (string.IsNullOrEmpty(gatewayId))
             {
                 throw new ArgumentNullException(nameof(gatewayId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/gateways/{gatewayId}",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
+            var uri = new Uri($"{_serviceUri}/v2/gateways/{gatewayId}");
+            await _httpClient.PatchAsync(uri, request, _serializer,
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -703,15 +642,14 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             GatewayQueryModel query, int? pageSize, CancellationToken ct)
         {
             var uri = new UriBuilder($"{_serviceUri}/v2/gateways/query");
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            if (pageSize != null)
-            {
-                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
-            }
-            _serializer.SerializeToRequest(request, query);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<GatewayListModel>(response);
+            return await _httpClient.PostAsync<GatewayListModel>(uri.Uri, query,
+                _serializer, httpRequest =>
+                {
+                    if (pageSize != null)
+                    {
+                        httpRequest.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+                    }
+                }, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -722,15 +660,12 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(gatewayId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v2/gateways/{gatewayId}");
-            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<GatewayInfoModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/gateways/{gatewayId}");
+            return await _httpClient.GetAsync< GatewayInfoModel>(
+                uri, _serializer, ct: ct).ConfigureAwait(false);
         }
 
-        private readonly IHttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClient;
         private readonly string _serviceUri;
         private readonly ISerializer _serializer;
     }

@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk
     using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
     /// Service sdk module
@@ -27,8 +28,9 @@ namespace Azure.IIoT.OpcUa.Services.Sdk
 
             builder.AddNewtonsoftJsonSerializer();
 
-            // Register http client module ...
-            builder.RegisterModule<HttpClientModule>();
+            // Register http clients ...
+            builder.ConfigureServices(
+                services => services.AddHttpClient());
             // ... as well as signalR client (needed for api)
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces().SingleInstance();

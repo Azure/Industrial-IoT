@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics
     /// <summary>
     /// Process info extensions
     /// </summary>
-    public static class ProcessIdentityEx
+    internal static class ProcessIdentityEx
     {
         /// <summary>
         /// Create identity string

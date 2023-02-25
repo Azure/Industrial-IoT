@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers.Binary
             return new BrowseServicesTests<string>(() => // Create an adapter over the api
                 new TwinWebApiAdapter(
                     new ControllerTestClient(
-                       new HttpClient(_factory, log), new TestConfig(client.BaseAddress),
+                       _factory, new TestConfig(client.BaseAddress),
                             serializer)), endpointId);
         }
 

@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
     using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
     using Microsoft.Azure.IIoT.Http;
     using System;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -25,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public PublisherServiceClient(IHttpClient httpClient, IServiceApiConfig config,
+        public PublisherServiceClient(IHttpClientFactory httpClient, IServiceApiConfig config,
             ISerializer serializer) :
             this(httpClient, config?.ServiceUrl, serializer)
         {
@@ -37,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
         /// <param name="serializer"></param>
-        public PublisherServiceClient(IHttpClient httpClient, string serviceUri,
+        public PublisherServiceClient(IHttpClientFactory httpClient, string serviceUri,
             ISerializer serializer)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
@@ -53,13 +54,16 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         /// <inheritdoc/>
         public async Task<string> GetServiceStatusAsync(CancellationToken ct)
         {
-            var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
-                Resource.Platform);
+            var httpRequest = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{_serviceUri}/healthz")
+            };
             try
             {
-                var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-                response.Validate();
-                return response.GetContentAsString();
+                using var response = await _httpClient.GetAsync(httpRequest,
+                    ct).ConfigureAwait(false);
+                response.ValidateResponse();
+                return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -69,85 +73,73 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<PublishStartResponseModel> NodePublishStartAsync(string endpointId,
-            PublishStartRequestModel content, CancellationToken ct)
+            PublishStartRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (content.Item == null)
+            if (request.Item == null)
             {
-                throw new ArgumentNullException(nameof(content.Item));
+                throw new ArgumentNullException(nameof(request.Item));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/start",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<PublishStartResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}/start");
+            return await _httpClient.PostAsync<PublishStartResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<PublishBulkResponseModel> NodePublishBulkAsync(string endpointId,
-            PublishBulkRequestModel content, CancellationToken ct = default)
+            PublishBulkRequestModel request, CancellationToken ct = default)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/bulk",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<PublishBulkResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}/bulk");
+            return await _httpClient.PostAsync<PublishBulkResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<PublishedItemListResponseModel> NodePublishListAsync(
-            string endpointId, PublishedItemListRequestModel content, CancellationToken ct)
+            string endpointId, PublishedItemListRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<PublishedItemListResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}");
+            return await _httpClient.PostAsync<PublishedItemListResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<PublishStopResponseModel> NodePublishStopAsync(string endpointId,
-            PublishStopRequestModel content, CancellationToken ct)
+            PublishStopRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/stop",
-                Resource.Platform);
-            _serializer.SerializeToRequest(request, content);
-            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<PublishStopResponseModel>(response);
+            var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}/stop");
+            return await _httpClient.PostAsync<PublishStopResponseModel>(
+                uri, request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
-        private readonly IHttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClient;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
     }

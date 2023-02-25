@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.Hub
             var result = new Dictionary<string, bool>();
             foreach (var s in set)
             {
-                var add = VariantValueEx2.SanitizePropertyName(s);
+                var add = SanitizePropertyName(s);
                 if (upperCase != null)
                 {
                     add = (bool)upperCase ? add.ToUpperInvariant() : add.ToLowerInvariant();
@@ -121,6 +121,21 @@ namespace Microsoft.Azure.IIoT.Hub
                 result.Add(add, true);
             }
             return result;
+        }
+
+        /// <summary>
+        /// Replace whitespace in a property name
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string SanitizePropertyName(string value)
+        {
+            var chars = new char[value.Length];
+            for (var i = 0; i < value.Length; i++)
+            {
+                chars[i] = !char.IsLetterOrDigit(value[i]) ? '_' : value[i];
+            }
+            return new string(chars);
         }
     }
 }

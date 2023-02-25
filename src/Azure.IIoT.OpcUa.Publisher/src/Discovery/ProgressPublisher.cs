@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Extensions.Logging;
     using System;
@@ -29,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="serializer"></param>
         /// <param name="identity"></param>
         /// <param name="logger"></param>
-        public ProgressPublisher(IEventEmitter events, ITaskProcessor processor,
+        public ProgressPublisher(IClientAccessor events, ITaskProcessor processor,
             IJsonSerializer serializer, IProcessIdentity identity, ILogger logger)
             : base(logger)
         {
@@ -56,16 +57,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// </summary>
         /// <param name="progress"></param>
         /// <returns></returns>
-        private Task SendAsync(DiscoveryProgressModel progress)
+        private async Task SendAsync(DiscoveryProgressModel progress)
         {
-            return Try.Async(() => _events.SendEventAsync(
-                _serializer.SerializeToMemory((object)progress).ToArray(), ContentMimeType.Json,
-                MessageSchemaTypes.DiscoveryMessage, "utf-8"));
+            using var message = _events.Client.CreateMessage(new[]
+            {
+                _serializer.SerializeToMemory((object)progress).ToArray()
+            }, "utf-8", ContentMimeType.Json, MessageSchemaTypes.DiscoveryMessage);
+
+            await _events.Client.SendEventAsync(message).ConfigureAwait(false);
         }
 
         private readonly IJsonSerializer _serializer;
         private readonly IProcessIdentity _identity;
-        private readonly IEventEmitter _events;
+        private readonly IClientAccessor _events;
         private readonly ITaskProcessor _processor;
     }
 }

@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Net.Http;
 
     /// <summary>
     /// Implementation of twin service api with extra controller methods.
@@ -24,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
-        public ControllerTestClient(IHttpClient httpClient, IServiceApiConfig config,
+        public ControllerTestClient(IHttpClientFactory httpClient, IServiceApiConfig config,
             ISerializer serializer)
         {
             _serviceUri = (config?.ServiceUrl ??
@@ -48,11 +49,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients
             {
                 path.Query = $"nodeId={content.NodeId.UrlEncode()}";
             }
-            var request = _httpClient.NewRequest(path.ToString());
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<BrowseFirstResponseModel>(response);
+            return await _httpClient.GetAsync<BrowseFirstResponseModel>(
+                path.Uri, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -75,11 +73,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients
             {
                 Query = $"continuationToken={content.ContinuationToken}"
             };
-            var request = _httpClient.NewRequest(path.ToString());
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<BrowseNextResponseModel>(response);
+            return await _httpClient.GetAsync<BrowseNextResponseModel>(
+                path.Uri, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -102,11 +97,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients
             {
                 Query = $"nodeId={content.NodeId.UrlEncode()}"
             };
-            var request = _httpClient.NewRequest(path.ToString());
-            _serializer.SetAcceptHeaders(request);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return _serializer.DeserializeResponse<ValueReadResponseModel>(response);
+            return await _httpClient.GetAsync<ValueReadResponseModel>(path.Uri,
+                _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -199,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients
             return Task.FromException<HistoryUpdateResponseModel>(new NotImplementedException());
         }
 
-        private readonly IHttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClient;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
     }
