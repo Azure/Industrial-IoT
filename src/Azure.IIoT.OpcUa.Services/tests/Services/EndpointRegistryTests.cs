@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
+    using Azure.IIoT.OpcUa.Services.Registry.Models;
 
     public class EndpointRegistryTests
     {

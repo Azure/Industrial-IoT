@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
-    using Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter;
+    using Azure.IIoT.OpcUa.Services.Clients.Adapters;
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Http.Default;

@@ -3,41 +3,41 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa
+namespace Azure.IIoT.OpcUa.Services
 {
     using Azure.IIoT.OpcUa.Models;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Gateway registry change listener
+    /// Discoverer registry change listener
     /// </summary>
-    public interface IGatewayRegistryListener
+    public interface IDiscovererRegistryListener
     {
         /// <summary>
-        /// Called when gateway is created
+        /// Called when discoverer is added
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="gateway"></param>
+        /// <param name="discoverer"></param>
         /// <returns></returns>
-        Task OnGatewayNewAsync(OperationContextModel context,
-            GatewayModel gateway);
+        Task OnDiscovererNewAsync(OperationContextModel context,
+            DiscovererModel discoverer);
 
         /// <summary>
-        /// Called when gateway is updated
+        /// Called when discoverer is updated
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="gateway"></param>
+        /// <param name="discoverer"></param>
         /// <returns></returns>
-        Task OnGatewayUpdatedAsync(OperationContextModel context,
-            GatewayModel gateway);
+        Task OnDiscovererUpdatedAsync(OperationContextModel context,
+            DiscovererModel discoverer);
 
         /// <summary>
-        /// Called when gateway is deleted
+        /// Called when discoverer is delted
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="gatewayId"></param>
+        /// <param name="discovererId"></param>
         /// <returns></returns>
-        Task OnGatewayDeletedAsync(OperationContextModel context,
-            string gatewayId);
+        Task OnDiscovererDeletedAsync(OperationContextModel context,
+            string discovererId);
     }
 }

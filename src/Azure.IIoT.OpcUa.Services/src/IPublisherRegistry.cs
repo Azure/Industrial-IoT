@@ -3,57 +3,62 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa
+namespace Azure.IIoT.OpcUa.Services
 {
     using Azure.IIoT.OpcUa.Models;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Edge Gateway registry
+    /// Publisher registry
     /// </summary>
-    public interface IGatewayRegistry
+    public interface IPublisherRegistry
     {
         /// <summary>
-        /// Get all gateways in paged form
+        /// Get all publishers in paged form
         /// </summary>
         /// <param name="continuation"></param>
+        /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<GatewayListModel> ListGatewaysAsync(
-            string continuation, int? pageSize = null,
-            CancellationToken ct = default);
+        Task<PublisherListModel> ListPublishersAsync(
+            string continuation, bool onlyServerState = false,
+            int? pageSize = null, CancellationToken ct = default);
 
         /// <summary>
-        /// Find gateways using specific criterias.
+        /// Find publishers using specific criterias.
         /// </summary>
         /// <param name="query"></param>
+        /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<GatewayListModel> QueryGatewaysAsync(
-            GatewayQueryModel query, int? pageSize = null,
+        Task<PublisherListModel> QueryPublishersAsync(
+            PublisherQueryModel query, bool onlyServerState = false,
+            int? pageSize = null,
             CancellationToken ct = default);
 
         /// <summary>
-        /// Get gateway registration by identifer.
+        /// Get publisher registration by identifer.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<GatewayInfoModel> GetGatewayAsync(string id,
-            bool onlyServerState = false, CancellationToken ct = default);
+        Task<PublisherModel> GetPublisherAsync(
+            string id, bool onlyServerState = false,
+            CancellationToken ct = default);
 
         /// <summary>
-        /// Update gateway
+        /// Update publisher configuration
         /// </summary>
         /// <param name="id"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task UpdateGatewayAsync(string id, GatewayUpdateModel request,
+        Task UpdatePublisherAsync(string id,
+            PublisherUpdateModel request,
             CancellationToken ct = default);
     }
 }

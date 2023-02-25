@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Services;
 
     /// <summary>
     /// Registry services adapter to run dependent services outside of cloud.

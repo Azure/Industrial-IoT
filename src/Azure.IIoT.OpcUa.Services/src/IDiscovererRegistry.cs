@@ -3,62 +3,57 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa
+namespace Azure.IIoT.OpcUa.Services
 {
     using Azure.IIoT.OpcUa.Models;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Supervisor registry
+    /// Discoverer registry
     /// </summary>
-    public interface ISupervisorRegistry
+    public interface IDiscovererRegistry
     {
         /// <summary>
-        /// Get all supervisors in paged form
+        /// Get all discoverers in paged form
         /// </summary>
         /// <param name="continuation"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<SupervisorListModel> ListSupervisorsAsync(
-            string continuation, bool onlyServerState = false,
-            int? pageSize = null, CancellationToken ct = default);
+        Task<DiscovererListModel> ListDiscoverersAsync(
+            string continuation, int? pageSize = null,
+            CancellationToken ct = default);
 
         /// <summary>
-        /// Find supervisors using specific criterias.
+        /// Find discoverers using specific criterias.
         /// </summary>
         /// <param name="query"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<SupervisorListModel> QuerySupervisorsAsync(
-            SupervisorQueryModel query, bool onlyServerState = false,
-            int? pageSize = null,
+        Task<DiscovererListModel> QueryDiscoverersAsync(
+            DiscovererQueryModel query, int? pageSize = null,
             CancellationToken ct = default);
 
         /// <summary>
-        /// Get supervisor registration by identifer.
+        /// Get discoverer registration by identifer.
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<SupervisorModel> GetSupervisorAsync(
-            string id, bool onlyServerState = false,
+        Task<DiscovererModel> GetDiscovererAsync(string id,
             CancellationToken ct = default);
 
         /// <summary>
-        /// Update supervisor, e.g. set discovery mode
+        /// Update discoverer, e.g. set discovery mode
         /// </summary>
         /// <param name="id"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task UpdateSupervisorAsync(string id,
-            SupervisorUpdateModel request,
+        Task UpdateDiscovererAsync(string id,
+            DiscovererUpdateModel request,
             CancellationToken ct = default);
     }
 }

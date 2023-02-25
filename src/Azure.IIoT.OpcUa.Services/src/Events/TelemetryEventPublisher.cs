@@ -5,11 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients
 {
-    using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Services.Subscriber;
+    using Azure.IIoT.OpcUa.Services;
 
     /// <summary>
     /// Telemetry message publishing

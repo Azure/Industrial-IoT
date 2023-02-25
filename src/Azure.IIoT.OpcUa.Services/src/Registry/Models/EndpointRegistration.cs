@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models
+namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Services.Registry.Models;
     using Microsoft.Azure.IIoT.Hub;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -173,19 +174,19 @@ namespace Azure.IIoT.OpcUa.Services.Models
         public override int GetHashCode()
         {
             var hashCode = base.GetHashCode();
-            hashCode = (hashCode * -1521134295) +
+            hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(EndpointUrlLC);
-            hashCode = (hashCode * -1521134295) +
+            hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(DiscovererId);
-            hashCode = (hashCode * -1521134295) +
+            hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(ApplicationId);
-            hashCode = (hashCode * -1521134295) +
+            hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(Thumbprint);
-            hashCode = (hashCode * -1521134295) +
+            hashCode = hashCode * -1521134295 +
                 EqualityComparer<int?>.Default.GetHashCode(SecurityLevel);
-            hashCode = (hashCode * -1521134295) +
+            hashCode = hashCode * -1521134295 +
                 EqualityComparer<SecurityMode?>.Default.GetHashCode(SecurityMode);
-            hashCode = (hashCode * -1521134295) +
+            hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(SecurityPolicy);
             return hashCode;
         }

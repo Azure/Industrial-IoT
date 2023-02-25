@@ -3,41 +3,41 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa
+namespace Azure.IIoT.OpcUa.Services
 {
     using Azure.IIoT.OpcUa.Models;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Discoverer registry change listener
+    /// Gateway registry change listener
     /// </summary>
-    public interface IDiscovererRegistryListener
+    public interface IGatewayRegistryListener
     {
         /// <summary>
-        /// Called when discoverer is added
+        /// Called when gateway is created
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="discoverer"></param>
+        /// <param name="gateway"></param>
         /// <returns></returns>
-        Task OnDiscovererNewAsync(OperationContextModel context,
-            DiscovererModel discoverer);
+        Task OnGatewayNewAsync(OperationContextModel context,
+            GatewayModel gateway);
 
         /// <summary>
-        /// Called when discoverer is updated
+        /// Called when gateway is updated
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="discoverer"></param>
+        /// <param name="gateway"></param>
         /// <returns></returns>
-        Task OnDiscovererUpdatedAsync(OperationContextModel context,
-            DiscovererModel discoverer);
+        Task OnGatewayUpdatedAsync(OperationContextModel context,
+            GatewayModel gateway);
 
         /// <summary>
-        /// Called when discoverer is delted
+        /// Called when gateway is deleted
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="discovererId"></param>
+        /// <param name="gatewayId"></param>
         /// <returns></returns>
-        Task OnDiscovererDeletedAsync(OperationContextModel context,
-            string discovererId);
+        Task OnGatewayDeletedAsync(OperationContextModel context,
+            string gatewayId);
     }
 }

@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
+    using Azure.IIoT.OpcUa.Services.Registry.Models;
 
     public class ApplicationRegistryTests
     {

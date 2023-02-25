@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Services.Registry
 {
-    using Azure.IIoT.OpcUa.Services.Models;
+    using Azure.IIoT.OpcUa.Services.Registry.Models;
     using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;

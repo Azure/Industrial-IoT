@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter
+namespace Azure.IIoT.OpcUa.Services.Clients.Adapters
 {
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Models;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Services;
 
     /// <summary>
     /// Implements discovery services as adapter on top of discovery api.

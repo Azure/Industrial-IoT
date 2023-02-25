@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa
+namespace Azure.IIoT.OpcUa.Services
 {
-    using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Models;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Services.Subscriber;
 
     /// <summary>
     /// Publisher sample processing

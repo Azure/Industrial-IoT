@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Models
+namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Hub;
@@ -78,9 +78,9 @@ namespace Azure.IIoT.OpcUa.Services.Models
         public override int GetHashCode()
         {
             var hashCode = base.GetHashCode();
-            hashCode = (hashCode * -1521134295) +
+            hashCode = hashCode * -1521134295 +
                 EqualityComparer<string>.Default.GetHashCode(ModuleId);
-            hashCode = (hashCode * -1521134295) +
+            hashCode = hashCode * -1521134295 +
                 EqualityComparer<TraceLogLevel?>.Default.GetHashCode(LogLevel);
             return hashCode;
         }
