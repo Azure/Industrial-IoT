@@ -260,8 +260,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 body = currentStep.GetProperty("Body");
                 Assert.Equal(22, currentStep.GetProperty("Type").GetInt32());
                 Assert.Equal(183, body.GetProperty("TypeId").GetProperty("Id").GetInt32());
-                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("CycleStepDataType").GetProperty("Name").ValueKind);
-                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("CycleStepDataType").GetProperty("Duration").ValueKind);
+                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("Name").ValueKind);
+                Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
             });
 
             AssertCompliantSimpleEventsMetadata(metadata);

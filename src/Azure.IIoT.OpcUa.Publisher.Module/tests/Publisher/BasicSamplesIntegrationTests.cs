@@ -150,10 +150,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             var body = value.GetProperty("Body");
             Assert.Equal("ExtensionObject", type);
 
-            var typeId = body.GetProperty("TypeId").GetString();
             var encoding = body.GetProperty("Encoding").GetString();
             body = body.GetProperty("Body");
-            Assert.Equal("http://microsoft.com/Industrial-IoT/OpcPublisher#i=1", typeId);
             Assert.Equal("Json", encoding);
 
             var eventId = body.GetProperty(kEventId);

@@ -5,8 +5,6 @@
 
 namespace System
 {
-    using Newtonsoft.Json.Linq;
-    using System.Linq;
     using System.Reflection;
 
     /// <summary>
@@ -25,27 +23,6 @@ namespace System
             }
             return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion ?? "";
-        }
-
-        /// <summary>
-        /// Get assembly info version
-        /// </summary>
-        public static JObject GetVersionInfoObject(this Assembly assembly)
-        {
-            if (assembly == null)
-            {
-                throw new ArgumentNullException(nameof(assembly));
-            }
-            var o = new JObject();
-            foreach (var p in assembly.GetType("ThisAssembly")?
-                .GetFields(BindingFlags.Static | BindingFlags.NonPublic)
-                .Select(f => new JProperty(f.Name, f.GetValue(null))) ??
-                    new JProperty("AssemblyVersion", "No version information found.")
-                        .YieldReturn())
-            {
-                o.Add(p);
-            }
-            return o;
         }
     }
 }
