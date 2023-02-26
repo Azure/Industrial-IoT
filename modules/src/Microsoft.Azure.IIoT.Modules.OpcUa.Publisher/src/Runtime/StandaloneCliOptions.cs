@@ -35,11 +35,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// </summary>
         /// <param name="config"></param>
         public StandaloneCliOptions(IConfiguration config) {
+            var configKeyNames = typeof(StandaloneCliConfigKeys).GetFields().Select(fi => fi.Name).ToList();
             foreach (var item in config.GetChildren()) {
-                this[item.Key] = item.Value;
+                var keyName = configKeyNames.FirstOrDefault(n => string.Compare(n, item.Key, StringComparison.OrdinalIgnoreCase) == 0);
+                this[keyName ?? item.Key] = item.Value;
             }
-            Config = ToAgentConfigModel();
 
+            Config = ToAgentConfigModel();
             _logger = ConsoleLogger.Create(LogEventLevel.Warning);
         }
 
