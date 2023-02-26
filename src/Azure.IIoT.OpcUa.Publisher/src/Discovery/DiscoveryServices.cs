@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="identity"></param>
         public DiscoveryServices(IEndpointDiscovery client, IClientAccessor events,
             IJsonSerializer serializer, ILogger logger, IDiscoveryProgress progress = null,
-            IProcessIdentity identity = null)
+            IProcessInfo identity = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -66,9 +66,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         public async Task<ApplicationRegistrationModel> FindServerAsync(
             ServerEndpointQueryModel endpoint, CancellationToken ct)
         {
-            if (endpoint?.Url == null)
+            if (endpoint?.DiscoveryUrl == null)
             {
-                throw new ArgumentNullException(nameof(endpoint));
+                throw new ArgumentException("Discovery url missing", nameof(endpoint));
             }
 
             var discoveryUrl = new Uri(endpoint.DiscoveryUrl);
@@ -804,7 +804,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly IJsonSerializer _serializer;
         private readonly IClientAccessor _events;
         private readonly IDiscoveryProgress _progress;
-        private readonly IProcessIdentity _identity;
+        private readonly IProcessInfo _identity;
         private readonly IEndpointDiscovery _client;
         private readonly Task _runner;
         private readonly Timer _timer;

@@ -18,16 +18,11 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
-    using Microsoft.Azure.IIoT.AspNetCore.Cors;
-    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Utils;
@@ -36,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
-    using Prometheus;
     using System;
 
     /// <summary>
@@ -103,9 +97,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
             services.AddDistributedMemoryCache();
 
             services.AddHttpsRedirect();
-            services.AddAuthentication()
-                .AddJwtBearerProvider(AuthProvider.AzureAD)
-                .AddJwtBearerProvider(AuthProvider.AuthService);
+            services.AddHttpClient();
+
+            // services.AddAuthentication()
+            //     .AddJwtBearerProvider(AuthProvider.AzureAD);
             services.AddAuthorizationPolicies(
                 Policies.RoleMapping,
                 Policies.CanRead,
@@ -113,7 +108,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 Policies.CanPublish);
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers().AddSerializers();
+            services.AddControllers()
+                .AddDefaultJsonSerializer()
+                .AddBinarySerializers();
 
             // Add signalr and optionally configure signalr service
             services.AddSignalR()
@@ -121,6 +118,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 .AddMessagePackSerializer();
 
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
+            services.AddOpenTelemetry(ServiceInfo.Name);
         }
 
         /// <summary>
@@ -132,27 +130,28 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
         {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-            var log = applicationContainer.Resolve<ILogger>();
+            var log = applicationContainer.Resolve<ILogger<Startup>>();
 
             app.UsePathBase();
             app.UseHeaderForwarding();
 
             app.UseRouting();
-            app.EnableCors();
+            app.UseCors();
 
-            app.UseJwtBearerAuthentication();
-            app.UseAuthorization();
+            // app.UseJwtBearerAuthentication();
+            // app.UseAuthorization();
             app.UseHttpsRedirect();
 
             app.UseSwagger();
-            app.UseMetricServer();
-            app.UseHttpMetrics();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHubs();
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");
             });
+
+            app.UsePrometheus();
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
@@ -190,11 +189,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
             builder.AddNewtonsoftJsonSerializer();
 
             // Add service to service authentication
-            builder.RegisterModule<WebApiAuthentication>();
-
-            // CORS setup
-            builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces();
+            // builder.RegisterModule<WebApiAuthentication>();
 
             // Register IoT Hub services for registry and edge clients.
             builder.RegisterModule<RegistryServices>();
@@ -210,9 +205,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 .AsImplementedInterfaces();
 
             // Register event processor host to process IoT hub telemetry
-            builder.RegisterType<EventProcessorHost>()
-                .AsImplementedInterfaces().SingleInstance()
-                .IfNotRegistered(typeof(IEventProcessingHost));
+            //    builder.RegisterType<EventProcessorHost>()
+            //        .AsImplementedInterfaces().SingleInstance()
+            //      .IfNotRegistered(typeof(IEventProcessingHost));
             builder.RegisterType<EventProcessorFactory>()
                 .AsImplementedInterfaces();
             builder.RegisterType<EventHubDeviceEventHandler>()

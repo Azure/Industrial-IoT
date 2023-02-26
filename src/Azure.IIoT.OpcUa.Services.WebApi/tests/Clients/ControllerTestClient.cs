@@ -5,15 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients
 {
-    using Azure.IIoT.OpcUa.Services.Sdk;
     using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Services.Sdk;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
-    using Microsoft.Azure.IIoT.Http;
     using System;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Net.Http;
 
     /// <summary>
     /// Implementation of twin service api with extra controller methods.

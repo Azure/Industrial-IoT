@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
     /// <summary>
     /// Module host implementation
     /// </summary>
-    public sealed class ModuleHost : IModuleHost, IClientAccessor
+    public sealed class ModuleHost : IModuleHost, IClientAccessor, IDisposable
     {
         /// <inheritdoc/>
         public IClient Client { get; private set; }

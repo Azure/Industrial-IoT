@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
 {
     using Autofac.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
 
     /// <summary>
@@ -32,6 +33,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         {
             return Host.CreateDefaultBuilder(args)
                 .UseAutofac()
+                .ConfigureHostConfiguration(builder => builder
+                    .AddFromDotEnvFile())
                 .ConfigureWebHostDefaults(builder => builder
                     .UseUrls("http://*:9045")
                     .UseStartup<Startup>()

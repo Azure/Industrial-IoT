@@ -6,8 +6,6 @@
 namespace Microsoft.Azure.IIoT.App.Runtime
 {
     using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
@@ -18,7 +16,7 @@ namespace Microsoft.Azure.IIoT.App.Runtime
     /// Configuration aggregation
     /// </summary>
     public class Config : ApiConfig, ISignalRServiceConfig,
-        IWebHostConfig, IForwardedHeadersConfig
+        IWebHostConfig
     {
         /// <summary>Url</summary>
         public string TsiDataAccessFQDN =>
@@ -52,13 +50,6 @@ namespace Microsoft.Azure.IIoT.App.Runtime
             PcsVariable.PCS_FRONTEND_APP_SERVICE_PATH_BASE,
                 () => _host.ServicePathBase);
 
-        /// <inheritdoc/>
-        public bool AspNetCoreForwardedHeadersEnabled =>
-            _fh.AspNetCoreForwardedHeadersEnabled;
-        /// <inheritdoc/>
-        public int AspNetCoreForwardedHeadersForwardLimit =>
-            _fh.AspNetCoreForwardedHeadersForwardLimit;
-
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -67,12 +58,10 @@ namespace Microsoft.Azure.IIoT.App.Runtime
             base(configuration)
         {
             _host = new WebHostConfig(configuration);
-            _fh = new ForwardedHeadersConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
         }
 
         private readonly SignalRServiceConfig _sr;
         private readonly WebHostConfig _host;
-        private readonly ForwardedHeadersConfig _fh;
     }
 }

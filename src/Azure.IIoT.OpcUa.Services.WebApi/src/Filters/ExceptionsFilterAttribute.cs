@@ -24,11 +24,16 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters
     /// for an easier parsing.
     /// @see https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/filters
     /// </summary>
-    public class ExceptionsFilterAttribute : ExceptionFilterAttribute
+    public sealed class ExceptionsFilterAttribute : ExceptionFilterAttribute
     {
         /// <inheritdoc />
         public override void OnException(ExceptionContext context)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (context.Exception == null)
             {
                 base.OnException(context);
@@ -37,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters
             if (context.Exception is AggregateException ae)
             {
                 var root = ae.GetBaseException();
-                if (root is AggregateException)
+                if (root is AggregateException && ae.InnerExceptions.Count > 0)
                 {
                     context.Exception = ae.InnerExceptions[0];
                 }

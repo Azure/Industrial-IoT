@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             factoryMock
                 .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
-            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessIdentity>().Object, _logger);
+            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessInfo>().Object, _logger);
         }
 
         /// <summary>

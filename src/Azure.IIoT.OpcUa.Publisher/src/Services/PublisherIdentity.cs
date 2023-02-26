@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// Publisher identity
     /// </summary>
-    public sealed class PublisherIdentity : IProcessIdentity
+    public sealed class PublisherIdentity : IProcessInfo
     {
         /// <inheritdoc/>
         public string ProcessId => _factory.DeviceId;
@@ -22,6 +22,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public string Id => _factory.ModuleId;
         /// <inheritdoc/>
         public string Name => "OPC Publisher";
+        /// <inheritdoc/>
+        public string Description => "Connect OPC UA servers to Azure.";
 
         /// <summary>
         /// Create identity

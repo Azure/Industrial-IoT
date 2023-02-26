@@ -321,8 +321,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     // Start publisher module
                     var host = Task.Run(() =>
-                    HostAsync(logger, configuration, new List<(DeviceTwinModel, DeviceModel)>() {
-                        (new DeviceTwinModel(), new DeviceModel() { Id = _typedConnectionString.DeviceId }) }), cts.Token);
+                    HostAsync(logger, configuration, new List<(DeviceTwinModel, DeviceModel)>()
+                    {
+                        (new DeviceTwinModel(), new DeviceModel()
+                        {
+                            Id = _typedConnectionString.DeviceId
+                        })
+                    }), cts.Token);
                     await Task.WhenAny(_exit.Task).ConfigureAwait(false);
                     cts.Cancel();
                     await host.ConfigureAwait(false);

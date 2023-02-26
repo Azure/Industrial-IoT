@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     /// <summary>
     /// Service information
     /// </summary>
-    public class ServiceInfo : IProcessIdentity
+    public class ServiceInfo : IProcessInfo
     {
         /// <summary>
         /// ID

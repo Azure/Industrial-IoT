@@ -79,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             factoryMock
                 .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
-            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessIdentity>().Object, _logger);
+            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessInfo>().Object, _logger);
             _diagnostic = new Mock<IPublisherDiagnosticCollector>();
             var mockDiag = new WriterGroupDiagnosticModel();
             _diagnostic.Setup(m => m.TryGetDiagnosticsForWriterGroup(It.IsAny<string>(), out mockDiag)).Returns(true);

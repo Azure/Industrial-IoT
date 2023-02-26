@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="identity"></param>
         /// <param name="logger"></param>
         public ProgressPublisher(IClientAccessor events, ITaskProcessor processor,
-            IJsonSerializer serializer, IProcessIdentity identity, ILogger logger)
+            IJsonSerializer serializer, IProcessInfo identity, ILogger logger)
             : base(logger)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         }
 
         private readonly IJsonSerializer _serializer;
-        private readonly IProcessIdentity _identity;
+        private readonly IProcessInfo _identity;
         private readonly IClientAccessor _events;
         private readonly ITaskProcessor _processor;
     }

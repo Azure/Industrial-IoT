@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="logger"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public PublisherHostService(IWriterGroupScopeFactory factory,
-            IProcessIdentity identity, ILogger logger)
+            IProcessInfo identity, ILogger logger)
         {
             PublisherId = identity.ToIdentityString();
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));

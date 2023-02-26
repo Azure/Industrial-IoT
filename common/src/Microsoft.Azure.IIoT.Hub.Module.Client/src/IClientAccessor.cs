@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
     /// <summary>
     /// Interface that grants access to an IClient.
     /// </summary>
-    public interface IClientAccessor : IDisposable
+    public interface IClientAccessor
     {
         /// <summary>
         /// The IClient that can be used to access the IoT Hub.
