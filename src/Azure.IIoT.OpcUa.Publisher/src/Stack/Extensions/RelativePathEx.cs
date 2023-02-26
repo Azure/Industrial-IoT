@@ -61,6 +61,8 @@ namespace Opc.Ua.Extensions
         /// <param name="element"></param>
         /// <param name="context"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="FormatException"></exception>
         private static RelativePathElement ParsePathElement(string element,
             IServiceMessageContext context)
         {

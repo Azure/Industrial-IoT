@@ -28,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils
         /// Copy content of source file to destination file.
         /// </summary>
         /// <param name="sourcePath"></param>
+        /// <param name="destinationPath"></param>
         /// <returns></returns>
         public static void CopyContent(string sourcePath, string destinationPath)
         {

@@ -45,6 +45,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The method metadata request</param>
         /// <returns>The method metadata response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/metadata")]
         public async Task<MethodMetadataResponseModel> GetCallMetadataAsync(
             string endpointId, [FromBody][Required] MethodMetadataRequestModel request)
@@ -67,6 +68,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The method call request</param>
         /// <returns>The method call response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}")]
         public async Task<MethodCallResponseModel> CallMethodAsync(
             string endpointId, [FromBody][Required] MethodCallRequestModel request)

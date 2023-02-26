@@ -136,6 +136,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// state, or display current client state of the endpoint if available</param>
         /// <param name="pageSize">Optional number of results to return</param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
         [HttpPost("query")]
         public async Task<EndpointInfoListModel> QueryEndpointsAsync(
             [FromBody][Required] EndpointRegistrationQueryModel query,
@@ -171,6 +172,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="pageSize">Optional number of results to
         /// return</param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
         [HttpGet("query")]
         public async Task<EndpointInfoListModel> GetFilteredListOfEndpointsAsync(
             [FromQuery][Required] EndpointRegistrationQueryModel query,

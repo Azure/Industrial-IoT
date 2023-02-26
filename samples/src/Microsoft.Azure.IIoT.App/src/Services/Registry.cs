@@ -32,6 +32,8 @@ namespace Microsoft.Azure.IIoT.App.Services
         /// GetEndpointListAsync
         /// </summary>
         /// <param name="discovererId"></param>
+        /// <param name="applicationId"></param>
+        /// <param name="supervisorId"></param>
         /// <param name="previousPage"></param>
         /// <returns>EndpointInfoModel</returns>
         public async Task<PagedResult<EndpointInfo>> GetEndpointListAsync(

@@ -114,14 +114,11 @@ namespace Reference
         public DataValue GetProcessedValue(bool returnPartial)
         {
             // do nothing if slice not complete and partial values not requested.
-            if (!_nextSlice.Complete)
+            if (!_nextSlice.Complete && CompareTimestamps(_endTime, _nextSlice.EndTime) > 0)
             {
-                if (CompareTimestamps(_endTime, _nextSlice.EndTime) > 0)
+                if (!returnPartial)
                 {
-                    if (!returnPartial)
-                    {
-                        return null;
-                    }
+                    return null;
                 }
             }
 
@@ -186,12 +183,9 @@ namespace Reference
                 var difference = CompareTimestamps(ii.Value.SourceTimestamp, timestamp);
 
                 // check for an exact match.
-                if (difference == 0)
+                if (difference == 0 && IsGood(ii.Value))
                 {
-                    if (IsGood(ii.Value))
-                    {
-                        return ii.Value;
-                    }
+                    return ii.Value;
                 }
 
                 // find the first good value before the timestamp.
@@ -316,12 +310,9 @@ namespace Reference
         {
             for (var ii = _values.Last; ii != null; ii = ii.Previous)
             {
-                if (IsGood(ii.Value))
+                if (IsGood(ii.Value) && CompareTimestamps(ii.Value.SourceTimestamp, timestamp) <= 0)
                 {
-                    if (CompareTimestamps(ii.Value.SourceTimestamp, timestamp) <= 0)
-                    {
-                        return ii;
-                    }
+                    return ii;
                 }
             }
 
@@ -345,12 +336,9 @@ namespace Reference
 
             for (var ii = start; ii != null; ii = ii.Next)
             {
-                if (IsGood(ii.Value))
+                if (IsGood(ii.Value) && CompareTimestamps(ii.Value.SourceTimestamp, timestamp) >= 0)
                 {
-                    if (CompareTimestamps(ii.Value.SourceTimestamp, timestamp) >= 0)
-                    {
-                        return ii;
-                    }
+                    return ii;
                 }
             }
 

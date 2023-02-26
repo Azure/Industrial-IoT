@@ -74,6 +74,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Subscription
         /// </summary>
+        /// <param name="session"></param>
+        /// <param name="config"></param>
+        /// <param name="logger"></param>
+        /// <param name="metrics"></param>
         private OpcUaSubscription(ISessionProvider<ConnectionModel> session,
             IClientServicesConfig config, ILogger logger, IMetricsContext metrics)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
@@ -174,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     SubscriptionName = Name,
                     SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                     SubscriptionId = Id,
-                    MessageType = Encoders.PubSub.MessageType.KeepAlive,
+                    MessageType = Encoders.PubSub.MessageType.KeepAlive
                 };
             }
             catch (Exception ex)
@@ -426,6 +430,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Reads the display name of the nodes to be monitored
         /// </summary>
+        /// <param name="session"></param>
         private void ResolveDisplayNames(ISession session)
         {
             if (!(_subscription.Configuration?.ResolveDisplayName ?? false))
@@ -503,6 +508,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Synchronize monitored items and triggering configuration in subscription
         /// </summary>
+        /// <param name="rawSubscription"></param>
+        /// <param name="monitoredItems"></param>
         private async Task<bool> SetMonitoredItemsAsync(Subscription rawSubscription,
             IEnumerable<BaseMonitoredItemModel> monitoredItems)
         {
@@ -528,7 +535,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         _logger.LogTrace("Removing monitored item '{Item}'...",
                             toRemove.StartNodeId);
-                        ((OpcUaMonitoredItem)toRemove.Handle).Destroy();
+                        ((OpcUaMonitoredItem)toRemove.Handle).Dispose();
                         count++;
                     }
                     rawSubscription.RemoveItems(toCleanupList);
@@ -566,7 +573,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 foreach (var toRemove in toRemoveList)
                 {
                     _logger.LogTrace("Removing monitored item '{Item}'...", toRemove.StartNodeId);
-                    ((OpcUaMonitoredItem)toRemove.Handle).Destroy();
+                    ((OpcUaMonitoredItem)toRemove.Handle).Dispose();
                     count++;
                 }
                 rawSubscription.RemoveItems(toRemoveList);
@@ -856,6 +863,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}", item.Item.StartNodeId, _subscription.
         /// Helper to calculate greatest common divisor for the parameter of keep alive
         /// count used to allow the trigger of heart beats in a given interval.
         /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
         private static uint GreatCommonDivisor(uint a, uint b)
         {
             return b == 0 ? a : GreatCommonDivisor(b, a % b);
@@ -864,6 +873,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}", item.Item.StartNodeId, _subscription.
         /// <summary>
         /// Resets the operation timeout on the session accrding to the publishing intervals on all subscriptions
         /// </summary>
+        /// <param name="session"></param>
+        /// <param name="newSubscription"></param>
         private void ReapplySessionOperationTimeout(ISession session, Subscription newSubscription)
         {
             if (session == null)
@@ -946,7 +957,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}", item.Item.StartNodeId, _subscription.
                     SequentialPublishing = true, // TODO: Make configurable
                     DisableMonitoredItemCache = false,
                     FastDataChangeCallback = OnSubscriptionDataChangeNotification,
-                    FastEventCallback = OnSubscriptionEventNotificationList,
+                    FastEventCallback = OnSubscriptionEventNotificationList
                 };
 
                 ReapplySessionOperationTimeout(session, subscription);
@@ -1163,7 +1174,7 @@ Actual (revised) state/desired state:
                                 MessageType = Encoders.PubSub.MessageType.Event,
                                 MetaData = _currentMetaData,
                                 Timestamp = eventNotification.Message.PublishTime,
-                                Notifications = new List<MonitoredItemNotificationModel>(),
+                                Notifications = new List<MonitoredItemNotificationModel>()
                             };
 
                             wrapper.ProcessEventNotification(message, eventNotification);
@@ -1244,7 +1255,7 @@ Actual (revised) state/desired state:
                         SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                         MessageType = Encoders.PubSub.MessageType.KeepAlive,
                         MetaData = _currentMetaData,
-                        Notifications = new List<MonitoredItemNotificationModel>(),
+                        Notifications = new List<MonitoredItemNotificationModel>()
                     };
                 }
                 else
@@ -1259,7 +1270,7 @@ Actual (revised) state/desired state:
                         MessageType = Encoders.PubSub.MessageType.DeltaFrame,
                         MetaData = _currentMetaData,
                         SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
-                        Notifications = new List<MonitoredItemNotificationModel>(),
+                        Notifications = new List<MonitoredItemNotificationModel>()
                     };
                     var missingSequenceNumbers = Array.Empty<uint>();
                     for (var i = 0; i < notification.MonitoredItems.Count; i++)

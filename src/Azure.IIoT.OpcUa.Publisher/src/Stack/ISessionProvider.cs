@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Session services
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface ISessionProvider<T>
     {
         /// <summary>
@@ -31,13 +32,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Execute the service on the provided session.
         /// </summary>
-        /// <typeparam name="R"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
         /// <param name="connection"></param>
         /// <param name="service"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<R> ExecuteServiceAsync<R>(T connection,
-            Func<ISessionHandle, Task<R>> service, CancellationToken ct);
+        Task<TResult> ExecuteServiceAsync<TResult>(T connection,
+            Func<ISessionHandle, Task<TResult>> service, CancellationToken ct);
 
         /// <summary>
         /// Get or create session handle

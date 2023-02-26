@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Models
 {
+    using System;
     using System.IdentityModel.Tokens.Jwt;
     using System.Linq;
 
@@ -45,7 +46,8 @@ namespace Microsoft.Azure.IIoT.Auth.Models
             {
                 return null;
             }
-            return ToTokenResult(new JwtSecurityToken(accessToken.Replace("Bearer ", "")));
+            return ToTokenResult(new JwtSecurityToken(
+                accessToken.Replace("Bearer ", "", StringComparison.Ordinal)));
         }
     }
 }

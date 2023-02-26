@@ -17,6 +17,11 @@ namespace Azure.IIoT.OpcUa.Models
         /// <summary>
         /// Create subscription info model from message trigger configuration.
         /// </summary>
+        /// <param name="dataSetWriter"></param>
+        /// <param name="configuration"></param>
+        /// <param name="writerGroupId"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public static SubscriptionModel ToSubscriptionModel(
             this DataSetWriterModel dataSetWriter, ISubscriptionConfig configuration,
             string writerGroupId = null)
@@ -51,6 +56,9 @@ namespace Azure.IIoT.OpcUa.Models
         /// <summary>
         /// Create subscription id.
         /// </summary>
+        /// <param name="dataSetWriter"></param>
+        /// <param name="writerGroupId"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public static SubscriptionIdentifier ToSubscriptionId(this DataSetWriterModel dataSetWriter,
             string writerGroupId = null)
         {

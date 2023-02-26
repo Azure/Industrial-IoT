@@ -60,6 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Adds a snapshot of all values to the notification
         /// </summary>
+        /// <param name="notification"></param>
         /// <returns></returns>
         bool TryUpgradeToKeyFrame(SubscriptionNotificationModel notification);
 
@@ -78,6 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Reapply current configuration
         /// </summary>
+        /// <param name="session"></param>
         /// <returns></returns>
         ValueTask ReapplyToSessionAsync(ISessionHandle session);
 

@@ -86,6 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.Controllers
         /// <summary>
         /// Rerturn controller and action attributes sorted
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="descriptor"></param>
         /// <param name="inherit"></param>
         /// <returns></returns>

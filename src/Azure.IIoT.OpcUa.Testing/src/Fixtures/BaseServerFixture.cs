@@ -64,6 +64,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
         /// <summary>
         /// Start port
         /// </summary>
+        /// <param name="value"></param>
         public static void SetStartPort(int value)
         {
             _nextPort = value;
@@ -72,6 +73,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
         /// <summary>
         /// Get server connection
         /// </summary>
+        /// <param name="path"></param>
         /// <returns></returns>
         public ConnectionModel GetConnection(string path = null)
         {
@@ -92,6 +94,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
         /// <summary>
         /// Create fixture
         /// </summary>
+        /// <param name="nodes"></param>
         protected BaseServerFixture(IEnumerable<INodeManagerFactory> nodes)
         {
             if (nodes == null)

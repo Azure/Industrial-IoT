@@ -52,6 +52,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
+        /// <exception cref="InvalidConfigurationException"></exception>
+        /// <exception cref="UnauthorizedAccessException"></exception>
         public static IDataProtectionBuilder AddAzureKeyVaultDataProtection(
             this IDataProtectionBuilder builder, IConfiguration configuration)
         {
@@ -77,6 +79,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
+        /// <exception cref="InvalidConfigurationException"></exception>
         public static IDataProtectionBuilder AddAzureBlobKeyStorage(
             this IDataProtectionBuilder builder, IConfiguration configuration)
         {

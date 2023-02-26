@@ -38,6 +38,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default
         /// <summary>
         /// Helper to create provider
         /// </summary>
+        /// <param name="config"></param>
+        /// <param name="logger"></param>
         /// <returns></returns>
         private static KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)> CreateProvider(
             IOAuthClientConfig config, ILogger logger)

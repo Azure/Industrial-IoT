@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.Events
     /// <summary>
     /// Gateway registry event publisher
     /// </summary>
+    /// <typeparam name="THub"></typeparam>
     public class GatewayEventPublisher<THub> : IGatewayRegistryListener
     {
         /// <inheritdoc/>

@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Auth
         /// <summary>
         /// The token provider supports this resource
         /// </summary>
+        /// <param name="resource"></param>
         bool Supports(string resource);
 
         /// <summary>

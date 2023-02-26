@@ -31,6 +31,16 @@ namespace Microsoft.Azure.IIoT.Http
         /// <param name="statusCode"></param>
         /// <param name="message"></param>
         /// <param name="inner"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="BadRequestException"></exception>
+        /// <exception cref="ResourceInvalidStateException"></exception>
+        /// <exception cref="UnauthorizedAccessException"></exception>
+        /// <exception cref="ResourceNotFoundException"></exception>
+        /// <exception cref="ConflictingResourceException"></exception>
+        /// <exception cref="TimeoutException"></exception>
+        /// <exception cref="ResourceOutOfDateException"></exception>
+        /// <exception cref="HttpTransientException"></exception>
+        /// <exception cref="HttpResponseException"></exception>
         public static void Validate(this HttpStatusCode statusCode,
             string message, Exception inner = null)
         {

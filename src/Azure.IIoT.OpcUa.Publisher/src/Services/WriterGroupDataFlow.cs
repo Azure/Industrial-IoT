@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// Dataflow engine
     /// </summary>
-    public class WriterGroupDataFlow : IWriterGroup
+    public sealed class WriterGroupDataFlow : IWriterGroup
     {
         /// <inheritdoc/>
         public IMessageSource Source { get; }
@@ -28,6 +28,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create engine
         /// </summary>
+        /// <param name="source"></param>
+        /// <param name="encoder"></param>
+        /// <param name="sink"></param>
+        /// <param name="config"></param>
+        /// <param name="logger"></param>
+        /// <param name="metrics"></param>
+        /// <param name="diagnostics"></param>
         public WriterGroupDataFlow(IMessageSource source, IMessageEncoder encoder,
             IMessageSink sink, IEngineConfiguration config, ILogger logger,
             IMetricsContext metrics, IWriterGroupDiagnostics diagnostics = null)
@@ -122,6 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Batch trigger interval
         /// </summary>
+        /// <param name="state"></param>
         private void BatchTriggerIntervalTimer_Elapsed(object state)
         {
             if (_batchTriggerInterval > TimeSpan.Zero)
@@ -134,6 +142,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Message received handler
         /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
         private void OnMessageReceived(object sender, SubscriptionNotificationModel args)
         {
             _logger.LogDebug("Message source received message with sequenceNumber {SequenceNumber}",

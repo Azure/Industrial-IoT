@@ -22,6 +22,7 @@ namespace Opc.Ua
         /// <param name="certificates"></param>
         /// <param name="noCopy"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="certificates"/> is <c>null</c>.</exception>
         public static void Add(this ICertificateStore store,
             IEnumerable<X509Certificate2> certificates,
             bool noCopy = false)
@@ -43,6 +44,7 @@ namespace Opc.Ua
         /// <param name="store"></param>
         /// <param name="certificates"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="certificates"/> is <c>null</c>.</exception>
         public static void Remove(this ICertificateStore store,
             IEnumerable<X509Certificate2> certificates)
         {

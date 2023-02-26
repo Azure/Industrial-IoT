@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Models
             {
                 Name = model.Name,
                 DataSetClassId = model.DataSetClassId,
-                Description = model.Description,
+                Description = model.Description
             };
         }
 

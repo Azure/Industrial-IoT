@@ -62,6 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <summary>
         /// Validates responses
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="results"></param>
         /// <param name="diagnostics"></param>
         public static void Validate<T>(IEnumerable<T> results,
@@ -73,13 +74,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <summary>
         /// Validates responses against requests
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="R"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TOperation"></typeparam>
         /// <param name="results"></param>
         /// <param name="diagnostics"></param>
         /// <param name="requested"></param>
-        public static void Validate<T, R>(IEnumerable<T> results,
-            DiagnosticInfoCollection diagnostics, IEnumerable<R>? requested)
+        /// <exception cref="ServiceResultException"></exception>
+        public static void Validate<TResult, TOperation>(IEnumerable<TResult> results,
+            DiagnosticInfoCollection diagnostics, IEnumerable<TOperation>? requested)
         {
             var resultsWithStatus = results?.ToList();
             if (resultsWithStatus == null || (resultsWithStatus.Count == 0 &&
@@ -104,6 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <summary>
         /// Read attribute
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="session"></param>
         /// <param name="header"></param>
         /// <param name="nodeIds"></param>
@@ -122,6 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <summary>
         /// Read attribute
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="session"></param>
         /// <param name="header"></param>
         /// <param name="nodeIds"></param>
@@ -404,7 +408,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                                     (uint)Opc.Ua.NodeClass.Variable |
                                     (uint)Opc.Ua.NodeClass.Object,
                                 NodeId = node.NodeId,
-                                ResultMask = (uint)BrowseResultMask.All,
+                                ResultMask = (uint)BrowseResultMask.All
                             });
                             break;
                     }
@@ -457,7 +461,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                                         NodeId = (NodeId)reference.NodeId,
                                         BrowseName = reference.BrowseName,
                                         DisplayName = reference.DisplayName,
-                                        ReferenceTypeId = reference.ReferenceTypeId,
+                                        ReferenceTypeId = reference.ReferenceTypeId
                                     };
                                     obj.AddChild(child);
                                     break;
@@ -519,7 +523,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     ReferenceTypeId = ReferenceTypeIds.HasSubtype,
                     IncludeSubtypes = false,
                     NodeClassMask = 0,
-                    ResultMask = (uint)BrowseResultMask.All,
+                    ResultMask = (uint)BrowseResultMask.All
                 }
             };
             while (true)
@@ -551,6 +555,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <summary>
         /// Collects the fields for the instance node.
         /// </summary>
+        /// <param name="session"></param>
+        /// <param name="requestHeader"></param>
+        /// <param name="typeId"></param>
+        /// <param name="parent"></param>
+        /// <param name="instances"></param>
+        /// <param name="map"></param>
+        /// <param name="ct"></param>
         internal static async Task<ServiceResultModel?> CollectInstanceDeclarationsAsync(
             this ISessionHandle session, RequestHeader requestHeader, NodeId typeId,
             InstanceDeclarationModel? parent, List<InstanceDeclarationModel> instances,
@@ -1146,6 +1157,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <summary>
         /// Helper struct return
         /// </summary>
+        /// <param name="Description"></param>
+        /// <param name="References"></param>
+        /// <param name="ErrorInfo"></param>
         internal record struct BrowseResult(BrowseDescription? Description,
             ReferenceDescriptionCollection? References, ServiceResultModel? ErrorInfo);
 

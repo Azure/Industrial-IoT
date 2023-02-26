@@ -17,13 +17,14 @@ namespace Microsoft.Azure.IIoT.App.Services
         /// <param name="provider"></param>
         public SecureData(IDataProtectionProvider provider)
         {
-            _provider = provider ?? throw new ArgumentNullException(nameof(provider)); ;
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider)); 
             _protector = _provider.CreateProtector(GetType().FullName);
         }
 
         /// <summary>
         /// Unprotect and Deserialize data
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="data"></param>
         /// <returns>T</returns>
         public T UnprotectDeserialize<T>(string data)
@@ -39,6 +40,7 @@ namespace Microsoft.Azure.IIoT.App.Services
         /// <summary>
         /// Protect and Serialize data
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="data"></param>
         /// <returns>string</returns>
         public string ProtectSerialize<T>(T data)

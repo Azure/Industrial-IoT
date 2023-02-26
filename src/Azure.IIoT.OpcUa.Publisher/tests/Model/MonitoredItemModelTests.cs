@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
             Id = "Id",
             IndexRange = "DataIndexRange",
             MonitoringMode = MonitoringMode.Sampling,
-            RelativePath = new string[] { "DataRelativePath" },
+            RelativePath = new string[] { "DataRelativePath" }
         };
         private readonly EventMonitoredItemModel _eventModel = new()
         {
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
                         IndexRange = "SelectClauseIndexRange",
                         TypeDefinitionId = "SelectClauseTypeDefinitionId",
                         DisplayName = "SelectClauseDisplayName",
-                        DataSetClassFieldId = Guid.NewGuid(),
+                        DataSetClassFieldId = Guid.NewGuid()
                     }
                 }
             }

@@ -167,6 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         /// <summary>
         /// Helper to create ping
         /// </summary>
+        /// <param name="count"></param>
         /// <returns></returns>
         private List<Ping> CreatePings(int count)
         {

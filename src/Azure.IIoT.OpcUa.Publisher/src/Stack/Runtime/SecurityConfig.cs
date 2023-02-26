@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             StorePath = GetStringOrDefault(TrustedIssuerCertificatesPathKey,
                 () => _issuersFolderName.Value),
             StoreType = GetStringOrDefault(TrustedIssuerCertificatesTypeKey,
-                () => CertificateStoreType.Directory),
+                () => CertificateStoreType.Directory)
         };
 
         /// <inheritdoc/>
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             StorePath = GetStringOrDefault(TrustedPeerCertificatesPathKey,
                 () => $"{PkiRootPath}/trusted"),
             StoreType = GetStringOrDefault(TrustedPeerCertificatesTypeKey,
-                () => CertificateStoreType.Directory),
+                () => CertificateStoreType.Directory)
         };
 
         /// <inheritdoc/>
@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             StorePath = GetStringOrDefault(RejectedCertificateStorePathKey,
                 () => $"{PkiRootPath}/rejected"),
             StoreType = GetStringOrDefault(RejectedCertificateStoreTypeKey,
-                () => CertificateStoreType.Directory),
+                () => CertificateStoreType.Directory)
         };
 
         /// <inheritdoc/>

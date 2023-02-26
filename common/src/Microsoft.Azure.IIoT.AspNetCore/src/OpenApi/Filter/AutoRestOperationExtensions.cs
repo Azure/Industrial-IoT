@@ -34,10 +34,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi
                     operation.OperationId = name[0..^5];
                 }
             }
-            if (operation.OperationId.Contains("CreateOrUpdate") &&
+            if (operation.OperationId.Contains("CreateOrUpdate", StringComparison.InvariantCultureIgnoreCase) &&
                 context.ApiDescription.HttpMethod.EqualsIgnoreCase("PATCH"))
             {
-                operation.OperationId = operation.OperationId.Replace("CreateOrUpdate", "Update");
+                operation.OperationId = operation.OperationId.Replace("CreateOrUpdate", "Update",
+                    StringComparison.InvariantCultureIgnoreCase);
             }
 
             var attribute = context.MethodInfo

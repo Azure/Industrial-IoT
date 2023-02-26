@@ -41,6 +41,7 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Initilizes the manager.
         /// </summary>
+        /// <param name="server"></param>
         public AggregateManager(IServerInternal server)
         {
             _server = server;
@@ -68,6 +69,7 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

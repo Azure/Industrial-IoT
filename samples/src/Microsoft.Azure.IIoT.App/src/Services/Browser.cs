@@ -300,7 +300,9 @@ namespace Microsoft.Azure.IIoT.App.Services
         /// <summary>
         /// MethodCallAsync
         /// </summary>
+        /// <param name="parameters"></param>
         /// <param name="parameterValues"></param>
+        /// <param name="endpointId"></param>
         /// <param name="nodeId"></param>
         /// <returns>Status</returns>
         public async Task<string> MethodCallAsync(MethodMetadataResponseModel parameters, string[] parameterValues,

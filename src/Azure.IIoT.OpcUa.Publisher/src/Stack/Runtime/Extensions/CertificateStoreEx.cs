@@ -17,6 +17,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Apply the configured settings provided via a CertificateStore to a CertificateTrustList.
         /// </summary>
+        /// <param name="certificateTrustList"></param>
+        /// <param name="certificateStore"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="certificateTrustList"/> is <c>null</c>.</exception>
         public static void ApplyLocalConfig(
             this CertificateTrustList certificateTrustList,
             CertificateStore certificateStore)
@@ -41,6 +44,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Applies the configuration settings to the own app certificate.
         /// </summary>
+        /// <param name="certificateIdentifier"></param>
+        /// <param name="certificateStore"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="certificateIdentifier"/> is <c>null</c>.</exception>
         public static void ApplyLocalConfig(
             this CertificateIdentifier certificateIdentifier,
             CertificateInfo certificateStore)
@@ -66,6 +72,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Apply the configured settings provided via a CertificateStore to a CertificateStoreIdentifier
         /// Particularily used for rejected certificates store.
         /// </summary>
+        /// <param name="certificateStoreIdentifier"></param>
+        /// <param name="certificateStore"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="certificateStore"/> is <c>null</c>.</exception>
         public static void ApplyLocalConfig(
             this CertificateStoreIdentifier certificateStoreIdentifier,
             CertificateStore certificateStore)

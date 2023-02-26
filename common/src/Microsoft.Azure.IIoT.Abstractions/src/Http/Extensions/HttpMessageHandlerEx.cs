@@ -13,6 +13,7 @@ namespace System.Net.Http
         /// <summary>
         /// Get root handler
         /// </summary>
+        /// <param name="handler"></param>
         public static HttpClientHandler GetRoot(this HttpMessageHandler handler)
         {
             while (true)

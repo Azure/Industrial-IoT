@@ -19,6 +19,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         /// <summary>
         /// Create metadata tests
         /// </summary>
+        /// <param name="services"></param>
+        /// <param name="connection"></param>
         public NodeMetadataTests(Func<INodeServices<T>> services, T connection)
         {
             _services = services;
@@ -38,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             Assert.Single(results.SupportedLocales);
             Assert.Equal("en-US", results.SupportedLocales[0]);
             Assert.NotEmpty(results.ServerProfiles);
-            Assert.Equal(3, results.ServerProfiles.Length);
+            Assert.Equal(3, results.ServerProfiles.Count);
             Assert.NotNull(results.OperationLimits);
             Assert.Equal(0, results.OperationLimits.MinSupportedSampleRate);
             Assert.Equal(1000, results.OperationLimits.MaxBrowseContinuationPoints.Value);
@@ -101,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                             Level = DiagnosticsLevel.Verbose
                         }
                     },
-                    NodeId = Opc.Ua.ObjectTypeIds.FolderType.ToString(),
+                    NodeId = Opc.Ua.ObjectTypeIds.FolderType.ToString()
                 }).ConfigureAwait(false);
 
             // Assert
@@ -120,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             var result = await browser.GetMetadataAsync(_connection,
                 new NodeMetadataRequestModel
                 {
-                    NodeId = Opc.Ua.ObjectIds.Server.ToString(),
+                    NodeId = Opc.Ua.ObjectIds.Server.ToString()
                 }).ConfigureAwait(false);
 
             // Assert
@@ -239,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             var result = await browser.GetMetadataAsync(_connection,
                 new NodeMetadataRequestModel
                 {
-                    NodeId = Opc.Ua.VariableIds.Server_ServerStatus.ToString(),
+                    NodeId = Opc.Ua.VariableIds.Server_ServerStatus.ToString()
                 }).ConfigureAwait(false);
 
             // Assert
@@ -278,7 +280,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             var result = await browser.GetMetadataAsync(_connection,
                 new NodeMetadataRequestModel
                 {
-                    NodeId = Opc.Ua.VariableIds.Server_ServerRedundancy_RedundancySupport.ToString(),
+                    NodeId = Opc.Ua.VariableIds.Server_ServerRedundancy_RedundancySupport.ToString()
                 }).ConfigureAwait(false);
 
             // Assert

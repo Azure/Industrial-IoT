@@ -17,6 +17,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
         /// <summary>
         /// Start metric server
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="config"></param>
+        /// <param name="logger"></param>
         /// <returns></returns>
         public static void StartWhenEnabled(this IMetricServer server, IModuleConfig config, ILogger logger)
         {
@@ -41,12 +44,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
         /// <summary>
         /// Stop metric server if enabled
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="config"></param>
+        /// <param name="logger"></param>
         /// <returns></returns>
         public static void StopWhenEnabled(this IMetricServer server, IModuleConfig config, ILogger logger)
         {
             if (config.EnableMetrics)
             {
-                server.Stop(); ;
+                server.Stop();
                 logger.LogInformation("Stopped prometheus metric server");
             }
         }

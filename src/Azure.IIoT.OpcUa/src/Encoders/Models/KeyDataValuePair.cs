@@ -22,6 +22,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <summary>
         /// The default constructor.
         /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         public KeyDataValuePair(string key, DataValue value)
         {
             Key = key;
@@ -49,6 +51,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId { get; }
 
+        /// <param name="encoder"></param>
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
         public virtual void Encode(IEncoder encoder)
         {
@@ -56,6 +59,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             encoder.WriteDataValue(Key, Value);
         }
 
+        /// <param name="decoder"></param>
         /// <summary cref="IEncodeable.Decode(IDecoder)" />
         public virtual void Decode(IDecoder decoder)
         {
@@ -63,6 +67,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             Value = decoder.ReadDataValue(Key);
         }
 
+        /// <param name="encodeable"></param>
         /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
         public virtual bool IsEqual(IEncodeable encodeable)
         {
@@ -102,15 +107,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <summary>
         /// Initializes the collection with an initial capacity.
         /// </summary>
+        /// <param name="capacity"></param>
         public KeyDataValuePairCollection(int capacity) : base(capacity) { }
 
         /// <summary>
         /// Initializes the collection with another collection.
         /// </summary>
+        /// <param name="collection"></param>
         public KeyDataValuePairCollection(IEnumerable<KeyDataValuePair> collection) : base(collection) { }
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>
+        /// <param name="values"></param>
         public static implicit operator KeyDataValuePairCollection(KeyDataValuePair[] values)
         {
             if (values != null)
@@ -123,6 +131,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <summary>
         /// Converts a collection to an array.
         /// </summary>
+        /// <param name="values"></param>
         public static explicit operator KeyDataValuePair[](KeyDataValuePairCollection values)
         {
             if (values != null)

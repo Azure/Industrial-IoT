@@ -25,13 +25,13 @@ namespace Azure.IIoT.OpcUa.Models
         /// Supported locales
         /// </summary>
         [DataMember(Name = "supportedLocales", Order = 1)]
-        public string[]? SupportedLocales { get; set; }
+        public IReadOnlyList<string>? SupportedLocales { get; set; }
 
         /// <summary>
         /// Server profiles
         /// </summary>
         [DataMember(Name = "serverProfileArray", Order = 2)]
-        public string[]? ServerProfiles { get; set; }
+        public IReadOnlyList<string>? ServerProfiles { get; set; }
 
         /// <summary>
         /// Supported modelling rules

@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         /// </summary>
         /// <param name="services"></param>
         /// <param name="connection"></param>
+        /// <param name="newMetadata"></param>
         public CallArrayMethodTests(Func<INodeServices<T>> services, T connection, bool newMetadata = false)
         {
             _services = services;
@@ -1434,7 +1435,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                                 .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                         }
                     })
-                },
+                }
             };
 
             // Act

@@ -433,7 +433,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
                         Payload = new DataSet(fieldMask) {
     ["Temperature"] = new DataValue(25, StatusCodes.Good, DateTime.Parse("2021-09-27T18:45:19.555Z"), DateTime.Parse("2021-09-27T18:45:19.555Z")),
     ["Pressure"] = new DataValue(1013, StatusCodes.Good, DateTime.Parse("2021-09-27T18:45:19.555Z"), DateTime.Parse("2021-09-27T18:45:19.555Z")),
-    ["Humidiy"] = new DataValue(42, StatusCodes.Uncertain, DateTime.Parse("2021-09-27T18:45:19.555Z"), DateTime.Parse("2021-09-27T18:45:19.555Z")),
+    ["Humidiy"] = new DataValue(42, StatusCodes.Uncertain, DateTime.Parse("2021-09-27T18:45:19.555Z"), DateTime.Parse("2021-09-27T18:45:19.555Z"))
                         }
                     }
                 }

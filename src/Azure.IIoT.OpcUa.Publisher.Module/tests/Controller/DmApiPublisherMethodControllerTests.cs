@@ -268,7 +268,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
 
             var endpointRequest = new PublishedNodesEntryModel
             {
-                EndpointUrl = endpointUrl,
+                EndpointUrl = endpointUrl
             };
 
             var methodsController = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
@@ -310,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 DataSetName = dataSetName,
                 OpcAuthenticationMode = authenticationMode,
                 OpcAuthenticationUsername = username,
-                OpcAuthenticationPassword = password,
+                OpcAuthenticationPassword = password
             };
 
             var methodsController = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf0").ConfigureAwait(false);
@@ -339,7 +339,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             var opcNodes = Enumerable.Range(0, 5)
                 .Select(i => new OpcNodeModel
                 {
-                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}"
                 })
                 .ToList();
 
@@ -350,7 +350,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     DataSetWriterId = i != 0
                         ? $"DataSetWriterId{i}"
                         : null,
-                    OpcNodes = opcNodes.GetRange(0, i + 1).ToList(),
+                    OpcNodes = opcNodes.GetRange(0, i + 1).ToList()
                 })
                 .ToList();
 
@@ -389,7 +389,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             var endpointRequest = new PublishedNodesEntryModel
             {
                 EndpointUrl = endpointUrl,
-                UseSecurity = useSecurity,
+                UseSecurity = useSecurity
             };
 
             var methodsController = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
@@ -427,7 +427,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 DataSetWriterId = dataSetWriterId,
                 DataSetName = dataSetName,
                 DataSetPublishingInterval = dataSetPublishingInterval,
-                OpcAuthenticationMode = authenticationMode,
+                OpcAuthenticationMode = authenticationMode
             };
 
             var methodsController = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf1").ConfigureAwait(false);
@@ -461,7 +461,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 EndpointUrl = endpointUrl,
                 OpcAuthenticationMode = authenticationMode,
                 OpcAuthenticationUsername = username,
-                OpcAuthenticationPassword = password,
+                OpcAuthenticationPassword = password
             };
 
             var methodsController = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
@@ -487,6 +487,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         /// <summary>
         /// publish nodes from publishedNodesFile
         /// </summary>
+        /// <param name="publishedNodesFile"></param>
+        /// <param name="predicate"></param>
         private async Task<PublisherMethodsController> PublishNodeAsync(string publishedNodesFile,
             Func<PublishedNodesEntryModel, bool> predicate = null)
         {
@@ -586,6 +588,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         /// Copy content of source file to destination file.
         /// </summary>
         /// <param name="sourcePath"></param>
+        /// <param name="destinationPath"></param>
         /// <returns></returns>
         private static void CopyContent(string sourcePath, string destinationPath)
         {

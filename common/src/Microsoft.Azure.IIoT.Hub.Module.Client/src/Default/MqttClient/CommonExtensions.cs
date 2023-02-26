@@ -56,6 +56,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         /// <summary>
         /// Get the required value of a property.
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="properties">The properties dictionary.</param>
         /// <param name="propertyName">The property to get.</param>
         /// <returns>A converted value for the property.</returns>
@@ -68,6 +69,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         /// <summary>
         /// Get the optional value of a property.
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="properties">The properties dictionary.</param>
         /// <param name="propertyName">The property to get.</param>
         /// <param name="defaultValue">The default value for the property.</param>

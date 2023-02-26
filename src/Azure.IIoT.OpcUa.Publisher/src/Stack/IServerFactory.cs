@@ -16,6 +16,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Create server and server configuration for hosting.
         /// </summary>
+        /// <param name="ports"></param>
+        /// <param name="pkiRootPath"></param>
+        /// <param name="server"></param>
         /// <returns></returns>
         ApplicationConfiguration CreateServer(IEnumerable<int> ports,
             string pkiRootPath, out ServerBase server);

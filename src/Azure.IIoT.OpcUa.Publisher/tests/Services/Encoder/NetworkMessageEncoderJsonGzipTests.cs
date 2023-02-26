@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             metricsMock.SetupGet(m => m.TagList).Returns(new TagList());
             return new NetworkMessageEncoder(new WriterGroupJobConfig
             {
-                UseStandardsCompliantEncoding = true,
+                UseStandardsCompliantEncoding = true
             }, metricsMock.Object, loggerMock.Object);
         }
 

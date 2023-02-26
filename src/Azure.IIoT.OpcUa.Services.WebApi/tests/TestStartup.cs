@@ -27,6 +27,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using System;
     using Furly.Extensions.Hosting;
+    using Microsoft.Azure.IIoT.Messaging;
 
     /// <summary>
     /// Startup class for tests
@@ -37,6 +38,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
+        /// <param name="configuration"></param>
         public TestStartup(IWebHostEnvironment env, IConfiguration configuration) :
             base(env, new Config(configuration))
         {
@@ -45,6 +47,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
         /// <inheritdoc/>
         public override void ConfigureContainer(ContainerBuilder builder)
         {
+            // TODO
+            builder.RegisterType<DisableEventProcessorHost>()
+                .AsImplementedInterfaces();
+
             base.ConfigureContainer(builder);
 
             // Register events api so we can resolve it for testing
@@ -62,6 +68,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
 
             // Override real IoT hub and edge services with the mocks.
             builder.RegisterModule<IoTHubMockService>();
+
             builder.RegisterType<TestIdentity>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<OpcUaClientManager>()
@@ -77,6 +84,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
 
             builder.RegisterType<TestAuthConfig>()
                 .AsImplementedInterfaces();
+        }
+
+        public class DisableEventProcessorHost : IEventProcessingHost
+        {
+            public ValueTask StartAsync()
+            {
+                return ValueTask.CompletedTask;
+            }
         }
 
         public class TestAuthConfig : IServerAuthConfig, ITokenProvider

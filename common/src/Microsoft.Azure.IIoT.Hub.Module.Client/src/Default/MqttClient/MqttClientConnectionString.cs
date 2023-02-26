@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         /// <summary>
         /// Initializes a new instance of the <see cref="MqttClientConnectionString"/> class.
         /// </summary>
+        /// <param name="builder"></param>
         public MqttClientConnectionString(MqttClientConnectionStringBuilder builder)
         {
             if (builder == null)

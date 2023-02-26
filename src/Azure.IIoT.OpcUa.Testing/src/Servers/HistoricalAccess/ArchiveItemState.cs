@@ -43,6 +43,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new instance of a item.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="item"></param>
+        /// <param name="namespaceIndex"></param>
         public ArchiveItemState(ISystemContext context, ArchiveItem item, ushort namespaceIndex)
         :
             base(null)
@@ -107,6 +110,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads the configuration.
         /// </summary>
+        /// <param name="context"></param>
         public void LoadConfiguration(ISystemContext context)
         {
             var reader = new DataFileReader();
@@ -132,6 +136,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads the data.
         /// </summary>
+        /// <param name="context"></param>
         public void ReloadFromSource(ISystemContext context)
         {
             LoadConfiguration(context);
@@ -171,6 +176,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new sample.
         /// </summary>
+        /// <param name="context"></param>
         public List<DataValue> NewSamples(ISystemContext context)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
@@ -207,6 +213,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Updates the history.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="value"></param>
+        /// <param name="performUpdateType"></param>
         public uint UpdateHistory(SystemContext context, DataValue value, PerformUpdateType performUpdateType)
         {
             var replaced = false;
@@ -328,6 +337,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Updates the history.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="annotation"></param>
+        /// <param name="value"></param>
+        /// <param name="performUpdateType"></param>
         public uint UpdateAnnotations(SystemContext context, Annotation annotation, DataValue value, PerformUpdateType performUpdateType)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
@@ -349,12 +362,9 @@ namespace HistoricalAccess
 
                 replaced = current.UserName == annotation.UserName;
 
-                if (performUpdateType == PerformUpdateType.Insert)
+                if (performUpdateType == PerformUpdateType.Insert && replaced)
                 {
-                    if (replaced)
-                    {
-                        return StatusCodes.BadEntryExists;
-                    }
+                    return StatusCodes.BadEntryExists;
                 }
 
                 if (replaced)
@@ -406,6 +416,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Selects the table to use.
         /// </summary>
+        /// <param name="propertyName"></param>
         private DataTable SelectTable(QualifiedName propertyName)
         {
             if (propertyName == null || propertyName.Name == null)
@@ -427,6 +438,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Deletes a value from the history.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="sourceTimestamp"></param>
         public uint DeleteHistory(SystemContext context, DateTime sourceTimestamp)
         {
             var deleted = false;
@@ -463,6 +476,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Deletes a property value from the history.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="propertyName"></param>
+        /// <param name="sourceTimestamp"></param>
         public uint DeleteAnnotationHistory(SystemContext context, QualifiedName propertyName, DateTime sourceTimestamp)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
@@ -492,6 +508,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Deletes a value from the history.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
+        /// <param name="isModified"></param>
         public uint DeleteHistory(SystemContext context, DateTime startTime, DateTime endTime, bool isModified)
         {
             // ensure time goes up.
@@ -560,6 +580,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a modification info record.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="updateType"></param>
         private static ModificationInfo GetModificationInfo(SystemContext context, HistoryUpdateType updateType)
         {
             var info = new ModificationInfo
@@ -579,6 +601,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Reads the history for the specified time range.
         /// </summary>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
+        /// <param name="isModified"></param>
         public DataView ReadHistory(DateTime startTime, DateTime endTime, bool isModified)
         {
             return ReadHistory(startTime, endTime, isModified, null);
@@ -588,6 +613,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Reads the history for the specified time range.
         /// </summary>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
+        /// <param name="isModified"></param>
+        /// <param name="browseName"></param>
         public DataView ReadHistory(DateTime startTime, DateTime endTime, bool isModified, QualifiedName browseName)
 #pragma warning restore IDE0060 // Parameter is never used
         {
@@ -607,6 +636,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Finds the value at or before the timestamp.
         /// </summary>
+        /// <param name="view"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="ignoreBad"></param>
+        /// <param name="dataIgnored"></param>
         public static int FindValueAtOrBefore(DataView view, DateTime timestamp, bool ignoreBad, out bool dataIgnored)
         {
             dataIgnored = false;
@@ -691,6 +724,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Returns the next value after the current position.
         /// </summary>
+        /// <param name="view"></param>
+        /// <param name="position"></param>
+        /// <param name="ignoreBad"></param>
+        /// <param name="dataIgnored"></param>
         public static int FindValueAfter(DataView view, int position, bool ignoreBad, out bool dataIgnored)
         {
             dataIgnored = false;
@@ -746,6 +783,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Constructs a node identifier for a item object.
         /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="namespaceIndex"></param>
         public static NodeId ConstructId(string filePath, ushort namespaceIndex)
         {
             var parsedNodeId = new ParsedNodeId

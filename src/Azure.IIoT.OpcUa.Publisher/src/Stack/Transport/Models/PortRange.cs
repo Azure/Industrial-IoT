@@ -46,6 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
         /// <summary>
         /// Yield endpoints
         /// </summary>
+        /// <param name="address"></param>
         /// <returns></returns>
         public IEnumerable<IPEndPoint> GetEndpoints(IPAddress address)
         {

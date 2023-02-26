@@ -36,6 +36,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create publisher configuration services
         /// </summary>
+        /// <param name="publishedNodesJobConverter"></param>
+        /// <param name="configuration"></param>
+        /// <param name="publisherHost"></param>
+        /// <param name="logger"></param>
+        /// <param name="publishedNodesProvider"></param>
+        /// <param name="jsonSerializer"></param>
+        /// <param name="diagnostics"></param>
         public PublisherConfigurationService(PublishedNodesJobConverter publishedNodesJobConverter,
             IPublisherConfiguration configuration, IPublisherHost publisherHost,
             ILogger logger, IPublishedNodesProvider publishedNodesProvider,
@@ -256,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             DisplayName = n.DisplayName,
                             HeartbeatInterval = n.HeartbeatIntervalTimespan,
                             PublishingInterval = n.OpcPublishingIntervalTimespan,
-                            SamplingInterval = n.OpcSamplingIntervalTimespan,
+                            SamplingInterval = n.OpcSamplingIntervalTimespan
                         })
                         .ToList()
                 };
@@ -852,6 +859,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Handle file changes
         /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnChanged(object sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} changed. Triggering file refresh ...",
@@ -862,6 +871,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Handle creation of file
         /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnCreated(object sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} created. Triggering file refresh ...",
@@ -872,6 +883,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Handle removal of file
         /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnRenamed(object sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} renamed. Triggering file refresh ...",
@@ -882,6 +895,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Handle deletion of the file
         /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnDeleted(object sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} deleted. Clearing configuration ...",
@@ -1022,6 +1037,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Transforms legacy entries that use NodeId into ones using OpcNodes.
         /// The transformation will happen in-place.
         /// </summary>
+        /// <param name="entries"></param>
+        /// <exception cref="SerializerException"></exception>
         private static void TransformFromLegacyNodeId(List<PublishedNodesEntryModel> entries)
         {
             if (entries == null)
@@ -1044,7 +1061,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     entry.OpcNodes.Add(new OpcNodeModel
                     {
-                        Id = entry.NodeId.Identifier,
+                        Id = entry.NodeId.Identifier
                     });
                     entry.NodeId = null;
                 }

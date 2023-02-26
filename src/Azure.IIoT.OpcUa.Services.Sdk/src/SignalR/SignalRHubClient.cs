@@ -144,6 +144,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             /// <param name="provider"></param>
             /// <param name="jsonSettings"></param>
             /// <returns></returns>
+            /// <exception cref="ArgumentException"></exception>
             internal static async Task<SignalRClientRegistrar> CreateAsync(
                 ISignalRClientConfig config, string endpointUrl, ILogger logger,
                 string resourceId, ITokenProvider provider,
@@ -178,6 +179,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             /// Dispose
             /// </summary>
             /// <returns></returns>
+            /// <exception cref="ObjectDisposedException"></exception>
             public async ValueTask DisposeAsync()
             {
                 if (_disposed)

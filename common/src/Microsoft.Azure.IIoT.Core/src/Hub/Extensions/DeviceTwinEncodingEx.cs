@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Hub
     using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
 
     /// <summary>
@@ -22,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Hub
         /// <summary>
         /// Convert list to dictionary
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
         /// <returns></returns>
         public static IReadOnlyDictionary<string, T> EncodeAsDictionary<T>(
@@ -33,20 +35,22 @@ namespace Microsoft.Azure.IIoT.Hub
         /// <summary>
         /// Convert list to dictionary
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="list"></param>
         /// <param name="converter"></param>
         /// <returns></returns>
-        public static IReadOnlyDictionary<string, V> EncodeAsDictionary<T, V>(
-            this IReadOnlyList<T> list, Func<T, V> converter)
+        public static IReadOnlyDictionary<string, TValue> EncodeAsDictionary<TKey, TValue>(
+            this IReadOnlyList<TKey> list, Func<TKey, TValue> converter)
         {
             if (list == null)
             {
                 return null;
             }
-            var result = new Dictionary<string, V>();
+            var result = new Dictionary<string, TValue>();
             for (var i = 0; i < list.Count; i++)
             {
-                result.Add(i.ToString(), converter(list[i]));
+                result.Add(i.ToString(CultureInfo.InvariantCulture), converter(list[i]));
             }
             return result;
         }
@@ -54,6 +58,7 @@ namespace Microsoft.Azure.IIoT.Hub
         /// <summary>
         /// Convert dictionary to list
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="dictionary"></param>
         /// <returns></returns>
         public static IReadOnlyList<T> DecodeAsList<T>(this IReadOnlyDictionary<string, T> dictionary)
@@ -64,20 +69,23 @@ namespace Microsoft.Azure.IIoT.Hub
         /// <summary>
         /// Convert dictionary to list
         /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="dictionary"></param>
         /// <param name="converter"></param>
         /// <returns></returns>
-        public static IReadOnlyList<T> DecodeAsList<T, V>(this IReadOnlyDictionary<string, V> dictionary,
-            Func<V, T> converter)
+        public static IReadOnlyList<TKey> DecodeAsList<TKey, TValue>(
+            this IReadOnlyDictionary<string, TValue> dictionary,
+            Func<TValue, TKey> converter)
         {
             if (dictionary == null)
             {
                 return null;
             }
-            var result = Enumerable.Repeat(default(T), dictionary.Count).ToList();
+            var result = Enumerable.Repeat(default(TKey), dictionary.Count).ToList();
             foreach (var kv in dictionary)
             {
-                result[int.Parse(kv.Key)] = converter(kv.Value);
+                result[int.Parse(kv.Key, CultureInfo.InvariantCulture)] = converter(kv.Value);
             }
             return result;
         }

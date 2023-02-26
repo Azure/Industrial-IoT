@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public static string CreateApplicationId(ApplicationInfoModel model)
         {
             if (model == null)
@@ -207,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Models
                 Updated = null,
                 ApplicationId = null,
                 DiscovererId = null,
-                HostAddresses = null,
+                HostAddresses = null
             };
         }
 

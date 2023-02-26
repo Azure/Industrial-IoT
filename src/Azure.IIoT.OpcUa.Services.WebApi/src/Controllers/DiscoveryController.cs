@@ -61,6 +61,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// </remarks>
         /// <param name="discovererId">discoverer identifier</param>
         /// <param name="request">Patch request</param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPatch("{discovererId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateDiscovererAsync(string discovererId,
@@ -122,6 +123,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="query">Discoverers query model</param>
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Discoverers</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
         [HttpPost("query")]
         public async Task<DiscovererListModel> QueryDiscoverersAsync(
             [FromBody][Required] DiscovererQueryModel query,
@@ -153,6 +155,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="query">Discoverers Query model</param>
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Discoverers</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
         [HttpGet("query")]
         public async Task<DiscovererListModel> GetFilteredListOfDiscoverersAsync(
             [FromQuery][Required] DiscovererQueryModel query,

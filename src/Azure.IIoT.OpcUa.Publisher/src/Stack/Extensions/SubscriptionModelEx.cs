@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                     .Select(n => n.Clone())
                     .ToList(),
                 ExtensionFields = model.ExtensionFields?
-                    .ToDictionary(k => k.Key, v => v.Value),
+                    .ToDictionary(k => k.Key, v => v.Value)
             };
         }
 

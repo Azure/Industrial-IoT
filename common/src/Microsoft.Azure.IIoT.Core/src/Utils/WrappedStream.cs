@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Utils
     /// <summary>
     /// Adapter for streams
     /// </summary>
-    public class StreamAdapter : Stream, IDisposable
+    public class WrappedStream : Stream
     {
         /// <inheritdoc/>
         public override bool CanRead => _inner.CanRead;
@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Utils
         /// Create adapter
         /// </summary>
         /// <param name="inner"></param>
-        public StreamAdapter(Stream inner)
+        public WrappedStream(Stream inner)
         {
             _inner = inner ??
                 throw new ArgumentNullException(nameof(inner));
@@ -144,6 +144,32 @@ namespace Microsoft.Azure.IIoT.Utils
         }
 
         /// <inheritdoc/>
+        public override int Read(Span<byte> buffer)
+        {
+            return _inner.Read(buffer);
+        }
+
+        /// <inheritdoc/>
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            return _inner.ReadAsync(buffer, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            _inner.Write(buffer);
+        }
+
+        /// <inheritdoc/>
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            return _inner.WriteAsync(buffer, cancellationToken);
+        }
+
+        /// <inheritdoc/>
         public override Task CopyToAsync(Stream destination, int bufferSize,
             CancellationToken cancellationToken)
         {
@@ -181,9 +207,20 @@ namespace Microsoft.Azure.IIoT.Utils
         }
 
         /// <inheritdoc/>
-        public new virtual void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            _inner.Dispose();
+            if (disposing)
+            {
+                _inner.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        /// <inheritdoc/>
+        public override async ValueTask DisposeAsync()
+        {
+            await _inner.DisposeAsync().ConfigureAwait(false);
+            await base.DisposeAsync().ConfigureAwait(false);
         }
 
         /// <summary>

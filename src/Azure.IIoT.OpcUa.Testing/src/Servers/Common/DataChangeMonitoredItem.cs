@@ -42,6 +42,17 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Constructs a new instance.
         /// </summary>
+        /// <param name="source"></param>
+        /// <param name="id"></param>
+        /// <param name="attributeId"></param>
+        /// <param name="indexRange"></param>
+        /// <param name="dataEncoding"></param>
+        /// <param name="diagnosticsMasks"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="monitoringMode"></param>
+        /// <param name="clientHandle"></param>
+        /// <param name="samplingInterval"></param>
+        /// <param name="alwaysReportUpdates"></param>
         public DataChangeMonitoredItem(
             MonitoredNode source,
             uint id,
@@ -75,6 +86,21 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Constructs a new instance.
         /// </summary>
+        /// <param name="source"></param>
+        /// <param name="id"></param>
+        /// <param name="attributeId"></param>
+        /// <param name="indexRange"></param>
+        /// <param name="dataEncoding"></param>
+        /// <param name="diagnosticsMasks"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="monitoringMode"></param>
+        /// <param name="clientHandle"></param>
+        /// <param name="samplingInterval"></param>
+        /// <param name="queueSize"></param>
+        /// <param name="discardOldest"></param>
+        /// <param name="filter"></param>
+        /// <param name="range"></param>
+        /// <param name="alwaysReportUpdates"></param>
         public DataChangeMonitoredItem(
             MonitoredNode source,
             uint id,
@@ -194,6 +220,10 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Modifies the monitored item parameters,
         /// </summary>
+        /// <param name="diagnosticsMasks"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="clientHandle"></param>
+        /// <param name="samplingInterval"></param>
         public ServiceResult Modify(
             DiagnosticsMasks diagnosticsMasks,
             TimestampsToReturn timestampsToReturn,
@@ -206,6 +236,14 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Modifies the monitored item parameters,
         /// </summary>
+        /// <param name="diagnosticsMasks"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="clientHandle"></param>
+        /// <param name="samplingInterval"></param>
+        /// <param name="queueSize"></param>
+        /// <param name="discardOldest"></param>
+        /// <param name="filter"></param>
+        /// <param name="range"></param>
         public ServiceResult Modify(
             DiagnosticsMasks diagnosticsMasks,
             TimestampsToReturn timestampsToReturn,
@@ -273,6 +311,7 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Called when the attribute being monitored changed. Reads and queues the value.
         /// </summary>
+        /// <param name="context"></param>
         public void ValueChanged(ISystemContext context)
         {
             var value = new DataValue();
@@ -434,6 +473,7 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Returns the results for the create request.
         /// </summary>
+        /// <param name="result"></param>
         public ServiceResult GetCreateResult(out MonitoredItemCreateResult result)
         {
             lock (m_lock)
@@ -458,6 +498,7 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Returns the results for the modify request.
         /// </summary>
+        /// <param name="result"></param>
         public ServiceResult GetModifyResult(out MonitoredItemModifyResult result)
         {
             lock (m_lock)
@@ -495,6 +536,8 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Queues a new data change.
         /// </summary>
+        /// <param name="value"></param>
+        /// <param name="error"></param>
         public void QueueValue(DataValue value, ServiceResult error)
         {
             QueueValue(value, error, false);
@@ -505,17 +548,17 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Queues a new data change.
         /// </summary>
+        /// <param name="value"></param>
+        /// <param name="error"></param>
+        /// <param name="ignoreFilters"></param>
         public void QueueValue(DataValue value, ServiceResult error, bool ignoreFilters)
         {
             lock (m_lock)
             {
                 // check if value has changed.
-                if (!AlwaysReportUpdates)
+                if (!AlwaysReportUpdates && !Opc.Ua.Server.MonitoredItem.ValueChanged(value, error, m_lastValue, m_lastError, DataChangeFilter, m_range))
                 {
-                    if (!Opc.Ua.Server.MonitoredItem.ValueChanged(value, error, m_lastValue, m_lastError, DataChangeFilter, m_range))
-                    {
-                        return;
-                    }
+                    return;
                 }
 
                 // make a shallow copy of the value.
@@ -582,6 +625,7 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Changes the monitoring mode.
         /// </summary>
+        /// <param name="monitoringMode"></param>
         public MonitoringMode SetMonitoringMode(MonitoringMode monitoringMode)
         {
             lock (m_lock)
@@ -646,6 +690,9 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Called by the subscription to publish any notification.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="notifications"></param>
+        /// <param name="diagnostics"></param>
         public bool Publish(OperationContext context, Queue<MonitoredItemNotification> notifications, Queue<DiagnosticInfo> diagnostics)
         {
             lock (m_lock)
@@ -695,6 +742,11 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Publishes a value.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="value"></param>
+        /// <param name="error"></param>
+        /// <param name="notifications"></param>
+        /// <param name="diagnostics"></param>
         private void Publish(
             OperationContext context,
             DataValue value,
@@ -768,12 +820,9 @@ namespace Opc.Ua.Sample
             // update diagnostic info.
             DiagnosticInfo diagnosticInfo = null;
 
-            if (m_lastError != null)
+            if (m_lastError != null && (m_diagnosticsMasks & DiagnosticsMasks.OperationAll) != 0)
             {
-                if ((m_diagnosticsMasks & DiagnosticsMasks.OperationAll) != 0)
-                {
-                    diagnosticInfo = ServerUtils.CreateDiagnosticInfo(m_source.Server, context, m_lastError);
-                }
+                diagnosticInfo = ServerUtils.CreateDiagnosticInfo(m_source.Server, context, m_lastError);
             }
 
             diagnostics.Enqueue(diagnosticInfo);

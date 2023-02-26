@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
 
             Assert.NotNull(metadata);
-            Assert.EndsWith("/metadatamessage", metadata.Value.Topic);
+            Assert.EndsWith("/metadatamessage", metadata.Value.Topic, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -91,11 +91,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             // Assert
             var output = Assert.Single(messages);
             Assert.NotEqual(JsonValueKind.Null, output.Message.ValueKind);
-            Assert.InRange(output.Message.GetProperty("Output").GetDouble(), double.MinValue, double.MaxValue);
+            Assert.InRange(output.Message.GetProperty("Output").GetDouble(),
+                double.MinValue, double.MaxValue);
 
             // Explicitely enabled metadata despite messaging profile
             Assert.NotNull(metadata);
-            Assert.EndsWith("/$metadata", metadata.Value.Topic);
+            Assert.EndsWith("/$metadata", metadata.Value.Topic, StringComparison.Ordinal);
         }
 
         [Theory]

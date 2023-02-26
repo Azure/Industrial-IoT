@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client
         /// <summary>
         /// Hub connection string to use
         /// </summary>
+        /// <exception cref="InvalidConfigurationException"></exception>
         protected ConnectionString HubConnectionString
         {
             get

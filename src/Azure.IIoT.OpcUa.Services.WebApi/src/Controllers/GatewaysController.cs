@@ -61,6 +61,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// </remarks>
         /// <param name="GatewayId">Gateway identifier</param>
         /// <param name="request">Patch request</param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPatch("{GatewayId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateGatewayAsync(string GatewayId,
@@ -122,6 +123,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="query">Gateway query model</param>
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Gateway</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
         [HttpPost("query")]
         public async Task<GatewayListModel> QueryGatewayAsync(
             [FromBody][Required] GatewayQueryModel query,
@@ -153,6 +155,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="query">Gateway Query model</param>
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Gateway</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
         [HttpGet("query")]
         public async Task<GatewayListModel> GetFilteredListOfGatewayAsync(
             [FromQuery][Required] GatewayQueryModel query,

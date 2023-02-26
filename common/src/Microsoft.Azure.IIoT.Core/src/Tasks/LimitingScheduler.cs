@@ -169,6 +169,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default
             /// <returns>
             /// An enumerable of the tasks currently scheduled.
             /// </returns>
+            /// <exception cref="NotSupportedException"></exception>
             protected sealed override IEnumerable<Task> GetScheduledTasks()
             {
                 var lockTaken = false;

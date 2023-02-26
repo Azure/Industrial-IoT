@@ -381,6 +381,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
         public static UaFilterOperator ToStackType(this FilterOperatorType type)
         {
             switch (type)
@@ -431,6 +432,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
         public static FilterOperatorType ToServiceType(this UaFilterOperator type)
         {
             switch (type)

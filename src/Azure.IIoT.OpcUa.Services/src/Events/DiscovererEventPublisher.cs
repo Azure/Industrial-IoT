@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.Events
     /// <summary>
     /// Discoverer event publisher
     /// </summary>
+    /// <typeparam name="THub"></typeparam>
     public class DiscovererEventPublisher<THub> : IDiscovererRegistryListener
     {
         /// <inheritdoc/>

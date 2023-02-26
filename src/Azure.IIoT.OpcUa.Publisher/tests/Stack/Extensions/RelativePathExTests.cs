@@ -22,7 +22,7 @@ namespace Opc.Ua.Extensions
                 ".bar",
                 "/!#flah",
                 "!#flah",
-                "xxxx",
+                "xxxx"
             };
 
             var context = new ServiceMessageContext();
@@ -45,7 +45,7 @@ namespace Opc.Ua.Extensions
                 "!.bar",
                 "!#/flah",
                 "!/#flah",
-                "!xxxx",
+                "!xxxx"
             };
 
             var context = new ServiceMessageContext();

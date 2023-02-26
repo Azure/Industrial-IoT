@@ -50,7 +50,7 @@ namespace Views
                 return new StringCollection {
                     Model.Namespaces.Engineering,
                     Model.Namespaces.Views,
-                    Model.Namespaces.Operations,
+                    Model.Namespaces.Operations
                 };
             }
         }

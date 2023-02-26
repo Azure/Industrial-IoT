@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         {
             if (string.IsNullOrEmpty(gatewayId))
             {
-                throw new ArgumentException(nameof(gatewayId));
+                throw new ArgumentNullException(nameof(gatewayId));
             }
             var deviceId = gatewayId;
             var device = await _iothub.GetAsync(deviceId, null, ct).ConfigureAwait(false);
@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             }
             if (string.IsNullOrEmpty(gatewayId))
             {
-                throw new ArgumentException(nameof(gatewayId));
+                throw new ArgumentNullException(nameof(gatewayId));
             }
 
             // Get existing endpoint and compare to see if we need to patch.

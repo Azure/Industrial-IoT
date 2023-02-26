@@ -396,6 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create observable metric registrations
         /// </summary>
+        /// <param name="metrics"></param>
         private NetworkMessageEncoder(IMetricsContext metrics)
         {
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_encoded_notifications",

@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Auth.Storage
     /// <summary>
     /// Decorates a client with a cache to keep tokens
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class MsalClientApplicationDecorator<T> where T : IClientApplicationBase
     {
         /// <inheritdoc/>

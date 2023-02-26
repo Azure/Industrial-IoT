@@ -44,6 +44,8 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Updates the bounding values.
         /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="state"></param>
         public override void UpdateBoundingValues(TimeSlice bucket, AggregateState state)
         {
             base.UpdateBoundingValues(bucket, state);
@@ -53,6 +55,9 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Updates the value for the time slice.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="bucket"></param>
+        /// <param name="state"></param>
         public override DataValue Compute(IAggregationContext context, TimeSlice bucket, AggregateState state)
         {
             var retval = new DataValue { SourceTimestamp = bucket.From };

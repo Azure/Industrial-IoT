@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
                 AttributeId = null,
                 MonitoringMode = null,
                 SamplingInterval = null,
-                DiscardNew = null,
+                DiscardNew = null
             };
             var monitoredItemWrapper = GetMonitoredItem(template);
 
@@ -165,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
                         new SimpleAttributeOperandModel {
                             TypeDefinitionId = "i=2041",
                             BrowsePath = new []{ "EventId" }
-                        },
+                        }
                     },
                     WhereClause = new ContentFilterModel
                     {
@@ -243,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
                         new SimpleAttributeOperandModel {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CurrentStep" }
-                        },
+                        }
                     },
                     WhereClause = new ContentFilterModel
                     {
@@ -264,7 +264,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
             var namespaceTable = new NamespaceTable(new[] {
                 Namespaces.OpcUa,
                 "http://opcfoundation.org/UA/Diagnostics",
-                "http://opcfoundation.org/Quickstarts/SimpleEvents",
+                "http://opcfoundation.org/Quickstarts/SimpleEvents"
             });
             var nodeCache = GetNodeCache(namespaceTable);
             var context = new ServiceMessageContext();
@@ -291,7 +291,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
                         new SimpleAttributeOperandModel {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CurrentStep" }
-                        },
+                        }
                     },
                     WhereClause = new ContentFilterModel
                     {

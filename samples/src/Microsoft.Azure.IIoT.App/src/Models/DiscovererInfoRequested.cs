@@ -51,6 +51,7 @@ namespace Microsoft.Azure.IIoT.App.Models
         /// <summary>
         /// Add url
         /// </summary>
+        /// <param name="url"></param>
         public void AddDiscoveryUrl(string url)
         {
             RequestedDiscoveryUrls ??= new List<string>();
@@ -60,6 +61,7 @@ namespace Microsoft.Azure.IIoT.App.Models
         /// <summary>
         /// Clear url list
         /// </summary>
+        /// <param name="list"></param>
         public void ClearDiscoveryUrlList(List<string> list)
         {
             list?.Clear();

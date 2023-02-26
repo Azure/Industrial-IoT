@@ -63,7 +63,7 @@ namespace PerfTest
         private List<MemoryRegister> _registers;
     }
 
-    public class MemoryRegister
+    public class MemoryRegister : IDisposable
     {
         public int Id { get; private set; }
 
@@ -77,6 +77,11 @@ namespace PerfTest
             Name = name;
             _values = new int[size];
             _monitoredItems = new IDataChangeMonitoredItem2[size][];
+        }
+
+        public void Dispose()
+        {
+            _timer?.Dispose();
         }
 
         public int Read(int index)
@@ -212,9 +217,7 @@ namespace PerfTest
         private readonly object _lock = new();
         private int[] _values;
         private int _start;
-#pragma warning disable IDE0052 // Remove unread private members
         private Timer _timer;
-#pragma warning restore IDE0052 // Remove unread private members
         private IDataChangeMonitoredItem2[][] _monitoredItems;
     }
 }

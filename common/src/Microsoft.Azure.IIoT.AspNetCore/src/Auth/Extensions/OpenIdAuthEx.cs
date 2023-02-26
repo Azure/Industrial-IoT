@@ -128,10 +128,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth
                             context.Properties.Parameters.Remove(OpenIdConnectParameterNames.DomainHint);
                         }
                         // Additional claims
-                        if (context.Properties.Items.ContainsKey(kAdditionalClaims))
+                        if (context.Properties.Items.TryGetValue(kAdditionalClaims, out var value))
                         {
-                            context.ProtocolMessage.SetParameter(kAdditionalClaims,
-                                context.Properties.Items[kAdditionalClaims]);
+                            context.ProtocolMessage.SetParameter(kAdditionalClaims, value);
                         }
                         await redirectToIdpHandler(context).ConfigureAwait(false);
                     };

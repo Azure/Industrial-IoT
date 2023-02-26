@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Models
         /// <param name="dataSetMetaData"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetSource"/> is <c>null</c>.</exception>
         public static SubscriptionConfigurationModel ToSubscriptionConfigurationModel(
             this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel dataSetMetaData,
             ISubscriptionConfig configuration)

@@ -55,8 +55,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi
                 var propertySchema = context.SchemaRepository.Schemas
                     .Where(p => p.Key.EqualsIgnoreCase(context.ParameterInfo.ParameterType.Name))
                     .SelectMany(p => p.Value.Properties)
-                    .Where(p => p.Key.EqualsIgnoreCase(context.PropertyInfo.Name))
-                    .FirstOrDefault();
+                    .FirstOrDefault(p => p.Key.EqualsIgnoreCase(context.PropertyInfo.Name));
                 if (propertySchema.Value != null)
                 {
                     propertySchema.Value.Description =

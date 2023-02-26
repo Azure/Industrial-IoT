@@ -65,6 +65,7 @@ namespace Opc.Ua
         /// <param name="typeInfo"></param>
         /// <param name="value"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static Variant CreateVariant(this TypeInfo typeInfo, object value)
         {
             value ??= typeInfo.GetDefaultValue();

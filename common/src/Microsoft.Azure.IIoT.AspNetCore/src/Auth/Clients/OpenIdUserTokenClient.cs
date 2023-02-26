@@ -161,6 +161,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
         /// <summary>
         /// Refresh access token
         /// </summary>
+        /// <param name="refreshToken"></param>
+        /// <param name="config"></param>
         /// <returns></returns>
         private async Task<TokenResponse> RefreshUserAccessTokenAsync(string refreshToken,
             IOAuthClientConfig config)
@@ -249,6 +251,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
         /// Get tokens for current user
         /// </summary>
         /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         private async Task<(string, DateTimeOffset?, string)> GetTokenFromCacheAsync()
         {
             if (_ctx.HttpContext == null)
@@ -295,6 +298,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
         /// <param name="expiresIn"></param>
         /// <param name="refreshToken"></param>
         /// <returns></returns>
+        /// <exception cref="AuthenticationException"></exception>
         private async Task StoreTokenAsync(string accessToken, int expiresIn,
             string refreshToken)
         {

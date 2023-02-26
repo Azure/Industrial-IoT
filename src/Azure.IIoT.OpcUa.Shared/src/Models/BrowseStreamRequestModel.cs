@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Models
         /// (defaults to root folder).
         /// </summary>
         [DataMember(Name = "nodeId", Order = 1)]
-        public string[]? NodeIds { get; init; }
+        public IReadOnlyList<string>? NodeIds { get; init; }
 
         /// <summary>
         /// Direction to browse in

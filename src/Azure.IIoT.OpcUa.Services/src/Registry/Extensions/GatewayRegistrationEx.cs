@@ -101,7 +101,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 Type =
                     tags.GetValueOrDefault<string>(TwinProperty.Type, null),
                 SiteId =
-                    tags.GetValueOrDefault<string>(TwinProperty.SiteId, null),
+                    tags.GetValueOrDefault<string>(TwinProperty.SiteId, null)
+
 
                 // Properties
 
@@ -149,6 +150,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="disabled"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public static GatewayRegistration ToGatewayRegistration(
             this GatewayModel model, bool? disabled = null)
         {
@@ -162,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 IsDisabled = disabled,
                 DeviceId = deviceId,
                 Connected = model.Connected ?? false,
-                SiteId = model.SiteId,
+                SiteId = model.SiteId
             };
         }
 

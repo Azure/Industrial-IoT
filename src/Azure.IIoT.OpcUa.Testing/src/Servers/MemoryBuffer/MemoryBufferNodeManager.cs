@@ -44,6 +44,8 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="configuration"></param>
         public MemoryBufferNodeManager(IServerInternal server,
             ApplicationConfiguration configuration) :
             base(server)
@@ -69,23 +71,21 @@ namespace MemoryBuffer
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            if (disposing)
+            if (disposing && _buffers != null)
             {
-                if (_buffers != null)
+                foreach (var buffer in _buffers.Values)
                 {
-                    foreach (var buffer in _buffers.Values)
-                    {
-                        buffer.Dispose();
-                    }
-                    _buffers.Clear();
-                    _buffers = null;
+                    buffer.Dispose();
                 }
+                _buffers.Clear();
+                _buffers = null;
             }
         }
 
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
+        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -140,6 +140,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
+        /// <param name="context"></param>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
             var type = GetType().GetTypeInfo();
@@ -164,6 +165,9 @@ namespace MemoryBuffer
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="cache"></param>
         /// <remarks>
         /// This must efficiently determine whether the node belongs to the node manager. If it does belong to
         /// NodeManager it should return a handle that does not require the NodeId to be validated again when
@@ -243,6 +247,16 @@ namespace MemoryBuffer
         /// <summary>
         /// Creates a new set of monitored items for a set of variables.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
+        /// <param name="subscriptionId"></param>
+        /// <param name="publishingInterval"></param>
+        /// <param name="diagnosticsMasks"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="itemToCreate"></param>
+        /// <param name="globalIdCounter"></param>
+        /// <param name="filterError"></param>
+        /// <param name="monitoredItem"></param>
         /// <remarks>
         /// This method only handles data change subscriptions. Event subscriptions are created by the SDK.
         /// </remarks>
@@ -377,6 +391,12 @@ namespace MemoryBuffer
         /// <summary>
         /// Modifies the parameters for a monitored item.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="diagnosticsMasks"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="monitoredItem"></param>
+        /// <param name="itemToModify"></param>
+        /// <param name="filterError"></param>
         protected override ServiceResult ModifyMonitoredItem(
             ISystemContext context,
             DiagnosticsMasks diagnosticsMasks,
@@ -434,6 +454,9 @@ namespace MemoryBuffer
         /// <summary>
         /// Deletes a monitored item.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="monitoredItem"></param>
+        /// <param name="processed"></param>
         protected override ServiceResult DeleteMonitoredItem(
             ISystemContext context,
             IMonitoredItem monitoredItem,
@@ -470,6 +493,10 @@ namespace MemoryBuffer
         /// <summary>
         /// Changes the monitoring mode for an item.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="monitoredItem"></param>
+        /// <param name="monitoringMode"></param>
+        /// <param name="processed"></param>
         protected override ServiceResult SetMonitoringMode(
             ISystemContext context,
             IMonitoredItem monitoredItem,

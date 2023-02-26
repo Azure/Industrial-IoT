@@ -23,6 +23,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser
         /// <summary>
         /// Create Registry
         /// </summary>
+        /// <param name="hub"></param>
+        /// <param name="serializer"></param>
         public SqlQuery(IIoTHub hub, IJsonSerializer serializer)
         {
             _hub = hub;
@@ -34,6 +36,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser
         /// </summary>
         /// <param name="sqlSelectString"></param>
         /// <returns></returns>
+        /// <exception cref="FormatException"></exception>
         public IEnumerable<VariantValue> Query(string sqlSelectString)
         {
             // Parse
@@ -99,6 +102,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser
         /// <param name="records"></param>
         /// <param name="context"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="context"/> is <c>null</c>.</exception>
         private static IEnumerable<VariantValue> Project(IEnumerable<VariantValue> records,
             SqlSelectParser.ParseContext context)
         {
@@ -117,6 +121,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         private Expression<Func<VariantValue, VariantValue>> ParseScalarLambda(
             SqlSelectParser.ScalarFunctionContext context)
         {
@@ -471,6 +476,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser
         /// <summary>
         /// Error callback
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         private class RaiseException<T> : IAntlrErrorListener<T>
         {
             public void SyntaxError(IRecognizer recognizer, T offendingSymbol,

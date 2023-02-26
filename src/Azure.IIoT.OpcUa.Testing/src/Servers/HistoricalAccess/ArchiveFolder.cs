@@ -41,6 +41,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new instance.
         /// </summary>
+        /// <param name="uniquePath"></param>
+        /// <param name="folder"></param>
         public ArchiveFolder(string uniquePath, DirectoryInfo folder)
         {
             UniquePath = uniquePath;

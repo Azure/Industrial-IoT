@@ -45,6 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         /// <summary>
         /// Dispose probe
         /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -400,6 +401,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
             /// <summary>
             /// No lock complete
             /// </summary>
+            /// <exception cref="InvalidProgramException"></exception>
             private bool OnCompleteNoLock()
             {
                 try

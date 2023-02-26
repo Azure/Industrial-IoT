@@ -28,6 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Validate response
         /// </summary>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
         /// <param name="response"></param>
         /// <param name="results"></param>
         /// <param name="statusCode"></param>
@@ -45,6 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Validate response
         /// </summary>
+        /// <typeparam name="TResult"></typeparam>
         /// <param name="response"></param>
         /// <param name="results"></param>
         /// <param name="statusCode"></param>

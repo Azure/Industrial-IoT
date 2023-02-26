@@ -21,44 +21,48 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Read node history
         /// </summary>
+        /// <typeparam name="TInput"></typeparam>
+        /// <typeparam name="TOutput"></typeparam>
         /// <param name="connectionId"></param>
         /// <param name="request"></param>
         /// <param name="decode"></param>
         /// <param name="encode"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryReadResponseModel<O>> HistoryReadAsync<I, O>(
-            T connectionId, HistoryReadRequestModel<I> request,
-            Func<I, ISessionHandle, ExtensionObject> decode,
-            Func<ExtensionObject, ISessionHandle, O> encode,
+        Task<HistoryReadResponseModel<TOutput>> HistoryReadAsync<TInput, TOutput>(
+            T connectionId, HistoryReadRequestModel<TInput> request,
+            Func<TInput, ISessionHandle, ExtensionObject> decode,
+            Func<ExtensionObject, ISessionHandle, TOutput> encode,
             CancellationToken ct = default)
-            where I : class where O : class;
+            where TInput : class where TOutput : class;
 
         /// <summary>
         /// Read node history continuation
         /// </summary>
+        /// <typeparam name="TOutput"></typeparam>
         /// <param name="connectionId"></param>
         /// <param name="request"></param>
         /// <param name="encode"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryReadNextResponseModel<O>> HistoryReadNextAsync<O>(
+        Task<HistoryReadNextResponseModel<TOutput>> HistoryReadNextAsync<TOutput>(
             T connectionId, HistoryReadNextRequestModel request,
-            Func<ExtensionObject, ISessionHandle, O> encode,
+            Func<ExtensionObject, ISessionHandle, TOutput> encode,
             CancellationToken ct = default)
-            where O : class;
+            where TOutput : class;
 
         /// <summary>
         /// Update node history
         /// </summary>
+        /// <typeparam name="TInput"></typeparam>
         /// <param name="connectionId"></param>
         /// <param name="request"></param>
         /// <param name="decode"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryUpdateAsync<I>(
-            T connectionId, HistoryUpdateRequestModel<I> request,
-            Func<NodeId, I, ISessionHandle, Task<ExtensionObject>> decode,
-            CancellationToken ct = default) where I : class;
+        Task<HistoryUpdateResponseModel> HistoryUpdateAsync<TInput>(
+            T connectionId, HistoryUpdateRequestModel<TInput> request,
+            Func<NodeId, TInput, ISessionHandle, Task<ExtensionObject>> decode,
+            CancellationToken ct = default) where TInput : class;
     }
 }

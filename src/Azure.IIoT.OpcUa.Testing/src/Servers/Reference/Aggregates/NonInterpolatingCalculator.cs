@@ -37,15 +37,14 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Returns true if more data is required for the next interval.
         /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="state"></param>
         public override bool WaitForMoreData(TimeSlice bucket, AggregateState state)
         {
             var wait = false;
-            if (!state.HasTerminated)
+            if (!state.HasTerminated && bucket.ContainsTime(state.LatestTimestamp))
             {
-                if (bucket.ContainsTime(state.LatestTimestamp))
-                {
-                    wait = true;
-                }
+                wait = true;
             }
             return wait;
         }
@@ -53,6 +52,8 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Updates the bounding values for the time slice.
         /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="state"></param>
         public override void UpdateBoundingValues(TimeSlice bucket, AggregateState state)
         {
         }

@@ -74,6 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create observable metric registrations
         /// </summary>
+        /// <param name="metrics"></param>
         private NetworkMessageSink(IMetricsContext metrics)
         {
             _tagList = metrics.TagList;

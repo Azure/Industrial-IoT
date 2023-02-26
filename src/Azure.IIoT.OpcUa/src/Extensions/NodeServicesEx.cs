@@ -22,11 +22,13 @@ namespace Azure.IIoT.OpcUa
         /// wants all. If user has requested maximum to return use
         /// <see cref="INodeServices{T}.BrowseFirstAsync"/>
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="service"></param>
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static async Task<BrowseFirstResponseModel> BrowseAsync<T>(
             this INodeServices<T> service, T connection, BrowseFirstRequestModel request,
             CancellationToken ct = default)

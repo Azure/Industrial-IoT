@@ -20,6 +20,7 @@ namespace System.Net
         /// <param name="endpoint"></param>
         /// <param name="preferv4"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static IPAddress GetIPAddress(this EndPoint endpoint,
             bool preferv4 = false)
         {

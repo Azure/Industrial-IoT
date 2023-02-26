@@ -46,6 +46,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The browse request</param>
         /// <returns>The browse response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}")]
         public async Task<BrowseFirstResponseModel> BrowseAsync(string endpointId,
             [FromBody][Required] BrowseFirstRequestModel request)
@@ -67,6 +68,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The request body with continuation token.</param>
         /// <returns>The browse response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException"></exception>
         [HttpPost("{endpointId}/next")]
         public async Task<BrowseNextResponseModel> BrowseNextAsync(
             string endpointId, [FromBody][Required] BrowseNextRequestModel request)
@@ -77,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
             }
             if (request.ContinuationToken == null)
             {
-                throw new ArgumentNullException(nameof(request.ContinuationToken));
+                throw new ArgumentException("Continuation missing.", nameof(request));
             }
             return await _browser.BrowseNextAsync(endpointId, request).ConfigureAwait(false);
         }
@@ -93,6 +96,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The browse path request</param>
         /// <returns>The browse path response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/path")]
         public async Task<BrowsePathResponseModel> BrowseUsingPathAsync(string endpointId,
             [FromBody][Required] BrowsePathRequestModel request)
@@ -151,6 +155,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <returns>The browse response</returns>
         /// <param name="continuationToken">Continuation token from GetSetOfUniqueNodes operation
         /// </param>
+        /// <exception cref="ArgumentNullException"></exception>
         [HttpGet("{endpointId}/next")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<BrowseNextResponseModel> GetNextSetOfUniqueNodesAsync(

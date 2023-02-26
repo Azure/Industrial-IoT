@@ -108,6 +108,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth
         /// <param name="issuer">Issuer to validate (will be tenanted)</param>
         /// <param name="config">Authentication configuration</param>
         /// <returns>The <c>issuer</c> if it's valid</returns>
+        /// <exception cref="SecurityTokenInvalidIssuerException"></exception>
         private static string ValidateIssuer(string issuer, IOAuthServerConfig config)
         {
             var uri = new Uri(issuer);

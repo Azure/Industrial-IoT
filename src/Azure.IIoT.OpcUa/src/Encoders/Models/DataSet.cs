@@ -48,6 +48,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <summary>
         /// Create default dataset
         /// </summary>
+        /// <param name="fieldContentMask"></param>
         public DataSet(uint fieldContentMask = (uint)(
             Opc.Ua.DataSetFieldContentMask.StatusCode |
             Opc.Ua.DataSetFieldContentMask.SourcePicoSeconds |

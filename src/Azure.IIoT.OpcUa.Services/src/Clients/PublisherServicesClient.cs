@@ -298,7 +298,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
             var client = new TwinApiClient(_client, deviceId, moduleId, _serializer);
             return await client.HistoryGetServerCapabilitiesAsync(new ConnectionModel
             {
-                Endpoint = endpoint.Registration.Endpoint,
+                Endpoint = endpoint.Registration.Endpoint
             }, ct).ConfigureAwait(false);
         }
 

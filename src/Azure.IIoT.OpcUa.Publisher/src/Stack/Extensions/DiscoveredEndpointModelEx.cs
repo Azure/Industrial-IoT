@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                             Url = result.AccessibleEndpointUrl, // Accessible
                             AlternativeUrls = new HashSet<string> {
                                 result.AccessibleEndpointUrl,
-                                result.Description.EndpointUrl,
+                                result.Description.EndpointUrl
                             },
                             Certificate = result.Description.ServerCertificate?.ToThumbprint(),
                             SecurityMode = result.Description.SecurityMode.ToServiceType() ??

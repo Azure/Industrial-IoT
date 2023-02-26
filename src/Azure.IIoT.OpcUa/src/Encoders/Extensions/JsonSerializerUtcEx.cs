@@ -17,12 +17,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Constant for OpcUa JSON encoded DateTime.MinValue.
         /// </summary>
-        public static string OpcUaDateTimeMinValue = "0001-01-01T00:00:00Z";
+        public const string OpcUaDateTimeMinValue = "0001-01-01T00:00:00Z";
 
         /// <summary>
         /// Constant for OpcUa JSON encoded DateTime.MaxValue.
         /// </summary>
-        public static string OpcUaDateTimeMaxValue = "9999-12-31T23:59:59Z";
+        public const string OpcUaDateTimeMaxValue = "9999-12-31T23:59:59Z";
 
         /// <summary>
         /// DateTime value of: “9999-12-31T23:59:59Z”
@@ -32,6 +32,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Convert to OpcUa JSON Encoded Utc string.
         /// </summary>
+        /// <param name="dateTime"></param>
         public static string ToOpcUaJsonEncodedTime(this DateTime dateTime)
         {
             if (dateTime <= DateTime.MinValue)
@@ -52,6 +53,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Convert DataValue timestamps to OpcUa Encoded Utc.
         /// </summary>
+        /// <param name="dataValue"></param>
         public static DataValue ToOpcUaUniversalTime(this DataValue dataValue)
         {
             dataValue.SourceTimestamp = dataValue.SourceTimestamp.ToOpcUaUniversalTime();
@@ -64,6 +66,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// The result is DateTime.MinValue, DateTime.MaxValue or
         /// the Utc kind.
         /// </summary>
+        /// <param name="dateTime"></param>
         public static DateTime ToOpcUaUniversalTime(this DateTime dateTime)
         {
             if (dateTime <= DateTime.MinValue)

@@ -26,6 +26,9 @@ namespace Azure.IIoT.OpcUa.Testing.Cli
         /// <summary>
         /// Test client entry point
         /// </summary>
+        /// <param name="args"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public static void Main(string[] args)
         {
             if (args is null)
@@ -118,6 +121,7 @@ Operations (Mutually exclusive):
         /// <summary>
         /// Run server until exit
         /// </summary>
+        /// <param name="ports"></param>
         private static async Task RunServerAsync(IEnumerable<int> ports)
         {
             var logger = StackLogger.Create(Log.Console<StackLogger>());
@@ -153,6 +157,7 @@ Operations (Mutually exclusive):
             /// Create wrapper
             /// </summary>
             /// <param name="endpoint"></param>
+            /// <param name="logger"></param>
             public ServerWrapper(EndpointModel endpoint, StackLogger logger)
             {
                 _cts = new CancellationTokenSource();
@@ -179,6 +184,7 @@ Operations (Mutually exclusive):
             /// <summary>
             /// Run server until cancelled
             /// </summary>
+            /// <param name="logger"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
             private static async Task RunSampleServerAsync(ILogger logger, CancellationToken ct)

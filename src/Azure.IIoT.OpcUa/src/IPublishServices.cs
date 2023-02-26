@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa
     /// <summary>
     /// Publish services
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface IPublishServices<T>
     {
         /// <summary>

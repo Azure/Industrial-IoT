@@ -23,6 +23,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// <summary>
         /// Check if nodes are equal
         /// </summary>
+        /// <param name="model"></param>
+        /// <param name="that"></param>
         public static bool IsSame(this OpcNodeModel model, OpcNodeModel that)
         {
             if (model == that)
@@ -125,6 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// <summary>
         /// Returns the hashcode for a node
         /// </summary>
+        /// <param name="model"></param>
         public static int GetHashCode(this OpcNodeModel model)
         {
             var hash = new HashCode();
@@ -168,6 +171,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// <summary>
         /// Retrieves the timespan flavor of a node's HeartbeatInterval
         /// </summary>
+        /// <param name="model"></param>
+        /// <param name="defaultHeatbeatTimespan"></param>
         /// <returns></returns>
         public static TimeSpan? GetNormalizedHeartbeatInterval(
             this OpcNodeModel model, TimeSpan? defaultHeatbeatTimespan = null)
@@ -179,6 +184,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// <summary>
         /// Retrieves the timespan flavor of a node's PublishingInterval
         /// </summary>
+        /// <param name="model"></param>
+        /// <param name="defaultPublishingTimespan"></param>
         public static TimeSpan? GetNormalizedPublishingInterval(
             this OpcNodeModel model, TimeSpan? defaultPublishingTimespan = null)
         {
@@ -189,6 +196,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// <summary>
         /// Retrieves the timespan flavor of a node's SamplingInterval
         /// </summary>
+        /// <param name="model"></param>
+        /// <param name="defaultSamplingTimespan"></param>
         public static TimeSpan? GetNormalizedSamplingInterval(
             this OpcNodeModel model, TimeSpan? defaultSamplingTimespan = null)
         {
@@ -200,6 +209,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// Returns a the timespan value from the timespan when defined, respectively from
         /// the seconds representing integer. The Timespan value wins when provided
         /// </summary>
+        /// <param name="timespan"></param>
+        /// <param name="seconds"></param>
+        /// <param name="defaultTimespan"></param>
         public static TimeSpan? GetTimeSpanFromSeconds(
             this TimeSpan? timespan,
             int? seconds,
@@ -216,6 +228,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// Returns a the timespan value from the timespan when defined, respectively from
         /// the miliseconds representing integer. The Timespan value wins when provided
         /// </summary>
+        /// <param name="timespan"></param>
+        /// <param name="miliseconds"></param>
+        /// <param name="defaultTimespan"></param>
         public static TimeSpan? GetTimeSpanFromMiliseconds(
             this TimeSpan? timespan,
             int? miliseconds,

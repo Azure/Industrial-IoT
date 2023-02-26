@@ -137,6 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         /// <summary>
         /// Return next from source.
         /// </summary>
+        /// <param name="ep"></param>
         private bool Next([NotNullWhen(true)] out IPEndPoint? ep)
         {
             if (_cts.IsCancellationRequested)

@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Models
     /// <summary>
     /// History read results
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     [DataContract]
     public sealed record class HistoryReadResponseModel<T> where T : class
     {

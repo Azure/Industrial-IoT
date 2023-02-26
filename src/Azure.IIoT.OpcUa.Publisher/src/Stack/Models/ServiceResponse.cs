@@ -16,6 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     /// <summary>
     /// Helper to manage request and responses
     /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <typeparam name="TResult"></typeparam>
     internal class ServiceResponse<TRequest, TResult> :
         IReadOnlyList<ServiceResponse<TRequest, TResult>.Operation>
     {

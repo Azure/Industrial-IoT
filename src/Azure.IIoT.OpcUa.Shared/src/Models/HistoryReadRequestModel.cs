@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Models
     /// <summary>
     /// Request node history read
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     [DataContract]
     public sealed record class HistoryReadRequestModel<T> where T : class
     {

@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Models
     /// <summary>
     /// Request node history update
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     [DataContract]
     public sealed record class HistoryUpdateRequestModel<T>
     {

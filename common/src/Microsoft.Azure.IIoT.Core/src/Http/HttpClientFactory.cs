@@ -16,7 +16,9 @@ namespace Microsoft.Azure.IIoT.Http.Default
     /// of the one implemented in asp.net core and uses a handler builder
     /// instead of the asp.net builder.
     /// </summary>
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
     public sealed class HttpClientFactory : IHttpClientFactory
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
         /// <summary>
         /// Create factory
@@ -40,14 +42,14 @@ namespace Microsoft.Azure.IIoT.Http.Default
         public HttpClientFactory(ILogger logger) : this(null, logger) { }
 
         /// <inheritdoc/>
-        public System.Net.Http.HttpClient CreateClient(string resourceId)
+        public System.Net.Http.HttpClient CreateClient(string name)
         {
-            if (resourceId == null)
+            if (name == null)
             {
-                throw new ArgumentNullException(nameof(resourceId));
+                throw new ArgumentNullException(nameof(name));
             }
             // Get handler entry for client
-            var entry = _activeHandlers.GetOrAdd(resourceId,
+            var entry = _activeHandlers.GetOrAdd(name,
                 key => ActiveHandlerEntry.Create(_factory, key, OnHandlerExpired));
 
             return new System.Net.Http.HttpClient(entry, false);
@@ -234,7 +236,7 @@ namespace Microsoft.Azure.IIoT.Http.Default
                     Monitor.Exit(_cleanupActiveLock);
                 }
             }
-            if (_expiredHandlers.Count > 0)
+            if (!_expiredHandlers.IsEmpty)
             {
                 StartCleanupTimer();
             }

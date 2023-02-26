@@ -45,6 +45,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read request</param>
         /// <returns>The history read response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("read/{endpointId}")]
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadRawAsync(
             string endpointId, [FromBody][Required] HistoryReadRequestModel<VariantValue> request)
@@ -67,6 +68,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read next request</param>
         /// <returns>The history read response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("read/{endpointId}/next")]
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadRawNextAsync(
             string endpointId, [FromBody][Required] HistoryReadNextRequestModel request)
@@ -89,6 +91,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
         /// <returns>The history update result</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("update/{endpointId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task<HistoryUpdateResponseModel> HistoryUpdateRawAsync(

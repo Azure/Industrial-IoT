@@ -31,6 +31,7 @@ namespace Alarms
 {
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System;
     using System.Text;
 
     /// <summary>
@@ -115,7 +116,7 @@ namespace Alarms
             buffer.Append(parentId);
 
             // check if the parent is another component.
-            var index = parentId.IndexOf('?');
+            var index = parentId.IndexOf('?', StringComparison.Ordinal);
 
             if (index < 0)
             {

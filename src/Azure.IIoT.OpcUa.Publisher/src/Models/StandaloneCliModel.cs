@@ -156,6 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Set flag to demand full featured message creation from publisher
         /// </summary>
+        /// <param name="value"></param>
         public void SetFullFeaturedMessage(bool value)
         {
             _fullFeaturedMessage = value;

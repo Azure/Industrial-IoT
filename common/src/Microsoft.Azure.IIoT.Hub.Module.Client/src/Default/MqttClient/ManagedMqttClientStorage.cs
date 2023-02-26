@@ -23,6 +23,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         /// <summary>
         /// Create client storage.
         /// </summary>
+        /// <param name="stateFile"></param>
+        /// <param name="logger"></param>
         public ManagedMqttClientStorage(string stateFile, ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(stateFile))

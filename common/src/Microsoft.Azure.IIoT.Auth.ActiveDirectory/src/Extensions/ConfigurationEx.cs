@@ -37,6 +37,7 @@ namespace Microsoft.Extensions.Configuration
         /// <param name="singleton"></param>
         /// <param name="keyVaultUrlVarName"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static IConfigurationBuilder AddFromKeyVault(this IConfigurationBuilder builder,
             ConfigurationProviderPriority providerPriority = ConfigurationProviderPriority.Lowest,
             bool allowInteractiveLogon = false, bool singleton = true, string keyVaultUrlVarName = null)
@@ -74,7 +75,7 @@ namespace Microsoft.Extensions.Configuration
         /// Keyvault configuration provider.
         /// </summary>
         internal sealed class KeyVaultConfigurationProvider : IConfigurationSource,
-            IConfigurationProvider
+            IConfigurationProvider, IDisposable
         {
             /// <summary>
             /// Create keyvault provider
@@ -89,6 +90,12 @@ namespace Microsoft.Extensions.Configuration
                 _keyVaultUri = keyVaultUri;
                 _cache = new ConcurrentDictionary<string, Task<SecretBundle>>();
                 _reloadToken = new ConfigurationReloadToken();
+            }
+
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+                _keyVault.Dispose();
             }
 
             /// <inheritdoc/>
@@ -198,6 +205,7 @@ namespace Microsoft.Extensions.Configuration
             /// <param name="keyVaultUrlVarName"></param>
             /// <param name="lazyLoad"></param>
             /// <returns></returns>
+            /// <exception cref="InvalidConfigurationException"></exception>
             private static async Task<KeyVaultConfigurationProvider> CreateInstanceAsync(
                 IConfigurationRoot configuration, bool allowInteractiveLogon, string keyVaultUrlVarName,
                 bool lazyLoad)
@@ -257,6 +265,7 @@ namespace Microsoft.Extensions.Configuration
             /// </summary>
             /// <param name="secretName"></param>
             /// <returns></returns>
+            /// <exception cref="TimeoutException"></exception>
             private async Task ValidateReadSecretAsync(string secretName)
             {
                 for (var retries = 0; ; retries++)

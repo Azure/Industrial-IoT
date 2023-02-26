@@ -20,6 +20,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         /// <summary>
         /// Create browse tests
         /// </summary>
+        /// <param name="services"></param>
+        /// <param name="connection"></param>
         public BrowseStreamTests(Func<INodeServices<T>> services, T connection)
         {
             _services = services;
@@ -1238,7 +1240,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                             Level = DiagnosticsLevel.None
                         }
                     },
-                    NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" },
+                    NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" }
                 }).ToListAsync().ConfigureAwait(false);
 
             // Assert
@@ -1300,7 +1302,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                             Level = DiagnosticsLevel.Information
                         }
                     },
-                    NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" },
+                    NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#s=unknown" }
                 }).ToListAsync().ConfigureAwait(false);
 
             // Assert

@@ -68,6 +68,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
         /// <summary>
         /// Create context
         /// </summary>
+        /// <param name="name"></param>
+        /// <param name="macAddress"></param>
+        /// <param name="unicastAddress"></param>
+        /// <param name="subnetMask"></param>
+        /// <param name="gateway"></param>
+        /// <param name="dnsSuffix"></param>
+        /// <param name="dnsServers"></param>
         public NetInterface(string name, PhysicalAddress macAddress,
             IPAddress unicastAddress, IPAddress subnetMask, IPAddress gateway,
             string dnsSuffix, IEnumerable<IPAddress> dnsServers) :

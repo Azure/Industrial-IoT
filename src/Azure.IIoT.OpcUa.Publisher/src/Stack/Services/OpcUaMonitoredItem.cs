@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// Monitored item
     /// </summary>
-    public class OpcUaMonitoredItem
+    public sealed class OpcUaMonitoredItem : IDisposable
     {
         /// <summary>
         /// Assigned monitored item id on server
@@ -78,6 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Property setter that gets indication if item is online or not.
         /// </summary>
+        /// <param name="online"></param>
         public void OnMonitoredItemStateChanged(bool online)
         {
             var conditionTimer = _conditionTimer;
@@ -114,6 +115,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Create wrapper
         /// </summary>
+        /// <param name="template"></param>
+        /// <param name="logger"></param>
         public OpcUaMonitoredItem(BaseMonitoredItemModel template, ILogger logger)
         {
             _logger = logger /*?.ForContext<OpcUaMonitoredItem>() TODO: USE LOGGERFACTORY HERE */ ??
@@ -167,7 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Template.Id);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string[]>.Default.GetHashCode(Template.RelativePath);
+                EqualityComparer<IReadOnlyList<string>>.Default.GetHashCode(Template.RelativePath);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Template.StartNodeId);
             hashCode = (hashCode * -1521134295) +
@@ -187,6 +190,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Create new stack monitored item
         /// </summary>
+        /// <param name="session"></param>
+        /// <param name="codec"></param>
         public void Create(ISession session, IVariantEncoder codec)
         {
             Create(session.MessageContext as ServiceMessageContext,
@@ -196,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Destructor for this class
         /// </summary>
-        public void Destroy()
+        public void Dispose()
         {
             Item.Handle = null;
             var conditionTimer = _conditionTimer;
@@ -242,6 +247,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Create new stack monitored item
         /// </summary>
+        /// <param name="messageContext"></param>
+        /// <param name="nodeCache"></param>
+        /// <param name="typeTree"></param>
+        /// <param name="codec"></param>
         public void Create(ServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
             IVariantEncoder codec)
         {
@@ -257,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 QueueSize = Template.QueueSize,
                 SamplingInterval = (int)Template.SamplingInterval.
                     GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
-                DiscardOldest = !(Template.DiscardNew ?? false),
+                DiscardOldest = !(Template.DiscardNew ?? false)
             };
 
             // Set filter
@@ -694,7 +703,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         DisplayName = Item.DisplayName,
                         NodeId = Template.StartNodeId,
                         AttributeId = Item.AttributeId,
-                        Value = new DataValue(Item.Status?.Error?.StatusCode ?? StatusCodes.BadMonitoredItemIdInvalid),
+                        Value = new DataValue(Item.Status?.Error?.StatusCode ?? StatusCodes.BadMonitoredItemIdInvalid)
                     });
                 foreach (var heartbeat in heartbeatValues)
                 {
@@ -1057,7 +1066,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     fields.Add(new FieldMetaData
                     {
                         Name = fieldName,
-                        DataSetFieldId = dataSetClassFieldId,
+                        DataSetFieldId = dataSetClassFieldId
                     });
                 }
             }

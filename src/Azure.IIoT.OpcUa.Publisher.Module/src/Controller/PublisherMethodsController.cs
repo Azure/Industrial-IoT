@@ -27,6 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// ctor
         /// </summary>
+        /// <param name="configServices"></param>
         public PublisherMethodsController(IPublisherConfigurationServices configServices)
         {
             _configServices = configServices ?? throw new ArgumentNullException(nameof(configServices));
@@ -88,6 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// Handler for PublishNodes direct method
         /// </summary>
+        /// <param name="request"></param>
         public async Task<PublishedNodesResponseModel> PublishNodesAsync(
             PublishedNodesEntryModel request)
         {
@@ -98,6 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// Handler for UnpublishNodes direct method
         /// </summary>
+        /// <param name="request"></param>
         public async Task<PublishedNodesResponseModel> UnpublishNodesAsync(
             PublishedNodesEntryModel request)
         {
@@ -108,6 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// Handler for UnpublishAllNodes direct method
         /// </summary>
+        /// <param name="request"></param>
         public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
             PublishedNodesEntryModel request)
         {
@@ -118,6 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// Handler for AddOrUpdateEndpoints direct method
         /// </summary>
+        /// <param name="request"></param>
         public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
             List<PublishedNodesEntryModel> request)
         {
@@ -134,13 +139,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
             var response = await _configServices.GetConfiguredEndpointsAsync().ConfigureAwait(false);
             return new GetConfiguredEndpointsResponseModel
             {
-                Endpoints = response,
+                Endpoints = response
             };
         }
 
         /// <summary>
         /// Handler for GetConfiguredNodesOnEndpoint direct method
         /// </summary>
+        /// <param name="request"></param>
         public async Task<GetConfiguredNodesOnEndpointResponseModel> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request)
         {
@@ -148,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
                 request).ConfigureAwait(false);
             return new GetConfiguredNodesOnEndpointResponseModel
             {
-                OpcNodes = response,
+                OpcNodes = response
             };
         }
 
@@ -163,6 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// Handler for GetInfo direct method
         /// </summary>
+        /// <exception cref="MethodCallStatusException"></exception>
         public async Task GetInfoAsync()
         {
             await Task.Delay(0).ConfigureAwait(false);
@@ -172,6 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// Handler for GetDiagnosticLog direct method - Discontinued
         /// </summary>
+        /// <exception cref="MethodCallStatusException"></exception>
         public async Task GetDiagnosticLogAsync()
         {
             await Task.Delay(0).ConfigureAwait(false);
@@ -181,6 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// Handler for GetDiagnosticStartupLog direct method - Discontinued
         /// </summary>
+        /// <exception cref="MethodCallStatusException"></exception>
         public async Task GetDiagnosticStartupLogAsync()
         {
             await Task.Delay(0).ConfigureAwait(false);
@@ -190,6 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// Handler for ExitApplication direct method - Discontinued
         /// </summary>
+        /// <exception cref="MethodCallStatusException"></exception>
         public async Task ExitApplicationAsync()
         {
             await Task.Delay(0).ConfigureAwait(false);

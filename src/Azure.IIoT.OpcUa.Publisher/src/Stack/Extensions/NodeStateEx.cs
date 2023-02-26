@@ -18,13 +18,13 @@ namespace Opc.Ua.Extensions
         /// Return value or update
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <typeparam name="R"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
         /// <param name="state"></param>
         /// <param name="convert"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static R? GetValueOrDefault<T, R>(this PropertyState<T> state,
-            Func<T?, R?> convert, T? defaultValue = default) where T : struct
+        public static TResult? GetValueOrDefault<T, TResult>(this PropertyState<T> state,
+            Func<T?, TResult?> convert, T? defaultValue = default) where T : struct
         {
             var result = GetValueOrDefault(state, defaultValue);
             return convert(result);
@@ -33,14 +33,14 @@ namespace Opc.Ua.Extensions
         /// <summary>
         /// Return value or update
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="R"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
         /// <param name="state"></param>
         /// <param name="convert"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static R? GetValueOrDefault<T, R>(this PropertyState<T> state,
-            Func<T?, R?> convert, T? defaultValue = null) where T : class
+        public static TResult? GetValueOrDefault<TValue, TResult>(this PropertyState<TValue> state,
+            Func<TValue?, TResult?> convert, TValue? defaultValue = null) where TValue : class
         {
             var result = GetValueOrDefault(state, defaultValue);
             return convert(result);

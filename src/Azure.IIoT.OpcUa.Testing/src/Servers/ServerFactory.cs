@@ -109,9 +109,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                                 Name = "Double",
                                 TagCount = 100,
                                 DataType = "Double"
-                            },
+                            }
                         }
-                    },
+                    }
+
 
                     /// ...
                 };
@@ -134,28 +135,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         {
                             StoreType = CertificateStoreType.Directory,
                             StorePath = $"{pkiRootPath}/own",
-                            SubjectName = "UA Core Sample Server",
+                            SubjectName = "UA Core Sample Server"
                         },
                         TrustedPeerCertificates = new CertificateTrustList
                         {
                             StoreType = CertificateStoreType.Directory,
-                            StorePath = $"{pkiRootPath}/trusted",
+                            StorePath = $"{pkiRootPath}/trusted"
                         },
                         TrustedIssuerCertificates = new CertificateTrustList
                         {
                             StoreType = CertificateStoreType.Directory,
-                            StorePath = $"{pkiRootPath}/issuer",
+                            StorePath = $"{pkiRootPath}/issuer"
                         },
                         RejectedCertificateStore = new CertificateTrustList
                         {
                             StoreType = CertificateStoreType.Directory,
-                            StorePath = $"{pkiRootPath}/rejected",
+                            StorePath = $"{pkiRootPath}/rejected"
                         },
                         MinimumCertificateKeySize = 1024,
                         RejectSHA1SignedCertificates = false,
                         AutoAcceptUntrustedCertificates = true,
                         AddAppCertToTrustedStore = true,
-                        RejectUnknownRevocationStatus = true,
+                        RejectUnknownRevocationStatus = true
                     },
                     TransportConfigurations = new TransportConfigurationCollection(),
                     TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),
@@ -186,11 +187,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         SecurityPolicies = new ServerSecurityPolicyCollection {
                             new ServerSecurityPolicy {
                                 SecurityMode = MessageSecurityMode.Sign,
-                                SecurityPolicyUri = SecurityPolicies.Basic256Sha256,
+                                SecurityPolicyUri = SecurityPolicies.Basic256Sha256
                             },
                             new ServerSecurityPolicy {
                                 SecurityMode = MessageSecurityMode.SignAndEncrypt,
-                                SecurityPolicyUri =SecurityPolicies.Basic256Sha256,
+                                SecurityPolicyUri =SecurityPolicies.Basic256Sha256
                             },
                             new ServerSecurityPolicy {
                                 SecurityMode = MessageSecurityMode.None,
@@ -200,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         UserTokenPolicies = new UserTokenPolicyCollection {
                             new UserTokenPolicy {
                                 TokenType = UserTokenType.Anonymous,
-                                SecurityPolicyUri = SecurityPolicies.None,
+                                SecurityPolicyUri = SecurityPolicies.None
                             },
                             new UserTokenPolicy {
                                 TokenType = UserTokenType.UserName
@@ -335,6 +336,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <summary>
             /// Continously log session status if not logged during events
             /// </summary>
+            /// <param name="ct"></param>
             /// <returns></returns>
             private async Task LogStatusAsync(CancellationToken ct)
             {
@@ -383,6 +385,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <summary>
             /// Creates the objects used to validate the user identity tokens supported by the server.
             /// </summary>
+            /// <param name="configuration"></param>
             private void CreateUserIdentityValidators(ApplicationConfiguration configuration)
             {
                 for (var ii = 0; ii < configuration.ServerConfiguration.UserTokenPolicies.Count; ii++)
@@ -443,6 +446,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <summary>
             /// Called when a client tries to change its user identity.
             /// </summary>
+            /// <param name="session"></param>
+            /// <param name="args"></param>
+            /// <exception cref="ArgumentNullException"><paramref name="session"/> is <c>null</c>.</exception>
+            /// <exception cref="ServiceResultException"></exception>
             private void SessionManager_ImpersonateUser(Session session,
                 ImpersonateEventArgs args)
             {
@@ -510,6 +517,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// Validates the token
             /// </summary>
             /// <param name="wssToken"></param>
+            /// <exception cref="ServiceResultException"></exception>
             private static bool VerifyToken(IssuedIdentityToken wssToken)
             {
                 if ((wssToken.TokenData?.Length ?? 0) == 0)
@@ -527,6 +535,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <summary>
             /// Validates the password for a username token.
             /// </summary>
+            /// <param name="userName"></param>
+            /// <param name="password"></param>
+            /// <exception cref="ServiceResultException"></exception>
             private static bool VerifyPassword(string userName, string password)
             {
                 if (string.IsNullOrEmpty(password))
@@ -553,6 +564,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <summary>
             /// Verifies that a certificate user token is trusted.
             /// </summary>
+            /// <param name="certificate"></param>
+            /// <exception cref="ServiceResultException"></exception>
             private bool VerifyCertificate(X509Certificate2 certificate)
             {
                 try

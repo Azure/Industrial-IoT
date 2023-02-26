@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryReadValues_V2", _serializer.SerializeToString(new
@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -95,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryReadModifiedValues_V2", _serializer.SerializeToString(new
@@ -117,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -125,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryReadValuesAtTimes_V2", _serializer.SerializeToString(new
@@ -147,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryReadProcessedValues_V2", _serializer.SerializeToString(new
@@ -176,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -184,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.ContinuationToken == null)
             {
-                throw new ArgumentNullException(nameof(request.ContinuationToken));
+                throw new ArgumentException("Continuation missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryReadValuesNext_V2", _serializer.SerializeToString(new
@@ -205,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -213,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryReplaceValues_V2", _serializer.SerializeToString(new
@@ -234,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -242,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryInsertValues_V2", _serializer.SerializeToString(new
@@ -263,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -271,7 +271,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryUpsertValues_V2", _serializer.SerializeToString(new
@@ -292,7 +292,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -300,7 +300,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryDeleteValues_V2", _serializer.SerializeToString(new
@@ -322,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -330,7 +330,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryDeleteModifiedValues_V2", _serializer.SerializeToString(new
@@ -352,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -360,7 +360,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryDeleteValuesAtTimes_V2", _serializer.SerializeToString(new
@@ -382,7 +382,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -390,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryReadEvents_V2", _serializer.SerializeToString(new
@@ -411,7 +411,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -419,7 +419,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.ContinuationToken == null)
             {
-                throw new ArgumentNullException(nameof(request.ContinuationToken));
+                throw new ArgumentException("Continuation missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryReadEventsNext_V2", _serializer.SerializeToString(new
@@ -440,7 +440,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -448,7 +448,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryReplaceEvents_V2", _serializer.SerializeToString(new
@@ -469,7 +469,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -477,7 +477,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryInsertEvents_V2", _serializer.SerializeToString(new
@@ -498,7 +498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -506,7 +506,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryUpsertEvents_V2", _serializer.SerializeToString(new
@@ -527,7 +527,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -535,7 +535,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (request.Details == null)
             {
-                throw new ArgumentNullException(nameof(request.Details));
+                throw new ArgumentException("Details missing.", nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryDeleteEvents_V2", _serializer.SerializeToString(new

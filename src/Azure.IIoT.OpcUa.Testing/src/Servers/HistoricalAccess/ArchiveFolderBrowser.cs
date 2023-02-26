@@ -127,37 +127,31 @@ namespace HistoricalAccess
                 }
 
                 // enumerate items.
-                if (_stage == Stage.Items)
+                if (_stage == Stage.Items && IsRequired(ReferenceTypeIds.Organizes, false))
                 {
-                    if (IsRequired(ReferenceTypeIds.Organizes, false))
+                    reference = NextChild();
+
+                    if (reference != null)
                     {
-                        reference = NextChild();
-
-                        if (reference != null)
-                        {
-                            return reference;
-                        }
-
-                        _stage = Stage.Parents;
-                        _position = 0;
+                        return reference;
                     }
+
+                    _stage = Stage.Parents;
+                    _position = 0;
                 }
 
                 // enumerate parents.
-                if (_stage == Stage.Parents)
+                if (_stage == Stage.Parents && IsRequired(ReferenceTypeIds.Organizes, true))
                 {
-                    if (IsRequired(ReferenceTypeIds.Organizes, true))
+                    reference = NextChild();
+
+                    if (reference != null)
                     {
-                        reference = NextChild();
-
-                        if (reference != null)
-                        {
-                            return reference;
-                        }
-
-                        _stage = Stage.Done;
-                        _position = 0;
+                        return reference;
                     }
+
+                    _stage = Stage.Done;
+                    _position = 0;
                 }
 
                 // all done.

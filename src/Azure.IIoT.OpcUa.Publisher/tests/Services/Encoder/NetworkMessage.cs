@@ -139,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                         SequenceNumber = i,
                         PublisherId = publisherId,
                         Writer = writer,
-                        WriterGroup = writerGroup,
+                        WriterGroup = writerGroup
                     },
                     Timestamp = DateTime.UtcNow,
                     MetaData = null,

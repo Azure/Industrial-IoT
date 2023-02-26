@@ -71,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 ResultDetails = new Dictionary<string, string>
                 {
                     ["exception"] = ex.ToString()
-                },
+                }
             });
         }
 

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Models
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
@@ -20,6 +21,6 @@ namespace Azure.IIoT.OpcUa.Models
         /// </summary>
         [DataMember(Name = "reqTimes", Order = 0)]
         [Required]
-        public DateTime[]? ReqTimes { get; set; }
+        public IReadOnlyList<DateTime>? ReqTimes { get; set; }
     }
 }

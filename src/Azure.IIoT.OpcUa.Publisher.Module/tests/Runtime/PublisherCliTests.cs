@@ -24,6 +24,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// <summary>
         /// ValidOptionTest
         /// </summary>
+        /// <param name="expected"></param>
+        /// <param name="param"></param>
         [Theory]
         [InlineData("testValue", new string[] { "-dc", "testValue" })]
         [InlineData("testValue", new string[] { "--dc", "testValue" })]
@@ -46,6 +48,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// <summary>
         /// Valid boolean option test
         /// </summary>
+        /// <param name="expected"></param>
+        /// <param name="param"></param>
         [Theory]
         [InlineData("True", new string[] { "-aa" })]
         [InlineData("True", new string[] { "--aa" })]
@@ -78,6 +82,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// <summary>
         /// LegacyOptionTest
         /// </summary>
+        /// <param name="cliOption"></param>
+        /// <param name="param"></param>
         [Theory]
         [InlineData("tc|telemetryconfigfile", new string[] { "-tc", "testValue" })]
         [InlineData("tc|telemetryconfigfile", new string[] { "--tc", "testValue" })]
@@ -99,6 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// <summary>
         /// UnsupportedOptionTest
         /// </summary>
+        /// <param name="param"></param>
         [Theory]
         [InlineData("-xx")]
         [InlineData("--xx")]
@@ -126,6 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// <summary>
         /// MissingOptionParameterTest
         /// </summary>
+        /// <param name="param"></param>
         [Theory]
         [InlineData("-dc")]
         [InlineData("--dc")]
@@ -144,6 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// <summary>
         /// HelpOptionParameterTest
         /// </summary>
+        /// <param name="param"></param>
         [Theory]
         [InlineData(new object[] { new string[] { "-h" } })]
         [InlineData(new object[] { new string[] { "--h" } })]

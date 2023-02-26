@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
+        /// <param name="serializer"></param>
         public ControllerTestClient(IHttpClientFactory httpClient, IServiceApiConfig config,
             ISerializer serializer)
         {

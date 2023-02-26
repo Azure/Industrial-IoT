@@ -393,6 +393,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// </summary>
         /// <param name="mock"></param>
         /// <param name="registry"></param>
+        /// <param name="processor"></param>
         private static AutoMock Setup(IoTHubServices registry, out IDiscoveryResultProcessor processor)
         {
             var mock = AutoMock.GetLoose(builder =>
@@ -443,6 +444,9 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// </summary>
         /// <param name="site"></param>
         /// <param name="discoverer"></param>
+        /// <param name="supervisor"></param>
+        /// <param name="publisher"></param>
+        /// <param name="gateway"></param>
         /// <param name="existing"></param>
         /// <param name="found"></param>
         /// <param name="registry"></param>

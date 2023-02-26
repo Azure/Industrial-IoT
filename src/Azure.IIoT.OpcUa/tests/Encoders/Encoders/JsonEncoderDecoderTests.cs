@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ["1111111111111111111111111"] = new DataValue(new Variant(false), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
                 ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
                 ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
-                ["..."] = new DataValue(new Variant("imbricated")),
+                ["..."] = new DataValue(new Variant("imbricated"))
             };
 
             const int count = 10000;

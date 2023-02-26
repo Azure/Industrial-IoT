@@ -49,7 +49,7 @@ namespace Microsoft.OpenApi.Models
                 .Cast<ControllerActionDescriptor>()
                 .SelectMany(d => d.GetApiVersions())
                 .Distinct()
-                .ToList(); ;
+                .ToList(); 
             if (versions.Count == 0)
             {
                 versions.Add("1");
@@ -61,7 +61,7 @@ namespace Microsoft.OpenApi.Models
                 Version = "v" + version,
                 Contact = new OpenApiContact
                 {
-                    Url = new Uri("https://www.github.com/Azure/Industrial-IoT"),
+                    Url = new Uri("https://www.github.com/Azure/Industrial-IoT")
                 },
                 License = new OpenApiLicense()
                 {

@@ -165,6 +165,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub
         /// <summary>
         /// Helper to get connection string and validate configuration
         /// </summary>
+        /// <exception cref="InvalidConfigurationException"></exception>
         private string GetEventHubConnectionString()
         {
             if (!string.IsNullOrEmpty(_hub.EventHubConnString))

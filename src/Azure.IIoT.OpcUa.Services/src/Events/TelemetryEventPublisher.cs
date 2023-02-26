@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients
     /// <summary>
     /// Telemetry message publishing
     /// </summary>
+    /// <typeparam name="THub"></typeparam>
     public sealed class TelemetryEventPublisher<THub> : ISubscriberMessageProcessor
     {
         /// <summary>

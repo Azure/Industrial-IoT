@@ -240,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR
                 SiteId = "TestSigfsdfg  ff",
                 ApplicationType = ApplicationType.Client,
                 NotSeenSince = DateTime.UtcNow,
-                Capabilities = new HashSet<string> { "ag", "sadf", "" },
+                Capabilities = new HashSet<string> { "ag", "sadf", "" }
             };
             var result = new TaskCompletionSource<ApplicationEventModel>();
             await using (await client.SubscribeApplicationEventsAsync(ev =>
@@ -277,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR
                 SiteId = "TestSigfsdfg  ff",
                 ApplicationType = ApplicationType.Client,
                 NotSeenSince = DateTime.UtcNow,
-                Capabilities = new HashSet<string> { "ag", "sadf", "" },
+                Capabilities = new HashSet<string> { "ag", "sadf", "" }
             };
             var result = new TaskCompletionSource<bool>();
             var counter = 0;
@@ -374,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR
 
             var expected = new GatewayModel
             {
-                SiteId = "TestSigfsdfg  ff",
+                SiteId = "TestSigfsdfg  ff"
             };
             var result = new TaskCompletionSource<GatewayEventModel>();
             await using (await client.SubscribeGatewayEventsAsync(ev =>
@@ -404,7 +404,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR
 
             var expected = new GatewayModel
             {
-                SiteId = "TestSigfsdfg  ff",
+                SiteId = "TestSigfsdfg  ff"
             };
             var result = new TaskCompletionSource<bool>();
             var counter = 0;

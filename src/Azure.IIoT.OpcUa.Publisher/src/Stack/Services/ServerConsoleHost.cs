@@ -118,6 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="ports"></param>
         /// <param name="pkiRootPath"></param>
         /// <returns></returns>
+        /// <exception cref="InvalidConfigurationException"></exception>
         private async Task StartServerInternalAsync(IEnumerable<int> ports, string pkiRootPath)
         {
             ApplicationInstance.MessageDlg = new DummyDialog();

@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     /// <summary>
     /// Server discovery result handling
     /// </summary>
-    public sealed class DiscoveryResultHandler : IDeviceTelemetryHandler
+    public sealed class DiscoveryResultHandler : IDeviceTelemetryHandler, IDisposable
     {
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.DiscoveryEvents;
@@ -114,6 +114,12 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
             {
                 _queueLock.Release();
             }
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            _queueLock.Dispose();
         }
 
         /// <summary>
@@ -219,6 +225,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
             /// <summary>
             /// Create queue
             /// </summary>
+            /// <param name="checkpoint"></param>
             public DiscovererDiscoveryResult(Func<Task> checkpoint)
             {
                 Checkpoint = checkpoint;

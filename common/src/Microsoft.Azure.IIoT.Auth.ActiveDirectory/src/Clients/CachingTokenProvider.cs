@@ -62,6 +62,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         /// <summary>
         /// Helper to get token from cache
         /// </summary>
+        /// <param name="resource"></param>
+        /// <param name="scopes"></param>
         /// <returns></returns>
         private async Task<TokenResultModel> GetTokenFromCacheAsync(string resource,
             IEnumerable<string> scopes)

@@ -201,6 +201,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
         /// <summary>
         /// Close connection
         /// </summary>
+        /// <param name="connection"></param>
         /// <returns></returns>
         private static async Task DisposeAsync(HubConnection connection)
         {

@@ -381,6 +381,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// </summary>
         /// <param name="nodeClass"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         private static int NodeClassId(NodeClass nodeClass)
         {
             switch (nodeClass)

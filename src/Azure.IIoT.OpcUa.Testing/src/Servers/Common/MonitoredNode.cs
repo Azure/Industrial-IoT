@@ -42,6 +42,9 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Initializes the instance with the context for the node being monitored.
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="nodeManager"></param>
+        /// <param name="node"></param>
         public MonitoredNode(
             IServerInternal server,
             INodeManager nodeManager,
@@ -72,6 +75,7 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Whether the node has any active monitored items for the specified attribute.
         /// </summary>
+        /// <param name="attributeId"></param>
         public bool IsMonitoringRequired(uint attributeId)
         {
             if (m_monitoredItems != null)
@@ -205,6 +209,7 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Deletes the monitored item.
         /// </summary>
+        /// <param name="monitoredItem"></param>
         public void DeleteItem(IMonitoredItem monitoredItem)
         {
             if (m_monitoredItems != null)
@@ -262,6 +267,8 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Subscribes to events produced by the node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="eventSubscription"></param>
         public void SubscribeToEvents(ISystemContext context, IEventMonitoredItem eventSubscription)
         {
             m_eventSubscriptions ??= new List<IEventMonitoredItem>();
@@ -286,6 +293,8 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Unsubscribes to events produced by the node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="eventSubscription"></param>
         public void UnsubscribeToEvents(ISystemContext context, IEventMonitoredItem eventSubscription)
         {
             if (m_eventSubscriptions != null)

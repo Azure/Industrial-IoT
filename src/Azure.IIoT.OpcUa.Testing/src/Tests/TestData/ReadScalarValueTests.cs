@@ -19,6 +19,9 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         /// <summary>
         /// Create node services tests
         /// </summary>
+        /// <param name="services"></param>
+        /// <param name="connection"></param>
+        /// <param name="readExpected"></param>
         public ReadScalarValueTests(Func<INodeServices<T>> services, T connection,
             Func<T, string, IJsonSerializer, Task<VariantValue>> readExpected)
         {

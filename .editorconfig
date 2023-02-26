@@ -345,7 +345,7 @@ dotnet_diagnostic.IDE0010.severity = silent
 dotnet_diagnostic.IDE0072.severity = silent
 
 # RCS1138: Add summary to documentation comment.
-dotnet_diagnostic.RCS1138.severity = silent
+dotnet_diagnostic.RCS1138.severity = suggestion
 # RCS1163: Unused parameter
 dotnet_diagnostic.RCS1163.severity = silent
 # RCS1180: Inline lazy initialization
@@ -396,7 +396,7 @@ dotnet_diagnostic.CA1054.severity = silent
 dotnet_diagnostic.CA1309.severity=suggestion
 # CA1810: Initialize reference type static fields inline
 dotnet_diagnostic.CA1810.severity = none
-dotnet_diagnostic.CA1032.severity=silent
+dotnet_diagnostic.CA1032.severity= silent
 dotnet_diagnostic.CA1304.severity=suggestion
 dotnet_diagnostic.CA1305.severity=suggestion
 dotnet_diagnostic.CA1307.severity=suggestion
@@ -428,6 +428,40 @@ dotnet_diagnostic.CA2009.severity = warning
 dotnet_analyzer_diagnostic.category-Style.severity = silent
 dotnet_code_quality_unused_parameters = all:suggestion
 dotnet_diagnostic.RCS1090.severity = warning
+dotnet_diagnostic.xUnit2001.severity = suggestion
+dotnet_diagnostic.CA1001.severity = warning
+dotnet_diagnostic.CA1311.severity = suggestion
+dotnet_diagnostic.RCS1035.severity = suggestion
+dotnet_diagnostic.RCS1034.severity = suggestion
+dotnet_diagnostic.RCS1040.severity = suggestion
+dotnet_diagnostic.RCS1042.severity = suggestion
+dotnet_diagnostic.RCS1043.severity = suggestion
+dotnet_diagnostic.RCS1061.severity = suggestion
+dotnet_diagnostic.RCS1066.severity = suggestion
+dotnet_diagnostic.RCS1069.severity = suggestion
+dotnet_diagnostic.RCS1071.severity = suggestion
+dotnet_diagnostic.RCS1091.severity = suggestion
+dotnet_diagnostic.RCS1124.severity = suggestion
+dotnet_diagnostic.RCS1129.severity = suggestion
+dotnet_diagnostic.RCS1136.severity = suggestion
+dotnet_diagnostic.RCS1141.severity = suggestion
+dotnet_diagnostic.RCS1140.severity = suggestion
+dotnet_diagnostic.RCS1142.severity = suggestion
+dotnet_diagnostic.RCS1145.severity = suggestion
+dotnet_diagnostic.RCS1143.severity = suggestion
+dotnet_diagnostic.RCS1151.severity = suggestion
+dotnet_diagnostic.RCS1165.severity = suggestion
+dotnet_diagnostic.RCS1188.severity = suggestion
+dotnet_diagnostic.RCS1181.severity = suggestion
+dotnet_diagnostic.RCS1182.severity = suggestion
+dotnet_diagnostic.RCS1201.severity = suggestion
+dotnet_diagnostic.RCS1211.severity = suggestion
+dotnet_diagnostic.RCS1228.severity = silent
+dotnet_diagnostic.RCS1229.severity = warning
+dotnet_diagnostic.RCS1244.severity = suggestion
+
+# xUnit1033: Test classes decorated with 'Xunit.IClassFixture<TFixture>' or 'Xunit.ICollectionFixture<TFixture>' should add a constructor argument of type TFixture
+dotnet_diagnostic.xUnit1033.severity = silent
 
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion
@@ -440,3 +474,19 @@ indent_size = 4
 end_of_line = crlf
 dotnet_style_object_initializer = true:suggestion
 dotnet_diagnostic.CA2007.severity = warning
+dotnet_diagnostic.CA1848.severity = silent
+dotnet_diagnostic.CA1036.severity = suggestion
+dotnet_diagnostic.CA1051.severity = silent
+dotnet_diagnostic.CA1711.severity = silent
+dotnet_diagnostic.CA1819.severity = suggestion
+dotnet_diagnostic.CA3061.severity = suggestion
+dotnet_diagnostic.CA3075.severity = suggestion
+dotnet_diagnostic.CA3076.severity = suggestion
+dotnet_diagnostic.CA3077.severity = suggestion
+dotnet_diagnostic.CA3147.severity = suggestion
+dotnet_diagnostic.CA5369.severity = suggestion
+dotnet_diagnostic.CA5371.severity = suggestion
+dotnet_diagnostic.CA5370.severity = suggestion
+dotnet_diagnostic.CA5372.severity = suggestion
+dotnet_diagnostic.CA5374.severity = warning
+dotnet_diagnostic.CA2251.severity = suggestion

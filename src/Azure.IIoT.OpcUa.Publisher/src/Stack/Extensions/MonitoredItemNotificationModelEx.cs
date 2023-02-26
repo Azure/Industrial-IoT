@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 AttributeId = model.AttributeId,
                 Value = dataValue ?? model.Value, // Not cloning, should be immutable
                 SequenceNumber = sequenceNumber ?? model.SequenceNumber,
-                IsHeartbeat = model.IsHeartbeat,
+                IsHeartbeat = model.IsHeartbeat
             };
         }
 
@@ -132,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                         AttributeId = monitoredItem.AttributeId,
                         Value = new DataValue(eventFieldList.EventFields[i]),
                         SequenceNumber = sequenceNumber,
-                        IsHeartbeat = false,
+                        IsHeartbeat = false
                     };
                 }
             }

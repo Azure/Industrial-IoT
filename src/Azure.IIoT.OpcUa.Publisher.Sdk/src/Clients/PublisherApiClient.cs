@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -110,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {
@@ -135,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             }
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             if (request == null)
             {

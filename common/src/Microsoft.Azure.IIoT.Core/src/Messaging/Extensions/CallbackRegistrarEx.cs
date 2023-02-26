@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Messaging
         /// <summary>
         /// Register action
         /// </summary>
+        /// <typeparam name="T0"></typeparam>
         /// <param name="registrar"></param>
         /// <param name="method"></param>
         /// <param name="action"></param>

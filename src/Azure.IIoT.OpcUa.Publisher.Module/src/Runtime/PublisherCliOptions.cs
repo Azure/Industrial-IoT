@@ -353,7 +353,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { "vc|verboseconsole=", "Legacy - do not use.", _ => legacyOptions.Add("vc|verboseconsole"), true },
                 { "as|autotrustservercerts=", "Legacy - do not use.", _ => legacyOptions.Add("as|autotrustservercerts"), true },
                 { "l|lf|logfile=", "Legacy - do not use.", _ => legacyOptions.Add("l|lf|logfile"), true },
-                { "lt|logflushtimespan=", "Legacy - do not use.", _ => legacyOptions.Add("lt|logflushtimespan"), true },
+                { "lt|logflushtimespan=", "Legacy - do not use.", _ => legacyOptions.Add("lt|logflushtimespan"), true }
             };
 
             try
@@ -548,6 +548,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Call exit with exit code
         /// </summary>
+        /// <param name="exitCode"></param>
         public virtual void ExitProcess(int exitCode)
         {
             Environment.Exit(exitCode);
@@ -565,6 +566,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Write a log event with the Warning level.
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="messageTemplate">Message template describing the event.</param>
         /// <param name="propertyValue">Object positionally formatted into the message template.</param>
         public virtual void Warning<T>(string messageTemplate, T propertyValue)
@@ -575,6 +577,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Write a log event with the Debug level.
         /// </summary>
+        /// <typeparam name="T0"></typeparam>
+        /// <typeparam name="T1"></typeparam>
+        /// <param name="messageTemplate"></param>
+        /// <param name="propertyValue0"></param>
+        /// <param name="propertyValue1"></param>
         public virtual void Debug<T0, T1>(string messageTemplate, T0 propertyValue0, T1 propertyValue1)
         {
             _logger.LogDebug(messageTemplate, propertyValue0, propertyValue1);

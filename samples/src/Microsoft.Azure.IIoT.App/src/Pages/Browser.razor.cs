@@ -118,6 +118,7 @@ namespace Microsoft.Azure.IIoT.App.Pages
         /// </summary>
         /// <param name="id"></param>
         /// <param name="parentId"></param>
+        /// <param name="index"></param>
         private async Task GetTreeBackAsync(string id, List<string> parentId, int index)
         {
             await BrowseTreeAsync(BrowseDirection.Backward, index, true, FirstPage, id, parentId).ConfigureAwait(false);
@@ -128,6 +129,9 @@ namespace Microsoft.Azure.IIoT.App.Pages
         /// Browse the tree nodes
         /// </summary>
         /// <param name="direction"></param>
+        /// <param name="index"></param>
+        /// <param name="firstPage"></param>
+        /// <param name="page"></param>
         /// <param name="id"></param>
         /// <param name="parentId"></param>
         private async Task BrowseTreeAsync(BrowseDirection direction, int index,
@@ -250,6 +254,7 @@ namespace Microsoft.Azure.IIoT.App.Pages
         /// Open the Drawer
         /// </summary>
         /// <param name="node"></param>
+        /// <param name="type"></param>
         private void OpenDrawer(ListNode node, Drawer type)
         {
             IsOpen = true;
@@ -289,6 +294,7 @@ namespace Microsoft.Azure.IIoT.App.Pages
         /// <summary>
         /// ClickHandler
         /// </summary>
+        /// <param name="node"></param>
         private async Task ClickHandlerAsync(ListNode node)
         {
             CloseDrawer();
@@ -309,6 +315,7 @@ namespace Microsoft.Azure.IIoT.App.Pages
         /// <summary>
         /// Get Item stored in session storage
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         private async Task<T> GetSecureItemAsync<T>(string key)
         {

@@ -21,9 +21,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Read value
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="client"></param>
         /// <param name="connection"></param>
         /// <param name="readNode"></param>
+        /// <param name="serializer"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static Task<VariantValue> ReadValueAsync<T>(this ISessionProvider<T> client,
             T connection, string readNode, IJsonSerializer serializer, CancellationToken ct = default)

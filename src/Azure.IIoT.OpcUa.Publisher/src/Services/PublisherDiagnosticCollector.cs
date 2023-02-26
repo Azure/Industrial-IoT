@@ -29,6 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create collector
         /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="config"></param>
         public PublisherDiagnosticCollector(ILogger logger, IEngineConfiguration config = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -162,6 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Diagnostics timer
         /// </summary>
+        /// <param name="state"></param>
         private void DiagnosticsOutputTimer_Elapsed(object state)
         {
             var now = DateTime.UtcNow;
@@ -301,7 +304,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_is_connection_ok"] =
                     (d, i) => d.OpcEndpointConnected = ((int)i) != 0,
                 ["iiot_edge_publisher_connection_retries"] =
-                    (d, i) => d.ConnectionRetries = (long)i,
+                    (d, i) => d.ConnectionRetries = (long)i
+
                 // ... Add here more items if needed
             };
     }

@@ -30,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// <summary>
         /// Set exit code
         /// </summary>
+        /// <param name="exitCode"></param>
         public override void ExitProcess(int exitCode)
         {
             ExitCode = exitCode;

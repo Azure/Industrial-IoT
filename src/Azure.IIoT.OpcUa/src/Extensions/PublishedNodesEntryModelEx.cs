@@ -17,6 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// <summary>
         /// Validates if the entry has same group as the model
         /// </summary>
+        /// <param name="model"></param>
+        /// <param name="that"></param>
         public static bool HasSameGroup(this PublishedNodesEntryModel model,
             PublishedNodesEntryModel that)
         {
@@ -147,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 NodeId = null,
                 EncryptedAuthPassword = null,
                 OpcAuthenticationPassword = null,
-                OpcNodes = null,
+                OpcNodes = null
             };
         }
 
@@ -155,6 +157,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// Validates if the entry has same data set definition as the model.
         /// Comarison excludes OpcNodes.
         /// </summary>
+        /// <param name="model"></param>
+        /// <param name="that"></param>
         public static bool HasSameDataSet(this PublishedNodesEntryModel model,
             PublishedNodesEntryModel that)
         {
@@ -199,6 +203,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// <summary>
         /// Retrieves the timespan flavor of a PublishedNodesEntryModel's DataSetPublishingInterval
         /// </summary>
+        /// <param name="model"></param>
+        /// <param name="defaultPublishingTimespan"></param>
         public static TimeSpan? GetNormalizedDataSetPublishingInterval(
             this PublishedNodesEntryModel model, TimeSpan? defaultPublishingTimespan = null)
         {
@@ -210,6 +216,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// Promote the default publishing interval of the model to all of
         /// its nodes to support apples to apples comparison.
         /// </summary>
+        /// <param name="model"></param>
         public static PublishedNodesEntryModel PropagatePublishingIntervalToNodes(
             this PublishedNodesEntryModel model)
         {

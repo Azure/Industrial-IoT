@@ -505,6 +505,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Invokes the AddNodes service using async Task based request.
         /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="nodesToAdd"></param>
+        /// <param name="ct"></param>
         public async Task<AddNodesResponse> AddNodesAsync(
             RequestHeader requestHeader, AddNodesItemCollection nodesToAdd,
             CancellationToken ct)
@@ -528,6 +531,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Invokes the AddReferences service using async Task based request.
         /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="referencesToAdd"></param>
+        /// <param name="ct"></param>
         public async Task<AddReferencesResponse> AddReferencesAsync(
             RequestHeader requestHeader, AddReferencesItemCollection referencesToAdd,
             CancellationToken ct)
@@ -551,6 +557,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Invokes the DeleteNodes service using async Task based request.
         /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="nodesToDelete"></param>
+        /// <param name="ct"></param>
         public async Task<DeleteNodesResponse> DeleteNodesAsync(
             RequestHeader requestHeader, DeleteNodesItemCollection nodesToDelete,
             CancellationToken ct)
@@ -574,6 +583,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Invokes the DeleteReferences service using async Task based request.
         /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="referencesToDelete"></param>
+        /// <param name="ct"></param>
         public async Task<DeleteReferencesResponse> DeleteReferencesAsync(
             RequestHeader requestHeader, DeleteReferencesItemCollection referencesToDelete,
             CancellationToken ct)
@@ -629,6 +641,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Invokes the BrowseNext service using async Task based request.
         /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="releaseContinuationPoints"></param>
+        /// <param name="continuationPoints"></param>
+        /// <param name="ct"></param>
         public async Task<BrowseNextResponse> BrowseNextAsync(
             RequestHeader requestHeader, bool releaseContinuationPoints,
             ByteStringCollection continuationPoints, CancellationToken ct)
@@ -707,6 +723,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Invokes the UnregisterNodes service using async Task based request.
         /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="nodesToUnregister"></param>
+        /// <param name="ct"></param>
         public async Task<UnregisterNodesResponse> UnregisterNodesAsync(
             RequestHeader requestHeader, NodeIdCollection nodesToUnregister,
             CancellationToken ct)
@@ -730,6 +749,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Invokes the QueryFirst service using async Task based request.
         /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="view"></param>
+        /// <param name="nodeTypes"></param>
+        /// <param name="filter"></param>
+        /// <param name="maxDataSetsToReturn"></param>
+        /// <param name="maxReferencesToReturn"></param>
+        /// <param name="ct"></param>
         public async Task<QueryFirstResponse> QueryFirstAsync(
             RequestHeader requestHeader, ViewDescription view,
             NodeTypeDescriptionCollection nodeTypes, ContentFilter filter,
@@ -759,6 +785,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Invokes the QueryNext service using async Task based request.
         /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="releaseContinuationPoint"></param>
+        /// <param name="continuationPoint"></param>
+        /// <param name="ct"></param>
         public async Task<QueryNextResponse> QueryNextAsync(
             RequestHeader requestHeader, bool releaseContinuationPoint,
             byte[] continuationPoint, CancellationToken ct)
@@ -973,7 +1003,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     .Select(n => new ReadValueId
                     {
                         NodeId = n,
-                        AttributeId = Attributes.Value,
+                        AttributeId = Attributes.Value
                     }));
                 var response = await session.ReadAsync(header, 0,
                     Opc.Ua.TimestampsToReturn.Both, requests, ct).ConfigureAwait(false);
@@ -1034,6 +1064,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Read the server capabilities if available
         /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         private async Task<ServerCapabilitiesModel?> FetchServerCapabilitiesAsync(
@@ -1097,13 +1129,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     config.ServerProfileArray.GetValueOrDefault(
                         v => v == null || v.Length == 0 ? null : v),
                 AggregateFunctions =
-                    aggregateFunctions.Count == 0 ? null : aggregateFunctions,
+                    aggregateFunctions.Count == 0 ? null : aggregateFunctions
             };
         }
 
         /// <summary>
         /// Read the history server capabilities if available
         /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         private async Task<HistoryServerCapabilitiesModel?> FetchHistoryCapabilitiesAsync(
@@ -1214,13 +1248,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ServerTimestampSupported =
                     config.ServerTimestampSupported.GetValueOrDefault(),
                 AggregateFunctions = aggregateFunctions == null ||
-                    aggregateFunctions.Count == 0 ? null : aggregateFunctions,
+                    aggregateFunctions.Count == 0 ? null : aggregateFunctions
             };
         }
 
         /// <summary>
         /// Handles a keep alive event from a session and triggers a reconnect if necessary.
         /// </summary>
+        /// <param name="session"></param>
+        /// <param name="e"></param>
         private void Session_KeepAlive(ISession session, KeepAliveEventArgs e)
         {
             try
@@ -1280,6 +1316,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Called when the reconnect attempt was successful.
         /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Client_ReconnectComplete(object? sender, EventArgs e)
         {
             // ignore callbacks from discarded objects.
@@ -1370,6 +1408,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Unset and dispose existing session
         /// </summary>
+        /// <param name="noDispose"></param>
         private void UnsetSession(bool noDispose = false)
         {
             var session = _session;

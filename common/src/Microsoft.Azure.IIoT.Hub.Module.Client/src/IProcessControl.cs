@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
         /// <summary>
         /// Exit the process
         /// </summary>
+        /// <param name="exitCode"></param>
         void Exit(int exitCode);
     }
 }

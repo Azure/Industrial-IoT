@@ -62,6 +62,7 @@ namespace System
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static byte[] DecodeAsBase16(this string str)
         {
             if (str == null)

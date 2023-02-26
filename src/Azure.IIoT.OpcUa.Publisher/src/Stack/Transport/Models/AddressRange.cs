@@ -233,6 +233,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static IEnumerable<AddressRange> Parse(string value)
         {
             if (string.IsNullOrEmpty(value))

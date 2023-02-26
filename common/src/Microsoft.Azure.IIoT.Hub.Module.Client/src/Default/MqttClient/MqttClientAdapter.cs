@@ -290,7 +290,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
                         result = new Twin
                         {
                             Properties = JsonConvert.DeserializeObject<TwinProperties>(
-                                Encoding.UTF8.GetString(_responses[requestId].Payload)),
+                                Encoding.UTF8.GetString(_responses[requestId].Payload))
                         };
                         break;
                     }
@@ -482,6 +482,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         /// <summary>
         /// Subscribe to all required topics
         /// </summary>
+        /// <param name="options"></param>
         /// <returns></returns>
         private async Task StartAsync(ManagedMqttClientOptions options)
         {

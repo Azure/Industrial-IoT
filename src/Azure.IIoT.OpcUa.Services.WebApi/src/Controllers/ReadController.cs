@@ -45,6 +45,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read request</param>
         /// <returns>The historic events</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/events")]
         public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
             string endpointId,
@@ -68,6 +69,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read next request</param>
         /// <returns>The historic events</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/events/next")]
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
             string endpointId,
@@ -91,6 +93,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/values")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
             string endpointId,
@@ -114,6 +117,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/values/pick")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
             string endpointId,
@@ -137,6 +141,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/values/processed")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
             string endpointId,
@@ -160,6 +165,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/values/modified")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
             string endpointId,
@@ -183,6 +189,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history read next request</param>
         /// <returns>The historic values</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/values/next")]
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValueNextAsync(
             string endpointId,

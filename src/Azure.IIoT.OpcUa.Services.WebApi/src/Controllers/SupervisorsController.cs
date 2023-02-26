@@ -67,6 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="supervisorId">supervisor identifier</param>
         /// <param name="request">Patch request</param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPatch("{supervisorId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateSupervisorAsync(string supervisorId,
@@ -134,6 +135,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// available</param>
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Supervisors</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
         [HttpPost("query")]
         public async Task<SupervisorListModel> QuerySupervisorsAsync(
             [FromBody][Required] SupervisorQueryModel query,
@@ -173,6 +175,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// available</param>
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Supervisors</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
         [HttpGet("query")]
         public async Task<SupervisorListModel> GetFilteredListOfSupervisorsAsync(
             [FromQuery][Required] SupervisorQueryModel query,

@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Models
                 NetworkProbeTimeout = model.NetworkProbeTimeout <= TimeSpan.Zero ?
                     null : model.NetworkProbeTimeout,
                 PortProbeTimeout = model.PortProbeTimeout <= TimeSpan.Zero ?
-                    null : model.PortProbeTimeout,
+                    null : model.PortProbeTimeout
             };
         }
     }

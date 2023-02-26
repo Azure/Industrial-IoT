@@ -48,6 +48,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The publish request</param>
         /// <returns>The publish response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/start")]
         public async Task<PublishStartResponseModel> StartPublishingValuesAsync(
             string endpointId, [FromBody][Required] PublishStartRequestModel request)
@@ -70,6 +71,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of an activated endpoint.</param>
         /// <param name="request">The bulk publish request</param>
         /// <returns>The bulk publish response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/bulk")]
         public async Task<PublishBulkResponseModel> BulkPublishValuesAsync(
             string endpointId, [FromBody][Required] PublishBulkRequestModel request)
@@ -93,6 +95,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The unpublish request</param>
         /// <returns>The unpublish response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/stop")]
         public async Task<PublishStopResponseModel> StopPublishingValuesAsync(
             string endpointId, [FromBody][Required] PublishStopRequestModel request)
@@ -116,6 +119,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The list request</param>
         /// <returns>The list of published nodes</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}")]
         public async Task<PublishedItemListResponseModel> GetFirstListOfPublishedNodesAsync(
             string endpointId, [FromBody][Required] PublishedItemListRequestModel request)

@@ -1637,6 +1637,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="dimensions"></param>
         /// <param name="type"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         private Variant ReadVariantMatrixBody(JArray array, int[] dimensions,
             BuiltInType type)
         {
@@ -1663,6 +1664,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="target"></param>
         /// <param name="index"></param>
         /// <param name="type"></param>
+        /// <exception cref="ServiceResultException"></exception>
         private void CopyToMatrixFlatArray(JArray array, Array target, ref int index,
             BuiltInType type)
         {
@@ -1891,6 +1893,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Read built in type value
         /// </summary>
+        /// <param name="property"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
         private bool TryReadBuiltInType(string? property, out BuiltInType type)
         {
@@ -1917,6 +1921,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Read encoding value
         /// </summary>
+        /// <param name="property"></param>
         /// <returns></returns>
         private ExtensionObjectEncoding ReadEncoding(string? property)
         {
@@ -2027,6 +2032,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="property"></param>
         /// <param name="token"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         internal bool TryGetToken(string? property, [NotNullWhen(true)] out JToken? token)
         {
             JToken? top;
@@ -2121,6 +2127,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="fieldName"></param>
         /// <param name="array"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         private bool ReadArrayField(string? fieldName,
             [NotNullWhen(true)] out List<object>? array)
         {
@@ -2153,6 +2160,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Read the Matrix part (simple array or array of arrays)
         /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="currentArray"></param>
+        /// <param name="builtInType"></param>
+        /// <param name="elements"></param>
+        /// <param name="dimensions"></param>
+        /// <param name="level"></param>
+        /// <exception cref="ServiceResultException"></exception>
         private void ReadMatrixPart(string? fieldName, List<object>? currentArray,
             BuiltInType builtInType, ref List<object> elements, ref List<int> dimensions, int level)
         {

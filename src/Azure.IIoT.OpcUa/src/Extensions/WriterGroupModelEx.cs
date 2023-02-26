@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Models
                 SecurityKeyServices = model.SecurityKeyServices?
                     .Select(c => c.Clone())
                     .ToList(),
-                SecurityMode = model.SecurityMode,
+                SecurityMode = model.SecurityMode
             };
         }
     }

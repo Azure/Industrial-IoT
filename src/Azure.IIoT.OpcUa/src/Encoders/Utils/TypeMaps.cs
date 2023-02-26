@@ -53,6 +53,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
         /// <summary>
         /// Initialize map
         /// </summary>
+        /// <param name="type"></param>
         private TypeMaps(Type type)
         {
             var fields = type.GetFields(

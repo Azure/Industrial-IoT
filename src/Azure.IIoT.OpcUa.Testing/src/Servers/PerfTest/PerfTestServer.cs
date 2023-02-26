@@ -48,7 +48,7 @@ namespace PerfTest
             get
             {
                 return new StringCollection {
-                    Namespaces.PerfTest,
+                    Namespaces.PerfTest
                 };
             }
         }

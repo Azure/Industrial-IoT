@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.Events
     /// <summary>
     /// Supervisor registry event publisher
     /// </summary>
+    /// <typeparam name="THub"></typeparam>
     public class SupervisorEventPublisher<THub> : ISupervisorRegistryListener
     {
         /// <inheritdoc/>

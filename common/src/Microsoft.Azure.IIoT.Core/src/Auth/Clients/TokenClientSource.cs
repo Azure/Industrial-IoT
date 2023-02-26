@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
     /// <summary>
     /// Use token client as token source
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class TokenClientSource<T> : ITokenSource
         where T : ITokenClient
     {

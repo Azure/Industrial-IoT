@@ -203,6 +203,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// <param name="site"></param>
         /// <param name="discoverers"></param>
         /// <param name="modules"></param>
+        /// <param name="noSite"></param>
         private void CreateDiscovererFixtures(out string site,
             out List<DiscovererModel> discoverers, out List<(DeviceTwinModel, DeviceModel)> modules,
             bool noSite = false)

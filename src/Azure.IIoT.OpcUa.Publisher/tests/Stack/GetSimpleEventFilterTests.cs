@@ -116,7 +116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
             {
                 EventFilter = new EventFilterModel
                 {
-                    TypeDefinitionId = ObjectTypeIds.ConditionType.ToString(),
+                    TypeDefinitionId = ObjectTypeIds.ConditionType.ToString()
                 },
                 ConditionHandling = new ConditionHandlingOptionsModel
                 {

@@ -108,6 +108,7 @@ namespace System.Security.Claims
         /// <param name="claimType"></param>
         /// <param name="throwIfNotFound"></param>
         /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public static string FindFirstValue(this ClaimsPrincipal principal,
             string claimType, bool throwIfNotFound = false)
         {

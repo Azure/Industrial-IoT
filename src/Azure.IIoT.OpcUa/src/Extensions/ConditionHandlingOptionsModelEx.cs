@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Models
             return new ConditionHandlingOptionsModel
             {
                 UpdateInterval = model.UpdateInterval,
-                SnapshotInterval = model.SnapshotInterval,
+                SnapshotInterval = model.SnapshotInterval
             };
         }
 

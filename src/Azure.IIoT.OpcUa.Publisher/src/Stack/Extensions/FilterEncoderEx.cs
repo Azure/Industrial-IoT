@@ -209,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                         return new LiteralOperand(TypeInfo.Cast(typeDefinitionId, typeInfo.BuiltInType));
                     }
                 }
-                catch { };
+                catch { }
                 return new LiteralOperand(TypeInfo.Cast(encoder.Decode(model.Value, null), typeInfo.BuiltInType));
             }
             if (model.Alias != null && !onlySimpleAttributeOperands)
@@ -240,6 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="encoder"></param>
         /// <param name="model"></param>
         /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
         public static FilterOperandModel Encode(this IVariantEncoder encoder,
             FilterOperand model)
         {

@@ -123,6 +123,15 @@ namespace PerfTest
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="view"></param>
+        /// <param name="referenceType"></param>
+        /// <param name="includeSubtypes"></param>
+        /// <param name="browseDirection"></param>
+        /// <param name="browseName"></param>
+        /// <param name="additionalReferences"></param>
+        /// <param name="internalOnly"></param>
+        /// <param name="parent"></param>
         public MemoryRegisterBrowser(
             ISystemContext context,
             ViewDescription view,
@@ -182,16 +191,13 @@ namespace PerfTest
                 }
 
                 // enumerate tags.
-                if (_stage == Stage.Tags)
+                if (_stage == Stage.Tags && IsRequired(ReferenceTypeIds.Organizes, false))
                 {
-                    if (IsRequired(ReferenceTypeIds.Organizes, false))
-                    {
-                        reference = NextChild();
+                    reference = NextChild();
 
-                        if (reference != null)
-                        {
-                            return reference;
-                        }
+                    if (reference != null)
+                    {
+                        return reference;
                     }
                 }
 

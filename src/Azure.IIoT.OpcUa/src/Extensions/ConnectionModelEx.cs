@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Models
                 Group = model.Group,
                 Endpoint = model.Endpoint.Clone(),
                 User = model.User.Clone(),
-                Diagnostics = model.Diagnostics.Clone(),
+                Diagnostics = model.Diagnostics.Clone()
             };
         }
 
@@ -89,6 +89,7 @@ namespace Azure.IIoT.OpcUa.Models
         /// Returns a string that uniquiely identifies the connection based on
         /// endpoint url, hash and associated group
         /// </summary>
+        /// <param name="model"></param>
         public static string CreateConnectionId(this ConnectionModel model)
         {
             if (string.IsNullOrEmpty(model?.Endpoint?.Url))

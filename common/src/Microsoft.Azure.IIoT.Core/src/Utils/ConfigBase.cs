@@ -91,6 +91,7 @@ namespace Microsoft.Azure.IIoT.Utils
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
+        /// <exception cref="InvalidConfigurationException"></exception>
         protected TimeSpan GetDurationOrDefault(string key,
             Func<TimeSpan> defaultValue = null)
         {

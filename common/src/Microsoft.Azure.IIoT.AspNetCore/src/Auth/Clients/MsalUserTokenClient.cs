@@ -313,6 +313,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
         /// <param name="application"></param>
         /// <param name="user"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static async Task<IAccount> GetUserAccountAsync(IClientApplicationBase application,
             ClaimsPrincipal user)
         {

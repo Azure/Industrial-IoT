@@ -44,6 +44,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new instance.
         /// </summary>
+        /// <param name="uniquePath"></param>
+        /// <param name="file"></param>
         public ArchiveItem(string uniquePath, FileInfo file)
         {
             UniquePath = uniquePath;
@@ -66,6 +68,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new instance.
         /// </summary>
+        /// <param name="uniquePath"></param>
+        /// <param name="assembly"></param>
+        /// <param name="resourcePath"></param>
         public ArchiveItem(string uniquePath, Assembly assembly, string resourcePath)
         {
             UniquePath = uniquePath;

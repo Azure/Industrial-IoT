@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             Assert.Single(results.SupportedLocales);
             Assert.Equal("en-US", results.SupportedLocales[0]);
             Assert.NotEmpty(results.ServerProfiles);
-            Assert.Equal(3, results.ServerProfiles.Length);
+            Assert.Equal(3, results.ServerProfiles.Count);
             Assert.NotNull(results.OperationLimits);
             Assert.Equal(0, results.OperationLimits.MinSupportedSampleRate);
             Assert.Equal(1000, results.OperationLimits.MaxBrowseContinuationPoints.Value);

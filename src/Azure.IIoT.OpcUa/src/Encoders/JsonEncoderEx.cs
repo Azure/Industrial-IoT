@@ -117,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
                 FloatFormatHandling = FloatFormatHandling.String,
                 Formatting = formatting,
-                CloseOutput = !leaveOpen,
+                CloseOutput = !leaveOpen
             }, context, encoding, true)
         {
         }
@@ -206,63 +206,63 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteSByte(string? property, sbyte value)
+        public void WriteSByte(string? fieldName, sbyte value)
         {
-            if (PreWriteValue(property, value))
+            if (PreWriteValue(fieldName, value))
             {
                 _writer?.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteByte(string? property, byte value)
+        public void WriteByte(string? fieldName, byte value)
         {
-            if (PreWriteValue(property, value))
+            if (PreWriteValue(fieldName, value))
             {
                 _writer?.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteInt16(string? property, short value)
+        public void WriteInt16(string? fieldName, short value)
         {
-            if (PreWriteValue(property, value))
+            if (PreWriteValue(fieldName, value))
             {
                 _writer?.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteUInt16(string? property, ushort value)
+        public void WriteUInt16(string? fieldName, ushort value)
         {
-            if (PreWriteValue(property, value))
+            if (PreWriteValue(fieldName, value))
             {
                 _writer?.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteInt32(string? property, int value)
+        public void WriteInt32(string? fieldName, int value)
         {
-            if (PreWriteValue(property, value))
+            if (PreWriteValue(fieldName, value))
             {
                 _writer?.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteUInt32(string? property, uint value)
+        public void WriteUInt32(string? fieldName, uint value)
         {
-            if (PreWriteValue(property, value))
+            if (PreWriteValue(fieldName, value))
             {
                 _writer?.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteInt64(string? property, long value)
+        public void WriteInt64(string? fieldName, long value)
         {
-            if (PreWriteValue(property, value))
+            if (PreWriteValue(fieldName, value))
             {
                 if (UseAdvancedEncoding)
                 {
@@ -276,9 +276,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteUInt64(string? property, ulong value)
+        public void WriteUInt64(string? fieldName, ulong value)
         {
-            if (PreWriteValue(property, value))
+            if (PreWriteValue(fieldName, value))
             {
                 if (UseAdvancedEncoding)
                 {
@@ -292,122 +292,122 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteBoolean(string? property, bool value)
+        public void WriteBoolean(string? fieldName, bool value)
         {
-            if (PreWriteValue(property, value))
+            if (PreWriteValue(fieldName, value))
             {
                 _writer?.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteString(string? property, string? value)
+        public void WriteString(string? fieldName, string? value)
         {
             if (value == null)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
-                if (!string.IsNullOrEmpty(property))
+                if (!string.IsNullOrEmpty(fieldName))
                 {
-                    _writer?.WritePropertyName(property);
+                    _writer?.WritePropertyName(fieldName);
                 }
                 _writer?.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteFloat(string? property, float value)
+        public void WriteFloat(string? fieldName, float value)
         {
-            if (!string.IsNullOrEmpty(property))
+            if (!string.IsNullOrEmpty(fieldName))
             {
                 if (IgnoreDefaultValues && Math.Abs(value) < float.Epsilon)
                 {
                     return;
                 }
-                _writer?.WritePropertyName(property);
+                _writer?.WritePropertyName(fieldName);
             }
             _writer?.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteDouble(string? property, double value)
+        public void WriteDouble(string? fieldName, double value)
         {
-            if (!string.IsNullOrEmpty(property))
+            if (!string.IsNullOrEmpty(fieldName))
             {
                 if (IgnoreDefaultValues && Math.Abs(value) < double.Epsilon)
                 {
                     return;
                 }
-                _writer?.WritePropertyName(property);
+                _writer?.WritePropertyName(fieldName);
             }
             _writer?.WriteValue(value);
         }
 
         /// <inheritdoc/>
-        public void WriteDateTime(string? property, DateTime value)
+        public void WriteDateTime(string? fieldName, DateTime value)
         {
             if (value == default)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
-                if (!string.IsNullOrEmpty(property))
+                if (!string.IsNullOrEmpty(fieldName))
                 {
-                    _writer?.WritePropertyName(property);
+                    _writer?.WritePropertyName(fieldName);
                 }
                 _writer?.WriteValue(value.ToOpcUaJsonEncodedTime());
             }
         }
 
         /// <inheritdoc/>
-        public void WriteGuid(string? property, Uuid value)
+        public void WriteGuid(string? fieldName, Uuid value)
         {
             if (value == default)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
-                if (!string.IsNullOrEmpty(property))
+                if (!string.IsNullOrEmpty(fieldName))
                 {
-                    _writer?.WritePropertyName(property);
+                    _writer?.WritePropertyName(fieldName);
                 }
                 _writer?.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteGuid(string? property, Guid value)
+        public void WriteGuid(string? fieldName, Guid value)
         {
             if (value == default)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
-                if (!string.IsNullOrEmpty(property))
+                if (!string.IsNullOrEmpty(fieldName))
                 {
-                    _writer?.WritePropertyName(property);
+                    _writer?.WritePropertyName(fieldName);
                 }
                 _writer?.WriteValue(value);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteByteString(string? property, byte[]? value)
+        public void WriteByteString(string? fieldName, byte[]? value)
         {
             if (value == null || value.Length == 0)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
-                if (!string.IsNullOrEmpty(property))
+                if (!string.IsNullOrEmpty(fieldName))
                 {
-                    _writer?.WritePropertyName(property);
+                    _writer?.WritePropertyName(fieldName);
                 }
                 // check the length.
                 if (Context.MaxByteStringLength > 0 &&
@@ -420,43 +420,43 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteXmlElement(string? property, XmlElement? value)
+        public void WriteXmlElement(string? fieldName, XmlElement? value)
         {
             if (value == null)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
-                if (!string.IsNullOrEmpty(property))
+                if (!string.IsNullOrEmpty(fieldName))
                 {
-                    _writer?.WritePropertyName(property);
+                    _writer?.WritePropertyName(fieldName);
                 }
                 _writer?.WriteValue(Encoding.UTF8.GetBytes(value.OuterXml));
             }
         }
 
         /// <inheritdoc/>
-        public void WriteNodeId(string? property, NodeId? value)
+        public void WriteNodeId(string? fieldName, NodeId? value)
         {
             if (value == null || NodeId.IsNull(value))
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else if (UseAdvancedEncoding)
             {
                 if (UseUriEncoding || UseReversibleEncoding)
                 {
-                    WriteString(property, value.AsString(Context));
+                    WriteString(fieldName, value.AsString(Context));
                 }
                 else
                 {
-                    WriteString(property, value.ToString());
+                    WriteString(fieldName, value.ToString());
                 }
             }
             else
             {
-                PushObject(property);
+                PushObject(fieldName);
                 if (value.IdType != IdType.Numeric)
                 {
                     WriteByte("IdType", (byte)value.IdType);
@@ -502,26 +502,26 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteExpandedNodeId(string? property, ExpandedNodeId? value)
+        public void WriteExpandedNodeId(string? fieldName, ExpandedNodeId? value)
         {
             if (value == null || NodeId.IsNull(value))
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else if (UseAdvancedEncoding)
             {
                 if (UseUriEncoding || UseReversibleEncoding)
                 {
-                    WriteString(property, value.AsString(Context));
+                    WriteString(fieldName, value.AsString(Context));
                 }
                 else
                 {
-                    WriteString(property, value.ToString());
+                    WriteString(fieldName, value.ToString());
                 }
             }
             else
             {
-                PushObject(property);
+                PushObject(fieldName);
                 if (value.IdType != IdType.Numeric)
                 {
                     WriteByte("IdType", (byte)value.IdType);
@@ -580,11 +580,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteStatusCode(string? property, StatusCode value)
+        public void WriteStatusCode(string? fieldName, StatusCode value)
         {
             if (value == StatusCodes.Good)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
@@ -595,28 +595,28 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 if (!UseReversibleEncoding || !string.IsNullOrEmpty(symbol))
                 {
-                    PushObject(property);
+                    PushObject(fieldName);
                     WriteString("Symbol", symbol);
                     WriteUInt32("Code", value.Code);
                     PopObject();
                 }
                 else
                 {
-                    WriteUInt32(property, value.Code);
+                    WriteUInt32(fieldName, value.Code);
                 }
             }
         }
 
         /// <inheritdoc/>
-        public void WriteDiagnosticInfo(string? property, DiagnosticInfo value)
+        public void WriteDiagnosticInfo(string? fieldName, DiagnosticInfo value)
         {
             if (value == null)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
-                PushObject(property);
+                PushObject(fieldName);
                 if (value.SymbolicId >= 0)
                 {
                     WriteInt32("SymbolicId", value.SymbolicId);
@@ -650,22 +650,22 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteQualifiedName(string? property, QualifiedName? value)
+        public void WriteQualifiedName(string? fieldName, QualifiedName? value)
         {
             if (value == null || QualifiedName.IsNull(value))
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else if (UseReversibleEncoding)
             {
                 if (UseUriEncoding && UseAdvancedEncoding)
                 {
-                    WriteString(property, value.AsString(Context));
+                    WriteString(fieldName, value.AsString(Context));
                 }
                 else
                 {
                     // Back compat to json encoding
-                    PushObject(property);
+                    PushObject(fieldName);
                     WriteString("Name", value.Name);
                     if (value.NamespaceIndex > 0)
                     {
@@ -676,7 +676,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             else
             {
-                PushObject(property);
+                PushObject(fieldName);
                 WriteString("Name", value.Name);
                 WriteNamespaceIndex(value.NamespaceIndex);
                 PopObject();
@@ -684,15 +684,15 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteLocalizedText(string? property, LocalizedText? value)
+        public void WriteLocalizedText(string? fieldName, LocalizedText? value)
         {
             if (value == null || LocalizedText.IsNullOrEmpty(value))
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else if (UseReversibleEncoding)
             {
-                PushObject(property);
+                PushObject(fieldName);
                 WriteString("Text", value.Text);
                 if (!string.IsNullOrEmpty(value.Locale))
                 {
@@ -702,12 +702,12 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             else
             {
-                WriteString(property, value.Text);
+                WriteString(fieldName, value.Text);
             }
         }
 
         /// <inheritdoc/>
-        public void WriteVariant(string? property, Variant value)
+        public void WriteVariant(string? fieldName, Variant value)
         {
             var variant = value;
             if (UseAdvancedEncoding &&
@@ -741,14 +741,14 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             if (UseReversibleEncoding)
             {
-                PushObject(property);
+                PushObject(fieldName);
                 WriteBuiltInType("Type", builtInType);
-                property = "Body";
+                fieldName = "Body";
             }
 
-            if (!string.IsNullOrEmpty(property))
+            if (!string.IsNullOrEmpty(fieldName))
             {
-                _writer?.WritePropertyName(property);
+                _writer?.WritePropertyName(fieldName);
             }
 
             WriteVariantContents(variant.Value, valueRank, builtInType);
@@ -760,11 +760,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteDataValue(string? property, DataValue? value)
+        public void WriteDataValue(string? fieldName, DataValue? value)
         {
             if (value == null)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
@@ -774,7 +774,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     value.SourcePicoseconds != 0 ||
                     value.ServerPicoseconds != 0)
                 {
-                    PushObject(property);
+                    PushObject(fieldName);
                     if (value.WrappedValue.TypeInfo != null &&
                         value.WrappedValue.TypeInfo.BuiltInType != BuiltInType.Null)
                     {
@@ -809,18 +809,18 @@ namespace Azure.IIoT.OpcUa.Encoders
                     if (value.WrappedValue.TypeInfo != null &&
                         value.WrappedValue.TypeInfo.BuiltInType != BuiltInType.Null)
                     {
-                        WriteVariant(property, value.WrappedValue);
+                        WriteVariant(fieldName, value.WrappedValue);
                     }
                 }
             }
         }
 
         /// <inheritdoc/>
-        public void WriteExtensionObject(string? property, ExtensionObject? value)
+        public void WriteExtensionObject(string? fieldName, ExtensionObject? value)
         {
             if (value == null)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
                 return;
             }
 
@@ -828,7 +828,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             if (UseReversibleEncoding)
             {
-                PushObject(property);
+                PushObject(fieldName);
                 var typeId = value.TypeId;
                 if (body is IJsonEncodeable withType)
                 {
@@ -865,30 +865,30 @@ namespace Azure.IIoT.OpcUa.Encoders
                         _ => 0,             // Structure - omitted in default encoding.
                     });
                 }
-                property = "Body";
+                fieldName = "Body";
             }
             switch (body)
             {
                 case EncodeableJToken jt:
-                    if (!string.IsNullOrEmpty(property))
+                    if (!string.IsNullOrEmpty(fieldName))
                     {
-                        _writer?.WritePropertyName(property);
+                        _writer?.WritePropertyName(fieldName);
                     }
                     _writer?.WriteRaw(jt.JToken.ToString());
                     break;
                 case IEncodeable encodeable:
-                    PushObject(property);
+                    PushObject(fieldName);
                     encodeable.Encode(this);
                     PopObject();
                     break;
                 case XmlElement xml:
-                    WriteXmlElement(property, xml);
+                    WriteXmlElement(fieldName, xml);
                     break;
                 case byte[] buffer:
-                    WriteByteString(property, buffer);
+                    WriteByteString(fieldName, buffer);
                     break;
                 case null:
-                    WriteNull(property);
+                    WriteNull(fieldName);
                     break;
                 default:
                     throw ServiceResultException.Create(
@@ -903,115 +903,115 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteEncodeable(string? property, IEncodeable? value,
+        public void WriteEncodeable(string? fieldName, IEncodeable? value,
             Type systemType)
         {
             if (value == null)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
-                PushObject(property);
+                PushObject(fieldName);
                 value?.Encode(this);
                 PopObject();
             }
         }
 
         /// <inheritdoc/>
-        public void WriteEnumerated(string? property, Enum value)
+        public void WriteEnumerated(string? fieldName, Enum value)
         {
             if (value == null)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
                 var numeric = Convert.ToInt32(value, CultureInfo.InvariantCulture);
                 if (UseReversibleEncoding)
                 {
-                    if (PreWriteValue(property, numeric))
+                    if (PreWriteValue(fieldName, numeric))
                     {
                         _writer?.WriteValue(numeric);
                     }
                 }
                 else
                 {
-                    WriteString(property, $"{value}_{numeric}");
+                    WriteString(fieldName, $"{value}_{numeric}");
                 }
             }
         }
 
         /// <inheritdoc/>
-        public void WriteBooleanArray(string? property, IList<bool>? values)
+        public void WriteBooleanArray(string? fieldName, IList<bool>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
-        public void WriteSByteArray(string? property, IList<sbyte>? values)
+        public void WriteSByteArray(string? fieldName, IList<sbyte>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
-        public void WriteByteArray(string? property, IList<byte>? values)
+        public void WriteByteArray(string? fieldName, IList<byte>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
-        public void WriteInt16Array(string? property, IList<short>? values)
+        public void WriteInt16Array(string? fieldName, IList<short>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
-        public void WriteUInt16Array(string? property, IList<ushort>? values)
+        public void WriteUInt16Array(string? fieldName, IList<ushort>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
-        public void WriteInt32Array(string? property, IList<int>? values)
+        public void WriteInt32Array(string? fieldName, IList<int>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
-        public void WriteUInt32Array(string? property, IList<uint>? values)
+        public void WriteUInt32Array(string? fieldName, IList<uint>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
-        public void WriteInt64Array(string? property, IList<long>? values)
+        public void WriteInt64Array(string? fieldName, IList<long>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
-        public void WriteUInt64Array(string? property, IList<ulong>? values)
+        public void WriteUInt64Array(string? fieldName, IList<ulong>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
-        public void WriteFloatArray(string? property, IList<float>? values)
+        public void WriteFloatArray(string? fieldName, IList<float>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
-        public void WriteDoubleArray(string? property, IList<double>? values)
+        public void WriteDoubleArray(string? fieldName, IList<double>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
-        public void WriteStringArray(string? property, IList<string?>? values)
+        public void WriteStringArray(string? fieldName, IList<string?>? values)
         {
-            WriteArray(property, values, v => _writer?.WriteValue(v));
+            WriteArray(fieldName, values, v => _writer?.WriteValue(v));
         }
 
         /// <inheritdoc/>
@@ -1022,94 +1022,94 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteDateTimeArray(string? property, IList<DateTime>? values)
+        public void WriteDateTimeArray(string? fieldName, IList<DateTime>? values)
         {
-            WriteArray(property, values, v => WriteDateTime(null, v));
+            WriteArray(fieldName, values, v => WriteDateTime(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteGuidArray(string? property, IList<Uuid>? values)
+        public void WriteGuidArray(string? fieldName, IList<Uuid>? values)
         {
-            WriteArray(property, values, v => WriteGuid(null, v));
+            WriteArray(fieldName, values, v => WriteGuid(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteGuidArray(string? property, IList<Guid>? values)
+        public void WriteGuidArray(string? fieldName, IList<Guid>? values)
         {
-            WriteArray(property, values, v => WriteGuid(null, v));
+            WriteArray(fieldName, values, v => WriteGuid(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteByteStringArray(string? property, IList<byte[]?>? values)
+        public void WriteByteStringArray(string? fieldName, IList<byte[]?>? values)
         {
-            WriteArray(property, values, v => WriteByteString(null, v));
+            WriteArray(fieldName, values, v => WriteByteString(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteXmlElementArray(string? property, IList<XmlElement?>? values)
+        public void WriteXmlElementArray(string? fieldName, IList<XmlElement?>? values)
         {
-            WriteArray(property, values, v => WriteXmlElement(null, v));
+            WriteArray(fieldName, values, v => WriteXmlElement(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteNodeIdArray(string? property, IList<NodeId?>? values)
+        public void WriteNodeIdArray(string? fieldName, IList<NodeId?>? values)
         {
-            WriteArray(property, values, v => WriteNodeId(null, v));
+            WriteArray(fieldName, values, v => WriteNodeId(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteExpandedNodeIdArray(string? property, IList<ExpandedNodeId?>? values)
+        public void WriteExpandedNodeIdArray(string? fieldName, IList<ExpandedNodeId?>? values)
         {
-            WriteArray(property, values, v => WriteExpandedNodeId(null, v));
+            WriteArray(fieldName, values, v => WriteExpandedNodeId(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteStatusCodeArray(string? property, IList<StatusCode>? values)
+        public void WriteStatusCodeArray(string? fieldName, IList<StatusCode>? values)
         {
-            WriteArray(property, values, v => WriteStatusCode(null, v));
+            WriteArray(fieldName, values, v => WriteStatusCode(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteDiagnosticInfoArray(string? property, IList<DiagnosticInfo>? values)
+        public void WriteDiagnosticInfoArray(string? fieldName, IList<DiagnosticInfo>? values)
         {
-            WriteArray(property, values, v => WriteDiagnosticInfo(null, v));
+            WriteArray(fieldName, values, v => WriteDiagnosticInfo(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteQualifiedNameArray(string? property, IList<QualifiedName?>? values)
+        public void WriteQualifiedNameArray(string? fieldName, IList<QualifiedName?>? values)
         {
-            WriteArray(property, values, v => WriteQualifiedName(null, v));
+            WriteArray(fieldName, values, v => WriteQualifiedName(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteLocalizedTextArray(string? property, IList<LocalizedText?>? values)
+        public void WriteLocalizedTextArray(string? fieldName, IList<LocalizedText?>? values)
         {
-            WriteArray(property, values, v => WriteLocalizedText(null, v));
+            WriteArray(fieldName, values, v => WriteLocalizedText(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteVariantArray(string? property, IList<Variant>? values)
+        public void WriteVariantArray(string? fieldName, IList<Variant>? values)
         {
-            WriteArray(property, values, v => WriteVariant(null, v));
+            WriteArray(fieldName, values, v => WriteVariant(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteDataValueArray(string? property, IList<DataValue?>? values)
+        public void WriteDataValueArray(string? fieldName, IList<DataValue?>? values)
         {
-            WriteArray(property, values, v => WriteDataValue(null, v));
+            WriteArray(fieldName, values, v => WriteDataValue(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteExtensionObjectArray(string? property, IList<ExtensionObject?>? values)
+        public void WriteExtensionObjectArray(string? fieldName, IList<ExtensionObject?>? values)
         {
-            WriteArray(property, values, v => WriteExtensionObject(null, v));
+            WriteArray(fieldName, values, v => WriteExtensionObject(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteEncodeableArray(string? property, IList<IEncodeable>? values,
+        public void WriteEncodeableArray(string? fieldName, IList<IEncodeable>? values,
             Type systemType)
         {
-            WriteArray(property, values, v => WriteEncodeable(null, v, systemType));
+            WriteArray(fieldName, values, v => WriteEncodeable(null, v, systemType));
         }
 
         /// <inheritdoc/>
@@ -1210,24 +1210,24 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteEnumeratedArray(string? property, Array? values, Type enumType)
+        public void WriteEnumeratedArray(string? fieldName, Array? values, Type systemType)
         {
             if (values == null)
             {
-                WriteNull(property);
+                WriteNull(fieldName);
             }
             else
             {
-                PushArray(property, values.Length);
+                PushArray(fieldName, values.Length);
                 // encode each element in the array.
-                if (enumType.IsEnum)
+                if (systemType.IsEnum)
                 {
                     foreach (Enum value in values)
                     {
                         WriteEnumerated(null, value);
                     }
                 }
-                else if (enumType == typeof(int))
+                else if (systemType == typeof(int))
                 {
                     foreach (int value in values)
                     {
@@ -1236,7 +1236,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 else
                 {
-                    throw new ArgumentException("Not an enum type", nameof(enumType));
+                    throw new ArgumentException("Not an enum type", nameof(systemType));
                 }
                 PopArray();
             }
@@ -1248,6 +1248,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="value"></param>
         /// <param name="valueRank"></param>
         /// <param name="builtInType"></param>
+        /// <exception cref="ServiceResultException"></exception>
         private void WriteVariantContents(object value, int valueRank,
             BuiltInType builtInType)
         {
@@ -1539,6 +1540,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="value"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         private IList<T?> ToTypedArray<T>(object? value, T? defaultValue)
         {
             if (value == null)
@@ -1596,6 +1598,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="value"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         [return: NotNullIfNotNull("defaultValue")]
         private static T? ToTypedScalar<T>(object? value, T? defaultValue)
         {
@@ -1654,6 +1657,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Write multi dimensional array in structure.
         /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="matrix"></param>
+        /// <param name="dim"></param>
+        /// <param name="index"></param>
+        /// <param name="typeInfo"></param>
+        /// <exception cref="ServiceResultException"></exception>
         private void WriteStructureMatrix(string? fieldName,
             Matrix matrix, int dim, ref int index, TypeInfo typeInfo)
         {
@@ -1716,23 +1725,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <summary>
-        /// Write encoding
-        /// </summary>
-        /// <param name="property"></param>
-        /// <param name="type"></param>
-        private void WriteEncoding(string? property, ExtensionObjectEncoding type)
-        {
-            if (UseAdvancedEncoding)
-            {
-                WriteString(property, type.ToString());
-            }
-            else
-            {
-                WriteByte(property, (byte)type);
-            }
-        }
-
-        /// <summary>
         /// Writes namespace
         /// </summary>
         /// <param name="namespaceIndex"></param>
@@ -1761,6 +1753,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Encode an array according to its valueRank and BuiltInType
         /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="array"></param>
+        /// <param name="valueRank"></param>
+        /// <param name="builtInType"></param>
+        /// <exception cref="ServiceResultException"></exception>
         public void WriteArray(string fieldName, object array, int valueRank,
             BuiltInType builtInType)
         {
@@ -1907,6 +1904,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         /// <inheritdoc/>
         internal void WriteObject<T>(string? property, T value, Action<T> writer)
+            where T : class
         {
             if (value == null)
             {
@@ -1953,6 +1951,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// andthis is not called in the context of array
         /// write (property == null) write property.
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="property"></param>
         /// <param name="value"></param>
         /// <returns>true if should write value.</returns>
@@ -1991,6 +1990,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Push new object
         /// </summary>
         /// <param name="property"></param>
+        /// <exception cref="ServiceResultException"></exception>
         private void PushObject(string? property)
         {
             if (_nestingLevel > Context.MaxEncodingNestingLevels)
@@ -2020,6 +2020,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="property"></param>
         /// <param name="count"></param>
+        /// <exception cref="ServiceResultException"></exception>
         private void PushArray(string? property, int count)
         {
             if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < count)

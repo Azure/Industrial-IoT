@@ -36,11 +36,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <summary>
         /// Initializes the dictionary with an initial capacity.
         /// </summary>
+        /// <param name="capacity"></param>
         public EncodeableDictionary(int capacity) : base(capacity) { }
 
         /// <summary>
         /// Initializes the dictionary with another collection.
         /// </summary>
+        /// <param name="collection"></param>
         public EncodeableDictionary(IEnumerable<KeyDataValuePair> collection) : base(collection) { }
 
         /// <inheritdoc/>

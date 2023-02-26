@@ -85,6 +85,7 @@ namespace Plc
         /// Generates a sine wave with spikes at a random cycle in the phase.
         /// Called each SimulationCycleLength msec.
         /// </summary>
+        /// <param name="state"></param>
         private void SpikeGenerator(object state)
         {
             // calculate next value
@@ -115,6 +116,7 @@ namespace Plc
         /// Generates a sine wave with dips at a random cycle in the phase.
         /// Called each SimulationCycleLength msec.
         /// </summary>
+        /// <param name="state"></param>
         private void DipGenerator(object state)
         {
             // calculate next value
@@ -144,6 +146,7 @@ namespace Plc
         /// Generates a sine wave with spikes at a configurable cycle in the phase.
         /// Called each SimulationCycleLength msec.
         /// </summary>
+        /// <param name="state"></param>
         private void PosTrendGenerator(object state)
         {
             // calculate next value
@@ -168,6 +171,7 @@ namespace Plc
         /// Generates a sine wave with spikes at a configurable cycle in the phase.
         /// Called each SimulationCycleLength msec.
         /// </summary>
+        /// <param name="state"></param>
         private void NegTrendGenerator(object state)
         {
             // calculate next value
@@ -192,6 +196,7 @@ namespace Plc
         /// Updates simulation values. Called each SimulationCycleLength msec.
         /// Using SimulationCycleCount cycles per simulation phase.
         /// </summary>
+        /// <param name="state"></param>
         private void ValueGenerator(object state)
         {
             // calculate next boolean value

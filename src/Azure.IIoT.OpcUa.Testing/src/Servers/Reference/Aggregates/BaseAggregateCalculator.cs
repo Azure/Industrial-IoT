@@ -85,6 +85,8 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Processes the next value returns the calculated values up until the last complete interval.
         /// </summary>
+        /// <param name="value"></param>
+        /// <param name="result"></param>
         public IList<DataValue> ProcessValue(DataValue value, ServiceResult result)
         {
             if (_state == null)
@@ -99,6 +101,7 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Processes all remaining intervals.
         /// </summary>
+        /// <param name="result"></param>
         public IList<DataValue> ProcessTermination(ServiceResult result)
         {
             if (_state == null)
@@ -113,6 +116,8 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Updates the data processed by the aggregator.
         /// </summary>
+        /// <param name="rawValue"></param>
+        /// <param name="state"></param>
         public void UpdateProcessedData(DataValue rawValue, AggregateState state)
         {
             // step 1: compute new TimeSlice instances to enqueue, until we reach the one the
@@ -192,17 +197,24 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Computes the aggregate value for the time slice.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="bucket"></param>
+        /// <param name="state"></param>
         public abstract DataValue Compute(IAggregationContext context,
             TimeSlice bucket, AggregateState state);
 
         /// <summary>
         /// Returns true if more data is required for the next interval.
         /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="state"></param>
         public abstract bool WaitForMoreData(TimeSlice bucket, AggregateState state);
 
         /// <summary>
         /// Updates the bounding values for the time slice.
         /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="state"></param>
         public abstract void UpdateBoundingValues(TimeSlice bucket, AggregateState state);
 
         /// <summary>
@@ -213,6 +225,10 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Computes the status code for the processing interval using the percent good/bad information in the context.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="numGood"></param>
+        /// <param name="numBad"></param>
+        /// <param name="bucket"></param>
         protected virtual StatusCode ComputeStatus(IAggregationContext context, int numGood, int numBad, TimeSlice bucket)
         {
             var total = numGood + numBad;

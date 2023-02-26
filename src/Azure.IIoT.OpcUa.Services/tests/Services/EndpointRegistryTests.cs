@@ -238,6 +238,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// <param name="super"></param>
         /// <param name="endpoints"></param>
         /// <param name="devices"></param>
+        /// <param name="noSite"></param>
         private void CreateEndpointFixtures(out string site, out string super,
             out List<EndpointInfoModel> endpoints, out List<(DeviceTwinModel, DeviceModel)> devices,
             bool noSite = false)

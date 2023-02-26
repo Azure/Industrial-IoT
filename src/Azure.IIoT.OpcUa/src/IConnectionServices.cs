@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa
     /// <summary>
     /// Connection services
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface IConnectionServices<T>
     {
         /// <summary>

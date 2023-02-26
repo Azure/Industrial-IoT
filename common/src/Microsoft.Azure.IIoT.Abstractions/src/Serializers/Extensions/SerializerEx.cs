@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions
         /// <param name="serializer"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public static void SetAcceptHeaders(this ISerializer serializer,
             IHttpRequest request)
         {
@@ -43,6 +44,7 @@ namespace Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions
         /// <param name="request"></param>
         /// <param name="o"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public static void SerializeToRequest(this ISerializer serializer,
             IHttpRequest request, object o)
         {

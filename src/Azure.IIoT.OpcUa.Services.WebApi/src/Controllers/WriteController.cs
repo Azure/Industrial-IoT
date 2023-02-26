@@ -44,6 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The write value request</param>
         /// <returns>The write value response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}")]
         public async Task<ValueWriteResponseModel> WriteValueAsync(
             string endpointId, [FromBody][Required] ValueWriteRequestModel request)
@@ -66,6 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The batch write request</param>
         /// <returns>The batch write response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/attributes")]
         public async Task<WriteResponseModel> WriteAttributesAsync(
             string endpointId, [FromBody][Required] WriteRequestModel request)

@@ -28,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// and browse services.  It uses the OPC ua client interface to access
     /// the server.
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public sealed class NodeServices<T> : INodeServices<T>, INodeServicesInternal<T>
     {
         /// <summary>
@@ -234,7 +235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 SourceId = id,
                                 Attributes = node,
                                 Reference = null,
-                                ErrorInfo = errorInfo,
+                                ErrorInfo = errorInfo
                             };
                         }
                     }
@@ -1378,7 +1379,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             TreatUncertainAsBad =
                                 aggregate.TreatUncertainAsBad.GetValueOrDefault(),
                             UseSlopedExtrapolation =
-                                aggregate.UseSlopedExtrapolation.GetValueOrDefault(),
+                                aggregate.UseSlopedExtrapolation.GetValueOrDefault()
                         },
                         StartOfOnlineArchive = startTime ??
                             config.StartOfOnlineArchive.GetValueOrDefault(
@@ -1386,7 +1387,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         StartOfArchive =
                             config.StartOfArchive.GetValueOrDefault(
                                 v => v == DateTime.MinValue ? startTime : v) ?? startTime,
-                        EndOfArchive = endTime,
+                        EndOfArchive = endTime
                     }
                 };
             }, ct: ct).ConfigureAwait(false);
@@ -1776,6 +1777,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="paramName"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="ResourceNotFoundException"></exception>
+        /// <exception cref="ConflictingResourceException"></exception>
         private static async Task<NodeId> ResolveBrowsePathToNodeAsync(
             ISessionHandle session, RequestHeaderModel? header, NodeId rootId,
             string[] paths, string paramName, CancellationToken ct)

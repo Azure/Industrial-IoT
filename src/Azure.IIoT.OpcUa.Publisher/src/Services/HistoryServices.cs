@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// Implments history services on top of core services
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public sealed class HistoryServices<T> : IHistoryServices<T>
     {
         /// <summary>
@@ -61,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return _services.HistoryUpdateAsync(connectionId, request,
                 (nodeId, details, _) =>
                 {
-                    if (details.ReqTimes == null || details.ReqTimes.Length == 0)
+                    if (details.ReqTimes == null || details.ReqTimes.Count == 0)
                     {
                         throw new ArgumentException("Bad requested times", nameof(details));
                     }
@@ -189,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             return _services.HistoryReadAsync(connectionId, request, (details, _) =>
             {
-                if (details.ReqTimes == null || details.ReqTimes.Length == 0)
+                if (details.ReqTimes == null || details.ReqTimes.Count == 0)
                 {
                     throw new ArgumentException(nameof(details.ReqTimes));
                 }
@@ -663,7 +664,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Value = dataValue.WrappedValue == Variant.Null ?
                         null : codec.Encode(dataValue.WrappedValue, out builtInType),
                     DataType = builtInType == BuiltInType.Null ?
-                        null : builtInType.ToString(),
+                        null : builtInType.ToString()
                 };
             }
         }

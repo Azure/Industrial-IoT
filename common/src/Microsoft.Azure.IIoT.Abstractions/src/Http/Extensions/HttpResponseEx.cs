@@ -15,6 +15,8 @@ namespace Microsoft.Azure.IIoT.Http
         /// <summary>
         /// Response content
         /// </summary>
+        /// <param name="response"></param>
+        /// <param name="encoding"></param>
         public static string GetContentAsString(this IHttpResponse response,
             Encoding encoding)
         {
@@ -24,6 +26,7 @@ namespace Microsoft.Azure.IIoT.Http
         /// <summary>
         /// Response content
         /// </summary>
+        /// <param name="response"></param>
         public static string GetContentAsString(this IHttpResponse response)
         {
             return GetContentAsString(response, Encoding.UTF8);

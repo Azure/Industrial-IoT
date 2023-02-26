@@ -48,7 +48,7 @@ namespace SimpleEvents
             get
             {
                 return new StringCollection {
-                    Namespaces.SimpleEvents,
+                    Namespaces.SimpleEvents
                 };
             }
         }

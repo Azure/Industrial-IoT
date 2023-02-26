@@ -16,6 +16,7 @@ namespace System.Linq
         /// <summary>
         /// Creates a hash set from enumerable or null if enumerable is null.
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="enumerable"></param>
         /// <returns></returns>
         public static HashSet<T> ToHashSetSafe<T>(this IEnumerable<T> enumerable)

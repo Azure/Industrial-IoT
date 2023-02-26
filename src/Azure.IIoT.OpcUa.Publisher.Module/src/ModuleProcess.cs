@@ -97,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         logger.LogInformation("Starting module OpcPublisher version {Version}.", version);
-                        logger.LogInformation("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
+                        logger.LogInformation("Initiating prometheus at port {Port}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
 
                         // Start module

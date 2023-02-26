@@ -91,6 +91,7 @@ namespace Microsoft.Azure.IIoT.App.Pages
         /// Open then Drawer
         /// </summary>
         /// <param name="OpenDrawer"></param>
+        /// <param name="application"></param>
         private void OpenDrawer(ApplicationInfoModel application)
         {
             IsOpen = true;

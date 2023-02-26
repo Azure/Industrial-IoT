@@ -298,8 +298,8 @@ namespace Opc.Ua.Extensions
             var result2 = s2.ToNodeId(context);
 
             Assert.Equal(s1, s2);
-            Assert.Contains("nsu=", s2);
-            Assert.DoesNotContain("ns=", s2);
+            Assert.Contains("nsu=", s2, StringComparison.Ordinal);
+            Assert.DoesNotContain("ns=", s2, StringComparison.Ordinal);
             AssertEqual(expected, result1, result2);
         }
 

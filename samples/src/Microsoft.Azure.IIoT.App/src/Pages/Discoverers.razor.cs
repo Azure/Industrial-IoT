@@ -93,6 +93,7 @@ namespace Microsoft.Azure.IIoT.App.Pages
         /// Enable discoverer scan
         /// </summary>
         /// <param name="discoverer"></param>
+        /// <param name="checkStatus"></param>
         private async Task SetScanAsync(DiscovererInfo discoverer, bool checkStatus)
         {
             try
@@ -172,6 +173,7 @@ namespace Microsoft.Azure.IIoT.App.Pages
         /// Open then Drawer
         /// </summary>
         /// <param name="OpenDrawer"></param>
+        /// <param name="discoverer"></param>
         private void OpenDrawer(DiscovererInfo discoverer)
         {
             IsOpen = true;
@@ -270,6 +272,7 @@ namespace Microsoft.Azure.IIoT.App.Pages
         /// <summary>
         /// ClickHandler
         /// </summary>
+        /// <param name="discoverer"></param>
         private async Task ClickHandlerAsync(DiscovererInfo discoverer)
         {
             CloseDrawer();

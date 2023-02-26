@@ -29,6 +29,10 @@ namespace Azure.IIoT.OpcUa.Publisher.State
         /// <summary>
         /// Constructor for runtime state reporter.
         /// </summary>
+        /// <param name="clientAccessor"></param>
+        /// <param name="jsonSerializer"></param>
+        /// <param name="config"></param>
+        /// <param name="logger"></param>
         public RuntimeStateReporter(IClientAccessor clientAccessor,
             IJsonSerializer jsonSerializer,
             IRuntimeStateReporterConfiguration config,
@@ -65,9 +69,9 @@ namespace Azure.IIoT.OpcUa.Publisher.State
 
                 using var message = _clientAccessor.Client.CreateMessage(
                     new[] { Encoding.UTF8.GetBytes(bodyJson) },
+                    contentEncoding: Encoding.UTF8.WebName,
                     contentType: _jsonSerializer.MimeType,
                     messageSchema: _jsonSerializer.MimeType,
-                    contentEncoding: Encoding.UTF8.WebName,
                     routingInfo: RuntimeStateReportingPath);
 
                 await _clientAccessor.Client.SendEventAsync(message).ConfigureAwait(false);

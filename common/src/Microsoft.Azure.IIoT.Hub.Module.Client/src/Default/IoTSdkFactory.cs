@@ -265,6 +265,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default
         /// <param name="metrics"></param>
         /// <param name="transportSetting"></param>
         /// <returns></returns>
+        /// <exception cref="InvalidConfigurationException"></exception>
         private Task<IClient> CreateAdapterAsync(string product, Action onError,
             IMetricsContext metrics, ITransportSettings transportSetting = null)
         {
@@ -295,6 +296,8 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default
         /// Add certificate in local cert store for use by client for secure connection
         /// to iotedge runtime
         /// </summary>
+        /// <param name="certPath"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         private void InstallCert(string certPath)
         {
             if (!File.Exists(certPath))

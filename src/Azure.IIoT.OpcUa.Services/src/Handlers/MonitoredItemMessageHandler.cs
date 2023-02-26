@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
                             ? null : message?.Value?.ServerPicoseconds,
                         EndpointId = (message.ExtensionFields != null &&
                             extensionFields.TryGetValue("EndpointId", out var endpointId))
-                                ? endpointId : message.ApplicationUri ?? message.EndpointUrl,
+                                ? endpointId : message.ApplicationUri ?? message.EndpointUrl
                     };
                     await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample))).ConfigureAwait(false);
                 }

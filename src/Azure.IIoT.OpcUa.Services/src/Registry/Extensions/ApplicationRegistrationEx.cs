@@ -37,6 +37,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// <param name="existing"></param>
         /// <param name="update"></param>
         /// <param name="serializer"></param>
+        /// <exception cref="ArgumentException"></exception>
         public static DeviceTwinModel Patch(this ApplicationRegistration existing,
             ApplicationRegistration update, IJsonSerializer serializer)
         {
@@ -429,7 +430,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 UpdateTime =
                     tags.GetValueOrDefault<DateTime>(nameof(ApplicationRegistration.UpdateTime), null),
                 UpdateAuthorityId =
-                    tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.UpdateAuthorityId), null),
+                    tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.UpdateAuthorityId), null)
             };
         }
 #if ZOMBIE
@@ -484,6 +485,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// <param name="etag"></param>
         /// <param name="recordId"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public static ApplicationRegistration ToApplicationRegistration(
             this ApplicationInfoModel model, bool? disabled = null, string etag = null,
             uint? recordId = null)
@@ -552,7 +554,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 GatewayServerUri = registration.GatewayServerUri,
                 Capabilities = registration.Capabilities?.DecodeAsSet(),
                 Created = ToOperationModel(registration.CreateAuthorityId, registration.CreateTime),
-                Updated = ToOperationModel(registration.UpdateAuthorityId, registration.UpdateTime),
+                Updated = ToOperationModel(registration.UpdateAuthorityId, registration.UpdateTime)
             };
         }
 

@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Models
                 QueueSize = model.QueueSize,
                 HeartbeatInterval = model.HeartbeatInterval,
                 BrowsePath = model.BrowsePath,
-                MonitoringMode = model.MonitoringMode,
+                MonitoringMode = model.MonitoringMode
             };
         }
     }

@@ -44,6 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history upsert request</param>
         /// <returns>The history upsert result</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(
             string endpointId,
@@ -66,6 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history upsert request</param>
         /// <returns>The history upsert result</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(
             string endpointId,

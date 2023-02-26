@@ -43,6 +43,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/values/pick")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(
             string endpointId,
@@ -65,6 +66,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(
             string endpointId,
@@ -87,6 +89,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/values/modified")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
             string endpointId,
@@ -109,6 +112,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(
             string endpointId,

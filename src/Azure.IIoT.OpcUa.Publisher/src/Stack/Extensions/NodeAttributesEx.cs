@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Get attribute
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="attributes"></param>
         /// <param name="attribute"></param>
         /// <param name="defaultValue"></param>
@@ -30,6 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Get attribute
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="attributes"></param>
         /// <param name="attribute"></param>
         /// <param name="defaultValue"></param>

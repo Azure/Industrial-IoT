@@ -114,6 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Process jobs
         /// </summary>
+        /// <param name="ct"></param>
         /// <returns></returns>
         private async Task RunAsync(CancellationToken ct)
         {

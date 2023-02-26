@@ -19,6 +19,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         /// <summary>
         /// Create browse services tests
         /// </summary>
+        /// <param name="services"></param>
+        /// <param name="connection"></param>
         public BrowseServicesTests(Func<INodeServices<T>> services, T connection)
         {
             _services = services;

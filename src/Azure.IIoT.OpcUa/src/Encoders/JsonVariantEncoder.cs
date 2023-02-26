@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
 
@@ -122,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 return value;
             }
 
-            if (!value.TryGetString(out var asString, true))
+            if (!value.TryGetString(out var asString, true, CultureInfo.InvariantCulture))
             {
                 asString = _serializer.SerializeToString(value);
             }
@@ -145,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             //
             if (!value.IsString)
             {
-                asString = asString.Replace("\\\"", "\"");
+                asString = asString.Replace("\\\"", "\"", StringComparison.Ordinal);
             }
             var token = Try.Op(() => _serializer.Parse(asString));
             if (token is not null)

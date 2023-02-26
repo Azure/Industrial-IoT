@@ -35,6 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request)
         {
@@ -51,6 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request)
         {
@@ -67,6 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request)
         {
@@ -83,6 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<DeleteEventsDetailsModel> request)
         {
@@ -99,6 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request)
         {
@@ -115,6 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<DeleteValuesDetailsModel> request)
         {
@@ -131,6 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<DeleteValuesDetailsModel> request)
         {
@@ -147,6 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request)
         {
@@ -163,6 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request)
         {
@@ -179,6 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request)
         {
@@ -195,6 +205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadEventsDetailsModel> request)
         {
@@ -211,6 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request)
         {
@@ -227,6 +239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadValuesDetailsModel> request)
         {
@@ -243,6 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request)
         {
@@ -259,6 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request)
         {
@@ -275,6 +290,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request)
         {
@@ -291,6 +307,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request)
         {

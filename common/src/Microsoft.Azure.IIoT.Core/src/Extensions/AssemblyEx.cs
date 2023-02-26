@@ -15,6 +15,8 @@ namespace System
         /// <summary>
         /// Get assembly info version
         /// </summary>
+        /// <param name="assembly"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="assembly"/> is <c>null</c>.</exception>
         public static string GetInformationalVersion(this Assembly assembly)
         {
             if (assembly == null)

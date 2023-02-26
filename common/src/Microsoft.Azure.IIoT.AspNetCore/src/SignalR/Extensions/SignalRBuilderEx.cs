@@ -22,8 +22,10 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Add json serializer
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <c>null</c>.</exception>
         public static T AddJsonSerializer<T>(this T builder) where T : ISignalRBuilder
         {
             if (builder == null)
@@ -65,8 +67,10 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Add message pack serializer
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="builder"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <c>null</c>.</exception>
         public static T AddMessagePackSerializer<T>(this T builder) where T : ISignalRBuilder
         {
             if (builder == null)

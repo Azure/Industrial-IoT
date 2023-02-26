@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Models
         /// <summary>
         /// Returns the job Id
         /// </summary>
+        /// <param name="model"></param>
         public static string GetJobId(this WriterGroupJobModel model)
         {
             var connection = model?.WriterGroup?.DataSetWriters?.First()?.DataSet?.DataSetSource?.Connection;

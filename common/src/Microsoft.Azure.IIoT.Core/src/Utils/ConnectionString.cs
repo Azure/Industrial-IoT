@@ -54,11 +54,12 @@ namespace Microsoft.Azure.IIoT.Utils
         /// <summary>
         /// Get hub name from connection string
         /// </summary>
+        /// <exception cref="InvalidDataContractException"></exception>
         public string HubName
         {
             get
             {
-                var idx = HostName.IndexOf('.');
+                var idx = HostName.IndexOf('.', StringComparison.Ordinal);
                 if (idx == -1)
                 {
                     throw new InvalidDataContractException("No hub name");
@@ -102,12 +103,14 @@ namespace Microsoft.Azure.IIoT.Utils
         /// </summary>
         /// <param name="connectionString"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="InvalidDataContractException"></exception>
         public static ConnectionString Parse(string connectionString)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
                 throw new ArgumentException("Connection string must not be null",
-                    nameof(ConnectionString));
+                    nameof(connectionString));
             }
             var cs = new ConnectionString();
             foreach (var elem in connectionString.Split(new char[] { ';' },
@@ -119,7 +122,7 @@ namespace Microsoft.Azure.IIoT.Utils
                     throw new InvalidDataContractException("Bad key value pair.");
                 }
                 // Throws argument if already exists or parse fails...
-                cs._items.Add((Id)Enum.Parse(typeof(Id), elem.Substring(0, i), true),
+                cs._items.Add((Id)Enum.Parse(typeof(Id), elem.AsSpan(0, i), true),
                     elem.Substring(i + 1));
             }
             return cs;
@@ -223,10 +226,11 @@ namespace Microsoft.Azure.IIoT.Utils
             var b = new StringBuilder();
             foreach (var kv in _items.Where(kv => kv.Value != null))
             {
-                b.Append(kv.Key.ToString());
-                b.Append('=');
-                b.Append(kv.Value);
-                b.Append(';');
+                b = b
+                    .Append(kv.Key.ToString())
+                    .Append('=')
+                    .Append(kv.Value)
+                    .Append(';');
             }
             return b.ToString().TrimEnd(';');
         }

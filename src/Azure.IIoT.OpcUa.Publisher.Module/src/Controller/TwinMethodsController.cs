@@ -47,6 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
             ConnectionModel connection)
         {
@@ -63,6 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<BrowseFirstResponseModel> BrowseAsync(
             ConnectionModel connection, BrowseFirstRequestModel request)
         {
@@ -84,6 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<BrowseNextResponseModel> BrowseNextAsync(
             ConnectionModel connection, BrowseNextRequestModel request)
         {
@@ -105,6 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<BrowsePathResponseModel> BrowsePathAsync(
             ConnectionModel connection, BrowsePathRequestModel request)
         {
@@ -126,6 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<ValueReadResponseModel> ValueReadAsync(
             ConnectionModel connection, ValueReadRequestModel request)
         {
@@ -147,6 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<ValueWriteResponseModel> ValueWriteAsync(
             ConnectionModel connection, ValueWriteRequestModel request)
         {
@@ -168,6 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(
             ConnectionModel connection, NodeMetadataRequestModel request)
         {
@@ -189,6 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<MethodMetadataResponseModel> MethodMetadataAsync(
             ConnectionModel connection, MethodMetadataRequestModel request)
         {
@@ -210,6 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<MethodCallResponseModel> MethodCallAsync(
             ConnectionModel connection, MethodCallRequestModel request)
         {
@@ -231,6 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<ReadResponseModel> NodeReadAsync(
             ConnectionModel connection, ReadRequestModel request)
         {
@@ -248,6 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<WriteResponseModel> NodeWriteAsync(
             ConnectionModel connection, WriteRequestModel request)
         {
@@ -265,6 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
             ConnectionModel connection, HistoryReadRequestModel<VariantValue> request)
         {
@@ -282,6 +294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request)
         {
@@ -299,6 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
             ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request)
         {
@@ -315,6 +329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="endpoint"/> is <c>null</c>.</exception>
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             EndpointModel endpoint)
         {
@@ -331,6 +346,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
             ConnectionModel connection)
         {
@@ -363,6 +379,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
         public async Task<bool> ConnectAsync(ConnectionModel connection)
         {
             if (connection == null)
@@ -378,6 +395,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
         public async Task<bool> DisconnectAsync(ConnectionModel connection)
         {
             if (connection == null)

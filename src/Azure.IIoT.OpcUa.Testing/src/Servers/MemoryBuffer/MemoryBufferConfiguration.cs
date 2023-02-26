@@ -49,6 +49,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the object during deserialization.
         /// </summary>
+        /// <param name="context"></param>
         [OnDeserializing]
         private void Initialize(StreamingContext context)
         {
@@ -87,6 +88,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the object during deserialization.
         /// </summary>
+        /// <param name="context"></param>
         [OnDeserializing]
         private void Initialize(StreamingContext context)
         {

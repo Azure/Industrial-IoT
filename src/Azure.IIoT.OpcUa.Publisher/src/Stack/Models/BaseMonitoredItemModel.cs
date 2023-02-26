@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Path from node
         /// </summary>
-        public string[] RelativePath { get; set; }
+        public IReadOnlyList<string> RelativePath { get; set; }
 
         /// <summary>
         /// Attribute
@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 Id == model.Id &&
                 DisplayName == model.DisplayName &&
                 StartNodeId == model.StartNodeId &&
-                EqualityComparer<string[]>.Default.Equals(RelativePath, model.RelativePath) &&
+                EqualityComparer<IReadOnlyList<string>>.Default.Equals(RelativePath, model.RelativePath) &&
                 AttributeId == model.AttributeId &&
                 IndexRange == model.IndexRange &&
                 EqualityComparer<TimeSpan?>.Default.Equals(SamplingInterval, model.SamplingInterval) &&

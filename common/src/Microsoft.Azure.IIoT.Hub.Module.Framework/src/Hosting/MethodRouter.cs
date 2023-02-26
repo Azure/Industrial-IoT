@@ -112,6 +112,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
         /// Add target to calltable
         /// </summary>
         /// <param name="target"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         private void AddToCallTable(object target)
         {
             var versions = target.GetType().GetCustomAttributes<VersionAttribute>(true)
@@ -182,6 +183,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
             /// <summary>
             /// Create dynamic invoker
             /// </summary>
+            /// <param name="logger"></param>
             public DynamicInvoker(ILogger logger)
             {
                 _logger = logger;

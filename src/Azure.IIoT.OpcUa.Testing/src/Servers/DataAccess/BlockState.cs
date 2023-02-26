@@ -80,14 +80,11 @@ namespace DataAccess
         /// <param name="context">The context.</param>
         public void StartMonitoring(ServerSystemContext context)
         {
-            if (_monitoringCount == 0)
+            if (_monitoringCount == 0 && context.SystemHandle is UnderlyingSystem system)
             {
-                if (context.SystemHandle is UnderlyingSystem system)
-                {
-                    var block = system.FindBlock(_blockId);
+                var block = system.FindBlock(_blockId);
 
-                    block?.StartMonitoring(OnTagsChanged);
-                }
+                block?.StartMonitoring(OnTagsChanged);
             }
 
             _monitoringCount++;
@@ -101,14 +98,11 @@ namespace DataAccess
         {
             _monitoringCount--;
 
-            if (_monitoringCount == 0)
+            if (_monitoringCount == 0 && context.SystemHandle is UnderlyingSystem system)
             {
-                if (context.SystemHandle is UnderlyingSystem system)
-                {
-                    var block = system.FindBlock(_blockId);
+                var block = system.FindBlock(_blockId);
 
-                    block?.StopMonitoring();
-                }
+                block?.StopMonitoring();
             }
 
             return _monitoringCount != 0;
@@ -117,6 +111,9 @@ namespace DataAccess
         /// <summary>
         /// Used to receive notifications when the value attribute is read or written.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="node"></param>
+        /// <param name="value"></param>
         public ServiceResult OnWriteTagValue(
             ISystemContext context,
             NodeState node,
@@ -344,15 +341,12 @@ namespace DataAccess
                     {
                         var node = variable as TwoStateDiscreteState;
 
-                        if (tag.Labels != null && node.TrueState != null && node.FalseState != null)
+                        if (tag.Labels != null && node.TrueState != null && node.FalseState != null && tag.Labels.Length >= 2)
                         {
-                            if (tag.Labels.Length >= 2)
-                            {
-                                node.TrueState.Value = new LocalizedText(tag.Labels[0]);
-                                node.TrueState.Timestamp = tag.Block.Timestamp;
-                                node.FalseState.Value = new LocalizedText(tag.Labels[1]);
-                                node.FalseState.Timestamp = tag.Block.Timestamp;
-                            }
+                            node.TrueState.Value = new LocalizedText(tag.Labels[0]);
+                            node.TrueState.Timestamp = tag.Block.Timestamp;
+                            node.FalseState.Value = new LocalizedText(tag.Labels[1]);
+                            node.FalseState.Timestamp = tag.Block.Timestamp;
                         }
 
                         break;

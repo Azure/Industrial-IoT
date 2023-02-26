@@ -35,7 +35,7 @@ namespace HistoricalEvents
     using System.Data;
     using System.Text;
 
-    public class ReportGenerator
+    public class ReportGenerator : IDisposable
     {
         public void Initialize()
         {
@@ -175,13 +175,10 @@ namespace HistoricalEvents
                 {
                     var index = kWellNames[ii].LastIndexOf('/');
 
-                    if (index >= 0)
+                    if (index >= 0 && kWellNames[ii].Substring(0, index) == areaName)
                     {
-                        if (kWellNames[ii].Substring(0, index) == areaName)
-                        {
-                            well.Name = kWellNames[ii].Substring(index + 1);
-                            wells.Add(well);
-                        }
+                        well.Name = kWellNames[ii].Substring(index + 1);
+                        wells.Add(well);
                     }
                 }
             }
@@ -223,6 +220,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Deletes the event with the specified event id.
         /// </summary>
+        /// <param name="eventId"></param>
         public bool DeleteEvent(string eventId)
         {
             var filter = new StringBuilder();
@@ -255,6 +253,10 @@ namespace HistoricalEvents
         /// <summary>
         /// Reads the report history for the specified time range.
         /// </summary>
+        /// <param name="reportType"></param>
+        /// <param name="uidWell"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
         public DataView ReadHistoryForWellId(ReportType reportType, string uidWell, DateTime startTime, DateTime endTime)
         {
             var filter = new StringBuilder();
@@ -273,6 +275,10 @@ namespace HistoricalEvents
         /// <summary>
         /// Reads the report history for the specified time range.
         /// </summary>
+        /// <param name="reportType"></param>
+        /// <param name="areaName"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
         public DataView ReadHistoryForArea(ReportType reportType, string areaName, DateTime startTime, DateTime endTime)
         {
             var filter = new StringBuilder();
@@ -295,6 +301,10 @@ namespace HistoricalEvents
         /// <summary>
         /// Reads the history for the specified time range.
         /// </summary>
+        /// <param name="reportType"></param>
+        /// <param name="filter"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
         private DataView ReadHistory(ReportType reportType, StringBuilder filter, DateTime startTime, DateTime endTime)
         {
             var earlyTime = startTime;
@@ -476,6 +486,11 @@ namespace HistoricalEvents
             e.TestDuration.SetChildValue(SystemContext, Opc.Ua.BrowseNames.EngineeringUnits, new EUInformation((string)row[Opc.Ua.BrowseNames.EngineeringUnits], Namespaces.HistoricalEvents), false);
 
             return e;
+        }
+
+        public void Dispose()
+        {
+            _dataset?.Dispose();
         }
 
         private DataSet _dataset;

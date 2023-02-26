@@ -177,6 +177,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// <param name="site"></param>
         /// <param name="supervisors"></param>
         /// <param name="modules"></param>
+        /// <param name="noSite"></param>
         private void CreateSupervisorFixtures(out string site,
             out List<SupervisorModel> supervisors, out List<(DeviceTwinModel, DeviceModel)> modules,
             bool noSite = false)

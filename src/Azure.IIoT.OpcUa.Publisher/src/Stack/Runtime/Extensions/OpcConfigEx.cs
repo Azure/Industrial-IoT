@@ -23,6 +23,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Build the opc ua stack application configuration
         /// </summary>
+        /// <param name="opcConfig"></param>
+        /// <param name="identity"></param>
+        /// <param name="handler"></param>
+        /// <param name="logger"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidConfigurationException"></exception>
         public static async Task<ApplicationConfiguration> BuildApplicationConfigurationAsync(
             this IClientServicesConfig opcConfig, string identity,
             CertificateValidationEventHandler handler, ILogger logger)
@@ -48,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             var appInstance = new ApplicationInstance
             {
                 ApplicationName = opcConfig.ApplicationName,
-                ApplicationType = ApplicationType.Client,
+                ApplicationType = ApplicationType.Client
             };
 
             try
@@ -129,6 +135,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Show all certificates in the certificate stores.
         /// </summary>
+        /// <param name="appConfig"></param>
+        /// <param name="logger"></param>
         private static async Task ShowCertificateStoreInformationAsync(
             ApplicationConfiguration appConfig, ILogger logger)
         {

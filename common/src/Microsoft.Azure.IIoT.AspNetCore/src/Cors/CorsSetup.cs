@@ -20,6 +20,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors
         /// <summary>
         /// Default constructor
         /// </summary>
+        /// <param name="config"></param>
+        /// <param name="logger"></param>
         public CorsSetup(ICorsConfig config, ILogger logger)
         {
             _config = config;

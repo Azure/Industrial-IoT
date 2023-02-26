@@ -20,6 +20,7 @@ namespace Opc.Ua
         /// <param name="trustList"></param>
         /// <param name="certificates"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="certificates"/> is <c>null</c>.</exception>
         public static void Remove(this CertificateTrustList trustList,
             IEnumerable<X509Certificate2> certificates)
         {
@@ -44,6 +45,7 @@ namespace Opc.Ua
         /// <param name="certificates"></param>
         /// <param name="noCopy"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="certificates"/> is <c>null</c>.</exception>
         public static void Add(this CertificateTrustList trustList,
             IEnumerable<X509Certificate2> certificates, bool noCopy = false)
         {

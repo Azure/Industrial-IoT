@@ -66,6 +66,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework
         /// <summary>
         /// Version string
         /// </summary>
+        /// <param name="major"></param>
+        /// <param name="minor"></param>
+        /// <param name="revision"></param>
         /// <returns></returns>
         private void Set(int major, int? minor, int? revision)
         {

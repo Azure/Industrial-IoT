@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         {
             if (string.IsNullOrEmpty(discovererId))
             {
-                throw new ArgumentException(nameof(discovererId));
+                throw new ArgumentNullException(nameof(discovererId));
             }
             var deviceId = PublisherModelEx.ParseDeviceId(discovererId, out var moduleId);
             var device = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             }
             if (string.IsNullOrEmpty(discovererId))
             {
-                throw new ArgumentException(nameof(discovererId));
+                throw new ArgumentNullException(nameof(discovererId));
             }
 
             // Get existing endpoint and compare to see if we need to patch.

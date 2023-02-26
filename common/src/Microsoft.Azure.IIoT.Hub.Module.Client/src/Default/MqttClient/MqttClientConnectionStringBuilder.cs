@@ -119,6 +119,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         /// </summary>
         /// <param name="mqttClientConnectionString">The connection string.</param>
         /// <returns>A new instance of the <see cref="MqttClientConnectionStringBuilder"/> class with a populated connection string.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static MqttClientConnectionStringBuilder Create(string mqttClientConnectionString)
         {
             if (string.IsNullOrWhiteSpace(mqttClientConnectionString))
@@ -132,7 +133,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
                 HostName = properties.GetRequired<string>(kHostNamePropertyName),
                 DeviceId = properties.GetOptional<string>(kDeviceIdPropertyName),
                 ModuleId = properties.GetOptional<string>(kModuleIdPropertyName),
-                StateFile = properties.GetOptional<string>(kStateFilePropertyName),
+                StateFile = properties.GetOptional<string>(kStateFilePropertyName)
             };
 
             if (properties.ContainsKey(kUsingIoTHubPropertyName))
@@ -196,6 +197,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         /// <summary>
         /// Validate the properties of the connection string.
         /// </summary>
+        /// <exception cref="ArgumentException"></exception>
         private void Validate()
         {
             if (string.IsNullOrWhiteSpace(HostName))
@@ -248,6 +250,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         /// <param name="value">The property value to validate.</param>
         /// <param name="propertyName">The name of the property.</param>
         /// <param name="regex">The regular expression for a valid value.</param>
+        /// <exception cref="ArgumentException"></exception>
         private static void ValidateFormat(string value, string propertyName, Regex regex)
         {
             if (!regex.IsMatch(value))

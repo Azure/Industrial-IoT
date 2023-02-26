@@ -45,6 +45,7 @@ namespace Microsoft.Azure.IIoT.Http.Default
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         private static async Task<HttpResponseMessage> SendOverUnixDomainSocketAsync(string udsPath,
             HttpRequestMessage request, CancellationToken ct)
         {
@@ -78,6 +79,7 @@ namespace Microsoft.Azure.IIoT.Http.Default
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         private static byte[] GetRequestBuffer(HttpRequestMessage request)
         {
             if (request == null)
@@ -132,6 +134,7 @@ namespace Microsoft.Azure.IIoT.Http.Default
         /// <param name="bufferedStream"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="HttpRequestException"></exception>
         private static async Task<HttpResponseMessage> ReadResponseAsync(
             HttpLineReader bufferedStream, CancellationToken ct)
         {
@@ -310,7 +313,7 @@ namespace Microsoft.Azure.IIoT.Http.Default
         /// <summary>
         /// Line reader stream
         /// </summary>
-        internal class HttpLineReader : StreamAdapter
+        internal class HttpLineReader : WrappedStream
         {
             /// <summary>
             /// Create string
@@ -326,6 +329,7 @@ namespace Microsoft.Azure.IIoT.Http.Default
             /// </summary>
             /// <param name="ct"></param>
             /// <returns></returns>
+            /// <exception cref="IOException"></exception>
             public async Task<string> ReadLineAsync(CancellationToken ct)
             {
                 const int position = 0;

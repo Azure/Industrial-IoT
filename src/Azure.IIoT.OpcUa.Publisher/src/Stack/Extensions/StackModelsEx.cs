@@ -98,6 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="type"></param>
         /// <param name="context"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static RolePermissionModel ToServiceModel(this RolePermissionType type,
             IServiceMessageContext context)
         {
@@ -305,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 Id = policy.PolicyId,
                 SecurityPolicy = policy.SecurityPolicyUri,
                 Configuration = configuration,
-                CredentialType = credentialType,
+                CredentialType = credentialType
             };
         }
 
@@ -314,6 +315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="authentication"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         public static IUserIdentity ToStackModel(this CredentialModel authentication)
         {
             switch (authentication?.Type ?? CredentialType.None)
@@ -350,6 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="authentication"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         public static UserIdentityToken ToUserIdentityToken(this CredentialModel authentication)
         {
             if (authentication is null)
@@ -409,6 +412,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="token"></param>
         /// <param name="serializer"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         public static CredentialModel ToServiceModel(this UserIdentityToken token,
             IJsonSerializer serializer)
         {

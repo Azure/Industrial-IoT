@@ -768,6 +768,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// Called in intervals to check and log progress.
         /// </summary>
         /// <param name="log"></param>
+        /// <exception cref="ThreadStateException"></exception>
         private void ProgressTimer(Action log)
         {
             if ((_counter % 3) == 0)

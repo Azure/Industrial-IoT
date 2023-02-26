@@ -275,6 +275,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
             /// <summary>
             /// Create cascading invoker
             /// </summary>
+            /// <param name="controller"></param>
+            /// <param name="version"></param>
+            /// <param name="applyMethod"></param>
+            /// <param name="logger"></param>
             public Controller(object controller, ulong version,
                 MethodInfo applyMethod, ILogger logger)
             {
@@ -343,6 +347,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
             /// <summary>
             /// Create cascading invoker
             /// </summary>
+            /// <param name="logger"></param>
             public CascadingInvoker(ILogger logger)
             {
                 _logger = logger;

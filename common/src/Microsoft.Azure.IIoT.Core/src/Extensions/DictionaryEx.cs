@@ -13,16 +13,16 @@ namespace System.Collections.Generic
         /// <summary>
         /// Returns the contents of a dictionary as KeyValuePairs
         /// </summary>
-        /// <typeparam name="K"></typeparam>
-        /// <typeparam name="V"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
         /// <param name="dictionary"></param>
         /// <returns></returns>
-        public static IEnumerable<KeyValuePair<K, V>> ToKeyValuePairs<K, V>(
+        public static IEnumerable<KeyValuePair<TKey, TValue>> ToKeyValuePairs<TKey, TValue>(
             this IDictionary dictionary)
         {
             foreach (var key in dictionary.Keys)
             {
-                yield return new KeyValuePair<K, V>((K)key, (V)dictionary[key]);
+                yield return new KeyValuePair<TKey, TValue>((TKey)key, (TValue)dictionary[key]);
             }
         }
     }

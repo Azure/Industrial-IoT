@@ -37,6 +37,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default
         /// <summary>
         /// Create providers
         /// </summary>
+        /// <param name="config"></param>
         /// <returns></returns>
         private static IEnumerable<KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)>>
             CreateProvider(IOAuthClientConfig config)

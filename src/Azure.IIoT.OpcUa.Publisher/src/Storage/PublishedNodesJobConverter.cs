@@ -55,6 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// </summary>
         /// <param name="publishedNodesContent"></param>
         /// <returns></returns>
+        /// <exception cref="SerializerException"></exception>
         public IEnumerable<PublishedNodesEntryModel> Read(string publishedNodesContent)
         {
             var sw = Stopwatch.StartNew();
@@ -147,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
 
                                     ExpandedNodeId = null,
                                     ConditionHandling = null,
-                                    EventFilter = null,
+                                    EventFilter = null
                                 })
                                 .Concat((item.Writer.DataSet.DataSetSource?.PublishedEvents?.PublishedData ??
                                     Enumerable.Empty<PublishedDataSetEventModel>())
@@ -194,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             EndpointUrl = null,
                             UseSecurity = false,
                             EncryptedAuthPassword = null,
-                            EncryptedAuthUsername = null,
+                            EncryptedAuthUsername = null
                         }));
 
                 // Coalesce into unique nodes entry data set groups
@@ -276,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node)),
                                 LifeTimeCount = (uint)_clientConfig.MinSubscriptionLifetime,
                                 MaxKeepAliveCount = _clientConfig.MaxKeepAliveCount,
-                                Priority = 0, // TODO
+                                Priority = 0 // TODO
                             },
                             PublishedVariables = new PublishedDataItemsModel
                             {
@@ -300,7 +301,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         DataChangeTrigger = node.Node.DataChangeTrigger,
                                         DeadbandValue = node.Node.DeadbandValue,
                                         DeadbandType = node.Node.DeadbandType
-                                    }).ToList(),
+                                    }).ToList()
                             },
                             PublishedEvents = new PublishedEventItemsModel
                             {
@@ -317,9 +318,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         TypeDefinitionId = node.Node.EventFilter.TypeDefinitionId,
                                         SelectClauses = node.Node.EventFilter.SelectClauses?.Select(s => s.Clone()).ToList(),
                                         WhereClause = node.Node.EventFilter.WhereClause.Clone(),
-                                        ConditionHandling = node.Node.ConditionHandling.Clone(),
-                                    }).ToList(),
-                            },
+                                        ConditionHandling = node.Node.ConditionHandling.Clone()
+                                    }).ToList()
+                            }
                         })
                     ));
 
@@ -381,8 +382,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         },
                                         PublishedEvents = dataSet.Source.PublishedEvents.Clone(),
                                         PublishedVariables = dataSet.Source.PublishedVariables.Clone(),
-                                        SubscriptionSettings = dataSet.Source.SubscriptionSettings.Clone(),
-                                    },
+                                        SubscriptionSettings = dataSet.Source.SubscriptionSettings.Clone()
+                                    }
                                 },
                                 DataSetFieldContentMask = configuration.MessagingProfile.DataSetFieldContentMask,
                                 MessageSettings = new DataSetWriterMessageSettingsModel
@@ -392,7 +393,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             }),
                             MessageSettings = new WriterGroupMessageSettingsModel
                             {
-                                NetworkMessageContentMask = configuration.MessagingProfile.NetworkMessageContentMask,
+                                NetworkMessageContentMask = configuration.MessagingProfile.NetworkMessageContentMask
                             }
                         }
                     });
@@ -435,6 +436,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <summary>
         /// Transforms a published nodes model connection header to a Connection Model object
         /// </summary>
+        /// <param name="model"></param>
         public ConnectionModel ToConnectionModel(PublishedNodesEntryModel model)
         {
             return new ConnectionModel
@@ -445,16 +447,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     Url = model.EndpointUrl,
                     SecurityMode = model.UseSecurity
                         ? SecurityMode.Best
-                        : SecurityMode.None,
+                        : SecurityMode.None
                 },
                 User = model.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
-                    null : ToUserNamePasswordCredentialAsync(model).GetAwaiter().GetResult(),
+                    null : ToUserNamePasswordCredentialAsync(model).GetAwaiter().GetResult()
             };
         }
 
         /// <summary>
         /// Adds the credentials from the connection to the published nodes model
         /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="publishedNodesEntryModel"></param>
         private PublishedNodesEntryModel AddConnectionModel(ConnectionModel connection,
             PublishedNodesEntryModel publishedNodesEntryModel)
         {
@@ -504,6 +508,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <summary>
         /// Returns an uniquie identifier for the DataSetWriterId from a set of writers belonging to a group
         /// </summary>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="source"></param>
+        /// <param name="set"></param>
         private static string GetUniqueWriterNameInSet(string dataSetWriterId, PublishedDataSetSourceModel source,
             IEnumerable<(string DataSetWriterId, PublishedDataSetSourceModel Source)> set)
         {
@@ -565,6 +572,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <summary>
         /// Get the node models from entry
         /// </summary>
+        /// <param name="item"></param>
+        /// <param name="scaleTestCount"></param>
         private static IEnumerable<(PublishedNodesEntryModel Header, OpcNodeModel Node)> GetNodeModels(
             PublishedNodesEntryModel item, int scaleTestCount)
         {
@@ -595,7 +604,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DeadbandType = node.DeadbandType,
                             DeadbandValue = node.DeadbandValue,
                             EventFilter = node.EventFilter,
-                            ConditionHandling = node.ConditionHandling,
+                            ConditionHandling = node.ConditionHandling
                         });
                     }
                     else
@@ -624,7 +633,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 DeadbandValue = node.DeadbandValue,
                                 DiscardNew = node.DiscardNew,
                                 EventFilter = node.EventFilter,
-                                ConditionHandling = node.ConditionHandling,
+                                ConditionHandling = node.ConditionHandling
                             });
                         }
                     }
@@ -645,6 +654,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// Extract publishing interval from nodes. Ath this point in time, the OpcPublishingIntervalTimespan
         /// must be filled in with the appropriate version
         /// </summary>
+        /// <param name="opcNodes"></param>
         private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<OpcNodeModel> opcNodes)
         {
             return opcNodes
@@ -655,6 +665,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <summary>
         /// Convert to credential model
         /// </summary>
+        /// <param name="entry"></param>
         private async Task<CredentialModel> ToUserNamePasswordCredentialAsync(
             PublishedNodesEntryModel entry)
         {
@@ -693,6 +704,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <summary>
         /// Convert to credential model
         /// </summary>
+        /// <param name="credential"></param>
+        /// <exception cref="NotSupportedException"></exception>
         private async Task<(string user, string password, bool encrypted)> ToUserNamePasswordCredentialAsync(
             CredentialModel credential)
         {

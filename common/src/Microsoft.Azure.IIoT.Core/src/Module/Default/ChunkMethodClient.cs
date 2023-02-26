@@ -98,7 +98,7 @@ namespace Microsoft.Azure.IIoT.Module.Default
                     var result = await _client.CallMethodAsync(deviceId, moduleId,
                         MethodNames.Call, _serializer.SerializeToString(new MethodChunkModel
                         {
-                            Handle = handle,
+                            Handle = handle
                         }), timeout, ct).ConfigureAwait(false);
                     var response = _serializer.Deserialize<MethodChunkModel>(result);
                     if (response.Payload != null)

@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.Events
     /// <summary>
     /// Discoverer progress processor
     /// </summary>
+    /// <typeparam name="THub"></typeparam>
     public class DiscoveryProgressPublisher<THub> : IDiscoveryProgressProcessor
     {
         /// <inheritdoc/>

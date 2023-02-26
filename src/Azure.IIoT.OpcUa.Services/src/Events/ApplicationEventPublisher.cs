@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.Events
     /// <summary>
     /// Application registry event publisher
     /// </summary>
+    /// <typeparam name="THub"></typeparam>
     public class ApplicationEventPublisher<THub> : IApplicationRegistryListener
     {
         /// <inheritdoc/>

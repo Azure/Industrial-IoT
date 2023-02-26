@@ -44,6 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The read value request</param>
         /// <returns>The read value response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}")]
         public async Task<ValueReadResponseModel> ReadValueAsync(
             string endpointId, [FromBody][Required] ValueReadRequestModel request)
@@ -66,6 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The read request</param>
         /// <returns>The read response</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/attributes")]
         public async Task<ReadResponseModel> ReadAttributesAsync(
             string endpointId, [FromBody][Required] ReadRequestModel request)
@@ -88,6 +90,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="nodeId">The node to read</param>
         /// <returns>The read value response</returns>
+        /// <exception cref="ArgumentNullException"></exception>
         [HttpGet("{endpointId}")]
         public async Task<ValueReadResponseModel> GetValueAsync(
             string endpointId, [FromQuery][Required] string nodeId)

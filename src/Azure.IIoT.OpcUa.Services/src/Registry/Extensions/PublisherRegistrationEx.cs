@@ -202,6 +202,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="disabled"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public static PublisherRegistration ToPublisherRegistration(
             this PublisherModel model, bool? disabled = null)
         {
@@ -219,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 LogLevel = model.LogLevel,
                 Connected = model.Connected ?? false,
                 Version = null,
-                SiteId = model.SiteId,
+                SiteId = model.SiteId
             };
         }
 
@@ -228,6 +229,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="disabled"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public static PublisherRegistration ToPublisherRegistration(
             this SupervisorModel model, bool? disabled = null)
         {
@@ -245,7 +247,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 LogLevel = model.LogLevel,
                 Version = null,
                 Connected = model.Connected ?? false,
-                SiteId = model.SiteId,
+                SiteId = model.SiteId
             };
         }
 
@@ -254,6 +256,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="disabled"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public static PublisherRegistration ToPublisherRegistration(
             this DiscovererModel model, bool? disabled = null)
         {
@@ -271,7 +274,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 LogLevel = model.LogLevel,
                 Connected = model.Connected ?? false,
                 Version = null,
-                SiteId = model.SiteId,
+                SiteId = model.SiteId
             };
         }
 

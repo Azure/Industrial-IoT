@@ -209,6 +209,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
         /// <param name="cs"></param>
         /// <param name="transportSetting"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="cs"/> is <c>null</c>.</exception>
         private static DeviceClient Create(IotHubConnectionStringBuilder cs,
             ITransportSettings transportSetting)
         {

@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Models
                 DefaultMaxMessagesPerPublish = model.Engine?.DefaultMaxMessagesPerPublish,
                 DefaultMetaDataQueueName = model.Engine?.DefaultMetaDataQueueName,
                 MaxOutgressMessages = model.Engine?.MaxOutgressMessages,
-                UseStandardsCompliantEncoding = model.Engine?.UseStandardsCompliantEncoding ?? false,
+                UseStandardsCompliantEncoding = model.Engine?.UseStandardsCompliantEncoding ?? false
             };
 
             if (writerGroupJobConfig.WriterGroup != null)

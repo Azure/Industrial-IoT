@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var encodeableDictionary = new EncodeableDictionary {
                 new KeyDataValuePair { Key = expectedKey1, Value = expectedValue1 },
                 new KeyDataValuePair { Key = expectedKey2, Value = expectedValue2 },
-                new KeyDataValuePair { Key = expectedKey3, Value = expectedValue3 },
+                new KeyDataValuePair { Key = expectedKey3, Value = expectedValue3 }
             };
 
             byte[] buffer;
@@ -95,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var encodeableDictionary = new EncodeableDictionary {
                 new KeyDataValuePair { Key = string.Empty, Value = value },
                 new KeyDataValuePair { Key = string.Empty, Value = value },
-                new KeyDataValuePair { Key = string.Empty, Value = value },
+                new KeyDataValuePair { Key = string.Empty, Value = value }
             };
 
             byte[] buffer;
@@ -132,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var encodeableDictionary = new EncodeableDictionary {
                 new KeyDataValuePair { Key = expectedKey1, Value = null },
                 new KeyDataValuePair { Key = expectedKey2, Value = null },
-                new KeyDataValuePair { Key = expectedKey3, Value = null },
+                new KeyDataValuePair { Key = expectedKey3, Value = null }
             };
 
             byte[] buffer;

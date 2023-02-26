@@ -34,6 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Entry point
         /// </summary>
+        /// <param name="args"></param>
+        /// <exception cref="ArgumentException"></exception>
         public static void Main(string[] args)
         {
             var checkTrust = true;
@@ -179,6 +181,13 @@ Options:
         /// <summary>
         /// Host the module giving it its connection string.
         /// </summary>
+        /// <param name="config"></param>
+        /// <param name="logger"></param>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <param name="args"></param>
+        /// <param name="verbose"></param>
+        /// <param name="acceptAll"></param>
         private static async Task HostAsync(IIoTHubConfig config, ILogger logger,
             string deviceId, string moduleId, string[] args, bool verbose = false,
             bool acceptAll = false)
@@ -211,6 +220,12 @@ Options:
         /// <summary>
         /// setup publishing from sample server
         /// </summary>
+        /// <param name="config"></param>
+        /// <param name="logger"></param>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <param name="args"></param>
+        /// <param name="verbose"></param>
         private static async Task WithServerAsync(IIoTHubConfig config, ILogger logger,
             string deviceId, string moduleId, string[] args, bool verbose = false)
         {
@@ -238,6 +253,10 @@ Options:
         /// <summary>
         /// Add or get module identity
         /// </summary>
+        /// <param name="config"></param>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <param name="logger"></param>
         private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
             string deviceId, string moduleId, ILogger logger)
         {
@@ -287,6 +306,7 @@ Options:
             /// <summary>
             /// Create wrapper
             /// </summary>
+            /// <param name="logger"></param>
             public ServerWrapper(ILogger logger)
             {
                 _cts = new CancellationTokenSource();
@@ -306,6 +326,8 @@ Options:
             /// <summary>
             /// Run server until cancelled
             /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="ct"></param>
             private static async Task RunSampleServerAsync(ILogger logger, CancellationToken ct)
             {
                 var tcs = new TaskCompletionSource<bool>();

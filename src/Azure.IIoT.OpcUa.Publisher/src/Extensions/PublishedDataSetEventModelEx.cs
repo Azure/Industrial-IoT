@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Models
                         .Select(s => s.Clone())
                         .ToList(),
                     WhereClause = publishedEvent.WhereClause?.Clone(),
-                    TypeDefinitionId = publishedEvent.TypeDefinitionId,
+                    TypeDefinitionId = publishedEvent.TypeDefinitionId
                 },
                 DiscardNew = publishedEvent.DiscardNew
                     ?? configuration?.DefaultDiscardNew,
@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Models
                 AttributeId = null,
                 IndexRange = null,
                 SamplingInterval = TimeSpan.Zero,
-                ConditionHandling = publishedEvent.ConditionHandling.Clone(),
+                ConditionHandling = publishedEvent.ConditionHandling.Clone()
             };
         }
     }

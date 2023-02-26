@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Models
         /// </summary>
         [DataMember(Name = "browsePath", Order = 3,
             EmitDefaultValue = false)]
-        public string[]? BrowsePath { get; set; }
+        public IReadOnlyList<string>? BrowsePath { get; set; }
 
         /// <summary>
         /// Default is <see cref="NodeAttribute.Value"/>.

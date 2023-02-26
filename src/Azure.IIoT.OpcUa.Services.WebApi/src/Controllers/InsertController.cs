@@ -44,6 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history insert request</param>
         /// <returns>The history insert result</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(
             string endpointId,
@@ -66,6 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history insert request</param>
         /// <returns>The history insert result</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(
             string endpointId,

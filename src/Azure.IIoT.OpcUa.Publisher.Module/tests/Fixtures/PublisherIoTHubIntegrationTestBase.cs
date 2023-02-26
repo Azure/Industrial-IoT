@@ -137,6 +137,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Wait for one message
         /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="messageType"></param>
         protected List<JsonElement> WaitForMessages(
             Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
@@ -148,6 +150,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Wait for one message
         /// </summary>
+        /// <param name="messageCollectionTimeout"></param>
+        /// <param name="messageCount"></param>
+        /// <param name="predicate"></param>
+        /// <param name="messageType"></param>
         protected List<JsonElement> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
             Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
@@ -159,6 +165,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Wait for messages
         /// </summary>
+        /// <param name="messageCollectionTimeout"></param>
+        /// <param name="messageCount"></param>
+        /// <param name="metadata"></param>
+        /// <param name="predicate"></param>
+        /// <param name="messageType"></param>
         protected List<JsonElement> WaitForMessagesAndMetadata(TimeSpan messageCollectionTimeout, int messageCount,
             ref JsonElement? metadata, Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
@@ -231,6 +242,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Start publisher
         /// </summary>
+        /// <param name="publishedNodesFile"></param>
+        /// <param name="arguments"></param>
         protected Task StartPublisherAsync(string publishedNodesFile = null, string[] arguments = default)
         {
             Task.Run(() => HostPublisherAsync(
@@ -271,6 +284,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Setup publishing from sample server.
         /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="publishedNodesFile"></param>
+        /// <param name="arguments"></param>
         private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile, string[] arguments)
         {
             var publishedNodesFilePath = Path.GetTempFileName();
@@ -328,6 +344,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Host the publisher module.
         /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="configurationRoot"></param>
+        /// <param name="devices"></param>
         private async Task HostAsync(ILogger logger, IConfiguration configurationRoot, List<(DeviceTwinModel, DeviceModel)> devices)
         {
             try
@@ -402,6 +421,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Configures DI for the types required.
         /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="devices"></param>
         private static IContainer ConfigureContainer(IConfiguration configuration,
             List<(DeviceTwinModel, DeviceModel)> devices)
         {

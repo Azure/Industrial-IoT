@@ -215,6 +215,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
         /// <summary>
         /// Convert timestamps of payload to OpcUa Utc.
         /// </summary>
+        /// <param name="networkMessage"></param>
         private static void ConvertToOpcUaUniversalTime(BaseNetworkMessage networkMessage)
         {
             // convert DataSet Payload DataValue timestamps to OpcUa Utc
@@ -234,6 +235,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
         /// <summary>
         /// Create network message
         /// </summary>
+        /// <param name="contentMask"></param>
+        /// <param name="messages"></param>
         private static JsonNetworkMessage CreateNetworkMessage(
             JsonNetworkMessageContentMask contentMask, List<BaseDataSetMessage> messages)
         {
@@ -250,6 +253,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
         /// <summary>
         /// Create dataset message
         /// </summary>
+        /// <param name="useCompatibilityMode"></param>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="dataSetMessageContentMask"></param>
+        /// <param name="dataSetFieldContentMask"></param>
         private static JsonDataSetMessage CreateDataSetMessage(bool useCompatibilityMode, int sequenceNumber,
             JsonDataSetMessageContentMask dataSetMessageContentMask = DataSetMessageContentMaskDefault,
             DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
@@ -270,6 +277,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
         /// <summary>
         /// Create dataset
         /// </summary>
+        /// <param name="dataSetFieldContentMask"></param>
         private static DataSet CreateDataSet(DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
         {
             return new DataSet(new Dictionary<string, DataValue> {

@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Http
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns>this</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static IHttpRequest AddHeader(this IHttpRequest request, string name,
             string value)
         {

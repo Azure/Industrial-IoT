@@ -38,6 +38,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create trigger from writer group
         /// </summary>
+        /// <param name="writerGroupConfig"></param>
+        /// <param name="subscriptionManager"></param>
+        /// <param name="subscriptionConfig"></param>
+        /// <param name="metrics"></param>
+        /// <param name="logger"></param>
         public WriterGroupDataSource(IWriterGroupConfig writerGroupConfig,
             ISubscriptionManager subscriptionManager, ISubscriptionConfig subscriptionConfig,
             IMetricsContext metrics, ILogger logger)
@@ -183,6 +188,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Create subscription from a DataSetWriterModel template
             /// </summary>
+            /// <param name="outer"></param>
+            /// <param name="dataSetWriter"></param>
             private DataSetWriterSubscription(WriterGroupDataSource outer,
                 DataSetWriterModel dataSetWriter)
             {
@@ -196,6 +203,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Create subscription
             /// </summary>
+            /// <param name="outer"></param>
+            /// <param name="dataSetWriter"></param>
+            /// <param name="ct"></param>
             public static async ValueTask<DataSetWriterSubscription> CreateAsync(
                 WriterGroupDataSource outer, DataSetWriterModel dataSetWriter,
                 CancellationToken ct)
@@ -211,6 +221,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Update subscription content
             /// </summary>
+            /// <param name="dataSetWriter"></param>
+            /// <param name="ct"></param>
             public async ValueTask UpdateAsync(DataSetWriterModel dataSetWriter, CancellationToken ct)
             {
                 if (Subscription == null)
@@ -258,6 +270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Open subscription
             /// </summary>
+            /// <param name="ct"></param>
             /// <returns></returns>
             private async ValueTask OpenAsync(CancellationToken ct)
             {
@@ -362,6 +375,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Fired when metadata time elapsed
             /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="e"></param>
             private void MetadataTimerElapsed(object sender, ElapsedEventArgs e)
             {
                 try
@@ -392,6 +407,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Handle subscription data change messages
             /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="notification"></param>
             private void OnSubscriptionDataChangeNotification(object sender, SubscriptionNotificationModel notification)
             {
                 CallMessageReceiverDelegates(sender, ProcessKeyFrame(notification));
@@ -413,6 +430,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Handle subscription data diagnostics change messages
             /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="notificationCount"></param>
             private void OnSubscriptionDataDiagnosticsChanged(object sender, int notificationCount)
             {
                 lock (_lock)
@@ -438,6 +457,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Handle subscription change messages
             /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="notification"></param>
             private void OnSubscriptionEventNotification(object sender, SubscriptionNotificationModel notification)
             {
                 CallMessageReceiverDelegates(sender, notification);
@@ -571,6 +592,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Iterates the array and add up all values
         /// </summary>
+        /// <param name="array"></param>
+        /// <param name="lastPointer"></param>
+        /// <param name="bucketWidth"></param>
+        /// <param name="lastWriteTime"></param>
         private static long CalculateSumForRingBuffer(long[] array, ref int lastPointer,
             int bucketWidth, DateTime lastWriteTime)
         {
@@ -593,6 +618,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Helper function to distribute values over array based on time
         /// </summary>
+        /// <param name="array"></param>
+        /// <param name="lastPointer"></param>
+        /// <param name="bucketWidth"></param>
+        /// <param name="difference"></param>
+        /// <param name="lastWriteTime"></param>
         private static void IncreaseRingBuffer(long[] array, ref int lastPointer,
             int bucketWidth, long difference, ref DateTime lastWriteTime)
         {
@@ -604,6 +634,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Empty the ring buffer buckets if necessary
         /// </summary>
+        /// <param name="array"></param>
+        /// <param name="lastPointer"></param>
+        /// <param name="bucketWidth"></param>
+        /// <param name="lastWriteTime"></param>
         private static int UpdateRingBufferBuckets(long[] array, ref int lastPointer,
             int bucketWidth, ref DateTime lastWriteTime)
         {

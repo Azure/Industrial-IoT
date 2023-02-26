@@ -23,6 +23,7 @@ namespace Autofac
         /// <param name="builder"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <c>null</c>.</exception>
         public static IModuleRegistrar AddDiagnostics(this ContainerBuilder builder,
             Action<ILoggingBuilder> configure = null)
         {

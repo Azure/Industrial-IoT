@@ -186,6 +186,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Get DataSetFlags2
         /// </summary>
+        /// <exception cref="ServiceResultException"></exception>
         internal DataSetFlags2EncodingMask DataSetFlags2
         {
             get
@@ -301,6 +302,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="decoder"></param>
         /// <param name="resolver"></param>
+        /// <exception cref="ServiceResultException"></exception>
         internal bool TryDecode(BinaryDecoder decoder, IDataSetMetaDataResolver resolver)
         {
             if (decoder is not BinaryDecoder binaryDecoder)
@@ -438,6 +440,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="binaryDecoder"></param>
         /// <param name="metadata"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         private void ReadPayloadKeyFrame(BinaryDecoder binaryDecoder, DataSetMetaDataType metadata)
         {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
@@ -501,6 +504,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="binaryEncoder"></param>
         /// <param name="metadata"></param>
+        /// <exception cref="ServiceResultException"></exception>
         private void WritePayloadKeyFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType metadata)
         {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
@@ -544,6 +548,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="binaryDecoder"></param>
         /// <param name="metadata"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         private void ReadPayloadDeltaFrame(BinaryDecoder binaryDecoder, DataSetMetaDataType metadata)
         {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
@@ -583,6 +588,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="binaryEncoder"></param>
         /// <param name="metadata"></param>
+        /// <exception cref="ServiceResultException"></exception>
         private void WritePayloadDeltaFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType metadata)
         {
             // ignore null fields

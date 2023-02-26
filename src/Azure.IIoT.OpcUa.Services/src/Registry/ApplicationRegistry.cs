@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
             }
             if (request.ApplicationUri == null)
             {
-                throw new ArgumentNullException(nameof(request.ApplicationUri));
+                throw new ArgumentException("Application Uri missing", nameof(request));
             }
 
             var context = request.Context.Validate();
@@ -368,7 +368,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
         {
             if (string.IsNullOrEmpty(endpointId))
             {
-                throw new ArgumentException(nameof(endpointId));
+                throw new ArgumentNullException(nameof(endpointId));
             }
             var device = await _iothub.GetAsync(endpointId, null, ct).ConfigureAwait(false);
             return TwinModelToEndpointRegistrationModel(device, onlyServerState, false);
@@ -962,6 +962,9 @@ namespace Azure.IIoT.OpcUa.Services.Services
         /// <param name="throwIfNotFound"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="ResourceNotFoundException"></exception>
         private async Task<ApplicationRegistration> GetApplicationRegistrationAsync(
             string applicationId, bool throwIfNotFound, CancellationToken ct)
         {
@@ -1117,6 +1120,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
         /// this means that you will look at stale information.</param>
         /// <param name="skipInvalid"></param>
         /// <returns></returns>
+        /// <exception cref="ResourceNotFoundException"></exception>
         private static EndpointInfoModel TwinModelToEndpointRegistrationModel(
             DeviceTwinModel twin, bool onlyServerState, bool skipInvalid)
         {

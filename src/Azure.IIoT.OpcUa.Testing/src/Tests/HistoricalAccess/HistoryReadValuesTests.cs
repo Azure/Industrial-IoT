@@ -217,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                     Details = new ReadValuesDetailsModel
                     {
                         StartTime = DateTime.UtcNow - TimeSpan.FromDays(600),
-                        EndTime = DateTime.UtcNow + TimeSpan.FromDays(1),
+                        EndTime = DateTime.UtcNow + TimeSpan.FromDays(1)
                     }
                 }).ConfigureAwait(false);
 
@@ -564,7 +564,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                     Details = new ReadValuesDetailsModel
                     {
                         StartTime = DateTime.UtcNow - TimeSpan.FromDays(600),
-                        EndTime = DateTime.UtcNow + TimeSpan.FromDays(1),
+                        EndTime = DateTime.UtcNow + TimeSpan.FromDays(1)
                     }
                 }).ToListAsync().ConfigureAwait(false);
 

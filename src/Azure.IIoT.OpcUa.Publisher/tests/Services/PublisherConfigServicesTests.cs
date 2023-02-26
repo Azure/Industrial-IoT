@@ -124,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
 
             endpoint.OpcNodes = new List<OpcNodeModel> {
                 new OpcNodeModel {
-                    Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2",
+                    Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"
                 }
             };
 
@@ -214,7 +214,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var exceptionModel = new MethodCallStatusExceptionModel
             {
                 Message = "Response 400 null request is provided",
-                Details = "{}",
+                Details = "{}"
             };
             var serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
             serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
@@ -223,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel
                 {
-                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}"
                 })
                 .ToList();
 
@@ -238,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var opcNodes1 = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel
                 {
-                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt{i}",
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt{i}"
                 })
                 .ToList();
             var endpointsToDelete = Enumerable.Range(0, numberOfEndpoints)
@@ -297,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
 
             var request = new PublishedNodesEntryModel
             {
-                EndpointUrl = "opc.tcp://opcplc:50000",
+                EndpointUrl = "opc.tcp://opcplc:50000"
             };
 
             // Check null OpcNodes in request.
@@ -354,7 +354,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel
                 {
-                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}"
                 })
                 .ToList();
 
@@ -430,7 +430,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel
                 {
-                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}"
                 })
                 .ToList();
 
@@ -463,7 +463,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel
                 {
-                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}"
                 })
                 .ToList();
 
@@ -509,7 +509,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel
                 {
-                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}"
                 })
                 .ToList();
 
@@ -607,7 +607,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var opcNodes = Enumerable.Range(0, 5)
                 .Select(i => new OpcNodeModel
                 {
-                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}"
                 })
                 .ToList();
 
@@ -753,7 +753,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
 
             endpoints[0].OpcNodes = new List<OpcNodeModel> {
                 new OpcNodeModel {
-                    Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2",
+                    Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"
                 }
             };
 
@@ -935,7 +935,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             {
                 var model = new PublishedNodesEntryModel
                 {
-                    EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
+                    EndpointUrl = $"opc.tcp://server{endpointIndex}:49580"
                 };
 
                 model.OpcNodes = new List<OpcNodeModel>();
@@ -943,7 +943,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                 {
                     model.OpcNodes.Add(new OpcNodeModel
                     {
-                        Id = $"ns=2;s=Node-Server-{nodeIndex}",
+                        Id = $"ns=2;s=Node-Server-{nodeIndex}"
                     });
                 }
 
@@ -985,7 +985,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
                     OpcNodes = new List<OpcNodeModel> {
                         new OpcNodeModel {
-                            Id = $"ns=2;s=Node-Server-{numberOfNodes}",
+                            Id = $"ns=2;s=Node-Server-{numberOfNodes}"
                         }
                     }
                 };
@@ -1033,7 +1033,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                 DataSetWriterId = $"DataSetWriterId{dataSetIndex}",
                 DataSetWriterGroup = "DataSetWriterGroup",
                 DataSetPublishingInterval = (dataSetIndex + 1) * 1000,
-                OpcNodes = opcNodes.GetRange(0, dataSetIndex + 1).ToList(),
+                OpcNodes = opcNodes.GetRange(0, dataSetIndex + 1).ToList()
             };
         }
 

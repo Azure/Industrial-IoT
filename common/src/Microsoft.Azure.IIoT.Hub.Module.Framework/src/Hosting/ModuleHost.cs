@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
 
         /// <inheritdoc/>
         public async Task StartAsync(string type, string productInfo, string version,
-            IProcessControl reset)
+            IProcessControl control)
         {
             if (Client == null)
             {
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
                     {
                         // Create client
                         _logger.LogDebug("Starting Module Host...");
-                        Client = await _factory.CreateAsync(productInfo + "_" + version, _metrics, reset).ConfigureAwait(false);
+                        Client = await _factory.CreateAsync(productInfo + "_" + version, _metrics, control).ConfigureAwait(false);
                         // Register callback to be called when a method request is received
                         await Client.SetMethodHandlerAsync((request, _) =>
                             _router.InvokeMethodAsync(request)).ConfigureAwait(false);

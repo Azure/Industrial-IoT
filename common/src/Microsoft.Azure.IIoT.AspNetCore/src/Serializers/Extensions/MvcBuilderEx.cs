@@ -25,6 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <c>null</c>.</exception>
         public static IMvcBuilder AddSerializers(this IMvcBuilder builder)
         {
             if (builder == null)
@@ -64,6 +65,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <c>null</c>.</exception>
         internal static IMvcBuilder AddJsonSerializer(this IMvcBuilder builder)
         {
             if (builder == null)

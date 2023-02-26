@@ -60,6 +60,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models
         /// <param name="serializer"></param>
         /// <param name="continuationToken"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static QueryContinuation DeserializeContinuationToken(this ISerializer serializer,
             string continuationToken)
         {

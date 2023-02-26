@@ -23,6 +23,9 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         /// <summary>
         /// Create node services tests
         /// </summary>
+        /// <param name="services"></param>
+        /// <param name="connection"></param>
+        /// <param name="newMetadata"></param>
         public CallScalarMethodTests(Func<INodeServices<T>> services, T connection, bool newMetadata = false)
         {
             _services = services;
@@ -1317,7 +1320,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
-                },
+                }
             };
 
             // Act
@@ -1362,7 +1365,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                         Body = new Opc.Ua.Argument("test1", Opc.Ua.DataTypes.String, -1, "desc1")
                             .AsBinary(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
-                },
+                }
             };
 
             // Act
@@ -1415,7 +1418,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
-                },
+                }
             };
 
             // Act
@@ -1466,7 +1469,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
-                },
+                }
             };
 
             // Act
@@ -1521,7 +1524,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
-                },
+                }
             };
 
             // Act
@@ -1582,7 +1585,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
-                },
+                }
             };
 
             // Act
@@ -1642,7 +1645,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
-                },
+                }
             };
 
             // Act

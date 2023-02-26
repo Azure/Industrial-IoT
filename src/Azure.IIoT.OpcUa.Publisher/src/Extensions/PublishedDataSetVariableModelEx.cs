@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Models
                 DataChangeTrigger = publishedVariable.DataChangeTrigger
                     ?? configuration?.DefaultDataChangeTrigger,
                 DeadbandType = publishedVariable.DeadbandType,
-                DeadbandValue = publishedVariable.DeadbandValue,
+                DeadbandValue = publishedVariable.DeadbandValue
             };
         }
     }

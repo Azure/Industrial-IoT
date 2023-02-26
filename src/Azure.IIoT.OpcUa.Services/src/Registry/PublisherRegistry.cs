@@ -39,38 +39,38 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         }
 
         /// <inheritdoc/>
-        public async Task<PublisherModel> GetPublisherAsync(string publisherId,
+        public async Task<PublisherModel> GetPublisherAsync(string id,
             bool onlyServerState, CancellationToken ct)
         {
-            if (string.IsNullOrEmpty(publisherId))
+            if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentException(nameof(publisherId));
+                throw new ArgumentNullException(nameof(id));
             }
-            var deviceId = PublisherModelEx.ParseDeviceId(publisherId, out var moduleId);
+            var deviceId = PublisherModelEx.ParseDeviceId(id, out var moduleId);
             var device = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
             if (!(device.ToEntityRegistration(onlyServerState) is PublisherRegistration registration))
             {
                 throw new ResourceNotFoundException(
-                    $"{publisherId} is not a publisher registration.");
+                    $"{id} is not a publisher registration.");
             }
             return registration.ToPublisherModel();
         }
 
         /// <inheritdoc/>
-        public async Task UpdatePublisherAsync(string publisherId,
+        public async Task UpdatePublisherAsync(string id,
             PublisherUpdateModel request, CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(publisherId))
+            if (string.IsNullOrEmpty(id))
             {
-                throw new ArgumentException(nameof(publisherId));
+                throw new ArgumentNullException(nameof(id));
             }
 
             // Get existing endpoint and compare to see if we need to patch.
-            var deviceId = PublisherModelEx.ParseDeviceId(publisherId, out var moduleId);
+            var deviceId = PublisherModelEx.ParseDeviceId(id, out var moduleId);
 
             while (true)
             {
@@ -80,13 +80,13 @@ namespace Azure.IIoT.OpcUa.Services.Registry
                     if (twin.Id != deviceId && twin.ModuleId != moduleId)
                     {
                         throw new ArgumentException("Id must be same as twin to patch",
-                            nameof(publisherId));
+                            nameof(id));
                     }
 
                     if (!(twin.ToEntityRegistration(true) is PublisherRegistration registration))
                     {
                         throw new ResourceNotFoundException(
-                            $"{publisherId} is not a publisher registration.");
+                            $"{id} is not a publisher registration.");
                     }
                     // Update registration from update request
                     var patched = registration.ToPublisherModel();
@@ -139,33 +139,34 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
         /// <inheritdoc/>
         public async Task<PublisherListModel> QueryPublishersAsync(
-            PublisherQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct)
+            PublisherQueryModel query, bool onlyServerState, int? pageSize, CancellationToken ct)
         {
-            var query = "SELECT * FROM devices.modules WHERE " +
+            var sql = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}'";
 
-            if (model?.SiteId != null)
+            if (query?.SiteId != null)
             {
                 // If site id provided, include it in search
-                query += $"AND (properties.reported.{TwinProperty.SiteId} = " +
-                    $"'{model.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
-                    $"'{model.SiteId}' OR deviceId = '{model.SiteId}') ";
+                sql += $"AND (properties.reported.{TwinProperty.SiteId} = " +
+                    $"'{query.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
+                    $"'{query.SiteId}' OR deviceId = '{query.SiteId}') ";
             }
 
-            if (model?.Connected != null)
+            if (query?.Connected != null)
             {
                 // If flag provided, include it in search
-                if (model.Connected.Value)
+                if (query.Connected.Value)
                 {
-                    query += "AND connectionState = 'Connected' ";
+                    sql += "AND connectionState = 'Connected' ";
                 }
                 else
                 {
-                    query += "AND connectionState != 'Connected' ";
+                    sql += "AND connectionState != 'Connected' ";
                 }
             }
 
-            var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct).ConfigureAwait(false);
+            var queryResult = await _iothub.QueryDeviceTwinsAsync(sql, null,
+                pageSize, ct).ConfigureAwait(false);
             return new PublisherListModel
             {
                 ContinuationToken = queryResult.ContinuationToken,

@@ -28,6 +28,7 @@ namespace Microsoft.Azure.IIoT.Hub
         /// <param name="primary"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="ResourceNotFoundException"></exception>
         public static async Task<ConnectionString> GetConnectionStringAsync(
             this IIoTHubTwinServices service, string deviceId, string moduleId,
             bool primary = true, CancellationToken ct = default)

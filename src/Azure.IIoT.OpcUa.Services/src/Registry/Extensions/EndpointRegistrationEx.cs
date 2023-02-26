@@ -43,6 +43,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// <param name="existing"></param>
         /// <param name="update"></param>
         /// <param name="serializer"></param>
+        /// <exception cref="ArgumentException"></exception>
         public static DeviceTwinModel Patch(this EndpointRegistration existing,
             EndpointRegistration update, IJsonSerializer serializer)
         {
@@ -344,6 +345,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// <param name="disabled"></param>
         /// <param name="discoverId"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public static EndpointRegistration ToEndpointRegistration(this EndpointInfoModel model,
             bool? disabled = null, string discoverId = null)
         {

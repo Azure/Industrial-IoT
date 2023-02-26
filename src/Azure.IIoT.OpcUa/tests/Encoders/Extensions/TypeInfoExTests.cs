@@ -86,7 +86,7 @@ namespace Opc.Ua.Extensions
                 new ExtensionObject("test1"),
                 new ExtensionObject("test2"),
                 new ExtensionObject("test3"),
-                new ExtensionObject("test4"),
+                new ExtensionObject("test4")
             };
             var variant = TypeInfo.Arrays.ExtensionObject.CreateVariant(expected);
             Assert.Equal(expected, variant.Value);

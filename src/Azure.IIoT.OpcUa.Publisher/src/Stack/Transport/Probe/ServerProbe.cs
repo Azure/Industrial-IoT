@@ -85,6 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
             /// <param name="ok"></param>
             /// <param name="timeout"></param>
             /// <returns>true if completed, false to be called again</returns>
+            /// <exception cref="InvalidProgramException"></exception>
             public bool OnComplete(int index, SocketAsyncEventArgs arg,
                 out bool ok, out int timeout)
             {

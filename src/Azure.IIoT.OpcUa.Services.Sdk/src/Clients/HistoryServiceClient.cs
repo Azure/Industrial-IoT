@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             }
             if (string.IsNullOrEmpty(request.ContinuationToken))
             {
-                throw new ArgumentNullException(nameof(request.ContinuationToken));
+                throw new ArgumentException("Continuation missing.", nameof(request));
             }
             var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/values/next");
             return await _httpClient.PostAsync<HistoryReadNextResponseModel<HistoricValueModel[]>>(
@@ -194,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             }
             if (string.IsNullOrEmpty(request.ContinuationToken))
             {
-                throw new ArgumentNullException(nameof(request.ContinuationToken));
+                throw new ArgumentException("Continuation missing.", nameof(request));
             }
             var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/events/next");
             return await _httpClient.PostAsync<HistoryReadNextResponseModel<HistoricEventModel[]>>(

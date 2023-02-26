@@ -87,6 +87,8 @@ namespace Microsoft.Azure.IIoT.Http.Default
         /// <param name="httpMethod"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="HttpRequestException"></exception>
         private async Task<IHttpResponse> SendAsync(IHttpRequest httpRequest,
             HttpMethod httpMethod, CancellationToken ct)
         {

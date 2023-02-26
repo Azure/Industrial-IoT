@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics
         /// <summary>
         /// Create identity string
         /// </summary>
+        /// <param name="identity"></param>
         public static string ToIdentityString(this IProcessIdentity identity)
         {
             var id = identity?.SiteId == null ? "" : (identity.SiteId + "_");

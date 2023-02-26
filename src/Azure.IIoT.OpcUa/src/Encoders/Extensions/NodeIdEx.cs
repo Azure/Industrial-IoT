@@ -24,6 +24,7 @@ namespace Opc.Ua.Extensions
         /// <param name="nodeId"></param>
         /// <param name="namespaces"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static ExpandedNodeId ToExpandedNodeId(this NodeId nodeId,
             NamespaceTable namespaces)
         {
@@ -47,6 +48,7 @@ namespace Opc.Ua.Extensions
         /// <param name="serverIndex"></param>
         /// <param name="namespaces"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static ExpandedNodeId ToExpandedNodeId(this NodeId nodeId,
             uint serverIndex, NamespaceTable namespaces)
         {
@@ -69,6 +71,8 @@ namespace Opc.Ua.Extensions
         /// <param name="nodeId"></param>
         /// <param name="namespaces"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public static NodeId ToNodeId(this ExpandedNodeId nodeId,
             NamespaceTable namespaces)
         {
@@ -219,6 +223,7 @@ namespace Opc.Ua.Extensions
         /// <param name="idType"></param>
         /// <param name="identifier"></param>
         /// <returns></returns>
+        /// <exception cref="FormatException"></exception>
         public static string FormatNodeIdUri(string nsUri, string srvUri,
             IdType idType, object identifier)
         {
@@ -295,6 +300,7 @@ namespace Opc.Ua.Extensions
         /// <param name="nsUri"></param>
         /// <param name="srvUri"></param>
         /// <returns></returns>
+        /// <exception cref="FormatException"></exception>
         private static object ParseNodeIdUri(string value, out string nsUri, out string srvUri)
         {
             // Get resource uri
@@ -385,6 +391,7 @@ namespace Opc.Ua.Extensions
         /// <param name="type"></param>
         /// <param name="text"></param>
         /// <returns></returns>
+        /// <exception cref="FormatException"></exception>
         private static object ParseIdentifier(char type, string text)
         {
             switch (type)

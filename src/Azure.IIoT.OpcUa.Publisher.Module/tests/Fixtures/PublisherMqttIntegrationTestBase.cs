@@ -96,6 +96,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Wait for one message
         /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="messageType"></param>
         protected List<JsonMessage> WaitForMessages(
             Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
@@ -107,6 +109,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Wait for one message
         /// </summary>
+        /// <param name="messageCollectionTimeout"></param>
+        /// <param name="messageCount"></param>
+        /// <param name="predicate"></param>
+        /// <param name="messageType"></param>
         protected List<JsonMessage> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
             Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
@@ -118,6 +124,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Wait for messages
         /// </summary>
+        /// <param name="messageCollectionTimeout"></param>
+        /// <param name="messageCount"></param>
+        /// <param name="metadata"></param>
+        /// <param name="predicate"></param>
+        /// <param name="messageType"></param>
         protected List<JsonMessage> WaitForMessagesAndMetadata(TimeSpan messageCollectionTimeout, int messageCount,
             ref JsonMessage? metadata, Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
@@ -191,6 +202,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Start publisher
         /// </summary>
+        /// <param name="useMqtt5"></param>
+        /// <param name="publishedNodesFile"></param>
+        /// <param name="arguments"></param>
         protected Task StartPublisherAsync(bool useMqtt5, string publishedNodesFile = null,
             string[] arguments = default)
         {
@@ -239,6 +253,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Setup publishing from sample server.
         /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="publishedNodesFile"></param>
+        /// <param name="protocol"></param>
+        /// <param name="arguments"></param>
         private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile,
             string protocol, string[] arguments)
         {
@@ -304,6 +322,9 @@ $"--ttt={topicRoot}",
         /// <summary>
         /// Host the publisher module.
         /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="configurationRoot"></param>
+        /// <param name="mqttBroker"></param>
         private async Task HostAsync(ILogger logger, IConfiguration configurationRoot, MqttBroker mqttBroker)
         {
             try
@@ -375,6 +396,7 @@ $"--ttt={topicRoot}",
         /// <summary>
         /// Configures DI for the types required.
         /// </summary>
+        /// <param name="configuration"></param>
         private static IContainer ConfigureContainer(IConfiguration configuration)
         {
             var config = new PublisherConfig(configuration);
@@ -457,6 +479,12 @@ $"--ttt={topicRoot}",
             /// <summary>
             /// Create service client
             /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="server"></param>
+            /// <param name="port"></param>
+            /// <param name="subscription"></param>
+            /// <param name="topicRoot"></param>
+            /// <param name="protocol"></param>
             private MqttBroker(ILogger logger, MqttServer server, int port,
                 Func<string, ReadOnlyMemory<byte>, string, Task> subscription,
                 string topicRoot, string protocol)
@@ -522,6 +550,13 @@ $"--ttt={topicRoot}",
             /// <summary>
             /// Send message to client
             /// </summary>
+            /// <param name="topic"></param>
+            /// <param name="responseTopic"></param>
+            /// <param name="correlationData"></param>
+            /// <param name="payload"></param>
+            /// <param name="contentType"></param>
+            /// <param name="ct"></param>
+            /// <exception cref="ArgumentNullException"><paramref name="topic"/> is <c>null</c>.</exception>
             private Task SendMessageAsync(string topic, string responseTopic,
                 byte[] correlationData, ReadOnlyMemory<byte> payload,
                 string contentType, CancellationToken ct = default)
@@ -549,6 +584,7 @@ $"--ttt={topicRoot}",
             /// <summary>
             /// Handle connection
             /// </summary>
+            /// <param name="args"></param>
             private Task HandleClientConnectedAsync(ClientConnectedEventArgs args)
             {
                 _logger.LogInformation("Client {ClientId} connected.", args.ClientId);
@@ -639,6 +675,10 @@ $"--ttt={topicRoot}",
             /// <summary>
             /// Create broker
             /// </summary>
+            /// <param name="protocol"></param>
+            /// <param name="subscription"></param>
+            /// <param name="topicRoot"></param>
+            /// <param name="logger"></param>
             /// <returns></returns>
             public static async Task<MqttBroker> CreateAsync(string protocol,
                 Func<string, ReadOnlyMemory<byte>, string, Task> subscription, string topicRoot,
@@ -660,6 +700,11 @@ $"--ttt={topicRoot}",
             /// <summary>ping
             /// Create client and start it
             /// </summary>
+            /// <param name="protocol"></param>
+            /// <param name="subscription"></param>
+            /// <param name="port"></param>
+            /// <param name="topicRoot"></param>
+            /// <param name="logger"></param>
             public static async Task<MqttBroker> CreateAsync(string protocol,
                 Func<string, ReadOnlyMemory<byte>, string, Task> subscription, int port, string topicRoot,
                 ILogger logger = null)

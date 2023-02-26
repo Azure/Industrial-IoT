@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
 
@@ -78,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Get and Set MessageNonce contains [NonceLength]
         /// </summary>
-        public byte[] MessageNonce { get; set; }
+        public ReadOnlyMemory<byte> MessageNonce { get; set; }
 
         /// <summary>
         /// Get and Set SecurityFooterSize
@@ -88,12 +89,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Get and Set SecurityFooter
         /// </summary>
-        public byte[] SecurityFooter { get; set; }
+        public ReadOnlyMemory<byte> SecurityFooter { get; set; }
 
         /// <summary>
         /// Get and Set Signature
         /// </summary>
-        public byte[] Signature { get; set; }
+        public ReadOnlyMemory<byte> Signature { get; set; }
 
         /// <summary>
         /// The possible values for the NetworkMessage UADPFlags encoding byte.
@@ -102,7 +103,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         internal enum UADPFlagsEncodingMask : byte
         {
             None = 0,
-            VersionMask = 0xF,
+            VersionBit1 = 1,
+            VersionBit2 = 2,
+            VersionBit3 = 4,
+            VersionBit4 = 8,
+            VersionMask = VersionBit1 | VersionBit2 | VersionBit3 | VersionBit4,
             PublisherId = 16,
             GroupHeader = 32,
             PayloadHeader = 64,
@@ -116,12 +121,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         internal enum ExtendedFlags1EncodingMask : byte
         {
             None = 0,
-            PublisherIdTypeByte = 0,
+            PublisherIdTypeByte = None,
             PublisherIdTypeUInt16 = 1,
             PublisherIdTypeUInt32 = 2,
-            PublisherIdTypeUInt64 = 3,
+            PublisherIdTypeUInt64 = PublisherIdTypeUInt16 | PublisherIdTypeUInt32,
             PublisherIdTypeString = 4,
-            PublisherIdTypeBits = 0x07,
+            PublisherIdTypeBits = PublisherIdTypeUInt64 | PublisherIdTypeString,
             DataSetClassId = 8,
             Security = 16,
             Timestamp = 32,
@@ -140,7 +145,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             PromotedFields = 2,
             DiscoveryProbe = 4,
             DiscoveryAnnouncement = 8,
-            DiscoveryTypeBits = 0x1c
+            DiscoveryTypeBit3 = 16,
+            DiscoveryTypeBits = DiscoveryProbe | DiscoveryAnnouncement | DiscoveryTypeBit3,
         }
 
         /// <summary>
@@ -687,19 +693,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 switch (ExtendedFlags1 & ExtendedFlags1EncodingMask.PublisherIdTypeBits)
                 {
                     case ExtendedFlags1EncodingMask.PublisherIdTypeUInt16:
-                        PublisherId = decoder.ReadUInt16(null).ToString();
+                        PublisherId = decoder.ReadUInt16(null).ToString(CultureInfo.InvariantCulture);
                         break;
                     case ExtendedFlags1EncodingMask.PublisherIdTypeUInt32:
-                        PublisherId = decoder.ReadUInt32(null).ToString();
+                        PublisherId = decoder.ReadUInt32(null).ToString(CultureInfo.InvariantCulture);
                         break;
                     case ExtendedFlags1EncodingMask.PublisherIdTypeUInt64:
-                        PublisherId = decoder.ReadUInt64(null).ToString();
+                        PublisherId = decoder.ReadUInt64(null).ToString(CultureInfo.InvariantCulture);
                         break;
                     case ExtendedFlags1EncodingMask.PublisherIdTypeString:
                         PublisherId = decoder.ReadString(null);
                         break;
                     case ExtendedFlags1EncodingMask.PublisherIdTypeByte:
-                        PublisherId = decoder.ReadByte(null).ToString();
+                        PublisherId = decoder.ReadByte(null).ToString(CultureInfo.InvariantCulture);
                         break;
                 }
             }
@@ -716,6 +722,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="isChunkMessage"></param>
+        /// <exception cref="ServiceResultException"></exception>
         protected void WriteNetworkMessageHeaderFlags(BinaryEncoder encoder, bool isChunkMessage)
         {
             if (isChunkMessage)
@@ -741,29 +748,27 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     throw ServiceResultException.Create(StatusCodes.BadEncodingError,
         "NetworkMessageHeader cannot be encoded. PublisherId is null but it is expected to be encoded.");
                 }
-                else
+
+                switch (ExtendedFlags1 & ExtendedFlags1EncodingMask.PublisherIdTypeBits)
                 {
-                    switch (ExtendedFlags1 & ExtendedFlags1EncodingMask.PublisherIdTypeBits)
-                    {
-                        case ExtendedFlags1EncodingMask.PublisherIdTypeByte:
-                            encoder.WriteByte(null, byte.Parse(PublisherId));
-                            break;
-                        case ExtendedFlags1EncodingMask.PublisherIdTypeUInt16:
-                            encoder.WriteUInt16(null, ushort.Parse(PublisherId));
-                            break;
-                        case ExtendedFlags1EncodingMask.PublisherIdTypeUInt32:
-                            encoder.WriteUInt32(null, uint.Parse(PublisherId));
-                            break;
-                        case ExtendedFlags1EncodingMask.PublisherIdTypeUInt64:
-                            encoder.WriteUInt64(null, ulong.Parse(PublisherId));
-                            break;
-                        case ExtendedFlags1EncodingMask.PublisherIdTypeString:
-                            encoder.WriteString(null, PublisherId);
-                            break;
-                        default:
-                            // Reserved - no type provided
-                            break;
-                    }
+                    case ExtendedFlags1EncodingMask.PublisherIdTypeByte:
+                        encoder.WriteByte(null, byte.Parse(PublisherId, CultureInfo.InvariantCulture));
+                        break;
+                    case ExtendedFlags1EncodingMask.PublisherIdTypeUInt16:
+                        encoder.WriteUInt16(null, ushort.Parse(PublisherId, CultureInfo.InvariantCulture));
+                        break;
+                    case ExtendedFlags1EncodingMask.PublisherIdTypeUInt32:
+                        encoder.WriteUInt32(null, uint.Parse(PublisherId, CultureInfo.InvariantCulture));
+                        break;
+                    case ExtendedFlags1EncodingMask.PublisherIdTypeUInt64:
+                        encoder.WriteUInt64(null, ulong.Parse(PublisherId, CultureInfo.InvariantCulture));
+                        break;
+                    case ExtendedFlags1EncodingMask.PublisherIdTypeString:
+                        encoder.WriteString(null, PublisherId);
+                        break;
+                    default:
+                        // Reserved - no type provided
+                        break;
                 }
             }
             if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0)
@@ -914,6 +919,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Read extended network message header
         /// </summary>
+        /// <param name="decoder"></param>
         private bool TryReadExtendedNetworkMessageHeader(BinaryDecoder decoder)
         {
             // Decode Timestamp
@@ -980,7 +986,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 encoder.WriteUInt32(null, SecurityTokenId);
                 encoder.WriteByte(null, NonceLength);
                 MessageNonce = new byte[NonceLength];
-                encoder.WriteByteArray(null, MessageNonce);
+                encoder.WriteByteArray(null, MessageNonce.ToArray());
 
                 if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0)
                 {
@@ -1057,6 +1063,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// message returns true</param>
         /// <param name="isChunkMessage">Sets chunk mode on or off</param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         protected bool TryWritePayload(BinaryEncoder encoder, int maxMessageSize,
             ref Span<Message> writeSpan, ref Span<Message> remainingChunks, ref bool isChunkMessage)
         {
@@ -1069,7 +1076,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
             var payloadOffset = encoder.Position;
             var available = maxMessageSize - payloadOffset
-                    - SecurityFooterSize - (Signature?.Length ?? 0) - kChunkHeaderSize;
+                    - SecurityFooterSize - Signature.Length - kChunkHeaderSize;
             if (available < 0)
             {
                 if (writeSpan.Length <= 1)
@@ -1120,7 +1127,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
                 var chunkLength = Math.Min(chunk.Remaining, available);
                 encoder.WriteInt32(null, chunkLength); // Write byte string
-                encoder.WriteRawBytes(chunk.ChunkData, (int)chunk.ChunkOffset, chunkLength);
+                encoder.WriteRawBytes(chunk.ChunkData.ToArray(), (int)chunk.ChunkOffset, chunkLength);
                 chunk.ChunkOffset += (uint)chunkLength;
 
                 if (chunk.Remaining == 0)
@@ -1166,7 +1173,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 foreach (var buffer in writeSpan)
                 {
-                    encoder.WriteRawBytes(buffer.ChunkData, 0, buffer.ChunkData.Length);
+                    encoder.WriteRawBytes(buffer.ChunkData.ToArray(), 0, buffer.ChunkData.Length);
                 }
                 remainingChunks = remainingChunks.Slice(writeCount);
                 writeSpan = default;
@@ -1183,7 +1190,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         {
             if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0)
             {
-                SecurityFooter = decoder.ReadByteArray(null).ToArray();
+                SecurityFooter = decoder.ReadByteArray(null).ToArray().AsMemory();
             }
         }
 
@@ -1195,7 +1202,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         {
             if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0)
             {
-                encoder.WriteByteArray(null, SecurityFooter);
+                encoder.WriteByteArray(null, SecurityFooter.ToArray());
             }
         }
 
@@ -1217,12 +1224,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="encoder"></param>
         protected void WriteSignature(BinaryEncoder encoder)
         {
-            if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0)
+            if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0 &&
+                Signature.Length > 0)
             {
-                if (Signature?.Length > 0)
-                {
-                    encoder.WriteByteArray(null, Signature);
-                }
+                encoder.WriteByteArray(null, Signature.ToArray());
             }
         }
 
@@ -1259,7 +1264,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             /// <summary>
             /// Full message buffer
             /// </summary>
-            public byte[] ChunkData { get; }
+            public ReadOnlyMemory<byte> ChunkData { get; }
 
             /// <summary>
             /// Get message buffer from chunk list
@@ -1298,7 +1303,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                                 return Array.Empty<byte>();
                             }
                         }
-                        Array.Copy(c.ChunkData, 0, message, c.ChunkOffset,
+                        Array.Copy(c.ChunkData.ToArray(), 0, message, c.ChunkOffset,
                             c.ChunkData.Length);
                     }
                     chunks.Clear();

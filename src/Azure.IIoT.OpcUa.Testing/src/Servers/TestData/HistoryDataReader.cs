@@ -41,6 +41,7 @@ namespace TestData
         /// <summary>
         /// Constructs a reader for the source.
         /// </summary>
+        /// <param name="variableId"></param>
         /// <param name="source">The source of the history data.</param>
         public HistoryDataReader(NodeId variableId, IHistoryDataSource source)
         {
@@ -60,6 +61,7 @@ namespace TestData
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             // nothing to do.
@@ -180,6 +182,11 @@ namespace TestData
         /// <summary>
         /// Adds a DataValue to a list of values to return.
         /// </summary>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="indexRange"></param>
+        /// <param name="dataEncoding"></param>
+        /// <param name="values"></param>
+        /// <param name="value"></param>
         private void AddValue(
             TimestampsToReturn timestampsToReturn,
             NumericRange indexRange,

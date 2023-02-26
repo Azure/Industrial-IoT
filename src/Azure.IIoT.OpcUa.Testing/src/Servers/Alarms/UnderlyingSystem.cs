@@ -67,15 +67,13 @@ namespace Alarms
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && _simulationTimer != null)
             {
-                if (_simulationTimer != null)
-                {
-                    _simulationTimer.Dispose();
-                    _simulationTimer = null;
-                }
+                _simulationTimer.Dispose();
+                _simulationTimer = null;
             }
         }
 
@@ -107,7 +105,7 @@ namespace Alarms
                 // extract the type from the path.
                 var type = sourcePath;
 
-                index = type.IndexOf('/');
+                index = type.IndexOf('/', StringComparison.Ordinal);
 
                 if (index != -1)
                 {
@@ -190,6 +188,7 @@ namespace Alarms
         /// <summary>
         /// Simulates a source by updating the state of the alarms belonging to the condition.
         /// </summary>
+        /// <param name="state"></param>
         private void DoSimulation(object state)
         {
             try

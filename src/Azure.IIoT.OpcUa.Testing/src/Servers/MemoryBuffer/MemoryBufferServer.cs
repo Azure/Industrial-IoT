@@ -48,7 +48,7 @@ namespace MemoryBuffer
             get
             {
                 return new StringCollection {
-                    Namespaces.MemoryBuffer,
+                    Namespaces.MemoryBuffer
                 };
             }
         }

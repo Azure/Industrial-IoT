@@ -1647,7 +1647,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
             var endpointUrls = new string[] {
                 "opc.tcp://localhost:50000",
-                "opc.tcp://localhost:50001",
+                "opc.tcp://localhost:50001"
             };
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
@@ -1715,7 +1715,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
             var endpointUrls = new string[] {
                 "opc.tcp://localhost:50000",
-                "opc.tcp://localhost:50001",
+                "opc.tcp://localhost:50001"
             };
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
@@ -1768,8 +1768,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Single(j.WriterGroup.DataSetWriters, dataSetWriter =>
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Any(
                     p => TimeSpan.FromMinutes(15) == p.SamplingInterval));
-            Assert.Equal(3, j.WriterGroup.DataSetWriters.SelectMany(dataSetWriter =>
-                dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData).Count());
+            Assert.Equal(3, j.WriterGroup.DataSetWriters.Sum(dataSetWriter =>
+                dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
 
         [Fact]

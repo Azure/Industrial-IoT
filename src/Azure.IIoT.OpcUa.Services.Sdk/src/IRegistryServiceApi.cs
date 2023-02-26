@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk
         /// <summary>
         /// Returns status of the service
         /// </summary>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<string> GetServiceStatusAsync(CancellationToken ct = default);
 

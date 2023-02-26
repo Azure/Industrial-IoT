@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Module
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class TestChunkServer : IJsonMethodClient, IMethodHandler
+    public sealed class TestChunkServer : IJsonMethodClient, IMethodHandler, IDisposable
     {
         public TestChunkServer(IJsonSerializer serializer,
             int size, Func<string, byte[], string, byte[]> handler)
@@ -45,6 +45,11 @@ namespace Microsoft.Azure.IIoT.Module
         public Task<byte[]> InvokeAsync(string method, byte[] payload, string contentType)
         {
             return Task.FromResult(_handler.Invoke(method, payload, contentType));
+        }
+
+        public void Dispose()
+        {
+            _server.Dispose();
         }
 
         private readonly ChunkMethodServer _server;

@@ -31,6 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="nodeId"></param>
         public NodeAttributeSet(ExpandedNodeId nodeId) :
             this(nodeId, new NamespaceTable())
         {
@@ -39,6 +40,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="nodeClass"></param>
+        /// <param name="browseName"></param>
         public NodeAttributeSet(ExpandedNodeId nodeId, NodeClass nodeClass,
             QualifiedName browseName) :
             this(nodeId, new NamespaceTable())
@@ -50,6 +54,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="namespaces"></param>
         public NodeAttributeSet(ExpandedNodeId nodeId, NamespaceTable namespaces)
         {
             _namespaces = namespaces ?? throw new ArgumentNullException(nameof(namespaces));
@@ -444,7 +450,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return NodeId.ToString().GetHashCode();
+            return NodeId.ToString().GetHashCode(StringComparison.OrdinalIgnoreCase);
         }
 
         /// <inheritdoc/>

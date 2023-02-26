@@ -487,6 +487,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// <param name="super"></param>
         /// <param name="apps"></param>
         /// <param name="devices"></param>
+        /// <param name="noSite"></param>
         private void CreateAppFixtures(out string site, out string super,
             out List<ApplicationInfoModel> apps, out List<(DeviceTwinModel, DeviceModel)> devices,
             bool noSite = false)

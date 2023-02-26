@@ -36,6 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="endpoint"/> is <c>null</c>.</exception>
         public async Task<ApplicationRegistrationModel> FindServerAsync(
             ServerEndpointQueryModel endpoint)
         {
@@ -51,6 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<bool> RegisterAsync(ServerRegistrationRequestModel request)
         {
             if (request == null)
@@ -66,6 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<bool> DiscoverAsync(DiscoveryRequestModel request)
         {
             if (request == null)
@@ -81,6 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<bool> CancelAsync(DiscoveryCancelRequestModel request)
         {
             if (request == null)

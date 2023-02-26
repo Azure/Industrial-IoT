@@ -22,8 +22,10 @@ namespace Microsoft.Azure.IIoT.App.Services
         /// Create browser
         /// </summary>
         /// <param name="publisherService"></param>
+        /// <param name="twinService"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="commonHelper"></param>
         public Publisher(IPublisherServiceApi publisherService, ITwinServiceApi twinService, ILogger logger, UICommon commonHelper)
         {
             _publisherService = publisherService ?? throw new ArgumentNullException(nameof(publisherService));
@@ -36,6 +38,7 @@ namespace Microsoft.Azure.IIoT.App.Services
         /// PublishedAsync
         /// </summary>
         /// <param name="endpointId"></param>
+        /// <param name="readValues"></param>
         /// <returns>PublishedNode</returns>
         public async Task<PagedResult<ListNode>> PublishedAsync(string endpointId, bool readValues)
         {
@@ -89,6 +92,7 @@ namespace Microsoft.Azure.IIoT.App.Services
         /// <param name="displayName"></param>
         /// <param name="samplingInterval"></param>
         /// <param name="publishingInterval"></param>
+        /// <param name="heartBeatInterval"></param>
         /// <returns>ErrorStatus</returns>
         public async Task<bool> StartPublishingAsync(string endpointId, string nodeId, string displayName,
             TimeSpan? samplingInterval, TimeSpan? publishingInterval, TimeSpan? heartBeatInterval)
@@ -128,7 +132,7 @@ namespace Microsoft.Azure.IIoT.App.Services
             {
                 var requestModel = new PublishStopRequestModel()
                 {
-                    NodeId = nodeId,
+                    NodeId = nodeId
                 };
 
                 var resultModel = await _publisherService.NodePublishStopAsync(endpointId, requestModel).ConfigureAwait(false);

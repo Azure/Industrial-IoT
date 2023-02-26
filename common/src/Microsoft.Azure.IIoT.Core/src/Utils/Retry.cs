@@ -80,6 +80,7 @@ namespace Microsoft.Azure.IIoT.Utils
         /// <param name="maxRetry"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="TaskCanceledException"></exception>
         public static async Task DoAsync(ILogger logger, Func<Task> work, Func<Exception, bool> cont,
             Func<int, Exception, int> policy, int maxRetry, CancellationToken ct)
         {
@@ -112,6 +113,7 @@ namespace Microsoft.Azure.IIoT.Utils
         /// <param name="maxRetry"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="TaskCanceledException"></exception>
         public static async Task<T> DoAsync<T>(ILogger logger, Func<Task<T>> work, Func<Exception, bool> cont,
             Func<int, Exception, int> policy, int maxRetry, CancellationToken ct)
         {
@@ -142,6 +144,7 @@ namespace Microsoft.Azure.IIoT.Utils
         /// <param name="maxRetry"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="TaskCanceledException"></exception>
         public static async Task DoAsync(ILogger logger, Action work, Func<Exception, bool> cont,
             Func<int, Exception, int> policy, int maxRetry, CancellationToken ct)
         {

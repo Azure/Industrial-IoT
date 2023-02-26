@@ -44,6 +44,8 @@ namespace TestData
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="configuration"></param>
         public TestDataNodeManager(IServerInternal server, ApplicationConfiguration configuration)
         :
             base(server, configuration)
@@ -90,6 +92,10 @@ namespace TestData
         /// <summary>
         /// Updates the variable after receiving a notification that it has changed in the underlying system.
         /// </summary>
+        /// <param name="variable"></param>
+        /// <param name="value"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="timestamp"></param>
         public void OnDataChange(BaseVariableState variable, object value, StatusCode statusCode, DateTime timestamp)
         {
             lock (Lock)
@@ -118,6 +124,7 @@ namespace TestData
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
+        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -173,6 +180,7 @@ namespace TestData
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
+        /// <param name="context"></param>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
             var type = GetType().GetTypeInfo();
@@ -186,6 +194,8 @@ namespace TestData
         /// <summary>
         /// Replaces the generic node with a node specific to the model.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="predefinedNode"></param>
         protected override NodeState AddBehaviourToPredefinedNode(ISystemContext context, NodeState predefinedNode)
         {
             if (!(predefinedNode is BaseObjectState passiveNode))
@@ -329,6 +339,8 @@ namespace TestData
         /// <summary>
         /// Restores a previously cached history reader.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="continuationPoint"></param>
         protected virtual HistoryDataReader RestoreDataReader(ServerSystemContext context, byte[] continuationPoint)
         {
             if (context == null || context.OperationContext == null || context.OperationContext.Session == null)
@@ -347,6 +359,8 @@ namespace TestData
         /// <summary>
         /// Saves a history data reader.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="reader"></param>
         protected virtual void SaveDataReader(ServerSystemContext context, HistoryDataReader reader)
         {
             if (context == null || context.OperationContext == null || context.OperationContext.Session == null)
@@ -360,6 +374,9 @@ namespace TestData
         /// <summary>
         /// Returns the history data source for a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="variable"></param>
+        /// <param name="datasource"></param>
         protected virtual ServiceResult GetHistoryDataSource(
             ServerSystemContext context,
             BaseVariableState variable,
@@ -378,6 +395,13 @@ namespace TestData
         /// <summary>
         /// Reads the raw data for a variable
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
+        /// <param name="details"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="releaseContinuationPoints"></param>
+        /// <param name="nodeToRead"></param>
+        /// <param name="result"></param>
         protected ServiceResult HistoryReadRaw(
             ISystemContext context,
             BaseVariableState source,
@@ -463,6 +487,8 @@ namespace TestData
         /// <summary>
         /// Returns true if the system must be scanning to provide updates for the monitored item.
         /// </summary>
+        /// <param name="monitoredNode"></param>
+        /// <param name="monitoredItem"></param>
         private static bool SystemScanRequired(MonitoredNode2 monitoredNode, IDataChangeMonitoredItem2 monitoredItem)
         {
             // ingore other types of monitored items.
@@ -479,12 +505,9 @@ namespace TestData
             }
 
             // check for variables that need to be scanned.
-            if (monitoredItem.AttributeId == Attributes.Value)
+            if (monitoredItem.AttributeId == Attributes.Value && source.Parent is TestDataObjectState test && test.SimulationActive.Value)
             {
-                if (source.Parent is TestDataObjectState test && test.SimulationActive.Value)
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;
@@ -501,15 +524,12 @@ namespace TestData
             NodeHandle handle,
             MonitoredItem monitoredItem)
         {
-            if (SystemScanRequired(handle.MonitoredNode, monitoredItem))
+            if (SystemScanRequired(handle.MonitoredNode, monitoredItem) && monitoredItem.MonitoringMode != MonitoringMode.Disabled)
             {
-                if (monitoredItem.MonitoringMode != MonitoringMode.Disabled)
-                {
-                    _system.StartMonitoringValue(
-                        monitoredItem.Id,
-                        monitoredItem.SamplingInterval,
-                        handle.Node as BaseVariableState);
-                }
+                _system.StartMonitoringValue(
+                    monitoredItem.Id,
+                    monitoredItem.SamplingInterval,
+                    handle.Node as BaseVariableState);
             }
         }
 
@@ -524,14 +544,11 @@ namespace TestData
             NodeHandle handle,
             MonitoredItem monitoredItem)
         {
-            if (SystemScanRequired(handle.MonitoredNode, monitoredItem))
+            if (SystemScanRequired(handle.MonitoredNode, monitoredItem) && monitoredItem.MonitoringMode != MonitoringMode.Disabled)
             {
-                if (monitoredItem.MonitoringMode != MonitoringMode.Disabled)
-                {
-                    var source = handle.Node as BaseVariableState;
-                    _system.StopMonitoringValue(monitoredItem.Id);
-                    _system.StartMonitoringValue(monitoredItem.Id, monitoredItem.SamplingInterval, source);
-                }
+                var source = handle.Node as BaseVariableState;
+                _system.StopMonitoringValue(monitoredItem.Id);
+                _system.StartMonitoringValue(monitoredItem.Id, monitoredItem.SamplingInterval, source);
             }
         }
 
@@ -587,6 +604,7 @@ namespace TestData
         /// <summary>
         /// Peridically checks the system state.
         /// </summary>
+        /// <param name="state"></param>
         private void OnCheckSystemStatus(object state)
         {
 #if CONDITION_SAMPLES
