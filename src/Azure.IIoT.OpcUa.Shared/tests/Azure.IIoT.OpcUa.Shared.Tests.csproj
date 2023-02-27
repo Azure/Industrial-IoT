@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-   </PropertyGroup>
+     <RootNamespace>Azure.IIoT.OpcUa</RootNamespace>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoFixture" Version="4.18.0" />
     <PackageReference Include="FluentAssertions" Version="6.10.0" />

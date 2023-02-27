@@ -3,16 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.TestData.Binary
+namespace Azure.IIoT.OpcUa.Services.WebApi.Api.TestData.Binary
 {
-    using Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter;
+    using Azure.IIoT.OpcUa.Services.WebApi.Clients;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Services.Sdk.Clients;
-    using Azure.IIoT.OpcUa.Services.WebApi.Tests;
+    using Azure.IIoT.OpcUa.Services.WebApi;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
     using Furly.Extensions.Serializers;
-    using Microsoft.Extensions.Logging;
     using System.Threading.Tasks;
     using Xunit;
 

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR
+namespace Azure.IIoT.OpcUa.Services.WebApi.Api.SignalR
 {
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Services.Sdk;

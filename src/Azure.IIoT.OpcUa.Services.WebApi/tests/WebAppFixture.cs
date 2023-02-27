@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
+namespace Azure.IIoT.OpcUa.Services.WebApi
 {
     using Autofac.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;

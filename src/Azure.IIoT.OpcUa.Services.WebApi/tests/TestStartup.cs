@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
+namespace Azure.IIoT.OpcUa.Services.WebApi
 {
     using Autofac;
     using Azure.IIoT.OpcUa.Encoders;
@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests
     using Azure.IIoT.OpcUa.Services.Sdk.Clients;
     using Azure.IIoT.OpcUa.Services.Sdk.Runtime;
     using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
-    using Azure.IIoT.OpcUa.Services.WebApi;
     using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.AspNetCore.Hosting;

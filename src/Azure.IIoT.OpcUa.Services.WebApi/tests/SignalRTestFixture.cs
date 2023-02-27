@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
     using Autofac.Extensions.Hosting;
-    using Azure.IIoT.OpcUa.Services.WebApi.Tests;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;

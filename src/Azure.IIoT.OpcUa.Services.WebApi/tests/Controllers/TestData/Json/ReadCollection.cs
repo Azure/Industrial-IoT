@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers.TestData.Json
+namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers.TestData.Json
 {
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Xunit;
