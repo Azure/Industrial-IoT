@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="applications"></param>
         /// <param name="onboarding"></param>
         public ApplicationsController(IApplicationRegistry applications,
-            IDiscoveryServices onboarding)
+            INetworkDiscovery onboarding)
         {
             _applications = applications;
             _onboarding = onboarding;
@@ -50,7 +50,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// </remarks>
         /// <param name="request">Server registration request</param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task RegisterServerAsync(
@@ -102,7 +103,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// </remarks>
         /// <param name="request">Discovery request</param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("discover")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DiscoverServerAsync(
@@ -150,7 +152,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// </remarks>
         /// <param name="request">Application registration request</param>
         /// <returns>Application registration response</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is
+        /// <c>null</c>.</exception>
         [HttpPut]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task<ApplicationRegistrationResponseModel> CreateApplicationAsync(
@@ -187,7 +190,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// </remarks>
         /// <param name="applicationId">The identifier of the application</param>
         /// <param name="request">Application update request</param>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPatch("{applicationId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateApplicationRegistrationAsync(string applicationId,
@@ -316,7 +320,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="pageSize">Optional number of results to
         /// return</param>
         /// <returns>Applications</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("query")]
         public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
             [FromBody][Required] ApplicationRegistrationQueryModel query,
@@ -348,7 +353,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="query">Applications Query model</param>
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Applications</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/>
+        /// is <c>null</c>.</exception>
         [HttpGet("query")]
         public async Task<ApplicationInfoListModel> GetFilteredListOfApplicationsAsync(
             [FromBody][Required] ApplicationRegistrationQueryModel query,
@@ -368,6 +374,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         }
 
         private readonly IApplicationRegistry _applications;
-        private readonly IDiscoveryServices _onboarding;
+        private readonly INetworkDiscovery _onboarding;
     }
 }

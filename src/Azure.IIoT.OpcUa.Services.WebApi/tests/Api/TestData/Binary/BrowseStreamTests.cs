@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Api.TestData.Binary
     using Xunit;
 
     [Collection(ReadCollection.Name)]
-    public class BrowseStreamTests
+    public class BrowseStreamTests : IClassFixture<WebAppFixture>
     {
         public BrowseStreamTests(WebAppFixture factory, TestDataServer server)
         {

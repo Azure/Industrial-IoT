@@ -32,6 +32,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
     using System;
+    using Microsoft.Azure.IIoT.Auth;
+    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// Webservice startup
@@ -99,8 +101,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
             services.AddHttpsRedirect();
             services.AddHttpClient();
 
-            // services.AddAuthentication()
-            //     .AddJwtBearerProvider(AuthProvider.AzureAD);
+            services.AddAuthentication()
+                .AddJwtBearerProvider(AuthProvider.AzureAD);
+
             services.AddAuthorizationPolicies(
                 Policies.RoleMapping,
                 Policies.CanRead,
@@ -118,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 .AddMessagePackSerializer();
 
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
-            services.AddOpenTelemetry(ServiceInfo.Name);
+            // services.AddOpenTelemetry(ServiceInfo.Name);
         }
 
         /// <summary>
@@ -138,8 +141,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
             app.UseRouting();
             app.UseCors();
 
-            // app.UseJwtBearerAuthentication();
-            // app.UseAuthorization();
+            app.UseJwtBearerAuthentication();
+            app.UseAuthorization();
             app.UseHttpsRedirect();
 
             app.UseSwagger();
@@ -151,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 endpoints.MapHealthChecks("/healthz");
             });
 
-            app.UsePrometheus();
+            // app.UsePrometheus();
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
@@ -200,6 +203,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
             builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherServicesClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<DiscoveryServicesClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();

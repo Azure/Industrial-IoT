@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Api.TestData.Json
     using Xunit;
 
     [Collection(WriteCollection.Name)]
-    public class MetadataScalarTests
+    public class MetadataScalarTests : IClassFixture<WebAppFixture>
     {
         public MetadataScalarTests(WebAppFixture factory, TestDataServer server)
         {

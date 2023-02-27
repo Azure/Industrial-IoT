@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="discover"></param>
         /// <param name="servers"></param>
-        public DiscoveryMethodsController(IDiscoveryServices discover,
+        public DiscoveryMethodsController(INetworkDiscovery discover,
             IServerDiscovery servers)
         {
             _discover = discover ?? throw new ArgumentNullException(nameof(discover));
@@ -52,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         public async Task<bool> RegisterAsync(ServerRegistrationRequestModel request)
         {
             if (request == null)
@@ -68,7 +69,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         public async Task<bool> DiscoverAsync(DiscoveryRequestModel request)
         {
             if (request == null)
@@ -84,7 +86,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         public async Task<bool> CancelAsync(DiscoveryCancelRequestModel request)
         {
             if (request == null)
@@ -95,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
             return true;
         }
 
-        private readonly IDiscoveryServices _discover;
+        private readonly INetworkDiscovery _discover;
         private readonly IServerDiscovery _servers;
     }
 }

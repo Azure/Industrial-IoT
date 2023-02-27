@@ -180,7 +180,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<HistoryServices<ConnectionModel>>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<DiscoveryServices>()
+            builder.RegisterType<ServerDiscovery>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<NetworkDiscovery>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ProgressPublisher>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();

@@ -15,8 +15,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients.Adapters
     /// <summary>
     /// Implements discovery services as adapter on top of discovery api.
     /// </summary>
-    public sealed class DiscoveryApiAdapter : IDiscoveryServices,
-        IServerDiscovery
+    public sealed class DiscoveryApiAdapter : INetworkDiscovery, IServerDiscovery
     {
         /// <summary>
         /// Create adapter

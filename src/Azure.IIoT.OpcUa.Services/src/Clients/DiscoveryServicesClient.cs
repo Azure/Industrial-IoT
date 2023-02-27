@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
     /// <summary>
     /// Implement the discovery services through all registered publishers
     /// </summary>
-    public sealed class DiscoveryServicesClient : IDiscoveryServices, IServerDiscovery
+    public sealed class DiscoveryServicesClient : INetworkDiscovery, IServerDiscovery
     {
         /// <summary>
         /// Create endpoint registry
@@ -75,7 +75,6 @@ namespace Azure.IIoT.OpcUa.Services.Clients
                 {
                     _logger.LogTrace(ex, "Failed to find server on publisher {Id}", publisher.Id);
                     exceptions.Add(ex);
-                    continue;
                 }
             }
             throw new AggregateException("Failed to find server on any publisher.", exceptions);
@@ -96,7 +95,6 @@ namespace Azure.IIoT.OpcUa.Services.Clients
                 catch (Exception ex)
                 {
                     _logger.LogDebug(ex, "Failed to call discovery on publisher {Id}", publisher.Id);
-                    continue;
                 }
             }
         }
@@ -117,7 +115,6 @@ namespace Azure.IIoT.OpcUa.Services.Clients
                 catch (Exception ex)
                 {
                     _logger.LogDebug(ex, "Failed to register on publisher {Id}", publisher.Id);
-                    continue;
                 }
             }
         }
@@ -133,7 +130,8 @@ namespace Azure.IIoT.OpcUa.Services.Clients
             string continuationToken = null;
             do
             {
-                var result = await _publishers.ListPublishersAsync(continuationToken, false, null, ct).ConfigureAwait(false);
+                var result = await _publishers.ListPublishersAsync(continuationToken, false,
+                    null, ct).ConfigureAwait(false);
                 foreach (var item in result.Items)
                 {
                     yield return item;

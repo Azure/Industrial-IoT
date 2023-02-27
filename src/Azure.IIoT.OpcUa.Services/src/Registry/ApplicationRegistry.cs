@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
             var context = request.Context.Validate();
 
             var application = await AddOrUpdateApplicationAsync(
-                request.ToApplicationInfo(context), null, ct).ConfigureAwait(false);
+                request.ToApplicationInfo(context), null, false, ct).ConfigureAwait(false);
 
             if (_applicationEvents != null)
             {
@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
                 Updated = null
             };
             registration = await AddOrUpdateApplicationAsync(registration,
-                false, ct).ConfigureAwait(false);
+                false, true, ct).ConfigureAwait(false);
 
             // Add endpoints
             IReadOnlyList<EndpointInfoModel> endpoints = null;
@@ -700,7 +700,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
                     application.SiteId = siteId;
 
                     var app = await AddOrUpdateApplicationAsync(application, false,
-                        default).ConfigureAwait(false);
+                        false, default).ConfigureAwait(false);
 
                     // Notify addition!
                     if (_applicationEvents != null)
@@ -1025,14 +1025,15 @@ namespace Azure.IIoT.OpcUa.Services.Services
         /// </summary>
         /// <param name="application"></param>
         /// <param name="disabled"></param>
+        /// <param name="allowUpdate"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<ApplicationInfoModel> AddOrUpdateApplicationAsync(
-            ApplicationInfoModel application, bool? disabled, CancellationToken ct)
+            ApplicationInfoModel application, bool? disabled, bool allowUpdate, CancellationToken ct)
         {
             var registration = application.ToApplicationRegistration(disabled);
             var twin = await _iothub.CreateOrUpdateAsync(
-                registration.ToDeviceTwin(_serializer), false, ct).ConfigureAwait(false);
+                registration.ToDeviceTwin(_serializer), allowUpdate, ct).ConfigureAwait(false);
             return twin.ToApplicationRegistration().ToServiceModel();
         }
 

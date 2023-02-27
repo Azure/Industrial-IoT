@@ -10,12 +10,12 @@ namespace Azure.IIoT.OpcUa
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Discovery services
+    /// Network discovery services
     /// </summary>
-    public interface IDiscoveryServices
+    public interface INetworkDiscovery
     {
         /// <summary>
-        /// Register server from discovery url.
+        /// Discovery server in network with discovery url.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="ct"></param>
@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa
             CancellationToken ct = default);
 
         /// <summary>
-        /// Discover using discovery request.
+        /// Start a discovery run for servers in network.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="ct"></param>
@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa
             CancellationToken ct = default);
 
         /// <summary>
-        /// Cancel discovery request
+        /// Cancel a discovery run that is ongoing
         /// </summary>
         /// <param name="request"></param>
         /// <param name="ct"></param>

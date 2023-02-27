@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Api.TestData.Binary
     using Xunit;
 
     [Collection(WriteCollection.Name)]
-    public class MetadataArrayTests
+    public class MetadataArrayTests : IClassFixture<WebAppFixture>
     {
         public MetadataArrayTests(WebAppFixture factory, TestDataServer server)
         {

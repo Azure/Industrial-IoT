@@ -8,8 +8,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
-    using Microsoft.Azure.IIoT.Http;
     using System;
     using System.Linq;
     using System.Net.Http;
@@ -267,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new Uri($"{_serviceUri}/applications/v2/capabilities/{endpointId}");
+            var uri = new Uri($"{_serviceUri}/twin/v2/capabilities/{endpointId}");
             return await _httpClient.GetAsync<ServerCapabilitiesModel>(uri,
                 _serializer, ct: ct).ConfigureAwait(false);
         }
@@ -280,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new Uri($"{_serviceUri}/applications/v2/capabilities/{endpointId}/history");
+            var uri = new Uri($"{_serviceUri}/twin/v2/capabilities/{endpointId}/history");
             return await _httpClient.GetAsync<HistoryServerCapabilitiesModel>(uri,
                 _serializer, ct: ct).ConfigureAwait(false);
         }

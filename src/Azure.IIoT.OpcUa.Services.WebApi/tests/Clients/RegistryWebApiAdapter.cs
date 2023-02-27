@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Clients
     /// Registry services adapter to run dependent services outside of cloud.
     /// </summary>
     public sealed class RegistryWebApiAdapter : IEndpointRegistry, ISupervisorRegistry,
-        IApplicationRegistry, IPublisherRegistry, IDiscoveryServices, IEndpointManager
+        IApplicationRegistry, IPublisherRegistry, INetworkDiscovery, IEndpointManager
     {
         /// <summary>
         /// Create registry services

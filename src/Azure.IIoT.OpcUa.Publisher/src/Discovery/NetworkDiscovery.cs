@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Logging;
@@ -34,9 +33,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Provides discovery services
+    /// Provides network discovery of endpoints
     /// </summary>
-    public sealed class DiscoveryServices : IDiscoveryServices, IServerDiscovery, IDisposable
+    public sealed class NetworkDiscovery : INetworkDiscovery, IDisposable
     {
         /// <summary>
         /// Create services
@@ -47,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="logger"></param>
         /// <param name="progress"></param>
         /// <param name="identity"></param>
-        public DiscoveryServices(IEndpointDiscovery client, IClientAccessor events,
+        public NetworkDiscovery(IEndpointDiscovery client, IClientAccessor events,
             IJsonSerializer serializer, ILogger logger, IDiscoveryProgress progress = null,
             IProcessInfo identity = null)
         {
@@ -60,48 +59,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             _runner = Task.Run(() => ProcessDiscoveryRequestsAsync(_cts.Token));
             _timer = new Timer(_ => OnScanScheduling(), null,
                 TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan);
-        }
-
-        /// <inheritdoc/>
-        public async Task<ApplicationRegistrationModel> FindServerAsync(
-            ServerEndpointQueryModel endpoint, CancellationToken ct)
-        {
-            if (endpoint?.DiscoveryUrl == null)
-            {
-                throw new ArgumentException("Discovery url missing", nameof(endpoint));
-            }
-
-            var discoveryUrl = new Uri(endpoint.DiscoveryUrl);
-
-            // Find endpoints at the real accessible ip address
-            var eps = await _client.FindEndpointsAsync(discoveryUrl, null,
-                ct).ConfigureAwait(false);
-
-            // Match endpoints
-            foreach (var ep in eps)
-            {
-                if ((ep.Description.SecurityMode.ToServiceType() ?? SecurityMode.None)
-                    != (endpoint.SecurityMode ?? SecurityMode.None))
-                {
-                    // no match
-                    continue;
-                }
-                if (endpoint.SecurityPolicy != null &&
-                    endpoint.SecurityPolicy != ep.Description.SecurityPolicyUri)
-                {
-                    // no match
-                    continue;
-                }
-                if (endpoint.Certificate != null &&
-                    endpoint.Certificate != ep.Description.ServerCertificate.ToThumbprint())
-                {
-                    // no match
-                    continue;
-                }
-                return ep.ToServiceModel(discoveryUrl.Host,
-                    _identity.SiteId, _identity.ProcessId, _identity.Id, _serializer);
-            }
-            throw new ResourceNotFoundException("Endpoints could not be found.");
         }
 
         /// <inheritdoc/>
@@ -809,12 +766,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly Task _runner;
         private readonly Timer _timer;
         private readonly SemaphoreSlim _lock = new(1, 1);
-        private readonly List<DiscoveryRequest> _pending =
-            new();
-        private readonly BlockingCollection<DiscoveryRequest> _queue =
-            new();
-        private readonly CancellationTokenSource _cts =
-            new();
+        private readonly List<DiscoveryRequest> _pending = new();
+        private readonly BlockingCollection<DiscoveryRequest> _queue = new();
+        private readonly CancellationTokenSource _cts = new();
         private readonly DiscoveryRequest _request = new();
 
         private const string kDiscoveryMetricsPrefix = "iiot_edge_discovery_";

@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Api.HistoricalAccess.Binary
     using Xunit;
 
     [Collection(ReadCollection.Name)]
-    public class ReadProcessedTests
+    public class ReadProcessedTests : IClassFixture<WebAppFixture>
     {
         public ReadProcessedTests(WebAppFixture factory, HistoricalAccessServer server)
         {

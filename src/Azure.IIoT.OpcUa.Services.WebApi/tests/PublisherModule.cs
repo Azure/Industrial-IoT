@@ -3,48 +3,31 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
+namespace Azure.IIoT.OpcUa.Services.WebApi
 {
-    using Azure.IIoT.OpcUa.Publisher.Sdk;
-    using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
-    using Azure.IIoT.OpcUa.Services.Clients.Adapters;
     using Azure.IIoT.OpcUa.Testing.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Module;
     using Autofac;
     using Furly.Extensions.Utils;
-    using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Text;
     using System.Threading.Tasks;
     using Xunit;
 
     /// <summary>
-    /// Harness for opc publisher module
+    /// Opc Publisher module fixture
     /// </summary>
-    public sealed class PublisherModuleFixture : IInjector,
-        ISdkConfig, IDisposable
+    public sealed class PublisherModule : IInjector, IStartable, IDisposable
     {
-        /// <summary>
-        /// Device id
-        /// </summary>
-        public string DeviceId { get; }
-
-        /// <summary>
-        /// Module id
-        /// </summary>
-        public string ModuleId { get; }
-
         /// <summary>
         /// ServerPkiRootPath
         /// </summary>
@@ -56,48 +39,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         public string ClientPkiRootPath { get; }
 
         /// <summary>
-        /// Hub container
-        /// </summary>
-        public IContainer HubContainer { get; }
-
-        /// <summary>
         /// Create fixture
         /// </summary>
-        public PublisherModuleFixture()
+        /// <param name="serviceContainer"></param>
+        public PublisherModule(ILifetimeScope serviceContainer)
         {
-            DeviceId = Utils.GetHostName();
-            ModuleId = Guid.NewGuid().ToString();
+            var deviceId = Utils.GetHostName();
+            var moduleId = Guid.NewGuid().ToString();
 
             ServerPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
-               Guid.NewGuid().ToByteArray().ToBase16String());
+                Guid.NewGuid().ToByteArray().ToBase16String());
             ClientPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
-               Guid.NewGuid().ToByteArray().ToBase16String());
+                Guid.NewGuid().ToByteArray().ToBase16String());
 
             _config = new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string> {
-                    {"EnableMetrics", "false"},
-                    {"PkiRootPath", ClientPkiRootPath}
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    { "EnableMetrics", "false" },
+                    { "PkiRootPath", ClientPkiRootPath }
                 })
                 .Build();
-            HubContainer = CreateHubContainer();
-            _hub = HubContainer.Resolve<IIoTHubTwinServices>();
+            _hub = serviceContainer.Resolve<IIoTHubTwinServices>();
 
-            // Create module identitity
+            // Create or udpate the module identitity
             var twin = _hub.CreateOrUpdateAsync(new DeviceTwinModel
             {
-                Id = DeviceId,
-                ModuleId = ModuleId
-            }).Result;
+                Id = deviceId,
+                ModuleId = moduleId
+            }, true).Result;
 
             // Get device registration and create module host with controller
             _device = _hub.GetRegistrationAsync(twin.Id, twin.ModuleId).Result;
             _module = new ModuleProcess(_config, this);
-            var tcs = new TaskCompletionSource<bool>();
-            _module.OnRunning += (_, e) => tcs.TrySetResult(e);
+            _running = new TaskCompletionSource<bool>();
+            _module.OnRunning += (_, e) => _running.TrySetResult(e);
             _process = Task.Run(() => _module.RunAsync());
 
-            // Wait
-            tcs.Task.Wait();
+            // Wait until running
+            _running.Task.Wait();
+        }
+
+        /// <inheritdoc/>
+        public void Start()
+        {
         }
 
         /// <inheritdoc/>
@@ -111,7 +95,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             {
                 Try.Op(() => Directory.Delete(ServerPkiRootPath, true));
             }
-            HubContainer.Dispose();
         }
 
         /// <inheritdoc/>
@@ -168,61 +151,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             private readonly DeviceModel _device;
         }
 
-        /// <inheritdoc/>
-        public class TestIoTHubConfig : IIoTHubConfig
-        {
-            /// <inheritdoc/>
-            public string IoTHubConnString =>
-                ConnectionString.CreateServiceConnectionString(
-                    "test.test.org", "iothubowner", Convert.ToBase64String(
-                        Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-        }
-
-        /// <summary>
-        /// Create hub container
-        /// </summary>
-        /// <returns></returns>
-        private IContainer CreateHubContainer()
-        {
-            var builder = new ContainerBuilder();
-
-            builder.AddNewtonsoftJsonSerializer();
-            builder.RegisterInstance(this)
-                .AsImplementedInterfaces();
-            builder.RegisterInstance(_config)
-                .AsImplementedInterfaces();
-
-            builder.AddDiagnostics(logging => logging.AddConsole());
-            builder.RegisterModule<IoTHubMockService>();
-            builder.RegisterType<TestIoTHubConfig>()
-                .AsImplementedInterfaces();
-
-            builder.RegisterType<PublisherApiClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<TwinApiClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistoryApiClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryApiClient>()
-                .AsImplementedInterfaces();
-
-            builder.RegisterType<PublisherApiAdapter>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<TwinApiAdapter>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistoryApiAdapter>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryApiAdapter>()
-                .AsImplementedInterfaces();
-
-            // Register http client module
-            builder.RegisterModule<HttpClientModule>();
-            return builder.Build();
-        }
-
         private readonly IIoTHubTwinServices _hub;
         private readonly DeviceModel _device;
         private readonly ModuleProcess _module;
+        private readonly TaskCompletionSource<bool> _running;
         private readonly IConfiguration _config;
         private readonly Task<int> _process;
     }
