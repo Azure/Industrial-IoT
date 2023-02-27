@@ -72,7 +72,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.App", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Shared.Tests", "src\Azure.IIoT.OpcUa.Shared\tests\Azure.IIoT.OpcUa.Shared.Tests.csproj", "{69864BDD-63E3-473D-AF33-96EA0637715B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Hub.Module.Client.Tests", "common\src\Microsoft.Azure.IIoT.Hub.Module.Client\tests\Microsoft.Azure.IIoT.Hub.Module.Client.Tests\Microsoft.Azure.IIoT.Hub.Module.Client.Tests.csproj", "{C881A8B2-02DC-48CE-B9A0-EB9A67ACD94E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Hub.Module.Client.Tests", "common\src\Microsoft.Azure.IIoT.Hub.Module.Client\tests\Microsoft.Azure.IIoT.Hub.Module.Client.Tests.csproj", "{C881A8B2-02DC-48CE-B9A0-EB9A67ACD94E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Tests", "src\Azure.IIoT.OpcUa\tests\Azure.IIoT.OpcUa.Tests.csproj", "{74076B01-7597-49FB-9A50-579C92CEFE66}"
 EndProject
