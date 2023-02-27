@@ -5,10 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.App.Services
 {
-    using global::Azure.IIoT.OpcUa.Services.Sdk;
-    using global::Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Extensions.Logging;
+    using global::Azure.IIoT.OpcUa.Models;
+    using global::Azure.IIoT.OpcUa.Services.Sdk;
     using System;
     using System.Linq;
     using System.Threading.Tasks;

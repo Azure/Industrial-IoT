@@ -39,8 +39,6 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Updates the bounding values for the time slice.
         /// </summary>
-        /// <param name="bucket"></param>
-        /// <param name="state"></param>
         public override void UpdateBoundingValues(TimeSlice bucket, AggregateState state)
         {
             var EarlyBound = bucket.EarlyBound;
@@ -54,29 +52,35 @@ namespace Opc.Ua.Aggregates
             {
                 if (EarlyBound.DerivationType != BoundingValueType.Raw)
                 {
-                    if (EarlyBound.EarlyPoint == null && (state.EarlyPoint != null) && (state.EarlyPoint.SourceTimestamp < bucket.From))
+                    if (EarlyBound.EarlyPoint == null)
                     {
-                        EarlyBound.EarlyPoint = state.EarlyPoint;
-                    }
-                    if (EarlyBound.LatePoint == null && (state.LatePoint != null) && (state.LatePoint.SourceTimestamp >= bucket.From))
-                    {
-                        EarlyBound.LatePoint = state.LatePoint;
-                        if (SteppedVariable)
+                        if ((state.EarlyPoint != null) && (state.EarlyPoint.SourceTimestamp < bucket.From))
                         {
-                            EarlyBound.CurrentBadPoints = new List<DataValue>();
-                            foreach (var dv in state.CurrentBadPoints)
+                            EarlyBound.EarlyPoint = state.EarlyPoint;
+                        }
+                    }
+                    if (EarlyBound.LatePoint == null)
+                    {
+                        if ((state.LatePoint != null) && (state.LatePoint.SourceTimestamp >= bucket.From))
+                        {
+                            EarlyBound.LatePoint = state.LatePoint;
+                            if (SteppedVariable)
                             {
-                                if (dv.SourceTimestamp < EarlyBound.Timestamp)
+                                EarlyBound.CurrentBadPoints = new List<DataValue>();
+                                foreach (var dv in state.CurrentBadPoints)
                                 {
-                                    EarlyBound.CurrentBadPoints.Add(dv);
+                                    if (dv.SourceTimestamp < EarlyBound.Timestamp)
+                                    {
+                                        EarlyBound.CurrentBadPoints.Add(dv);
+                                    }
                                 }
                             }
+                            else
+                            {
+                                EarlyBound.CurrentBadPoints = state.CurrentBadPoints;
+                            }
+                            EarlyBound.DerivationType = SteppedVariable ? BoundingValueType.SteppedInterpolation : BoundingValueType.SlopedInterpolation;
                         }
-                        else
-                        {
-                            EarlyBound.CurrentBadPoints = state.CurrentBadPoints;
-                        }
-                        EarlyBound.DerivationType = SteppedVariable ? BoundingValueType.SteppedInterpolation : BoundingValueType.SlopedInterpolation;
                     }
                 }
                 if (state.HasTerminated && (state.LatePoint == null))
@@ -113,25 +117,28 @@ namespace Opc.Ua.Aggregates
                         LateBound.EarlyPoint = state.EarlyPoint;
                     }
 
-                    if (LateBound.LatePoint == null && (state.LatePoint != null) && (state.LatePoint.SourceTimestamp >= bucket.To))
+                    if (LateBound.LatePoint == null)
                     {
-                        LateBound.LatePoint = state.LatePoint;
-                        if (SteppedVariable)
+                        if ((state.LatePoint != null) && (state.LatePoint.SourceTimestamp >= bucket.To))
                         {
-                            LateBound.CurrentBadPoints = new List<DataValue>();
-                            foreach (var dv in state.CurrentBadPoints)
+                            LateBound.LatePoint = state.LatePoint;
+                            if (SteppedVariable)
                             {
-                                if (dv.SourceTimestamp < LateBound.Timestamp)
+                                LateBound.CurrentBadPoints = new List<DataValue>();
+                                foreach (var dv in state.CurrentBadPoints)
                                 {
-                                    LateBound.CurrentBadPoints.Add(dv);
+                                    if (dv.SourceTimestamp < LateBound.Timestamp)
+                                    {
+                                        LateBound.CurrentBadPoints.Add(dv);
+                                    }
                                 }
                             }
+                            else
+                            {
+                                LateBound.CurrentBadPoints = state.CurrentBadPoints;
+                            }
+                            LateBound.DerivationType = SteppedVariable ? BoundingValueType.SteppedInterpolation : BoundingValueType.SlopedInterpolation;
                         }
-                        else
-                        {
-                            LateBound.CurrentBadPoints = state.CurrentBadPoints;
-                        }
-                        LateBound.DerivationType = SteppedVariable ? BoundingValueType.SteppedInterpolation : BoundingValueType.SlopedInterpolation;
                     }
                 }
                 if (state.HasTerminated && (state.LatePoint == null))

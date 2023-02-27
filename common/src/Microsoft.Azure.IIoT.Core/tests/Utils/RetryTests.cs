@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Utils.Tests
 {
-    using Microsoft.Azure.IIoT.Http.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Http.Exceptions;
     using Microsoft.Extensions.Logging;
     using Moq;
     using System;

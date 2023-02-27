@@ -31,7 +31,6 @@ namespace DataAccess
 {
     using Opc.Ua;
     using Opc.Ua.Server;
-    using System;
     using System.Text;
 
     /// <summary>
@@ -98,14 +97,14 @@ namespace DataAccess
 
             // components must be instances with a parent.
 
-            if (!(component is BaseInstanceState instance) || instance.Parent == null)
+            if (component is not BaseInstanceState instance || instance.Parent == null)
             {
                 return component.NodeId;
             }
 
             // parent must have a string identifier.
 
-            if (!(instance.Parent.NodeId.Identifier is string parentId))
+            if (instance.Parent.NodeId.Identifier is not string parentId)
             {
                 return null;
             }
@@ -114,7 +113,7 @@ namespace DataAccess
             buffer.Append(parentId);
 
             // check if the parent is another component.
-            var index = parentId.IndexOf('?', StringComparison.Ordinal);
+            var index = parentId.IndexOf('?');
 
             if (index < 0)
             {

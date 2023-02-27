@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
 {
-    using Furly.Extensions.Serializers;
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Azure.IIoT.Module.Default;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.Devices.Client;
     using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Linq;

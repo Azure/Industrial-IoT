@@ -5,8 +5,8 @@
 #nullable enable
 namespace Opc.Ua.Extensions
 {
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Opc.Ua;
+    using Azure.IIoT.OpcUa.Encoders.Utils;
     using System;
     using System.Collections.Generic;
     using System.Linq;

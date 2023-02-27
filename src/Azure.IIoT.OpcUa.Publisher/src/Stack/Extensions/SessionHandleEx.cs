@@ -5,104 +5,26 @@
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 {
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
+    using NodeClass = OpcUa.Models.NodeClass;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using NodeClass = OpcUa.Models.NodeClass;
 
     /// <summary>
     /// Session Handle extensions
     /// </summary>
     public static class SessionHandleEx
     {
-        /// <summary>
-        /// Async browse service
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="requestHeader"></param>
-        /// <param name="view"></param>
-        /// <param name="nodeToBrowse"></param>
-        /// <param name="maxResultsToReturn"></param>
-        /// <param name="browseDirection"></param>
-        /// <param name="referenceTypeId"></param>
-        /// <param name="includeSubtypes"></param>
-        /// <param name="nodeClassMask"></param>
-        /// <param name="resultMask"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public static Task<BrowseResponse> BrowseAsync(this ISessionHandle client,
-            RequestHeader requestHeader, ViewDescription? view, NodeId nodeToBrowse,
-            uint maxResultsToReturn, Opc.Ua.BrowseDirection browseDirection,
-            NodeId referenceTypeId, bool includeSubtypes, uint nodeClassMask,
-            BrowseResultMask resultMask = BrowseResultMask.All, CancellationToken ct = default)
-        {
-            return client.Session.BrowseAsync(requestHeader, view, maxResultsToReturn,
-                new BrowseDescriptionCollection {
-                    new BrowseDescription {
-                        BrowseDirection = browseDirection,
-                        IncludeSubtypes = includeSubtypes,
-                        NodeClassMask = nodeClassMask,
-                        NodeId = nodeToBrowse,
-                        ReferenceTypeId = referenceTypeId,
-                        ResultMask = (uint)resultMask
-                    }
-                }, ct);
-        }
-
-        /// <summary>
-        /// Validates responses
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="results"></param>
-        /// <param name="diagnostics"></param>
-        public static void Validate<T>(IEnumerable<T> results,
-            DiagnosticInfoCollection diagnostics)
-        {
-            Validate<T, object>(results, diagnostics, null);
-        }
-
-        /// <summary>
-        /// Validates responses against requests
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <typeparam name="TOperation"></typeparam>
-        /// <param name="results"></param>
-        /// <param name="diagnostics"></param>
-        /// <param name="requested"></param>
-        /// <exception cref="ServiceResultException"></exception>
-        public static void Validate<TResult, TOperation>(IEnumerable<TResult> results,
-            DiagnosticInfoCollection diagnostics, IEnumerable<TOperation>? requested)
-        {
-            var resultsWithStatus = results?.ToList();
-            if (resultsWithStatus == null || (resultsWithStatus.Count == 0 &&
-                diagnostics.Count == 0))
-            {
-                throw new ServiceResultException(StatusCodes.BadUnexpectedError,
-                    "The server returned no results or diagnostics information.");
-            }
-            // Throw on bad responses.
-            var expected = requested?.Count() ?? 1;
-            if (resultsWithStatus.Count != expected)
-            {
-                throw new ServiceResultException(StatusCodes.BadUnexpectedError,
-                    "The server returned a list without the expected number of elements.");
-            }
-            if (diagnostics != null && diagnostics.Count != 0 && diagnostics.Count != expected)
-            {
-                throw new ServiceResultException(StatusCodes.BadUnexpectedError,
-                    "The server forgot to fill in the DiagnosticInfos array correctly.");
-            }
-        }
         /// <summary>
         /// Read attribute
         /// </summary>
@@ -867,7 +789,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         continue;
                     }
 
-                    var node = nodeReference.NodeId.ToNodeId(session.Session.NamespaceUris);
+                    var node = nodeReference.NodeId.ToNodeId(session.MessageContext.NamespaceUris);
                     var (value, _) = await session.ReadValueAsync(requestHeader, node,
                         ct).ConfigureAwait(false);
                     if (value?.Value is not ExtensionObject[] argumentsList)
@@ -1245,7 +1167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         {
             browsePaths ??= new List<BrowsePath>();
             var children = new List<BaseInstanceState>();
-            parent.GetChildren(session.Session.SystemContext, children);
+            parent.GetChildren(session.SystemContext, children);
             foreach (var child in children)
             {
                 var browsePath = new BrowsePath

@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Models
 {
-    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
+    using Furly.Extensions.Serializers;
     using System;
     using System.IO;
     using System.IO.Compression;

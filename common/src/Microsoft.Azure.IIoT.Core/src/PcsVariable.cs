@@ -41,9 +41,6 @@ namespace Microsoft.Azure.IIoT
         /// <summary> Event hub consumer group telemetryux </summary>
         public const string PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX =
             "PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX";
-        /// <summary> LogLevel </summary>
-        public const string PCS_APPINSIGHTS_LOGLEVEL =
-            "PCS_APPINSIGHTS_LOGLEVEL";
         /// <summary> Keyvault client application id </summary>
         public const string PCS_KEYVAULT_APPID =
             "PCS_KEYVAULT_APPID";
@@ -122,27 +119,6 @@ namespace Microsoft.Azure.IIoT
         /// <summary> OPC publisher service endpoint url </summary>
         public const string PCS_PUBLISHER_SERVICE_URL =
             "PCS_PUBLISHER_SERVICE_URL";
-        /// <summary> CORS whitelist </summary>
-        public const string PCS_CORS_WHITELIST =
-            "PCS_CORS_WHITELIST";
-        /// <summary> Whether openapi should be enabled (Swagger) </summary>
-        public const string PCS_OPENAPI_ENABLED =
-            "PCS_OPENAPI_ENABLED";
-        /// <summary> Whether create v2 openapi json </summary>
-        public const string PCS_OPENAPI_USE_V2 =
-            "PCS_OPENAPI_USE_V2";
-        /// <summary> The AAD application id for the openapi UI client </summary>
-        public const string PCS_OPENAPI_APPID =
-            "PCS_OPENAPI_APPID";
-        /// <summary> AAD Client / Application secret for openapi </summary>
-        public const string PCS_OPENAPI_APP_SECRET =
-            "PCS_OPENAPI_APP_SECRET";
-        /// <summary> Server host for openapi </summary>
-        public const string PCS_OPENAPI_SERVER_HOST =
-            "PCS_OPENAPI_SERVER_HOST";
-        /// <summary> Service URL path base </summary>
-        public const string PCS_SERVICE_PATH_BASE =
-            "PCS_SERVICE_PATH_BASE";
         /// <summary> Service URL path base for OPC publisher service </summary>
         public const string PCS_PUBLISHER_SERVICE_PATH_BASE =
             "PCS_PUBLISHER_SERVICE_PATH_BASE";
@@ -152,9 +128,6 @@ namespace Microsoft.Azure.IIoT
         /// <summary> Service URL path base for events service </summary>
         public const string PCS_EVENTS_SERVICE_PATH_BASE =
             "PCS_EVENTS_SERVICE_PATH_BASE";
-        /// <summary> Deployment Level </summary>
-        public const string PCS_DEPLOYMENT_LEVEL =
-            "PCS_DEPLOYMENT_LEVEL";
         /// <summary> URL path base for TSI query </summary>
         public const string PCS_TSI_URL =
             "PCS_TSI_URL";

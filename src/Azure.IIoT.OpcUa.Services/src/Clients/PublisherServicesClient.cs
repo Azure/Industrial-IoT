@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Services.Clients
 {
-    using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Module;
     using System;

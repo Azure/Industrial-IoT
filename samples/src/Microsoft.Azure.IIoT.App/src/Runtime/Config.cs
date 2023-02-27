@@ -5,18 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.App.Runtime
 {
-    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Hosting;
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
-    using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Extensions.Configuration;
+    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
 
     /// <summary>
     /// Configuration aggregation
     /// </summary>
-    public class Config : ApiConfig, ISignalRServiceConfig,
-        IWebHostConfig
+    public class Config : ApiConfig
     {
         /// <summary>Url</summary>
         public string TsiDataAccessFQDN =>
@@ -38,18 +33,6 @@ namespace Microsoft.Azure.IIoT.App.Runtime
         public string ResourceGroup =>
             GetStringOrDefault(PcsVariable.PCS_RESOURCE_GROUP)?.Trim();
 
-        /// <inheritdoc/>
-        public string SignalRConnString => _sr.SignalRConnString;
-        /// <inheritdoc/>
-        public bool SignalRServerLess => _sr.SignalRServerLess;
-
-        /// <inheritdoc/>
-        public int HttpsRedirectPort => _host.HttpsRedirectPort;
-        /// <inheritdoc/>
-        public string ServicePathBase => GetStringOrDefault(
-            PcsVariable.PCS_FRONTEND_APP_SERVICE_PATH_BASE,
-                () => _host.ServicePathBase);
-
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -57,11 +40,6 @@ namespace Microsoft.Azure.IIoT.App.Runtime
         public Config(IConfiguration configuration) :
             base(configuration)
         {
-            _host = new WebHostConfig(configuration);
-            _sr = new SignalRServiceConfig(configuration);
         }
-
-        private readonly SignalRServiceConfig _sr;
-        private readonly WebHostConfig _host;
     }
 }

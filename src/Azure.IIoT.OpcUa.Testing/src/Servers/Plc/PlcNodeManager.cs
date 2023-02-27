@@ -1,5 +1,5 @@
 // ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Copyright (c) Furly.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
@@ -115,8 +115,6 @@ namespace Plc
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
         public override NodeId New(ISystemContext context, NodeState node)
         {
             if (node is BaseInstanceState instance &&
@@ -131,9 +129,6 @@ namespace Plc
         /// <summary>
         /// Creates a new folder.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
         private FolderState CreateFolder(NodeState parent, string path, string name)
         {
             var folder = new FolderState(parent)
@@ -157,7 +152,6 @@ namespace Plc
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
-        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -234,7 +228,6 @@ namespace Plc
         /// <summary>
         /// Sets properies of the ResetTrend method.
         /// </summary>
-        /// <param name="method"></param>
         private void SetResetTrendMethodProperties(ref MethodState method)
         {
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnResetTrendCall);
@@ -243,7 +236,6 @@ namespace Plc
         /// <summary>
         /// Sets properies of the ResetStepUp method.
         /// </summary>
-        /// <param name="method"></param>
         private void SetResetStepUpMethodProperties(ref MethodState method)
         {
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnResetStepUpCall);
@@ -252,7 +244,6 @@ namespace Plc
         /// <summary>
         /// Sets properies of the StartStepUp method.
         /// </summary>
-        /// <param name="method"></param>
         private void SetStartStepUpMethodProperties(ref MethodState method)
         {
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnStartStepUpCall);
@@ -261,7 +252,6 @@ namespace Plc
         /// <summary>
         /// Sets properies of the StopStepUp method.
         /// </summary>
-        /// <param name="method"></param>
         private void SetStopStepUpMethodProperties(ref MethodState method)
         {
             method.OnCallMethod = new GenericMethodCalledEventHandler(OnStopStepUpCall);
@@ -270,13 +260,6 @@ namespace Plc
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="dataType"></param>
-        /// <param name="valueRank"></param>
-        /// <param name="accessLevel"></param>
-        /// <param name="description"></param>
         private BaseDataVariableState CreateBaseVariable(NodeState parent, string path,
             string name, BuiltInType dataType, int valueRank, byte accessLevel, string description)
         {
@@ -286,13 +269,6 @@ namespace Plc
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="dataType"></param>
-        /// <param name="valueRank"></param>
-        /// <param name="accessLevel"></param>
-        /// <param name="description"></param>
         private BaseDataVariableState CreateBaseVariable(NodeState parent, string path,
             string name, NodeId dataType, int valueRank, byte accessLevel, string description)
         {
@@ -334,10 +310,6 @@ namespace Plc
         /// <summary>
         /// Creates a new method.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="description"></param>
         private MethodState CreateMethod(NodeState parent, string path, string name,
             string description)
         {
@@ -363,10 +335,6 @@ namespace Plc
         /// <summary>
         /// Method to reset the trend values. Executes synchronously.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="method"></param>
-        /// <param name="inputArguments"></param>
-        /// <param name="outputArguments"></param>
         private ServiceResult OnResetTrendCall(ISystemContext context, MethodState method,
             IList<object> inputArguments, IList<object> outputArguments)
         {
@@ -378,10 +346,6 @@ namespace Plc
         /// <summary>
         /// Method to reset the stepup value. Executes synchronously.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="method"></param>
-        /// <param name="inputArguments"></param>
-        /// <param name="outputArguments"></param>
         private ServiceResult OnResetStepUpCall(ISystemContext context, MethodState method,
             IList<object> inputArguments, IList<object> outputArguments)
         {
@@ -393,10 +357,6 @@ namespace Plc
         /// <summary>
         /// Method to start the stepup value. Executes synchronously.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="method"></param>
-        /// <param name="inputArguments"></param>
-        /// <param name="outputArguments"></param>
         private ServiceResult OnStartStepUpCall(ISystemContext context, MethodState method,
             IList<object> inputArguments, IList<object> outputArguments)
         {
@@ -408,10 +368,6 @@ namespace Plc
         /// <summary>
         /// Method to stop the stepup value. Executes synchronously.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="method"></param>
-        /// <param name="inputArguments"></param>
-        /// <param name="outputArguments"></param>
         private ServiceResult OnStopStepUpCall(ISystemContext context, MethodState method,
             IList<object> inputArguments, IList<object> outputArguments)
         {
@@ -423,18 +379,18 @@ namespace Plc
         /// <summary>
         /// Following variables listed here are simulated.
         /// </summary>
-        protected BaseDataVariableState _step = null;
-        protected BaseDataVariableState _alternatingBoolean = null;
-        protected BaseDataVariableState _randomUnsignedInt32 = null;
-        protected BaseDataVariableState _randomSignedInt32 = null;
-        protected BaseDataVariableState _spikeData = null;
-        protected BaseDataVariableState _dipData = null;
-        protected BaseDataVariableState _posTrendData = null;
-        protected BaseDataVariableState _negTrendData = null;
+        protected BaseDataVariableState _step;
+        protected BaseDataVariableState _alternatingBoolean;
+        protected BaseDataVariableState _randomUnsignedInt32;
+        protected BaseDataVariableState _randomSignedInt32;
+        protected BaseDataVariableState _spikeData;
+        protected BaseDataVariableState _dipData;
+        protected BaseDataVariableState _posTrendData;
+        protected BaseDataVariableState _negTrendData;
 
         /// <summary>
         /// This variable can be changed by OPCUA client.
         /// </summary>
-        protected BaseDataVariableState _daeTemp = null;
+        protected BaseDataVariableState _daeTemp;
     }
 }

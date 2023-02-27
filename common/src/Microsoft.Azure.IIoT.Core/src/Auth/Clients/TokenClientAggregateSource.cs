@@ -5,10 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Clients
 {
-    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
     using System.Linq;

@@ -14,14 +14,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Extensions;
+    using BrowseDirection = OpcUa.Models.BrowseDirection;
+    using NodeClass = OpcUa.Models.NodeClass;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using BrowseDirection = OpcUa.Models.BrowseDirection;
-    using NodeClass = OpcUa.Models.NodeClass;
 
     /// <summary>
     /// This class provides access to a servers address space providing node
@@ -934,9 +934,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             builtinType = TypeInfo.GetBuiltInType(
                                 arg.DataType.ToNodeId(session.MessageContext),
-                                session.Session.TypeTree);
+                                session.TypeTree);
                         }
-                        requests[0].InputArguments[i] = session.Codec.Decode(arg.Value ?? VariantValue.Null, builtinType);
+                        requests[0].InputArguments[i] = session.Codec.Decode(
+                            arg.Value ?? VariantValue.Null, builtinType);
                     }
                 }
 
@@ -1108,7 +1109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
 
-                var builtinType = TypeInfo.GetBuiltInType(dataTypeId, session.Session.TypeTree);
+                var builtinType = TypeInfo.GetBuiltInType(dataTypeId, session.TypeTree);
                 var value = session.Codec.Decode(request.Value, builtinType);
                 var nodesToWrite = new WriteValueCollection{
                     new WriteValue {
@@ -1305,7 +1306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 config.AggregateConfiguration =
                     aggregate;
 
-                config.Create(session.Session.SystemContext, null,
+                config.Create(session.SystemContext, null,
                     BrowseNames.HAConfiguration, null, false);
 
                 var relativePath = new RelativePath();
@@ -1341,7 +1342,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         ct).ConfigureAwait(false);
                 }
                 var children = new List<BaseInstanceState>();
-                config.AggregateFunctions.GetChildren(session.Session.SystemContext, children);
+                config.AggregateFunctions.GetChildren(session.SystemContext, children);
                 var aggregateFunctions = children.OfType<BaseObjectState>().ToDictionary(
                     c => c.BrowseName.AsString(session.MessageContext),
                     c => c.NodeId.AsString(session.MessageContext) ?? string.Empty);

@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Testing.Cli
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Logging;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
@@ -15,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Testing.Cli
     using System.Collections.Generic;
     using System.Globalization;
     using System.Runtime.Loader;
-    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -146,66 +144,6 @@ Operations (Mutually exclusive):
                 await tcs.Task.ConfigureAwait(false);
                 logger.Logger.LogInformation("Exiting.");
             }
-        }
-
-        /// <summary>
-        /// Wraps server and disposes after use
-        /// </summary>
-        private class ServerWrapper : IDisposable
-        {
-            /// <summary>
-            /// Create wrapper
-            /// </summary>
-            /// <param name="endpoint"></param>
-            /// <param name="logger"></param>
-            public ServerWrapper(EndpointModel endpoint, StackLogger logger)
-            {
-                _cts = new CancellationTokenSource();
-                if (endpoint.Url == null)
-                {
-                    _server = RunSampleServerAsync(logger.Logger, _cts.Token);
-                    endpoint.Url = "opc.tcp://" + Utils.GetHostName() +
-                        ":51210/UA/SampleServer";
-                }
-                else
-                {
-                    _server = Task.CompletedTask;
-                }
-            }
-
-            /// <inheritdoc/>
-            public void Dispose()
-            {
-                _cts.Cancel();
-                _server.Wait();
-                _cts.Dispose();
-            }
-
-            /// <summary>
-            /// Run server until cancelled
-            /// </summary>
-            /// <param name="logger"></param>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private static async Task RunSampleServerAsync(ILogger logger, CancellationToken ct)
-            {
-                var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                ct.Register(() => tcs.TrySetResult(true));
-                using (var server = new ServerConsoleHost(new ServerFactory(logger)
-                {
-                    LogStatus = false
-                }, logger)
-                {
-                    AutoAccept = true
-                })
-                {
-                    await server.StartAsync(new List<int> { 51210 }).ConfigureAwait(false);
-                    await tcs.Task.ConfigureAwait(false);
-                }
-            }
-
-            private readonly CancellationTokenSource _cts;
-            private readonly Task _server;
         }
     }
 }

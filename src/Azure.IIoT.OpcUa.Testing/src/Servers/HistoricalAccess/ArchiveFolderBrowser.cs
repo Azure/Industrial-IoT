@@ -80,15 +80,11 @@ namespace HistoricalAccess
         /// <returns>The next reference that meets the browse criteria.</returns>
         public override IReference Next()
         {
-            var system = (UnderlyingSystem)SystemContext.SystemHandle;
-
             lock (DataLock)
             {
-                IReference reference = null;
-
                 // enumerate pre-defined references.
                 // always call first to ensure any pushed-back references are returned first.
-                reference = base.Next();
+                var reference = base.Next();
 
                 if (reference != null)
                 {
@@ -127,31 +123,37 @@ namespace HistoricalAccess
                 }
 
                 // enumerate items.
-                if (_stage == Stage.Items && IsRequired(ReferenceTypeIds.Organizes, false))
+                if (_stage == Stage.Items)
                 {
-                    reference = NextChild();
-
-                    if (reference != null)
+                    if (IsRequired(ReferenceTypeIds.Organizes, false))
                     {
-                        return reference;
-                    }
+                        reference = NextChild();
 
-                    _stage = Stage.Parents;
-                    _position = 0;
+                        if (reference != null)
+                        {
+                            return reference;
+                        }
+
+                        _stage = Stage.Parents;
+                        _position = 0;
+                    }
                 }
 
                 // enumerate parents.
-                if (_stage == Stage.Parents && IsRequired(ReferenceTypeIds.Organizes, true))
+                if (_stage == Stage.Parents)
                 {
-                    reference = NextChild();
-
-                    if (reference != null)
+                    if (IsRequired(ReferenceTypeIds.Organizes, true))
                     {
-                        return reference;
-                    }
+                        reference = NextChild();
 
-                    _stage = Stage.Done;
-                    _position = 0;
+                        if (reference != null)
+                        {
+                            return reference;
+                        }
+
+                        _stage = Stage.Done;
+                        _position = 0;
+                    }
                 }
 
                 // all done.
@@ -164,8 +166,6 @@ namespace HistoricalAccess
         /// </summary>
         private IReference NextChild()
         {
-            var system = (UnderlyingSystem)SystemContext.SystemHandle;
-
             NodeId targetId = null;
 
             // check if a specific browse name is requested.

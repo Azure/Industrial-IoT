@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
-    using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Services.Registry.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;

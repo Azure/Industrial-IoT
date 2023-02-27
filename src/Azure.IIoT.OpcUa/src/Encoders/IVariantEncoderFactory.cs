@@ -13,11 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     public interface IVariantEncoderFactory
     {
         /// <summary>
-        /// Default encoder
-        /// </summary>
-        IVariantEncoder Default { get; }
-
-        /// <summary>
         /// Create factory
         /// </summary>
         /// <param name="context"></param>

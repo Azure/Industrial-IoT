@@ -5,17 +5,16 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
 {
-    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Abstractions;
-    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
     using Microsoft.Azure.IIoT.Crypto;
-    using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Net.Http;
 
     /// <summary>
     /// Edgelet client providing discovery and in the future other services
@@ -28,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
         /// <param name="client"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public EdgeletClient(IHttpClient client, IJsonSerializer serializer,
+        public EdgeletClient(IHttpClientFactory client, IJsonSerializer serializer,
             ILogger logger) : this(client, serializer,
             Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_WORKLOADURI),
             Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_MODULEGENERATIONID),
@@ -48,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
         /// <param name="moduleId"></param>
         /// <param name="apiVersion"></param>
         /// <param name="logger"></param>
-        public EdgeletClient(IHttpClient client, IJsonSerializer serializer,
+        public EdgeletClient(IHttpClientFactory client, IJsonSerializer serializer,
             string workloaduri, string genId, string moduleId, string apiVersion,
             ILogger logger)
         {
@@ -65,32 +64,28 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
         public async Task<byte[]> EncryptAsync(
             string initializationVector, byte[] plaintext, CancellationToken ct)
         {
-            var request = _client.NewRequest(
+            var uri = new Uri(
                 $"{_workloaduri}/modules/{_moduleId}/genid/{_moduleGenerationId}/" +
                 $"encrypt?api-version={_apiVersion}");
-            _serializer.SerializeToRequest(request, new { initializationVector, plaintext });
-            return await Retry2.WithExponentialBackoffAsync(_logger, async () =>
-            {
-                var response = await _client.PostAsync(request, ct).ConfigureAwait(false);
-                response.Validate();
-                return _serializer.DeserializeResponse<EncryptResponse>(response).CipherText;
-            }, ct, kMaxRetryCount).ConfigureAwait(false);
+            var request = new { initializationVector, plaintext };
+            var response = await Retry2.WithExponentialBackoffAsync(_logger,
+                () => _client.PostAsync<EncryptResponse>(uri, request, _serializer, ct: ct),
+                ct, kMaxRetryCount).ConfigureAwait(false);
+            return response.CipherText;
         }
 
         /// <inheritdoc/>
         public async Task<byte[]> DecryptAsync(
             string initializationVector, byte[] ciphertext, CancellationToken ct)
         {
-            var request = _client.NewRequest(
+            var uri = new Uri(
                 $"{_workloaduri}/modules/{_moduleId}/genid/{_moduleGenerationId}/" +
                 $"decrypt?api-version={_apiVersion}");
-            _serializer.SerializeToRequest(request, new { initializationVector, ciphertext });
-            return await Retry2.WithExponentialBackoffAsync(_logger, async () =>
-            {
-                var response = await _client.PostAsync(request, ct).ConfigureAwait(false);
-                response.Validate();
-                return _serializer.DeserializeResponse<DecryptResponse>(response).Plaintext;
-            }, ct, kMaxRetryCount).ConfigureAwait(false);
+            var request = new { initializationVector, ciphertext };
+            var response = await Retry2.WithExponentialBackoffAsync(_logger,
+                () => _client.PostAsync<DecryptResponse>(uri, request, _serializer, ct: ct),
+                ct, kMaxRetryCount).ConfigureAwait(false);
+            return response.Plaintext;
         }
 
         /// <summary>
@@ -101,7 +96,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
         {
             /// <summary>Cypher.</summary>
             [DataMember(Name = "cipherText")]
+#pragma warning disable CA1819 // Properties should not return arrays
             public byte[] CipherText { get; set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         }
 
         /// <summary>
@@ -112,7 +109,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
         {
             /// <summary>Cypher.</summary>
             [DataMember(Name = "plaintext")]
+#pragma warning disable CA1819 // Properties should not return arrays
             public byte[] Plaintext { get; set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         }
 
         /// <summary>
@@ -148,7 +147,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
             public string Bytes { get; set; }
         }
 
-        private readonly IHttpClient _client;
+        private readonly IHttpClientFactory _client;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly string _workloaduri;

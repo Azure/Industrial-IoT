@@ -5,23 +5,22 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
-    using Autofac;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Publisher.Discovery;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Discovery;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Models;
+    using Autofac;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
@@ -185,8 +184,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ProgressPublisher>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<TaskProcessor>()
-                .AsImplementedInterfaces();
 
             // Register controllers
             builder.RegisterType<PublisherMethodsController>()

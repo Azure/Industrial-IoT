@@ -5,11 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.Module.Default
 {
-    using Furly.Extensions.Serializers;
+    using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using System;
     using System.IO;
     using System.Text;

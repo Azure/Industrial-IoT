@@ -5,10 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser
 {
+    using Microsoft.Azure.IIoT.Hub.Models;
     using Antlr4.Runtime;
     using Antlr4.Runtime.Tree;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using System;
     using System.Collections.Generic;
     using System.Globalization;

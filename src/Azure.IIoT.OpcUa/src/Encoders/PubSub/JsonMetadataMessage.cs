@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
-    using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa;
     using Microsoft.Azure.IIoT;
     using Opc.Ua;
     using System;

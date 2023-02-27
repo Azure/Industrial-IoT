@@ -35,7 +35,7 @@ namespace HistoricalEvents
     using System.Data;
     using System.Text;
 
-    public class ReportGenerator : IDisposable
+    public class ReportGenerator
     {
         public void Initialize()
         {
@@ -137,7 +137,7 @@ namespace HistoricalEvents
             return values[GetRandom(0, values.Length - 1)];
         }
 
-        public static string[] GetAreas()
+        public string[] GetAreas()
         {
             var area = new List<string>();
 
@@ -147,7 +147,7 @@ namespace HistoricalEvents
 
                 if (index >= 0)
                 {
-                    var areaName = kWellNames[ii].Substring(0, index);
+                    var areaName = kWellNames[ii][..index];
 
                     if (!area.Contains(areaName))
                     {
@@ -159,7 +159,7 @@ namespace HistoricalEvents
             return area.ToArray();
         }
 
-        public static WellInfo[] GetWells(string areaName)
+        public WellInfo[] GetWells(string areaName)
         {
             var wells = new List<WellInfo>();
 
@@ -175,10 +175,13 @@ namespace HistoricalEvents
                 {
                     var index = kWellNames[ii].LastIndexOf('/');
 
-                    if (index >= 0 && kWellNames[ii].Substring(0, index) == areaName)
+                    if (index >= 0)
                     {
-                        well.Name = kWellNames[ii].Substring(index + 1);
-                        wells.Add(well);
+                        if (kWellNames[ii][..index] == areaName)
+                        {
+                            well.Name = kWellNames[ii][(index + 1)..];
+                            wells.Add(well);
+                        }
                     }
                 }
             }
@@ -220,7 +223,6 @@ namespace HistoricalEvents
         /// <summary>
         /// Deletes the event with the specified event id.
         /// </summary>
-        /// <param name="eventId"></param>
         public bool DeleteEvent(string eventId)
         {
             var filter = new StringBuilder();
@@ -253,10 +255,6 @@ namespace HistoricalEvents
         /// <summary>
         /// Reads the report history for the specified time range.
         /// </summary>
-        /// <param name="reportType"></param>
-        /// <param name="uidWell"></param>
-        /// <param name="startTime"></param>
-        /// <param name="endTime"></param>
         public DataView ReadHistoryForWellId(ReportType reportType, string uidWell, DateTime startTime, DateTime endTime)
         {
             var filter = new StringBuilder();
@@ -275,10 +273,6 @@ namespace HistoricalEvents
         /// <summary>
         /// Reads the report history for the specified time range.
         /// </summary>
-        /// <param name="reportType"></param>
-        /// <param name="areaName"></param>
-        /// <param name="startTime"></param>
-        /// <param name="endTime"></param>
         public DataView ReadHistoryForArea(ReportType reportType, string areaName, DateTime startTime, DateTime endTime)
         {
             var filter = new StringBuilder();
@@ -301,10 +295,6 @@ namespace HistoricalEvents
         /// <summary>
         /// Reads the history for the specified time range.
         /// </summary>
-        /// <param name="reportType"></param>
-        /// <param name="filter"></param>
-        /// <param name="startTime"></param>
-        /// <param name="endTime"></param>
         private DataView ReadHistory(ReportType reportType, StringBuilder filter, DateTime startTime, DateTime endTime)
         {
             var earlyTime = startTime;
@@ -350,11 +340,13 @@ namespace HistoricalEvents
 
             lock (_dataset)
             {
-                return new DataView(
+                var view = new DataView(
                 _dataset.Tables[(int)reportType],
                 filter.ToString(),
                 Opc.Ua.BrowseNames.Time,
                 DataViewRowState.CurrentRows);
+
+                return view;
             }
         }
 
@@ -442,7 +434,7 @@ namespace HistoricalEvents
             }
         }
 
-        public static DataRow UpdateeInjectionTestReport(DataRow row, IList<SimpleAttributeOperand> fields, IList<Variant> values)
+        public DataRow UpdateeInjectionTestReport(DataRow row, IList<SimpleAttributeOperand> fields, IList<Variant> values)
         {
             System.Diagnostics.Contracts.Contract.Assume(fields != null);
             System.Diagnostics.Contracts.Contract.Assume(values != null);
@@ -486,11 +478,6 @@ namespace HistoricalEvents
             e.TestDuration.SetChildValue(SystemContext, Opc.Ua.BrowseNames.EngineeringUnits, new EUInformation((string)row[Opc.Ua.BrowseNames.EngineeringUnits], Namespaces.HistoricalEvents), false);
 
             return e;
-        }
-
-        public void Dispose()
-        {
-            _dataset?.Dispose();
         }
 
         private DataSet _dataset;

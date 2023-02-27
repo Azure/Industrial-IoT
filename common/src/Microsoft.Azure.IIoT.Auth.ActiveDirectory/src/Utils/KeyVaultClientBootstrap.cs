@@ -5,11 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.Auth.KeyVault
 {
-    using Autofac;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Extensions.Configuration;
+    using Autofac;
     using System;
     using System.Linq;
 

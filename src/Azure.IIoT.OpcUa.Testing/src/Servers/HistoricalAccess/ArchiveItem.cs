@@ -44,8 +44,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new instance.
         /// </summary>
-        /// <param name="uniquePath"></param>
-        /// <param name="file"></param>
         public ArchiveItem(string uniquePath, FileInfo file)
         {
             UniquePath = uniquePath;
@@ -60,7 +58,7 @@ namespace HistoricalAccess
 
                 if (index > 0)
                 {
-                    Name = Name.Substring(0, index);
+                    Name = Name[..index];
                 }
             }
         }
@@ -68,9 +66,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new instance.
         /// </summary>
-        /// <param name="uniquePath"></param>
-        /// <param name="assembly"></param>
-        /// <param name="resourcePath"></param>
         public ArchiveItem(string uniquePath, Assembly assembly, string resourcePath)
         {
             UniquePath = uniquePath;
@@ -83,14 +78,14 @@ namespace HistoricalAccess
 
             if (index > 0)
             {
-                Name = Name.Substring(0, index);
+                Name = Name[..index];
             }
 
             index = Name.LastIndexOf('.');
 
             if (index > 0)
             {
-                Name = Name.Substring(index + 1);
+                Name = Name[(index + 1)..];
             }
         }
 
@@ -115,7 +110,7 @@ namespace HistoricalAccess
 
             if (index > 0)
             {
-                parentPath = UniquePath.Substring(0, index);
+                parentPath = UniquePath[..index];
             }
 
             return new ArchiveFolder(parentPath, FileInfo.Directory);
@@ -142,12 +137,12 @@ namespace HistoricalAccess
         /// <summary>
         /// A name for the item.
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         /// The unique path to the item in the archive.
         /// </summary>
-        public string UniquePath { get; private set; }
+        public string UniquePath { get; }
 
         /// <summary>
         /// The data type for the item.
@@ -212,7 +207,7 @@ namespace HistoricalAccess
         /// <summary>
         /// The physical file containing the item history.
         /// </summary>
-        private FileInfo FileInfo { get; set; }
+        private FileInfo FileInfo { get; }
 
         /// <summary>
         /// An embeddded resource in containing the item history.

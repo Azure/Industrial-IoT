@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System.Threading;
@@ -31,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static Task<VariantValue> ReadValueAsync<T>(this ISessionProvider<T> client,
             T connection, string readNode, IJsonSerializer serializer, CancellationToken ct = default)
         {
-            return client.ExecuteServiceAsync(connection, session =>
+            return client.ExecuteServiceAsync(connection, async session =>
             {
                 var nodesToRead = new ReadValueIdCollection {
                     new ReadValueId {
@@ -39,11 +38,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                         AttributeId = Attributes.Value
                     }
                 };
-                var responseHeader = session.Session.Read(null, 0, TimestampsToReturn.Both,
-                    nodesToRead, out var values, out var diagnosticInfos);
-                var result = new JsonVariantEncoder(session.MessageContext, serializer)
-                    .Encode(values[0].WrappedValue, out var tmp);
-                return Task.FromResult(result);
+                var response = await session.Services.ReadAsync(new RequestHeader(), 0,
+                    TimestampsToReturn.Both,
+                    nodesToRead, ct).ConfigureAwait(false);
+                return new JsonVariantEncoder(session.MessageContext, serializer)
+                    .Encode(response.Results[0].WrappedValue, out var tmp);
             }, ct);
         }
     }

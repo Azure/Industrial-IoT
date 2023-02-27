@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Http
 {
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http.Exceptions;
+    using Microsoft.Azure.IIoT.Exceptions;
     using System;
     using System.Net;
 

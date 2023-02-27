@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Storage
 {
-    using Microsoft.AspNetCore.DataProtection;
     using Microsoft.Azure.IIoT.Storage;
+    using Microsoft.AspNetCore.DataProtection;
     using Microsoft.Extensions.Caching.Distributed;
     using System;
     using System.Threading;

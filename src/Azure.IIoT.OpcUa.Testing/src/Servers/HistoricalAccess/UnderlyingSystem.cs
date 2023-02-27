@@ -42,8 +42,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Constructs a new system.
         /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="namespaceIndex"></param>
         public UnderlyingSystem(HistoricalAccessServerConfiguration configuration, ushort namespaceIndex)
         {
             _configuration = configuration;
@@ -53,8 +51,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Returns a folder object for the specified node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="rootId"></param>
         public ArchiveFolderState GetFolderState(ISystemContext context, string rootId)
         {
             var path = new StringBuilder();
@@ -69,8 +65,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Returns a item object for the specified node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="parsedNodeId"></param>
         public ArchiveItemState GetItemState(ISystemContext context, ParsedNodeId parsedNodeId)
         {
             if (parsedNodeId.RootType != NodeTypes.Item)

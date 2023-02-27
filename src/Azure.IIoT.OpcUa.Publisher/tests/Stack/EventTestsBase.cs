@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
 {
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Moq;

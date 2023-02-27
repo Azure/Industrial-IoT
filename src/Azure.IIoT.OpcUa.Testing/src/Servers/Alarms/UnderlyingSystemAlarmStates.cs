@@ -95,7 +95,7 @@ namespace Alarms
         /// <summary>
         /// A mask used to clear all limit bits.
         /// </summary>
-        Limits = 0x3C0,
+        Limits = HighHigh | High | Low | LowLow,
 
         /// <summary>
         /// The condition has deleted.

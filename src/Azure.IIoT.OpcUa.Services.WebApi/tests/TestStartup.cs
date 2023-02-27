@@ -5,17 +5,17 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
-    using Autofac;
+    using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
+    using Azure.IIoT.OpcUa.Services.Sdk.Clients;
+    using Azure.IIoT.OpcUa.Services.Sdk.Runtime;
+    using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Publisher.Discovery;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Azure.IIoT.OpcUa.Services.Sdk.Clients;
-    using Azure.IIoT.OpcUa.Services.Sdk.Runtime;
-    using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
-    using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
     using Azure.IIoT.OpcUa.Testing.Runtime;
+    using Autofac;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -112,8 +111,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 .AsImplementedInterfaces();
             builder.RegisterType<ProgressPublisher>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<TaskProcessor>()
-                .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
 

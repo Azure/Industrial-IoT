@@ -37,11 +37,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         public bool UseReversibleEncoding { get; set; } = true;
 
         /// <summary>
-        /// Perform xml serialization to json
-        /// </summary>
-        public bool PerformXmlSerialization { get; set; } = true;
-
-        /// <summary>
         /// Encode nodes as uri
         /// </summary>
         public bool UseUriEncoding { get; set; } = true;

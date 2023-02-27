@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services
 {
-    using Microsoft.AspNetCore.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
+    using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Threading;

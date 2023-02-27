@@ -5,10 +5,10 @@
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Exceptions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Exceptions;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
@@ -42,13 +42,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public IVariantEncoder Codec { get; private set; }
 
         /// <inheritdoc/>
-        public ISession? Session => _session;
-
-        /// <inheritdoc/>
         public ISessionServices Services => this;
 
         /// <inheritdoc/>
-        public OperationLimitsModel? OperationLimits => _limits;
+        public ITypeTable TypeTree
+            => _session?.TypeTree ?? kTypeTree;
+
+        /// <inheritdoc/>
+        public IServiceMessageContext MessageContext
+            => _session?.MessageContext ?? kMessageContext;
+
+        /// <inheritdoc/>
+        public ISystemContext SystemContext
+            => _session?.SystemContext ?? kSystemContext;
 
         /// <inheritdoc/>
         public TagList TagList { get; }
@@ -122,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
 
-            _connected = new AsyncManualResetEvent();
+            _needsConnecting = true;
             _lastState = EndpointConnectivityState.Connecting;
             _sessionName = sessionName ?? connection.ToString();
             _logger = logger ??
@@ -136,10 +142,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
+        public IDisposable GetSession(out ISession? session)
+        {
+            var activity = new SessionActivity<IServiceResponse>(_lock.ReaderLock(),
+                "Raw Session access.", _session!);
+            session = activity.Session;
+            return activity;
+        }
+
+        /// <inheritdoc/>
         public void RegisterSubscription(ISubscription subscription)
         {
             var id = new ConnectionIdentifier(subscription.Connection);
-            _lock.Wait();
             try
             {
                 _subscriptions.AddOrUpdate(subscription.Name, subscription, (_, _) => subscription);
@@ -151,28 +165,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogError(ex, "Failed to register subscription");
             }
-            finally
-            {
-                _lock.Release();
-            }
         }
 
         /// <inheritdoc/>
         public void UnregisterSubscription(ISubscription subscription)
         {
-            _lock.Wait();
-            try
+            if (_subscriptions.TryRemove(subscription.Name, out _))
             {
-                if (_subscriptions.TryRemove(subscription.Name, out _))
-                {
-                    _logger.LogInformation(
-                        "Subscription {Subscription} unregistered from session {Session}.",
-                        subscription.Name, _sessionName);
-                }
-            }
-            finally
-            {
-                _lock.Release();
+                _logger.LogInformation(
+                    "Subscription {Subscription} unregistered from session {Session}.",
+                    subscription.Name, _sessionName);
             }
         }
 
@@ -185,28 +187,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask<bool> ConnectAsync(bool reapplySubscriptionState = false,
             CancellationToken ct = default)
         {
-            if (!await _connecting.WaitAsync(0, ct).ConfigureAwait(false))
+            if (!_needsConnecting)
             {
-                // If already connecting
-                return false;
+                return true;
             }
+
+            _needsConnecting = false;
             bool connected;
-            try
+            using (var writerlock = await _lock.WriterLockAsync(ct).ConfigureAwait(false))
             {
-                connected = await ConnectInternalAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                // Log Error
-                _logger.LogError(ex, "Error creating session {Name}.", _sessionName);
-                _session?.Dispose();
-                _session = null;
-                Codec = CreateCodec();
-                connected = false;
-            }
-            finally
-            {
-                _connecting.Release();
+                try
+                {
+                    connected = await ConnectInternalAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    // Log Error
+                    _logger.LogError(ex, "Error creating session {Name}.", _sessionName);
+                    _session?.Dispose();
+                    _session = null;
+                    Codec = CreateCodec();
+                    connected = false;
+                    _needsConnecting = true;
+                }
             }
 
             if (connected && reapplySubscriptionState)
@@ -316,23 +319,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ObjectDisposedException(_sessionName);
             }
             _disposed = true;
+
             Session? session;
             List<ISubscription>? subscriptions;
-            await _lock.WaitAsync().ConfigureAwait(false);
-            try
+            using (var writerlock = await _lock.WriterLockAsync().ConfigureAwait(false))
             {
-                NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
+                NumberOfConnectRetries = 0;
+                _lastState = EndpointConnectivityState.Disconnected;
                 _reconnectHandler?.Dispose();
                 subscriptions = _subscriptions.Values.ToList();
                 _subscriptions.Clear();
                 session = _session;
                 UnsetSession(true);
+
                 _connected.Set(); // Release any waiting tasks with exception
-            }
-            finally
-            {
-                _lock.Release();
-                NumberOfConnectRetries = 0;
             }
 
             if (session == null)
@@ -372,8 +372,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             finally
             {
                 session.Dispose();
-                // Clean up resources
-                _lock.Dispose();
             }
         }
 
@@ -403,7 +401,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             UnsetSession(); // Ensure any previous session is disposed here.
             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
-            _logger.LogDebug("Initializing session '{Name}'...", _sessionName);
+            _logger.LogDebug("--- SESSION {Name} CONNECTING... ---", _sessionName);
 
             var endpointUrlCandidates = _connection.Endpoint!.Url.YieldReturn();
             if (_connection.Endpoint.AlternativeUrls != null)
@@ -451,7 +449,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "en-US",
                         CultureInfo.CurrentCulture.Name
                     }.ToList();
-                    var session = await Opc.Ua.Client.Session.Create(_configuration, endpoint,
+                    var session = await Session.Create(_configuration, endpoint,
                         false, false, _sessionName, SessionLifeTime, userIdentity,
                         preferredLocales).ConfigureAwait(false);
 
@@ -467,6 +465,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Debug.Assert(_complexTypeSystem != null);
                     await _complexTypeSystem.ConfigureAwait(false);
                     NumberOfConnectRetries++;
+
+                    _logger.LogInformation("--- SESSION {Name} CONNECTED ---", _sessionName);
                     return true;
                 }
                 catch (Exception ex)
@@ -484,7 +484,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync()
         {
-            await _lock.WaitAsync().ConfigureAwait(false);
+            using var readerlock = await _lock.ReaderLockAsync().ConfigureAwait(false);
             try
             {
                 _complexTypeSystem ??= LoadComplexTypeSystemAsync();
@@ -496,10 +496,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _sessionName);
                 return null;
             }
-            finally
-            {
-                _lock.Release();
-            }
         }
 
         /// <summary>
@@ -508,22 +504,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="requestHeader"></param>
         /// <param name="nodesToAdd"></param>
         /// <param name="ct"></param>
-        public async Task<AddNodesResponse> AddNodesAsync(
-            RequestHeader requestHeader, AddNodesItemCollection nodesToAdd,
-            CancellationToken ct)
+        public async Task<AddNodesResponse> AddNodesAsync(RequestHeader requestHeader,
+            AddNodesItemCollection nodesToAdd, CancellationToken ct)
         {
-            using var activity = StartRequest<AddNodesResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<AddNodesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new AddNodesRequest
             {
                 RequestHeader = requestHeader,
                 NodesToAdd = nodesToAdd
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<AddNodesResponse>(response);
         }
@@ -538,18 +533,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             RequestHeader requestHeader, AddReferencesItemCollection referencesToAdd,
             CancellationToken ct)
         {
-            using var activity = StartRequest<AddReferencesResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<AddReferencesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new AddReferencesRequest
             {
                 RequestHeader = requestHeader,
                 ReferencesToAdd = referencesToAdd
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<AddReferencesResponse>(response);
         }
@@ -564,18 +559,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             RequestHeader requestHeader, DeleteNodesItemCollection nodesToDelete,
             CancellationToken ct)
         {
-            using var activity = StartRequest<DeleteNodesResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<DeleteNodesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new DeleteNodesRequest
             {
                 RequestHeader = requestHeader,
                 NodesToDelete = nodesToDelete
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<DeleteNodesResponse>(response);
         }
@@ -590,18 +585,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             RequestHeader requestHeader, DeleteReferencesItemCollection referencesToDelete,
             CancellationToken ct)
         {
-            using var activity = StartRequest<DeleteReferencesResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<DeleteReferencesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new DeleteReferencesRequest
             {
                 RequestHeader = requestHeader,
                 ReferencesToDelete = referencesToDelete
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<DeleteReferencesResponse>(response);
         }
@@ -620,11 +615,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             uint requestedMaxReferencesPerNode,
             BrowseDescriptionCollection nodesToBrowse, CancellationToken ct)
         {
-            using var activity = StartRequest<BrowseResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<BrowseResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new BrowseRequest
             {
@@ -633,7 +628,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RequestedMaxReferencesPerNode = requestedMaxReferencesPerNode,
                 NodesToBrowse = nodesToBrowse
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<BrowseResponse>(response);
         }
@@ -649,11 +644,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             RequestHeader requestHeader, bool releaseContinuationPoints,
             ByteStringCollection continuationPoints, CancellationToken ct)
         {
-            using var activity = StartRequest<BrowseNextResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<BrowseNextResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new BrowseNextRequest
             {
@@ -661,7 +656,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ReleaseContinuationPoints = releaseContinuationPoints,
                 ContinuationPoints = continuationPoints
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<BrowseNextResponse>(response);
         }
@@ -677,18 +672,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             RequestHeader requestHeader, BrowsePathCollection browsePaths,
             CancellationToken ct)
         {
-            using var activity = StartRequest<TranslateBrowsePathsToNodeIdsResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<TranslateBrowsePathsToNodeIdsResponse>(
+                requestHeader, ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new TranslateBrowsePathsToNodeIdsRequest
             {
                 RequestHeader = requestHeader,
                 BrowsePaths = browsePaths
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<TranslateBrowsePathsToNodeIdsResponse>(response);
         }
@@ -704,18 +699,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             RequestHeader requestHeader, NodeIdCollection nodesToRegister,
             CancellationToken ct)
         {
-            using var activity = StartRequest<RegisterNodesResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<RegisterNodesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new RegisterNodesRequest
             {
                 RequestHeader = requestHeader,
                 NodesToRegister = nodesToRegister
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<RegisterNodesResponse>(response);
         }
@@ -730,18 +725,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             RequestHeader requestHeader, NodeIdCollection nodesToUnregister,
             CancellationToken ct)
         {
-            using var activity = StartRequest<UnregisterNodesResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<UnregisterNodesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new UnregisterNodesRequest
             {
                 RequestHeader = requestHeader,
                 NodesToUnregister = nodesToUnregister
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<UnregisterNodesResponse>(response);
         }
@@ -762,11 +757,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             uint maxDataSetsToReturn, uint maxReferencesToReturn,
             CancellationToken ct)
         {
-            using var activity = StartRequest<QueryFirstResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<QueryFirstResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new QueryFirstRequest
             {
@@ -777,7 +772,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MaxDataSetsToReturn = maxDataSetsToReturn,
                 MaxReferencesToReturn = maxReferencesToReturn
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<QueryFirstResponse>(response);
         }
@@ -793,11 +788,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             RequestHeader requestHeader, bool releaseContinuationPoint,
             byte[] continuationPoint, CancellationToken ct)
         {
-            using var activity = StartRequest<QueryNextResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<QueryNextResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new QueryNextRequest
             {
@@ -805,7 +800,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ReleaseContinuationPoint = releaseContinuationPoint,
                 ContinuationPoint = continuationPoint
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<QueryNextResponse>(response);
         }
@@ -823,11 +818,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             double maxAge, Opc.Ua.TimestampsToReturn timestampsToReturn,
             ReadValueIdCollection nodesToRead, CancellationToken ct)
         {
-            using var activity = StartRequest<ReadResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<ReadResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new ReadRequest
             {
@@ -836,7 +831,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 TimestampsToReturn = timestampsToReturn,
                 NodesToRead = nodesToRead
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<ReadResponse>(response);
         }
@@ -856,11 +851,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Opc.Ua.TimestampsToReturn timestampsToReturn, bool releaseContinuationPoints,
             HistoryReadValueIdCollection nodesToRead, CancellationToken ct)
         {
-            using var activity = StartRequest<HistoryReadResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<HistoryReadResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new HistoryReadRequest
             {
@@ -870,7 +865,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ReleaseContinuationPoints = releaseContinuationPoints,
                 NodesToRead = nodesToRead
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<HistoryReadResponse>(response);
         }
@@ -885,18 +880,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async Task<WriteResponse> WriteAsync(RequestHeader requestHeader,
             WriteValueCollection nodesToWrite, CancellationToken ct)
         {
-            using var activity = StartRequest<WriteResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<WriteResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new WriteRequest
             {
                 RequestHeader = requestHeader,
                 NodesToWrite = nodesToWrite
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<WriteResponse>(response);
         }
@@ -912,18 +907,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             RequestHeader requestHeader, ExtensionObjectCollection historyUpdateDetails,
             CancellationToken ct)
         {
-            using var activity = StartRequest<HistoryUpdateResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<HistoryUpdateResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new HistoryUpdateRequest
             {
                 RequestHeader = requestHeader,
                 HistoryUpdateDetails = historyUpdateDetails
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<HistoryUpdateResponse>(response);
         }
@@ -938,18 +933,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async Task<CallResponse> CallAsync(RequestHeader requestHeader,
             CallMethodRequestCollection methodsToCall, CancellationToken ct)
         {
-            using var activity = StartRequest<CallResponse>(
-                requestHeader, out var session, out var error);
-            if (error != null)
+            using var activity = await BeginAsync<CallResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
             {
-                return error;
+                return activity.Error;
             }
             var request = new CallRequest
             {
                 RequestHeader = requestHeader,
                 MethodsToCall = methodsToCall
             };
-            var response = await session.TransportChannel.SendRequestAsync(
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
             return ValidateResponse<CallResponse>(response);
         }
@@ -1056,7 +1051,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
 
             static uint? Validate32(uint? v) => v == null ? null :
-                v > 0 && v < int.MaxValue ? v : int.MaxValue;
+                v is > 0 and < int.MaxValue ? v : int.MaxValue;
             static ushort? Validate16(ushort? v) => v == null ? null :
                 v > 0 ? v : ushort.MaxValue;
         }
@@ -1278,18 +1273,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
 
-                    _lock.Wait();
-                    try
+                    using (var writerLock = _lock.WriterLock())
                     {
                         if (_reconnectHandler == null)
                         {
+                            // Unset session under lock
+                            UnsetSession();
+
+                            NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
+
                             _logger.LogInformation(
                                 "KeepAlive status {Status} for session {Name}, reconnecting in {Period}ms.",
                                 e.Status, _sessionName, ReconnectPeriod);
                             _reconnectHandler = new SessionReconnectHandler(true);
                             _reconnectHandler.BeginReconnect(_session,
                                 ReconnectPeriod, Client_ReconnectComplete);
-                            NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
                         }
                         else
                         {
@@ -1297,10 +1295,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 "KeepAlive status {Status} for session {Name}, reconnect in progress.",
                                 e.Status, _sessionName);
                         }
-                    }
-                    finally
-                    {
-                        _lock.Release();
                     }
 
                     // Go offline
@@ -1326,37 +1320,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
-            Session? newSession;
-            _lock.Wait();
-            try
+            using (var writerLock = _lock.WriterLock())
             {
                 // if session recovered, Session property is not null
-                newSession = _reconnectHandler?.Session as Session;
+                var newSession = _reconnectHandler?.Session as Session;
                 _reconnectHandler?.Dispose();
                 _reconnectHandler = null;
-            }
-            finally
-            {
-                _lock.Release();
-            }
 
-            if (newSession != null)
-            {
+                if (newSession?.Connected != true)
+                {
+                    // Failed to reconnect.
+                    _logger.LogInformation("--- SESSION {Name} failed reconnecting. ---",
+                        _sessionName);
+                    _needsConnecting = true;
+                    return;
+                }
+
                 SetSession(newSession);
-            }
-            if (!IsConnected)
-            {
-                // Failed to reconnect.
-                return;
-            }
 
-            _logger.LogInformation("--- SESSION {Name} RECONNECTED ---", _sessionName);
-            NumberOfConnectRetries++;
+                _logger.LogInformation("--- SESSION {Name} RECONNECTED ---", _sessionName);
+                NumberOfConnectRetries++;
 
-            NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
+                NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
+            }
 
             // Go back online
-            NotifySubscriptionStateChange(IsConnected);
+            NotifySubscriptionStateChange(true);
         }
 
         /// <summary>
@@ -1376,33 +1365,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(session.Handle == this);
                 return;
             }
-            _lock.Wait();
-            try
-            {
-                UnsetSession();
 
-                // override keep alive interval
-                Codec = CreateCodec(session.MessageContext);
-                _session = session;
-                _session.KeepAliveInterval = KeepAliveInterval;
-                _complexTypeSystem = LoadComplexTypeSystemAsync();
+            UnsetSession();
 
-                // set up keep alive callback.
-                _session.KeepAlive += Session_KeepAlive;
-                _session.Handle = this;
+            // override keep alive interval
+            Codec = CreateCodec(session.MessageContext);
+            _session = session;
+            _session.KeepAliveInterval = KeepAliveInterval;
+            _complexTypeSystem = LoadComplexTypeSystemAsync();
 
-                // Need to work around accessibility here.
-                _authenticationToken = (NodeId?)typeof(ClientBase).GetProperty(
-                    "AuthenticationToken",
-                        System.Reflection.BindingFlags.NonPublic |
-                        System.Reflection.BindingFlags.Instance)?.GetValue(session) ?? NodeId.Null;
+            // set up keep alive callback.
+            _session.KeepAlive += Session_KeepAlive;
+            _session.Handle = this;
 
-                NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
-            }
-            finally
-            {
-                _lock.Release();
-            }
+            // Need to work around accessibility here.
+            _authenticationToken = (NodeId?)typeof(ClientBase).GetProperty(
+                "AuthenticationToken",
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Instance)?.GetValue(session) ?? NodeId.Null;
+
+            NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
         }
 
         /// <summary>
@@ -1503,8 +1485,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _connected.Reset();
             }
             _logger.LogInformation(
-                "Connecting to {Endpoint} changed from {Previous} to {State}",
-                _connection.Endpoint!.Url, previous, state);
+                "Session {Name} with {Endpoint} changed from {Previous} to {State}",
+                _sessionName, _connection.Endpoint!.Url, previous, state);
             try
             {
                 OnConnectionStateChange?.Invoke(this, state);
@@ -1582,43 +1564,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Start request
+        /// Begin request
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="header"></param>
-        /// <param name="session"></param>
-        /// <param name="error"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        private Activity? StartRequest<T>(RequestHeader header,
-            out ISession session, out T? error) where T : IServiceResponse, new()
+        private async ValueTask<SessionActivity<T>> BeginAsync<T>(RequestHeader header,
+            CancellationToken ct)
+            where T : IServiceResponse, new()
         {
-            session = _session!;
-            if (session == null)
+            var readerLock = await _lock.ReaderLockAsync(ct).ConfigureAwait(false);
+            try
             {
-                error = new T();
-                error.ResponseHeader.ServiceResult = StatusCodes.BadNotConnected;
-                error.ResponseHeader.Timestamp = DateTime.UtcNow;
-                var text = error.ResponseHeader.StringTable.Count;
-                error.ResponseHeader.StringTable.Add("Session not connected.");
-                var locale = error.ResponseHeader.StringTable.Count;
-                error.ResponseHeader.StringTable.Add("en-US");
-                var symbol = error.ResponseHeader.StringTable.Count;
-                error.ResponseHeader.StringTable.Add("BadNotConnected");
-                error.ResponseHeader.ServiceDiagnostics = new DiagnosticInfo
+                var session = _session;
+                var activity = new SessionActivity<T>(readerLock, typeof(T).Name[0..^8],
+                    session!);
+                if (session == null)
                 {
-                    SymbolicId = symbol,
-                    Locale = locale,
-                    LocalizedText = text
-                };
-                session = null!;
-                return null;
+                    var error = new T();
+                    error.ResponseHeader.ServiceResult = StatusCodes.BadNotConnected;
+                    error.ResponseHeader.Timestamp = DateTime.UtcNow;
+                    var text = error.ResponseHeader.StringTable.Count;
+                    error.ResponseHeader.StringTable.Add("Session not connected.");
+                    var locale = error.ResponseHeader.StringTable.Count;
+                    error.ResponseHeader.StringTable.Add("en-US");
+                    var symbol = error.ResponseHeader.StringTable.Count;
+                    error.ResponseHeader.StringTable.Add("BadNotConnected");
+                    error.ResponseHeader.ServiceDiagnostics = new DiagnosticInfo
+                    {
+                        SymbolicId = symbol,
+                        Locale = locale,
+                        LocalizedText = text
+                    };
+                    activity.Error = error;
+                }
+                else
+                {
+                    header.RequestHandle = session.NewRequestHandle();
+                    header.AuthenticationToken = _authenticationToken;
+                    header.Timestamp = DateTime.UtcNow;
+                }
+                return activity;
             }
-            header.RequestHandle = session.NewRequestHandle();
-            header.AuthenticationToken = _authenticationToken;
-            header.Timestamp = DateTime.UtcNow;
-            error = default;
-
-            return kActivity.StartActivity(typeof(T).Name[0..^8]);
+            catch
+            {
+                readerLock.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -1669,6 +1662,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Session activity
+        /// </summary>
+        private sealed class SessionActivity<T> : IDisposable where T : IServiceResponse
+        {
+            /// <summary>
+            /// Any error to convey
+            /// </summary>
+            public ISession Session { get; set; }
+
+            /// <summary>
+            /// Any error to convey
+            /// </summary>
+            public T? Error { get; set; }
+
+            /// <inheritdoc/>
+            public SessionActivity(IDisposable readerLock, string activity, ISession session)
+            {
+                Session = session;
+                _lock = readerLock;
+                _activity = kActivity.StartActivity(activity);
+            }
+
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+                _activity?.Dispose();
+                _lock.Dispose();
+            }
+
+            private readonly Activity? _activity;
+            private readonly IDisposable _lock;
+        }
+
+        /// <summary>
         /// Create observable metrics
         /// </summary>
         private void InitializeMetrics()
@@ -1690,16 +1717,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private EndpointConnectivityState _lastState;
         private bool _disposed;
         private NodeId _authenticationToken;
-        private readonly SemaphoreSlim _connecting = new(1, 1);
-        private readonly SemaphoreSlim _lock = new(1, 1);
+        private bool _needsConnecting;
+        private readonly AsyncReaderWriterLock _lock = new();
+        private readonly AsyncManualResetEvent _connected = new();
         private readonly ApplicationConfiguration _configuration;
         private readonly IJsonSerializer _serializer;
-        private readonly AsyncManualResetEvent _connected;
         private readonly string _sessionName;
         private readonly ConnectionModel _connection;
         private readonly ILogger _logger;
         private readonly DateTime _lastActivity = DateTime.UtcNow;
         private readonly ConcurrentDictionary<string, ISubscription> _subscriptions = new();
+        private static readonly TypeTable kTypeTree = new(new NamespaceTable());
+        private static readonly SystemContext kSystemContext = new();
+        private static readonly ServiceMessageContext kMessageContext = new();
         private static readonly ActivitySource kActivity = new(typeof(OpcUaClient).FullName!);
     }
 }

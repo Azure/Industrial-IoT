@@ -39,8 +39,6 @@ namespace Boiler
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
         protected override void OnAfterCreate(ISystemContext context, NodeState node)
         {
             base.OnAfterCreate(context, node);
@@ -52,25 +50,22 @@ namespace Boiler
         /// <summary>
         /// Cleans up when the object is disposed.
         /// </summary>
-        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && _simulationTimer != null)
+            if (disposing)
             {
-                _simulationTimer.Dispose();
-                _simulationTimer = null;
+                if (_simulationTimer != null)
+                {
+                    _simulationTimer.Dispose();
+                    _simulationTimer = null;
+                }
             }
+            base.Dispose(disposing);
         }
 
         /// <summary>
         /// Changes the state of the simulation.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="machine"></param>
-        /// <param name="transitionId"></param>
-        /// <param name="causeId"></param>
-        /// <param name="inputArguments"></param>
-        /// <param name="outputArguments"></param>
         private ServiceResult OnControlSimulation(
             ISystemContext context,
             StateMachineState machine,
@@ -134,8 +129,6 @@ namespace Boiler
         /// <summary>
         /// Rounds a value to the significate digits specified and adds a random perturbation.
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="significantDigits"></param>
         private double RoundAndPerturb(double value, byte significantDigits)
         {
             double offsetToApply = 0;
@@ -160,20 +153,13 @@ namespace Boiler
             perturbedValue += (_random.NextDouble() - 0.5) * 5;
 
             // restore original exponent.
-            perturbedValue = Math.Round(perturbedValue) * Math.Pow(10.0, -offsetToApply);
-
-            // return value.
-            return perturbedValue;
+            return Math.Round(perturbedValue) * Math.Pow(10.0, -offsetToApply);
         }
 
         /// <summary>
         /// Moves the value towards the target.
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="target"></param>
-        /// <param name="step"></param>
-        /// <param name="range"></param>
-        private static double Adjust(double value, double target, double step, Opc.Ua.Range range)
+        private double Adjust(double value, double target, double step, Opc.Ua.Range range)
         {
             // convert percentage step to an absolute step if range is specified.
             if (range != null)
@@ -208,8 +194,7 @@ namespace Boiler
         /// <summary>
         /// Returns the value as a percentage of the range.
         /// </summary>
-        /// <param name="value"></param>
-        private static double GetPercentage(AnalogItemState<double> value)
+        private double GetPercentage(AnalogItemState<double> value)
         {
             var percentage = value.Value;
             var range = value.EURange.Value;
@@ -230,9 +215,7 @@ namespace Boiler
         /// <summary>
         /// Returns the value as a percentage of the range.
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="range"></param>
-        private static double GetValue(double value, Opc.Ua.Range range)
+        private double GetValue(double value, Opc.Ua.Range range)
         {
             if (range != null)
             {
@@ -245,7 +228,6 @@ namespace Boiler
         /// <summary>
         /// Updates the values for the simulation.
         /// </summary>
-        /// <param name="state"></param>
         private void DoSimulation(object state)
         {
             try

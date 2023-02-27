@@ -41,7 +41,6 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Initilizes the manager.
         /// </summary>
-        /// <param name="server"></param>
         public AggregateManager(IServerInternal server)
         {
             _server = server;
@@ -66,10 +65,6 @@ namespace Opc.Ua.Aggregates
             GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// An overrideable version of the Dispose.
-        /// </summary>
-        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -128,13 +123,16 @@ namespace Opc.Ua.Aggregates
             System.Diagnostics.Contracts.Contract.Assume(variableId != null);
             lock (_lock)
             {
-                _defaultConfiguration ??= new AggregateConfiguration
+                if (_defaultConfiguration == null)
                 {
-                    PercentDataBad = 0,
-                    PercentDataGood = 100,
-                    TreatUncertainAsBad = false,
-                    UseSlopedExtrapolation = false
-                };
+                    _defaultConfiguration = new AggregateConfiguration
+                    {
+                        PercentDataBad = 0,
+                        PercentDataGood = 100,
+                        TreatUncertainAsBad = false,
+                        UseSlopedExtrapolation = false
+                    };
+                }
 
                 return _defaultConfiguration;
             }

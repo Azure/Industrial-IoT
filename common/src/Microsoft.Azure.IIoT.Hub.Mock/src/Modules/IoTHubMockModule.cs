@@ -5,10 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Mock
 {
-    using Autofac;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
-    using Microsoft.Azure.IIoT.Tasks;
-    using Microsoft.Azure.IIoT.Tasks.Default;
+    using Autofac;
 
     /// <summary>
     /// Injected mock edge framework module
@@ -37,11 +35,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
                 .AsImplementedInterfaces().InstancePerLifetimeScope()
                 .PropertiesAutowired(
                     PropertyWiringOptions.AllowCircularDependencies);
-
-            // If not already registered, register a task scheduler
-            builder.RegisterType<DefaultScheduler>()
-                .AsImplementedInterfaces().SingleInstance()
-                .IfNotRegistered(typeof(ITaskScheduler));
 
             // Register default serializers...
             builder.AddNewtonsoftJsonSerializer();

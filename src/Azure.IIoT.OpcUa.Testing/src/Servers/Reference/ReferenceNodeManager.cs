@@ -33,7 +33,6 @@ namespace Reference
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Numerics;
     using System.Threading;
     using System.Xml;
@@ -46,18 +45,15 @@ namespace Reference
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
-        /// <param name="server"></param>
-        /// <param name="configuration"></param>
         public ReferenceNodeManager(IServerInternal server, ApplicationConfiguration configuration) :
             base(server, configuration, Namespaces.ReferenceApplications)
         {
             SystemContext.NodeIdFactory = this;
 
             // get the configuration for the node manager.
-            _configuration = configuration.ParseExtension<ReferenceServerConfiguration>();
-
-            // use suitable defaults if no configuration exists.
-            _configuration ??= new ReferenceServerConfiguration();
+            _configuration = configuration.ParseExtension<ReferenceServerConfiguration>()
+                // use suitable defaults if no configuration exists.
+                ?? new ReferenceServerConfiguration();
 
             _dynamicNodes = new List<BaseDataVariableState>();
         }
@@ -65,26 +61,30 @@ namespace Reference
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && _simulationTimer != null)
+            if (disposing)
             {
-                _simulationTimer.Dispose();
-                _simulationTimer = null;
+                if (_simulationTimer != null)
+                {
+                    _simulationTimer.Dispose();
+                    _simulationTimer = null;
+                }
             }
+            base.Dispose(disposing);
         }
 
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
         public override NodeId New(ISystemContext context, NodeState node)
         {
-            if (node is BaseInstanceState instance && instance.Parent != null && instance.Parent.NodeId.Identifier is string id)
+            if (node is BaseInstanceState instance && instance.Parent != null)
             {
-                return new NodeId(id + "_" + instance.SymbolicName, instance.Parent.NodeId.NamespaceIndex);
+                if (instance.Parent.NodeId.Identifier is string id)
+                {
+                    return new NodeId(id + "_" + instance.SymbolicName, instance.Parent.NodeId.NamespaceIndex);
+                }
             }
 
             return node.NodeId;
@@ -141,7 +141,6 @@ namespace Reference
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
-        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -192,6 +191,7 @@ namespace Reference
                     variables.Add(CreateVariable(staticFolder, scalarStatic + "QualifiedName", "QualifiedName", DataTypeIds.QualifiedName, ValueRanks.Scalar));
                     variables.Add(CreateVariable(staticFolder, scalarStatic + "SByte", "SByte", DataTypeIds.SByte, ValueRanks.Scalar));
                     variables.Add(CreateVariable(staticFolder, scalarStatic + "String", "String", DataTypeIds.String, ValueRanks.Scalar));
+                    variables.Add(CreateVariable(staticFolder, scalarStatic + "Time", "Time", DataTypeIds.Time, ValueRanks.Scalar));
                     variables.Add(CreateVariable(staticFolder, scalarStatic + "UInt16", "UInt16", DataTypeIds.UInt16, ValueRanks.Scalar));
                     variables.Add(CreateVariable(staticFolder, scalarStatic + "UInt32", "UInt32", DataTypeIds.UInt32, ValueRanks.Scalar));
                     variables.Add(CreateVariable(staticFolder, scalarStatic + "UInt64", "UInt64", DataTypeIds.UInt64, ValueRanks.Scalar));
@@ -202,12 +202,13 @@ namespace Reference
 
                     var decimalVariable = CreateVariable(staticFolder, scalarStatic + "Decimal", "Decimal", DataTypeIds.DecimalDataType, ValueRanks.Scalar);
                     // Set an arbitrary precision decimal value.
-                    var largeInteger = BigInteger.Parse("1234567890123546789012345678901234567890123456789012345", CultureInfo.InvariantCulture);
-                    decimalVariable.Value = new DecimalDataType
+                    var largeInteger = BigInteger.Parse("1234567890123546789012345678901234567890123456789012345");
+                    var decimalValue = new DecimalDataType
                     {
                         Scale = 100,
                         Value = largeInteger.ToByteArray()
                     };
+                    decimalVariable.Value = decimalValue;
                     variables.Add(decimalVariable);
 
                     var arraysFolder = CreateFolder(staticFolder, "Scalar_Static_Arrays", "Arrays");
@@ -264,6 +265,7 @@ namespace Reference
                         "龙_ 绵羊 大象 芒果; 猫'" };
                     variables.Add(stringArrayVar);
 
+                    variables.Add(CreateVariable(arraysFolder, staticArrays + "Time", "Time", DataTypeIds.Time, ValueRanks.OneDimension));
                     variables.Add(CreateVariable(arraysFolder, staticArrays + "UInt16", "UInt16", DataTypeIds.UInt16, ValueRanks.OneDimension));
                     variables.Add(CreateVariable(arraysFolder, staticArrays + "UInt32", "UInt32", DataTypeIds.UInt32, ValueRanks.OneDimension));
                     variables.Add(CreateVariable(arraysFolder, staticArrays + "UInt64", "UInt64", DataTypeIds.UInt64, ValueRanks.OneDimension));
@@ -293,6 +295,7 @@ namespace Reference
                     variables.Add(CreateVariable(arrays2DFolder, staticArrays2D + "QualifiedName", "QualifiedName", DataTypeIds.QualifiedName, ValueRanks.TwoDimensions));
                     variables.Add(CreateVariable(arrays2DFolder, staticArrays2D + "SByte", "SByte", DataTypeIds.SByte, ValueRanks.TwoDimensions));
                     variables.Add(CreateVariable(arrays2DFolder, staticArrays2D + "String", "String", DataTypeIds.String, ValueRanks.TwoDimensions));
+                    variables.Add(CreateVariable(arrays2DFolder, staticArrays2D + "Time", "Time", DataTypeIds.Time, ValueRanks.TwoDimensions));
                     variables.Add(CreateVariable(arrays2DFolder, staticArrays2D + "UInt16", "UInt16", DataTypeIds.UInt16, ValueRanks.TwoDimensions));
                     variables.Add(CreateVariable(arrays2DFolder, staticArrays2D + "UInt32", "UInt32", DataTypeIds.UInt32, ValueRanks.TwoDimensions));
                     variables.Add(CreateVariable(arrays2DFolder, staticArrays2D + "UInt64", "UInt64", DataTypeIds.UInt64, ValueRanks.TwoDimensions));
@@ -322,6 +325,7 @@ namespace Reference
                     variables.Add(CreateVariable(arrayDymnamicFolder, staticArraysDynamic + "QualifiedName", "QualifiedName", DataTypeIds.QualifiedName, ValueRanks.OneOrMoreDimensions));
                     variables.Add(CreateVariable(arrayDymnamicFolder, staticArraysDynamic + "SByte", "SByte", DataTypeIds.SByte, ValueRanks.OneOrMoreDimensions));
                     variables.Add(CreateVariable(arrayDymnamicFolder, staticArraysDynamic + "String", "String", DataTypeIds.String, ValueRanks.OneOrMoreDimensions));
+                    variables.Add(CreateVariable(arrayDymnamicFolder, staticArraysDynamic + "Time", "Time", DataTypeIds.Time, ValueRanks.OneOrMoreDimensions));
                     variables.Add(CreateVariable(arrayDymnamicFolder, staticArraysDynamic + "UInt16", "UInt16", DataTypeIds.UInt16, ValueRanks.OneOrMoreDimensions));
                     variables.Add(CreateVariable(arrayDymnamicFolder, staticArraysDynamic + "UInt32", "UInt32", DataTypeIds.UInt32, ValueRanks.OneOrMoreDimensions));
                     variables.Add(CreateVariable(arrayDymnamicFolder, staticArraysDynamic + "UInt64", "UInt64", DataTypeIds.UInt64, ValueRanks.OneOrMoreDimensions));
@@ -350,6 +354,7 @@ namespace Reference
                     variables.AddRange(CreateVariables(massFolder, staticMass + "Number", "Number", DataTypeIds.Number, ValueRanks.Scalar, 100));
                     variables.AddRange(CreateVariables(massFolder, staticMass + "SByte", "SByte", DataTypeIds.SByte, ValueRanks.Scalar, 100));
                     variables.AddRange(CreateVariables(massFolder, staticMass + "String", "String", DataTypeIds.String, ValueRanks.Scalar, 100));
+                    variables.AddRange(CreateVariables(massFolder, staticMass + "Time", "Time", DataTypeIds.Time, ValueRanks.Scalar, 100));
                     variables.AddRange(CreateVariables(massFolder, staticMass + "UInt16", "UInt16", DataTypeIds.UInt16, ValueRanks.Scalar, 100));
                     variables.AddRange(CreateVariables(massFolder, staticMass + "UInt32", "UInt32", DataTypeIds.UInt32, ValueRanks.Scalar, 100));
                     variables.AddRange(CreateVariables(massFolder, staticMass + "UInt64", "UInt64", DataTypeIds.UInt64, ValueRanks.Scalar, 100));
@@ -379,6 +384,7 @@ namespace Reference
                     CreateDynamicVariable(simulationFolder, scalarSimulation + "QualifiedName", "QualifiedName", DataTypeIds.QualifiedName, ValueRanks.Scalar);
                     CreateDynamicVariable(simulationFolder, scalarSimulation + "SByte", "SByte", DataTypeIds.SByte, ValueRanks.Scalar);
                     CreateDynamicVariable(simulationFolder, scalarSimulation + "String", "String", DataTypeIds.String, ValueRanks.Scalar);
+                    CreateDynamicVariable(simulationFolder, scalarSimulation + "Time", "Time", DataTypeIds.Time, ValueRanks.Scalar);
                     CreateDynamicVariable(simulationFolder, scalarSimulation + "UInt16", "UInt16", DataTypeIds.UInt16, ValueRanks.Scalar);
                     CreateDynamicVariable(simulationFolder, scalarSimulation + "UInt32", "UInt32", DataTypeIds.UInt32, ValueRanks.Scalar);
                     CreateDynamicVariable(simulationFolder, scalarSimulation + "UInt64", "UInt64", DataTypeIds.UInt64, ValueRanks.Scalar);
@@ -416,6 +422,7 @@ namespace Reference
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "QualifiedName", "QualifiedName", DataTypeIds.QualifiedName, ValueRanks.OneDimension);
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "SByte", "SByte", DataTypeIds.SByte, ValueRanks.OneDimension);
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "String", "String", DataTypeIds.String, ValueRanks.OneDimension);
+                    CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "Time", "Time", DataTypeIds.Time, ValueRanks.OneDimension);
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "UInt16", "UInt16", DataTypeIds.UInt16, ValueRanks.OneDimension);
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "UInt32", "UInt32", DataTypeIds.UInt32, ValueRanks.OneDimension);
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "UInt64", "UInt64", DataTypeIds.UInt64, ValueRanks.OneDimension);
@@ -445,6 +452,7 @@ namespace Reference
                     CreateDynamicVariables(massSimulationFolder, massSimulation + "QualifiedName", "QualifiedName", DataTypeIds.QualifiedName, ValueRanks.Scalar, 100);
                     CreateDynamicVariables(massSimulationFolder, massSimulation + "SByte", "SByte", DataTypeIds.SByte, ValueRanks.Scalar, 100);
                     CreateDynamicVariables(massSimulationFolder, massSimulation + "String", "String", DataTypeIds.String, ValueRanks.Scalar, 100);
+                    CreateDynamicVariables(massSimulationFolder, massSimulation + "Time", "Time", DataTypeIds.Time, ValueRanks.Scalar, 100);
                     CreateDynamicVariables(massSimulationFolder, massSimulation + "UInt16", "UInt16", DataTypeIds.UInt16, ValueRanks.Scalar, 100);
                     CreateDynamicVariables(massSimulationFolder, massSimulation + "UInt32", "UInt32", DataTypeIds.UInt32, ValueRanks.Scalar, 100);
                     CreateDynamicVariables(massSimulationFolder, massSimulation + "UInt64", "UInt64", DataTypeIds.UInt64, ValueRanks.Scalar, 100);
@@ -519,6 +527,7 @@ namespace Reference
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "QualifiedName", "QualifiedName", BuiltInType.QualifiedName, ValueRanks.OneDimension, new short[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "SByte", "SByte", BuiltInType.SByte, ValueRanks.OneDimension, new sbyte[] { 10, 20, 30, 40, 50, 60, 70, 80, 90 });
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "String", "String", BuiltInType.String, ValueRanks.OneDimension, new string[] { "a00", "b10", "c20", "d30", "e40", "f50", "g60", "h70", "i80", "j90" });
+                    CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "Time", "Time", DataTypeIds.Time, ValueRanks.OneDimension, new string[] { DateTime.MinValue.ToString(), DateTime.MaxValue.ToString(), DateTime.MinValue.ToString(), DateTime.MaxValue.ToString(), DateTime.MinValue.ToString(), DateTime.MaxValue.ToString(), DateTime.MinValue.ToString(), DateTime.MaxValue.ToString(), DateTime.MinValue.ToString(), DateTime.MaxValue.ToString() }, null);
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "UInt16", "UInt16", BuiltInType.UInt16, ValueRanks.OneDimension, new ushort[] { 20, 21, 22, 23, 24, 25, 26, 27, 28, 29 });
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "UInt32", "UInt32", BuiltInType.UInt32, ValueRanks.OneDimension, new uint[] { 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 });
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "UInt64", "UInt64", BuiltInType.UInt64, ValueRanks.OneDimension, new ulong[] { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 });
@@ -591,7 +600,7 @@ namespace Reference
                         var referenceString = "Has3ForwardReferences";
                         if (i > 1)
                         {
-                            referenceString += i.ToString(CultureInfo.InvariantCulture);
+                            referenceString += i.ToString();
                         }
                         var has3ForwardReferences = CreateMeshVariable(referencesFolder, referencesPrefix + referenceString, referenceString);
                         has3ForwardReferences.AddReference(ReferenceTypes.HasCause, false, variables[0].NodeId);
@@ -1336,9 +1345,6 @@ namespace Reference
         /// <summary>
         /// Creates a new folder.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
         private FolderState CreateFolder(NodeState parent, string path, string name)
         {
             var folder = new FolderState(parent)
@@ -1362,10 +1368,6 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="peers"></param>
         private BaseDataVariableState CreateMeshVariable(NodeState parent, string path, string name, params NodeState[] peers)
         {
             var variable = CreateVariable(parent, path, name, BuiltInType.Double, ValueRanks.Scalar);
@@ -1387,11 +1389,6 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="dataType"></param>
-        /// <param name="valueRank"></param>
         private DataItemState CreateDataItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
         {
             var variable = new DataItemState(parent);
@@ -1445,11 +1442,6 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="dataType"></param>
-        /// <param name="valueRank"></param>
         private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
         {
             return CreateAnalogItemVariable(parent, path, name, dataType, valueRank, null);
@@ -1543,11 +1535,6 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="trueState"></param>
-        /// <param name="falseState"></param>
         private DataItemState CreateTwoStateDiscreteItemVariable(NodeState parent, string path, string name, string trueState, string falseState)
         {
             var variable = new TwoStateDiscreteState(parent)
@@ -1593,10 +1580,6 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="values"></param>
         private DataItemState CreateMultiStateDiscreteItemVariable(NodeState parent, string path, string name, params string[] values)
         {
             var variable = new MultiStateDiscreteState(parent)
@@ -1646,10 +1629,6 @@ namespace Reference
         /// <summary>
         /// Creates a new UInt32 variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="enumNames"></param>
         private DataItemState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, params string[] enumNames)
         {
             return CreateMultiStateValueDiscreteItemVariable(parent, path, name, null, enumNames);
@@ -1658,11 +1637,6 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="enumNames"></param>
         private DataItemState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, NodeId nodeId, params string[] enumNames)
         {
             var variable = new MultiStateValueDiscreteState(parent)
@@ -1754,7 +1728,7 @@ namespace Reference
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
-            var number = Convert.ToDouble(value, CultureInfo.InvariantCulture);
+            var number = Convert.ToDouble(value);
 
             if (number >= variable.EnumStrings.Value.Length || number < 0)
             {
@@ -1775,9 +1749,9 @@ namespace Reference
         {
             var typeInfo = TypeInfo.Construct(value);
 
-            if (!(node is MultiStateValueDiscreteState variable) ||
+            if (node is not MultiStateValueDiscreteState variable ||
                 typeInfo == null ||
-                typeInfo == Opc.Ua.TypeInfo.Unknown ||
+                typeInfo == TypeInfo.Unknown ||
                 !TypeInfo.IsNumericType(typeInfo.BuiltInType))
             {
                 return StatusCodes.BadTypeMismatch;
@@ -1788,7 +1762,7 @@ namespace Reference
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
-            var number = Convert.ToInt32(value, CultureInfo.InvariantCulture);
+            var number = Convert.ToInt32(value);
             if (number >= variable.EnumValues.Value.Length || number < 0)
             {
                 return StatusCodes.BadOutOfRange;
@@ -1853,7 +1827,7 @@ namespace Reference
                     return StatusCodes.BadIndexRangeInvalid;
                 }
 
-                var number = Convert.ToDouble(value, CultureInfo.InvariantCulture);
+                var number = Convert.ToDouble(value);
 
                 if (variable.InstrumentRange != null && (number < variable.InstrumentRange.Value.Low || number > variable.InstrumentRange.Value.High))
                 {
@@ -1875,16 +1849,16 @@ namespace Reference
         {
             var typeInfo = TypeInfo.Construct(value);
 
-            if (!(node is PropertyState<Opc.Ua.Range> variable) ||
-                !(value is ExtensionObject extensionObject) ||
+            if (node is not PropertyState<Opc.Ua.Range> variable ||
+                value is not ExtensionObject extensionObject ||
                 typeInfo == null ||
-                typeInfo == Opc.Ua.TypeInfo.Unknown)
+                typeInfo == TypeInfo.Unknown)
             {
                 return StatusCodes.BadTypeMismatch;
             }
 
-            if (!(extensionObject.Body is Opc.Ua.Range newRange) ||
-                !(variable.Parent is AnalogItemState parent))
+            if (extensionObject.Body is not Opc.Ua.Range newRange ||
+                variable.Parent is not AnalogItemState parent)
             {
                 return StatusCodes.BadTypeMismatch;
             }
@@ -1910,11 +1884,6 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="dataType"></param>
-        /// <param name="valueRank"></param>
         private BaseDataVariableState CreateVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
         {
             return CreateVariable(parent, path, name, (uint)dataType, valueRank);
@@ -1923,11 +1892,6 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="dataType"></param>
-        /// <param name="valueRank"></param>
         private BaseDataVariableState CreateVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank)
         {
             var variable = new BaseDataVariableState(parent)
@@ -1978,8 +1942,8 @@ namespace Reference
             // now to create the remaining NUMBERED items
             for (uint i = 0; i < numVariables; i++)
             {
-                var newName = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", name, i.ToString("00", CultureInfo.InvariantCulture));
-                var newPath = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", path, newName);
+                var newName = string.Format("{0}_{1}", name, i.ToString("00"));
+                var newPath = string.Format("{0}_{1}", path, newName);
                 itemsCreated.Add(CreateVariable(newParentFolder, newPath, newName, dataType, valueRank));
             }
             return itemsCreated.ToArray();
@@ -1988,11 +1952,6 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="dataType"></param>
-        /// <param name="valueRank"></param>
         private BaseDataVariableState CreateDynamicVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
         {
             return CreateDynamicVariable(parent, path, name, (uint)dataType, valueRank);
@@ -2001,11 +1960,6 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
-        /// <param name="dataType"></param>
-        /// <param name="valueRank"></param>
         private BaseDataVariableState CreateDynamicVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank)
         {
             var variable = CreateVariable(parent, path, name, dataType, valueRank);
@@ -2027,8 +1981,8 @@ namespace Reference
             // now to create the remaining NUMBERED items
             for (uint i = 0; i < numVariables; i++)
             {
-                var newName = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", name, i.ToString("00", CultureInfo.InvariantCulture));
-                var newPath = string.Format(CultureInfo.InvariantCulture, "{0}_{1}", path, newName);
+                var newName = string.Format("{0}_{1}", name, i.ToString("00"));
+                var newPath = string.Format("{0}_{1}", path, newName);
                 itemsCreated.Add(CreateDynamicVariable(newParentFolder, newPath, newName, dataType, valueRank));
             }//for i
             return itemsCreated.ToArray();
@@ -2037,10 +1991,6 @@ namespace Reference
         /// <summary>
         /// Creates a new view.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="externalReferences"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
         private ViewState CreateView(NodeState parent, IDictionary<NodeId, IList<IReference>> externalReferences, string path, string name)
         {
             var type = new ViewState
@@ -2075,9 +2025,6 @@ namespace Reference
         /// <summary>
         /// Creates a new method.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="path"></param>
-        /// <param name="name"></param>
         private MethodState CreateMethod(NodeState parent, string path, string name)
         {
             var method = new MethodState(parent)
@@ -2277,10 +2224,13 @@ namespace Reference
 
         private object GetNewValue(BaseVariableState variable)
         {
-            _generator ??= new Opc.Ua.Test.TestDataGenerator()
+            if (_generator == null)
             {
-                BoundaryValueFrequency = 0
-            };
+                _generator = new Opc.Ua.Test.TestDataGenerator()
+                {
+                    BoundaryValueFrequency = 0
+                };
+            }
 
             object value = null;
             for (var retryCount = 0; value == null && retryCount < 10; retryCount++)
@@ -2326,9 +2276,6 @@ namespace Reference
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="cache"></param>
         protected override NodeHandle GetManagerHandle(ServerSystemContext context,
             NodeId nodeId, IDictionary<NodeId, NodeState> cache)
         {
@@ -2345,21 +2292,20 @@ namespace Reference
                     return null;
                 }
 
-                return new NodeHandle
+                var handle = new NodeHandle
                 {
                     NodeId = nodeId,
                     Node = node,
                     Validated = true
                 };
+
+                return handle;
             }
         }
 
         /// <summary>
         /// Verifies that the specified node exists.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="handle"></param>
-        /// <param name="cache"></param>
         protected override NodeState ValidateNode(
            ServerSystemContext context,
            NodeHandle handle,

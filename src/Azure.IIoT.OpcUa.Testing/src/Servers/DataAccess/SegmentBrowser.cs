@@ -84,11 +84,9 @@ namespace DataAccess
 
             lock (DataLock)
             {
-                IReference reference = null;
-
                 // enumerate pre-defined references.
                 // always call first to ensure any pushed-back references are returned first.
-                reference = base.Next();
+                var reference = base.Next();
 
                 if (reference != null)
                 {
@@ -127,17 +125,20 @@ namespace DataAccess
                 }
 
                 // enumerate blocks.
-                if (_stage == Stage.Blocks && IsRequired(ReferenceTypeIds.Organizes, false))
+                if (_stage == Stage.Blocks)
                 {
-                    reference = NextChild();
-
-                    if (reference != null)
+                    if (IsRequired(ReferenceTypeIds.Organizes, false))
                     {
-                        return reference;
-                    }
+                        reference = NextChild();
 
-                    _stage = Stage.Done;
-                    _position = 0;
+                        if (reference != null)
+                        {
+                            return reference;
+                        }
+
+                        _stage = Stage.Done;
+                        _position = 0;
+                    }
                 }
 
                 // all done.

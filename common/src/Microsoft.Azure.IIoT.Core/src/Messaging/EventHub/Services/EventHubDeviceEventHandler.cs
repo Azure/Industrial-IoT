@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub
 {
-    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
+    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;

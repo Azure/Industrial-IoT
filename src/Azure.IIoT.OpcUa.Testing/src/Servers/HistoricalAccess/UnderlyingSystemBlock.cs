@@ -350,9 +350,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Updates the value of an tag.
         /// </summary>
-        /// <param name="tag"></param>
-        /// <param name="generator"></param>
-        private static bool UpdateTagValue(
+        private bool UpdateTagValue(
             UnderlyingSystemTag tag,
             Opc.Ua.Test.TestDataGenerator generator)
         {
@@ -479,9 +477,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Updates the metadata for a tag.
         /// </summary>
-        /// <param name="tag"></param>
-        /// <param name="generator"></param>
-        private static bool UpdateTagMetadata(
+        private bool UpdateTagMetadata(
             UnderlyingSystemTag tag,
             Opc.Ua.Test.TestDataGenerator generator)
         {
@@ -540,6 +536,5 @@ namespace HistoricalAccess
     /// <summary>
     /// Used to receive events when the state of an tag changes.
     /// </summary>
-    /// <param name="tags"></param>
     public delegate void TagsChangedEventHandler(IList<UnderlyingSystemTag> tags);
 }

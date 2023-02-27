@@ -114,11 +114,14 @@ namespace Reference
         public DataValue GetProcessedValue(bool returnPartial)
         {
             // do nothing if slice not complete and partial values not requested.
-            if (!_nextSlice.Complete && CompareTimestamps(_endTime, _nextSlice.EndTime) > 0)
+            if (!_nextSlice.Complete)
             {
-                if (!returnPartial)
+                if (CompareTimestamps(_endTime, _nextSlice.EndTime) > 0)
                 {
-                    return null;
+                    if (!returnPartial)
+                    {
+                        return null;
+                    }
                 }
             }
 
@@ -166,7 +169,10 @@ namespace Reference
         /// <returns>The interpolated value.</returns>
         private DataValue Interpolate(DateTime timestamp, LinkedListNode<DataValue> start)
         {
-            start ??= _values.First;
+            if (start == null)
+            {
+                start = _values.First;
+            }
 
             if (start == null)
             {
@@ -183,9 +189,12 @@ namespace Reference
                 var difference = CompareTimestamps(ii.Value.SourceTimestamp, timestamp);
 
                 // check for an exact match.
-                if (difference == 0 && IsGood(ii.Value))
+                if (difference == 0)
                 {
-                    return ii.Value;
+                    if (IsGood(ii.Value))
+                    {
+                        return ii.Value;
+                    }
                 }
 
                 // find the first good value before the timestamp.
@@ -310,9 +319,12 @@ namespace Reference
         {
             for (var ii = _values.Last; ii != null; ii = ii.Previous)
             {
-                if (IsGood(ii.Value) && CompareTimestamps(ii.Value.SourceTimestamp, timestamp) <= 0)
+                if (IsGood(ii.Value))
                 {
-                    return ii;
+                    if (CompareTimestamps(ii.Value.SourceTimestamp, timestamp) <= 0)
+                    {
+                        return ii;
+                    }
                 }
             }
 
@@ -327,7 +339,10 @@ namespace Reference
         /// <returns>The first good value that follows the timestamp.</returns>
         private LinkedListNode<DataValue> FindLateBound(LinkedListNode<DataValue> start, DateTime timestamp)
         {
-            start ??= _values.First;
+            if (start == null)
+            {
+                start = _values.First;
+            }
 
             if (start == null)
             {
@@ -336,9 +351,12 @@ namespace Reference
 
             for (var ii = start; ii != null; ii = ii.Next)
             {
-                if (IsGood(ii.Value) && CompareTimestamps(ii.Value.SourceTimestamp, timestamp) >= 0)
+                if (IsGood(ii.Value))
                 {
-                    return ii;
+                    if (CompareTimestamps(ii.Value.SourceTimestamp, timestamp) >= 0)
+                    {
+                        return ii;
+                    }
                 }
             }
 

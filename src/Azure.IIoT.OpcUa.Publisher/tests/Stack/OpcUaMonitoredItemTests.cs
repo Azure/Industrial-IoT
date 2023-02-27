@@ -8,12 +8,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Models;
     using Opc.Ua;
+    using DeadbandType = OpcUa.Models.DeadbandType;
+    using MonitoringMode = OpcUa.Models.MonitoringMode;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
-    using DeadbandType = OpcUa.Models.DeadbandType;
-    using MonitoringMode = OpcUa.Models.MonitoringMode;
 
     public class OpcUaMonitoredItemTests : EventTestsBase
     {

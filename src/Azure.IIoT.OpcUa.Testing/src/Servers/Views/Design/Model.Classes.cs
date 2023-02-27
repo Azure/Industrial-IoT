@@ -101,7 +101,7 @@ namespace Model
         #endregion
 
         #region Public Properties
-        /// <remarks />
+        /// <summary></summary>
         public PropertyState<string> SerialNumber
         {
             get
@@ -120,7 +120,7 @@ namespace Model
             }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         public PropertyState<string> Manufacturer
         {
             get
@@ -139,7 +139,7 @@ namespace Model
             }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         public AnalogItemState<double> SetPoint
         {
             get
@@ -158,7 +158,7 @@ namespace Model
             }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         public AnalogItemState<double> Measurement
         {
             get
@@ -573,7 +573,7 @@ namespace Model
         #endregion
 
         #region Public Properties
-        /// <remarks />
+        /// <summary></summary>
         public BaseObjectState WaterIn
         {
             get
@@ -592,7 +592,7 @@ namespace Model
             }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         public BaseObjectState SteamOut
         {
             get
@@ -611,7 +611,7 @@ namespace Model
             }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         public BaseObjectState Drum
         {
             get

@@ -5,14 +5,14 @@
 
 namespace Microsoft.Extensions.Configuration
 {
-    using Furly.Extensions.Logging;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Primitives;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Auth.KeyVault;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Primitives;
+    using Furly.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;

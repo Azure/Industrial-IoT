@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.Services
 {
-    using Autofac;
-    using Furly.Extensions.Utils;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Extensions.Logging;
+    using Autofac;
+    using Furly.Extensions.Utils;
     using Prometheus;
     using System;
     using System.Collections;

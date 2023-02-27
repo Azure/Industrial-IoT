@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Mock
 {
-    using Autofac;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Module.Default;
+    using Autofac;
 
     /// <summary>
     /// Injected mock framework module

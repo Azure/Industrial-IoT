@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.App.Validation
 {
-    using FluentValidation;
     using Microsoft.Azure.IIoT.App.Models;
+    using FluentValidation;
     using System;
     using System.Collections.Generic;
 

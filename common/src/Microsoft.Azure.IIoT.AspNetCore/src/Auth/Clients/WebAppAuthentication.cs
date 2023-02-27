@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
 {
-    using Autofac;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
@@ -14,6 +13,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Extensions.Logging;
+    using Autofac;
     using System.Collections.Generic;
 
     /// <summary>

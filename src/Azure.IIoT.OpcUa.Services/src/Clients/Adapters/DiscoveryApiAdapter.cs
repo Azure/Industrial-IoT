@@ -5,12 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Services.Clients.Adapters
 {
-    using Azure.IIoT.OpcUa.Publisher.Sdk;
+    using Azure.IIoT.OpcUa.Services;
     using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Sdk;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Services;
 
     /// <summary>
     /// Implements discovery services as adapter on top of discovery api.

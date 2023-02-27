@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.HistoricalAccess
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
+    using Autofac;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -89,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.HistoricalAccess
         [Fact]
         public Task HistoryInsertDeleteUInt32ValuesTest4Async()
         {
-            return GetTests().HistoryInsertDeleteUInt32ValuesTest3Async();
+            return GetTests().HistoryInsertDeleteUInt32ValuesTest4Async();
         }
 
         [Fact]

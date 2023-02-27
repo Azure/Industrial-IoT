@@ -63,7 +63,7 @@ namespace PerfTest
         private List<MemoryRegister> _registers;
     }
 
-    public class MemoryRegister : IDisposable
+    public class MemoryRegister
     {
         public int Id { get; private set; }
 
@@ -77,11 +77,6 @@ namespace PerfTest
             Name = name;
             _values = new int[size];
             _monitoredItems = new IDataChangeMonitoredItem2[size][];
-        }
-
-        public void Dispose()
-        {
-            _timer?.Dispose();
         }
 
         public int Read(int index)
@@ -106,7 +101,10 @@ namespace PerfTest
         {
             lock (_lock)
             {
-                _timer ??= new Timer(OnUpdate, null, 45, 45);
+                if (_timer == null)
+                {
+                    _timer = new Timer(OnUpdate, null, 45, 45);
+                }
 
                 if (index >= 0 && index < _values.Length)
                 {
@@ -123,7 +121,7 @@ namespace PerfTest
                         monitoredItems = _monitoredItems[index];
                     }
 
-                    monitoredItems[monitoredItems.Length - 1] = monitoredItem;
+                    monitoredItems[^1] = monitoredItem;
                 }
             }
         }
@@ -154,7 +152,6 @@ namespace PerfTest
                                     Array.Copy(monitoredItems, ii + 1, _monitoredItems[index], 0, monitoredItems.Length - ii - 1);
                                 }
 
-                                monitoredItems = _monitoredItems[index];
                                 break;
                             }
                         }

@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
+    using MonitoringMode = OpcUa.Models.MonitoringMode;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
@@ -24,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using MonitoringMode = OpcUa.Models.MonitoringMode;
 
     /// <summary>
     /// Subscription implementation
@@ -61,13 +61,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             get
             {
                 // Called under lock of session manager
-                var session = _sessions.GetSessionHandle(
-                    _subscription.Id.Connection)?.Session;
-                if (session == null)
+                var handle = _sessions.GetSessionHandle(_subscription.Id.Connection);
+                if (handle == null)
                 {
                     return null;
                 }
-                return session.Subscriptions.SingleOrDefault(s => s.Handle == this);
+                using var accessor = handle.GetSession(out var session);
+                return session?.Subscriptions.SingleOrDefault(s => s.Handle == this);
             }
         }
 
@@ -277,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask CloseAsync()
         {
             await _lock.WaitAsync().ConfigureAwait(false);
-            ISessionHandle session;
+            ISessionHandle handle;
             try
             {
                 if (_closed)
@@ -286,8 +286,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 _closed = true;
 
-                session = _sessions.GetSessionHandle(_subscription.Id.Connection);
-                if (session == null)
+                handle = _sessions.GetSessionHandle(_subscription.Id.Connection);
+                if (handle == null)
                 {
                     _logger.LogWarning(
                         "Failed to close subscription '{Subscription}'. " +
@@ -297,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // Unregister subscription from session
-                session.UnregisterSubscription(this);
+                handle.UnregisterSubscription(this);
             }
             finally
             {
@@ -305,7 +305,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             // Get raw subscription from underlying session and close that one too
-            var subscription = session.Session.Subscriptions.SingleOrDefault(s => s.Handle == this);
+            using var accessor = handle.GetSession(out var session);
+            var subscription = session?.Subscriptions.SingleOrDefault(s => s.Handle == this);
             if (subscription != null)
             {
                 // This does not throw
@@ -364,7 +365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             try
             {
-                var rawSubscription = GetInnerSubscription(session.Session);
+                var rawSubscription = GetInnerSubscription(session);
 
                 // set the new set of monitored items
                 _subscription.MonitoredItems = _subscription.MonitoredItems?.Select(n => n.Clone()).ToList();
@@ -374,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (!rawSubscription.PublishingEnabled)
                     {
                         // Initialized subscription, resolve display names first
-                        ResolveDisplayNames(session.Session);
+                        ResolveDisplayNames(session);
                     }
 
                     await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems)
@@ -430,16 +431,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Reads the display name of the nodes to be monitored
         /// </summary>
-        /// <param name="session"></param>
-        private void ResolveDisplayNames(ISession session)
+        /// <param name="handle"></param>
+        private void ResolveDisplayNames(ISessionHandle handle)
         {
             if (!(_subscription.Configuration?.ResolveDisplayName ?? false))
             {
                 return;
             }
 
+            using var accessor = handle.GetSession(out var session);
             if (session == null)
             {
+                // Session not connected
                 return;
             }
 
@@ -908,10 +911,16 @@ QueueSize {CurrentQueueSize}/{QueueSize}", item.Item.StartNodeId, _subscription.
         /// <summary>
         /// Get a subscription with the supplied configuration (no lock)
         /// </summary>
-        /// <param name="session"></param>
+        /// <param name="handle"></param>
         /// <returns></returns>
-        private Subscription GetInnerSubscription(ISession session)
+        private Subscription GetInnerSubscription(ISessionHandle handle)
         {
+            using var accessor = handle.GetSession(out var session);
+            if (session?.DefaultSubscription == null)
+            {
+                return null;
+            }
+
             // TODO propagate the default PublishingInterval currently only avaliable for standalone mode
             var configuredPublishingInterval = (int)(_subscription.Configuration?.PublishingInterval)
                 .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
@@ -919,7 +928,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}", item.Item.StartNodeId, _subscription.
 
             // calculate the KeepAliveCount no matter what, perhaps monitored items were changed
             var revisedKeepAliveCount = (_subscription.Configuration?.KeepAliveCount)
-?? _config.MaxKeepAliveCount;
+                ?? _config.MaxKeepAliveCount;
 
             _subscription.MonitoredItems?.ForEach(m =>
             {
@@ -936,10 +945,10 @@ QueueSize {CurrentQueueSize}/{QueueSize}", item.Item.StartNodeId, _subscription.
 
             var configuredMaxNotificationsPerPublish = session.DefaultSubscription.MaxNotificationsPerPublish;
             var configuredLifetimeCount = (_subscription.Configuration?.LifetimeCount)
-?? session.DefaultSubscription.LifetimeCount;
+                ?? session.DefaultSubscription.LifetimeCount;
 
             var configuredPriority = (_subscription.Configuration?.Priority)
-?? session.DefaultSubscription.Priority;
+                ?? session.DefaultSubscription.Priority;
 
             var subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
             if (subscription == null)

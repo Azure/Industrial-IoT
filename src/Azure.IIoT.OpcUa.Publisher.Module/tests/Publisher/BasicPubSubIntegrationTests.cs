@@ -7,6 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Divergic.Logging.Xunit;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -27,7 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         internal const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private readonly ITestOutputHelper _output;
 
-        public BasicPubSubIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture)
+        public BasicPubSubIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output)
+            : base(fixture, LogFactory.Create(output, new LoggingConfig { LogLevel = LogLevel.Information }))
         {
             _output = output;
         }

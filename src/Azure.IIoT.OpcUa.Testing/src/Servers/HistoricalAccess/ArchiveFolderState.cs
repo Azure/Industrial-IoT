@@ -42,10 +42,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new instance of a folder.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="folder"></param>
-        /// <param name="namespaceIndex"></param>
+#pragma warning disable RCS1163 // Unused parameter.
         public ArchiveFolderState(ISystemContext context, ArchiveFolder folder, ushort namespaceIndex)
+#pragma warning restore RCS1163 // Unused parameter.
 #pragma warning restore IDE0060 // Remove unused parameter
         :
             base(null)
@@ -66,8 +65,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Constructs a node identifier for a folder object.
         /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="namespaceIndex"></param>
         public static NodeId ConstructId(string filePath, ushort namespaceIndex)
         {
             var parsedNodeId = new ParsedNodeId
@@ -88,14 +85,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a browser that explores the structure of the block.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="view"></param>
-        /// <param name="referenceType"></param>
-        /// <param name="includeSubtypes"></param>
-        /// <param name="browseDirection"></param>
-        /// <param name="browseName"></param>
-        /// <param name="additionalReferences"></param>
-        /// <param name="internalOnly"></param>
         public override INodeBrowser CreateBrowser(
             ISystemContext context,
             ViewDescription view,

@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 {
+    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using FluentAssertions;
@@ -22,6 +22,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using Divergic.Logging.Xunit;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,
@@ -36,7 +38,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         private const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private readonly ITestOutputHelper _output;
 
-        public BasicSamplesIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture)
+        public BasicSamplesIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output)
+            : base(fixture, LogFactory.Create(output, new LoggingConfig { LogLevel = LogLevel.Information }))
         {
             _output = output;
         }
@@ -254,7 +257,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync().ConfigureAwait(false);
             }
         }
 
@@ -291,7 +294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync().ConfigureAwait(false);
             }
         }
 
@@ -336,7 +339,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync().ConfigureAwait(false);
             }
         }
 
@@ -397,7 +400,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync().ConfigureAwait(false);
             }
         }
 
@@ -464,7 +467,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync().ConfigureAwait(false);
             }
         }
 

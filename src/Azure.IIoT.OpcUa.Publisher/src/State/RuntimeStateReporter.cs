@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.State
 {
-    using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.State.Models;
+    using Azure.IIoT.OpcUa.Publisher;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Extensions.Logging;

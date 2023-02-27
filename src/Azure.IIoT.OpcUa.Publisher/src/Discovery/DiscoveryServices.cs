@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Logging;
     using Prometheus;
@@ -31,7 +32,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
 
     /// <summary>
     /// Provides discovery services

@@ -36,8 +36,6 @@ namespace TestData
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
         protected override void OnAfterCreate(ISystemContext context, NodeState node)
         {
             base.OnAfterCreate(context, node);
@@ -69,17 +67,13 @@ namespace TestData
         /// <summary>
         /// Handles the generate values method.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="method"></param>
-        /// <param name="objectId"></param>
-        /// <param name="count"></param>
         protected override ServiceResult OnGenerateValues(
             ISystemContext context,
             MethodState method,
             NodeId objectId,
             uint count)
         {
-            if (!(context.SystemHandle is TestDataSystem system))
+            if (context.SystemHandle is not TestDataSystem system)
             {
                 return StatusCodes.BadOutOfService;
             }

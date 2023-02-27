@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
 {
-    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;

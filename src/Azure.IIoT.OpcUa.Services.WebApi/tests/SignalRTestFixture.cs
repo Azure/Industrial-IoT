@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
-    using Autofac.Extensions.Hosting;
+    using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         public SignalRTestFixture()
         {
             _server = Host.CreateDefaultBuilder()
-                .UseAutofac()
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureWebHostDefaults(builder => builder
                     .UseContentRoot(".")
                     .UseUrls("http://*:" + Port)

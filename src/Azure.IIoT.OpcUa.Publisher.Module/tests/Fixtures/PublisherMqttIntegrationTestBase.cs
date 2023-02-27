@@ -5,8 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
-    using Autofac;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
@@ -16,14 +14,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Autofac;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
@@ -47,6 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Threading.Channels;
 
     public readonly record struct JsonMessage(string Topic, JsonElement Message, string ContentType);
 
@@ -55,11 +55,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// </summary>
     public class PublisherMqttIntegrationTestBase : ISdkConfig
     {
-        public PublisherMqttIntegrationTestBase(ReferenceServerFixture serverFixture)
+        public PublisherMqttIntegrationTestBase(ReferenceServerFixture serverFixture, ILoggerFactory loggerFactory)
         {
             _exit = new TaskCompletionSource<bool>();
             _running = new TaskCompletionSource<bool>();
             _serverFixture = serverFixture;
+            _loggerFactory = loggerFactory;
+            _channel = Channel.CreateUnbounded<(string topic, ReadOnlyMemory<byte> buffer, string contentType)>();
         }
 
         protected Task<(JsonMessage? Metadata, List<JsonMessage> Messages)> ProcessMessagesAndMetadataAsync(
@@ -84,13 +86,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             string[] arguments = default)
         {
             await StartPublisherAsync(useMqtt5, publishedNodesFile, arguments).ConfigureAwait(false);
-
-            JsonMessage? metadata = null;
-            var messages = WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
-
-            StopPublisher();
-
-            return (metadata, messages);
+            try
+            {
+                JsonMessage? metadata = null;
+                var messages = await WaitForMessagesAndMetadataAsync(messageCollectionTimeout, messageCount,
+                    metadata, predicate, messageType).ConfigureAwait(false);
+                return messages;
+            }
+            finally
+            {
+                await StopPublisherAsync().ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -98,12 +104,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// </summary>
         /// <param name="predicate"></param>
         /// <param name="messageType"></param>
-        protected List<JsonMessage> WaitForMessages(
+        protected Task<List<JsonMessage>> WaitForMessages(
             Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
             // Collect messages from server with default settings
-            JsonMessage? metadata = null;
-            return WaitForMessagesAndMetadata(TimeSpan.FromMinutes(2), 1, ref metadata, predicate, messageType);
+            return WaitForMessages(TimeSpan.FromMinutes(200), 1, predicate, messageType);
         }
 
         /// <summary>
@@ -113,12 +118,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="messageCount"></param>
         /// <param name="predicate"></param>
         /// <param name="messageType"></param>
-        protected List<JsonMessage> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
+        protected async Task<List<JsonMessage>> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
             Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
             // Collect messages from server with default settings
             JsonMessage? metadata = null;
-            return WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
+            var (_, messages) = await WaitForMessagesAndMetadataAsync(
+                messageCollectionTimeout, messageCount, metadata, predicate, messageType).ConfigureAwait(false);
+            return messages;
         }
 
         /// <summary>
@@ -129,18 +136,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="metadata"></param>
         /// <param name="predicate"></param>
         /// <param name="messageType"></param>
-        protected List<JsonMessage> WaitForMessagesAndMetadata(TimeSpan messageCollectionTimeout, int messageCount,
-            ref JsonMessage? metadata, Func<JsonElement, JsonElement> predicate = null, string messageType = null)
+        protected async Task<(JsonMessage? metadata, List<JsonMessage> messages)> WaitForMessagesAndMetadataAsync(
+            TimeSpan messageCollectionTimeout, int messageCount, JsonMessage? metadata,
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var messages = new List<JsonMessage>();
-            while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero
-                && Events.TryTake(out var evt, messageCollectionTimeout))
+            while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero)
             {
                 messageCollectionTimeout -= stopWatch.Elapsed;
+                if (messageCollectionTimeout < TimeSpan.Zero)
+                {
+                    break;
+                }
 
-                var (topic, body, contentType) = evt;
+                var cts = new CancellationTokenSource(messageCollectionTimeout);
+                var (topic, body, contentType) = await _channel.Reader.ReadAsync(cts.Token).ConfigureAwait(false);
 
                 var json = Encoding.UTF8.GetString(body.ToArray());
                 var document = JsonDocument.Parse(json);
@@ -162,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     break;
                 }
             }
-            return messages.Take(messageCount).ToList();
+            return (metadata, messages.Take(messageCount).ToList());
 
             static void Add(List<JsonMessage> messages, JsonElement item, ref JsonMessage? metadata,
                 Func<JsonElement, JsonElement> predicate, string messageType, HashSet<string> messageIds,
@@ -208,8 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         protected Task StartPublisherAsync(bool useMqtt5, string publishedNodesFile = null,
             string[] arguments = default)
         {
-            Task.Run(() => HostPublisherAsync(
-                Mock.Of<ILogger>(),
+            _publisher = Task.Run(() => HostPublisherAsync(
                 publishedNodesFile,
                 useMqtt5 ? "v500" : "v311",
                 arguments ?? Array.Empty<string>()
@@ -225,10 +236,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Stop publisher
         /// </summary>
-        protected void StopPublisher()
+        protected Task StopPublisherAsync()
         {
             // Shut down gracefully.
             _exit.TrySetResult(true);
+            return _publisher;
         }
 
         /// <summary>
@@ -244,29 +256,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }
 
-        private BlockingCollection<(string topic, ReadOnlyMemory<byte> buffer, string contentType)> Events { get; }
-            = new BlockingCollection<(string topic, ReadOnlyMemory<byte> buffer, string contentType)>();
-
         public string DeviceId => null;
         public string ModuleId => null;
 
         /// <summary>
         /// Setup publishing from sample server.
         /// </summary>
-        /// <param name="logger"></param>
         /// <param name="publishedNodesFile"></param>
         /// <param name="protocol"></param>
         /// <param name="arguments"></param>
-        private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile,
+        private async Task HostPublisherAsync(string publishedNodesFile,
             string protocol, string[] arguments)
         {
             const string topicRoot = "/publishers/mypublishertest";
 
-            using var broker = await MqttBroker.CreateAsync(protocol, (topic, buffer, contentType) =>
-            {
-                Events.Add((topic, buffer, contentType));
-                return Task.CompletedTask;
-            }, topicRoot).ConfigureAwait(false);
+            using var broker = await MqttBroker.CreateAsync(protocol, async (topic, buffer, contentType) =>
+                await _channel.Writer.WriteAsync((topic, buffer, contentType)).ConfigureAwait(false),
+                topicRoot).ConfigureAwait(false);
             broker.UserName = "user";
             broker.Password = "pass";
 
@@ -300,7 +306,7 @@ $"--ttt={topicRoot}",
                 using (var cts = new CancellationTokenSource())
                 {
                     // Start publisher module
-                    var host = Task.Run(() => HostAsync(logger, configuration, broker), cts.Token);
+                    var host = Task.Run(() => HostAsync(configuration, broker), cts.Token);
                     await Task.WhenAny(_exit.Task).ConfigureAwait(false);
                     cts.Cancel();
                     await host.ConfigureAwait(false);
@@ -325,8 +331,9 @@ $"--ttt={topicRoot}",
         /// <param name="logger"></param>
         /// <param name="configurationRoot"></param>
         /// <param name="mqttBroker"></param>
-        private async Task HostAsync(ILogger logger, IConfiguration configurationRoot, MqttBroker mqttBroker)
+        private async Task HostAsync(IConfiguration configurationRoot, MqttBroker mqttBroker)
         {
+            var logger = _loggerFactory.CreateLogger("Publisher");
             try
             {
                 using (var hostScope = ConfigureContainer(configurationRoot))
@@ -383,6 +390,9 @@ $"--ttt={topicRoot}",
             builder.RegisterInstance(methodClient)
                 .ExternallyOwned();
             builder.AddDiagnostics(logging => logging.AddConsole());
+            builder.RegisterInstance(_loggerFactory)
+                .As<ILoggerFactory>()
+                .ExternallyOwned();
             builder.AddNewtonsoftJsonSerializer();
             builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces();
@@ -397,7 +407,7 @@ $"--ttt={topicRoot}",
         /// Configures DI for the types required.
         /// </summary>
         /// <param name="configuration"></param>
-        private static IContainer ConfigureContainer(IConfiguration configuration)
+        private IContainer ConfigureContainer(IConfiguration configuration)
         {
             var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
@@ -413,6 +423,9 @@ $"--ttt={topicRoot}",
             builder.AddNewtonsoftJsonSerializer();
 
             builder.AddDiagnostics(logging => logging.AddConsole());
+            builder.RegisterInstance(_loggerFactory)
+                .As<ILoggerFactory>()
+                .ExternallyOwned();
             builder.RegisterType<PublisherCliOptions>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
 
@@ -707,7 +720,7 @@ $"--ttt={topicRoot}",
             /// <param name="logger"></param>
             public static async Task<MqttBroker> CreateAsync(string protocol,
                 Func<string, ReadOnlyMemory<byte>, string, Task> subscription, int port, string topicRoot,
-                ILogger logger = null)
+                ILogger logger)
             {
                 logger ??= Log.Console<MqttBroker>();
                 var optionsBuilder = new MqttServerOptionsBuilder()
@@ -746,7 +759,10 @@ $"--ttt={topicRoot}",
         private readonly TaskCompletionSource<bool> _exit;
         private readonly TaskCompletionSource<bool> _running;
         private readonly ReferenceServerFixture _serverFixture;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly Channel<(string topic, ReadOnlyMemory<byte> buffer, string contentType)> _channel;
         private readonly HashSet<string> _messageIds = new();
         private IContainer _apiScope;
+        private Task _publisher;
     }
 }

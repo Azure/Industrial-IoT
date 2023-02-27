@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Services
 {
+    using Azure.IIoT.OpcUa.Services.Subscriber;
     using Azure.IIoT.OpcUa.Models;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Services.Subscriber;
 
     /// <summary>
     /// Publisher sample processing

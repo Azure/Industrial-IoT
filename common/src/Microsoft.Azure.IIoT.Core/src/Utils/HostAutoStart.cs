@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Utils
 {
-    using Autofac;
     using Microsoft.Extensions.Logging;
+    using Autofac;
     using System;
     using System.Collections.Generic;
     using System.Linq;

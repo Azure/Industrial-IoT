@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <Description>Contains fixtures and tests executing against reference servers</Description>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Servers\HistoricalAccess\Data\Dynamic\Boolean.txt" />

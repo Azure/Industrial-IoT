@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Services.Handlers
 {
+    using Azure.IIoT.OpcUa.Services.Subscriber;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Azure.IIoT.OpcUa.Services.Subscriber;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Logging;

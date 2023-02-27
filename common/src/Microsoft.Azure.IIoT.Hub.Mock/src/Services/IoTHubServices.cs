@@ -5,16 +5,16 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Mock
 {
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Shared;
-    using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Mock.SqlParser;
+    using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Shared;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;

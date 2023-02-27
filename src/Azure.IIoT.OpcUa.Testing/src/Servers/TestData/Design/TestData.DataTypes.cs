@@ -99,7 +99,7 @@ namespace TestData
         #endregion
 
         #region Public Properties
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "BooleanValue", IsRequired = false, Order = 1)]
         public bool BooleanValue
         {
@@ -107,7 +107,7 @@ namespace TestData
             set { m_booleanValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "SByteValue", IsRequired = false, Order = 2)]
         public sbyte SByteValue
         {
@@ -115,7 +115,7 @@ namespace TestData
             set { m_sByteValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "ByteValue", IsRequired = false, Order = 3)]
         public byte ByteValue
         {
@@ -123,7 +123,7 @@ namespace TestData
             set { m_byteValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "Int16Value", IsRequired = false, Order = 4)]
         public short Int16Value
         {
@@ -131,7 +131,7 @@ namespace TestData
             set { m_int16Value = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "UInt16Value", IsRequired = false, Order = 5)]
         public ushort UInt16Value
         {
@@ -139,7 +139,7 @@ namespace TestData
             set { m_uInt16Value = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "Int32Value", IsRequired = false, Order = 6)]
         public int Int32Value
         {
@@ -147,7 +147,7 @@ namespace TestData
             set { m_int32Value = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "UInt32Value", IsRequired = false, Order = 7)]
         public uint UInt32Value
         {
@@ -155,7 +155,7 @@ namespace TestData
             set { m_uInt32Value = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "Int64Value", IsRequired = false, Order = 8)]
         public long Int64Value
         {
@@ -163,7 +163,7 @@ namespace TestData
             set { m_int64Value = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "UInt64Value", IsRequired = false, Order = 9)]
         public ulong UInt64Value
         {
@@ -171,7 +171,7 @@ namespace TestData
             set { m_uInt64Value = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "FloatValue", IsRequired = false, Order = 10)]
         public float FloatValue
         {
@@ -179,7 +179,7 @@ namespace TestData
             set { m_floatValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "DoubleValue", IsRequired = false, Order = 11)]
         public double DoubleValue
         {
@@ -187,7 +187,7 @@ namespace TestData
             set { m_doubleValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "StringValue", IsRequired = false, Order = 12)]
         public string StringValue
         {
@@ -195,7 +195,7 @@ namespace TestData
             set { m_stringValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "DateTimeValue", IsRequired = false, Order = 13)]
         public DateTime DateTimeValue
         {
@@ -203,7 +203,7 @@ namespace TestData
             set { m_dateTimeValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "GuidValue", IsRequired = false, Order = 14)]
         public Uuid GuidValue
         {
@@ -211,7 +211,7 @@ namespace TestData
             set { m_guidValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "ByteStringValue", IsRequired = false, Order = 15)]
         public byte[] ByteStringValue
         {
@@ -219,7 +219,7 @@ namespace TestData
             set { m_byteStringValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "XmlElementValue", IsRequired = false, Order = 16)]
         public XmlElement XmlElementValue
         {
@@ -227,7 +227,7 @@ namespace TestData
             set { m_xmlElementValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "NodeIdValue", IsRequired = false, Order = 17)]
         public NodeId NodeIdValue
         {
@@ -235,7 +235,7 @@ namespace TestData
             set { m_nodeIdValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "ExpandedNodeIdValue", IsRequired = false, Order = 18)]
         public ExpandedNodeId ExpandedNodeIdValue
         {
@@ -243,7 +243,7 @@ namespace TestData
             set { m_expandedNodeIdValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "QualifiedNameValue", IsRequired = false, Order = 19)]
         public QualifiedName QualifiedNameValue
         {
@@ -251,7 +251,7 @@ namespace TestData
             set { m_qualifiedNameValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "LocalizedTextValue", IsRequired = false, Order = 20)]
         public LocalizedText LocalizedTextValue
         {
@@ -259,7 +259,7 @@ namespace TestData
             set { m_localizedTextValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "StatusCodeValue", IsRequired = false, Order = 21)]
         public StatusCode StatusCodeValue
         {
@@ -267,7 +267,7 @@ namespace TestData
             set { m_statusCodeValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "VariantValue", IsRequired = false, Order = 22)]
         public Variant VariantValue
         {
@@ -275,7 +275,7 @@ namespace TestData
             set { m_variantValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "EnumerationValue", IsRequired = false, Order = 23)]
         public int EnumerationValue
         {
@@ -283,7 +283,7 @@ namespace TestData
             set { m_enumerationValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "StructureValue", IsRequired = false, Order = 24)]
         public ExtensionObject StructureValue
         {
@@ -291,7 +291,7 @@ namespace TestData
             set { m_structureValue = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "Number", IsRequired = false, Order = 25)]
         public Variant Number
         {
@@ -299,7 +299,7 @@ namespace TestData
             set { m_number = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "Integer", IsRequired = false, Order = 26)]
         public Variant Integer
         {
@@ -307,7 +307,7 @@ namespace TestData
             set { m_integer = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "UInteger", IsRequired = false, Order = 27)]
         public Variant UInteger
         {
@@ -1634,7 +1634,7 @@ namespace TestData
         #endregion
 
         #region Public Properties
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "BooleanDataType", IsRequired = false, Order = 1)]
         public bool BooleanDataType
         {
@@ -1642,7 +1642,7 @@ namespace TestData
             set { m_booleanDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "SByteDataType", IsRequired = false, Order = 2)]
         public sbyte SByteDataType
         {
@@ -1650,7 +1650,7 @@ namespace TestData
             set { m_sByteDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "ByteDataType", IsRequired = false, Order = 3)]
         public byte ByteDataType
         {
@@ -1658,7 +1658,7 @@ namespace TestData
             set { m_byteDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "Int16DataType", IsRequired = false, Order = 4)]
         public short Int16DataType
         {
@@ -1666,7 +1666,7 @@ namespace TestData
             set { m_int16DataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "UInt16DataType", IsRequired = false, Order = 5)]
         public ushort UInt16DataType
         {
@@ -1674,7 +1674,7 @@ namespace TestData
             set { m_uInt16DataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "Int32DataType", IsRequired = false, Order = 6)]
         public int Int32DataType
         {
@@ -1682,7 +1682,7 @@ namespace TestData
             set { m_int32DataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "UInt32DataType", IsRequired = false, Order = 7)]
         public uint UInt32DataType
         {
@@ -1690,7 +1690,7 @@ namespace TestData
             set { m_uInt32DataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "Int64DataType", IsRequired = false, Order = 8)]
         public long Int64DataType
         {
@@ -1698,7 +1698,7 @@ namespace TestData
             set { m_int64DataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "UInt64DataType", IsRequired = false, Order = 9)]
         public ulong UInt64DataType
         {
@@ -1706,7 +1706,7 @@ namespace TestData
             set { m_uInt64DataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "FloatDataType", IsRequired = false, Order = 10)]
         public float FloatDataType
         {
@@ -1714,7 +1714,7 @@ namespace TestData
             set { m_floatDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "DoubleDataType", IsRequired = false, Order = 11)]
         public double DoubleDataType
         {
@@ -1722,7 +1722,7 @@ namespace TestData
             set { m_doubleDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "StringDataType", IsRequired = false, Order = 12)]
         public string StringDataType
         {
@@ -1730,7 +1730,7 @@ namespace TestData
             set { m_stringDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "DateTimeDataType", IsRequired = false, Order = 13)]
         public DateTime DateTimeDataType
         {
@@ -1738,7 +1738,7 @@ namespace TestData
             set { m_dateTimeDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "GuidDataType", IsRequired = false, Order = 14)]
         public Uuid GuidDataType
         {
@@ -1746,7 +1746,7 @@ namespace TestData
             set { m_guidDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "ByteStringDataType", IsRequired = false, Order = 15)]
         public byte[] ByteStringDataType
         {
@@ -1754,7 +1754,7 @@ namespace TestData
             set { m_byteStringDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "XmlElementDataType", IsRequired = false, Order = 16)]
         public XmlElement XmlElementDataType
         {
@@ -1762,7 +1762,7 @@ namespace TestData
             set { m_xmlElementDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "NodeIdDataType", IsRequired = false, Order = 17)]
         public NodeId NodeIdDataType
         {
@@ -1770,7 +1770,7 @@ namespace TestData
             set { m_nodeIdDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "ExpandedNodeIdDataType", IsRequired = false, Order = 18)]
         public ExpandedNodeId ExpandedNodeIdDataType
         {
@@ -1778,7 +1778,7 @@ namespace TestData
             set { m_expandedNodeIdDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "QualifiedNameDataType", IsRequired = false, Order = 19)]
         public QualifiedName QualifiedNameDataType
         {
@@ -1786,7 +1786,7 @@ namespace TestData
             set { m_qualifiedNameDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "LocalizedTextDataType", IsRequired = false, Order = 20)]
         public LocalizedText LocalizedTextDataType
         {
@@ -1794,7 +1794,7 @@ namespace TestData
             set { m_localizedTextDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "StatusCodeDataType", IsRequired = false, Order = 21)]
         public StatusCode StatusCodeDataType
         {
@@ -1802,7 +1802,7 @@ namespace TestData
             set { m_statusCodeDataType = value; }
         }
 
-        /// <remarks />
+        /// <summary></summary>
         [DataMember(Name = "VariantDataType", IsRequired = false, Order = 22)]
         public Variant VariantDataType
         {

@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Api.HistoricalAccess.Json
         [Fact]
         public Task HistoryInsertDeleteUInt32ValuesTest4Async()
         {
-            return GetTests().HistoryInsertDeleteUInt32ValuesTest3Async();
+            return GetTests().HistoryInsertDeleteUInt32ValuesTest4Async();
         }
 
         [Fact]

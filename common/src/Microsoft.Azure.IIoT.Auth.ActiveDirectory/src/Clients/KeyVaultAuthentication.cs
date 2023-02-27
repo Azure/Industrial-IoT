@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default
 {
-    using Autofac;
-    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Extensions.Logging;
+    using Autofac;
     using System.Collections.Generic;
 
     /// <summary>

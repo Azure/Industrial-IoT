@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Models;
+    using Autofac;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Exceptions;

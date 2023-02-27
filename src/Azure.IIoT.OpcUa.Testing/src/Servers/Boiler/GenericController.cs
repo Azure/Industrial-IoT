@@ -40,7 +40,6 @@ namespace Boiler
         /// <summary>
         /// Updates the measurement and calculates the new control output.
         /// </summary>
-        /// <param name="source"></param>
         public double UpdateMeasurement(AnalogItemState<double> source)
         {
             var range = source.EURange.Value;

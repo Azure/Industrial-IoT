@@ -5,16 +5,16 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
+    using Azure.IIoT.OpcUa.Services.WebApi.Auth;
+    using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
     using Azure.IIoT.OpcUa.Services;
     using Azure.IIoT.OpcUa.Services.Clients;
     using Azure.IIoT.OpcUa.Services.Events;
     using Azure.IIoT.OpcUa.Services.Registry;
-    using Azure.IIoT.OpcUa.Services.WebApi.Auth;
-    using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;

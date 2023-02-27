@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.Storage.Default
 {
     using System;
+    using MemCache = System.Runtime.Caching.MemoryCache;
     using System.Threading;
     using System.Threading.Tasks;
-    using MemCache = System.Runtime.Caching.MemoryCache;
 
     /// <summary>
     /// In memory cache

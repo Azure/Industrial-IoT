@@ -5,13 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData
 {
+    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
+    using Autofac;
     using System.Threading.Tasks;
     using Xunit;
-    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
-    using Autofac;
 
     [Collection(ReadCollection.Name)]
     public class MetadataTests : IClassFixture<PublisherModuleFixture>

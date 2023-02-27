@@ -33,7 +33,6 @@ namespace SimpleEvents
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Reflection;
     using System.Threading;
 
@@ -45,8 +44,6 @@ namespace SimpleEvents
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
-        /// <param name="server"></param>
-        /// <param name="configuration"></param>
         public SimpleEventsNodeManager(IServerInternal server, ApplicationConfiguration configuration) :
             base(server, configuration)
         {
@@ -58,30 +55,30 @@ namespace SimpleEvents
             SetNamespaces(namespaceUrls);
 
             // get the configuration for the node manager.
-            _configuration = configuration.ParseExtension<SimpleEventsServerConfiguration>();
-
             // use suitable defaults if no configuration exists.
-            _configuration ??= new SimpleEventsServerConfiguration();
+            _configuration = configuration.ParseExtension<SimpleEventsServerConfiguration>()
+                ?? new SimpleEventsServerConfiguration();
         }
 
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && _simulationTimer != null)
+            if (disposing)
             {
-                Utils.SilentDispose(_simulationTimer);
-                _simulationTimer = null;
+                if (_simulationTimer != null)
+                {
+                    Utils.SilentDispose(_simulationTimer);
+                    _simulationTimer = null;
+                }
             }
+            base.Dispose(disposing);
         }
 
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
         public override NodeId New(ISystemContext context, NodeState node)
         {
             return node.NodeId;
@@ -90,7 +87,6 @@ namespace SimpleEvents
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
-        /// <param name="context"></param>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
             var type = GetType().GetTypeInfo();
@@ -104,7 +100,6 @@ namespace SimpleEvents
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
-        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -135,9 +130,6 @@ namespace SimpleEvents
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="cache"></param>
         protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
         {
             lock (Lock)
@@ -149,14 +141,19 @@ namespace SimpleEvents
                 }
 
                 // check for predefined nodes.
-                if (PredefinedNodes != null && PredefinedNodes.TryGetValue(nodeId, out var node))
+                if (PredefinedNodes != null)
                 {
-                    return new NodeHandle
+                    if (PredefinedNodes.TryGetValue(nodeId, out var node))
                     {
-                        NodeId = nodeId,
-                        Validated = true,
-                        Node = node
-                    };
+                        var handle = new NodeHandle
+                        {
+                            NodeId = nodeId,
+                            Validated = true,
+                            Node = node
+                        };
+
+                        return handle;
+                    }
                 }
 
                 return null;
@@ -166,9 +163,6 @@ namespace SimpleEvents
         /// <summary>
         /// Verifies that the specified node exists.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="handle"></param>
-        /// <param name="cache"></param>
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
@@ -219,8 +213,7 @@ namespace SimpleEvents
 
                     e.SetChildValue(SystemContext, Opc.Ua.BrowseNames.SourceName, "System", false);
                     e.SetChildValue(SystemContext, Opc.Ua.BrowseNames.SourceNode, Opc.Ua.ObjectIds.Server, false);
-                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.CycleId, NamespaceIndex),
-                        _cycleId.ToString(CultureInfo.InvariantCulture), false);
+                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.CycleId, NamespaceIndex), _cycleId.ToString(), false);
 
                     var step = new CycleStepDataType
                     {
@@ -229,8 +222,7 @@ namespace SimpleEvents
                     };
 
                     e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.CurrentStep, NamespaceIndex), step, false);
-                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.Steps, NamespaceIndex),
-                        new CycleStepDataType[] { step, step }, false);
+                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.Steps, NamespaceIndex), new CycleStepDataType[] { step, step }, false);
 
                     Server.ReportEvent(e);
                 }

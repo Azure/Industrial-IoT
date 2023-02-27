@@ -446,10 +446,6 @@ namespace Alarms
         /// <summary>
         /// Updates the state of an alarm.
         /// </summary>
-        /// <param name="alarm"></param>
-        /// <param name="counter"></param>
-        /// <param name="index"></param>
-        /// <param name="snapshots"></param>
         private void UpdateAlarm(UnderlyingSystemAlarm alarm, long counter, int index, List<UnderlyingSystemAlarm> snapshots)
         {
             string reason = null;
@@ -582,6 +578,5 @@ namespace Alarms
     /// <summary>
     /// Used to receive events when the state of an alarm changes.
     /// </summary>
-    /// <param name="alarm"></param>
     public delegate void AlarmChangedEventHandler(UnderlyingSystemAlarm alarm);
 }

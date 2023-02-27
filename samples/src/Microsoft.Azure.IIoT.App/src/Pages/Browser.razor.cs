@@ -5,11 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.App.Pages
 {
-    using global::Azure.IIoT.OpcUa.Models;
-    using Microsoft.AspNetCore.Components;
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.App.Services;
+    using Microsoft.AspNetCore.Components;
+    using global::Azure.IIoT.OpcUa.Models;
     using System;
     using System.Collections.Generic;
     using System.Globalization;

@@ -41,8 +41,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new instance.
         /// </summary>
-        /// <param name="uniquePath"></param>
-        /// <param name="folder"></param>
         public ArchiveFolder(string uniquePath, DirectoryInfo folder)
         {
             UniquePath = uniquePath;
@@ -111,7 +109,7 @@ namespace HistoricalAccess
 
             if (index > 0)
             {
-                parentPath = UniquePath.Substring(0, index);
+                parentPath = UniquePath[..index];
             }
 
             return new ArchiveFolder(parentPath, DirectoryInfo.Parent);

@@ -44,22 +44,21 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
-        /// <param name="server"></param>
-        /// <param name="configuration"></param>
         public MemoryBufferNodeManager(IServerInternal server,
             ApplicationConfiguration configuration) :
             base(server)
         {
-            NamespaceUris = new List<string> {
+            var namespaceUris = new List<string> {
                 Namespaces.MemoryBuffer,
                 Namespaces.MemoryBuffer + "/Instance"
             };
 
-            // get the configuration for the node manager.
-            _configuration = configuration.ParseExtension<MemoryBufferConfiguration>();
+            NamespaceUris = namespaceUris;
 
+            // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration ??= new MemoryBufferConfiguration();
+            _configuration = configuration.ParseExtension<MemoryBufferConfiguration>()
+                ?? new MemoryBufferConfiguration();
 
             _buffers = new Dictionary<string, MemoryBufferState>();
         }
@@ -71,21 +70,23 @@ namespace MemoryBuffer
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            if (disposing && _buffers != null)
+            if (disposing)
             {
-                foreach (var buffer in _buffers.Values)
+                if (_buffers != null)
                 {
-                    buffer.Dispose();
+                    foreach (var buffer in _buffers.Values)
+                    {
+                        buffer.Dispose();
+                    }
+                    _buffers.Clear();
+                    _buffers = null;
                 }
-                _buffers.Clear();
-                _buffers = null;
             }
         }
 
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
-        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -140,7 +141,6 @@ namespace MemoryBuffer
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
-        /// <param name="context"></param>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
             var type = GetType().GetTypeInfo();
@@ -165,9 +165,6 @@ namespace MemoryBuffer
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="cache"></param>
         /// <remarks>
         /// This must efficiently determine whether the node belongs to the node manager. If it does belong to
         /// NodeManager it should return a handle that does not require the NodeId to be validated again when
@@ -192,7 +189,7 @@ namespace MemoryBuffer
                     }
 
                     // tag ids have the syntax <bufferName>[<address>]
-                    if (id[id.Length - 1] != ']')
+                    if (id[^1] != ']')
                     {
                         return null;
                     }
@@ -204,7 +201,7 @@ namespace MemoryBuffer
                         return null;
                     }
 
-                    var bufferName = id.Substring(0, index);
+                    var bufferName = id[..index];
 
                     // verify the buffer.
                     if (!_buffers.TryGetValue(bufferName, out buffer))
@@ -247,16 +244,6 @@ namespace MemoryBuffer
         /// <summary>
         /// Creates a new set of monitored items for a set of variables.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="source"></param>
-        /// <param name="subscriptionId"></param>
-        /// <param name="publishingInterval"></param>
-        /// <param name="diagnosticsMasks"></param>
-        /// <param name="timestampsToReturn"></param>
-        /// <param name="itemToCreate"></param>
-        /// <param name="globalIdCounter"></param>
-        /// <param name="filterError"></param>
-        /// <param name="monitoredItem"></param>
         /// <remarks>
         /// This method only handles data change subscriptions. Event subscriptions are created by the SDK.
         /// </remarks>
@@ -276,7 +263,7 @@ namespace MemoryBuffer
             monitoredItem = null;
 
             // use default behavoir for non-tag sources.
-            if (!(source is MemoryTagState tag))
+            if (source is not MemoryTagState tag)
             {
                 return base.CreateMonitoredItem(
                     context,
@@ -337,7 +324,7 @@ namespace MemoryBuffer
 
             // get the monitored node for the containing buffer.
 
-            if (!(tag.Parent is MemoryBufferState buffer))
+            if (tag.Parent is not MemoryBufferState buffer)
             {
                 return StatusCodes.BadInternalError;
             }
@@ -355,7 +342,6 @@ namespace MemoryBuffer
 
             // create the item.
             var datachangeItem = buffer.CreateDataChangeItem(
-                context as ServerSystemContext,
                 tag,
                 monitoredItemId,
                 itemToCreate.ItemToMonitor,
@@ -391,12 +377,6 @@ namespace MemoryBuffer
         /// <summary>
         /// Modifies the parameters for a monitored item.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="diagnosticsMasks"></param>
-        /// <param name="timestampsToReturn"></param>
-        /// <param name="monitoredItem"></param>
-        /// <param name="itemToModify"></param>
-        /// <param name="filterError"></param>
         protected override ServiceResult ModifyMonitoredItem(
             ISystemContext context,
             DiagnosticsMasks diagnosticsMasks,
@@ -409,7 +389,7 @@ namespace MemoryBuffer
 
             // check for valid handle.
 
-            if (!(monitoredItem.ManagerHandle is MemoryBufferState buffer))
+            if (monitoredItem.ManagerHandle is not MemoryBufferState)
             {
                 return base.ModifyMonitoredItem(
                     context,
@@ -425,7 +405,7 @@ namespace MemoryBuffer
 
             // get the monitored item.
 
-            if (!(monitoredItem is MemoryBufferMonitoredItem datachangeItem))
+            if (monitoredItem is not MemoryBufferMonitoredItem datachangeItem)
             {
                 return StatusCodes.BadMonitoredItemIdInvalid;
             }
@@ -442,7 +422,7 @@ namespace MemoryBuffer
             }
 
             // modify the monitored item parameters.
-            var error = datachangeItem.Modify(
+            _ = datachangeItem.Modify(
                 diagnosticsMasks,
                 timestampsToReturn,
                 itemToModify.RequestedParameters.ClientHandle,
@@ -454,9 +434,6 @@ namespace MemoryBuffer
         /// <summary>
         /// Deletes a monitored item.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="monitoredItem"></param>
-        /// <param name="processed"></param>
         protected override ServiceResult DeleteMonitoredItem(
             ISystemContext context,
             IMonitoredItem monitoredItem,
@@ -466,7 +443,7 @@ namespace MemoryBuffer
 
             // check for valid handle.
 
-            if (!(monitoredItem.ManagerHandle is MemoryBufferState buffer))
+            if (monitoredItem.ManagerHandle is not MemoryBufferState buffer)
             {
                 return base.DeleteMonitoredItem(
                     context,
@@ -479,7 +456,7 @@ namespace MemoryBuffer
 
             // get the monitored item.
 
-            if (!(monitoredItem is MemoryBufferMonitoredItem datachangeItem))
+            if (monitoredItem is not MemoryBufferMonitoredItem datachangeItem)
             {
                 return StatusCodes.BadMonitoredItemIdInvalid;
             }
@@ -493,10 +470,6 @@ namespace MemoryBuffer
         /// <summary>
         /// Changes the monitoring mode for an item.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="monitoredItem"></param>
-        /// <param name="monitoringMode"></param>
-        /// <param name="processed"></param>
         protected override ServiceResult SetMonitoringMode(
             ISystemContext context,
             IMonitoredItem monitoredItem,
@@ -507,7 +480,7 @@ namespace MemoryBuffer
 
             // check for valid handle.
 
-            if (!(monitoredItem.ManagerHandle is MemoryBufferState buffer))
+            if (monitoredItem.ManagerHandle is not MemoryBufferState buffer)
             {
                 return base.SetMonitoringMode(
                     context,
@@ -521,7 +494,7 @@ namespace MemoryBuffer
 
             // get the monitored item.
 
-            if (!(monitoredItem is MemoryBufferMonitoredItem datachangeItem))
+            if (monitoredItem is not MemoryBufferMonitoredItem datachangeItem)
             {
                 return StatusCodes.BadMonitoredItemIdInvalid;
             }

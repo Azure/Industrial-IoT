@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi.Clients
 {
-    using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Services.Sdk;
+    using Azure.IIoT.OpcUa.Models;
     using System;
     using System.Threading;
     using System.Threading.Tasks;

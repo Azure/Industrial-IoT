@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
-    using Autofac.Extensions.Hosting;
+    using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
-                .UseAutofac()
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureHostConfiguration(builder => builder
                     .AddFromDotEnvFile())
                 .ConfigureWebHostDefaults(builder => builder

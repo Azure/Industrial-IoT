@@ -197,13 +197,12 @@ namespace Opc.Ua.Aggregates
             }
         }
 
+
+
         /// <summary>
         /// Projects the value to the specified time using the two points.
         /// </summary>
-        /// <param name="p1"></param>
-        /// <param name="p2"></param>
-        /// <param name="time"></param>
-        private static double ProjectedValue(DataValue p1, DataValue p2, DateTime time)
+        private double ProjectedValue(DataValue p1, DataValue p2, DateTime time)
         {
             var ve = Convert.ToDouble(p1.Value, CultureInfo.InvariantCulture);
             var vl = Convert.ToDouble(p2.Value, CultureInfo.InvariantCulture);

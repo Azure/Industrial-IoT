@@ -7,6 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Divergic.Logging.Xunit;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -23,7 +25,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
     {
         private readonly ITestOutputHelper _output;
 
-        public MqttPubSubIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture)
+        public MqttPubSubIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output)
+            : base(fixture, LogFactory.Create(output, new LoggingConfig { LogLevel = LogLevel.Information}))
         {
             _output = output;
         }

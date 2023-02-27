@@ -41,15 +41,6 @@ namespace MemoryBuffer
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="view"></param>
-        /// <param name="referenceType"></param>
-        /// <param name="includeSubtypes"></param>
-        /// <param name="browseDirection"></param>
-        /// <param name="browseName"></param>
-        /// <param name="additionalReferences"></param>
-        /// <param name="internalOnly"></param>
-        /// <param name="buffer"></param>
         public MemoryBufferBrowser(
             ISystemContext context,
             ViewDescription view,
@@ -83,11 +74,9 @@ namespace MemoryBuffer
         {
             lock (DataLock)
             {
-                IReference reference = null;
-
                 // enumerate pre-defined references.
                 // always call first to ensure any pushed-back references are returned first.
-                reference = base.Next();
+                var reference = base.Next();
 
                 if (reference != null)
                 {
@@ -154,8 +143,10 @@ namespace MemoryBuffer
 
                 for (var ii = 0; ii < name.Length; ii++)
                 {
+#pragma warning disable CA2249 // Consider using 'string.Contains' instead of 'string.IndexOf'
                     if ("0123456789ABCDEF".IndexOf(name[ii]) == -1)
                     {
+#pragma warning restore CA2249 // Consider using 'string.Contains' instead of 'string.IndexOf'
                         return null;
                     }
                 }

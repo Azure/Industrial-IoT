@@ -114,9 +114,7 @@ namespace Opc.Ua.Aggregates
 
         /// <summary>
         /// Creates a new instance.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="actor"></param>>
+        /// </summary>>
         public AggregateState(IAggregationContext context, IAggregationActor actor)
         {
             _aggregationContext = context;
@@ -184,7 +182,6 @@ namespace Opc.Ua.Aggregates
         /// Accept one raw data value.
         /// </summary>
         /// <param name="rawData"></param>
-        /// <exception cref="ArgumentException"><paramref name="rawData"/></exception>
         public void AddRawData(DataValue rawData)
         {
             if (rawData == null)
@@ -225,7 +222,10 @@ namespace Opc.Ua.Aggregates
                         }
                         break;
                     case 1:
-                        LatePoint ??= rawData;
+                        if (LatePoint == null)
+                        {
+                            LatePoint = rawData;
+                        }
 
                         _aggregationActor.UpdateProcessedData(rawData, this);
                         break;

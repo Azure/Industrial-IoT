@@ -42,38 +42,33 @@ namespace Views
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
-        /// <param name="server"></param>
-        /// <param name="configuration"></param>
         public ViewsNodeManager(IServerInternal server, ApplicationConfiguration configuration)
-        :
-            base(server, configuration, Model.Namespaces.Views, Model.Namespaces.Engineering, Model.Namespaces.Operations)
+        : base(server, configuration, Model.Namespaces.Views,
+                Model.Namespaces.Engineering, Model.Namespaces.Operations)
         {
             SystemContext.NodeIdFactory = this;
 
             // get the configuration for the node manager.
-            _configuration = configuration.ParseExtension<ViewsServerConfiguration>();
-
             // use suitable defaults if no configuration exists.
-            _configuration ??= new ViewsServerConfiguration();
+            _configuration = configuration.ParseExtension<ViewsServerConfiguration>()
+                ?? new ViewsServerConfiguration();
         }
 
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
                 // TBD
             }
+            base.Dispose(disposing);
         }
 
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
         public override NodeId New(ISystemContext context, NodeState node)
         {
             if (node is BaseInstanceState instance && instance.Parent != null)
@@ -92,7 +87,6 @@ namespace Views
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
-        /// <param name="context"></param>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
             var type = GetType().GetTypeInfo();
@@ -106,7 +100,6 @@ namespace Views
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
-        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -155,9 +148,6 @@ namespace Views
         /// <summary>
         /// Checks if the node is in the view.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="continuationPoint"></param>
-        /// <param name="node"></param>
         protected override bool IsNodeInView(ServerSystemContext context, ContinuationPoint continuationPoint, NodeState node)
         {
             if (continuationPoint.View != null)
@@ -187,9 +177,6 @@ namespace Views
         /// <summary>
         /// Checks if the reference is in the view.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="continuationPoint"></param>
-        /// <param name="reference"></param>
         protected override bool IsReferenceInView(ServerSystemContext context, ContinuationPoint continuationPoint, IReference reference)
         {
             if (continuationPoint.View != null)
@@ -222,9 +209,6 @@ namespace Views
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="cache"></param>
         protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
         {
             lock (Lock)
@@ -238,9 +222,12 @@ namespace Views
                 NodeState node = null;
 
                 // check cache (the cache is used because the same node id can appear many times in a single request).
-                if (cache != null && cache.TryGetValue(nodeId, out node))
+                if (cache != null)
                 {
-                    return new NodeHandle(nodeId, node);
+                    if (cache.TryGetValue(nodeId, out node))
+                    {
+                        return new NodeHandle(nodeId, node);
+                    }
                 }
 
                 // look up predefined node.
@@ -259,9 +246,6 @@ namespace Views
         /// <summary>
         /// Verifies that the specified node exists.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="handle"></param>
-        /// <param name="cache"></param>
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,

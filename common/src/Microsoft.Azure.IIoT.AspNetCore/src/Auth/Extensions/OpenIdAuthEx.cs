@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth
 {
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Options;

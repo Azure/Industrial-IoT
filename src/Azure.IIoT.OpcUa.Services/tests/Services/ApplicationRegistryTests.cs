@@ -5,13 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Services.Registry
 {
+    using Azure.IIoT.OpcUa.Services.Registry.Models;
+    using Azure.IIoT.OpcUa.Services.Models;
+    using Azure.IIoT.OpcUa.Services.Services;
+    using Azure.IIoT.OpcUa.Models;
     using Autofac;
     using Autofac.Extras.Moq;
     using AutoFixture;
     using AutoFixture.Kernel;
-    using Azure.IIoT.OpcUa.Services.Models;
-    using Azure.IIoT.OpcUa.Services.Services;
-    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -23,7 +24,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
-    using Azure.IIoT.OpcUa.Services.Registry.Models;
 
     public class ApplicationRegistryTests
     {

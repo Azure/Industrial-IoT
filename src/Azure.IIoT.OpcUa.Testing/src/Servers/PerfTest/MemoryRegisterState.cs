@@ -48,7 +48,8 @@ namespace PerfTest
 
         public static MemoryRegisterState GetRegister(MemoryRegister register, ushort namespaceIndex)
         {
-            return new MemoryRegisterState(register, namespaceIndex);
+            var node = new MemoryRegisterState(register, namespaceIndex);
+            return node;
         }
 
         public static BaseDataVariableState GetRegisterVariable(MemoryRegister register, int index, ushort namespaceIndex)
@@ -102,7 +103,7 @@ namespace PerfTest
             IEnumerable<IReference> additionalReferences,
             bool internalOnly)
         {
-            return new MemoryRegisterBrowser(
+            var browser = new MemoryRegisterBrowser(
                 context,
                 view,
                 referenceType,
@@ -112,6 +113,8 @@ namespace PerfTest
                 additionalReferences,
                 internalOnly,
                 this);
+
+            return browser;
         }
     }
 
@@ -123,15 +126,6 @@ namespace PerfTest
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="view"></param>
-        /// <param name="referenceType"></param>
-        /// <param name="includeSubtypes"></param>
-        /// <param name="browseDirection"></param>
-        /// <param name="browseName"></param>
-        /// <param name="additionalReferences"></param>
-        /// <param name="internalOnly"></param>
-        /// <param name="parent"></param>
         public MemoryRegisterBrowser(
             ISystemContext context,
             ViewDescription view,
@@ -163,15 +157,13 @@ namespace PerfTest
         /// <returns>The next reference that meets the browse criteria.</returns>
         public override IReference Next()
         {
-            var system = (UnderlyingSystem)SystemContext.SystemHandle;
+            _ = (UnderlyingSystem)SystemContext.SystemHandle;
 
             lock (DataLock)
             {
-                IReference reference = null;
-
                 // enumerate pre-defined references.
                 // always call first to ensure any pushed-back references are returned first.
-                reference = base.Next();
+                var reference = base.Next();
 
                 if (reference != null)
                 {
@@ -191,13 +183,16 @@ namespace PerfTest
                 }
 
                 // enumerate tags.
-                if (_stage == Stage.Tags && IsRequired(ReferenceTypeIds.Organizes, false))
+                if (_stage == Stage.Tags)
                 {
-                    reference = NextChild();
-
-                    if (reference != null)
+                    if (IsRequired(ReferenceTypeIds.Organizes, false))
                     {
-                        return reference;
+                        reference = NextChild();
+
+                        if (reference != null)
+                        {
+                            return reference;
+                        }
                     }
                 }
 
@@ -211,7 +206,7 @@ namespace PerfTest
         /// </summary>
         private IReference NextChild()
         {
-            var system = (UnderlyingSystem)SystemContext.SystemHandle;
+            _ = (UnderlyingSystem)SystemContext.SystemHandle;
 
             NodeId targetId = null;
 

@@ -5,9 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth
 {
-    using Furly.Extensions.Logging;
-    using Furly.Extensions.Utils;
-    using Microsoft.AspNetCore.DataProtection;
     using Microsoft.Azure.IIoT.Auth.KeyVault;
     using Microsoft.Azure.IIoT.Crypto.KeyVault;
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime;
@@ -20,9 +17,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth
     using Microsoft.Azure.KeyVault.WebKey;
     using Microsoft.Azure.Storage;
     using Microsoft.Azure.Storage.Blob;
+    using Microsoft.AspNetCore.DataProtection;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Logging;
+    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;

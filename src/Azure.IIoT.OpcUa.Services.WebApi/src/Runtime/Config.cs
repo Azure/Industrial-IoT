@@ -7,16 +7,12 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Runtime
 {
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
     using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
-    using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -24,24 +20,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Runtime
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : ConfigBase, IWebHostConfig,
-        ISignalRServiceConfig, IIoTHubConfig,
+    public class Config : ConfigBase, IIoTHubConfig,
         IEventProcessorConfig, IEventHubConsumerConfig,
         IEventProcessorHostConfig, IRoleConfig
     {
-        /// <inheritdoc/>
-        public int HttpsRedirectPort => _host.HttpsRedirectPort;
-        /// <inheritdoc/>
-        public string ServicePathBase => GetStringOrDefault(
-            PcsVariable.PCS_PUBLISHER_SERVICE_PATH_BASE,
-            () => _host.ServicePathBase);
-
-
-        /// <inheritdoc/>
-        public string SignalRConnString => _sr.SignalRConnString;
-        /// <inheritdoc/>
-        public bool SignalRServerLess => _sr.SignalRServerLess;
-
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
         /// <inheritdoc/>
@@ -85,15 +67,11 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Runtime
         public Config(IConfiguration configuration) :
             base(configuration)
         {
-            _host = new WebHostConfig(configuration);
-            _sr = new SignalRServiceConfig(configuration);
             _ep = new EventProcessorConfig(configuration);
             _eh = new EventHubConsumerConfig(configuration);
             _hub = new IoTHubConfig(configuration);
         }
 
-        private readonly WebHostConfig _host;
-        private readonly SignalRServiceConfig _sr;
         private readonly EventProcessorConfig _ep;
         private readonly EventHubConsumerConfig _eh;
         private readonly IoTHubConfig _hub;

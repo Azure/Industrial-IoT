@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Models
 {
-    using Furly.Extensions.Serializers;
     using Microsoft.Azure.Devices.Shared;
+    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
 
     /// <summary>

@@ -23,10 +23,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public IVariantEncoder Default =>
-            new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-
-        /// <inheritdoc/>
         public IVariantEncoder Create(IServiceMessageContext context)
         {
             return new JsonVariantEncoder(context, _serializer);

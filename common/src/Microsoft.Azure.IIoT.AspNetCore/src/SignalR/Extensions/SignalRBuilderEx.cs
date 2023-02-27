@@ -5,10 +5,10 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    using Microsoft.Extensions.Options;
+    using Microsoft.AspNetCore.SignalR;
     using Furly.Extensions.Serializers;
     using MessagePack.Resolvers;
-    using Microsoft.AspNetCore.SignalR;
-    using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;

@@ -5,13 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
 {
-    using Autofac;
-    using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
+    using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Models;
+    using Autofac;
     using FluentAssertions;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
@@ -27,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using Azure.IIoT.OpcUa.Publisher.Services;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher

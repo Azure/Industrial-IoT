@@ -41,39 +41,33 @@ namespace PerfTest
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
-        /// <param name="server"></param>
-        /// <param name="configuration"></param>
         public PerfTestNodeManager(IServerInternal server, ApplicationConfiguration configuration)
-        :
-            base(server, configuration, Namespaces.PerfTest)
+        : base(server, configuration, Namespaces.PerfTest)
         {
             SystemContext.NodeIdFactory = this;
             SystemContext.SystemHandle = _system = new UnderlyingSystem();
 
             // get the configuration for the node manager.
-            _configuration = configuration.ParseExtension<PerfTestServerConfiguration>();
-
             // use suitable defaults if no configuration exists.
-            _configuration ??= new PerfTestServerConfiguration();
+            _configuration = configuration.ParseExtension<PerfTestServerConfiguration>() ??
+                new PerfTestServerConfiguration();
         }
 
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
                 // TBD
             }
+            base.Dispose(disposing);
         }
 
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
         public override NodeId New(ISystemContext context, NodeState node)
         {
             return node.NodeId;
@@ -82,7 +76,6 @@ namespace PerfTest
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
-        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -124,9 +117,6 @@ namespace PerfTest
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="cache"></param>
         protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
         {
             lock (Lock)
@@ -189,9 +179,6 @@ namespace PerfTest
         /// <summary>
         /// Verifies that the specified node exists.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="handle"></param>
-        /// <param name="cache"></param>
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,

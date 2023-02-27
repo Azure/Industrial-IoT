@@ -49,12 +49,13 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the object during deserialization.
         /// </summary>
-        /// <param name="context"></param>
         [OnDeserializing]
+#pragma warning disable RCS1163 // Unused parameter.
         private void Initialize(StreamingContext context)
         {
             Initialize();
         }
+#pragma warning restore RCS1163 // Unused parameter.
 
         /// <summary>
         /// Sets private members to default values.
@@ -88,12 +89,13 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the object during deserialization.
         /// </summary>
-        /// <param name="context"></param>
         [OnDeserializing]
+#pragma warning disable RCS1163 // Unused parameter.
         private void Initialize(StreamingContext context)
         {
             Initialize();
         }
+#pragma warning restore RCS1163 // Unused parameter.
 
         /// <summary>
         /// Sets private members to default values.

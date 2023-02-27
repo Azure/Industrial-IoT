@@ -15,6 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using Divergic.Logging.Xunit;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,
@@ -25,7 +27,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
     {
         private readonly ITestOutputHelper _output;
 
-        public MqttConfigurationIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture)
+        public MqttConfigurationIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output)
+            : base(fixture, LogFactory.Create(output, new LoggingConfig { LogLevel = LogLevel.Information }))
         {
             _output = output;
         }
@@ -45,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
                 Assert.NotNull(result);
 
-                var messages = WaitForMessages();
+                var messages = await WaitForMessages().ConfigureAwait(false);
                 var message = Assert.Single(messages);
                 Assert.Equal("ns=21;i=1259", message.Message.GetProperty("NodeId").GetString());
                 Assert.InRange(message.Message.GetProperty("Value").GetProperty("Value").GetDouble(),
@@ -66,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync().ConfigureAwait(false);
             }
         }
 
@@ -85,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
                 Assert.NotNull(result);
 
-                var messages = WaitForMessages();
+                var messages = await WaitForMessages().ConfigureAwait(false);
                 var message = Assert.Single(messages);
                 Assert.Equal("i=2253", message.Message.GetProperty("NodeId").GetString());
                 Assert.NotEmpty(message.Message.GetProperty("Value").GetProperty("EventId").GetString());
@@ -105,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync().ConfigureAwait(false);
             }
         }
 
@@ -124,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
                 Assert.NotNull(result);
 
-                var messages = WaitForMessages(GetAlarmCondition);
+                var messages = await WaitForMessages(GetAlarmCondition).ConfigureAwait(false);
                 _output.WriteLine(messages.ToString());
 
                 var evt = Assert.Single(messages).Message;
@@ -152,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync().ConfigureAwait(false);
             }
         }
 
@@ -203,7 +206,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e).ConfigureAwait(false);
                 Assert.Single(nodes.OpcNodes);
 
-                var messages = WaitForMessages(GetDataFrame);
+                var messages = await WaitForMessages(GetDataFrame).ConfigureAwait(false);
                 var message = Assert.Single(messages);
                 Assert.Equal("ns=21;i=1259", message.Message.GetProperty("NodeId").GetString());
                 Assert.InRange(message.Message.GetProperty("Value").GetProperty("Value").GetDouble(),
@@ -215,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync().ConfigureAwait(false);
             }
         }
 
@@ -234,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 var result = await PublisherApi.PublishNodesAsync(testInput[0]).ConfigureAwait(false);
                 Assert.NotNull(result);
 
-                var messages = WaitForMessages(GetAlarmCondition);
+                var messages = await WaitForMessages(GetAlarmCondition).ConfigureAwait(false);
                 _output.WriteLine(messages.ToString());
                 var evt = Assert.Single(messages).Message;
 
@@ -261,10 +264,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 var n = Assert.Single(nodes.OpcNodes);
 
                 // Wait until it was applied and we receive normal events again
-                messages = WaitForMessages(TimeSpan.FromMinutes(5), 1,
+                messages = await WaitForMessages(TimeSpan.FromMinutes(5), 1,
                     message => message.GetProperty("DisplayName").GetString() == "SimpleEvents"
                         && message.GetProperty("Value").GetProperty("ReceiveTime").ValueKind
-                            == JsonValueKind.String ? message : default);
+                            == JsonValueKind.String ? message : default).ConfigureAwait(false);
                 _output.WriteLine(messages.ToString());
 
                 var message = Assert.Single(messages);
@@ -283,7 +286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync().ConfigureAwait(false);
             }
         }
 

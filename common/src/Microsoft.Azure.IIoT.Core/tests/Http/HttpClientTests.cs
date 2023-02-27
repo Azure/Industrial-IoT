@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Http
 {
-    using Furly.Extensions.Logging;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Furly.Extensions.Logging;
     using System;
     using System.Linq;
     using System.Net.Sockets;

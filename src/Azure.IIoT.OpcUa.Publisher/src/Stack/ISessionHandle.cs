@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-
+#nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Encoders;
@@ -25,22 +25,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         event EventHandler<EndpointConnectivityState> OnConnectionStateChange;
 
         /// <summary>
-        /// Underlying Session
-        /// </summary>
-        ISession Session { get; }
-
-        /// <summary>
         /// Get services of the session
         /// </summary>
         ISessionServices Services { get; }
 
         /// <summary>
-        /// Underlying Session
+        /// Get the system context
         /// </summary>
-        IServiceMessageContext MessageContext => Session?.MessageContext;
+        ISystemContext SystemContext { get; }
 
         /// <summary>
-        /// Codec
+        /// Get the type tree
+        /// </summary>
+        ITypeTable TypeTree { get; }
+
+        /// <summary>
+        /// Get the message context
+        /// </summary>
+        IServiceMessageContext MessageContext { get; }
+
+        /// <summary>
+        /// Get the codec
         /// </summary>
         IVariantEncoder Codec { get; }
 
@@ -48,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Get complex type system for the session
         /// </summary>
         /// <returns></returns>
-        ValueTask<ComplexTypeSystem> GetComplexTypeSystemAsync();
+        ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync();
 
         /// <summary>
         /// Get operation limits
@@ -73,6 +78,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <returns></returns>
         ValueTask<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
             CancellationToken ct = default);
+
+        /// <summary>
+        /// Safe access underlying session or null if session not available.
+        /// The disposable return must be disposed to release the lock
+        /// guarding the session. While holding the lock the session is
+        /// not disposed or replaced.
+        /// </summary>
+        IDisposable GetSession(out ISession? session);
 
         /// <summary>
         /// Get or create a subscription

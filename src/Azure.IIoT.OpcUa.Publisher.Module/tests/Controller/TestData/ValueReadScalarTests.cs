@@ -5,12 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
+    using Autofac;
     using System.Threading.Tasks;
     using Xunit;
 

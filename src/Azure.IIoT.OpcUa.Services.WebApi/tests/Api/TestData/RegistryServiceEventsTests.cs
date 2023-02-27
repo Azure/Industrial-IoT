@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi.Api.SignalR
 {
-    using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Services.Sdk;
+    using Azure.IIoT.OpcUa.Models;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;

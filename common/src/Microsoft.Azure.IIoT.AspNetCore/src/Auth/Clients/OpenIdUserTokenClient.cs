@@ -3,17 +3,17 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
 {
-    using global::IdentityModel;
-    using global::IdentityModel.Client;
-    using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.AspNetCore.Authentication;
+    using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+    using global::IdentityModel;
+    using global::IdentityModel.Client;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;

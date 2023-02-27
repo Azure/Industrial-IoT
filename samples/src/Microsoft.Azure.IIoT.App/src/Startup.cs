@@ -5,17 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.App
 {
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
-    using Blazored.Modal;
-    using Blazored.SessionStorage;
-    using FluentValidation;
-    using global::Azure.IIoT.OpcUa.Services.Sdk;
-    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Components.Authorization;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Validation;
@@ -23,11 +12,22 @@ namespace Microsoft.Azure.IIoT.App
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Storage;
     using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Components.Authorization;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Configuration;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Blazored.Modal;
+    using Blazored.SessionStorage;
+    using FluentValidation;
+    using global::Azure.IIoT.OpcUa.Services.Sdk;
+    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
     using System;
 
     /// <summary>

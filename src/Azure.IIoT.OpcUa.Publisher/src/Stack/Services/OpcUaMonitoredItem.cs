@@ -5,21 +5,21 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Models;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
+    using MonitoringMode = OpcUa.Models.MonitoringMode;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Text;
     using System.Threading;
-    using MonitoringMode = OpcUa.Models.MonitoringMode;
     using Timer = System.Timers.Timer;
 
     /// <summary>

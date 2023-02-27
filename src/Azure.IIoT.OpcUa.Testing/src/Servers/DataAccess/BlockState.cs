@@ -80,11 +80,14 @@ namespace DataAccess
         /// <param name="context">The context.</param>
         public void StartMonitoring(ServerSystemContext context)
         {
-            if (_monitoringCount == 0 && context.SystemHandle is UnderlyingSystem system)
+            if (_monitoringCount == 0)
             {
-                var block = system.FindBlock(_blockId);
+                if (context.SystemHandle is UnderlyingSystem system)
+                {
+                    var block = system.FindBlock(_blockId);
 
-                block?.StartMonitoring(OnTagsChanged);
+                    block?.StartMonitoring(OnTagsChanged);
+                }
             }
 
             _monitoringCount++;
@@ -98,11 +101,14 @@ namespace DataAccess
         {
             _monitoringCount--;
 
-            if (_monitoringCount == 0 && context.SystemHandle is UnderlyingSystem system)
+            if (_monitoringCount == 0)
             {
-                var block = system.FindBlock(_blockId);
+                if (context.SystemHandle is UnderlyingSystem system)
+                {
+                    var block = system.FindBlock(_blockId);
 
-                block?.StopMonitoring();
+                    block?.StopMonitoring();
+                }
             }
 
             return _monitoringCount != 0;
@@ -111,15 +117,12 @@ namespace DataAccess
         /// <summary>
         /// Used to receive notifications when the value attribute is read or written.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
-        /// <param name="value"></param>
         public ServiceResult OnWriteTagValue(
             ISystemContext context,
             NodeState node,
             ref object value)
         {
-            if (!(context.SystemHandle is UnderlyingSystem system))
+            if (context.SystemHandle is not UnderlyingSystem system)
             {
                 return StatusCodes.BadCommunicationError;
             }
@@ -174,7 +177,7 @@ namespace DataAccess
             // check if the parent segments need to be returned.
             if (browser.IsRequired(ReferenceTypeIds.Organizes, true))
             {
-                if (!(context.SystemHandle is UnderlyingSystem system))
+                if (context.SystemHandle is not UnderlyingSystem system)
                 {
                     return;
                 }
@@ -222,7 +225,8 @@ namespace DataAccess
 
                 case UnderlyingSystemTagType.Digital:
                     {
-                        variable = new TwoStateDiscreteState(this);
+                        var node = new TwoStateDiscreteState(this);
+                        variable = node;
                         break;
                     }
 
@@ -241,7 +245,8 @@ namespace DataAccess
 
                 default:
                     {
-                        variable = new DataItemState(this);
+                        var node = new DataItemState(this);
+                        variable = node;
                         break;
                     }
             }
@@ -270,7 +275,7 @@ namespace DataAccess
         /// <param name="context">The context.</param>
         /// <param name="tag">The tag.</param>
         /// <param name="variable">The variable to update.</param>
-        private static void UpdateVariable(ISystemContext context, UnderlyingSystemTag tag, BaseVariableState variable)
+        private void UpdateVariable(ISystemContext context, UnderlyingSystemTag tag, BaseVariableState variable)
         {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
             variable.Description = tag.Description;
@@ -313,24 +318,27 @@ namespace DataAccess
                         {
                             if (tag.EuRange.Length >= 2 && node.EURange != null)
                             {
-                                node.EURange.Value = new Range(tag.EuRange[0], tag.EuRange[1]);
+                                var range = new Range(tag.EuRange[0], tag.EuRange[1]);
+                                node.EURange.Value = range;
                                 node.EURange.Timestamp = tag.Block.Timestamp;
                             }
 
                             if (tag.EuRange.Length >= 4 && node.InstrumentRange != null)
                             {
-                                node.InstrumentRange.Value = new Range(tag.EuRange[2], tag.EuRange[3]);
+                                var range = new Range(tag.EuRange[2], tag.EuRange[3]);
+                                node.InstrumentRange.Value = range;
                                 node.InstrumentRange.Timestamp = tag.Block.Timestamp;
                             }
                         }
 
                         if (!string.IsNullOrEmpty(tag.EngineeringUnits) && node.EngineeringUnits != null)
                         {
-                            node.EngineeringUnits.Value = new EUInformation
+                            var info = new EUInformation
                             {
                                 DisplayName = tag.EngineeringUnits,
                                 NamespaceUri = Namespaces.DataAccess
                             };
+                            node.EngineeringUnits.Value = info;
                             node.EngineeringUnits.Timestamp = tag.Block.Timestamp;
                         }
 
@@ -341,12 +349,15 @@ namespace DataAccess
                     {
                         var node = variable as TwoStateDiscreteState;
 
-                        if (tag.Labels != null && node.TrueState != null && node.FalseState != null && tag.Labels.Length >= 2)
+                        if (tag.Labels != null && node.TrueState != null && node.FalseState != null)
                         {
-                            node.TrueState.Value = new LocalizedText(tag.Labels[0]);
-                            node.TrueState.Timestamp = tag.Block.Timestamp;
-                            node.FalseState.Value = new LocalizedText(tag.Labels[1]);
-                            node.FalseState.Timestamp = tag.Block.Timestamp;
+                            if (tag.Labels.Length >= 2)
+                            {
+                                node.TrueState.Value = new LocalizedText(tag.Labels[0]);
+                                node.TrueState.Timestamp = tag.Block.Timestamp;
+                                node.FalseState.Value = new LocalizedText(tag.Labels[1]);
+                                node.FalseState.Timestamp = tag.Block.Timestamp;
+                            }
                         }
 
                         break;

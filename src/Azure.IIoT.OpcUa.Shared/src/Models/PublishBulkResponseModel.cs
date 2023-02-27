@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Models
     /// <summary>
     /// Result of bulk request
     /// </summary>
+    [DataContract]
     public sealed record class PublishBulkResponseModel
     {
         /// <summary>

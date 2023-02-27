@@ -16,9 +16,9 @@ namespace Azure.IIoT.OpcUa.Services.Services
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Net;
 
     /// <summary>
     /// Application and endpoint registry services using the IoT Hub

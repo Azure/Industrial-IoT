@@ -93,7 +93,6 @@ namespace Opc.Ua.Aggregates
         /// <returns></returns>
         public static TimeSlice CreateInitial(DateTime from, DateTime to, double inc)
         {
-            TimeSlice retval = null;
             var incomplete = false;
             DateTime later;
             if (from > to)
@@ -107,7 +106,7 @@ namespace Opc.Ua.Aggregates
                     later = (remMillis > 0) ? to + new TimeSpan(remMillis) : to + new TimeSpan(intMillis);
                     incomplete = remMillis > 0;
                 }
-                retval = new BackwardTimeSlice
+                return new BackwardTimeSlice
                 {
                     From = later,
                     To = to,
@@ -128,7 +127,7 @@ namespace Opc.Ua.Aggregates
                         incomplete = true;
                     }
                 }
-                retval = new ForwardTimeSlice
+                return new ForwardTimeSlice
                 {
                     From = from,
                     To = later,
@@ -138,7 +137,7 @@ namespace Opc.Ua.Aggregates
                 };
             }
             //deliberately ignore (if from == to)
-            return retval;
+            return null;
         }
 
         /// <summary>

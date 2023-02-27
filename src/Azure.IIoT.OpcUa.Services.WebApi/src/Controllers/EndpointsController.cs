@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Extensions.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.IIoT.Http;
@@ -15,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
-    using Furly.Extensions.AspNetCore.OpenApi;
 
     /// <summary>
     /// Activate, Deactivate and Query endpoint resources

@@ -41,8 +41,6 @@ namespace DataAccess
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
-        /// <param name="server"></param>
-        /// <param name="configuration"></param>
         public DataAccessNodeManager(IServerInternal server, ApplicationConfiguration configuration) :
             base(server, configuration, Namespaces.DataAccess)
         {
@@ -52,10 +50,9 @@ namespace DataAccess
             SystemContext.NodeIdFactory = this;
 
             // get the configuration for the node manager.
-            _configuration = configuration.ParseExtension<DataAccessServerConfiguration>();
-
             // use suitable defaults if no configuration exists.
-            _configuration ??= new DataAccessServerConfiguration();
+            _configuration = configuration.ParseExtension<DataAccessServerConfiguration>() ??
+                new DataAccessServerConfiguration();
 
             // create the table to store the cached blocks.
             _blocks = new Dictionary<NodeId, BlockState>();
@@ -64,13 +61,13 @@ namespace DataAccess
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
                 _system.Dispose();
             }
+            base.Dispose(disposing);
         }
 
         /// <summary>
@@ -94,7 +91,6 @@ namespace DataAccess
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
-        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -145,9 +141,6 @@ namespace DataAccess
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="cache"></param>
         protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
         {
             lock (Lock)
@@ -162,22 +155,29 @@ namespace DataAccess
 
                 if (MonitoredNodes.TryGetValue(nodeId, out var monitoredNode))
                 {
-                    return new NodeHandle
+                    var handle = new NodeHandle
                     {
                         NodeId = nodeId,
                         Validated = true,
                         Node = monitoredNode.Node
                     };
+
+                    return handle;
                 }
 
-                if (nodeId.IdType != IdType.String && PredefinedNodes.TryGetValue(nodeId, out var node))
+                if (nodeId.IdType != IdType.String)
                 {
-                    return new NodeHandle
+                    if (PredefinedNodes.TryGetValue(nodeId, out var node))
                     {
-                        NodeId = nodeId,
-                        Node = node,
-                        Validated = true
-                    };
+                        var handle = new NodeHandle
+                        {
+                            NodeId = nodeId,
+                            Node = node,
+                            Validated = true
+                        };
+
+                        return handle;
+                    }
                 }
 
                 // parse the identifier.
@@ -185,13 +185,15 @@ namespace DataAccess
 
                 if (parsedNodeId != null)
                 {
-                    return new NodeHandle
+                    var handle = new NodeHandle
                     {
                         NodeId = nodeId,
                         Validated = false,
                         Node = null,
                         ParsedNodeId = parsedNodeId
                     };
+
+                    return handle;
                 }
 
                 return null;
@@ -201,9 +203,6 @@ namespace DataAccess
         /// <summary>
         /// Verifies that the specified node exists.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="handle"></param>
-        /// <param name="cache"></param>
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
@@ -245,7 +244,7 @@ namespace DataAccess
             try
             {
                 // check if the node id has been parsed.
-                if (!(handle.ParsedNodeId is ParsedNodeId parsedNodeId))
+                if (handle.ParsedNodeId is not ParsedNodeId parsedNodeId)
                 {
                     return null;
                 }
@@ -357,10 +356,13 @@ namespace DataAccess
         /// <param name="monitoredItem">The monitored item.</param>
         protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
         {
-            if (handle.Node.GetHierarchyRoot() is BlockState block && !block.StopMonitoring(context))
+            if (handle.Node.GetHierarchyRoot() is BlockState block)
             {
-                // can remove the block since all monitored items for the block are gone.
-                _blocks.Remove(block.NodeId);
+                if (!block.StopMonitoring(context))
+                {
+                    // can remove the block since all monitored items for the block are gone.
+                    _blocks.Remove(block.NodeId);
+                }
             }
         }
 

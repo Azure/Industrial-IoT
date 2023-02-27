@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.App.Services
 {
-    using Microsoft.AspNetCore.Components;
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.AspNetCore.Components;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;

@@ -85,8 +85,6 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Processes the next value returns the calculated values up until the last complete interval.
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="result"></param>
         public IList<DataValue> ProcessValue(DataValue value, ServiceResult result)
         {
             if (_state == null)
@@ -101,7 +99,6 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Processes all remaining intervals.
         /// </summary>
-        /// <param name="result"></param>
         public IList<DataValue> ProcessTermination(ServiceResult result)
         {
             if (_state == null)
@@ -116,15 +113,16 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Updates the data processed by the aggregator.
         /// </summary>
-        /// <param name="rawValue"></param>
-        /// <param name="state"></param>
         public void UpdateProcessedData(DataValue rawValue, AggregateState state)
         {
             // step 1: compute new TimeSlice instances to enqueue, until we reach the one the
             // rawValue belongs in or we've reached the one that goes to the EndTime. Ensure
             // that the raw value is added to the last one created.
             TimeSlice tmpTS = null;
-            _pending ??= new Queue<TimeSlice>();
+            if (_pending == null)
+            {
+                _pending = new Queue<TimeSlice>();
+            }
 
             if (_latest == null)
             {
@@ -154,7 +152,10 @@ namespace Opc.Ua.Aggregates
             // it into a processed point. If so, dequeue it and add the processed value to the
             // _released list. Keep doing it until one of the TimeSlices returns null or we
             // run out of enqueued TimeSlices (should only happen on termination).
-            _released ??= new List<DataValue>();
+            if (_released == null)
+            {
+                _released = new List<DataValue>();
+            }
 
             foreach (var b in _pending)
             {
@@ -188,8 +189,7 @@ namespace Opc.Ua.Aggregates
         /// </summary>
         public IList<DataValue> ProcessedValues()
         {
-            IList<DataValue> retval = null;
-            retval = _released ?? new List<DataValue>();
+            var retval = _released ?? new List<DataValue>();
             _released = null;
             return retval;
         }
@@ -197,24 +197,17 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Computes the aggregate value for the time slice.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="bucket"></param>
-        /// <param name="state"></param>
         public abstract DataValue Compute(IAggregationContext context,
             TimeSlice bucket, AggregateState state);
 
         /// <summary>
         /// Returns true if more data is required for the next interval.
         /// </summary>
-        /// <param name="bucket"></param>
-        /// <param name="state"></param>
         public abstract bool WaitForMoreData(TimeSlice bucket, AggregateState state);
 
         /// <summary>
         /// Updates the bounding values for the time slice.
         /// </summary>
-        /// <param name="bucket"></param>
-        /// <param name="state"></param>
         public abstract void UpdateBoundingValues(TimeSlice bucket, AggregateState state);
 
         /// <summary>
@@ -225,10 +218,6 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Computes the status code for the processing interval using the percent good/bad information in the context.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="numGood"></param>
-        /// <param name="numBad"></param>
-        /// <param name="bucket"></param>
         protected virtual StatusCode ComputeStatus(IAggregationContext context, int numGood, int numBad, TimeSlice bucket)
         {
             var total = numGood + numBad;

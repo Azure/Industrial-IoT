@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
-    using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Services.Registry.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Hub;
     using System.Collections.Generic;
     using System.Runtime.Serialization;

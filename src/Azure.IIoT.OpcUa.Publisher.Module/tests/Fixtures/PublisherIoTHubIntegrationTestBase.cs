@@ -5,8 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
-    using Autofac;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
@@ -14,8 +12,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Autofac;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Hub;
@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
@@ -32,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
-    using Moq;
     using Opc.Ua;
     using System;
     using System.Collections.Concurrent;
@@ -68,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// </summary>
         public string ModuleId { get; }
 
-        public PublisherIoTHubIntegrationTestBase(ReferenceServerFixture serverFixture)
+        public PublisherIoTHubIntegrationTestBase(ReferenceServerFixture serverFixture, ILoggerFactory loggerFactory)
         {
             // This is a fake but correctly formatted connection string.
             var connectionString = "HostName=dummy.azure-devices.net;" +
@@ -81,6 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             _exit = new TaskCompletionSource<bool>();
             _running = new TaskCompletionSource<bool>();
             _serverFixture = serverFixture;
+            _loggerFactory = loggerFactory;
         }
 
         protected Task<List<JsonElement>> ProcessMessagesAsync(
@@ -125,13 +124,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             string[] arguments = default)
         {
             await StartPublisherAsync(publishedNodesFile, arguments).ConfigureAwait(false);
+            try
+            {
+                JsonElement? metadata = null;
+                var messages = WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
 
-            JsonElement? metadata = null;
-            var messages = WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
-
-            StopPublisher();
-
-            return (metadata, messages);
+                return (metadata, messages);
+            }
+            finally
+            {
+                await StopPublisherAsync().ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -246,8 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="arguments"></param>
         protected Task StartPublisherAsync(string publishedNodesFile = null, string[] arguments = default)
         {
-            Task.Run(() => HostPublisherAsync(
-                Mock.Of<ILogger>(),
+            _publisher = Task.Run(() => HostPublisherAsync(
                 publishedNodesFile,
                 arguments ?? Array.Empty<string>()
             ));
@@ -262,10 +264,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Stop publisher
         /// </summary>
-        protected void StopPublisher()
+        protected Task StopPublisherAsync()
         {
             // Shut down gracefully.
             _exit.TrySetResult(true);
+            return _publisher;
         }
 
         /// <summary>
@@ -284,10 +287,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Setup publishing from sample server.
         /// </summary>
-        /// <param name="logger"></param>
         /// <param name="publishedNodesFile"></param>
         /// <param name="arguments"></param>
-        private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile, string[] arguments)
+        private async Task HostPublisherAsync(string publishedNodesFile, string[] arguments)
         {
             var publishedNodesFilePath = Path.GetTempFileName();
             if (!string.IsNullOrEmpty(publishedNodesFile))
@@ -321,7 +323,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     // Start publisher module
                     var host = Task.Run(() =>
-                    HostAsync(logger, configuration, new List<(DeviceTwinModel, DeviceModel)>()
+                    HostAsync(configuration, new List<(DeviceTwinModel, DeviceModel)>()
                     {
                         (new DeviceTwinModel(), new DeviceModel()
                         {
@@ -352,8 +354,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="logger"></param>
         /// <param name="configurationRoot"></param>
         /// <param name="devices"></param>
-        private async Task HostAsync(ILogger logger, IConfiguration configurationRoot, List<(DeviceTwinModel, DeviceModel)> devices)
+        private async Task HostAsync(IConfiguration configurationRoot, List<(DeviceTwinModel, DeviceModel)> devices)
         {
+            var logger = _loggerFactory.CreateLogger("Publisher");
             try
             {
                 using (var hostScope = ConfigureContainer(configurationRoot, devices))
@@ -411,6 +414,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             builder.RegisterInstance(ioTHubTwinServices)
                 .ExternallyOwned();
             builder.AddDiagnostics(logging => logging.AddConsole());
+            builder.RegisterInstance(_loggerFactory)
+                .As<ILoggerFactory>()
+                .ExternallyOwned();
             builder.AddNewtonsoftJsonSerializer();
             builder.RegisterType<IoTHubTwinMethodClient>()
                 .AsImplementedInterfaces();
@@ -428,7 +434,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="devices"></param>
-        private static IContainer ConfigureContainer(IConfiguration configuration,
+        private IContainer ConfigureContainer(IConfiguration configuration,
             List<(DeviceTwinModel, DeviceModel)> devices)
         {
             var config = new PublisherConfig(configuration);
@@ -447,6 +453,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             builder.AddNewtonsoftJsonSerializer();
 
             builder.AddDiagnostics(logging => logging.AddConsole());
+            builder.RegisterInstance(_loggerFactory)
+                .As<ILoggerFactory>()
+                .ExternallyOwned();
             builder.RegisterType<IoTHubClientFactory>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.Register(ctx => IoTHubServices.Create(devices))
@@ -486,7 +495,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private readonly TaskCompletionSource<bool> _running;
         private readonly ConnectionString _typedConnectionString;
         private readonly ReferenceServerFixture _serverFixture;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly HashSet<string> _messageIds = new();
         private IContainer _apiScope;
+        private Task _publisher;
     }
 }

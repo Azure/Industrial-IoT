@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Session services
+    /// Session provider provides access to sessions.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface ISessionProvider<T>
@@ -38,10 +38,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<TResult> ExecuteServiceAsync<TResult>(T connection,
-            Func<ISessionHandle, Task<TResult>> service, CancellationToken ct);
+            Func<ISessionHandle, Task<TResult>> service,
+            CancellationToken ct = default);
 
         /// <summary>
-        /// Get or create session handle
+        /// Get a session handle for a connection or null
+        /// if the session does not exist. The session might
+        /// be disconnected at point it is returned.
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>

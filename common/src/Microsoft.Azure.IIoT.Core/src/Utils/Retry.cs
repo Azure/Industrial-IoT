@@ -42,13 +42,6 @@ namespace Microsoft.Azure.IIoT.Utils
         public static int LinearBackoffDelta { get; set; } = 1000;
 
         /// <summary>
-        /// No backoff - just wait backoff delta
-        /// </summary>
-        public static Func<int, Exception, int> NoBackoff => (k, ex) => NoBackoffDelta;
-        /// <summary>Time between retry</summary>
-        public static int NoBackoffDelta { get; set; } = 1000;
-
-        /// <summary>
         /// Helper to calcaulate exponential delay with jitter and max.
         /// </summary>
         /// <param name="k"></param>

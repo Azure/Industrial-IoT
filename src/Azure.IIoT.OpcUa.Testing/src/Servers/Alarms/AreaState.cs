@@ -39,10 +39,6 @@ namespace Alarms
         /// <summary>
         /// Initializes the area.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="parent"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="configuration"></param>
         public AreaState(
             ISystemContext context,
             AreaState parent,

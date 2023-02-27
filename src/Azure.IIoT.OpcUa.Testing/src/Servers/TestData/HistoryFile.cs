@@ -41,8 +41,6 @@ namespace TestData
         /// <summary>
         /// Creates a new file.
         /// </summary>
-        /// <param name="dataLock"></param>
-        /// <param name="entries"></param>
         internal HistoryFile(object dataLock, List<HistoryEntry> entries)
         {
             _lock = dataLock;
@@ -93,13 +91,15 @@ namespace TestData
 
                 var entry = _entries[position];
 
-                return new DataValue
+                var value = new DataValue
                 {
                     Value = entry.Value.Value,
                     ServerTimestamp = entry.Value.ServerTimestamp,
                     SourceTimestamp = entry.Value.SourceTimestamp,
                     StatusCode = entry.Value.StatusCode
                 };
+
+                return value;
             }
         }
 
@@ -124,13 +124,15 @@ namespace TestData
 
                 var entry = _entries[position];
 
-                return new DataValue
+                var value = new DataValue
                 {
                     Value = entry.Value.Value,
                     ServerTimestamp = entry.Value.ServerTimestamp,
                     SourceTimestamp = entry.Value.SourceTimestamp,
                     StatusCode = entry.Value.StatusCode
                 };
+
+                return value;
             }
         }
 

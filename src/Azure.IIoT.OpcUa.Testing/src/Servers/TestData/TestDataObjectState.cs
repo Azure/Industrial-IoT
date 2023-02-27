@@ -37,8 +37,6 @@ namespace TestData
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
         protected override void OnAfterCreate(ISystemContext context, NodeState node)
         {
             base.OnAfterCreate(context, node);
@@ -49,9 +47,6 @@ namespace TestData
         /// <summary>
         /// Initialzies the variable as a counter.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="variable"></param>
-        /// <param name="numericId"></param>
         protected void InitializeVariable(ISystemContext context, BaseVariableState variable, uint numericId)
         {
             variable.NumericId = numericId;
@@ -95,22 +90,19 @@ namespace TestData
         /// <summary>
         /// Validates a written value.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
-        /// <param name="value"></param>
-        public static ServiceResult OnWriteAnalogValue(
+        public ServiceResult OnWriteAnalogValue(
             ISystemContext context,
             NodeState node,
             ref object value)
         {
             try
             {
-                if (!(node.FindChild(context, Opc.Ua.BrowseNames.EURange) is BaseVariableState euRange))
+                if (node.FindChild(context, Opc.Ua.BrowseNames.EURange) is not BaseVariableState euRange)
                 {
                     return ServiceResult.Good;
                 }
 
-                if (!(euRange.Value is Opc.Ua.Range range))
+                if (euRange.Value is not Opc.Ua.Range range)
                 {
                     return ServiceResult.Good;
                 }
@@ -146,7 +138,7 @@ namespace TestData
 
                 return ServiceResult.Good;
             }
-            catch (Exception)
+            catch
             {
                 throw;
             }
@@ -155,9 +147,7 @@ namespace TestData
         /// <summary>
         /// Generates a new value for the variable.
         /// </summary>
-        /// <param name="system"></param>
-        /// <param name="variable"></param>
-        protected static void GenerateValue(TestDataSystem system, BaseVariableState variable)
+        protected void GenerateValue(TestDataSystem system, BaseVariableState variable)
         {
             variable.Value = system.ReadValue(variable);
             variable.Timestamp = DateTime.UtcNow;
@@ -167,10 +157,6 @@ namespace TestData
         /// <summary>
         /// Handles the generate values method.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="method"></param>
-        /// <param name="objectId"></param>
-        /// <param name="count"></param>
         protected virtual ServiceResult OnGenerateValues(
             ISystemContext context,
             MethodState method,
@@ -218,13 +204,6 @@ namespace TestData
         /// <summary>
         /// Generates a new value each time the value is read.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
-        /// <param name="indexRange"></param>
-        /// <param name="dataEncoding"></param>
-        /// <param name="value"></param>
-        /// <param name="statusCode"></param>
-        /// <param name="timestamp"></param>
         private ServiceResult DoDeviceRead(
             ISystemContext context,
             NodeState node,
@@ -234,7 +213,7 @@ namespace TestData
             ref StatusCode statusCode,
             ref DateTime timestamp)
         {
-            if (!(node is BaseVariableState variable))
+            if (node is not BaseVariableState variable)
             {
                 return ServiceResult.Good;
             }
@@ -244,7 +223,7 @@ namespace TestData
                 return ServiceResult.Good;
             }
 
-            if (!(context.SystemHandle is TestDataSystem system))
+            if (context.SystemHandle is not TestDataSystem system)
             {
                 return StatusCodes.BadOutOfService;
             }

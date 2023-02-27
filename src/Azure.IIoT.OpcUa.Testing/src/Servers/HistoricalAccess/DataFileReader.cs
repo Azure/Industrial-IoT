@@ -44,7 +44,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new data set.
         /// </summary>
-        private static DataSet CreateDataSet()
+        private DataSet CreateDataSet()
         {
             var dataset = new DataSet();
 
@@ -88,9 +88,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads the item configuaration.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="item"></param>
+#pragma warning disable RCS1163 // Unused parameter.
         public bool LoadConfiguration(ISystemContext context, ArchiveItem item)
+#pragma warning restore RCS1163 // Unused parameter.
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             using (var reader = item.OpenArchive())
@@ -221,13 +221,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates new data.
         /// </summary>
-        /// <param name="item"></param>
         public void CreateData(ArchiveItem item)
         {
             // get the data set to use.
-            var dataset = item.DataSet;
-
-            dataset ??= CreateDataSet();
+            var dataset = item.DataSet ?? CreateDataSet();
 
             // generate one hour worth of data by default.
             var startTime = DateTime.UtcNow.AddHours(-1);
@@ -237,8 +234,8 @@ namespace HistoricalAccess
             if (dataset.Tables[0].Rows.Count > 0)
             {
                 var index = dataset.Tables[0].DefaultView.Count;
-                var endTime = (DateTime)dataset.Tables[0].DefaultView[index - 1].Row[0];
-                endTime = startTime.AddMilliseconds(item.SamplingInterval);
+                _ = (DateTime)dataset.Tables[0].DefaultView[index - 1].Row[0];
+                _ = startTime.AddMilliseconds(item.SamplingInterval);
             }
 
             var currentTime = startTime;
@@ -285,8 +282,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads the history for the item.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="item"></param>
         public void LoadHistoryData(ISystemContext context, ArchiveItem item)
         {
             // use the beginning of the current hour for the baseline.
@@ -313,9 +308,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads the history data from a stream.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="baseline"></param>
-        /// <param name="reader"></param>
         private DataSet LoadData(ISystemContext context, DateTime baseline, StreamReader reader)
         {
             var dataset = CreateDataSet();
@@ -337,7 +329,6 @@ namespace HistoricalAccess
 
             var sourceTimeOffset = 0;
             var serverTimeOffset = 0;
-            StatusCode status = StatusCodes.Good;
             var recordType = 0;
             var modificationTimeOffet = 0;
             var modificationUser = string.Empty;
@@ -385,6 +376,7 @@ namespace HistoricalAccess
                     continue;
                 }
 
+                StatusCode status;
                 // get status code.
                 if (!ExtractField(lineCount, ref line, out status))
                 {
@@ -478,12 +470,13 @@ namespace HistoricalAccess
                     row[4] = (value.TypeInfo != null) ? value.TypeInfo.ValueRank : ValueRanks.Any;
                     row[5] = recordType;
 
-                    row[6] = new ModificationInfo
+                    var info = new ModificationInfo
                     {
                         UpdateType = (HistoryUpdateType)recordType,
                         ModificationTime = baseline.AddMilliseconds(modificationTimeOffet),
                         UserName = modificationUser
                     };
+                    row[6] = info;
 
                     dataset.Tables[1].Rows.Add(row);
                 }
@@ -518,16 +511,15 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts the next comma seperated field from the line.
         /// </summary>
-        /// <param name="line"></param>
-        private static string ExtractField(ref string line)
+        private string ExtractField(ref string line)
         {
             var field = line;
             var index = field.IndexOf(',');
 
             if (index >= 0)
             {
-                field = field.Substring(0, index);
-                line = line.Substring(index + 1);
+                field = field[..index];
+                line = line[(index + 1)..];
             }
 
             field = field.Trim();
@@ -544,10 +536,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts an integer value from the line.
         /// </summary>
-        /// <param name="lineCount"></param>
-        /// <param name="line"></param>
-        /// <param name="value"></param>
+#pragma warning disable RCS1163 // Unused parameter.
         private bool ExtractField(int lineCount, ref string line, out string value)
+#pragma warning restore RCS1163 // Unused parameter.
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             value = string.Empty;
@@ -565,9 +556,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts an integer value from the line.
         /// </summary>
-        /// <param name="lineCount"></param>
-        /// <param name="line"></param>
-        /// <param name="value"></param>
         private bool ExtractField(int lineCount, ref string line, out int value)
         {
             value = 0;
@@ -594,9 +582,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts a StatusCode value from the line.
         /// </summary>
-        /// <param name="lineCount"></param>
-        /// <param name="line"></param>
-        /// <param name="value"></param>
         private bool ExtractField(int lineCount, ref string line, out StatusCode value)
         {
             value = 0;
@@ -609,7 +594,7 @@ namespace HistoricalAccess
 
             if (field.StartsWith("0x", StringComparison.CurrentCulture))
             {
-                field = field.Substring(2);
+                field = field[2..];
             }
 
             try
@@ -629,9 +614,6 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts a BuiltInType value from the line.
         /// </summary>
-        /// <param name="lineCount"></param>
-        /// <param name="line"></param>
-        /// <param name="value"></param>
         private bool ExtractField(int lineCount, ref string line, out BuiltInType value)
         {
             value = BuiltInType.String;
@@ -658,12 +640,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts a BuiltInType value from the line.
         /// </summary>
-        /// <param name="lineCount"></param>
-        /// <param name="line"></param>
-        /// <param name="context"></param>
-        /// <param name="valueType"></param>
-        /// <param name="value"></param>
-        private static bool ExtractField(int lineCount, ref string line, ServiceMessageContext context, BuiltInType valueType, out Variant value)
+        private static bool ExtractField(int lineCount, ref string line,
+            IServiceMessageContext context, BuiltInType valueType, out Variant value)
         {
             value = Variant.Null;
             var field = line;

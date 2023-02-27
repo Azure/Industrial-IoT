@@ -5,9 +5,9 @@
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Opc.Ua;
@@ -601,7 +601,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         $"{nodeId} does not have a data type to fall back on.");
                 }
             }
-            return TypeInfo.GetBuiltInType(dataTypeId, session.Session.TypeTree);
+            return TypeInfo.GetBuiltInType(dataTypeId, session.TypeTree);
         }
 
         /// <summary>

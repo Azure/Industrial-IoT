@@ -118,7 +118,6 @@ namespace TestData
         /// <summary>
         /// Creates an archive for the variable.
         /// </summary>
-        /// <param name="variable"></param>
         public void EnableHistoryArchiving(BaseVariableState variable)
         {
             if (variable == null)
@@ -135,7 +134,6 @@ namespace TestData
         /// <summary>
         /// Returns the history file for the variable.
         /// </summary>
-        /// <param name="variable"></param>
         public IHistoryDataSource GetHistoryFile(BaseVariableState variable)
         {
             if (variable == null)
@@ -149,7 +147,6 @@ namespace TestData
         /// <summary>
         /// Returns a new value for the variable.
         /// </summary>
-        /// <param name="variable"></param>
         public object ReadValue(BaseVariableState variable)
         {
             lock (_lock)
@@ -511,7 +508,10 @@ namespace TestData
         {
             lock (_lock)
             {
-                _monitoredNodes ??= new Dictionary<uint, BaseVariableState>();
+                if (_monitoredNodes == null)
+                {
+                    _monitoredNodes = new Dictionary<uint, BaseVariableState>();
+                }
                 _monitoredNodes[monitoredItemId] = variable;
                 SetSamplingInterval(samplingInterval);
             }

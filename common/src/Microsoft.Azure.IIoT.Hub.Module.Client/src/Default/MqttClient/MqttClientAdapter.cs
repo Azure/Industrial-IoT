@@ -5,13 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
 {
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Client.Common;
-    using Microsoft.Azure.Devices.Shared;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Client.Common;
+    using Microsoft.Azure.Devices.Shared;
     using Microsoft.Extensions.Logging;
     using MQTTnet;
     using MQTTnet.Client;

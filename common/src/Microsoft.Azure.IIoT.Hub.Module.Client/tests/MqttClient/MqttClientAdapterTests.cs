@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests
 {
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
     using Moq;
     using MQTTnet;

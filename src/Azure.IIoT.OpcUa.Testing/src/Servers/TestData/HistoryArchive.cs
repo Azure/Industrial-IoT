@@ -50,20 +50,21 @@ namespace TestData
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing && _updateTimer != null)
+            if (disposing)
             {
-                _updateTimer.Dispose();
-                _updateTimer = null;
+                if (_updateTimer != null)
+                {
+                    _updateTimer.Dispose();
+                    _updateTimer = null;
+                }
             }
         }
 
         /// <summary>
         /// Returns an object that can be used to browse the archive.
         /// </summary>
-        /// <param name="nodeId"></param>
         public HistoryFile GetHistoryFile(NodeId nodeId)
         {
             lock (_lock)
@@ -85,8 +86,6 @@ namespace TestData
         /// <summary>
         /// Creates a new record in the archive.
         /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="dataType"></param>
         public void CreateRecord(NodeId nodeId, BuiltInType dataType)
         {
             lock (_lock)
@@ -124,18 +123,23 @@ namespace TestData
                     record.RawData.Add(entry);
                 }
 
-                _records ??= new Dictionary<NodeId, HistoryRecord>();
+                if (_records == null)
+                {
+                    _records = new Dictionary<NodeId, HistoryRecord>();
+                }
 
                 _records[nodeId] = record;
 
-                _updateTimer ??= new Timer(OnUpdate, null, 10000, 10000);
+                if (_updateTimer == null)
+                {
+                    _updateTimer = new Timer(OnUpdate, null, 10000, 10000);
+                }
             }
         }
 
         /// <summary>
         /// Periodically adds new values into the archive.
         /// </summary>
-        /// <param name="state"></param>
         private void OnUpdate(object state)
         {
             try
@@ -165,7 +169,7 @@ namespace TestData
                         {
                             case BuiltInType.Int32:
                                 {
-                                    var lastValue = (int)record.RawData[record.RawData.Count - 1].Value.Value;
+                                    var lastValue = (int)record.RawData[^1].Value.Value;
                                     entry.Value.Value = lastValue + 1;
                                     break;
                                 }

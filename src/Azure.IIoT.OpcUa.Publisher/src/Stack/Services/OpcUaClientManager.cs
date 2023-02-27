@@ -5,10 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Exceptions;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Exceptions;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
@@ -17,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using Opc.Ua.Client.ComplexTypes;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -358,19 +356,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         //
                         if (client.Value.IsActive)
                         {
-                            var connect = client.Value.ConnectAsync(true, ct);
-                            if (!connect.IsCompletedSuccessfully)
+                            try
                             {
-                                try
-                                {
-                                    await connect.ConfigureAwait(false);
-                                }
-                                catch (Exception ex)
-                                {
-                                    _logger.LogDebug(ex,
-                                        "Client manager failed to re-connect session {Name}.",
-                                        client.Key);
-                                }
+                                await client.Value.ConnectAsync(true, ct).ConfigureAwait(false);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogDebug(ex,
+                                    "Client manager failed to re-connect session {Name}.",
+                                    client.Key);
                             }
                         }
                         else
@@ -548,22 +542,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var endpointConfiguration = EndpointConfiguration.Create(configuration);
             endpointConfiguration.OperationTimeout = 20000;
             var discoveryUrl = new Uri(endpoint.Url);
-            using (var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration))
-            {
-                // Get endpoint descriptions from endpoint url
-                var endpoints = await client.GetEndpointsAsync(null,
-                    client.Endpoint.EndpointUrl, null, null).ConfigureAwait(false);
+            using var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration);
+            // Get endpoint descriptions from endpoint url
+            var endpoints = await client.GetEndpointsAsync(null,
+                client.Endpoint.EndpointUrl, null, null).ConfigureAwait(false);
 
-                // Match to provided endpoint info
-                var ep = endpoints.Endpoints?.FirstOrDefault(e => e.IsSameAs(endpoint));
-                if (ep == null)
-                {
-                    _logger.LogDebug("No endpoints at {DiscoveryUrl}...", discoveryUrl);
-                    throw new ResourceNotFoundException("Endpoint not found");
-                }
-                _logger.LogDebug("Found endpoint at {DiscoveryUrl}...", discoveryUrl);
-                return ep.ServerCertificate.ToCertificateChain();
+            // Match to provided endpoint info
+            var ep = endpoints.Endpoints?.FirstOrDefault(e => e.IsSameAs(endpoint));
+            if (ep == null)
+            {
+                _logger.LogDebug("No endpoints at {DiscoveryUrl}...", discoveryUrl);
+                throw new ResourceNotFoundException("Endpoint not found");
             }
+            _logger.LogDebug("Found endpoint at {DiscoveryUrl}...", discoveryUrl);
+            return ep.ServerCertificate.ToCertificateChain();
         }
 
         /// <inheritdoc/>
@@ -605,76 +597,74 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var configuration = await _configuration.ConfigureAwait(false);
             var endpointConfiguration = EndpointConfiguration.Create(configuration);
             endpointConfiguration.OperationTimeout = timeout;
-            using (var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration))
+            using var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration);
+            //
+            // Get endpoints from current discovery server
+            //
+            var endpoints = await client.GetEndpointsAsync(null,
+                client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
+            if (!(endpoints?.Endpoints?.Any() ?? false))
             {
-                //
-                // Get endpoints from current discovery server
-                //
-                var endpoints = await client.GetEndpointsAsync(null,
-                    client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
-                if (!(endpoints?.Endpoints?.Any() ?? false))
-                {
-                    _logger.LogDebug("No endpoints at {DiscoveryUrl}...", discoveryUrl);
-                    return;
-                }
-                _logger.LogDebug("Found endpoints at {DiscoveryUrl}...", discoveryUrl);
+                _logger.LogDebug("No endpoints at {DiscoveryUrl}...", discoveryUrl);
+                return;
+            }
+            _logger.LogDebug("Found endpoints at {DiscoveryUrl}...", discoveryUrl);
 
-                foreach (var ep in endpoints.Endpoints.Where(ep =>
-                    ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer))
+            foreach (var ep in endpoints.Endpoints.Where(ep =>
+                ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer))
+            {
+                result.Add(new DiscoveredEndpointModel
                 {
-                    result.Add(new DiscoveredEndpointModel
+                    Description = ep, // Reported
+                    AccessibleEndpointUrl = new UriBuilder(ep.EndpointUrl)
                     {
-                        Description = ep, // Reported
-                        AccessibleEndpointUrl = new UriBuilder(ep.EndpointUrl)
-                        {
-                            Host = discoveryUrl.DnsSafeHost
-                        }.ToString(),
-                        Capabilities = new HashSet<string>(caps)
-                    });
-                }
+                        Host = discoveryUrl.DnsSafeHost
+                    }.ToString(),
+                    Capabilities = new HashSet<string>(caps)
+                });
+            }
 
-                //
-                // Now Find servers on network.  This might fail for old lds
-                // as well as reference servers, then we call FindServers...
-                //
-                try
+            //
+            // Now Find servers on network.  This might fail for old lds
+            // as well as reference servers, then we call FindServers...
+            //
+            try
+            {
+                var response = await client.FindServersOnNetworkAsync(null, 0, 1000,
+                    new StringCollection()).ConfigureAwait(false);
+                foreach (var server in response?.Servers ?? new ServerOnNetworkCollection())
                 {
-                    var response = await client.FindServersOnNetworkAsync(null, 0, 1000,
-                        new StringCollection()).ConfigureAwait(false);
-                    foreach (var server in response?.Servers ?? new ServerOnNetworkCollection())
+                    var url = CreateDiscoveryUri(server.DiscoveryUrl, discoveryUrl.Port);
+                    if (!visitedUris.Contains(url))
                     {
-                        var url = CreateDiscoveryUri(server.DiscoveryUrl, discoveryUrl.Port);
-                        if (!visitedUris.Contains(url))
-                        {
-                            queue.Enqueue(Tuple.Create(discoveryUrl,
-                                server.ServerCapabilities.ToList()));
-                            visitedUris.Add(url);
-                        }
+                        queue.Enqueue(Tuple.Create(discoveryUrl,
+                            server.ServerCapabilities.ToList()));
+                        visitedUris.Add(url);
                     }
                 }
-                catch
-                {
-                    // Old lds, just continue...
-                    _logger.LogDebug("{DiscoveryUrl} does not support ME extension...",
-                        discoveryUrl);
-                }
+            }
+            catch
+            {
+                // Old lds, just continue...
+                _logger.LogDebug("{DiscoveryUrl} does not support ME extension...",
+                    discoveryUrl);
+            }
 
-                //
-                // Call FindServers first to push more unique discovery urls
-                // into the discovery queue
-                //
-                var found = await client.FindServersAsync(null,
-                    client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
-                if (found?.Servers != null)
+            //
+            // Call FindServers first to push more unique discovery urls
+            // into the discovery queue
+            //
+            var found = await client.FindServersAsync(null,
+                client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
+            if (found?.Servers != null)
+            {
+                foreach (var server in found.Servers.SelectMany(s => s.DiscoveryUrls))
                 {
-                    foreach (var server in found.Servers.SelectMany(s => s.DiscoveryUrls))
+                    var url = CreateDiscoveryUri(server, discoveryUrl.Port);
+                    if (!visitedUris.Contains(url))
                     {
-                        var url = CreateDiscoveryUri(server, discoveryUrl.Port);
-                        if (!visitedUris.Contains(url))
-                        {
-                            queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
-                            visitedUris.Add(url);
-                        }
+                        queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
+                        visitedUris.Add(url);
                     }
                 }
             }
@@ -688,7 +678,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private static string CreateDiscoveryUri(string uri, int defaultPort)
         {
             var url = new UriBuilder(uri);
-            if (url.Port == 0 || url.Port == -1)
+            if (url.Port is 0 or (-1))
             {
                 url.Port = defaultPort;
             }

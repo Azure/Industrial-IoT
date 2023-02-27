@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
-    using Autofac.Extensions.Hosting;
+    using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.Extensions.Hosting;
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <inheritdoc/>
         protected override IHost CreateHost(IHostBuilder builder)
         {
-            builder.UseAutofac();
+            builder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
             return base.CreateHost(builder);
         }
 

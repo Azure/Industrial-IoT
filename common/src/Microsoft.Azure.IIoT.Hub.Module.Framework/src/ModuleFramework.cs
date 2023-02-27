@@ -5,13 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework
 {
-    using Autofac;
+    using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Module.Client.Default;
-    using Microsoft.Azure.IIoT.Module.Framework.Hosting;
-    using Microsoft.Azure.IIoT.Tasks;
-    using Microsoft.Azure.IIoT.Tasks.Default;
+    using Autofac;
+    using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
     /// Injected module framework module
@@ -40,18 +39,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework
                 .PropertiesAutowired(
                     PropertyWiringOptions.AllowCircularDependencies);
 
-            // If not already registered, register task scheduler
-#if USE_DEFAULT_FACTORY
-            builder.RegisterType<DefaultScheduler>()
-                .AsImplementedInterfaces().SingleInstance()
-                .IfNotRegistered(typeof(ITaskScheduler));
-#else
-            builder.RegisterType<LimitingScheduler>()
-                .AsImplementedInterfaces().SingleInstance()
-                .IfNotRegistered(typeof(ITaskScheduler));
-#endif
-            builder.RegisterModule<HttpClientModule>();
-            // Register edgelet client (uses http)
+            // Register edgelet client (uses http client factorys)
+            builder.ConfigureServices(services => services.AddHttpClient());
             builder.RegisterType<EdgeletClient>()
                 .AsImplementedInterfaces().SingleInstance();
 

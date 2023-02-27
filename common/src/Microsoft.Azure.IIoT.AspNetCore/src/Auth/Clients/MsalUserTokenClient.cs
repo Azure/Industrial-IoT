@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
 {
-    using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Auth.Storage;
     using Microsoft.Azure.IIoT.Storage;
+    using Microsoft.AspNetCore.Authentication;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
     using Microsoft.Identity.Client;
     using System;
