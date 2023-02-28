@@ -5,7 +5,7 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.3.1-beta" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.0-beta" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore\src\Microsoft.Azure.IIoT.AspNetCore.csproj" />

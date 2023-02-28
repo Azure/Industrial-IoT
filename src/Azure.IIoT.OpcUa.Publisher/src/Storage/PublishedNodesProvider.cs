@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             {
                 using (var fileStream = new FileStream(
                     _config.PublishedNodesFile,
-                    FileMode.Open,
+                    FileMode.OpenOrCreate,
                     FileAccess.Read,
                     FileShare.Read
                  ))

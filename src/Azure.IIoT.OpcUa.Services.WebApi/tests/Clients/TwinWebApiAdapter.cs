@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Clients
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(string endpoint,
             NodeMetadataRequestModel request, CancellationToken ct)
         {
-            return await _client.GetMetadataAsync(endpoint, request, ct).ConfigureAwait(false);
+            return await _client.NodeGetMetadataAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>

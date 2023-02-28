@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         {
             var httpRequest = new HttpRequestMessage
             {
-                RequestUri = new Uri($"{_serviceUri}/history/healthz")
+                RequestUri = new Uri($"{_serviceUri}/twin/healthz")
             };
             try
             {
@@ -241,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<NodeMetadataResponseModel> GetMetadataAsync(string endpointId,
+        public async Task<NodeMetadataResponseModel> NodeGetMetadataAsync(string endpointId,
             NodeMetadataRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
@@ -252,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/metadata/{endpointId}");
+            var uri = new Uri($"{_serviceUri}/twin/v2/metadata/{endpointId}/node");
             return await _httpClient.PostAsync<NodeMetadataResponseModel>(uri,
                 request, _serializer, ct: ct).ConfigureAwait(false);
         }
@@ -278,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            var uri = new Uri($"{_serviceUri}/twin/v2/capabilities/{endpointId}/history");
+            var uri = new Uri($"{_serviceUri}/history/v2/capabilities/{endpointId}");
             return await _httpClient.GetAsync<HistoryServerCapabilitiesModel>(uri,
                 _serializer, ct: ct).ConfigureAwait(false);
         }
@@ -299,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request.NodeId));
             }
-            var uri = new Uri($"{_serviceUri}/history/v2/history/read/{endpointId}/config");
+            var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/configuration");
             return await _httpClient.PostAsync<HistoryConfigurationResponseModel>(uri,
                 request, _serializer, ct: ct).ConfigureAwait(false);
         }

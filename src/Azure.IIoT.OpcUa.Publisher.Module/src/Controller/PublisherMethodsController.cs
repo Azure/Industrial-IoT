@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         public async Task<PublishStartResponseModel> PublishStartAsync(
             ConnectionModel connection, PublishStartRequestModel request)
         {
-            return await _configServices.NodePublishStartAsync(connection,
+            return await _configServices.PublishStartAsync(connection,
                 request).ConfigureAwait(false);
         }
 
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         public async Task<PublishStopResponseModel> PublishStopAsync(
             ConnectionModel connection, PublishStopRequestModel request)
         {
-            return await _configServices.NodePublishStopAsync(connection,
+            return await _configServices.PublishStopAsync(connection,
                 request).ConfigureAwait(false);
         }
 
@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         public async Task<PublishBulkResponseModel> PublishBulkAsync(
             ConnectionModel connection, PublishBulkRequestModel request)
         {
-            return await _configServices.NodePublishBulkAsync(connection,
+            return await _configServices.PublishBulkAsync(connection,
                 request).ConfigureAwait(false);
         }
 
@@ -82,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
             ConnectionModel connection,
             PublishedItemListRequestModel request)
         {
-            return await _configServices.NodePublishListAsync(connection,
+            return await _configServices.PublishListAsync(connection,
                 request).ConfigureAwait(false);
         }
 

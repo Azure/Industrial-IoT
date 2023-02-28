@@ -23,32 +23,32 @@ namespace Azure.IIoT.OpcUa.Services.Events
         }
 
         /// <inheritdoc/>
-        public Task OnEndpointDeletedAsync(
-            OperationContextModel context, string endpointId, EndpointInfoModel endpoint)
+        public Task OnEndpointDeletedAsync(OperationContextModel context,
+            string endpointId, EndpointInfoModel endpoint)
         {
             return PublishAsync(EndpointEventType.Deleted, context,
                 endpointId, endpoint);
         }
 
         /// <inheritdoc/>
-        public Task OnEndpointDisabledAsync(
-            OperationContextModel context, EndpointInfoModel endpoint)
+        public Task OnEndpointDisabledAsync(OperationContextModel context,
+            EndpointInfoModel endpoint)
         {
             return PublishAsync(EndpointEventType.Disabled, context,
                 endpoint.Registration.Id, endpoint);
         }
 
         /// <inheritdoc/>
-        public Task OnEndpointEnabledAsync(
-            OperationContextModel context, EndpointInfoModel endpoint)
+        public Task OnEndpointEnabledAsync(OperationContextModel context,
+            EndpointInfoModel endpoint)
         {
             return PublishAsync(EndpointEventType.Enabled, context,
                 endpoint.Registration.Id, endpoint);
         }
 
         /// <inheritdoc/>
-        public Task OnEndpointNewAsync(
-            OperationContextModel context, EndpointInfoModel endpoint)
+        public Task OnEndpointNewAsync(OperationContextModel context,
+            EndpointInfoModel endpoint)
         {
             return PublishAsync(EndpointEventType.New, context,
                 endpoint.Registration.Id, endpoint);

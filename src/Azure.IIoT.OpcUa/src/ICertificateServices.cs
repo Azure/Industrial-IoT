@@ -18,10 +18,10 @@ namespace Azure.IIoT.OpcUa
         /// <summary>
         /// Get endpoint certificate
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<X509CertificateChainModel> GetEndpointCertificateAsync(T id,
-            CancellationToken ct = default);
+        Task<X509CertificateChainModel> GetEndpointCertificateAsync(
+            T endpoint, CancellationToken ct = default);
     }
 }

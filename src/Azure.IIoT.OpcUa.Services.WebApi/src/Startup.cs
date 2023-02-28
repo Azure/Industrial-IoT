@@ -26,14 +26,13 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
     using System;
-    using Microsoft.Azure.IIoT.Auth;
-    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// Webservice startup
@@ -112,8 +111,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
 
             // Add controllers as services so they'll be resolved.
             services.AddControllers()
-                .AddDefaultJsonSerializer()
-                .AddBinarySerializers();
+                .AddNewtonsoftSerializer()
+                .AddMessagePackSerializer();
 
             // Add signalr and optionally configure signalr service
             services.AddSignalR()

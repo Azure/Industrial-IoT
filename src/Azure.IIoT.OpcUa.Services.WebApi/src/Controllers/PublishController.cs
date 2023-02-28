@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await _publisher.NodePublishStartAsync(
+            return await _publisher.PublishStartAsync(
                 endpointId, request).ConfigureAwait(false);
         }
 
@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await _publisher.NodePublishBulkAsync(
+            return await _publisher.PublishBulkAsync(
                 endpointId, request).ConfigureAwait(false);
         }
 
@@ -104,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await _publisher.NodePublishStopAsync(
+            return await _publisher.PublishStopAsync(
                 endpointId, request).ConfigureAwait(false);
         }
 
@@ -128,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await _publisher.NodePublishListAsync(
+            return await _publisher.PublishListAsync(
                 endpointId, request).ConfigureAwait(false);
         }
 
@@ -152,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
             {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
             }
-            return await _publisher.NodePublishListAsync(endpointId,
+            return await _publisher.PublishListAsync(endpointId,
                 new PublishedItemListRequestModel
                 {
                     ContinuationToken = continuationToken

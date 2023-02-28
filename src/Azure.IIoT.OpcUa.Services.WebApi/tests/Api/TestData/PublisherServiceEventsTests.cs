@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Api.SignalR
     using System.Threading.Tasks;
     using Xunit;
 
-    [Collection(WebAppCollection.Name)]
+    [Collection(SignalRCollection.Name)]
     public class PublisherServiceEventsTests
     {
         public PublisherServiceEventsTests(SignalRTestFixture factory)

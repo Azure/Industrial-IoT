@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     /// <summary>
     /// Supervisors hub
     /// </summary>
-    [Route("v2/supervisors/events")]
+    [Route("events/v2/supervisors/events")]
     [Authorize(Policy = Policies.CanRead)]
     public class SupervisorsHub : Hub
     {

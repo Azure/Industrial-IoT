@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
 	<PackageReference Include="Antlr4" Version="4.6.6" />
-	<PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.3.1" />
+	<PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.0" />
   </ItemGroup>
   <ItemGroup>
 	<Antlr4 Update="**/*.g4">

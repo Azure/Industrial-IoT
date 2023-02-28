@@ -154,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Clients
             return Task.FromException<ServerCapabilitiesModel>(new NotImplementedException());
         }
 
-        public Task<NodeMetadataResponseModel> GetMetadataAsync(string endpointId,
+        public Task<NodeMetadataResponseModel> NodeGetMetadataAsync(string endpointId,
             NodeMetadataRequestModel request, CancellationToken ct)
         {
             return Task.FromException<NodeMetadataResponseModel>(new NotImplementedException());

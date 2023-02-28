@@ -26,20 +26,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// Create controller with service
         /// </summary>
-        /// <param name="clients"></param>
-        /// <param name="discovery"></param>
+        /// <param name="endpoints"></param>
+        /// <param name="certificates"></param>
         /// <param name="nodes"></param>
-        public TwinMethodsController(
-            IConnectionServices<ConnectionModel> clients,
-            ICertificateServices<EndpointModel> discovery,
+        public TwinMethodsController(IConnectionServices<ConnectionModel> endpoints,
+            ICertificateServices<EndpointModel> certificates,
             INodeServices<ConnectionModel> nodes)
         {
-            _discovery = discovery ??
-                throw new ArgumentNullException(nameof(discovery));
+            _certificates = certificates ??
+                throw new ArgumentNullException(nameof(certificates));
             _nodes = nodes ??
                 throw new ArgumentNullException(nameof(nodes));
-            _clients = clients ??
-                throw new ArgumentNullException(nameof(clients));
+            _endpoints = endpoints ??
+                throw new ArgumentNullException(nameof(endpoints));
         }
 
         /// <summary>
@@ -47,14 +46,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
             ConnectionModel connection)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
             return await _nodes.GetServerCapabilitiesAsync(connection).ConfigureAwait(false);
         }
 
@@ -64,20 +58,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<BrowseFirstResponseModel> BrowseAsync(
             ConnectionModel connection, BrowseFirstRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            return await _nodes.BrowseFirstAsync(
-                connection, request).ConfigureAwait(false);
+            return await _nodes.BrowseFirstAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -86,20 +70,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<BrowseNextResponseModel> BrowseNextAsync(
             ConnectionModel connection, BrowseNextRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            return await _nodes.BrowseNextAsync(
-                connection, request).ConfigureAwait(false);
+            return await _nodes.BrowseNextAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -108,20 +82,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<BrowsePathResponseModel> BrowsePathAsync(
             ConnectionModel connection, BrowsePathRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            return await _nodes.BrowsePathAsync(
-                connection, request).ConfigureAwait(false);
+            return await _nodes.BrowsePathAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -130,20 +94,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<ValueReadResponseModel> ValueReadAsync(
             ConnectionModel connection, ValueReadRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            return await _nodes.ValueReadAsync(
-                connection, request).ConfigureAwait(false);
+            return await _nodes.ValueReadAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -152,20 +106,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<ValueWriteResponseModel> ValueWriteAsync(
             ConnectionModel connection, ValueWriteRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            return await _nodes.ValueWriteAsync(
-                connection, request).ConfigureAwait(false);
+            return await _nodes.ValueWriteAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -174,20 +118,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(
             ConnectionModel connection, NodeMetadataRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            return await _nodes.GetMetadataAsync(
-                connection, request).ConfigureAwait(false);
+            return await _nodes.GetMetadataAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -196,20 +130,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<MethodMetadataResponseModel> MethodMetadataAsync(
             ConnectionModel connection, MethodMetadataRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            return await _nodes.GetMethodMetadataAsync(
-                connection, request).ConfigureAwait(false);
+            return await _nodes.GetMethodMetadataAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -218,20 +142,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         public async Task<MethodCallResponseModel> MethodCallAsync(
             ConnectionModel connection, MethodCallRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            return await _nodes.MethodCallAsync(
-                connection, request).ConfigureAwait(false);
+            return await _nodes.MethodCallAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -240,16 +156,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<ReadResponseModel> NodeReadAsync(
             ConnectionModel connection, ReadRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            return await _nodes.ReadAsync(
-                connection, request).ConfigureAwait(false);
+            return await _nodes.ReadAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -258,16 +168,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<WriteResponseModel> NodeWriteAsync(
             ConnectionModel connection, WriteRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            return await _nodes.WriteAsync(
-                connection, request).ConfigureAwait(false);
+            return await _nodes.WriteAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -276,16 +180,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
             ConnectionModel connection, HistoryReadRequestModel<VariantValue> request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            return await _nodes.HistoryReadAsync(
-               connection, request).ConfigureAwait(false);
+            return await _nodes.HistoryReadAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -294,16 +192,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            return await _nodes.HistoryReadNextAsync(
-               connection, request).ConfigureAwait(false);
+            return await _nodes.HistoryReadNextAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -312,16 +204,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
             ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-            return await _nodes.HistoryUpdateAsync(
-               connection, request).ConfigureAwait(false);
+            return await _nodes.HistoryUpdateAsync(connection, request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -329,16 +215,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="endpoint"/> is <c>null</c>.</exception>
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             EndpointModel endpoint)
         {
-            if (endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
-            return await _discovery.GetEndpointCertificateAsync(
-                endpoint).ConfigureAwait(false);
+            return await _certificates.GetEndpointCertificateAsync(endpoint).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -346,14 +226,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
             ConnectionModel connection)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
             return await _nodes.HistoryGetServerCapabilitiesAsync(connection).ConfigureAwait(false);
         }
 
@@ -363,14 +238,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
         public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
             ConnectionModel connection, HistoryConfigurationRequestModel request)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
             return await _nodes.HistoryGetConfigurationAsync(connection, request).ConfigureAwait(false);
         }
 
@@ -379,14 +249,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
         public async Task<bool> ConnectAsync(ConnectionModel connection)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            await _clients.ConnectAsync(connection).ConfigureAwait(false);
+            await _endpoints.ConnectAsync(connection).ConfigureAwait(false);
             return true;
         }
 
@@ -395,19 +260,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
         public async Task<bool> DisconnectAsync(ConnectionModel connection)
         {
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            await _clients.DisconnectAsync(connection).ConfigureAwait(false);
+            await _endpoints.DisconnectAsync(connection).ConfigureAwait(false);
             return true;
         }
 
-        private readonly ICertificateServices<EndpointModel> _discovery;
-        private readonly IConnectionServices<ConnectionModel> _clients;
+        private readonly ICertificateServices<EndpointModel> _certificates;
+        private readonly IConnectionServices<ConnectionModel> _endpoints;
         private readonly INodeServices<ConnectionModel> _nodes;
     }
 }

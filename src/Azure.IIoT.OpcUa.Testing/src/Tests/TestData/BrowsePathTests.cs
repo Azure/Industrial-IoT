@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         {
             _services = services;
             _connection = connection;
-            _serializer = new DefaultJsonSerializer();
         }
 
         public async Task NodeBrowsePathStaticScalarMethod3Test1Async()
@@ -193,9 +192,6 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         }
 
         private readonly T _connection;
-#pragma warning disable IDE0052 // Remove unread private members
-        private readonly DefaultJsonSerializer _serializer;
-#pragma warning restore IDE0052 // Remove unread private members
         private readonly Func<INodeServices<T>> _services;
     }
 }

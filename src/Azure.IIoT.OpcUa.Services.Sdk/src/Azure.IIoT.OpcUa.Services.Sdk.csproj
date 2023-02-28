@@ -8,8 +8,8 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="7.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="7.0.3" />
-	<PackageReference Include="Furly.Extensions.MessagePack" Version="0.3.1" />
-	<PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.3.1" />
+	<PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.0" />
+	<PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory.csproj" />

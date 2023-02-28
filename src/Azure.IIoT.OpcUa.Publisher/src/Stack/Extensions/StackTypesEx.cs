@@ -314,7 +314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static UaTimestampsToReturn ToStackType(this TimestampsToReturn mode)
+        public static UaTimestampsToReturn ToStackType(this TimestampsToReturn? mode)
         {
             switch (mode)
             {

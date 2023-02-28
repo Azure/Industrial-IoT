@@ -7,20 +7,15 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
 {
     using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using System;
     using System.Collections.Generic;
-    using Xunit;
-
-    [CollectionDefinition(Name)]
-    public class WebAppCollection : ICollectionFixture<SignalRTestFixture>
-    {
-        public const string Name = "WebApp";
-    }
 
     /// <inheritdoc/>
-    public class SignalRTestFixture : IDisposable
+    public sealed class SignalRTestFixture : IDisposable
     {
         /// <summary>
         /// Base address
@@ -30,8 +25,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <summary>
         /// Port
         /// </summary>
-        public static int Port { get; } =
-            new Random().Next(40000, 60000);
+#pragma warning disable CA5394 // Do not use insecure randomness
+        public static int Port { get; } = Random.Shared.Next(40000, 60000);
+#pragma warning restore CA5394 // Do not use insecure randomness
 
         /// <inheritdoc/>
         public SignalRTestFixture()
@@ -46,12 +42,15 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                         builder
                             .AddInMemoryCollection(new Dictionary<string, string>
                             {
-                                ["PCS_EVENTS_SERVICE_URL"] = BaseAddress
+                                [PcsVariable.PCS_PUBLISHER_SERVICE_URL] = BaseAddress
                             });
-                    }
-                    )
+                    })
                     .UseStartup<TestStartup>()
                     .UseKestrel(o => o.AddServerHeader = false))
+                .ConfigureServices(services => services
+                    .AddMvcCore()
+                        .AddApplicationPart(typeof(Startup).Assembly)
+                        .AddControllersAsServices())
                 .Build();
             _server.Start();
         }

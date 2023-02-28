@@ -18,41 +18,41 @@ namespace Azure.IIoT.OpcUa
         /// <summary>
         /// Start publishing values from a node
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<PublishStartResponseModel> NodePublishStartAsync(T id,
+        Task<PublishStartResponseModel> PublishStartAsync(T endpoint,
             PublishStartRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Stop publishing values from a node
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<PublishStopResponseModel> NodePublishStopAsync(T id,
+        Task<PublishStopResponseModel> PublishStopAsync(T endpoint,
             PublishStopRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Configure node values to publish and unpublish in bulk
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<PublishBulkResponseModel> NodePublishBulkAsync(T id,
+        Task<PublishBulkResponseModel> PublishBulkAsync(T endpoint,
             PublishBulkRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Get all published nodes for a server endpoint.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<PublishedItemListResponseModel> NodePublishListAsync(T id,
+        Task<PublishedItemListResponseModel> PublishListAsync(T endpoint,
             PublishedItemListRequestModel request, CancellationToken ct = default);
     }
 }

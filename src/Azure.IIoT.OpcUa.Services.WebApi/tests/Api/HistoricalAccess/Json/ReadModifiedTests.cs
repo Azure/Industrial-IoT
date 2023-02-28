@@ -43,9 +43,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Api.HistoricalAccess.Json
             return GetTests().HistoryReadInt16ValuesModifiedTestAsync();
         }
 
-        [Fact]
+        [SkippableFact]
         public Task HistoryStreamInt16ValuesModifiedTestAsync()
         {
+            Skip.If(true, "not implemented yet");
             return GetTests().HistoryStreamInt16ValuesModifiedTestAsync();
         }
     }

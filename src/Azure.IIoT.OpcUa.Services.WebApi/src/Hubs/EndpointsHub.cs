@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     /// <summary>
     /// Endpoints hub
     /// </summary>
-    [Route("v2/endpoints/events")]
+    [Route("events/v2/endpoints/events")]
     [Authorize(Policy = Policies.CanRead)]
     public class EndpointsHub : Hub
     {

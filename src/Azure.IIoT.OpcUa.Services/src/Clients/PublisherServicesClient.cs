@@ -379,7 +379,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<PublishStartResponseModel> NodePublishStartAsync(string endpointId,
+        public async Task<PublishStartResponseModel> PublishStartAsync(string endpointId,
             PublishStartRequestModel request, CancellationToken ct)
         {
             if (request == null)
@@ -398,7 +398,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<PublishStopResponseModel> NodePublishStopAsync(string endpointId,
+        public async Task<PublishStopResponseModel> PublishStopAsync(string endpointId,
             PublishStopRequestModel request, CancellationToken ct)
         {
             if (request == null)
@@ -417,7 +417,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<PublishBulkResponseModel> NodePublishBulkAsync(string endpointId,
+        public async Task<PublishBulkResponseModel> PublishBulkAsync(string endpointId,
             PublishBulkRequestModel request, CancellationToken ct)
         {
             if (request == null)
@@ -436,7 +436,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedItemListResponseModel> NodePublishListAsync(string endpointId,
+        public async Task<PublishedItemListResponseModel> PublishListAsync(string endpointId,
             PublishedItemListRequestModel request, CancellationToken ct)
         {
             if (request == null)

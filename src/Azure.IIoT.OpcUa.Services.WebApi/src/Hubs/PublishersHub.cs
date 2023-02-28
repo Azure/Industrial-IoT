@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     /// <summary>
     /// Publishers hub
     /// </summary>
-    [Route("v2/publishers/events")]
+    [Route("events/v2/publishers/events")]
     [Authorize(Policy = Policies.CanRead)]
     public class PublishersHub : Hub
     {

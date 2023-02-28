@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     /// <summary>
     /// Gateway hub
     /// </summary>
-    [Route("v2/gateways/events")]
+    [Route("events/v2/gateways/events")]
     [Authorize(Policy = Policies.CanRead)]
     public class GatewaysHub : Hub
     {

@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     /// <summary>
     /// Discovery hub
     /// </summary>
-    [Route("v2/discovery/events")]
+    [Route("events/v2/discovery/events")]
     [Authorize(Policy = Policies.CanRead)]
     public class DiscoverersHub : Hub
     {

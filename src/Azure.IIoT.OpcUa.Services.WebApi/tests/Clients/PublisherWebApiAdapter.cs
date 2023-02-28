@@ -26,28 +26,28 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<PublishStartResponseModel> NodePublishStartAsync(
+        public async Task<PublishStartResponseModel> PublishStartAsync(
             string endpoint, PublishStartRequestModel request, CancellationToken ct)
         {
             return await _client.NodePublishStartAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<PublishStopResponseModel> NodePublishStopAsync(
+        public async Task<PublishStopResponseModel> PublishStopAsync(
             string endpoint, PublishStopRequestModel request, CancellationToken ct)
         {
             return await _client.NodePublishStopAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<PublishBulkResponseModel> NodePublishBulkAsync(
+        public async Task<PublishBulkResponseModel> PublishBulkAsync(
             string endpoint, PublishBulkRequestModel request, CancellationToken ct)
         {
             return await _client.NodePublishBulkAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedItemListResponseModel> NodePublishListAsync(
+        public async Task<PublishedItemListResponseModel> PublishListAsync(
             string endpoint, PublishedItemListRequestModel request, CancellationToken ct)
         {
             return await _client.NodePublishListAsync(endpoint, request, ct).ConfigureAwait(false);

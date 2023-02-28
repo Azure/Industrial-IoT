@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
     using System.Net;
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
-    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -62,15 +61,6 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
         public OpcUaClientManager Client => _client.Value;
 
         /// <summary>
-        /// Start port
-        /// </summary>
-        /// <param name="value"></param>
-        public static void SetStartPort(int value)
-        {
-            _nextPort = value;
-        }
-
-        /// <summary>
         /// Get server connection
         /// </summary>
         /// <param name="path"></param>
@@ -105,23 +95,25 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
             Logger = Log.Console<BaseServerFixture>(LogLevel.Debug);
             _config = new TestClientServicesConfig();
-            _client = new Lazy<OpcUaClientManager>(() => new OpcUaClientManager(Logger, _config, new DefaultJsonSerializer()), false);
+            var serializer = new DefaultJsonSerializer();
+            _client = new Lazy<OpcUaClientManager>(
+                () => new OpcUaClientManager(Logger, _config, serializer), false);
             PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
                Guid.NewGuid().ToByteArray().ToBase16String());
-            var port = Interlocked.Increment(ref _nextPort);
+            // Retry 200 times
             for (var i = 0; i < 200; i++)
-            { // Retry 200 times
+            {
                 try
                 {
-                    _serverHost = new ServerConsoleHost(
-                        new ServerFactory(Logger, nodes)
-                        {
-                            LogStatus = false
-                        }, Logger)
+                    _serverHost = new ServerConsoleHost(new ServerFactory(Logger, nodes)
+                    {
+                        LogStatus = false
+                    }, Logger)
                     {
                         PkiRootPath = PkiRootPath,
                         AutoAccept = true
                     };
+                    var port = GetRandomPort();
                     Logger.LogInformation("Starting server host on {Port}...",
                         port);
                     _serverHost.StartAsync(new int[] { port }).Wait();
@@ -130,9 +122,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
                 }
                 catch (Exception ex)
                 {
-                    port = Interlocked.Increment(ref _nextPort);
-                    Logger.LogError(ex, "Failed to start server host, retrying {Port}...",
-                        port);
+                    Logger.LogError(ex, "Failed to start server host, retrying...");
                 }
             }
         }
@@ -179,10 +169,13 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
             }
         }
 
-        private static readonly Random kRand = new();
+        private static int GetRandomPort()
+        {
 #pragma warning disable CA5394 // Do not use insecure randomness
-        private static volatile int _nextPort = kRand.Next(53000, 58000);
+            return Random.Shared.Next(53000, 58000);
 #pragma warning restore CA5394 // Do not use insecure randomness
+        }
+
         private bool _disposedValue;
         private readonly IServerHost _serverHost;
         private readonly TestClientServicesConfig _config;

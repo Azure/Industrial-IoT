@@ -18,22 +18,22 @@ namespace Azure.IIoT.OpcUa
         /// <summary>
         /// Connect endpoint
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="credential"></param>
         /// <returns></returns>
         /// <param name="ct"></param>
-        Task ConnectAsync(T id, CredentialModel credential = null,
+        Task ConnectAsync(T endpoint, CredentialModel credential = null,
             CancellationToken ct = default);
 
         /// <summary>
         /// Disconnect endpoint if there are
         /// no subscriptions
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="credential"></param>
         /// <returns></returns>
         /// <param name="ct"></param>
-        Task DisconnectAsync(T id, CredentialModel credential = null,
+        Task DisconnectAsync(T endpoint, CredentialModel credential = null,
             CancellationToken ct = default);
     }
 }

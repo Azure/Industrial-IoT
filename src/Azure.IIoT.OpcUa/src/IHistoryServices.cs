@@ -19,187 +19,187 @@ namespace Azure.IIoT.OpcUa
         /// <summary>
         /// Replace events
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(T id,
+        Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Insert events
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(T id,
+        Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Update or replace events
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(T id,
+        Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Delete events
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(T id,
+        Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(T endpoint,
             HistoryUpdateRequestModel<DeleteEventsDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Delete values at specified times
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(T id,
+        Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(T endpoint,
             HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Delete modified values
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(T id,
+        Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(T endpoint,
             HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Delete values
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(T id,
+        Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(T endpoint,
             HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Replace values
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(T id,
+        Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Insert values
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(T id,
+        Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Update or replace values
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(T id,
+        Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Read historic events
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
-            T id, HistoryReadRequestModel<ReadEventsDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadEventsDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Read next set of events
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
-            T id, HistoryReadNextRequestModel request, CancellationToken ct = default);
+            T endpoint, HistoryReadNextRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Read historic values
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
-            T id, HistoryReadRequestModel<ReadValuesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Read historic values at times
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
-            T id, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Read processed historic values
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
-            T id, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Read modified values
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
-            T id, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
         /// Read next set of historic values
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="endpoint">Server endpoint to talk to</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
-            T id, HistoryReadNextRequestModel request, CancellationToken ct = default);
+            T endpoint, HistoryReadNextRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Stream values

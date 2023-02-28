@@ -572,10 +572,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
         private static void FillRandom(byte[] expected)
         {
 #pragma warning disable CA5394 // Do not use insecure randomness
-            kRand.NextBytes(expected);
+            Random.Shared.NextBytes(expected);
 #pragma warning restore CA5394 // Do not use insecure randomness
         }
-        private static readonly Random kRand = new();
 
         private MethodRouter GetRouter()
         {

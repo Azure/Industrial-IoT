@@ -25,7 +25,6 @@ namespace Microsoft.Azure.IIoT.Utils
         public static Func<int, Exception, int> Exponential => (k, ex) =>
             GetExponentialDelay(k, ExponentialBackoffIncrement, ExponentialMaxRetryCount);
 
-        private static readonly Random kRand = new();
         /// <summary>Max retry count for exponential policy</summary>
         public static int ExponentialMaxRetryCount { get; set; } = 13;
         /// <summary>Exponential backoff increment</summary>
@@ -55,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Utils
                 k = maxRetry;
             }
 #pragma warning disable CA5394 // Do not use insecure randomness
-            var backoff = kRand.Next((int)(increment * 0.8), (int)(increment * 1.2));
+            var backoff = Random.Shared.Next((int)(increment * 0.8), (int)(increment * 1.2));
 #pragma warning restore CA5394 // Do not use insecure randomness
             var exp = 0.5 * (Math.Pow(2, k) - 1);
             var result = (int)(exp * backoff);

@@ -64,6 +64,6 @@ namespace Azure.IIoT.OpcUa.Models
         /// </summary>
         [DataMember(Name = "timestampsToReturn", Order = 5,
             EmitDefaultValue = false)]
-        public TimestampsToReturn TimestampsToReturn { get; set; }
+        public TimestampsToReturn? TimestampsToReturn { get; set; }
     }
 }

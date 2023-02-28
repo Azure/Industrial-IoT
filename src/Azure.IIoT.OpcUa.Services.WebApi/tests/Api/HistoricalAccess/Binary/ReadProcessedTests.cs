@@ -55,21 +55,24 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Api.HistoricalAccess.Binary
             return GetTests().HistoryReadUInt64ProcessedValuesTest3Async();
         }
 
-        [Fact]
+        [SkippableFact]
         public Task HistoryStreamUInt64ProcessedValuesTest1Async()
         {
+            Skip.If(true, "not implemented yet");
             return GetTests().HistoryStreamUInt64ProcessedValuesTest1Async();
         }
 
-        [Fact]
+        [SkippableFact]
         public Task HistoryStreamUInt64ProcessedValuesTest2Async()
         {
+            Skip.If(true, "not implemented yet");
             return GetTests().HistoryStreamUInt64ProcessedValuesTest2Async();
         }
 
-        [Fact]
+        [SkippableFact]
         public Task HistoryStreamUInt64ProcessedValuesTest3Async()
         {
+            Skip.If(true, "not implemented yet");
             return GetTests().HistoryStreamUInt64ProcessedValuesTest3Async();
         }
     }

@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
     /// Value and Event monitoring services
     /// </summary>
     [ApiVersion("2")]
-    [Route("events/v{version:apiVersion}/telemetry")]
+    [Route("events/v{version:apiVersion}")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="connectionId">The connection that will receive publisher
         /// samples.</param>
         /// <returns></returns>
-        [HttpPut("{endpointId}/samples")]
+        [HttpPut("telemetry/{endpointId}/samples")]
         public async Task SubscribeAsync(string endpointId,
             [FromBody] string connectionId)
         {
@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="connectionId">The connection that will not receive
         /// any more published samples</param>
         /// <returns></returns>
-        [HttpDelete("{endpointId}/samples/{connectionId}")]
+        [HttpDelete("telemetry/{endpointId}/samples/{connectionId}")]
         public async Task UnsubscribeAsync(string endpointId, string connectionId)
         {
             await _events.UnsubscribeAsync(endpointId, connectionId).ConfigureAwait(false);

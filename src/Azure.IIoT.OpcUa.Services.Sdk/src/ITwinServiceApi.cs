@@ -70,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<NodeMetadataResponseModel> GetMetadataAsync(string endpointId,
+        Task<NodeMetadataResponseModel> NodeGetMetadataAsync(string endpointId,
             NodeMetadataRequestModel request, CancellationToken ct = default);
 
         /// <summary>

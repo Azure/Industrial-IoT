@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Api.SignalR
     using System.Threading.Tasks;
     using Xunit;
 
-    [Collection(WebAppCollection.Name)]
+    [Collection(SignalRCollection.Name)]
     public class RegistryServiceEventsTests
     {
         public RegistryServiceEventsTests(SignalRTestFixture factory)
@@ -310,7 +310,11 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Api.SignalR
             var expected = new EndpointInfoModel
             {
                 ApplicationId = "TestSigfsdfg  ff",
-                NotSeenSince = DateTime.UtcNow
+                NotSeenSince = DateTime.UtcNow,
+                Registration = new EndpointRegistrationModel
+                {
+                    Id = "testid"
+                }
             };
             var result = new TaskCompletionSource<EndpointEventModel>();
             await using (await client.SubscribeEndpointEventsAsync(ev =>
@@ -342,7 +346,11 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Api.SignalR
             var expected = new EndpointInfoModel
             {
                 ApplicationId = "TestSigfsdfg  ff",
-                NotSeenSince = DateTime.UtcNow
+                NotSeenSince = DateTime.UtcNow,
+                Registration = new EndpointRegistrationModel
+                {
+                    Id = "testid"
+                }
             };
             var result = new TaskCompletionSource<bool>();
             var counter = 0;

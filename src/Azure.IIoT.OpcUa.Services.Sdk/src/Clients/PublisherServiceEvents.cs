@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events",
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events",
                 null).ConfigureAwait(false);
             var registration = hub.Register(EventTargets.PublisherSampleTarget, callback);
             try
@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(connectionId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/telemetry/{endpointId}/samples");
+            var uri = new Uri($"{_serviceUri}/events/v2/telemetry/{endpointId}/samples");
             await _httpClient.PutAsync(uri, connectionId, _serializer,
                 ct: ct).ConfigureAwait(false);
         }
@@ -111,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(connectionId));
             }
-            var uri = new Uri($"{_serviceUri}/v2/telemetry/{endpointId}/samples/{connectionId}");
+            var uri = new Uri($"{_serviceUri}/events/v2/telemetry/{endpointId}/samples/{connectionId}");
             await _httpClient.DeleteAsync(uri, ct: ct).ConfigureAwait(false);
         }
 

@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
     /// Configure discovery events
     /// </summary>
     [ApiVersion("2")]
-    [Route("events/v{version:apiVersion}/discovery")]
+    [Route("events/v{version:apiVersion}")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="connectionId">The connection that will receive discovery
         /// events.</param>
         /// <returns></returns>
-        [HttpPut("{discovererId}/events")]
+        [HttpPut("discovery/{discovererId}/events")]
         public async Task SubscribeByDiscovererIdAsync(string discovererId,
             [FromBody] string connectionId)
         {
@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="connectionId">The connection that will receive discovery
         /// events.</param>
         /// <returns></returns>
-        [HttpPut("requests/{requestId}/events")]
+        [HttpPut("discovery/requests/{requestId}/events")]
         public async Task SubscribeByRequestIdAsync(string requestId,
             [FromBody] string connectionId)
         {
@@ -79,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="connectionId">The connection that will not receive
         /// any more discovery progress</param>
         /// <returns></returns>
-        [HttpDelete("requests/{requestId}/events/{connectionId}")]
+        [HttpDelete("discovery/requests/{requestId}/events/{connectionId}")]
         public async Task UnsubscribeByRequestIdAsync(string requestId,
             string connectionId)
         {
@@ -97,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
         /// <param name="connectionId">The connection that will not receive
         /// any more discovery progress</param>
         /// <returns></returns>
-        [HttpDelete("{discovererId}/events/{connectionId}")]
+        [HttpDelete("discovery/{discovererId}/events/{connectionId}")]
         public async Task UnsubscribeByDiscovererIdAsync(string discovererId,
             string connectionId)
         {
