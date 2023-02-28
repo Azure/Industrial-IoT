@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using AutoFixture.Kernel;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
@@ -21,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
+    using Furly.Exceptions;
 
     public class SupervisorRegistryTests
     {

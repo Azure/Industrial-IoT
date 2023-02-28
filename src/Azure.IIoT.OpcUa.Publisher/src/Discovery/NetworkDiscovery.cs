@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Logging;
@@ -31,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Exceptions;
 
     /// <summary>
     /// Provides network discovery of endpoints

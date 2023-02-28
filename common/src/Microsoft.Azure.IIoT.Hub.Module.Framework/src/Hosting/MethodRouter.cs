@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
 {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Extensions.Logging;
     using Furly.Extensions.Serializers;
@@ -18,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Furly.Exceptions;
 
     /// <summary>
     /// Provides request routing to module controllers

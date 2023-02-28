@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Http.Exceptions
 {
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Furly.Exceptions;
     using System.Net;
 
     /// <summary>

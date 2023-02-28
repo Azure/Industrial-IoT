@@ -6,13 +6,14 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
 {
     using Azure.IIoT.OpcUa.Exceptions;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework;
+    using Furly.Exceptions;
     using System;
     using System.Net;
     using System.Net.Sockets;
     using System.Security;
     using System.Threading.Tasks;
+    using System.IO;
 
     /// <summary>
     /// Convert all the exceptions returned by the module controllers to a
@@ -49,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                 case ResourceInvalidStateException:
                     status = (int)HttpStatusCode.Forbidden;
                     break;
-                case ConflictingResourceException:
+                case ResourceConflictException:
                     status = (int)HttpStatusCode.Conflict;
                     break;
                 case SecurityException:
@@ -73,10 +74,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                     status = (int)HttpStatusCode.RequestTimeout;
                     break;
                 case SocketException:
-                case CommunicationException:
+                case IOException:
                     status = (int)HttpStatusCode.BadGateway;
                     break;
-                case MessageTooLargeException:
+                case MessageSizeLimitException:
                     status = (int)HttpStatusCode.RequestEntityTooLarge;
                     break;
                 case TaskCanceledException:

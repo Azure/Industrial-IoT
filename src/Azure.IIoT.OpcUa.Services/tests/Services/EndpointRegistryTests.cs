@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using AutoFixture.Kernel;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Furly.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;

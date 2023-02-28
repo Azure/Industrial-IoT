@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Exceptions
+namespace Furly.Exceptions
 {
     using System;
 
@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Exceptions
     /// Thrown when a message does not fit into the allowed
     /// max buffer size.
     /// </summary>
-    public class MessageTooLargeException : Exception
+    public class MessageSizeLimitException : Exception
     {
         /// <summary>
         /// Actual size
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Exceptions
         /// <param name="message"></param>
         /// <param name="messageSize"></param>
         /// <param name="maxMessageSize"></param>
-        public MessageTooLargeException(string message,
+        public MessageSizeLimitException(string message,
             int messageSize, int maxMessageSize) : base(message)
         {
             MessageSize = messageSize;
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Exceptions
         /// Create exception
         /// </summary>
         /// <param name="message"></param>
-        public MessageTooLargeException(string message) :
+        public MessageSizeLimitException(string message) :
             this(message, -1, -1)
         {
         }

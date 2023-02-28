@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Http
 {
     using Microsoft.Azure.IIoT.Http.Exceptions;
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Furly.Exceptions;
     using System;
     using System.Net;
 
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Http
         /// <exception cref="ResourceInvalidStateException"></exception>
         /// <exception cref="UnauthorizedAccessException"></exception>
         /// <exception cref="ResourceNotFoundException"></exception>
-        /// <exception cref="ConflictingResourceException"></exception>
+        /// <exception cref="ResourceConflictException"></exception>
         /// <exception cref="TimeoutException"></exception>
         /// <exception cref="ResourceOutOfDateException"></exception>
         /// <exception cref="HttpTransientException"></exception>
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Http
                 case HttpStatusCode.NotFound:
                     throw new ResourceNotFoundException(message);
                 case HttpStatusCode.Conflict:
-                    throw new ConflictingResourceException(message, inner);
+                    throw new ResourceConflictException(message, inner);
                 case HttpStatusCode.RequestTimeout:
                     throw new TimeoutException(message, inner);
                 case HttpStatusCode.PreconditionFailed:

@@ -3,18 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.Module.Framework;
-using Microsoft.Azure.IIoT.Module.Framework.Client;
 
 namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default
 {
     using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Microsoft.Extensions.Logging;
+    using Furly.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.IO;

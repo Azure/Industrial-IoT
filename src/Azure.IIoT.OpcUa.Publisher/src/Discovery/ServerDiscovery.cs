@@ -10,10 +10,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Exceptions;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Exceptions;
 
     /// <summary>
     /// Server discovery on top of OPC UA endpoint discovery

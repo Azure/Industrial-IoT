@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Exceptions
+namespace Furly.Exceptions
 {
     /// <summary>
     /// This exception is thrown when method call returned a

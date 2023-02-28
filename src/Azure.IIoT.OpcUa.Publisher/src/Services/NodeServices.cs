@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Furly.Exceptions;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -1779,7 +1779,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ResourceNotFoundException"></exception>
-        /// <exception cref="ConflictingResourceException"></exception>
+        /// <exception cref="ResourceConflictException"></exception>
         private static async Task<NodeId> ResolveBrowsePathToNodeAsync(
             ISessionHandle session, RequestHeaderModel? header, NodeId rootId,
             string[] paths, string paramName, CancellationToken ct)
@@ -1816,7 +1816,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             if (count != 1)
             {
-                throw new ConflictingResourceException(
+                throw new ResourceConflictException(
                     $"{paramName} resolved to {count} nodes.");
             }
             return results[0].Result.Targets[0].TargetId

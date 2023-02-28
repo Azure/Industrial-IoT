@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Services.Registry
 {
     using Azure.IIoT.OpcUa.Models;
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Furly.Exceptions;
     using System;
     using System.Linq;
     using System.Threading;

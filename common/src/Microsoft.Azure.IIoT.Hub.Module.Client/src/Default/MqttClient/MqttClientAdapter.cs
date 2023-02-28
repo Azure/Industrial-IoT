@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
 {
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.Devices.Client;
@@ -19,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
     using MQTTnet.Formatter;
     using MQTTnet.Packets;
     using MQTTnet.Protocol;
+    using Furly.Exceptions;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Concurrent;
@@ -350,7 +350,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         /// <param name="properties"></param>
         /// <param name="correlationData"></param>
         /// <returns></returns>
-        /// <exception cref="MessageTooLargeException"></exception>
+        /// <exception cref="MessageSizeLimitException"></exception>
         private async Task InternalSendEventAsync(string topic, byte[] payload = null,
             string contentType = null, bool retain = false, TimeSpan? ttl = null,
             Dictionary<string, string> properties = null, byte[] correlationData = null)
@@ -361,7 +361,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
             var topicLength = Encoding.UTF8.GetByteCount(topic);
             if (topicLength > kMaxTopicLength)
             {
-                throw new MessageTooLargeException(
+                throw new MessageSizeLimitException(
                     $"Topic for MQTT message cannot be larger than {kMaxTopicLength} bytes, " +
                     $"but current length is {topicLength}. The list of message.properties " +
                     "and/or message.systemProperties is likely too long. Please use AMQP or HTTP.");

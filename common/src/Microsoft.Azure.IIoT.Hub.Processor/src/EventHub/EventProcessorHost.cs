@@ -5,13 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub
 {
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Storage.Datalake;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
     using Microsoft.Extensions.Logging;
+    using Furly.Exceptions;
     using System;
     using System.Threading;
     using System.Threading.Tasks;

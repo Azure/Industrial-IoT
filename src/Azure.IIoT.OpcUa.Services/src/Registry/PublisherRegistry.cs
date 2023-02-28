@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using Azure.IIoT.OpcUa.Services.Registry.Models;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Furly.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Logging;
     using System;

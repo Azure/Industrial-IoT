@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Exceptions
 {
+    using Furly.Exceptions;
     using System;
 
     /// <summary>

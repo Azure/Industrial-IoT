@@ -21,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -45,6 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Tasks;
     using Xunit;
     using System.Threading.Channels;
+    using Furly.Exceptions;
 
     public readonly record struct JsonMessage(string Topic, JsonElement Message, string ContentType);
 

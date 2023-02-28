@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Utils
 {
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Extensions.Configuration;
+    using Furly.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Globalization;

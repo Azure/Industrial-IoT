@@ -10,8 +10,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Furly.Exceptions;
     using Microsoft.Azure.IIoT;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -277,7 +277,7 @@ Options:
                     }
                 }, false, default).ConfigureAwait(false);
             }
-            catch (ConflictingResourceException)
+            catch (ResourceConflictException)
             {
                 logger.LogInformation("Gateway {DeviceId} exists.", deviceId);
             }
@@ -289,7 +289,7 @@ Options:
                     ModuleId = moduleId
                 }, false, default).ConfigureAwait(false);
             }
-            catch (ConflictingResourceException)
+            catch (ResourceConflictException)
             {
                 logger.LogInformation("Module {ModuleId} exists...", moduleId);
             }

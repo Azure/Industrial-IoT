@@ -8,13 +8,13 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
     using Microsoft.Azure.IIoT.Hub.Mock.SqlParser;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Furly.Exceptions;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.IO;
 
     /// <summary>
     /// Mock device registry
@@ -128,7 +129,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
                 }
                 else if (!force)
                 {
-                    throw new ConflictingResourceException("Twin conflict");
+                    throw new ResourceConflictException("Twin conflict");
                 }
                 model.UpdateTwin(twin);
                 return Task.FromResult(model.Twin);
@@ -400,7 +401,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
             {
                 if (!_outer.Events.TryAdd(new EventMessage(message, Device)))
                 {
-                    throw new CommunicationException("Failed to send event.");
+                    throw new IOException("Failed to send event.");
                 }
             }
 

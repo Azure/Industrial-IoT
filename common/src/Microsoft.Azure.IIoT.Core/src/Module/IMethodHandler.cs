@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module
 {
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Furly.Exceptions;
     using System.Threading.Tasks;
 
     /// <summary>

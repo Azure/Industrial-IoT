@@ -8,12 +8,13 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters
     using Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Filters;
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Furly.Exceptions;
     using System;
     using System.Net;
     using System.Net.Sockets;
     using System.Security;
     using System.Threading.Tasks;
+    using System.IO;
 
     /// <summary>
     /// Detect all the unhandled exceptions returned by the API controllers
@@ -60,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters
                     context.Result = GetResponse(HttpStatusCode.Forbidden,
                         context.Exception);
                     break;
-                case ConflictingResourceException ce:
+                case ResourceConflictException ce:
                     context.Result = GetResponse(HttpStatusCode.Conflict,
                         context.Exception);
                     break;
@@ -90,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters
                         context.Exception);
                     break;
                 case SocketException sex:
-                case CommunicationException ce:
+                case IOException ce:
                     context.Result = GetResponse(HttpStatusCode.BadGateway,
                         context.Exception);
                     break;

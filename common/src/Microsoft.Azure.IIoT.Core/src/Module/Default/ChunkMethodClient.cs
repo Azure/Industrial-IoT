@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Module.Default
 {
     using Microsoft.Azure.IIoT.Module.Models;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Logging;
     using Furly.Extensions.Serializers;
@@ -15,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Module.Default
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Exceptions;
 
     /// <summary>
     /// Chunked method provide reliable any size send/receive

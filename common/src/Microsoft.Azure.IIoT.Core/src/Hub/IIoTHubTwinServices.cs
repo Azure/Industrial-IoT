@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Hub
 {
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Furly.Extensions.Serializers;
+    using Furly.Exceptions;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Hub
         /// a conflict and force is set, ensures the twin exists
         /// as specified in the end.
         /// </summary>
-        /// <exception cref="ConflictingResourceException"></exception>
+        /// <exception cref="ResourceConflictException"></exception>
         /// <param name="device">device twin to create</param>
         /// <param name="force">skip conflicting resource and update
         /// to the passed in twin state</param>

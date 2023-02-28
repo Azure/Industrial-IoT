@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
 {
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.Devices.Client;
@@ -23,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using Furly.Exceptions;
 
     public class MethodRouterTests
     {

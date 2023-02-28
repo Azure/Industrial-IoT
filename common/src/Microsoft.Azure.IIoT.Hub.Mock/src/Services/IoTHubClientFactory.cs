@@ -6,15 +6,16 @@
 namespace Microsoft.Azure.IIoT.Hub.Mock
 {
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Furly.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.IO;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
@@ -64,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
             var client = new IoTHubClient();
             var connection = _hub.Connect(DeviceId, ModuleId, client);
             client.Connection = connection ??
-                throw new CommunicationException("Failed to connect to fake hub");
+                throw new IOException("Failed to connect to fake hub");
             return Task.FromResult<IClient>(client);
         }
 

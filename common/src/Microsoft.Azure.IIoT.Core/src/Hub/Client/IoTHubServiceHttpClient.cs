@@ -7,12 +7,12 @@ namespace Microsoft.Azure.IIoT.Hub.Client
 {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.Extensions.Logging;
     using Furly.Extensions.Serializers;
+    using Furly.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client
                     var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
                     response.Validate();
                 }
-                catch (ConflictingResourceException)
+                catch (ResourceConflictException)
                     when (!string.IsNullOrEmpty(device.ModuleId) || force)
                 {
                     // Continue onward
@@ -125,7 +125,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client
                             // just throw if the update fails
                             response.Validate();
                         }
-                        catch (ConflictingResourceException)
+                        catch (ResourceConflictException)
                             when (force)
                         {
                             // Continue onward
@@ -147,7 +147,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client
                         var response = await _httpClient.PutAsync(module, ct).ConfigureAwait(false);
                         response.Validate();
                     }
-                    catch (ConflictingResourceException)
+                    catch (ResourceConflictException)
                         when (force)
                     {
                     }

@@ -5,13 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Exceptions
 {
-    using Microsoft.Azure.IIoT.Exceptions;
     using System;
+    using System.IO;
 
     /// <summary>
     /// Thrown when failing to connect to resource
     /// </summary>
-    public class ConnectionException : CommunicationException
+    public class ConnectionException : IOException
     {
         /// <inheritdoc/>
         public ConnectionException(string message) :

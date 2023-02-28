@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
     using Azure.IIoT.OpcUa.Services.Registry.Models;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Furly.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Extensions.Logging;
@@ -716,7 +716,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
                         discovererId, null, false).ConfigureAwait(false);
                     added++;
                 }
-                catch (ConflictingResourceException)
+                catch (ResourceConflictException)
                 {
                     unchange.Add(addition); // Update the existing one
                 }

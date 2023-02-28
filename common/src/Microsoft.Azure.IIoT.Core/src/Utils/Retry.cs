@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Utils
 {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Extensions.Logging;
+    using Furly.Exceptions;
     using System;
     using System.Threading;
     using System.Threading.Tasks;

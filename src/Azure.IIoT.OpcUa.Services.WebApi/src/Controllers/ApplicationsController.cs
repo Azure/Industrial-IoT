@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
     using Furly.Extensions.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.IIoT.Http;
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;

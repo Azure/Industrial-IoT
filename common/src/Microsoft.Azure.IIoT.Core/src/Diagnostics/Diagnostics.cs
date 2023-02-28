@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Diagnostics
 {
-    using System;
     using System.Diagnostics.Metrics;
 
     /// <summary>
