@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Http.Default
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (request.Headers.TryGetValues(HttpHeader.UdsPath, out var paths))
+            if (request.Headers.TryGetValues(HttpHeader2.UdsPath, out var paths))
             {
                 return SendOverUnixDomainSocketAsync(paths.FirstOrDefault(), request,
                     cancellationToken);

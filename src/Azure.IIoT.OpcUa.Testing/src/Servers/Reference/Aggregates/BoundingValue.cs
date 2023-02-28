@@ -197,8 +197,6 @@ namespace Opc.Ua.Aggregates
             }
         }
 
-
-
         /// <summary>
         /// Projects the value to the specified time using the two points.
         /// </summary>

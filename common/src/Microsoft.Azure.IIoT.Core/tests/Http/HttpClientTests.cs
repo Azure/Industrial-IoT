@@ -22,8 +22,8 @@ namespace Microsoft.Azure.IIoT.Http
             IHttpClient client = new HttpClient(new HttpClientFactory(logger), logger);
             var request = client.NewRequest(new Uri("unix:///var/test/unknown.sock/path/to/resource?query=36"));
 
-            Assert.True(request.Headers.Contains(HttpHeader.UdsPath));
-            var path = request.Headers.GetValues(HttpHeader.UdsPath).First();
+            Assert.True(request.Headers.Contains(HttpHeader2.UdsPath));
+            var path = request.Headers.GetValues(HttpHeader2.UdsPath).First();
             Assert.Equal("/var/test/unknown.sock", path);
             Assert.Equal("/path/to/resource", request.Uri.LocalPath);
             Assert.Equal("/path/to/resource?query=36", request.Uri.PathAndQuery);
@@ -36,8 +36,8 @@ namespace Microsoft.Azure.IIoT.Http
             IHttpClient client = new HttpClient(new HttpClientFactory(logger), logger);
             var request = client.NewRequest(new Uri("unix:///var/test/unknown.sock:0/path/to/resource?query=36"));
 
-            Assert.True(request.Headers.Contains(HttpHeader.UdsPath));
-            var path = request.Headers.GetValues(HttpHeader.UdsPath).First();
+            Assert.True(request.Headers.Contains(HttpHeader2.UdsPath));
+            var path = request.Headers.GetValues(HttpHeader2.UdsPath).First();
             Assert.Equal("/var/test/unknown.sock", path);
             Assert.Equal("/path/to/resource?query=36", request.Uri.PathAndQuery);
         }
@@ -49,8 +49,8 @@ namespace Microsoft.Azure.IIoT.Http
             IHttpClient client = new HttpClient(new HttpClientFactory(logger), logger);
             var request = client.NewRequest(new Uri("unix:///var/test/unknown.sock:0/path/to/resource"));
 
-            Assert.True(request.Headers.Contains(HttpHeader.UdsPath));
-            var path = request.Headers.GetValues(HttpHeader.UdsPath).First();
+            Assert.True(request.Headers.Contains(HttpHeader2.UdsPath));
+            var path = request.Headers.GetValues(HttpHeader2.UdsPath).First();
             Assert.Equal("/var/test/unknown.sock", path);
             Assert.Equal("/path/to/resource", request.Uri.PathAndQuery);
         }
@@ -62,8 +62,8 @@ namespace Microsoft.Azure.IIoT.Http
             IHttpClient client = new HttpClient(new HttpClientFactory(logger), logger);
             var request = client.NewRequest(new Uri("unix:///var/test/unknown:0/path/to/resource?query=36"));
 
-            Assert.True(request.Headers.Contains(HttpHeader.UdsPath));
-            var path = request.Headers.GetValues(HttpHeader.UdsPath).First();
+            Assert.True(request.Headers.Contains(HttpHeader2.UdsPath));
+            var path = request.Headers.GetValues(HttpHeader2.UdsPath).First();
             Assert.Equal("/var/test/unknown", path);
             Assert.Equal("/path/to/resource?query=36", request.Uri.PathAndQuery);
         }

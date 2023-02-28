@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Http;
 
     /// <summary>
     /// Implementation of twin and job services, talking to iot hub

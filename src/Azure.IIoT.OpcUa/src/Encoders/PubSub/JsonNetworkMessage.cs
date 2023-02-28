@@ -102,14 +102,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             set
             {
-                if (value?.Equals(MessageSchemaTypes.MonitoredItemMessageJson, StringComparison.OrdinalIgnoreCase) == true)
-                {
-                    HasSamplesPayload = true;
-                }
-                else
-                {
-                    HasSamplesPayload = false;
-                }
+                HasSamplesPayload = value?.Equals(
+                    MessageSchemaTypes.MonitoredItemMessageJson, StringComparison.OrdinalIgnoreCase) == true;
             }
         }
 
@@ -371,27 +365,25 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 NetworkMessageContentMask = networkMessageContentMask;
                 return TryReadDataSetMessages(decoder, nameof(Messages));
             }
-            else
-            {
-                // Reset
-                NetworkMessageContentMask = 0;
-                DataSetWriterGroup = null;
-                DataSetClassId = default;
-                MessageId = null;
-                PublisherId = null;
+            // Reset
+            NetworkMessageContentMask = 0;
+            DataSetWriterGroup = null;
+            DataSetClassId = default;
+            MessageId = null;
+            PublisherId = null;
 
-                if (decoder.IsObject(null))
-                {
-                    // Treat this object as the single message
-                    NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
-                }
-                else if (!decoder.IsArray(null))
-                {
-                    // This object we are reading is neither an object nor array
-                    return false;
-                }
-                return TryReadDataSetMessages(decoder, null);
+            if (decoder.IsObject(null))
+            {
+                // Treat this object as the single message
+                NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
             }
+            else if (!decoder.IsArray(null))
+            {
+                // This object we are reading is neither an object nor array
+                return false;
+            }
+
+            return TryReadDataSetMessages(decoder, null);
 
             bool TryReadDataSetMessages(JsonDecoderEx decoder, string property)
             {

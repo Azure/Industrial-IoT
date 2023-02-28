@@ -213,14 +213,14 @@ namespace Microsoft.Azure.IIoT.Http.Default
                 if (!uri.Scheme.EqualsIgnoreCase("http") && !uri.Scheme.EqualsIgnoreCase("https"))
                 {
                     // Need a way to work around request uri validation - add uds path to header.
-                    Request.Headers.TryAddWithoutValidation(HttpHeader.UdsPath,
+                    Request.Headers.TryAddWithoutValidation(HttpHeader2.UdsPath,
                         ParseUdsPath(uri, out uri));
                 }
                 Request.RequestUri = uri;
                 ResourceId = resourceId;
                 if (ResourceId != null)
                 {
-                    Request.Headers.TryAddWithoutValidation(HttpHeader.ResourceId, ResourceId);
+                    Request.Headers.TryAddWithoutValidation(HttpHeader2.ResourceId, ResourceId);
                 }
             }
 

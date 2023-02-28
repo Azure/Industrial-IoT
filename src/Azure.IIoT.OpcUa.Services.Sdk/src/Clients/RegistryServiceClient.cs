@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
 {
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Extensions.Http;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Http;

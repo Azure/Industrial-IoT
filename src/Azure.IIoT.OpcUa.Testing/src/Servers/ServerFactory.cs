@@ -113,7 +113,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         }
                     }
 
-
                     /// ...
                 };
                 if (string.IsNullOrEmpty(pkiRootPath))

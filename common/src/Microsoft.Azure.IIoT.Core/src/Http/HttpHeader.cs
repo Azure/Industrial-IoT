@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Http
     /// <summary>
     /// Custom header values
     /// </summary>
-    public static class HttpHeader
+    public static class HttpHeader2
     {
         // Common
 

@@ -102,7 +102,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 SiteId =
                     tags.GetValueOrDefault<string>(TwinProperty.SiteId, null)
 
-
                 // Properties
 
             };

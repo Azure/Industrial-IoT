@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
+    using Furly.Extensions.Http;
 
     /// <summary>
     /// Activate, Deactivate and Query endpoint resources
@@ -113,7 +114,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-
 
             // TODO: Redact username/token based on policy/permission
 

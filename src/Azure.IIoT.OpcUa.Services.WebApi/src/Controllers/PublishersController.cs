@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
+    using Furly.Extensions.Http;
 
     /// <summary>
     /// Read, Update and Query publisher resources
@@ -150,7 +151,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
                     .FirstOrDefault());
             }
 
-
             // TODO: Filter results based on RBAC
 
             return await _publishers.QueryPublishersAsync(
@@ -189,7 +189,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-
 
             // TODO: Filter results based on RBAC
 
