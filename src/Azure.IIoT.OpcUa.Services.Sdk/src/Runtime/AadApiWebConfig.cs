@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime
 {
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 

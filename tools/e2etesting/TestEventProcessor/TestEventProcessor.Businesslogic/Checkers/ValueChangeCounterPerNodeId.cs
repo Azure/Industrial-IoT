@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers {
-    using Microsoft.Extensions.Logging;
+namespace TestEventProcessor.BusinessLogic.Checkers
+{
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -14,21 +14,18 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
     /// <summary>
     /// Class that will perform counting of values per nodeId.
     /// </summary>
-    class ValueChangeCounterPerNodeId {
+    sealed class ValueChangeCounterPerNodeId : IDisposable
+    {
 
         private readonly IDictionary<string, int> _valueChangesPerNodeId;
         private readonly SemaphoreSlim _lock;
-        private readonly ILogger _logger;
 
         /// <summary>
         /// Constructor for counter class.
         /// </summary>
         /// <param name="logger"></param>
-        public ValueChangeCounterPerNodeId(
-            ILogger logger
-        ) {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
+        public ValueChangeCounterPerNodeId()
+        {
             _valueChangesPerNodeId = new Dictionary<string, int>();
             _lock = new SemaphoreSlim(1, 1);
         }
@@ -43,17 +40,22 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             string nodeId,
             DateTime _0,
             JToken _1
-        ) {
+        )
+        {
             _lock.Wait();
-            try {
-                if (_valueChangesPerNodeId.ContainsKey(nodeId)) {
-                    _valueChangesPerNodeId[nodeId]++;
-                }
-                else {
+            try
+            {
+                if (!_valueChangesPerNodeId.ContainsKey(nodeId))
+                {
                     _valueChangesPerNodeId.Add(nodeId, 1);
                 }
+                else
+                {
+                    _valueChangesPerNodeId[nodeId]++;
+                }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
@@ -62,16 +64,24 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// Stop and get value counters per nodeId.
         /// </summary>
         /// <returns></returns>
-        public IDictionary<string, int> Stop() {
+        public IDictionary<string, int> Stop()
+        {
             _lock.Wait();
-            try {
+            try
+            {
                 var copy = _valueChangesPerNodeId
                     .ToDictionary(entry => entry.Key, entry => entry.Value);
                 return copy;
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
+        }
+
+        public void Dispose()
+        {
+            _lock.Dispose();
         }
     }
 }

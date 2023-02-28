@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 try
                 {
                     using var decoder = new JsonDecoderEx(
-                        UseGzipCompression ? compression : memoryStream, context, useJsonLoader: false); 
+                        UseGzipCompression ? compression : memoryStream, context, useJsonLoader: false);
                     if (TryDecode(decoder))
                     {
                         reader.Dequeue();

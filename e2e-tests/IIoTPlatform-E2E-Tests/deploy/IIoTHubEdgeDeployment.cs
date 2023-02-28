@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Deploy {
+namespace IIoTPlatform_E2E_Tests.Deploy
+{
     using Microsoft.Azure.Devices;
     using System.Threading;
     using System.Threading.Tasks;
 
-    public interface IIoTHubEdgeDeployment {
-
+    public interface IIoTHubEdgeDeployment
+    {
         /// <summary>
         /// Create a new layered deployment or update an existing one.
         /// </summary>

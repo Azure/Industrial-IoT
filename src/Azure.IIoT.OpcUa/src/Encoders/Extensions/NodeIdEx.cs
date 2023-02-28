@@ -6,7 +6,6 @@
 namespace Opc.Ua.Extensions
 {
     using Azure.IIoT.OpcUa.Encoders.Utils;
-    using Furly.Exceptions;
     using System;
     using System.Globalization;
     using System.Linq;

@@ -63,13 +63,10 @@ namespace Microsoft.Azure.IIoT.Auth.Storage
             private async Task OnAfterAccessAsync(TokenCacheNotificationArgs args)
             {
                 // if the access operation resulted in a cache update
-                if (args.HasStateChanged)
+                if (args.HasStateChanged && !string.IsNullOrWhiteSpace(_cacheKey))
                 {
-                    if (!string.IsNullOrWhiteSpace(_cacheKey))
-                    {
-                        await _cache.SetAsync(_cacheKey, args.TokenCache.SerializeMsalV3(),
-                            DateTimeOffset.UtcNow + TimeSpan.FromDays(1)).ConfigureAwait(false);
-                    }
+                    await _cache.SetAsync(_cacheKey, args.TokenCache.SerializeMsalV3(),
+                        DateTimeOffset.UtcNow + TimeSpan.FromDays(1)).ConfigureAwait(false);
                 }
             }
 

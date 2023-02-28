@@ -3,15 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.Service.Controllers {
+namespace TestEventProcessor.Service.Controllers
+{
     using Microsoft.AspNetCore.Diagnostics;
     using Microsoft.AspNetCore.Mvc;
 
     [ApiController]
-    public class ErrorController : ControllerBase {
+    public class ErrorController : ControllerBase
+    {
 
         [Route("/error")]
-        public IActionResult Error() {
+        public IActionResult Error()
+        {
             var context = HttpContext.Features.Get<IExceptionHandlerFeature>();
 
             return Problem(

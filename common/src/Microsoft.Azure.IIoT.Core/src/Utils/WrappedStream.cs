@@ -219,6 +219,7 @@ namespace Microsoft.Azure.IIoT.Utils
         /// <inheritdoc/>
         public override async ValueTask DisposeAsync()
         {
+            GC.SuppressFinalize(this);
             await _inner.DisposeAsync().ConfigureAwait(false);
             await base.DisposeAsync().ConfigureAwait(false);
         }

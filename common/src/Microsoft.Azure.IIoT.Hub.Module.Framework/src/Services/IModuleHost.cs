@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Services
 {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using System;
     using System.Threading.Tasks;
 
     /// <summary>

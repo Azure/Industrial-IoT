@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Json;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using MemoryBuffer;
     using Opc.Ua.Extensions;
     using System;
@@ -31,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             _services = services;
             _connection = connection;
             _serializer = new DefaultJsonSerializer();
-			_newMetadata = newMetadata;
+            _newMetadata = newMetadata;
         }
 
         public async Task NodeMethodMetadataStaticScalarMethod1TestAsync()
@@ -41,24 +40,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-			MethodMetadataModel result;
-			if (!_newMetadata)
-			{
-            	result = await service.GetMethodMetadataAsync(_connection,
-                	new MethodMetadataRequestModel
-                	{
-                    	MethodId = methodId
-                	}).ConfigureAwait(false);
-			}
-			else
-			{
-				var metadata = await service.GetMetadataAsync(_connection,
-                	new NodeMetadataRequestModel
-                	{
-                    	NodeId = methodId
-                	}).ConfigureAwait(false);
-            	result = metadata.MethodMetadata;
-			}
+            MethodMetadataModel result;
+            if (!_newMetadata)
+            {
+                result = await service.GetMethodMetadataAsync(_connection,
+                    new MethodMetadataRequestModel
+                    {
+                        MethodId = methodId
+                    }).ConfigureAwait(false);
+            }
+            else
+            {
+                var metadata = await service.GetMetadataAsync(_connection,
+                    new NodeMetadataRequestModel
+                    {
+                        NodeId = methodId
+                    }).ConfigureAwait(false);
+                result = metadata.MethodMetadata;
+            }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -315,24 +314,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-			MethodMetadataModel result;
-			if (!_newMetadata)
-			{
-            	result = await service.GetMethodMetadataAsync(_connection,
-                	new MethodMetadataRequestModel
-                	{
-                    	MethodId = methodId
-                	}).ConfigureAwait(false);
-			}
-			else
-			{
-				var metadata = await service.GetMetadataAsync(_connection,
-                	new NodeMetadataRequestModel
-                	{
-                    	NodeId = methodId
-                	}).ConfigureAwait(false);
-            	result = metadata.MethodMetadata;
-			}
+            MethodMetadataModel result;
+            if (!_newMetadata)
+            {
+                result = await service.GetMethodMetadataAsync(_connection,
+                    new MethodMetadataRequestModel
+                    {
+                        MethodId = methodId
+                    }).ConfigureAwait(false);
+            }
+            else
+            {
+                var metadata = await service.GetMetadataAsync(_connection,
+                    new NodeMetadataRequestModel
+                    {
+                        NodeId = methodId
+                    }).ConfigureAwait(false);
+                result = metadata.MethodMetadata;
+            }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -567,24 +566,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-			MethodMetadataModel result;
-			if (!_newMetadata)
-			{
-            	result = await service.GetMethodMetadataAsync(_connection,
-                	new MethodMetadataRequestModel
-                	{
-                    	MethodId = methodId
-                	}).ConfigureAwait(false);
-			}
-			else
-			{
-				var metadata = await service.GetMetadataAsync(_connection,
-                	new NodeMetadataRequestModel
-                	{
-                    	NodeId = methodId
-                	}).ConfigureAwait(false);
-            	result = metadata.MethodMetadata;
-			}
+            MethodMetadataModel result;
+            if (!_newMetadata)
+            {
+                result = await service.GetMethodMetadataAsync(_connection,
+                    new MethodMetadataRequestModel
+                    {
+                        MethodId = methodId
+                    }).ConfigureAwait(false);
+            }
+            else
+            {
+                var metadata = await service.GetMetadataAsync(_connection,
+                    new NodeMetadataRequestModel
+                    {
+                        NodeId = methodId
+                    }).ConfigureAwait(false);
+                result = metadata.MethodMetadata;
+            }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -667,26 +666,26 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             };
 
             // Act
-			MethodMetadataModel result;
-			if (!_newMetadata)
-			{
-            	result = await service.GetMethodMetadataAsync(_connection,
-                	new MethodMetadataRequestModel
-                	{
+            MethodMetadataModel result;
+            if (!_newMetadata)
+            {
+                result = await service.GetMethodMetadataAsync(_connection,
+                    new MethodMetadataRequestModel
+                    {
                         MethodId = objectId,
                         MethodBrowsePath = path
-                	}).ConfigureAwait(false);
-			}
-			else
-			{
-				var metadata = await service.GetMetadataAsync(_connection,
-                	new NodeMetadataRequestModel
-                	{
-                    	NodeId = objectId,
-						BrowsePath = path
-                	}).ConfigureAwait(false);
-            	result = metadata.MethodMetadata;
-			}
+                    }).ConfigureAwait(false);
+            }
+            else
+            {
+                var metadata = await service.GetMetadataAsync(_connection,
+                    new NodeMetadataRequestModel
+                    {
+                        NodeId = objectId,
+                        BrowsePath = path
+                    }).ConfigureAwait(false);
+                result = metadata.MethodMetadata;
+            }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -772,24 +771,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             };
 
             // Act
-			MethodMetadataModel result;
-			if (!_newMetadata)
-			{
-            	result = await service.GetMethodMetadataAsync(_connection,
-                	new MethodMetadataRequestModel
-                	{
+            MethodMetadataModel result;
+            if (!_newMetadata)
+            {
+                result = await service.GetMethodMetadataAsync(_connection,
+                    new MethodMetadataRequestModel
+                    {
                         MethodBrowsePath = path
-                	}).ConfigureAwait(false);
-			}
-			else
-			{
-				var metadata = await service.GetMetadataAsync(_connection,
-                	new NodeMetadataRequestModel
-                	{
-						BrowsePath = path
-                	}).ConfigureAwait(false);
-            	result = metadata.MethodMetadata;
-			}
+                    }).ConfigureAwait(false);
+            }
+            else
+            {
+                var metadata = await service.GetMetadataAsync(_connection,
+                    new NodeMetadataRequestModel
+                    {
+                        BrowsePath = path
+                    }).ConfigureAwait(false);
+                result = metadata.MethodMetadata;
+            }
 
             // Assert
             Assert.Equal("http://test.org/UA/Data/#i=10755", result.ObjectId);
@@ -1709,7 +1708,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             Assert.Null(result.ErrorInfo);
         }
 
-		private readonly bool _newMetadata;
+        private readonly bool _newMetadata;
         private readonly T _connection;
         private readonly Func<INodeServices<T>> _services;
         private readonly IJsonSerializer _serializer;

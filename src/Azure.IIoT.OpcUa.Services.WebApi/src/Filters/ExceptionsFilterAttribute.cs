@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Filters
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.Azure.IIoT.Exceptions;
     using System;
-    using System.Linq;
     using System.Net;
     using System.Net.Sockets;
     using System.Security;

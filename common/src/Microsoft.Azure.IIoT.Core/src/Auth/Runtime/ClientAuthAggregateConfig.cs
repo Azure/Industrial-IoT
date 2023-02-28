@@ -28,18 +28,18 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime
         }
 
         /// <inheritdoc/>
-        public IEnumerable<IOAuthClientConfig> Query(string resource, string scheme)
+        public IEnumerable<IOAuthClientConfig> Query(string resource, string provider)
         {
             return Providers?
-                .Where(c => c.Resource == resource && c.Provider == scheme)
+                .Where(c => c.Resource == resource && c.Provider == provider)
                     ?? Enumerable.Empty<IOAuthClientConfig>();
         }
 
         /// <inheritdoc/>
-        public IEnumerable<IOAuthClientConfig> Query(string scheme)
+        public IEnumerable<IOAuthClientConfig> Query(string provider)
         {
             return Providers?
-                .Where(c => c.Provider == scheme)
+                .Where(c => c.Provider == provider)
                     ?? Enumerable.Empty<IOAuthClientConfig>();
         }
     }

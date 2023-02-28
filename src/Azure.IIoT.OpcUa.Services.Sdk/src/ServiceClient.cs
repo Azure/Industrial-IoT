@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk
     /// <summary>
     /// Service client
     /// </summary>
-    public class ServiceClient : IDisposable
+    public sealed class ServiceClient : IDisposable
     {
         /// <summary>
         /// Twin API

@@ -17,7 +17,9 @@ namespace Azure.IIoT.OpcUa.Models
         /// Object class
         /// </summary>
         [EnumMember]
+#pragma warning disable CA1720 // Identifier contains type name
         Object,
+#pragma warning restore CA1720 // Identifier contains type name
 
         /// <summary>
         /// Variable

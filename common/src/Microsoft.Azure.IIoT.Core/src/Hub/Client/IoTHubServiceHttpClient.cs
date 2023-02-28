@@ -47,11 +47,11 @@ namespace Microsoft.Azure.IIoT.Hub.Client
 
         /// <inheritdoc/>
         public async Task<HealthCheckResult> CheckHealthAsync(
-            HealthCheckContext context, CancellationToken ct)
+            HealthCheckContext context, CancellationToken cancellationToken)
         {
             try
             {
-                await QueryAsync("SELECT * FROM devices", null, 1, ct).ConfigureAwait(false);
+                await QueryAsync("SELECT * FROM devices", null, 1, cancellationToken).ConfigureAwait(false);
                 return HealthCheckResult.Healthy();
             }
             catch (Exception ex)
@@ -62,16 +62,16 @@ namespace Microsoft.Azure.IIoT.Hub.Client
         }
 
         /// <inheritdoc/>
-        public Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel twin, bool force,
+        public Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel device, bool force,
             CancellationToken ct)
         {
-            if (twin == null)
+            if (device == null)
             {
-                throw new ArgumentNullException(nameof(twin));
+                throw new ArgumentNullException(nameof(device));
             }
-            if (string.IsNullOrEmpty(twin.Id))
+            if (string.IsNullOrEmpty(device.Id))
             {
-                throw new ArgumentNullException(nameof(twin.Id));
+                throw new ArgumentException("Id missing.", nameof(device));
             }
             // Retry transient errors
             return Retry2.WithExponentialBackoffAsync(_logger, async () =>
@@ -79,46 +79,46 @@ namespace Microsoft.Azure.IIoT.Hub.Client
                 // First try create device
                 try
                 {
-                    var device = NewRequest($"/devices/{twin.Id}");
-                    if (string.IsNullOrEmpty(twin.ModuleId) && !string.IsNullOrEmpty(twin.DeviceScope))
+                    var request = NewRequest($"/devices/{device.Id}");
+                    if (string.IsNullOrEmpty(device.ModuleId) && !string.IsNullOrEmpty(device.DeviceScope))
                     {
-                        _serializer.SerializeToRequest(device, new
+                        _serializer.SerializeToRequest(request, new
                         {
-                            deviceId = twin.Id,
-                            capabilities = twin.Capabilities,
-                            deviceScope = twin.DeviceScope
+                            deviceId = device.Id,
+                            capabilities = device.Capabilities,
+                            deviceScope = device.DeviceScope
                         });
                     }
                     else
                     {
-                        _serializer.SerializeToRequest(device, new
+                        _serializer.SerializeToRequest(request, new
                         {
-                            deviceId = twin.Id,
-                            capabilities = twin.Capabilities
+                            deviceId = device.Id,
+                            capabilities = device.Capabilities
                         });
                     }
-                    var response = await _httpClient.PutAsync(device, ct).ConfigureAwait(false);
+                    var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
                     response.Validate();
                 }
                 catch (ConflictingResourceException)
-                    when (!string.IsNullOrEmpty(twin.ModuleId) || force)
+                    when (!string.IsNullOrEmpty(device.ModuleId) || force)
                 {
                     // Continue onward
                     // Update the deviceScope if the twin provided is for leaf iot device
                     //  (not iotedge device or iotedge module)
-                    if (!((twin.Capabilities?.IotEdge) ?? false) &&
-                        string.IsNullOrEmpty(twin.ModuleId) &&
-                        !string.IsNullOrEmpty(twin.DeviceScope))
+                    if (!((device.Capabilities?.IotEdge) ?? false) &&
+                        string.IsNullOrEmpty(device.ModuleId) &&
+                        !string.IsNullOrEmpty(device.DeviceScope))
                     {
                         try
                         {
-                            var update = NewRequest($"/devices/{twin.Id}");
+                            var update = NewRequest($"/devices/{device.Id}");
                             update.Headers.Add("If-Match",
-                                $"\"{(string.IsNullOrEmpty(twin.Etag) || force ? "*" : twin.Etag)}\"");
+                                $"\"{(string.IsNullOrEmpty(device.Etag) || force ? "*" : device.Etag)}\"");
                             _serializer.SerializeToRequest(update, new
                             {
-                                deviceId = twin.Id,
-                                deviceScope = twin.DeviceScope
+                                deviceId = device.Id,
+                                deviceScope = device.DeviceScope
                             });
                             var response = await _httpClient.PutAsync(update, ct).ConfigureAwait(false);
                             // just throw if the update fails
@@ -131,17 +131,17 @@ namespace Microsoft.Azure.IIoT.Hub.Client
                         }
                     }
                 }
-                if (!string.IsNullOrEmpty(twin.ModuleId))
+                if (!string.IsNullOrEmpty(device.ModuleId))
                 {
                     // Try create module
                     try
                     {
                         var module = NewRequest(
-                            $"/devices/{twin.Id}/modules/{twin.ModuleId}");
+                            $"/devices/{device.Id}/modules/{device.ModuleId}");
                         _serializer.SerializeToRequest(module, new
                         {
-                            deviceId = twin.Id,
-                            moduleId = twin.ModuleId
+                            deviceId = device.Id,
+                            moduleId = device.ModuleId
                         });
                         var response = await _httpClient.PutAsync(module, ct).ConfigureAwait(false);
                         response.Validate();
@@ -151,39 +151,39 @@ namespace Microsoft.Azure.IIoT.Hub.Client
                     {
                     }
                 }
-                return await PatchAsync(twin, true, ct).ConfigureAwait(false);  // Force update of twin
+                return await PatchAsync(device, true, ct).ConfigureAwait(false);  // Force update of twin
             }, ct, kMaxRetryCount);
         }
 
         /// <inheritdoc/>
-        public Task<DeviceTwinModel> PatchAsync(DeviceTwinModel twin, bool force, CancellationToken ct)
+        public Task<DeviceTwinModel> PatchAsync(DeviceTwinModel device, bool force, CancellationToken ct)
         {
-            if (twin == null)
+            if (device == null)
             {
-                throw new ArgumentNullException(nameof(twin));
+                throw new ArgumentNullException(nameof(device));
             }
-            if (string.IsNullOrEmpty(twin.Id))
+            if (string.IsNullOrEmpty(device.Id))
             {
-                throw new ArgumentNullException(nameof(twin.Id));
+                throw new ArgumentException("Id missing", nameof(device));
             }
             return Retry2.WithExponentialBackoffAsync(_logger, async () =>
             {
                 // Then update twin assuming it now exists. If fails, retry...
                 var patch = NewRequest(
-                    $"/twins/{ToResourceId(twin.Id, twin.ModuleId)}");
+                    $"/twins/{ToResourceId(device.Id, device.ModuleId)}");
                 patch.Headers.Add("If-Match",
-                    $"\"{(string.IsNullOrEmpty(twin.Etag) || force ? "*" : twin.Etag)}\"");
-                if (!string.IsNullOrEmpty(twin.ModuleId))
+                    $"\"{(string.IsNullOrEmpty(device.Etag) || force ? "*" : device.Etag)}\"");
+                if (!string.IsNullOrEmpty(device.ModuleId))
                 {
                     // Patch module
                     _serializer.SerializeToRequest(patch, new
                     {
-                        deviceId = twin.Id,
-                        moduleId = twin.ModuleId,
-                        tags = twin.Tags ?? new Dictionary<string, VariantValue>(),
+                        deviceId = device.Id,
+                        moduleId = device.ModuleId,
+                        tags = device.Tags ?? new Dictionary<string, VariantValue>(),
                         properties = new
                         {
-                            desired = twin.Properties?.Desired ?? new Dictionary<string, VariantValue>()
+                            desired = device.Properties?.Desired ?? new Dictionary<string, VariantValue>()
                         }
                     });
                 }
@@ -192,11 +192,11 @@ namespace Microsoft.Azure.IIoT.Hub.Client
                     // Patch device
                     _serializer.SerializeToRequest(patch, new
                     {
-                        deviceId = twin.Id,
-                        tags = twin.Tags ?? new Dictionary<string, VariantValue>(),
+                        deviceId = device.Id,
+                        tags = device.Tags ?? new Dictionary<string, VariantValue>(),
                         properties = new
                         {
-                            desired = twin.Properties?.Desired ?? new Dictionary<string, VariantValue>()
+                            desired = device.Properties?.Desired ?? new Dictionary<string, VariantValue>()
                         }
                     });
                 }
@@ -206,7 +206,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client
                     var result = _serializer.DeserializeResponse<DeviceTwinModel>(response);
                     _logger.LogInformation(
                         "{Id} ({ModuleId}) created or updated ({TwinEtag} -> {ResultEtag})",
-                        twin.Id, twin.ModuleId ?? string.Empty, twin.Etag ?? "*", result.Etag);
+                        device.Id, device.ModuleId ?? string.Empty, device.Etag ?? "*", result.Etag);
                     return result;
                 }
             }, ct, kMaxRetryCount);
@@ -226,7 +226,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client
             }
             if (string.IsNullOrEmpty(parameters.Name))
             {
-                throw new ArgumentNullException(nameof(parameters.Name));
+                throw new ArgumentException("Name missing.", nameof(parameters));
             }
             var request = NewRequest(
                 $"/twins/{ToResourceId(deviceId, moduleId)}/methods");

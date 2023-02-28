@@ -3,10 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace MqttTestValidator.Interfaces {
+namespace MqttTestValidator.Interfaces
+{
     using System.Linq.Expressions;
 
-    public interface ITaskRepository {
+    public interface ITaskRepository
+    {
         /// <summary>
         /// Check if id exist
         /// </summary>

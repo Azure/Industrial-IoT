@@ -5,11 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions
 {
-    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
     using Microsoft.Azure.IIoT.Http;
     using Furly.Extensions.Serializers;
     using System;
-    using System.IO;
 
     /// <summary>
     /// Serializer extensions

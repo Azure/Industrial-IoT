@@ -111,7 +111,7 @@ namespace System.IO
             {
                 while (true)
                 {
-                    var read = await stream.ReadAsync(body, offset, body.Length - offset).ConfigureAwait(false);
+                    var read = await stream.ReadAsync(body.AsMemory(offset, body.Length - offset)).ConfigureAwait(false);
                     if (read <= 0)
                     {
                         break;

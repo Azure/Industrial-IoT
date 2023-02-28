@@ -6,9 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Models;
-    using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
@@ -22,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -1371,13 +1368,13 @@ Actual (revised) state/desired state:
         /// <param name="metrics"></param>
         public OpcUaSubscription(IMetricsContext metrics)
         {
-            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
                 () => new Measurement<long>(NumberOfGoodNodes, metrics.TagList), "Monitored items",
                 "Monitored items successfully created..");
-            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
                 () => new Measurement<long>(NumberOfBadNodes, metrics.TagList), "Monitored items",
                 "Monitored items with errors.");
-            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
                 () => new Measurement<long>(_currentlyMonitored.Count, metrics.TagList), "Monitored items",
                 "Monitored item count.");
             _metrics = metrics;

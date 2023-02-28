@@ -306,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_connection_retries"] =
                     (d, i) => d.ConnectionRetries = (long)i
 
-                // ... Add here more items if needed
+                    // ... Add here more items if needed
             };
     }
 }

@@ -3,21 +3,25 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests {
-    using Azure.IIoT.OpcUa.Api.Models;
+namespace IIoTPlatform_E2E_Tests
+{
+    using Azure.IIoT.OpcUa.Models;
     using Xunit;
 
-    internal static partial class TestHelper {
-
+    internal static partial class TestHelper
+    {
         /// <summary>
         /// Publisher related helper methods
         /// </summary>
-        public static class Publisher {
-
+        public static class Publisher
+        {
             /// <summary>
             /// Compare PublishNodesEndpointApiModel with PublishedNodeApiModel
             /// </summary>
-            public static void AssertEndpointModel(PublishedNodesEntryModel expected, PublishedNodesEntryModel actual) {
+            /// <param name="expected"></param>
+            /// <param name="actual"></param>
+            public static void AssertEndpointModel(PublishedNodesEntryModel expected, PublishedNodesEntryModel actual)
+            {
                 Assert.Equal(expected.DataSetPublishingInterval, actual.DataSetPublishingInterval);
                 Assert.Equal(expected.DataSetPublishingIntervalTimespan, actual.DataSetPublishingIntervalTimespan);
                 Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);
@@ -32,10 +36,12 @@ namespace IIoTPlatform_E2E_Tests {
             /// Compare PublishNodesEndpointApiModel of requst with DiagnosticInfoApiModel returned
             /// from GetDiagnosticInfo direct method call.
             /// </summary>
+            /// <param name="expected"></param>
+            /// <param name="diagnosticInfo"></param>
             public static void AssertEndpointDiagnosticInfoModel(
                 PublishedNodesEntryModel expected,
-                PublishDiagnosticInfoModel diagnosticInfo) {
-
+                PublishDiagnosticInfoModel diagnosticInfo)
+            {
                 var actual = diagnosticInfo.Endpoint;
 
                 Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);

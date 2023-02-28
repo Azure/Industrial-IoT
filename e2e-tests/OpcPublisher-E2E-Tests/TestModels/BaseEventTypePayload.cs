@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.TestModels {
+namespace OpcPublisher_AE_E2E_Tests.TestModels
+{
     using Newtonsoft.Json;
     using System;
 
     /// <summary>Base class for payload types.</summary>
-    public class BaseEventTypePayload {
+    public class BaseEventTypePayload
+    {
         /// <summary>Gets or sets event id.</summary>
         /// <example>"V1_DoorOpen(294)" represented as JSON base-64 encoded string "VjFfRG9vck9wZW4oMjk0KQ==".</example>
         [JsonProperty("EventId")]

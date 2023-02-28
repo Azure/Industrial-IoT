@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         private readonly ITestOutputHelper _output;
 
         public MqttPubSubIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output)
-            : base(fixture, LogFactory.Create(output, new LoggingConfig { LogLevel = LogLevel.Information}))
+            : base(fixture, LogFactory.Create(output, new LoggingConfig { LogLevel = LogLevel.Information }))
         {
             _output = output;
         }

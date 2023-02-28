@@ -3,8 +3,6 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.Azure.IIoT.Http.Default
 {
     using Microsoft.Azure.IIoT.Utils;
@@ -80,6 +78,7 @@ namespace Microsoft.Azure.IIoT.Http.Default
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException"></exception>
         private static byte[] GetRequestBuffer(HttpRequestMessage request)
         {
             if (request == null)
@@ -88,7 +87,7 @@ namespace Microsoft.Azure.IIoT.Http.Default
             }
             if (request.RequestUri == null)
             {
-                throw new ArgumentNullException(nameof(request.RequestUri));
+                throw new ArgumentException("Request id missing", nameof(request));
             }
 
             if (string.IsNullOrEmpty(request.Headers.Host))
@@ -100,17 +99,15 @@ namespace Microsoft.Azure.IIoT.Http.Default
 
             var builder = new StringBuilder();
             // request-line  = method SP request-target SP HTTP-version CRLF
-            builder.Append(request.Method);
-            builder.Append(kSpace);
-            builder.Append(request.RequestUri.PathAndQuery);
-            builder.Append(kSpace);
-            builder.Append(kProtocol).Append(kProtoVersionSep);
-            builder.Append(new Version(1, 1).ToString(2));
-            builder.Append(kCR);
-            builder.Append(kLF);
-
-            // Headers
-            builder.Append(request.Headers);
+            builder = builder.Append(request.Method)
+                .Append(kSpace)
+                .Append(request.RequestUri.PathAndQuery)
+                .Append(kSpace)
+                .Append(kProtocol).Append(kProtoVersionSep)
+                .Append(new Version(1, 1).ToString(2))
+                .Append(kCR)
+                .Append(kLF)
+                .Append(request.Headers);
 
             if (request.Content != null)
             {
@@ -119,12 +116,12 @@ namespace Microsoft.Azure.IIoT.Http.Default
                 {
                     request.Content.Headers.ContentLength = contentLength.Value;
                 }
-                builder.Append(request.Content.Headers);
+                builder = builder.Append(request.Content.Headers);
             }
 
             // Headers end
-            builder.Append(kCR);
-            builder.Append(kLF);
+            builder = builder.Append(kCR)
+                .Append(kLF);
             return Encoding.ASCII.GetBytes(builder.ToString());
         }
 
@@ -298,11 +295,15 @@ namespace Microsoft.Azure.IIoT.Http.Default
             }
 
             private const int s_nativePathOffset = 2;
-            // = offsetof(struct sockaddr_un, sun_path). It's the same on Linux and OSX
+            /// <summary>
+            /// = offsetof(struct sockaddr_un, sun_path). It's the same on Linux and OSX
+            /// </summary>
             private const int s_nativePathLength = 91;
-            // sockaddr_un.sun_path
-            // at http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_un.h.html,
-            // -1 for terminator
+            /// <summary>
+            /// sockaddr_un.sun_path
+            /// at http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_un.h.html,
+            /// -1 for terminator
+            /// </summary>
             private const int s_nativeAddressSize =
                 s_nativePathOffset + s_nativePathLength;
 

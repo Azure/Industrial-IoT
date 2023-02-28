@@ -14,25 +14,6 @@ namespace Microsoft.Azure.IIoT.Diagnostics
     public static class Diagnostics
     {
         /// <summary>
-        /// Helper - remove when moving to 7.0, then update below
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
-        /// <param name="observeValue"></param>
-        /// <param name="unit"></param>
-        /// <param name="description"></param>
-        public static void Meter_CreateObservableUpDownCounter<T>(string name,
-            Func<Measurement<T>> observeValue, string unit = null,
-            string description = null) where T : struct
-        {
-#if NET6_0
-            Meter.CreateObservableGauge(name, observeValue, unit, description);
-#else
-            Meter.CreateObservableUpDownCounter(name, observeValue, unit, description);
-#endif
-        }
-
-        /// <summary>
         /// Metrics
         /// </summary>
         public static readonly Meter Meter = new("Azure.Industrial-IoT", "2.9");

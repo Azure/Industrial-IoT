@@ -5,8 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client
 {
-    using System;
-
     /// <summary>
     /// Interface that grants access to an IClient.
     /// </summary>

@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Main entry point

@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             _services = services;
             _connection = connection;
             _serializer = new DefaultJsonSerializer();
-			_newMetadata = newMetadata;
+            _newMetadata = newMetadata;
         }
 
         public async Task NodeMethodMetadataStaticArrayMethod1TestAsync()
@@ -39,24 +39,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-			MethodMetadataModel result;
-			if (!_newMetadata)
-			{
-            	result = await service.GetMethodMetadataAsync(_connection,
-                	new MethodMetadataRequestModel
-                	{
+            MethodMetadataModel result;
+            if (!_newMetadata)
+            {
+                result = await service.GetMethodMetadataAsync(_connection,
+                    new MethodMetadataRequestModel
+                    {
                         MethodId = methodId
                     }).ConfigureAwait(false);
-			}
-			else
-			{
-				var metadata = await service.GetMetadataAsync(_connection,
-                	new NodeMetadataRequestModel
-                	{
-						NodeId = methodId
-                	}).ConfigureAwait(false);
-            	result = metadata.MethodMetadata;
-			}
+            }
+            else
+            {
+                var metadata = await service.GetMetadataAsync(_connection,
+                    new NodeMetadataRequestModel
+                    {
+                        NodeId = methodId
+                    }).ConfigureAwait(false);
+                result = metadata.MethodMetadata;
+            }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -357,24 +357,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-			MethodMetadataModel result;
-			if (!_newMetadata)
-			{
-            	result = await service.GetMethodMetadataAsync(_connection,
-                	new MethodMetadataRequestModel
-                	{
+            MethodMetadataModel result;
+            if (!_newMetadata)
+            {
+                result = await service.GetMethodMetadataAsync(_connection,
+                    new MethodMetadataRequestModel
+                    {
                         MethodId = methodId
                     }).ConfigureAwait(false);
-			}
-			else
-			{
-				var metadata = await service.GetMetadataAsync(_connection,
-                	new NodeMetadataRequestModel
-                	{
-						NodeId = methodId
-                	}).ConfigureAwait(false);
-            	result = metadata.MethodMetadata;
-			}
+            }
+            else
+            {
+                var metadata = await service.GetMetadataAsync(_connection,
+                    new NodeMetadataRequestModel
+                    {
+                        NodeId = methodId
+                    }).ConfigureAwait(false);
+                result = metadata.MethodMetadata;
+            }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
@@ -649,24 +649,24 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-			MethodMetadataModel result;
-			if (!_newMetadata)
-			{
-            	result = await service.GetMethodMetadataAsync(_connection,
-                	new MethodMetadataRequestModel
-                	{
+            MethodMetadataModel result;
+            if (!_newMetadata)
+            {
+                result = await service.GetMethodMetadataAsync(_connection,
+                    new MethodMetadataRequestModel
+                    {
                         MethodId = methodId
                     }).ConfigureAwait(false);
-			}
-			else
-			{
-				var metadata = await service.GetMetadataAsync(_connection,
-                	new NodeMetadataRequestModel
-                	{
-						NodeId = methodId
-                	}).ConfigureAwait(false);
-            	result = metadata.MethodMetadata;
-			}
+            }
+            else
+            {
+                var metadata = await service.GetMetadataAsync(_connection,
+                    new NodeMetadataRequestModel
+                    {
+                        NodeId = methodId
+                    }).ConfigureAwait(false);
+                result = metadata.MethodMetadata;
+            }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);

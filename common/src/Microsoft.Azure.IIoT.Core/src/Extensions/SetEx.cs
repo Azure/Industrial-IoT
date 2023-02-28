@@ -27,10 +27,8 @@ namespace System.Collections.Generic
                 {
                     return b.ToHashSetSafe();
                 }
-                else
-                {
-                    return a.Concat(b).ToHashSet();
-                }
+
+                return a.Concat(b).ToHashSet();
             }
             return a;
         }

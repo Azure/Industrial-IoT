@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Standalone {
-
+namespace IIoTPlatform_E2E_Tests.Standalone
+{
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -19,8 +19,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// <summary>
     /// Base class for test suites that validate functionality of direct method calls.
     /// </summary>
-    public class DirectMethodTestBase : IDisposable {
-
+    public class DirectMethodTestBase : IDisposable
+    {
         protected readonly ITestOutputHelper _output;
         protected readonly IIoTMultipleNodesTestContext _context;
         protected readonly ServiceClient _iotHubClient;
@@ -31,15 +31,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="output"></param>
+        /// <param name="context"></param>
         public DirectMethodTestBase(
             ITestOutputHelper output,
             IIoTMultipleNodesTestContext context
-        ) {
+        )
+        {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
             _iotHubPublisherDeviceName = _context.DeviceConfig.DeviceId;
-            _serializer = new NewtonSoftJsonSerializer();
+            _serializer = new NewtonsoftJsonSerializer();
 
             // Initialize DeviceServiceClient from IoT Hub connection string.
             _iotHubClient = TestHelper.DeviceServiceClient(
@@ -57,7 +60,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         public async Task<MethodResultModel> CallMethodAsync(
             MethodParameterModel parameters,
             CancellationToken ct
-        ) {
+        )
+        {
             return await TestHelper.CallMethodAsync(
                 _iotHubClient,
                 _iotHubPublisherDeviceName,
@@ -73,21 +77,22 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         /// </summary>
         /// <param name="moduleName"> Module name. </param>
         /// <param name="ct"> Cancellation token. </param>
-        public async Task<MethodResultModel> RestartModule(
+        public async Task<MethodResultModel> RestartModuleAsync(
             string moduleName,
-            CancellationToken ct) {
-
+            CancellationToken ct)
+        {
             var payload = new Dictionary<string, string> {
                 {"schemaVersion", "1.0" },
-                {"id", moduleName },
+                {"id", moduleName }
             };
 
-            var parameters = new MethodParameterModel {
+            var parameters = new MethodParameterModel
+            {
                 Name = "RestartModule",
                 JsonPayload = _serializer.SerializeToString(payload)
             };
 
-            var moduleRestartResponse = await TestHelper.CallMethodAsync(
+            return await TestHelper.CallMethodAsync(
                 _iotHubClient,
                 _iotHubPublisherDeviceName,
                 "$edgeAgent",
@@ -95,13 +100,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 _context,
                 ct
             ).ConfigureAwait(false);
-
-            return moduleRestartResponse;
         }
 
         /// <inheritdoc/>
-        public virtual void Dispose() {
+        public virtual void Dispose()
+        {
             _iotHubClient?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

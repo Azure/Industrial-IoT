@@ -11,8 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Module.Framework;
     using System;
-    using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>

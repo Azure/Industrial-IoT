@@ -72,11 +72,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// <summary>
         /// Start publishing node values
         /// </summary>
-        /// <param name="endpoint"></param>
+        /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<PublishStartResponseModel> NodePublishStartAsync(ConnectionModel endpoint,
+        Task<PublishStartResponseModel> PublishStartAsync(ConnectionModel connection,
             PublishStartRequestModel request, CancellationToken ct = default);
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<PublishStopResponseModel> NodePublishStopAsync(ConnectionModel connection,
+        Task<PublishStopResponseModel> PublishStopAsync(ConnectionModel connection,
             PublishStopRequestModel request, CancellationToken ct = default);
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<PublishBulkResponseModel> NodePublishBulkAsync(ConnectionModel connection,
+        Task<PublishBulkResponseModel> PublishBulkAsync(ConnectionModel connection,
             PublishBulkRequestModel request, CancellationToken ct = default);
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<PublishedItemListResponseModel> NodePublishListAsync(ConnectionModel connection,
+        Task<PublishedItemListResponseModel> PublishListAsync(ConnectionModel connection,
             PublishedItemListRequestModel request, CancellationToken ct = default);
 
         /// <summary>

@@ -333,22 +333,22 @@ namespace Azure.IIoT.OpcUa.Services.Sdk
         /// <summary>
         /// Get gateway
         /// </summary>
-        /// <param name="gatewayId"></param>
+        /// <param name="publisherId"></param>
         /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<PublisherModel> GetPublisherAsync(
-            string gatewayId, bool? onlyServerState = null,
+            string publisherId, bool? onlyServerState = null,
             CancellationToken ct = default);
 
         /// <summary>
         /// Update Publisher including config updates.
         /// </summary>
-        /// <param name="gatewayId"></param>
+        /// <param name="publisherId"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task UpdatePublisherAsync(string gatewayId,
+        Task UpdatePublisherAsync(string publisherId,
             PublisherUpdateModel request,
             CancellationToken ct = default);
 

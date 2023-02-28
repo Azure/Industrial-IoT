@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic {
+namespace TestEventProcessor.BusinessLogic
+{
     using Azure.Messaging.EventHubs.Processor;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json.Linq;
@@ -18,7 +19,8 @@ namespace TestEventProcessor.BusinessLogic {
     using TestEventProcessor.Businesslogic;
     using TestEventProcessor.BusinessLogic.Checkers;
 
-    public class TelemetryValidator : ITelemetryValidator {
+    public sealed class TelemetryValidator : ITelemetryValidator, IDisposable
+    {
         private TelemetryValidatorProcessor _instance;
         private EventProcessorWrapper _lastClient;
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
@@ -28,7 +30,8 @@ namespace TestEventProcessor.BusinessLogic {
         /// Create instance of TelemetryValidator
         /// </summary>
         /// <param name="logger">Instance to write logs</param>
-        public TelemetryValidator(ILogger<TelemetryValidator> logger) {
+        public TelemetryValidator(ILogger<TelemetryValidator> logger)
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -39,17 +42,20 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         /// <param name="token">Token to cancel the operation</param>
         /// <returns>Task that run until token is canceled</returns>
-        public async Task<StartResult> StartAsync(ValidatorConfiguration configuration) {
+        public async Task<StartResult> StartAsync(ValidatorConfiguration configuration)
+        {
             var sw = Stopwatch.StartNew();
-            await _lock.WaitAsync();
+            await _lock.WaitAsync().ConfigureAwait(false);
 
-            if (_instance != null) {
+            if (_instance != null)
+            {
                 _lock.Release();
                 throw new InvalidOperationException("Already started telemetry validation processor.");
             }
 
             _logger.LogInformation("StartAsync called.");
-            try {
+            try
+            {
                 // Check if already started.
                 Debug.Assert(_instance == null);
 
@@ -57,16 +63,19 @@ namespace TestEventProcessor.BusinessLogic {
                 _lastClient = await _instance.StartAsync(_lastClient).ConfigureAwait(false);
                 return new StartResult();
             }
-            catch {
-                if (_instance != null) {
+            catch
+            {
+                if (_instance != null)
+                {
                     // Failed to start, dispose and throw
                     _instance.Dispose();
                     _instance = null;
                 }
                 throw;
             }
-            finally {
-                _logger.LogInformation("StartAsync finished in {elapsed}", sw.Elapsed);
+            finally
+            {
+                _logger.LogInformation("StartAsync finished in {Elapsed}", sw.Elapsed);
                 _lock.Release();
             }
         }
@@ -75,33 +84,45 @@ namespace TestEventProcessor.BusinessLogic {
         /// Stop monitoring of events.
         /// </summary>
         /// <returns></returns>
-        public async Task<StopResult> StopAsync() {
+        public async Task<StopResult> StopAsync()
+        {
             var sw = Stopwatch.StartNew();
-            await _lock.WaitAsync();
-            try {
-                if (_instance != null) {
+            await _lock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_instance != null)
+                {
                     _logger.LogInformation("StopAsync called.");
                     return _instance.Stop();
                 }
-                else {
+                else
+                {
                     // Alredy stopped, nothing to do
                     return new StopResult();
                 }
             }
-            finally {
-                if (_instance != null) {
+            finally
+            {
+                if (_instance != null)
+                {
                     _instance.Dispose();
                     _instance = null;
-                    _logger.LogInformation("StopAsync finished in {elapsed}", sw.Elapsed);
+                    _logger.LogInformation("StopAsync finished in {Elapsed}", sw.Elapsed);
                 }
                 _lock.Release();
             }
         }
 
+        public void Dispose()
+        {
+            _lock.Dispose();
+        }
+
         /// <summary>
         /// Validates the value changes within IoT Hub Methods
         /// </summary>
-        private sealed class TelemetryValidatorProcessor : IDisposable {
+        private sealed class TelemetryValidatorProcessor : IDisposable
+        {
             private readonly CancellationTokenSource _cancellationTokenSource;
             private EventProcessorWrapper _clientWrapper;
             private DateTime _startTime = DateTime.MinValue;
@@ -133,40 +154,51 @@ namespace TestEventProcessor.BusinessLogic {
             /// Create instance of TelemetryValidator
             /// </summary>
             /// <param name="logger">Instance to write logs</param>
-            public TelemetryValidatorProcessor(ILogger<TelemetryValidator> logger, ValidatorConfiguration configuration) {
+            public TelemetryValidatorProcessor(ILogger<TelemetryValidator> logger, ValidatorConfiguration configuration)
+            {
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
                 // Check provided configuration.
-                if (configuration == null) {
+                if (configuration == null)
+                {
                     throw new ArgumentNullException(nameof(configuration));
                 }
 
-                if (configuration.ExpectedValueChangesPerTimestamp < 0) {
-                    throw new ArgumentNullException("Invalid configuration detected, expected value changes per timestamp can't be lower than zero");
+                if (configuration.ExpectedValueChangesPerTimestamp < 0)
+                {
+                    throw new ArgumentException("Invalid configuration detected, expected value changes per timestamp can't be lower than zero");
                 }
-                if (configuration.ExpectedIntervalOfValueChanges < 0) {
-                    throw new ArgumentNullException("Invalid configuration detected, expected interval of value changes can't be lower than zero");
+                if (configuration.ExpectedIntervalOfValueChanges < 0)
+                {
+                    throw new ArgumentException("Invalid configuration detected, expected interval of value changes can't be lower than zero");
                 }
-                if (configuration.ExpectedMaximalDuration < 0) {
-                    throw new ArgumentNullException("Invalid configuration detected, maximal total duration can't be lower than zero");
+                if (configuration.ExpectedMaximalDuration < 0)
+                {
+                    throw new ArgumentException("Invalid configuration detected, maximal total duration can't be lower than zero");
                 }
-                if (configuration.ThresholdValue <= 0) {
-                    throw new ArgumentNullException("Invalid configuration detected, threshold can't be negative or zero");
+                if (configuration.ThresholdValue <= 0)
+                {
+                    throw new ArgumentException("Invalid configuration detected, threshold can't be negative or zero");
                 }
 
-                if (string.IsNullOrWhiteSpace(configuration.IoTHubEventHubEndpointConnectionString)) {
-                    throw new ArgumentNullException(nameof(configuration.IoTHubEventHubEndpointConnectionString));
+                if (string.IsNullOrWhiteSpace(configuration.IoTHubEventHubEndpointConnectionString))
+                {
+                    throw new ArgumentException("Missing connection string", nameof(configuration));
                 }
-                if (string.IsNullOrWhiteSpace(configuration.StorageConnectionString)) {
-                    throw new ArgumentNullException(nameof(configuration.StorageConnectionString));
+                if (string.IsNullOrWhiteSpace(configuration.StorageConnectionString))
+                {
+                    throw new ArgumentException("Missing connection string", nameof(configuration));
                 }
-                if (string.IsNullOrWhiteSpace(configuration.BlobContainerName)) {
-                    throw new ArgumentNullException(nameof(configuration.BlobContainerName));
+                if (string.IsNullOrWhiteSpace(configuration.BlobContainerName))
+                {
+                    throw new ArgumentException("Missing blob container name", nameof(configuration));
                 }
-                if (string.IsNullOrWhiteSpace(configuration.EventHubConsumerGroup)) {
-                    throw new ArgumentNullException(nameof(configuration.EventHubConsumerGroup));
+                if (string.IsNullOrWhiteSpace(configuration.EventHubConsumerGroup))
+                {
+                    throw new ArgumentException("Missing consumer groupo", nameof(configuration));
                 }
-                if (configuration.ExpectedMaximalDuration == 0) {
+                if (configuration.ExpectedMaximalDuration == 0)
+                {
                     configuration.ExpectedMaximalDuration = uint.MaxValue;
                 }
 
@@ -197,7 +229,7 @@ namespace TestEventProcessor.BusinessLogic {
                     _logger
                 );
 
-                _valueChangeCounterPerNodeId = new ValueChangeCounterPerNodeId(_logger);
+                _valueChangeCounterPerNodeId = new ValueChangeCounterPerNodeId();
 
                 _missingValueChangesChecker = new MissingValueChangesChecker(
                     _currentConfiguration.ExpectedValueChangesPerTimestamp,
@@ -215,25 +247,31 @@ namespace TestEventProcessor.BusinessLogic {
                 _restartAnnouncementReceived = false;
             }
 
-            public async Task<EventProcessorWrapper> StartAsync(EventProcessorWrapper clientWrapper) {
-                if (clientWrapper == null || clientWrapper.GetHashCode() != EventProcessorWrapper.GetHashCode(_currentConfiguration)) {
-                    if (clientWrapper != null) {
+            public async Task<EventProcessorWrapper> StartAsync(EventProcessorWrapper clientWrapper)
+            {
+                if (clientWrapper == null || clientWrapper.GetHashCode() != EventProcessorWrapper.GetHashCode(_currentConfiguration))
+                {
+                    if (clientWrapper != null)
+                    {
                         clientWrapper.Dispose();
                     }
                     _clientWrapper = new EventProcessorWrapper(_currentConfiguration, _logger);
-                    await _clientWrapper.InitializeClient(_cancellationTokenSource.Token).ConfigureAwait(false);
+                    await _clientWrapper.InitializeClientAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
                 }
-                else {
+                else
+                {
                     _clientWrapper = clientWrapper;
                 }
-                _clientWrapper.ProcessEvent += Client_ProcessEventAsync;
-                try {
+                _clientWrapper.ProcessEvent += Client_ProcessEvent;
+                try
+                {
                     await _clientWrapper.StartProcessingAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
                     _startTime = DateTime.UtcNow;
                     return _clientWrapper;
                 }
-                catch {
-                    _clientWrapper.ProcessEvent -= Client_ProcessEventAsync;
+                catch
+                {
+                    _clientWrapper.ProcessEvent -= Client_ProcessEvent;
                     throw;
                 }
             }
@@ -242,14 +280,16 @@ namespace TestEventProcessor.BusinessLogic {
             /// Stop monitoring of events.
             /// </summary>
             /// <returns></returns>
-            public StopResult Stop() {
+            public StopResult Stop()
+            {
                 var endTime = DateTime.UtcNow;
 
                 _cancellationTokenSource.Cancel();
 
                 // Stop event monitoring and deregister handler.
-                if (_clientWrapper != null) {
-                    _clientWrapper.ProcessEvent -= Client_ProcessEventAsync;
+                if (_clientWrapper != null)
+                {
+                    _clientWrapper.ProcessEvent -= Client_ProcessEvent;
                     _clientWrapper = null;
                 }
 
@@ -259,7 +299,8 @@ namespace TestEventProcessor.BusinessLogic {
                 var maxMessageDeliveryDelay = _messageDeliveryDelayChecker.Stop();
                 var valueChangesPerNodeId = _valueChangeCounterPerNodeId.Stop();
                 var allExpectedValueChanges = true;
-                if (_currentConfiguration?.ExpectedValueChangesPerTimestamp > 0) {
+                if (_currentConfiguration?.ExpectedValueChangesPerTimestamp > 0)
+                {
 
                     // TODO collect "expected" parameter as groups related to OPC UA nodes
                     allExpectedValueChanges = valueChangesPerNodeId?
@@ -274,7 +315,8 @@ namespace TestEventProcessor.BusinessLogic {
                 var incrCheckerResult = _incrementalIntValueChecker.Stop();
                 var incrSequenceResult = _incrementalSequenceChecker.Stop();
 
-                var stopResult = new StopResult() {
+                var stopResult = new StopResult()
+                {
                     ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
                     AllExpectedValueChanges = allExpectedValueChanges,
                     TotalValueChangesCount = _totalValueChangesCount,
@@ -297,10 +339,12 @@ namespace TestEventProcessor.BusinessLogic {
             /// <summary>
             /// Dispose
             /// </summary>
-            public void Dispose() {
+            public void Dispose()
+            {
                 // Stop event monitoring and deregister handler.
-                if (_clientWrapper != null) {
-                    _clientWrapper.ProcessEvent -= Client_ProcessEventAsync;
+                if (_clientWrapper != null)
+                {
+                    _clientWrapper.ProcessEvent -= Client_ProcessEvent;
                     _clientWrapper = null;
                 }
                 _cancellationTokenSource.Dispose();
@@ -312,23 +356,28 @@ namespace TestEventProcessor.BusinessLogic {
             /// </summary>
             /// <param name="arg"></param>
             /// <returns>Task that run until token is canceled</returns>
-            private void Client_ProcessEventAsync(ProcessEventArgs arg) {
+            private void Client_ProcessEvent(ProcessEventArgs arg)
+            {
                 var sw = Stopwatch.StartNew();
 
                 var eventReceivedTimestamp = DateTime.UtcNow;
 
-                try {
-                    if (!arg.HasEvent) {
+                try
+                {
+                    if (!arg.HasEvent)
+                    {
                         _logger.LogWarning("Received partition event without content");
                         return;
                     }
 
-                    if (arg.Data.EnqueuedTime.UtcDateTime < _startTime) {
+                    if (arg.Data.EnqueuedTime.UtcDateTime < _startTime)
+                    {
                         _logger.LogDebug("Received message enqueued before starting....");
                         return;
                     }
 
-                    if (_cancellationTokenSource.IsCancellationRequested) {
+                    if (_cancellationTokenSource.IsCancellationRequested)
+                    {
                         _logger.LogDebug("Received message after stopping....");
                         return;
                     }
@@ -341,69 +390,88 @@ namespace TestEventProcessor.BusinessLogic {
                     var content = Encoding.UTF8.GetString(body);
                     var json = JToken.Parse(content);
 
-                    if (json is JObject o && CheckRestartAnnouncement(o)) {
+                    if (json is JObject o && CheckRestartAnnouncement(o))
+                    {
                         return;
                     }
 
                     var valueChangesCount = 0;
 
-                    if (json is JArray batch) {
-                        foreach (var entry in batch) {
+                    if (json is JArray batch)
+                    {
+                        foreach (var entry in batch)
+                        {
                             ProcessMessage(entry);
                         }
                     }
-                    else {
+                    else
+                    {
                         ProcessMessage(json);
                     }
 
-                    void ProcessMessage(JToken messageToken) {
-                        if (messageToken is not JObject entry) {
+                    void ProcessMessage(JToken messageToken)
+                    {
+                        if (messageToken is not JObject entry)
+                        {
                             return;
                         }
-                        try {
+                        try
+                        {
                             // validate if the message has an OPC UA PubSub message type signature
-                            if (entry.TryGetValue("MessageType", out var messageType) && ((string)messageType) == "ua-data") {
-                                if (!hasPubSubJsonHeader) {
-                                    _logger.LogInformation("Received {item} with \"ua-data\" signature but invalid content type header",
+                            if (entry.TryGetValue("MessageType", out var messageType) && ((string)messageType) == "ua-data")
+                            {
+                                if (!hasPubSubJsonHeader)
+                                {
+                                    _logger.LogInformation("Received {Message} with \"ua-data\" signature but invalid content type header",
                                         entry.ToString());
                                 }
 
-                                if (!entry.TryGetValue("Messages", out var a) || a is not JArray messages) {
-                                    _logger.LogInformation("Received {item} without messages.", entry.ToString());
+                                if (!entry.TryGetValue("Messages", out var a) || a is not JArray messages)
+                                {
+                                    _logger.LogInformation("Received {Message} without messages.", entry.ToString());
                                     return;
                                 }
 
-                                foreach (var token in messages) {
-                                    if (token is not JObject message) {
-                                        _logger.LogInformation("Message {message} is not an object.", token.ToString());
+                                foreach (var token in messages)
+                                {
+                                    if (token is not JObject message)
+                                    {
+                                        _logger.LogInformation("Message {Message} is not an object.", token.ToString());
                                         continue;
                                     }
-                                    if (!message.TryGetValue("DataSetWriterId", out var dataSetWriterId)) {
-                                        _logger.LogInformation("Message {message} does not contain writer id.", message.ToString());
+                                    if (!message.TryGetValue("DataSetWriterId", out var dataSetWriterId))
+                                    {
+                                        _logger.LogInformation("Message {Message} does not contain writer id.", message.ToString());
                                         continue;
                                     }
-                                    if (!message.TryGetValue("SequenceNumber", out var sequenceNumber)) {
-                                        _logger.LogInformation("Message {message} does not contain sequence number.", message.ToString());
+                                    if (!message.TryGetValue("SequenceNumber", out var sequenceNumber))
+                                    {
+                                        _logger.LogInformation("Message {Message} does not contain sequence number.", message.ToString());
                                         sequenceNumber = JValue.CreateNull();
                                     }
 
                                     FeedDataChangeCheckers((string)dataSetWriterId, sequenceNumber.ToObject<uint?>());
 
-                                    if (!message.TryGetValue("Payload", out var p) || p is not JObject payload) {
-                                        _logger.LogInformation("Message {item} does not have any 'Payload' object.", entry.ToString());
+                                    if (!message.TryGetValue("Payload", out var p) || p is not JObject payload)
+                                    {
+                                        _logger.LogInformation("Message {Message} does not have any 'Payload' object.", entry.ToString());
                                         continue;
                                     }
-                                    foreach (JProperty property in payload.Properties()) {
-                                        if (property.Value is not JObject dataValue) {
+                                    foreach (JProperty property in payload.Properties())
+                                    {
+                                        if (property.Value is not JObject dataValue)
+                                        {
                                             _logger.LogInformation("Payload property {Property} does not have data value.",
                                                 property.Value.ToString());
                                             continue;
                                         }
-                                        if (!dataValue.TryGetValue("SourceTimestamp", out var st) || st is not JValue sourceTimeStamp) {
+                                        if (!dataValue.TryGetValue("SourceTimestamp", out var st) || st is not JValue sourceTimeStamp)
+                                        {
                                             _logger.LogInformation("Value is missing source timestamp.", dataValue.ToString());
                                             continue;
                                         }
-                                        if (!dataValue.TryGetValue("Value", out var value)) {
+                                        if (!dataValue.TryGetValue("Value", out var value))
+                                        {
                                             value = JValue.CreateNull();
                                         }
                                         FeedDataCheckers(
@@ -416,19 +484,24 @@ namespace TestEventProcessor.BusinessLogic {
                                     }
                                 }
                             }
-                            else if (entry.TryGetValue("NodeId", out var nodeId)) {
-                                if (!entry.TryGetValue("Value", out var v) || v is not JObject dataValue) {
+                            else if (entry.TryGetValue("NodeId", out var nodeId))
+                            {
+                                if (!entry.TryGetValue("Value", out var v) || v is not JObject dataValue)
+                                {
                                     _logger.LogInformation("Message {Message} does not have data value.", entry.ToString());
                                     return;
                                 }
-                                if (!dataValue.TryGetValue("SourceTimestamp", out var st) || st is not JValue sourceTimeStamp) {
+                                if (!dataValue.TryGetValue("SourceTimestamp", out var st) || st is not JValue sourceTimeStamp)
+                                {
                                     _logger.LogInformation("Value is missing source timestamp.", dataValue.ToString());
                                     return;
                                 }
-                                if (!dataValue.TryGetValue("Value", out var value)) {
+                                if (!dataValue.TryGetValue("Value", out var value))
+                                {
                                     value = JValue.CreateNull();
                                 }
-                                if (entry.TryGetValue("Status", out var status) && status.ToString() != "Good") {
+                                if (entry.TryGetValue("Status", out var status) && status.ToString() != "Good")
+                                {
                                     _logger.LogInformation("Value has status {Status}.", status.ToString());
                                 }
                                 FeedDataCheckers(
@@ -439,12 +512,14 @@ namespace TestEventProcessor.BusinessLogic {
                                     value);
                                 valueChangesCount++;
                             }
-                            else {
+                            else
+                            {
                                 _logger.LogInformation("Message {Message} not a publisher message.", entry.ToString());
                             }
                         }
                         catch (OperationCanceledException) { throw; }
-                        catch (Exception ex) {
+                        catch (Exception ex)
+                        {
                             _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from " +
                                 "message. Please make sure that publisher is running with samples format and with " +
                                 "--fm parameter set. Message: {Content}", content);
@@ -455,26 +530,33 @@ namespace TestEventProcessor.BusinessLogic {
                         valueChangesCount, arg.Partition.PartitionId);
                 }
                 catch (OperationCanceledException) { }
-                finally {
-                    _logger.LogInformation("Processing of an event took: {elapsed}", sw.Elapsed);
+                finally
+                {
+                    _logger.LogInformation("Processing of an event took: {Elapsed}", sw.Elapsed);
                 }
             }
 
-            private bool CheckRestartAnnouncement(JObject jsonObj) {
-                try {
-                    if (!jsonObj.TryGetValue("MessageType", out var messageType)) {
+            private bool CheckRestartAnnouncement(JObject jsonObj)
+            {
+                try
+                {
+                    if (!jsonObj.TryGetValue("MessageType", out var messageType))
+                    {
                         return false;
                     }
-                    if (!jsonObj.TryGetValue("MessageVersion", out var messageVersion)) {
+                    if (!jsonObj.TryGetValue("MessageVersion", out var messageVersion))
+                    {
                         return false;
                     }
 
-                    if (messageType.Value<string>() == "RestartAnnouncement" && messageVersion.Value<int>() == 1) {
+                    if (messageType.Value<string>() == "RestartAnnouncement" && messageVersion.Value<int>() == 1)
+                    {
                         _restartAnnouncementReceived = true;
                         return true;
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _logger.LogError(ex, "Error during deserialization of restart announcement.");
                 }
                 return false;
@@ -493,11 +575,13 @@ namespace TestEventProcessor.BusinessLogic {
                 DateTime sourceTimestamp,
                 DateTime enqueuedTimestamp,
                 DateTime receivedTimestamp,
-                JToken value) {
+                JToken value)
+            {
 
                 // OPC PLC contains bad fast and slow nodes that drop messages by design.
                 // We will ignore entries that do not have a value.
-                if (value is null || value.Type == JTokenType.Null) {
+                if (value is null || value.Type == JTokenType.Null)
+                {
                     return;
                 }
 
@@ -518,8 +602,10 @@ namespace TestEventProcessor.BusinessLogic {
             /// Feed the checkers for the Data Change (one or more groupped node values) within the reveived event
             /// </summary>
             /// <param name="sequenceNumber">The actual sequence number of the data change</param>
-            private void FeedDataChangeCheckers(string dataSetWriterId, uint? sequenceNumber) {
-                if (!sequenceNumber.HasValue) {
+            private void FeedDataChangeCheckers(string dataSetWriterId, uint? sequenceNumber)
+            {
+                if (!sequenceNumber.HasValue)
+                {
                     _logger.LogWarning("Sequance number is null");
                     return;
                 }

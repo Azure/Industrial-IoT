@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Twin {
+namespace IIoTPlatform_E2E_Tests.Twin
+{
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using System;
     using System.Collections.Generic;
@@ -14,16 +15,19 @@ namespace IIoTPlatform_E2E_Tests.Twin {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection(TwinTestCollection.CollectionName)]
     [Trait(TestConstants.TraitConstants.TwinModeTraitName, TestConstants.TraitConstants.DefaultTraitValue)]
-    public class TwinReadTestTheory {
+    public class TwinReadTestTheory
+    {
         private readonly TwinTestContext _context;
 
-        public TwinReadTestTheory(TwinTestContext context, ITestOutputHelper output) {
+        public TwinReadTestTheory(TwinTestContext context, ITestOutputHelper output)
+        {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
         }
 
         [Fact, PriorityOrder(0)]
-        public void ReadAttributes() {
+        public void ReadAttributes()
+        {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             var attributes = new List<object> {

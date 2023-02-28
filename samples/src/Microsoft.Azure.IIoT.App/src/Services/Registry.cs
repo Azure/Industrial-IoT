@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.App.Services
     using global::Azure.IIoT.OpcUa.Models;
     using global::Azure.IIoT.OpcUa.Services.Sdk;
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
 
     public class Registry

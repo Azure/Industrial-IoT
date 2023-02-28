@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Opc.Ua.Client;
-    using Opc.Ua.Client.ComplexTypes;
     using System;
     using System.Threading;
     using System.Threading.Tasks;

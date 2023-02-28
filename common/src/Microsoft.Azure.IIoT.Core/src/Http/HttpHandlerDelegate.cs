@@ -63,7 +63,6 @@ namespace Microsoft.Azure.IIoT.Http.Default
             // Register validators
             var validators = handlers
                 .OfType<IHttpCertificateValidator>()
-                .Cast<IHttpCertificateValidator>()
                 .ToList();
             if (validators.Count > 0)
             {
@@ -75,7 +74,6 @@ namespace Microsoft.Azure.IIoT.Http.Default
             // Save message handlers
             _handlers = handlers
                 .OfType<IHttpMessageHandler>()
-                .Cast<IHttpMessageHandler>()
                 .OrderBy(h => h.Order)
                 .ToList();
         }

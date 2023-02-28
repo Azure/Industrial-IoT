@@ -20,7 +20,9 @@ namespace Microsoft.Azure.IIoT.Utils
         /// <param name="tasks"></param>
         /// <returns></returns>
 #pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable AMNF0001 // Asynchronous method name is not ending with 'Async'
         public static async Task<IAsyncDisposable> AsAsyncDisposable(
+#pragma warning restore AMNF0001 // Asynchronous method name is not ending with 'Async'
             this IEnumerable<Task<IAsyncDisposable>> tasks)
         {
 #pragma warning restore IDE1006 // Naming Styles

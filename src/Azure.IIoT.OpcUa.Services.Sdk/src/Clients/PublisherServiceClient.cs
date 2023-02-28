@@ -8,8 +8,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
-    using Microsoft.Azure.IIoT.Http;
     using System;
     using System.Net.Http;
     using System.Threading;
@@ -85,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             }
             if (request.Item == null)
             {
-                throw new ArgumentNullException(nameof(request.Item));
+                throw new ArgumentException("Item missing", nameof(request));
             }
             var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}/start");
             return await _httpClient.PostAsync<PublishStartResponseModel>(

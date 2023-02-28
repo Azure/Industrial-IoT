@@ -8,8 +8,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
-    using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Utils;
     using System;
@@ -84,34 +82,34 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task NodePublishSubscribeByEndpointAsync(string endpointId,
-            string connectionId, CancellationToken ct)
+            string userId, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (string.IsNullOrEmpty(connectionId))
+            if (string.IsNullOrEmpty(userId))
             {
-                throw new ArgumentNullException(nameof(connectionId));
+                throw new ArgumentNullException(nameof(userId));
             }
             var uri = new Uri($"{_serviceUri}/events/v2/telemetry/{endpointId}/samples");
-            await _httpClient.PutAsync(uri, connectionId, _serializer,
+            await _httpClient.PutAsync(uri, userId, _serializer,
                 ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task NodePublishUnsubscribeByEndpointAsync(string endpointId, string connectionId,
-            CancellationToken ct)
+        public async Task NodePublishUnsubscribeByEndpointAsync(string endpointId,
+            string userId, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (string.IsNullOrEmpty(connectionId))
+            if (string.IsNullOrEmpty(userId))
             {
-                throw new ArgumentNullException(nameof(connectionId));
+                throw new ArgumentNullException(nameof(userId));
             }
-            var uri = new Uri($"{_serviceUri}/events/v2/telemetry/{endpointId}/samples/{connectionId}");
+            var uri = new Uri($"{_serviceUri}/events/v2/telemetry/{endpointId}/samples/{userId}");
             await _httpClient.DeleteAsync(uri, ct: ct).ConfigureAwait(false);
         }
 

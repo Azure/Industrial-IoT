@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.App.Pages
     using global::Azure.IIoT.OpcUa.Models;
     using System;
     using System.Globalization;
-    using System.Linq;
     using System.Threading.Tasks;
 
     public sealed partial class Applications

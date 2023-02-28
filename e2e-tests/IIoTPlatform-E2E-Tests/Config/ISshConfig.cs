@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Config {
-
-    public interface ISshConfig {
-
+namespace IIoTPlatform_E2E_Tests.Config
+{
+    public interface ISshConfig
+    {
         /// <summary>
         /// Username used for ssh authentication
         /// </summary>

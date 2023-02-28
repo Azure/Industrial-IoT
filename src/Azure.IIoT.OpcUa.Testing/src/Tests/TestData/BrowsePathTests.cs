@@ -6,9 +6,6 @@
 namespace Azure.IIoT.OpcUa.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Models;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Json;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;

@@ -144,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             /// <param name="provider"></param>
             /// <param name="jsonSettings"></param>
             /// <returns></returns>
-            /// <exception cref="ArgumentException"></exception>
+            /// <exception cref="ArgumentNullException"></exception>
             internal static async Task<SignalRClientRegistrar> CreateAsync(
                 ISignalRClientConfig config, string endpointUrl, ILogger logger,
                 string resourceId, ITokenProvider provider,
@@ -152,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             {
                 if (string.IsNullOrEmpty(endpointUrl))
                 {
-                    throw new ArgumentException(nameof(endpointUrl));
+                    throw new ArgumentNullException(nameof(endpointUrl));
                 }
 
                 var host = new SignalRHubClientHost(endpointUrl,

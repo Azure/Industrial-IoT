@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace MqttTestValidator.Models {
+namespace MqttTestValidator.Models
+{
     using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
 
-    public class MqttVerificationRequest {
+    public class MqttVerificationRequest
+    {
         /// <summary>
         /// The IP or DNS name of MQTT V5 broker to connect to
         /// </summary>

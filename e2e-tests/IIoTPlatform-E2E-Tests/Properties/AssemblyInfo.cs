@@ -1,5 +1,3 @@
-using IIoTPlatform_E2E_Tests;
-using IIoTPlatform_E2E_Tests.TestExtensions;
 using System.Runtime.InteropServices;
 using Xunit;
 
@@ -7,7 +5,6 @@ using Xunit;
 // defined in this file are now automatically added during build and populated with
 // values defined in project properties. For details of which attributes are included
 // and how to customise this process see: https://aka.ms/assembly-info-properties
-
 
 // Setting ComVisible to false makes the types in this assembly not visible to COM
 // components.  If you need to access a type in this assembly from COM, set the ComVisible

@@ -77,12 +77,9 @@ namespace Microsoft.Azure.IIoT.Http.Auth
                 throw new ArgumentNullException(nameof(headers));
             }
 
-            if (resourceId != null)
+            if (resourceId != null && statusCode == HttpStatusCode.Unauthorized)
             {
-                if (statusCode == HttpStatusCode.Unauthorized)
-                {
-                    await _provider.InvalidateAsync(resourceId).ConfigureAwait(false);
-                }
+                await _provider.InvalidateAsync(resourceId).ConfigureAwait(false);
             }
         }
 

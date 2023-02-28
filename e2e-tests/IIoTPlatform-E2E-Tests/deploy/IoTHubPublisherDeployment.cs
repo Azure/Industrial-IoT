@@ -3,15 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Deploy {
+namespace IIoTPlatform_E2E_Tests.Deploy
+{
     using System;
     using System.Collections.Generic;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Newtonsoft.Json;
     using TestExtensions;
 
-    public sealed class IoTHubPublisherDeployment : ModuleDeploymentConfiguration {
-
+    public sealed class IoTHubPublisherDeployment : ModuleDeploymentConfiguration
+    {
         /// <summary>
         /// MessagingMode that will be used for configuration of OPC Publisher.
         /// </summary>
@@ -21,7 +22,9 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         /// Create deployment
         /// </summary>
         /// <param name="context"></param>
-        public IoTHubPublisherDeployment(IIoTPlatformTestContext context, MessagingMode messagingMode) : base(context) {
+        /// <param name="messagingMode"></param>
+        public IoTHubPublisherDeployment(IIoTPlatformTestContext context, MessagingMode messagingMode) : base(context)
+        {
             MessagingMode = messagingMode;
             _deploymentName = kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd")}";
         }
@@ -38,14 +41,16 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         public override string ModuleName => kModuleName;
 
         /// <inheritdoc />
-        protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
+        protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules()
+        {
             var registryCredentials = "";
 
             //should only be provided if the different container registry require username and password
             if (!string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) &&
                 _context.ContainerRegistryConfig.ContainerRegistryServer != TestConstants.MicrosoftContainerRegistry &&
                 !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryPassword) &&
-                !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryUser)) {
+                !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryUser))
+            {
                 var registryId = _context.ContainerRegistryConfig.ContainerRegistryServer.Split('.')[0];
                 registryCredentials = @"
                     ""properties.desired.runtime.settings.registryCredentials." + registryId + @""": {
@@ -57,7 +62,8 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
             }
 
             // Configure create options per os specified
-            var createOptions = JsonConvert.SerializeObject(new {
+            var createOptions = JsonConvert.SerializeObject(new
+            {
                 Hostname = ModuleName,
                 Cmd = new[] {
                 "--pki=" + TestConstants.PublishedNodesFolder + "/pki",
@@ -66,9 +72,10 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
                 "--pf=" + TestConstants.PublishedNodesFullName,
                 "--mm=" + MessagingMode.ToString(),
                 "--fm=true",
-                "--RuntimeStateReporting=true",
+                "--RuntimeStateReporting=true"
             },
-                HostConfig = new {
+                HostConfig = new
+                {
                     Binds = new[] {
                         TestConstants.PublishedNodesFolder + "/:" + TestConstants.PublishedNodesFolder
                     },

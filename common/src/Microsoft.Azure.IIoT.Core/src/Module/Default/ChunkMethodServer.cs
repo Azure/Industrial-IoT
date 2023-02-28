@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Module.Default
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Globalization;
 
     /// <summary>
     /// Chunked method provide reliable any size send/receive
@@ -62,7 +63,7 @@ namespace Microsoft.Azure.IIoT.Module.Default
             }
             else
             {
-                var handle = Interlocked.Increment(ref _requestCounter).ToString();
+                var handle = Interlocked.Increment(ref _requestCounter).ToString(CultureInfo.InvariantCulture);
                 processor = new ChunkProcessor(this, handle, request.MethodName,
                     request.ContentType, request.ContentLength, request.MaxChunkLength,
                     request.Timeout);

@@ -53,7 +53,9 @@ namespace Azure.IIoT.OpcUa.Models
         /// Regular object type
         /// </summary>
         [EnumMember]
+#pragma warning disable CA1720 // Identifier contains type name
         Object,
+#pragma warning restore CA1720 // Identifier contains type name
 
         /// <summary>
         /// Type is event type

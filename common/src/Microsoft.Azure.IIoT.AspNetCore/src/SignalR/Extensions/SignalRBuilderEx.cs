@@ -28,11 +28,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <c>null</c>.</exception>
         public static T AddJsonSerializer<T>(this T builder) where T : ISignalRBuilder
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
             builder = builder.AddNewtonsoftJsonProtocol();
 
             // Configure json serializer settings transiently to pick up all converters
@@ -73,11 +68,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <c>null</c>.</exception>
         public static T AddMessagePackSerializer<T>(this T builder) where T : ISignalRBuilder
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
             builder = builder.AddMessagePackProtocol();
 
             // Configure json serializer settings transiently to pick up all converters

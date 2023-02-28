@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Twin {
+namespace IIoTPlatform_E2E_Tests.Twin
+{
     using Xunit;
 
     [CollectionDefinition(CollectionName, DisableParallelization = true)]
-    public class TwinTestCollection : ICollectionFixture<TwinTestContext> {
+    public class TwinTestCollection : ICollectionFixture<TwinTestContext>
+    {
         // This class has no code, and is never created. Its purpose is simply
         // to be the place to apply [CollectionDefinition] and all the
         // ICollectionFixture<> interfaces.

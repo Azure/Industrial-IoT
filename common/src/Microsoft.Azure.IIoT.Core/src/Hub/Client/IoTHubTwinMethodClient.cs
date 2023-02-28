@@ -33,22 +33,22 @@ namespace Microsoft.Azure.IIoT.Hub.Client
 
         /// <inheritdoc/>
         public async Task<string> CallMethodAsync(string deviceId, string moduleId,
-            string method, string payload, TimeSpan? timeout, CancellationToken ct)
+            string method, string json, TimeSpan? timeout, CancellationToken ct)
         {
             _logger.LogTrace("Call {Method} on {DeviceId} ({ModuleId}) with {Payload}... ",
-                method, deviceId, moduleId, payload);
+                method, deviceId, moduleId, json);
             var result = await _twin.CallMethodAsync(deviceId, moduleId,
                 new MethodParameterModel
                 {
                     Name = method,
                     ResponseTimeout = timeout ?? TimeSpan.FromSeconds(kDefaultMethodTimeout),
-                    JsonPayload = payload
+                    JsonPayload = json
                 }, ct).ConfigureAwait(false);
             if (result.Status != 200)
             {
                 _logger.LogDebug("Call {Method} on {DeviceId} ({ModuleId}) with {Payload} " +
                     "returned with error {Status}: {Result}",
-                    method, deviceId, moduleId, payload, result.Status, result.JsonPayload);
+                    method, deviceId, moduleId, json, result.Status, result.JsonPayload);
                 throw new MethodCallStatusException(result.JsonPayload, result.Status);
             }
             return result.JsonPayload;
@@ -56,6 +56,10 @@ namespace Microsoft.Azure.IIoT.Hub.Client
 
         private readonly IIoTHubTwinServices _twin;
         private readonly ILogger _logger;
-        private const int kDefaultMethodTimeout = 300; // 5 minutes - default is 30 seconds
+
+        /// <summary>
+        /// 5 minutes - default is 30 seconds
+        /// </summary>
+        private const int kDefaultMethodTimeout = 300;
     }
 }

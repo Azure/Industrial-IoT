@@ -8,9 +8,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Exceptions;
     using Microsoft.Azure.Devices.Shared;
     using Microsoft.Extensions.Logging;
@@ -20,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
     using System.Collections.Generic;
     using System.Diagnostics.Metrics;
     using System.Linq;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -378,7 +375,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
         /// <param name="metrics"></param>
         private ModuleHost(IMetricsContext metrics)
         {
-            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_module_start",
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_module_start",
                 () => new Measurement<int>(Client != null ? 1 : 0, metrics.TagList), "Starts",
                 "Module starts.");
             _metrics = metrics;

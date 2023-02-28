@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Hub
 {
-    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Globalization;

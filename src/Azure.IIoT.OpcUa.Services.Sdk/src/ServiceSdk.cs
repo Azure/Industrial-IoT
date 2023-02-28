@@ -9,9 +9,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk
     using Azure.IIoT.OpcUa.Services.Sdk.Runtime;
     using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
     using Autofac;
-    using Microsoft.Azure.IIoT.Auth.Clients.Default;
-    using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Azure.IIoT.Auth.Clients;
 
     /// <summary>
     /// Service sdk module

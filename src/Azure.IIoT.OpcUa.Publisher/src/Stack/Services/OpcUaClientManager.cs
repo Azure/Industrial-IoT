@@ -693,7 +693,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="metrics"></param>
         private OpcUaClientManager(IMetricsContext metrics)
         {
-            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_client_count",
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_count",
                 () => new Measurement<int>(_clients.Count, metrics.TagList), "Clients",
                 "Monitored item count.");
             _metrics = metrics;

@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Utils
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
 
     /// <summary>
     /// Configuration base helper class
@@ -151,7 +152,7 @@ namespace Microsoft.Azure.IIoT.Utils
                 {
                     return defaultValue?.Invoke();
                 }
-                return Convert.ToInt32(value);
+                return Convert.ToInt32(value, CultureInfo.InvariantCulture);
             }
             catch
             {

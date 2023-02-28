@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Standalone {
+namespace OpcPublisher_AE_E2E_Tests.Standalone
+{
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using FluentAssertions;
     using TestExtensions;
     using TestModels;
@@ -20,30 +20,32 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
-    public class C_PublishConditionsTestTheory : DynamicAciTestBase, IClassFixture<IIoTStandaloneTestContext> {
+    public class CPublishConditionsTestTheory : DynamicAciTestBase, IClassFixture<IIoTStandaloneTestContext>
+    {
         private static readonly TimeSpan Precision = FromMilliseconds(500);
 
-        public C_PublishConditionsTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
-            : base(context, output) {
+        public CPublishConditionsTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
+            : base(context, output)
+        {
         }
 
         [Fact, PriorityOrder(11)]
-        public async void TestACI_VerifyDataAvailableAtIoTHub_Expect_NumberOfEvents_GreaterThan_Zero() {
-
+        public async void TestACIVerifyDataAvailableAtIoTHubExpectNumberOfEventsGreaterThanZero()
+        {
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --dalm=files/sc001.json --pn=50000"},
                 _timeoutToken,
-                "opc-plc-files/sc001.json");
+                "opc-plc-files/sc001.json").ConfigureAwait(false);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken, 10000);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, 10000, _timeoutToken);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter());
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken).ConfigureAwait(false);
 
             const int nMessages = 6;
             var payloads = await messages
@@ -52,12 +54,13 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 .SkipWhile(c => !c.Message.Value.Contains("LAST EVENT IN LOOP"))
                 .Skip(1)
                 .Take(nMessages)
-                .ToListAsync(_timeoutToken);
+                .ToListAsync(_timeoutToken).ConfigureAwait(false);
 
             // Assert
 
             var i = -1;
-            var doorOpen = new ConditionTypePayload {
+            var doorOpen = new ConditionTypePayload
+            {
                 ConditionName = DataValueObject.Create("VendingMachine1_DoorOpen"),
                 EnabledState = DataValueObject.Create("Enabled"),
                 EnabledStateEffectiveDisplayName = DataValueObject.Create("Active | Unacknowledged"),
@@ -68,14 +71,15 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 Retain = DataValueObject.Create(true),
                 Severity = DataValueObject.Create(900),
                 SourceName = DataValueObject.Create("VendingMachine1"),
-                SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1"),
+                SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
             };
             VerifyPayload(payloads, ++i, null, doorOpen);
 
             VerifyPayload(payloads,
                 ++i,
                 FromSeconds(5),
-                new ConditionTypePayload {
+                new ConditionTypePayload
+                {
                     ConditionName = DataValueObject.Create("VendingMachine2_LightOff"),
                     EnabledState = DataValueObject.Create("Enabled"),
                     EnabledStateEffectiveDisplayName = DataValueObject.Create("Active | Unacknowledged"),
@@ -86,13 +90,14 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                     Retain = DataValueObject.Create(true),
                     Severity = DataValueObject.Create(500),
                     SourceName = DataValueObject.Create("VendingMachine2"),
-                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine2"),
+                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine2")
                 });
 
             VerifyPayload(payloads,
                 ++i,
                 Zero,
-                new ConditionTypePayload {
+                new ConditionTypePayload
+                {
                     ConditionName = DataValueObject.Create("VendingMachine1_AD_Lamp_Off"),
                     EnabledState = DataValueObject.Create("Enabled"),
                     EnabledStateEffectiveDisplayName = DataValueObject.Create("Enabled"),
@@ -103,13 +108,14 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                     Retain = DataValueObject.Create(true),
                     Severity = DataValueObject.Create(500),
                     SourceName = DataValueObject.Create("VendingMachine1"),
-                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1"),
+                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
                 });
 
             VerifyPayload(payloads,
                 ++i,
                 FromSeconds(5),
-                new ConditionTypePayload {
+                new ConditionTypePayload
+                {
                     ConditionName = DataValueObject.Create("VendingMachine1_DoorOpen"),
                     EnabledState = DataValueObject.Create("Enabled"),
                     EnabledStateEffectiveDisplayName = DataValueObject.Create("Inactive | Unacknowledged"),
@@ -120,13 +126,14 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                     Retain = DataValueObject.Create(false),
                     Severity = DataValueObject.Create(500),
                     SourceName = DataValueObject.Create("VendingMachine1"),
-                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1"),
+                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
                 });
 
             VerifyPayload(payloads,
                 ++i,
                 FromSeconds(4),
-                new ConditionTypePayload {
+                new ConditionTypePayload
+                {
                     ConditionName = DataValueObject.Create("VendingMachine1_TemperatureHigh"),
                     EnabledState = DataValueObject.Create("Enabled"),
                     EnabledStateEffectiveDisplayName = DataValueObject.Create("Active | Unacknowledged"),
@@ -137,13 +144,14 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                     Retain = DataValueObject.Create(true),
                     Severity = DataValueObject.Create(900),
                     SourceName = DataValueObject.Create("VendingMachine1"),
-                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1"),
+                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1")
                 });
 
             VerifyPayload(payloads, ++i, Zero, doorOpen); // cycling back to first message
         }
 
-        private static void VerifyPayload(IReadOnlyList<ConditionTypePayload> payloads, int i, TimeSpan? expectedDelay, ConditionTypePayload expectedPayload) {
+        private static void VerifyPayload(IReadOnlyList<ConditionTypePayload> payloads, int i, TimeSpan? expectedDelay, ConditionTypePayload expectedPayload)
+        {
             var p = payloads[i];
 
             p.ConditionName.Value.Should().BeEquivalentTo(expectedPayload.ConditionName.Value);
@@ -161,11 +169,12 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             p.EnabledStateEffectiveTransitionTime.Value.Should().BeCloseTo(p.ReceiveTime.Value.Value, Precision);
             p.EnabledStateTransitionTime.Value.Should().BeCloseTo(p.ReceiveTime.Value.Value, Precision);
 
-            if (expectedDelay != null) {
+            if (expectedDelay != null)
+            {
                 i.Should().BeGreaterThan(0);
                 var transitionTime = (p.EnabledStateEffectiveTransitionTime.Value - payloads[i - 1].EnabledStateEffectiveTransitionTime.Value);
-               // TODO there is no difference in the transition time...
-               // transitionTime.Should().BeCloseTo(expectedDelay.Value, Precision);
+                // TODO there is no difference in the transition time...
+                // transitionTime.Should().BeCloseTo(expectedDelay.Value, Precision);
             }
         }
     }

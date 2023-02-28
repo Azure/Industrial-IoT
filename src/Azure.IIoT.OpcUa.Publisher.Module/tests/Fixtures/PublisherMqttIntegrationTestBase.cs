@@ -29,13 +29,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
-    using Moq;
     using MQTTnet;
     using MQTTnet.Formatter;
     using MQTTnet.Protocol;
     using MQTTnet.Server;
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;

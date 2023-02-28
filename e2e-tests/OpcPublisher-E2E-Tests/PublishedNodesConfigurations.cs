@@ -3,12 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests {
+namespace OpcPublisher_AE_E2E_Tests
+{
     using Newtonsoft.Json.Linq;
 
-    internal static partial class TestConstants {
-        internal static class PublishedNodesConfigurations {
-            public static string SimpleEvents(string host, uint port, string writerId) {
+    internal static partial class TestConstants
+    {
+        internal static class PublishedNodesConfigurations
+        {
+            public static string SimpleEvents(string host, uint port, string writerId)
+            {
                 return @$"
                 [
                     {{
@@ -67,7 +71,8 @@ namespace OpcPublisher_AE_E2E_Tests {
             }
 
             public static JArray SimpleEventFilter(
-                string typeDefinitionId = "i=2782") {
+                string typeDefinitionId = "i=2782")
+            {
                 return new JArray(
                     new JObject(
                         new JProperty("Id", "i=2253"),
@@ -76,7 +81,8 @@ namespace OpcPublisher_AE_E2E_Tests {
                             new JProperty("TypeDefinitionId", typeDefinitionId)))));
             }
 
-            public static JArray PendingConditionForAlarmsView() {
+            public static JArray PendingConditionForAlarmsView()
+            {
                 return new JArray(
                     new JObject(
                         new JProperty("Id", "i=2253"),

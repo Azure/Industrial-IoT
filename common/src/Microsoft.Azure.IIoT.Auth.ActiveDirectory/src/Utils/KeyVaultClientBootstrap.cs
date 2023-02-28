@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Auth.KeyVault
 {
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Clients.Default;
+    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Extensions.Configuration;
     using Autofac;
@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault
     /// Retrieve a working Keyvault client to bootstrap keyvault
     /// communcation
     /// </summary>
-    public class KeyVaultClientBootstrap : IDisposable
+    public sealed class KeyVaultClientBootstrap : IDisposable
     {
         /// <summary>
         /// Get client

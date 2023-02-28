@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Abstractions.Serializers.Extensions;
     using Microsoft.Azure.IIoT.Http;
     using System;
     using System.Net.Http;
@@ -238,16 +237,15 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             }
             if (request.DiscoveryUrl == null)
             {
-                throw new ArgumentNullException(nameof(request.DiscoveryUrl));
+                throw new ArgumentException("Discovery Url missing.", nameof(request));
             }
             var uri = new Uri($"{_serviceUri}/v2/applications");
             await _httpClient.PostAsync(uri, request, _serializer, request =>
             {
-               // if (request.Options.Timeout == null)
+                // if (request.Options.Timeout == null)
                 {
-               //     request.Options.Timeout = TimeSpan.FromMinutes(3);
+                    //     request.Options.Timeout = TimeSpan.FromMinutes(3);
                 }
-
             }, ct).ConfigureAwait(false);
         }
 
@@ -265,7 +263,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
                 {
                     //     request.Options.Timeout = TimeSpan.FromMinutes(3);
                 }
-
             }, ct).ConfigureAwait(false);
         }
 
@@ -290,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             }
             if (string.IsNullOrEmpty(request.ApplicationUri))
             {
-                throw new ArgumentNullException(nameof(request.ApplicationUri));
+                throw new ArgumentException("Application Uri missing", nameof(request));
             }
             var uri = new Uri($"{_serviceUri}/v2/applications");
             return await _httpClient.PutAsync<ApplicationRegistrationResponseModel>(
@@ -414,10 +411,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
         }
 
         /// <inheritdoc/>
-        public async Task PurgeDisabledApplicationsAsync(TimeSpan notSeenFor,
+        public async Task PurgeDisabledApplicationsAsync(TimeSpan notSeenSince,
             CancellationToken ct)
         {
-            var uri = new Uri($"{_serviceUri}/v2/applications?notSeenFor={notSeenFor}");
+            var uri = new Uri($"{_serviceUri}/v2/applications?notSeenFor={notSeenSince}");
             await _httpClient.DeleteAsync(uri, ct: ct).ConfigureAwait(false);
         }
 
@@ -661,7 +658,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
                 throw new ArgumentNullException(nameof(gatewayId));
             }
             var uri = new Uri($"{_serviceUri}/v2/gateways/{gatewayId}");
-            return await _httpClient.GetAsync< GatewayInfoModel>(
+            return await _httpClient.GetAsync<GatewayInfoModel>(
                 uri, _serializer, ct: ct).ConfigureAwait(false);
         }
 

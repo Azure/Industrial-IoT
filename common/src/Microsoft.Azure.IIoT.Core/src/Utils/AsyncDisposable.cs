@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Utils
     /// <summary>
     /// Helper to dispose a disposable and run cleanup
     /// </summary>
-    public class AsyncDisposable : IAsyncDisposable
+    public sealed class AsyncDisposable : IAsyncDisposable
     {
         /// <summary>
         /// Create disposable
@@ -63,7 +63,9 @@ namespace Microsoft.Azure.IIoT.Utils
         /// <param name="tasks"></param>
         /// <returns></returns>
 #pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable AMNF0001 // Asynchronous method name is not ending with 'Async'
         public static async Task<IAsyncDisposable[]> WhenAll(
+#pragma warning restore AMNF0001 // Asynchronous method name is not ending with 'Async'
             IEnumerable<Task<IAsyncDisposable>> tasks)
         {
 #pragma warning restore IDE1006 // Naming Styles

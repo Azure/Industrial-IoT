@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
 
         /// <inheritdoc/>
         public ApplicationConfiguration CreateServer(IEnumerable<int> ports,
-		    string applicationName, out ServerBase server)
+            string applicationName, out ServerBase server)
         {
             server = new Server(LogStatus, _nodes, _logger);
             return Server.CreateServerConfiguration(ports, applicationName);

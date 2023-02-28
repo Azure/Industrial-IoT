@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.App.Services
         /// <param name="provider"></param>
         public SecureData(IDataProtectionProvider provider)
         {
-            _provider = provider ?? throw new ArgumentNullException(nameof(provider)); 
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             _protector = _provider.CreateProtector(GetType().FullName);
         }
 

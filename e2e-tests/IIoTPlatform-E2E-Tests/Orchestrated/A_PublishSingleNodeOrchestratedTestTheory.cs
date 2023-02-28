@@ -15,6 +15,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
     using Xunit.Abstractions;
     using System.Threading;
     using System.Collections.Generic;
+    using System.Globalization;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -22,79 +23,88 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Multiple Nodes Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeOrchestratedTraitValue)]
-    public class A_PublishSingleNodeOrchestratedTestTheory
+    public class APublishSingleNodeOrchestratedTestTheory
     {
         private readonly ITestOutputHelper _output;
         private readonly IIoTMultipleNodesTestContext _context;
 
-        public A_PublishSingleNodeOrchestratedTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output) {
+        public APublishSingleNodeOrchestratedTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output)
+        {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
         }
 
         [Fact, PriorityOrder(0)]
-        public async Task Test_SetUnmanagedTagFalse() {
+        public async Task TestSetUnmanagedTagFalse()
+        {
             _context.Reset();
-            await TestHelper.SwitchToOrchestratedModeAsync(_context);
+            await TestHelper.SwitchToOrchestratedModeAsync(_context).ConfigureAwait(false);
         }
 
         [Fact, PriorityOrder(1)]
-        public async Task Test_CollectOAuthToken() {
+        public async Task TestCollectOAuthToken()
+        {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var token = await TestHelper.GetTokenAsync(_context, cts.Token);
+            var token = await TestHelper.GetTokenAsync(_context, cts.Token).ConfigureAwait(false);
             Assert.NotEmpty(token);
         }
 
         [Fact, PriorityOrder(2)]
-        public async Task Test_ReadSimulatedOpcUaNodes() {
+        public async Task TestReadSimulatedOpcUaNodes()
+        {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
+            var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).ConfigureAwait(false);
             Assert.NotNull(simulatedOpcServer);
             Assert.NotEmpty(simulatedOpcServer.Keys);
             Assert.NotEmpty(simulatedOpcServer.Values);
         }
 
         [Fact, PriorityOrder(3)]
-        public async Task Test_RegisterOPCServer_Expect_Success() {
+        public async Task TestRegisterOPCServerExpectSuccess()
+        {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // We will wait for microservices of IIoT platform to be healthy and modules to be deployed.
-            await TestHelper.WaitForServicesAsync(_context, cts.Token);
-            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token);
+            await TestHelper.WaitForServicesAsync(_context, cts.Token).ConfigureAwait(false);
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token).ConfigureAwait(false);
 
             var endpointUrl = TestHelper.GetSimulatedOpcServerUrls(_context).First();
             _context.OpcServerUrl = endpointUrl;
 
-            var body = new {
+            var body = new
+            {
                 discoveryUrl = endpointUrl
             };
 
-            var route = TestConstants.APIRoutes.RegistryApplications;
+            const string route = TestConstants.APIRoutes.RegistryApplications;
             var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
             Assert.True(response.IsSuccessful, $"Got {response.StatusCode} registering {endpointUrl} discovery url");
         }
 
         [Fact, PriorityOrder(4)]
-        public async Task Test_GetApplicationsFromRegistry_ExpectOneRegisteredApplication() {
+        public async Task TestGetApplicationsFromRegistryExpectOneRegisteredApplication()
+        {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             dynamic json = await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
-                _context, cts.Token, new HashSet<string> { _context.OpcServerUrl });
+                _context, new HashSet<string> { _context.OpcServerUrl }, cts.Token).ConfigureAwait(false);
             Assert.True(json != null, $"OPC Application with url {_context.OpcServerUrl} not found");
         }
 
         [Fact, PriorityOrder(5)]
-        public async Task Test_GetEndpoints_Expect_OneWithMultipleAuthentication() {
+        public async Task TestGetEndpointsExpectOneWithMultipleAuthentication()
+        {
             // used if running test cases separately (during development)
-            if (string.IsNullOrWhiteSpace(_context.OpcServerUrl)) {
-                await Test_RegisterOPCServer_Expect_Success();
+            if (string.IsNullOrWhiteSpace(_context.OpcServerUrl))
+            {
+                await TestRegisterOPCServerExpectSuccess().ConfigureAwait(false);
                 Assert.False(string.IsNullOrWhiteSpace(_context.OpcServerUrl));
             }
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var json = await TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(
-                _context, cts.Token, new HashSet<string> { _context.OpcServerUrl },
-                "SignAndEncrypt", "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256");
+            var json = await TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompletedAsync(
+                _context, new HashSet<string> { _context.OpcServerUrl }, "SignAndEncrypt",
+                "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256", cts.Token).ConfigureAwait(false);
             Assert.NotNull(json);
 
             var opcServerEndpoints = ((IEnumerable<dynamic>)json.items)
@@ -102,7 +112,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
                     && item.registration.endpoint.securityMode == "SignAndEncrypt"
                     && item.registration.endpoint.securityPolicy == "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256");
 
-            Assert.Equal(1, opcServerEndpoints.Count());
+            Assert.Single(opcServerEndpoints);
 
             var result = opcServerEndpoints.FirstOrDefault().registration;
             var endpointId = (string)result.id;
@@ -118,38 +128,45 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(6)]
-        public async Task Test_ActivateEndpoint_Expect_Success() {
+        public async Task TestActivateEndpointExpectSuccess()
+        {
             // Used if running test cases separately (during development)
-            if (string.IsNullOrWhiteSpace(_context.OpcUaEndpointId)) {
-                await Test_GetEndpoints_Expect_OneWithMultipleAuthentication();
+            if (string.IsNullOrWhiteSpace(_context.OpcUaEndpointId))
+            {
+                await TestGetEndpointsExpectOneWithMultipleAuthentication().ConfigureAwait(false);
                 Assert.False(string.IsNullOrWhiteSpace(_context.OpcUaEndpointId));
             }
 
-            await TestHelper.Registry.ActivateEndpointAsync(_context, _context.OpcUaEndpointId);
+            await TestHelper.Registry.ActivateEndpointAsync(_context, _context.OpcUaEndpointId).ConfigureAwait(false);
         }
 
         [Fact, PriorityOrder(7)]
-        public async Task Test_CheckIfEndpointWasActivated_Expect_ActivatedAndConnected() {
+        public async Task TestCheckIfEndpointWasActivatedExpectActivatedAndConnected()
+        {
             Assert.False(string.IsNullOrWhiteSpace(_context.OpcUaEndpointId));
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var json = await TestHelper.Registry.WaitForEndpointToBeActivatedAsync(_context, cts.Token, new HashSet<string> { _context.OpcUaEndpointId });
-            Assert.True(json!= null, "OPC UA Endpoint not found");
+            var json = await TestHelper.Registry.WaitForEndpointToBeActivatedAsync(_context, new HashSet<string> { _context.OpcUaEndpointId }, cts.Token).ConfigureAwait(false);
+            Assert.True(json != null, "OPC UA Endpoint not found");
         }
 
         [Fact, PriorityOrder(8)]
-        public async Task Test_PublishNodeWithDefaults_Expect_DataAvailableAtIoTHub() {
+        public async Task TestPublishNodeWithDefaultsExpectDataAvailableAtIoTHub()
+        {
             // used if running test cases separately (during development)
-            if (string.IsNullOrWhiteSpace(_context.OpcUaEndpointId)) {
-                await Test_GetEndpoints_Expect_OneWithMultipleAuthentication();
+            if (string.IsNullOrWhiteSpace(_context.OpcUaEndpointId))
+            {
+                await TestGetEndpointsExpectOneWithMultipleAuthentication().ConfigureAwait(false);
                 Assert.False(string.IsNullOrWhiteSpace(_context.OpcUaEndpointId));
             }
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
+            var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).ConfigureAwait(false);
 
-            var route = string.Format(TestConstants.APIRoutes.PublisherStartFormat, _context.OpcUaEndpointId);
-            var body = new {
-                item = new {
+            var route = string.Format(CultureInfo.InvariantCulture, TestConstants.APIRoutes.PublisherStartFormat, _context.OpcUaEndpointId);
+            var body = new
+            {
+                item = new
+                {
                     nodeId = simulatedOpcServer.Values.First().OpcNodes
                     .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
                     .Skip(2).First().Id,
@@ -160,19 +177,21 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
             Assert.True(response.IsSuccessful, $"Got {response.StatusCode} starting publishing");
-            Assert.Equal("{}",response.Content);
+            Assert.Equal("{}", response.Content);
         }
 
         [Fact, PriorityOrder(9)]
-        public async Task Test_GetListOfJobs_Expect_OneJobWithPublishingOneNode() {
+        public async Task TestGetListOfJobsExpectOneJobWithPublishingOneNode()
+        {
             // Used if running test cases separately (during development)
-            if (string.IsNullOrWhiteSpace(_context.OpcUaEndpointId)) {
-                await Test_GetEndpoints_Expect_OneWithMultipleAuthentication();
+            if (string.IsNullOrWhiteSpace(_context.OpcUaEndpointId))
+            {
+                await TestGetEndpointsExpectOneWithMultipleAuthentication().ConfigureAwait(false);
                 Assert.False(string.IsNullOrWhiteSpace(_context.OpcUaEndpointId));
             }
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
+            var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).ConfigureAwait(false);
             var route = TestConstants.APIRoutes.PublisherJobs;
             var response = TestHelper.CallRestApi(_context, Method.Get, route, ct: cts.Token);
             Assert.True(response.IsSuccessful, $"Got {response.StatusCode} Getting publishing jobs");
@@ -199,18 +218,19 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(10)]
-        public async Task Test_VerifyDataAvailableAtIoTHub() {
+        public async Task TestVerifyDataAvailableAtIoTHub()
+        {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // Make sure that there is no active monitoring.
-            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).ConfigureAwait(false);
 
             // Wait some time to generate events to process
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token);
-            var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token).ConfigureAwait(false);
+            var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
             Assert.True(json.TotalValueChangesCount > 0, "No messages received at IoT Hub");
             Assert.True(json.DroppedValueCount == 0, "Dropped messages detected");
             Assert.True(json.DuplicateValueCount == 0, "Duplicate values detected");
@@ -221,35 +241,38 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(11)]
-        public async Task RemoveJob_Expect_Success() {
+        public async Task RemoveJobExpectSuccess()
+        {
             // Used if running test cases separately (during development)
-            if (string.IsNullOrWhiteSpace(_context.OpcUaEndpointId)) {
-                await Test_GetEndpoints_Expect_OneWithMultipleAuthentication();
+            if (string.IsNullOrWhiteSpace(_context.OpcUaEndpointId))
+            {
+                await TestGetEndpointsExpectOneWithMultipleAuthentication().ConfigureAwait(false);
                 Assert.False(string.IsNullOrWhiteSpace(_context.OpcUaEndpointId));
             }
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var route = string.Format(TestConstants.APIRoutes.PublisherJobsFormat, _context.OpcUaEndpointId);
+            var route = string.Format(CultureInfo.InvariantCulture, TestConstants.APIRoutes.PublisherJobsFormat, _context.OpcUaEndpointId);
             var response = TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
             Assert.True(response.IsSuccessful, $"Got {response.StatusCode} deleting publishing job");
         }
 
         [Fact, PriorityOrder(12)]
-        public async Task Test_VerifyNoDataIncomingAtIoTHub() {
+        public async Task TestVerifyNoDataIncomingAtIoTHub()
+        {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // Wait untill the publishing has stopped
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token);
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token).ConfigureAwait(false);
 
             // Make sure that there is no active monitoring.
-            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).ConfigureAwait(false);
 
             // Wait some time to generate events to process
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-            var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
+            var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
             Assert.True(json.TotalValueChangesCount == 0, $"{json.TotalValueChangesCount} Messages received at IoT Hub");
         }
     }

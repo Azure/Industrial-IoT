@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
     using Furly.Extensions.Http;
     using System.Linq;
     using System.Threading;
-    using Autofac.Core;
 
     /// <summary>
     /// Node access read services

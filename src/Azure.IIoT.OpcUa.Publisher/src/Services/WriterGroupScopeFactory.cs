@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Autofac;
-    using Autofac.Core.Lifetime;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Diagnostics;
     using System;

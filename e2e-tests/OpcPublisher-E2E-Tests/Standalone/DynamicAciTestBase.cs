@@ -3,13 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Standalone {
+namespace OpcPublisher_AE_E2E_Tests.Standalone
+{
     using OpcPublisher_AE_E2E_Tests.TestExtensions;
     using Azure.Messaging.EventHubs.Consumer;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Net;
     using System.Threading;
@@ -19,16 +18,18 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     using Xunit.Abstractions;
     using Newtonsoft.Json.Linq;
     using FluentAssertions;
-    using System.Linq;
     using System.Collections.Generic;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Models;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
 
     /// <summary>
     /// Base class for standalone tests using dynamic ACI
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
-    public abstract class DynamicAciTestBase : IDisposable {
+    public abstract class DynamicAciTestBase : IDisposable
+    {
         protected readonly ITestOutputHelper _output;
         protected readonly IIoTStandaloneTestContext _context;
         protected readonly CancellationToken _timeoutToken;
@@ -40,7 +41,8 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
         private readonly string _iotHubPublisherDeviceName;
         private readonly string _iotHubPublisherModuleName;
 
-        protected DynamicAciTestBase(IIoTStandaloneTestContext context, ITestOutputHelper output) {
+        protected DynamicAciTestBase(IIoTStandaloneTestContext context, ITestOutputHelper output)
+        {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
@@ -50,7 +52,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             _iotHubPublisherModuleName = _context.IoTHubPublisherDeployment.ModuleName;
             _consumer = _context.GetEventHubConsumerClient();
             _writerId = Guid.NewGuid().ToString();
-            _serializer = new NewtonSoftJsonSerializer();
+            _serializer = new NewtonsoftJsonSerializer();
 
             // Initialize DeviceServiceClient from IoT Hub connection string.
             _iotHubClient = TestHelper.DeviceServiceClient(
@@ -59,53 +61,62 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             );
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
             _consumer?.CloseAsync(CancellationToken.None).GetAwaiter().GetResult();
             _timeoutTokenSource?.Dispose();
         }
 
         [Fact, PriorityOrder(1)]
-        public Task Test_SwitchToStandaloneMode() {
+        public Task TestSwitchToStandaloneMode()
+        {
             return TestHelper.SwitchToStandaloneModeAsync(_context, _timeoutToken);
         }
 
         [Fact, PriorityOrder(2)]
-        public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
-            var result = await _context.IoTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
+        public async Task TestCreateEdgeBaseDeploymentExpectSuccess()
+        {
+            var result = await _context.IoTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken).ConfigureAwait(false);
             _output.WriteLine("Created/Updated new EdgeBase deployment");
             Assert.True(result);
         }
 
         [Fact, PriorityOrder(3)]
-        public async Task Test_CreatePublisherLayeredDeployment_Expect_Success() {
-            var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
+        public async Task TestCreatePublisherLayeredDeploymentExpectSuccess()
+        {
+            var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken).ConfigureAwait(false);
             Assert.True(result, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module");
         }
 
         [Fact, PriorityOrder(4)]
-        public async Task Test_WaitForModuleDeployed() {
+        public async Task TestWaitForModuleDeployed()
+        {
             // We will wait for module to be deployed.
             await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
-                _context.IoTHubPublisherDeployment.GetDeploymentConfiguration(), _timeoutToken);
+                _context.IoTHubPublisherDeployment.GetDeploymentConfiguration(), _timeoutToken).ConfigureAwait(false);
             _output.WriteLine("Publisher module deployed.");
         }
 
         [Fact, PriorityOrder(5)]
-        public async Task Test_WaitForModuleConnected() {
+        public async Task TestWaitForModuleConnected()
+        {
             // We will wait for module to be deployed.
             await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId,
-                _timeoutToken, new[] { "publisher_standalone" });
+                _timeoutToken, new[] { "publisher_standalone" }).ConfigureAwait(false);
             _output.WriteLine("Publisher module connected.");
         }
 
         [Fact, PriorityOrder(998)]
-        public async Task Test_StopPublishingAllNodes_Expect_Success() {
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync("[]", _context, _timeoutToken);
+        public async Task TestStopPublishingAllNodesExpectSuccess()
+        {
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync("[]", _context, _timeoutToken).ConfigureAwait(false);
         }
 
         [Fact, PriorityOrder(999)]
-        public void Test_DeleteAci() {
+        public void TestDeleteAci()
+        {
             TestHelper.DeleteSimulationContainer(_context);
         }
 
@@ -118,7 +129,8 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
         protected async Task<MethodResultModel> CallMethodAsync(
             MethodParameterModel parameters,
             CancellationToken ct
-        ) {
+        )
+        {
             return await TestHelper.CallMethodAsync(
                 _iotHubClient,
                 _iotHubPublisherDeviceName,
@@ -129,14 +141,16 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
         }
 
-        protected async Task PublishNodesAsync(string json, CancellationToken ct) {
-            await UnpublishAllNodesAsync(ct);
+        protected async Task PublishNodesAsync(string json, CancellationToken ct)
+        {
+            await UnpublishAllNodesAsync(ct).ConfigureAwait(false);
             var entries = _serializer.Deserialize<PublishedNodesEntryModel[]>(json);
-            foreach (var entry in entries) {
-
+            foreach (var entry in entries)
+            {
                 // Call PublishNodes direct method
                 var result = await CallMethodAsync(
-                    new MethodParameterModel {
+                    new MethodParameterModel
+                    {
                         Name = TestConstants.DirectMethodNames.PublishNodes,
                         JsonPayload = _serializer.SerializeToString(entry)
                     },
@@ -147,7 +161,8 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             }
 
             var result1 = await CallMethodAsync(
-                new MethodParameterModel {
+                new MethodParameterModel
+                {
                     Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
                 },
                 ct
@@ -158,9 +173,11 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             Assert.Equal(entries.Length, response.Endpoints.Count);
         }
 
-        protected async Task UnpublishAllNodesAsync(CancellationToken ct = default) {
+        protected async Task UnpublishAllNodesAsync(CancellationToken ct = default)
+        {
             var result = await CallMethodAsync(
-                new MethodParameterModel {
+                new MethodParameterModel
+                {
                     Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
 
                     // TODO: Remove this line to test fix for null request crash
@@ -171,7 +188,8 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             Assert.Equal((int)HttpStatusCode.OK, result.Status);
 
             var result1 = await CallMethodAsync(
-                new MethodParameterModel {
+                new MethodParameterModel
+                {
                     Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
                 },
                 ct
@@ -179,11 +197,12 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, result1.Status);
             var response = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
-            Assert.Equal(0, response.Endpoints.Count);
+            Assert.Empty(response.Endpoints);
         }
 
         protected string SimpleEvents(string messageTypeDefinitionId, string messageBrowsePath,
-            string cycleIdDefinitionId, string cycleIdBrowsePath, string filterTypeDefinitionId) {
+            string cycleIdDefinitionId, string cycleIdBrowsePath, string filterTypeDefinitionId)
+        {
             return _context.PublishedNodesJson(
                 50000,
                 _writerId,
@@ -211,15 +230,19 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                                                 new JProperty("Value", filterTypeDefinitionId))))))))))))));
         }
 
-        protected static void VerifyPayloads(IEnumerable<SystemCycleStatusEventTypePayload> payloads) {
-            foreach (var payload in payloads) {
+        protected static void VerifyPayloads(IEnumerable<SystemCycleStatusEventTypePayload> payloads)
+        {
+            foreach (var payload in payloads)
+            {
                 payload.Message.Value.Should().Match("The system cycle '*' has started.");
                 payload.CycleId.Value.Should().MatchRegex("^\\d+$");
             }
         }
 
-        protected static void ValidatePendingConditionsView(IEnumerable<ConditionTypePayload> eventData) {
-            foreach (var pendingMessage in eventData) {
+        protected static void ValidatePendingConditionsView(IEnumerable<ConditionTypePayload> eventData)
+        {
+            foreach (var pendingMessage in eventData)
+            {
                 pendingMessage.ConditionId.Value.Should().StartWith("http://microsoft.com/Opc/OpcPlc/AlarmsInstance#");
                 pendingMessage.Retain.Value.Should().BeTrue();
             }

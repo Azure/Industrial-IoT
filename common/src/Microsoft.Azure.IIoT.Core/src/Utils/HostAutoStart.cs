@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Utils
     /// <summary>
     /// Host auto starter
     /// </summary>
-    public class HostAutoStart : IDisposable, IStartable
+    public sealed class HostAutoStart : IDisposable, IStartable
     {
         /// <summary>
         /// Create host auto starter

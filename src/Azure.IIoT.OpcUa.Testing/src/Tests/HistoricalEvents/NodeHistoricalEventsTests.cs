@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Testing.Tests
 {
-    using Azure.IIoT.OpcUa.Models;
     using System;
     using System.Threading.Tasks;
     using Xunit;

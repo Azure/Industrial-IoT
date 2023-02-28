@@ -54,7 +54,8 @@ namespace TestEventProcessor.Service
             {
                 app.UseDeveloperExceptionPage();
             }
-            else {
+            else
+            {
                 app.UseExceptionHandler("/error");
             }
 

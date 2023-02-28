@@ -1664,6 +1664,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Session activity
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         private sealed class SessionActivity<T> : IDisposable where T : IServiceResponse
         {
             /// <summary>
@@ -1700,7 +1701,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         private void InitializeMetrics()
         {
-            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
                 () => new Measurement<long>(NumberOfConnectRetries, TagList), "Connection attempts",
                 "OPC UA connect retries.");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",

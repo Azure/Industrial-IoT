@@ -3,10 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace MqttTestValidator.Interfaces {
+namespace MqttTestValidator.Interfaces
+{
     using MqttTestValidator.Models;
 
-    public interface IVerificationTask {
+    public interface IVerificationTask
+    {
         /// <summary>
         /// Unique identifier of the verification task
         /// </summary>

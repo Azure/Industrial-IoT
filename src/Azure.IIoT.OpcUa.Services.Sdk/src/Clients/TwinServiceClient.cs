@@ -297,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             }
             if (request.NodeId == null)
             {
-                throw new ArgumentNullException(nameof(request.NodeId));
+                throw new ArgumentException("NodeId missing.", nameof(request));
             }
             var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/configuration");
             return await _httpClient.PostAsync<HistoryConfigurationResponseModel>(uri,

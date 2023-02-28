@@ -49,7 +49,8 @@ namespace TestEventProcessor
             .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}][{Level:u3}] {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
 
-            var configuration = new ValidatorConfiguration() {
+            var configuration = new ValidatorConfiguration()
+            {
                 BlobContainerName = blobContainerName,
                 EventHubConsumerGroup = eventHubConsumerGroup,
                 ExpectedIntervalOfValueChanges = expectedIntervalOfValueChanges,
@@ -64,7 +65,7 @@ namespace TestEventProcessor
             var melLogger = loggerFactory.CreateLogger<TelemetryValidator>();
 
             var validator = new TelemetryValidator(melLogger);
-            await validator.StartAsync(configuration);
+            await validator.StartAsync(configuration).ConfigureAwait(false);
 
             var cts = new CancellationTokenSource();
 
