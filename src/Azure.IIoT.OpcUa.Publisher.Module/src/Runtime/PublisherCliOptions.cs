@@ -39,9 +39,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <param name="logger"></param>
         public PublisherCliOptions(IConfiguration config, ILogger logger)
         {
+            var configKeyNames = typeof(PublisherCliConfigKeys)
+                .GetFields()
+                .Select(fi => fi.Name)
+                .ToList();
             foreach (var item in config.GetChildren())
             {
-                this[item.Key] = item.Value;
+                var keyName = configKeyNames
+                    .Find(n => string.Equals(n, item.Key, StringComparison.OrdinalIgnoreCase));
+                this[keyName ?? item.Key] = item.Value;
             }
             _logger = logger;
         }

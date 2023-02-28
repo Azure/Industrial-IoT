@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             ContentMimeType.JsonGzip : ContentMimeType.Json;
 
         /// <inheritdoc/>
-        public override string ContentEncoding => Encoding.UTF8.EncodingName;
+        public override string ContentEncoding => Encoding.UTF8.WebName;
 
         /// <summary>
         /// Ua data message type

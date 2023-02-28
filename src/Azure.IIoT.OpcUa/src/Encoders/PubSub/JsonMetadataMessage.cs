@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public override string ContentType => UseGzipCompression ? ContentMimeType.JsonGzip : ContentMimeType.Json;
 
         /// <inheritdoc/>
-        public override string ContentEncoding => Encoding.UTF8.EncodingName;
+        public override string ContentEncoding => Encoding.UTF8.WebName;
 
         /// <summary>
         /// Ua meta data message type
