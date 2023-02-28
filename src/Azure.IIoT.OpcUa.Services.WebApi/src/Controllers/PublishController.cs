@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
+    using Furly.Extensions.Http;
 
     /// <summary>
     /// Value and Event publishing services

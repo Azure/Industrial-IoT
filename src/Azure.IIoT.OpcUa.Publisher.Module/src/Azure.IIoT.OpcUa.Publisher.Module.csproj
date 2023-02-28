@@ -3,8 +3,16 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PublishProfile>DefaultContainer</PublishProfile>
+    <ContainerImageName>iotedge/opc-publisher</ContainerImageName>
+    <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0-alpine-amd64</ContainerBaseImage>
   </PropertyGroup>
   <ItemGroup>
+    <ContainerPort Include="9702" Type="tcp" />
     <ProjectCapability Include="AzureIoTEdgeModule" />
   </ItemGroup>
   <ItemGroup>
