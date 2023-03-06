@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.Devices.Client;
     using Autofac;
+    using Furly.Exceptions;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -22,7 +23,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using Furly.Exceptions;
 
     public class MethodRouterTests
     {
@@ -616,7 +616,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
 
         public class TestMethodClient : IJsonMethodClient
         {
-            public int MaxMethodPayloadCharacterCount => 120 * 1024;
+            public int MaxMethodPayloadSizeInBytes => 120 * 1024;
 
             public TestMethodClient(MethodRouter router)
             {

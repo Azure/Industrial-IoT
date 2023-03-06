@@ -8,8 +8,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Logging;
-    using Furly.Extensions.Serializers;
     using Furly.Exceptions;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Globalization;
     using System.Net;

@@ -7,55 +7,64 @@ namespace Microsoft.Azure.IIoT.Messaging
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Telemetry message event to send
     /// </summary>
-    public interface ITelemetryEvent : IDisposable
+    public interface IEvent : IDisposable
     {
+        /// <summary>
+        /// Output path to use
+        /// </summary>
+        IEvent SetTopic(string value);
+
         /// <summary>
         /// Processing timestamp
         /// </summary>
-        DateTime Timestamp { get; set; }
+        IEvent SetTimestamp(DateTime value);
 
         /// <summary>
         /// Content type
         /// </summary>
-        string ContentType { get; set; }
+        IEvent SetContentType(string value);
 
         /// <summary>
         /// Content encoding
         /// </summary>
-        string ContentEncoding { get; set; }
+        IEvent SetContentEncoding(string value);
 
         /// <summary>
         /// Message schema
         /// </summary>
-        string MessageSchema { get; set; }
+        IEvent SetMessageSchema(string value);
 
         /// <summary>
         /// Custom routing info to be added to the header.
         /// </summary>
-        string RoutingInfo { get; set; }
-
-        /// <summary>
-        /// Output path to use
-        /// </summary>
-        string OutputName { get; set; }
+        IEvent SetRoutingInfo(string value);
 
         /// <summary>
         /// Whether to retain the message on the receiving end.
         /// </summary>
-        bool Retain { get; set; }
+        IEvent SetRetain(bool value);
 
         /// <summary>
         /// The time to live for the message
         /// </summary>
-        TimeSpan Ttl { get; set; }
+        IEvent SetTtl(TimeSpan value);
 
         /// <summary>
         /// Message payload buffers.
         /// </summary>
-        IReadOnlyList<byte[]> Buffers { get; set; }
+        IEvent AddBuffers(IReadOnlyList<ReadOnlyMemory<byte>> value);
+
+        /// <summary>
+        /// Sends the message or messages
+        /// </summary>
+        /// <param name="ct">Send the event</param>
+        /// <returns></returns>
+        Task SendAsync(CancellationToken ct = default);
     }
 }

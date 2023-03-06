@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
         /// </summary>
         /// <param name="message">The message containing the event.</param>
         /// <returns></returns>
-        void SendEvent(ITelemetryEvent message);
+        void SendEvent(IEvent message);
 
         /// <summary>
         /// Get twin from hub

@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Models;
     using FluentAssertions;
+    using Furly.Exceptions;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -27,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using Furly.Exceptions;
 
     /// <summary>
     /// Tests the PublisherConfigService class

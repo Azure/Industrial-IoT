@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
         public bool IsClosed { get; internal set; }
 
         /// <inheritdoc />
-        public int MaxEventBufferSize => 256 * 1024;
+        public int MaxEventPayloadSizeInBytes => 256 * 1024;
 
         /// <summary>
         /// Create client
@@ -111,52 +111,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
         }
 
         /// <inheritdoc />
-        public ITelemetryEvent CreateTelemetryEvent()
+        public IEvent CreateEvent()
         {
-            return new DeviceClientAdapter.DeviceMessage();
-        }
-
-        /// <inheritdoc />
-        public async Task SendEventAsync(ITelemetryEvent message)
-        {
-            if (IsClosed)
-            {
-                return;
-            }
-            var msg = (DeviceClientAdapter.DeviceMessage)message;
-            var messages = msg.AsMessages();
-            try
-            {
-                if (!_enableOutputRouting || string.IsNullOrEmpty(msg.OutputName))
-                {
-                    if (messages.Count == 1)
-                    {
-                        await _client.SendEventAsync(messages[0]).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await _client.SendEventBatchAsync(messages).ConfigureAwait(false);
-                    }
-                }
-                else
-                {
-                    if (messages.Count == 1)
-                    {
-                        await _client.SendEventAsync(msg.OutputName, messages[0]).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await _client.SendEventBatchAsync(msg.OutputName, messages).ConfigureAwait(false);
-                    }
-                }
-            }
-            finally
-            {
-                foreach (var hubMessage in messages)
-                {
-                    hubMessage.Dispose();
-                }
-            }
+            return new ModuleMessage(this);
         }
 
         /// <inheritdoc />
@@ -265,6 +222,64 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
                 return await ModuleClient.CreateFromEnvironmentAsync(ts).ConfigureAwait(false);
             }
             return ModuleClient.CreateFromConnectionString(cs.ToString(), ts);
+        }
+        /// <summary>
+        /// Module messages
+        /// </summary>
+        internal sealed class ModuleMessage : IoTSdkMessage
+        {
+            /// <summary>
+            /// Create message
+            /// </summary>
+            /// <param name="outer"></param>
+            public ModuleMessage(ModuleClientAdapter outer)
+            {
+                _outer = outer;
+            }
+
+            /// <inheritdoc />
+            public override async Task SendAsync(CancellationToken ct)
+            {
+                if (_outer.IsClosed)
+                {
+                    return;
+                }
+                var messages = AsMessages();
+                try
+                {
+                    var client = _outer._client;
+                    if (!_outer._enableOutputRouting || string.IsNullOrEmpty(GetTopic()))
+                    {
+                        if (messages.Count == 1)
+                        {
+                            await client.SendEventAsync(messages[0], ct).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await client.SendEventBatchAsync(messages, ct).ConfigureAwait(false);
+                        }
+                    }
+                    else
+                    {
+                        if (messages.Count == 1)
+                        {
+                            await client.SendEventAsync(GetTopic(), messages[0], ct).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await client.SendEventBatchAsync(GetTopic(), messages, ct).ConfigureAwait(false);
+                        }
+                    }
+                }
+                finally
+                {
+                    foreach (var hubMessage in messages)
+                    {
+                        hubMessage.Dispose();
+                    }
+                }
+            }
+            private readonly ModuleClientAdapter _outer;
         }
 
         /// <summary>

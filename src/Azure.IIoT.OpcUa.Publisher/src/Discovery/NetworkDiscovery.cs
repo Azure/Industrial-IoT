@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe;
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner;
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT;
@@ -30,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Exceptions;
+    using System.Text;
 
     /// <summary>
     /// Provides network discovery of endpoints
@@ -633,7 +634,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 return;
             }
             _logger.LogInformation("Uploading {Count} results...", discovered.Count);
-            var messages = discovered
+            var buffers = discovered
                 .SelectMany(server => server.Endpoints
                     .Select(registration => new DiscoveryEventModel
                     {
@@ -658,13 +659,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 .Select((discovery, i) =>
                 {
                     discovery.Index = i;
-                    return _serializer.SerializeToMemory(discovery).ToArray();
+                    return _serializer.SerializeToMemory(discovery);
                 })
                 .ToList();
 
-            using var message = client.CreateMessage(messages, "utf-8", ContentMimeType.Json,
-                MessageSchemaTypes.DiscoveryEvents);
-            await client.SendEventAsync(message).ConfigureAwait(false);
+            await client.SendEventsAsync(string.Empty, buffers, Encoding.UTF8.WebName,
+                ContentMimeType.Json, MessageSchemaTypes.DiscoveryEvents, ct: ct).ConfigureAwait(false);
             _logger.LogInformation("{Count} results uploaded.", discovered.Count);
         }
 

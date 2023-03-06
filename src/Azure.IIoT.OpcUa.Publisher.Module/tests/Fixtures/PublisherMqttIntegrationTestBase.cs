@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Autofac;
+    using Furly.Exceptions;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -41,10 +42,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Text;
     using System.Text.Json;
     using System.Threading;
+    using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Threading.Channels;
-    using Furly.Exceptions;
 
     public readonly record struct JsonMessage(string Topic, JsonElement Message, string ContentType);
 
@@ -485,7 +485,7 @@ $"--ttt={topicRoot}",
             /// <summary>
             /// Max method payload size
             /// </summary>
-            public int MaxMethodPayloadCharacterCount => 128 * 1024;
+            public int MaxMethodPayloadSizeInBytes => 128 * 1024;
 
             /// <summary>
             /// Create service client

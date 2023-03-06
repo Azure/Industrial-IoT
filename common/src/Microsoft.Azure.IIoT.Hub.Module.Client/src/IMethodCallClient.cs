@@ -25,5 +25,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
         Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
             MethodRequest methodRequest,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Registers a new delegate that is called for a method that
+        /// doesn't have a delegate registered for its name.
+        /// If a default delegate is already registered it will replace
+        /// with the new delegate.
+        /// </summary>
+        /// <param name="methodHandler">The delegate to be used when
+        /// a method is called by the cloud service and there is no
+        /// delegate registered for that method name.</param>
+        Task SetMethodHandlerAsync(MethodCallback methodHandler);
     }
 }

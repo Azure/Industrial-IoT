@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using Autofac.Extras.Moq;
     using AutoFixture;
     using AutoFixture.Kernel;
+    using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Hub;
@@ -20,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
-    using Furly.Exceptions;
 
     public class DiscovererRegistryTests
     {

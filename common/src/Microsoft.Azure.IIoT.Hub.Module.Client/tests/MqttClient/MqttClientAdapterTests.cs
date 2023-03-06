@@ -89,15 +89,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests
             var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder,
                 "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), _logger, _metrics).ConfigureAwait(false);
 
-            var message = mqttClientAdapter.CreateTelemetryEvent();
-            message.Buffers = new[] { payloadBytes };
-            message.ContentType = "application/json";
-            message.ContentEncoding = "utf-8";
-            message.OutputName = "testoutput";
-            message.Ttl = TimeSpan.FromSeconds(1234);
-            message.Retain = true;
+            var message = mqttClientAdapter.CreateEvent();
+            message.AddBuffers(new ReadOnlyMemory<byte>[] { payloadBytes });
+            message.SetContentType("application/json");
+            message.SetContentEncoding("utf-8");
+            message.SetTopic("testoutput");
+            message.SetTtl(TimeSpan.FromSeconds(1234));
+            message.SetRetain(true);
 
-            await mqttClientAdapter.SendEventAsync(message).ConfigureAwait(false);
+            await message.SendAsync().ConfigureAwait(false);
 
             mock.Verify(x => x.EnqueueAsync(
                 It.Is<MqttApplicationMessage>(x =>
@@ -122,15 +122,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests
             var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, mqttClientConnectionStringBuilder,
                 "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), _logger, _metrics).ConfigureAwait(false);
 
-            var message = mqttClientAdapter.CreateTelemetryEvent();
-            message.Buffers = new[] { payloadBytes, payloadBytes, payloadBytes };
-            message.ContentType = "application/json";
-            message.OutputName = "testoutput";
-            message.ContentEncoding = "utf-8";
-            message.Ttl = TimeSpan.FromSeconds(1234);
-            message.Retain = true;
+            var message = mqttClientAdapter.CreateEvent();
+            message.AddBuffers(new ReadOnlyMemory<byte>[] { payloadBytes, payloadBytes, payloadBytes });
+            message.SetContentType("application/json");
+            message.SetTopic("testoutput");
+            message.SetContentEncoding("utf-8");
+            message.SetTtl(TimeSpan.FromSeconds(1234));
+            message.SetRetain(true);
 
-            await mqttClientAdapter.SendEventAsync(message).ConfigureAwait(false);
+            await message.SendAsync().ConfigureAwait(false);
 
             mock.Verify(x => x.EnqueueAsync(
                 It.Is<MqttApplicationMessage>(x =>
@@ -155,12 +155,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests
             var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, mqttClientConnectionStringBuilder,
                 "device1", "/topic/{output_name}/super", TimeSpan.FromMinutes(5), _logger, _metrics).ConfigureAwait(false);
 
-            var message = mqttClientAdapter.CreateTelemetryEvent();
-            message.Buffers = new[] { payloadBytes, null, payloadBytes };
-            message.ContentType = "application/json";
-            message.ContentEncoding = "utf-8";
+            var message = mqttClientAdapter.CreateEvent();
+            message.AddBuffers(new ReadOnlyMemory<byte>[] { payloadBytes, default, payloadBytes });
+            message.SetContentType("application/json");
+            message.SetContentEncoding("utf-8");
 
-            await mqttClientAdapter.SendEventAsync(message).ConfigureAwait(false);
+            await message.SendAsync().ConfigureAwait(false);
 
             mock.Verify(x => x.EnqueueAsync(
                 It.Is<MqttApplicationMessage>(x =>
@@ -199,13 +199,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests
 
             using var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object,
                 _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, _logger, _metrics).ConfigureAwait(false);
-            var message = mqttClientAdapter.CreateTelemetryEvent();
-            message.Buffers = new[] { payloadBytes };
-            message.ContentType = "application/json";
-            message.ContentEncoding = "utf-8";
+            var message = mqttClientAdapter.CreateEvent();
+            message.AddBuffers(new ReadOnlyMemory<byte>[] { payloadBytes });
+            message.SetContentType("application/json");
+            message.SetContentEncoding("utf-8");
 
             await mqttClientAdapter.DisposeAsync().ConfigureAwait(false);
-            await mqttClientAdapter.SendEventAsync(message).ConfigureAwait(false);
+            await message.SendAsync().ConfigureAwait(false);
 
             mock.VerifyAdd(x => x.ConnectedAsync += It.IsAny<Func<MqttClientConnectedEventArgs, Task>>());
             mock.VerifyAdd(x => x.ConnectingFailedAsync += It.IsAny<Func<ConnectingFailedEventArgs, Task>>());

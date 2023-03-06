@@ -21,10 +21,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     public class JsonMetaDataMessage : PubSubMessage
     {
         /// <inheritdoc/>
-        public override string MessageSchema => MessageSchemaTypes.NetworkMessageJson;
+        public override string MessageSchema
+            => MessageSchemaTypes.NetworkMessageJson;
 
         /// <inheritdoc/>
-        public override string ContentType => UseGzipCompression ? ContentMimeType.JsonGzip : ContentMimeType.Json;
+        public override string ContentType
+            => UseGzipCompression ? ContentMimeType.JsonGzip : ContentMimeType.Json;
 
         /// <inheritdoc/>
         public override string ContentEncoding => Encoding.UTF8.WebName;
@@ -70,17 +72,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public DataSetMetaDataType MetaData { get; set; }
 
         /// <inheritdoc/>
-        public override bool Equals(object value)
+        public override bool Equals(object obj)
         {
-            if (ReferenceEquals(this, value))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
-            if (!(value is JsonMetaDataMessage wrapper))
+            if (!(obj is JsonMetaDataMessage wrapper))
             {
                 return false;
             }
-            if (!base.Equals(value))
+            if (!base.Equals(obj))
             {
                 return false;
             }
@@ -110,11 +112,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
-            Queue<byte[]> reader, IDataSetMetaDataResolver resolver)
+            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver resolver)
         {
             if (reader.TryPeek(out var buffer))
             {
-                using var memoryStream = Memory.GetStream(buffer);
+                using var memoryStream = Memory.GetStream(buffer.ToArray());
                 var compression = UseGzipCompression ?
                     new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
                 try
@@ -135,10 +137,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
+        public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver resolver)
         {
-            var chunks = new List<byte[]>();
+            var chunks = new List<ReadOnlyMemory<byte>>();
             using var memoryStream = Memory.GetStream();
             var compression = UseGzipCompression ?
                 new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true) : null;

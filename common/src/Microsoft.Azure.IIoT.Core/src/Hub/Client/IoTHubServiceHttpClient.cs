@@ -11,14 +11,14 @@ namespace Microsoft.Azure.IIoT.Hub.Client
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.Extensions.Logging;
-    using Furly.Extensions.Serializers;
     using Furly.Exceptions;
+    using Furly.Extensions.Http;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.Http;
 
     /// <summary>
     /// Implementation of twin and job services, talking to iot hub

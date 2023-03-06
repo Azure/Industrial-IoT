@@ -11,10 +11,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting
     using Microsoft.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using System;
+    using System.Net.Http;
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Net.Http;
 
     /// <summary>
     /// Edgelet client providing discovery and in the future other services

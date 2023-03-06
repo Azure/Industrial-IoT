@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="notifications">Notifications to encode</param>
         /// <param name="maxMessageSize">Maximum size of messages</param>
         /// <param name="asBatch">Encode in batch mode</param>
-        IEnumerable<ITelemetryEvent> Encode(Func<ITelemetryEvent> factory,
+        IEnumerable<IEvent> Encode(Func<IEvent> factory,
             IEnumerable<SubscriptionNotificationModel> notifications,
             int maxMessageSize, bool asBatch);
     }

@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Extensions.Logging;
@@ -20,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Furly.Exceptions;
 
     /// <summary>
     /// Published nodes

@@ -81,10 +81,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
+        public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver resolver)
         {
-            var messages = new List<byte[]>();
+            var messages = new List<ReadOnlyMemory<byte>>();
             var isChunkMessage = false;
             var remainingChunks = EncodePayloadChunks(context, resolver).AsSpan();
 

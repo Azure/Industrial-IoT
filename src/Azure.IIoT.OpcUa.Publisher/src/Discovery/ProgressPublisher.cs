@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Text;
     using System.Threading.Channels;
     using System.Threading.Tasks;
 
@@ -78,11 +79,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 }
                 try
                 {
-                    using var message = client.CreateMessage(new[]
-                    {
-                        _serializer.SerializeToMemory((object)progress).ToArray()
-                    }, "utf-8", ContentMimeType.Json, MessageSchemaTypes.DiscoveryMessage);
-                    await client.SendEventAsync(message).ConfigureAwait(false);
+                     await client.SendEventAsync(string.Empty,
+                         _serializer.SerializeToMemory((object)progress),
+                         Encoding.UTF8.WebName, ContentMimeType.Json,
+                         MessageSchemaTypes.DiscoveryMessage).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

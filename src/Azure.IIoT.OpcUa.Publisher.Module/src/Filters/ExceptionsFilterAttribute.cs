@@ -6,14 +6,14 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
 {
     using Azure.IIoT.OpcUa.Exceptions;
-    using Microsoft.Azure.IIoT.Module.Framework;
     using Furly.Exceptions;
+    using Microsoft.Azure.IIoT.Module.Framework;
     using System;
+    using System.IO;
     using System.Net;
     using System.Net.Sockets;
     using System.Security;
     using System.Threading.Tasks;
-    using System.IO;
 
     /// <summary>
     /// Convert all the exceptions returned by the module controllers to a

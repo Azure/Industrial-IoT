@@ -13,8 +13,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.ComponentModel.DataAnnotations;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// History raw access services

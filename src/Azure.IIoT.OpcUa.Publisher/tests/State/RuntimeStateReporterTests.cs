@@ -13,8 +13,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Moq;
+    using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -47,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            _client.Verify(c => c.SendEventAsync(It.IsAny<ITelemetryEvent>()), Times.Never());
+            _client.Verify(c => c.CreateEvent(), Times.Never());
         }
 
         [Fact]
@@ -81,21 +83,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
         [Fact]
         public async Task ReportingTest()
         {
-            var receivedParameters = new List<ITelemetryEvent>();
-
             var _client = new Mock<IClient>();
 
-            var _message = new Mock<ITelemetryEvent>()
+            var _message = new Mock<IEvent>()
                 .SetupAllProperties();
             _message
                 .Setup(m => m.Dispose());
             _client
-                .Setup(c => c.CreateTelemetryEvent())
+                .Setup(c => c.CreateEvent())
                 .Returns(_message.Object);
-            _client
-                .Setup(c => c.SendEventAsync(It.IsAny<ITelemetryEvent>()))
-                .Callback<ITelemetryEvent>(message => receivedParameters.Add(message))
+            _message
+                .Setup(c => c.SendAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
+
+            var contentType = string.Empty;
+            var contentEncoding = string.Empty;
+            var routingInfo = string.Empty;
+            IReadOnlyList<ReadOnlyMemory<byte>> buffers = null;
+            _message.Setup(c => c.SetRoutingInfo(It.IsAny<string>()))
+                .Callback<string>(v => routingInfo = v)
+                .Returns(_message.Object);
+            _message.Setup(c => c.SetContentType(It.IsAny<string>()))
+                .Callback<string>(v => contentType = v)
+                .Returns(_message.Object);
+            _message.Setup(c => c.SetContentEncoding(It.IsAny<string>()))
+                .Callback<string>(v => contentEncoding = v)
+                .Returns(_message.Object);
+            _message.Setup(c => c.AddBuffers(It.IsAny<IReadOnlyList<ReadOnlyMemory<byte>>>()))
+                .Callback<IReadOnlyList<ReadOnlyMemory<byte>>>(v => buffers = v)
+                .Returns(_message.Object);
 
             var _clientAccessorMock = new Mock<IClientAccessor>();
             _clientAccessorMock.Setup(m => m.Client).Returns(_client.Object);
@@ -119,19 +135,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            _client.Verify(c => c.SendEventAsync(It.IsAny<ITelemetryEvent>()), Times.Once());
-
+            _message.Verify(c => c.SendAsync(It.IsAny<CancellationToken>()), Times.Once());
             _message.Verify(m => m.Dispose(), Times.Once());
 
-            Assert.Single(receivedParameters);
+            Assert.Equal("runtimeinfo", routingInfo);
+            Assert.Equal("application/json", contentType);
+            Assert.Equal("utf-8", contentEncoding);
 
-            var message = receivedParameters[0];
-            Assert.Equal("runtimeinfo", message.RoutingInfo);
-            Assert.Equal("application/json", message.ContentType);
-            Assert.Equal("utf-8", message.ContentEncoding);
-
-            Assert.Equal(1, message.Buffers.Count);
-            var body = Encoding.UTF8.GetString(message.Buffers[0]);
+            Assert.Equal(1, buffers.Count);
+            var body = Encoding.UTF8.GetString(buffers[0].Span);
             Assert.Equal("{\"MessageType\":\"restartAnnouncement\",\"MessageVersion\":1}", body);
         }
     }

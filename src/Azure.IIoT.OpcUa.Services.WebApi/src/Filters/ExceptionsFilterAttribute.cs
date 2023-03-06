@@ -6,15 +6,15 @@
 namespace Azure.IIoT.OpcUa.Services.WebApi.Filters
 {
     using Azure.IIoT.OpcUa.Exceptions;
+    using Furly.Exceptions;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Filters;
-    using Furly.Exceptions;
     using System;
+    using System.IO;
     using System.Net;
     using System.Net.Sockets;
     using System.Security;
     using System.Threading.Tasks;
-    using System.IO;
 
     /// <summary>
     /// Detect all the unhandled exceptions returned by the API controllers

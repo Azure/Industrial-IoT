@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Whether the module is running.
         /// </summary>
-        private BlockingCollection<ITelemetryEvent> Events { get; set; }
+        private BlockingCollection<IoTHubEvent> Events { get; set; }
 
         /// <summary>
         /// Device Id
@@ -185,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 messageCollectionTimeout -= stopWatch.Elapsed;
                 foreach (var body in evt.Buffers)
                 {
-                    var json = Encoding.UTF8.GetString(body);
+                    var json = Encoding.UTF8.GetString(body.ToArray());
                     var document = JsonDocument.Parse(json);
                     json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
                     var element = document.RootElement;

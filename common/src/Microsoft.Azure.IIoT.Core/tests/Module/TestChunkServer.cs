@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Module
         public TestChunkServer(IJsonSerializer serializer,
             int size, Func<string, byte[], string, byte[]> handler)
         {
-            MaxMethodPayloadCharacterCount = size;
+            MaxMethodPayloadSizeInBytes = size;
             _handler = handler;
             _serializer = serializer;
             _server = new ChunkMethodServer(_serializer, Log.Console<ChunkMethodServer>());
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Module
             return new ChunkMethodClient(this, _serializer, Log.Console<ChunkMethodClient>());
         }
 
-        public int MaxMethodPayloadCharacterCount { get; }
+        public int MaxMethodPayloadSizeInBytes { get; }
 
         public async Task<string> CallMethodAsync(string deviceId,
             string moduleId, string method, string json, TimeSpan? timeout,

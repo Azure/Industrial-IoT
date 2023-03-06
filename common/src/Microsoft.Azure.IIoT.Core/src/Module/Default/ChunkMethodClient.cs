@@ -8,13 +8,13 @@ namespace Microsoft.Azure.IIoT.Module.Default
     using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Logging;
+    using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using System;
     using System.IO;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Exceptions;
 
     /// <summary>
     /// Chunked method provide reliable any size send/receive
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Module.Default
             // assume base64 encoding is 33% reduction compared to raw bytes
             // plus the additional overhead of the model payload.
             //
-            _maxSize = (int)(_client.MaxMethodPayloadCharacterCount * 0.66);
+            _maxSize = (int)(_client.MaxMethodPayloadSizeInBytes * 0.66);
             if (_maxSize == 0)
             {
                 _maxSize = 1;

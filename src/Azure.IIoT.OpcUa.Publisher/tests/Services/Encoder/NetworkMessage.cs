@@ -15,20 +15,84 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using System.Threading;
 
-    public sealed class NetworkMessage : ITelemetryEvent
+    public sealed class NetworkMessage : IEvent
     {
-        public DateTime Timestamp { get; set; }
-        public string ContentType { get; set; }
-        public string ContentEncoding { get; set; }
-        public string MessageSchema { get; set; }
-        public string RoutingInfo { get; set; }
-        public string OutputName { get; set; }
-        public bool Retain { get; set; }
-        public TimeSpan Ttl { get; set; }
-        public IReadOnlyList<byte[]> Buffers { get; set; }
+        public DateTime Timestamp { get; private set; }
 
-        public static ITelemetryEvent Create()
+        public IEvent SetTimestamp(DateTime value)
+        {
+            Timestamp = value;
+            return this;
+        }
+
+        public string ContentType { get; private set; }
+
+        public IEvent SetContentType(string value)
+        {
+            ContentType = value;
+            return this;
+        }
+
+        public string ContentEncoding { get; private set; }
+
+        public IEvent SetContentEncoding(string value)
+        {
+            ContentEncoding = value;
+            return this;
+        }
+
+        public string MessageSchema { get; private set; }
+
+        public IEvent SetMessageSchema(string value)
+        {
+            MessageSchema = value;
+            return this;
+        }
+
+        public string RoutingInfo { get; private set; }
+
+        public IEvent SetRoutingInfo(string value)
+        {
+            RoutingInfo = value;
+            return this;
+        }
+
+        public string Topic { get; private set; }
+
+        public IEvent SetTopic(string value)
+        {
+            Topic = value;
+            return this;
+        }
+
+        public bool Retain { get; private set; }
+
+        public IEvent SetRetain(bool value)
+        {
+            Retain = value;
+            return this;
+        }
+
+        public TimeSpan Ttl { get; private set; }
+
+        public IEvent SetTtl(TimeSpan value)
+        {
+            Ttl = value;
+            return this;
+        }
+
+        public IReadOnlyList<ReadOnlyMemory<byte>> Buffers { get; private set; }
+
+        public IEvent AddBuffers(IReadOnlyList<ReadOnlyMemory<byte>> value)
+        {
+            Buffers = value;
+            return this;
+        }
+
+        public static IEvent Create()
         {
             return new NetworkMessage();
         }
@@ -159,6 +223,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
 
         public void Dispose()
         {
+        }
+
+        public Task SendAsync(CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -8,15 +8,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Divergic.Logging.Xunit;
     using Json.More;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using Divergic.Logging.Xunit;
-    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,

@@ -71,7 +71,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         public void EncodeTooBigMessageTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 100;
-            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(3, false, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(3, false,
+                encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
@@ -88,14 +89,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         public void EncodeDataTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 256 * 1024;
-            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false,
+                encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             if (encodeBatchFlag)
             {
-                Assert.Equal(1, networkMessages.Sum(m => m.Buffers.Count));
+                Assert.Equal(1, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
                 Assert.Equal(20, encoder.NotificationsProcessedCount);
                 Assert.Equal(0, encoder.NotificationsDroppedCount);
                 Assert.Equal(1, encoder.MessagesProcessedCount);
@@ -103,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             }
             else
             {
-                Assert.Equal(210, networkMessages.Sum(m => m.Buffers.Count));
+                Assert.Equal(210, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
                 Assert.Equal(20, encoder.NotificationsProcessedCount);
                 Assert.Equal(0, encoder.NotificationsDroppedCount);
                 Assert.Equal(210, encoder.MessagesProcessedCount);
@@ -117,7 +119,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         public void EncodeDataWithMultipleNotificationsTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 256 * 1024;
-            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false,
+                encoding: MessageEncoding.JsonGzip, isSampleMode: true);
             messages[0].Notifications = messages.SelectMany(n => n.Notifications).ToList();
             messages = new List<SubscriptionNotificationModel> { messages[0] };
 
@@ -126,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
 
             if (encodeBatchFlag)
             {
-                Assert.Equal(1, networkMessages.Sum(m => m.Buffers.Count));
+                Assert.Equal(1, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
                 Assert.Equal(1, encoder.NotificationsProcessedCount);
                 Assert.Equal(0, encoder.NotificationsDroppedCount);
                 Assert.Equal(1, encoder.MessagesProcessedCount);
@@ -134,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             }
             else
             {
-                Assert.Equal(210, networkMessages.Sum(m => m.Buffers.Count));
+                Assert.Equal(210, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
                 Assert.Equal(1, encoder.NotificationsProcessedCount);
                 Assert.Equal(0, encoder.NotificationsDroppedCount);
                 Assert.Equal(210, encoder.MessagesProcessedCount);
@@ -148,13 +151,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         public void EncodeChunkTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 8 * 1024;
-            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(50, false, MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(50, false,
+                MessageEncoding.JsonGzip, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            var count = networkMessages.Sum(m => m.Buffers.Count);
-            Assert.All(networkMessages, m => Assert.All(m.Buffers, m => Assert.True((m?.Length ?? 0) <= maxMessageSize, m?.Length.ToString())));
+            var count = networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count);
+            Assert.All(networkMessages, m => Assert.All(((NetworkMessage)m).Buffers, m => Assert.True(m.Length <= maxMessageSize, m.Length.ToString())));
             if (encodeBatchFlag)
             {
                 Assert.InRange(count, 2, 3);
@@ -179,12 +183,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         public void EncodeEventTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 256 * 1024;
-            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(1, true, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(1, true,
+                encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(1, networkMessages.Sum(m => m.Buffers.Count));
+            Assert.Equal(1, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
             Assert.Equal(1u, encoder.NotificationsProcessedCount);
             Assert.Equal(0u, encoder.NotificationsDroppedCount);
             Assert.Equal(1u, encoder.MessagesProcessedCount);
@@ -197,14 +202,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         public void EncodeEventsTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 256 * 1024;
-            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, true, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, true,
+                encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             if (encodeBatchFlag)
             {
-                Assert.Equal(1, networkMessages.Sum(m => m.Buffers.Count));
+                Assert.Equal(1, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
                 Assert.Equal(20, encoder.NotificationsProcessedCount);
                 Assert.Equal(0, encoder.NotificationsDroppedCount);
                 Assert.Equal(1, encoder.MessagesProcessedCount);
@@ -212,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             }
             else
             {
-                Assert.Equal(210, networkMessages.Sum(m => m.Buffers.Count));
+                Assert.Equal(210, networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count));
                 Assert.Equal(20, encoder.NotificationsProcessedCount);
                 Assert.Equal(0, encoder.NotificationsDroppedCount);
                 Assert.Equal(210, encoder.MessagesProcessedCount);

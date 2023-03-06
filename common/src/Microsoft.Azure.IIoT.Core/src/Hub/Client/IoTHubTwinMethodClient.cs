@@ -7,10 +7,10 @@ namespace Microsoft.Azure.IIoT.Hub.Client
 {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Extensions.Logging;
+    using Furly.Exceptions;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Exceptions;
 
     /// <summary>
     /// Method client using twin services
@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client
     public sealed class IoTHubTwinMethodClient : IJsonMethodClient
     {
         /// <inheritdoc/>
-        public int MaxMethodPayloadCharacterCount => 120 * 1024;
+        public int MaxMethodPayloadSizeInBytes => 120 * 1024;
 
         /// <summary>
         /// Create client

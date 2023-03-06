@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public IEnumerable<ITelemetryEvent> Encode(Func<ITelemetryEvent> factory,
+        public IEnumerable<IEvent> Encode(Func<IEvent> factory,
             IEnumerable<SubscriptionNotificationModel> messages, int maxMessageSize, bool asBatch)
         {
             //
@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // get the first message's context
             //
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)?.ServiceMessageContext;
-            var chunkedMessages = new List<ITelemetryEvent>();
+            var chunkedMessages = new List<IEvent>();
             if (encodingContext == null)
             {
                 // Drop all messages
@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var validChunks = 0;
                 foreach (var body in chunks)
                 {
-                    if (body == null)
+                    if (body.Length == 0)
                     {
                         //
                         // Failed to press a notification into message size limit
@@ -106,15 +106,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (validChunks > 0)
                 {
                     var chunkedMessage = factory();
-                    chunkedMessage.Timestamp = DateTime.UtcNow;
-                    chunkedMessage.ContentEncoding = networkMessage.ContentEncoding;
-                    chunkedMessage.ContentType = networkMessage.ContentType;
-                    chunkedMessage.MessageSchema = networkMessage.MessageSchema;
-                    chunkedMessage.RoutingInfo = networkMessage.DataSetWriterGroup;
-                    chunkedMessage.OutputName = output;
-                    chunkedMessage.Retain = retain;
-                    chunkedMessage.Ttl = ttl;
-                    chunkedMessage.Buffers = chunks;
+                    chunkedMessage.SetTimestamp(DateTime.UtcNow);
+                    chunkedMessage.SetContentEncoding(networkMessage.ContentEncoding);
+                    chunkedMessage.SetContentType(networkMessage.ContentType);
+                    chunkedMessage.SetMessageSchema(networkMessage.MessageSchema);
+                    chunkedMessage.SetRoutingInfo(networkMessage.DataSetWriterGroup);
+                    chunkedMessage.SetTopic(output);
+                    chunkedMessage.SetRetain(retain);
+                    chunkedMessage.SetTtl(ttl);
+                    chunkedMessage.AddBuffers(chunks);
                     chunkedMessages.Add(chunkedMessage);
                 }
 

@@ -12,13 +12,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
     using Microsoft.Azure.Devices.Client.Common;
     using Microsoft.Azure.Devices.Shared;
     using Microsoft.Extensions.Logging;
+    using Furly.Exceptions;
     using MQTTnet;
     using MQTTnet.Client;
     using MQTTnet.Extensions.ManagedClient;
     using MQTTnet.Formatter;
     using MQTTnet.Packets;
     using MQTTnet.Protocol;
-    using Furly.Exceptions;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Concurrent;
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
     public sealed class MqttClientAdapter : IClient
     {
         /// <inheritdoc />
-        public int MaxEventBufferSize => int.MaxValue;
+        public int MaxEventPayloadSizeInBytes => int.MaxValue;
 
         /// <summary>
         /// Whether the client is closed
@@ -222,28 +222,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         }
 
         /// <inheritdoc />
-        public ITelemetryEvent CreateTelemetryEvent()
+        public IEvent CreateEvent()
         {
             return new MqttClientAdapterMessage(this);
-        }
-
-        /// <inheritdoc />
-        public async Task SendEventAsync(ITelemetryEvent message)
-        {
-            if (IsClosed)
-            {
-                return;
-            }
-            var msg = (MqttClientAdapterMessage)message;
-            var topic = msg.Topic;
-            foreach (var body in msg.Buffers)
-            {
-                if (body != null)
-                {
-                    await InternalSendEventAsync(topic, body, msg.ContentType, msg.Retain,
-                        msg.Ttl, msg.UserProperties).ConfigureAwait(false);
-                }
-            }
         }
 
         /// <inheritdoc />
@@ -351,11 +332,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         /// <param name="correlationData"></param>
         /// <returns></returns>
         /// <exception cref="MessageSizeLimitException"></exception>
-        private async Task InternalSendEventAsync(string topic, byte[] payload = null,
+        private async Task InternalSendEventAsync(string topic, ReadOnlyMemory<byte> payload = default,
             string contentType = null, bool retain = false, TimeSpan? ttl = null,
             Dictionary<string, string> properties = null, byte[] correlationData = null)
         {
-            _logger.LogDebug("Publishing {ByteCount} bytes to {Topic}", (payload?.Length) ?? 0, topic);
+            _logger.LogDebug("Publishing {ByteCount} bytes to {Topic}", payload.Length, topic);
 
             // Check topic length.
             var topicLength = Encoding.UTF8.GetByteCount(topic);
@@ -380,9 +361,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
                 {
                     mqttApplicationMessageBuilder.WithCorrelationData(correlationData);
                 }
-                if (payload != null)
+                if (payload.Length > 0)
                 {
-                    mqttApplicationMessageBuilder = mqttApplicationMessageBuilder.WithPayload(payload);
+                    mqttApplicationMessageBuilder = mqttApplicationMessageBuilder.WithPayload(payload.ToArray());
                 }
                 if (ttl > TimeSpan.Zero)
                 {
@@ -675,8 +656,90 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         /// <summary>
         /// Message wrapper
         /// </summary>
-        internal sealed class MqttClientAdapterMessage : ITelemetryEvent
+        internal sealed class MqttClientAdapterMessage : IEvent
         {
+            /// <inheritdoc/>
+            public IEvent SetContentType(string value)
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    _userProperties[kContentTypePropertyName] = value;
+                    if (_outer._telemetryTopicTemplate == null)
+                    {
+                        _userProperties[SystemProperties.MessageSchema] = value;
+                    }
+                }
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetContentEncoding(string value)
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    _userProperties[kContentEncodingPropertyName] = value;
+                    if (_outer._telemetryTopicTemplate == null)
+                    {
+                        _userProperties[CommonProperties.ContentEncoding] = value;
+                    }
+                }
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetMessageSchema(string value)
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    _userProperties[CommonProperties.EventSchemaType] = value;
+                }
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetRoutingInfo(string value)
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    _userProperties[CommonProperties.RoutingInfo] = value;
+                }
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetTopic(string value)
+            {
+                _topic = value;
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetRetain(bool value)
+            {
+                _retain = value;
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetTtl(TimeSpan value)
+            {
+                _ttl = value;
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetTimestamp(DateTime value)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
+            public IEvent AddBuffers(IReadOnlyList<ReadOnlyMemory<byte>> value)
+            {
+                _buffers.AddRange(value);
+                return this;
+            }
+
             /// <summary>
             /// User properties
             /// </summary>
@@ -686,119 +749,52 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
             /// <summary>
             /// Topic
             /// </summary>
-            internal string Topic
+            internal string BuildTopicPath()
             {
-                get
+                // Build merged dictionary of properties to serialize in topic.
+                if (_outer._telemetryTopicTemplate == null)
                 {
-                    // Build merged dictionary of properties to serialize in topic.
-                    if (_outer._telemetryTopicTemplate == null)
+                    var topic = $"devices/{_outer._deviceId}/messages/events/";
+                    if (_userProperties.Count > 0)
                     {
-                        var topic = $"devices/{_outer._deviceId}/messages/events/";
-                        if (_userProperties.Count > 0)
-                        {
-                            topic += UrlEncodedDictionarySerializer.Serialize(_userProperties) + kSegmentSeparator;
-                        }
-                        return topic;
+                        topic += UrlEncodedDictionarySerializer.Serialize(_userProperties) + kSegmentSeparator;
                     }
-                    else
-                    {
-                        return _outer._telemetryTopicTemplate
-                            .Replace(kDeviceIdTemplatePlaceholder, _outer._deviceId, StringComparison.Ordinal)
-                            .Replace(kOutputNamePlaceholder, OutputName ?? string.Empty, StringComparison.Ordinal)
-                            .Replace("//", "/", StringComparison.Ordinal)
-                            ;
-                    }
+                    return topic;
+                }
+                else
+                {
+                    return _outer._telemetryTopicTemplate
+                        .Replace(kDeviceIdTemplatePlaceholder, _outer._deviceId, StringComparison.Ordinal)
+                        .Replace(kOutputNamePlaceholder, _topic ?? string.Empty, StringComparison.Ordinal)
+                        .Replace("//", "/", StringComparison.Ordinal)
+                        ;
                 }
             }
-
-            /// <inheritdoc/>
-            public DateTime Timestamp { get; set; }
-
-            /// <inheritdoc/>
-            public string ContentType
-            {
-                get
-                {
-                    return _userProperties[kContentTypePropertyName];
-                }
-                set
-                {
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        _userProperties[kContentTypePropertyName] = value;
-                        if (_outer._telemetryTopicTemplate == null)
-                        {
-                            _userProperties[SystemProperties.MessageSchema] = value;
-                        }
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
-            public string ContentEncoding
-            {
-                get
-                {
-                    return _userProperties[kContentEncodingPropertyName];
-                }
-                set
-                {
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        _userProperties[kContentEncodingPropertyName] = value;
-                        if (_outer._telemetryTopicTemplate == null)
-                        {
-                            _userProperties[CommonProperties.ContentEncoding] = value;
-                        }
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
-            public string MessageSchema
-            {
-                get
-                {
-                    return _userProperties[CommonProperties.EventSchemaType];
-                }
-                set
-                {
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        _userProperties[CommonProperties.EventSchemaType] = value;
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
-            public string RoutingInfo
-            {
-                get
-                {
-                    return _userProperties[CommonProperties.RoutingInfo];
-                }
-                set
-                {
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        _userProperties[CommonProperties.RoutingInfo] = value;
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
-            public string OutputName { get; set; }
-            /// <inheritdoc/>
-            public bool Retain { get; set; }
-            /// <inheritdoc/>
-            public TimeSpan Ttl { get; set; }
-            /// <inheritdoc/>
-            public IReadOnlyList<byte[]> Buffers { get; set; }
 
             /// <inheritdoc/>
             public void Dispose()
             {
                 _userProperties.Clear();
+                _buffers.Clear();
+            }
+
+            /// <inheritdoc />
+            public async Task SendAsync(CancellationToken ct)
+            {
+                if (_outer.IsClosed)
+                {
+                    return;
+                }
+                var topic = BuildTopicPath();
+                var contentType = _userProperties[kContentTypePropertyName];
+                foreach (var body in _buffers)
+                {
+                    if (!body.IsEmpty)
+                    {
+                        await _outer.InternalSendEventAsync(topic, body, contentType, _retain,
+                            _ttl, UserProperties).ConfigureAwait(false);
+                    }
+                }
             }
 
             /// <summary>
@@ -811,6 +807,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
             }
 
             private readonly MqttClientAdapter _outer;
+            private string _topic;
+            private bool _retain;
+            private TimeSpan _ttl;
+            private readonly List<ReadOnlyMemory<byte>> _buffers = new();
             private readonly Dictionary<string, string> _userProperties = new();
         }
 
@@ -848,8 +848,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient
         private readonly ILogger _logger;
         private readonly MqttProtocolVersion _protocolVersion;
         private readonly ManualResetEvent _responseHandle = new(false);
-        private readonly ConcurrentDictionary<string, MqttApplicationMessage> _responses
-            = new();
+        private readonly ConcurrentDictionary<string, MqttApplicationMessage> _responses = new();
         private DesiredPropertyUpdateCallback _desiredPropertyUpdateCallback;
         private MethodCallback _defaultMethodCallback;
         private int _reconnectCounter;

@@ -6,13 +6,11 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client
 {
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
     using Microsoft.Extensions.Logging;
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;
@@ -29,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
         public bool IsClosed { get; internal set; }
 
         /// <inheritdoc />
-        public int MaxEventBufferSize => 256 * 1024;
+        public int MaxEventPayloadSizeInBytes => 256 * 1024;
 
         /// <summary>
         /// Create client
@@ -93,34 +91,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
         }
 
         /// <inheritdoc />
-        public ITelemetryEvent CreateTelemetryEvent()
+        public IEvent CreateEvent()
         {
-            return new DeviceMessage();
-        }
-
-        /// <inheritdoc />
-        public async Task SendEventAsync(ITelemetryEvent message)
-        {
-            if (IsClosed)
-            {
-                return;
-            }
-            var messages = ((DeviceMessage)message).AsMessages();
-            try
-            {
-                if (messages.Count == 1)
-                {
-                    await _client.SendEventAsync(messages[0]).ConfigureAwait(false);
-                }
-                await _client.SendEventBatchAsync(messages).ConfigureAwait(false);
-            }
-            finally
-            {
-                foreach (var hubMessage in messages)
-                {
-                    hubMessage.Dispose();
-                }
-            }
+            return new DeviceMessage(this);
         }
 
         /// <inheritdoc />
@@ -228,114 +201,42 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
         /// <summary>
         /// Message wrapper
         /// </summary>
-        internal sealed class DeviceMessage : ITelemetryEvent
+        internal sealed class DeviceMessage : IoTSdkMessage
         {
             /// <summary>
-            /// Build message
+            /// Create message
             /// </summary>
-            internal IReadOnlyList<Message> AsMessages()
+            /// <param name="outer"></param>
+            public DeviceMessage(DeviceClientAdapter outer)
             {
-                return Buffers
-                    .Where(b => b != null)
-                    .Select(m => _template.CloneWithBody(m))
-                    .ToList();
+                _outer = outer;
             }
 
-            /// <inheritdoc/>
-            public DateTime Timestamp { get; set; }
-
-            /// <inheritdoc/>
-            public string ContentType
+            /// <inheritdoc />
+            public override async Task SendAsync(CancellationToken ct)
             {
-                get
+                if (_outer.IsClosed)
                 {
-                    return _template.ContentType;
+                    return;
                 }
-                set
+                var messages = AsMessages();
+                try
                 {
-                    if (!string.IsNullOrWhiteSpace(value))
+                    if (messages.Count == 1)
                     {
-                        _template.ContentType = value;
-                        _template.Properties.AddOrUpdate(SystemProperties.MessageSchema, value);
+                        await _outer._client.SendEventAsync(messages[0], ct).ConfigureAwait(false);
+                    }
+                    await _outer._client.SendEventBatchAsync(messages, ct).ConfigureAwait(false);
+                }
+                finally
+                {
+                    foreach (var hubMessage in messages)
+                    {
+                        hubMessage.Dispose();
                     }
                 }
             }
-
-            /// <inheritdoc/>
-            public string ContentEncoding
-            {
-                get
-                {
-                    return _template.ContentEncoding;
-                }
-                set
-                {
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        _template.ContentEncoding = value;
-                        _template.Properties.AddOrUpdate(CommonProperties.ContentEncoding, value);
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
-            public string MessageSchema
-            {
-                get
-                {
-                    if (_template.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value))
-                    {
-                        return value;
-                    }
-                    return null;
-                }
-                set
-                {
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        _template.Properties.AddOrUpdate(CommonProperties.EventSchemaType, value);
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
-            public string RoutingInfo
-            {
-                get
-                {
-                    if (_template.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value))
-                    {
-                        return value;
-                    }
-                    return null;
-                }
-                set
-                {
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        _template.Properties.AddOrUpdate(CommonProperties.RoutingInfo, value);
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
-            public IReadOnlyList<byte[]> Buffers { get; set; }
-
-            /// <inheritdoc/>
-            public string OutputName { get; set; }
-            /// <inheritdoc/>
-            public bool Retain { get; set; }
-            /// <inheritdoc/>
-            public TimeSpan Ttl { get; set; }
-
-            /// <inheritdoc/>
-            public void Dispose()
-            {
-                // TODO: Return to pool
-                _template.Dispose();
-            }
-
-            readonly Message _template = new();
+            private readonly DeviceClientAdapter _outer;
         }
 
         /// <summary>

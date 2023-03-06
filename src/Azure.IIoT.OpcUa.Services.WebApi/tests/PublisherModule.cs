@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
-    using Azure.IIoT.OpcUa.Testing.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Module;
+    using Azure.IIoT.OpcUa.Testing.Runtime;
     using Autofac;
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Hub;

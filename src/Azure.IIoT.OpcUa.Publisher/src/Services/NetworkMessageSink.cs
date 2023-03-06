@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     public class NetworkMessageSink : IMessageSink
     {
         /// <inheritdoc/>
-        public int MaxMessageSize => _clientAccessor.Client.MaxEventBufferSize;
+        public int MaxMessageSize => _clientAccessor.Client.MaxEventPayloadSizeInBytes;
 
         /// <summary>
         /// Create network message sink
@@ -38,13 +38,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public ITelemetryEvent CreateMessage()
+        public IEvent CreateMessage()
         {
-            return _clientAccessor.Client.CreateTelemetryEvent();
+            return _clientAccessor.Client.CreateEvent();
         }
 
         /// <inheritdoc/>
-        public async Task SendAsync(ITelemetryEvent message)
+        public async Task SendAsync(IEvent message)
         {
             if (message == null)
             {
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var sw = Stopwatch.StartNew();
                 try
                 {
-                    await _clientAccessor.Client.SendEventAsync(message).ConfigureAwait(false);
+                    await message.SendAsync().ConfigureAwait(false);
                     _messagesSentCount++;
                 }
                 catch (Exception e)

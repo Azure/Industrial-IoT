@@ -30,9 +30,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
         IEnumerable<IIoTHubDevice> Modules { get; }
 
         /// <summary>
-        /// Event endpoint
+        /// Events
         /// </summary>
-        BlockingCollection<ITelemetryEvent> Events { get; }
+        BlockingCollection<IoTHubEvent> Events { get; }
 
         /// <summary>
         /// Connect device/module to hub

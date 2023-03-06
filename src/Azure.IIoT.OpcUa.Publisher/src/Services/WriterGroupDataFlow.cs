@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
             _maxOutgressMessages = _config.MaxOutgressMessages ?? 4096; // = 1 GB
 
-            _encodingBlock = new TransformManyBlock<SubscriptionNotificationModel[], ITelemetryEvent>(
+            _encodingBlock = new TransformManyBlock<SubscriptionNotificationModel[], IEvent>(
                 input =>
                 {
                     try
@@ -79,14 +79,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     catch (Exception e)
                     {
                         _logger.LogError(e, "Encoding failure.");
-                        return Enumerable.Empty<ITelemetryEvent>();
+                        return Enumerable.Empty<IEvent>();
                     }
                 },
                 new ExecutionDataflowBlockOptions());
             _batchDataSetMessageBlock = new BatchBlock<SubscriptionNotificationModel>(
                 _notificationBufferSize,
                 new GroupingDataflowBlockOptions());
-            _sinkBlock = new ActionBlock<ITelemetryEvent>(
+            _sinkBlock = new ActionBlock<IEvent>(
                 input => _messageSink.SendAsync(input),
                 new ExecutionDataflowBlockOptions());
 
@@ -212,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly IWriterGroupDiagnostics _diagnostics;
         private readonly BatchBlock<SubscriptionNotificationModel> _batchDataSetMessageBlock;
-        private readonly TransformManyBlock<SubscriptionNotificationModel[], ITelemetryEvent> _encodingBlock;
-        private readonly ActionBlock<ITelemetryEvent> _sinkBlock;
+        private readonly TransformManyBlock<SubscriptionNotificationModel[], IEvent> _encodingBlock;
+        private readonly ActionBlock<IEvent> _sinkBlock;
     }
 }

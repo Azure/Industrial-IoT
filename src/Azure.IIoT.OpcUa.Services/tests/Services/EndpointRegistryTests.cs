@@ -12,9 +12,9 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using Autofac.Extras.Moq;
     using AutoFixture;
     using AutoFixture.Kernel;
+    using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Furly.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;

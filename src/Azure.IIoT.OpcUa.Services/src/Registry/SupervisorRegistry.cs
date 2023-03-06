@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 {
     using Azure.IIoT.OpcUa.Services.Registry.Models;
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Logging;
@@ -14,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Exceptions;
 
     /// <summary>
     /// Supervisor registry which uses the IoT Hub twin services

@@ -193,13 +193,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context, Queue<byte[]> reader,
-            IDataSetMetaDataResolver resolver = null)
+        public override bool TryDecode(IServiceMessageContext context,
+            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver resolver = null)
         {
             // Decodes a single buffer
             if (reader.TryPeek(out var buffer))
             {
-                using (var memoryStream = Memory.GetStream(buffer))
+                using (var memoryStream = Memory.GetStream(buffer.ToArray()))
                 {
                     var compression = UseGzipCompression ?
                         new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
@@ -225,10 +225,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
+        public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver resolver = null)
         {
-            var chunks = new List<byte[]>();
+            var chunks = new List<ReadOnlyMemory<byte>>();
             var messages = Messages.OfType<JsonDataSetMessage>().ToArray().AsSpan();
             var messageId = MessageId;
             try

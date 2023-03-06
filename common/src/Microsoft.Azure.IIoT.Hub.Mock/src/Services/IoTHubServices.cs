@@ -12,18 +12,19 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Furly.Exceptions;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.IO;
+    using static Microsoft.Azure.IIoT.Hub.Mock.IoTHubClientFactory.IoTHubClient;
 
     /// <summary>
     /// Mock device registry
@@ -43,8 +44,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
             _devices.Where(d => d.Device.ModuleId != null);
 
         /// <inheritdoc/>
-        public BlockingCollection<ITelemetryEvent> Events { get; } =
-            new BlockingCollection<ITelemetryEvent>();
+        public BlockingCollection<IoTHubEvent> Events { get; } =
+            new BlockingCollection<IoTHubEvent>();
 
         /// <summary>
         /// Create iot hub services
@@ -397,9 +398,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
             }
 
             /// <inheritdoc/>
-            public void SendEvent(ITelemetryEvent message)
+            public void SendEvent(IEvent message)
             {
-                if (!_outer.Events.TryAdd(new EventMessage(message, Device)))
+                if (message is not TelemetryMessage evt ||
+                    !_outer.Events.TryAdd(new IoTHubEvent(Device, evt)))
                 {
                     throw new IOException("Failed to send event.");
                 }
@@ -529,71 +531,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
             private readonly object _lock = new();
         }
 
-        /// <summary>
-        /// Event messages
-        /// </summary>
-        public sealed class EventMessage : ITelemetryEvent
-        {
-            /// <summary>
-            /// Default constructor
-            /// </summary>
-            public EventMessage()
-            {
-            }
-
-            /// <summary>
-            /// Create event
-            /// </summary>
-            /// <param name="message"></param>
-            /// <param name="device"></param>
-            public EventMessage(ITelemetryEvent message,
-                DeviceModel device)
-            {
-                Timestamp = message.Timestamp;
-                ContentType = message.ContentType;
-                MessageSchema = message.MessageSchema;
-                RoutingInfo = message.RoutingInfo;
-                OutputName = message.OutputName;
-                Buffers = message.Buffers;
-                DeviceId = device.Id;
-                ModuleId = device.ModuleId;
-                Retain = message.Retain;
-                Ttl = message.Ttl;
-            }
-
-            /// <inheritdoc/>
-            public DateTime Timestamp { get; set; }
-            /// <inheritdoc/>
-            public string ContentType { get; set; }
-            /// <inheritdoc/>
-            public string ContentEncoding { get; set; }
-            /// <inheritdoc/>
-            public string MessageSchema { get; set; }
-            /// <inheritdoc/>
-            public string DeviceId { get; set; }
-            /// <inheritdoc/>
-            public string ModuleId { get; set; }
-            /// <inheritdoc/>
-            public string RoutingInfo { get; set; }
-            /// <inheritdoc/>
-            public string OutputName { get; set; }
-            /// <inheritdoc/>
-            public bool Retain { get; set; }
-            /// <inheritdoc/>
-            public TimeSpan Ttl { get; set; }
-            /// <inheritdoc/>
-            public IReadOnlyList<byte[]> Buffers { get; set; }
-
-            /// <inheritdoc/>
-            public void Dispose()
-            {
-            }
-        }
-
         private readonly SqlQuery _query;
         private readonly object _lock = new();
-        private readonly List<IoTHubDeviceModel> _devices =
-            new();
+        private readonly List<IoTHubDeviceModel> _devices = new();
         private readonly IJsonSerializer _serializer;
     }
 }

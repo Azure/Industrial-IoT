@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client
     /// <summary>
     /// The sdk client
     /// </summary>
-    public interface IClient : IMethodCallClient, IMessageClient,
+    public interface IClient : IMethodCallClient, IEventClient,
         ITwinClient, IAsyncDisposable, IDisposable
     {
     }

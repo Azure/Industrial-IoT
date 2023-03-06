@@ -13,9 +13,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
     using Furly.Exceptions;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.IO;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
             public bool IsClosed { get; internal set; }
 
             /// <inheritdoc />
-            public int MaxEventBufferSize => 256 * 1024;
+            public int MaxEventPayloadSizeInBytes => 256 * 1024;
 
             /// <summary>
             /// Connection to iot hub
@@ -101,16 +101,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
                 Connection = null;
                 IsClosed = true;
                 return ValueTask.CompletedTask;
-            }
-
-            /// <inheritdoc />
-            public Task SendEventAsync(ITelemetryEvent message)
-            {
-                if (!IsClosed)
-                {
-                    Connection.SendEvent(message);
-                }
-                return Task.CompletedTask;
             }
 
             /// <inheritdoc />
@@ -192,102 +182,173 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
             }
 
             /// <inheritdoc />
-            public ITelemetryEvent CreateTelemetryEvent()
+            public IEvent CreateEvent()
             {
-                return new TelemetryMessage();
+                return new TelemetryMessage(this);
             }
 
             /// <summary>
             /// Message wrapper
             /// </summary>
-            internal sealed class TelemetryMessage : ITelemetryEvent
+            internal sealed class TelemetryMessage : IEvent
             {
-                /// <inheritdoc/>
-                public DateTime Timestamp { get; set; }
+                private DateTime timestamp;
 
                 /// <inheritdoc/>
-                public string ContentType
+                public DateTime GetTimestamp()
                 {
-                    get
-                    {
-                        return _msg.ContentType;
-                    }
-                    set
-                    {
-                        if (!string.IsNullOrWhiteSpace(value))
-                        {
-                            _msg.ContentType = value;
-                            _msg.Properties.AddOrUpdate(SystemProperties.MessageSchema, value);
-                        }
-                    }
+                    return timestamp;
                 }
 
                 /// <inheritdoc/>
-                public string ContentEncoding
+                public IEvent SetTimestamp(DateTime value)
                 {
-                    get
-                    {
-                        return _msg.ContentEncoding;
-                    }
-                    set
-                    {
-                        if (!string.IsNullOrWhiteSpace(value))
-                        {
-                            _msg.ContentEncoding = value;
-                            _msg.Properties.AddOrUpdate(CommonProperties.ContentEncoding, value);
-                        }
-                    }
+                    timestamp = value;
+                    return this;
                 }
 
                 /// <inheritdoc/>
-                public string MessageSchema
+                public string GetContentType()
                 {
-                    get
-                    {
-                        if (_msg.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value))
-                        {
-                            return value;
-                        }
-                        return null;
-                    }
-                    set
-                    {
-                        if (!string.IsNullOrWhiteSpace(value))
-                        {
-                            _msg.Properties.AddOrUpdate(CommonProperties.EventSchemaType, value);
-                        }
-                    }
+                    return _msg.ContentType;
                 }
 
                 /// <inheritdoc/>
-                public string RoutingInfo
+                public IEvent SetContentType(string value)
                 {
-                    get
+                    if (!string.IsNullOrWhiteSpace(value))
                     {
-                        if (_msg.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value))
-                        {
-                            return value;
-                        }
-                        return null;
+                        _msg.ContentType = value;
+                        _msg.Properties.AddOrUpdate(SystemProperties.MessageSchema, value);
                     }
-                    set
-                    {
-                        if (!string.IsNullOrWhiteSpace(value))
-                        {
-                            _msg.Properties.AddOrUpdate(CommonProperties.RoutingInfo, value);
-                        }
-                    }
+                    return this;
                 }
 
                 /// <inheritdoc/>
-                public IReadOnlyList<byte[]> Buffers { get; set; }
+                public string GetContentEncoding()
+                {
+                    return _msg.ContentEncoding;
+                }
 
                 /// <inheritdoc/>
-                public string OutputName { get; set; }
+                public IEvent SetContentEncoding(string value)
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        _msg.ContentEncoding = value;
+                        _msg.Properties.AddOrUpdate(CommonProperties.ContentEncoding, value);
+                    }
+                    return this;
+                }
+
                 /// <inheritdoc/>
-                public bool Retain { get; set; }
+                public string GetMessageSchema()
+                {
+                    if (_msg.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value))
+                    {
+                        return value;
+                    }
+                    return null;
+                }
+
                 /// <inheritdoc/>
-                public TimeSpan Ttl { get; set; }
+                public IEvent SetMessageSchema(string value)
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        _msg.Properties.AddOrUpdate(CommonProperties.EventSchemaType, value);
+                    }
+                    return this;
+                }
+
+                /// <inheritdoc/>
+                public string GetRoutingInfo()
+                {
+                    if (_msg.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value))
+                    {
+                        return value;
+                    }
+                    return null;
+                }
+
+                /// <inheritdoc/>
+                public IEvent SetRoutingInfo(string value)
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        _msg.Properties.AddOrUpdate(CommonProperties.RoutingInfo, value);
+                    }
+                    return this;
+                }
+
+                private IReadOnlyList<ReadOnlyMemory<byte>> buffers;
+
+                /// <inheritdoc/>
+                public IReadOnlyList<ReadOnlyMemory<byte>> GetBuffers()
+                {
+                    return buffers;
+                }
+
+                /// <inheritdoc/>
+                public IEvent AddBuffers(IReadOnlyList<ReadOnlyMemory<byte>> value)
+                {
+                    buffers = value;
+                    return this;
+                }
+
+                private string topic;
+
+                /// <inheritdoc/>
+                public string GetTopic()
+                {
+                    return topic;
+                }
+
+                /// <inheritdoc/>
+                public IEvent SetTopic(string value)
+                {
+                    topic = value;
+                    return this;
+                }
+
+                private bool retain;
+
+                /// <inheritdoc/>
+                public bool GetRetain()
+                {
+                    return retain;
+                }
+
+                /// <inheritdoc/>
+                public IEvent SetRetain(bool value)
+                {
+                    retain = value;
+                    return this;
+                }
+
+                private TimeSpan ttl;
+
+                /// <inheritdoc/>
+                public TimeSpan GetTtl()
+                {
+                    return ttl;
+                }
+
+                /// <inheritdoc/>
+                public IEvent SetTtl(TimeSpan value)
+                {
+                    ttl = value;
+                    return this;
+                }
+
+                /// <summary>
+                /// Create event
+                /// </summary>
+                /// <param name="outer"></param>
+                public TelemetryMessage(IoTHubClient outer)
+                {
+                    _outer = outer;
+                }
 
                 /// <inheritdoc/>
                 public void Dispose()
@@ -296,7 +357,18 @@ namespace Microsoft.Azure.IIoT.Hub.Mock
                     _msg.Dispose();
                 }
 
-                readonly Message _msg = new();
+                /// <inheritdoc/>
+                public Task SendAsync(CancellationToken ct = default)
+                {
+                    if (!_outer.IsClosed)
+                    {
+                        _outer.Connection.SendEvent(this);
+                    }
+                    return Task.CompletedTask;
+                }
+
+                private readonly Message _msg = new();
+                private readonly IoTHubClient _outer;
             }
 
             private MethodCallback _methods;

@@ -9,15 +9,15 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Extensions.AspNetCore.OpenApi;
+    using Furly.Extensions.Http;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.ComponentModel.DataAnnotations;
-    using System.Threading.Tasks;
-    using Furly.Extensions.AspNetCore.OpenApi;
-    using Furly.Extensions.Http;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Node access read services

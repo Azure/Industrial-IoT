@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Hub
         /// <summary>
         /// Max payload string size in bytes.
         /// </summary>
-        int MaxMethodPayloadCharacterCount { get; }
+        int MaxMethodPayloadSizeInBytes { get; }
 
         /// <summary>
         /// Call a method on a module or device identity with

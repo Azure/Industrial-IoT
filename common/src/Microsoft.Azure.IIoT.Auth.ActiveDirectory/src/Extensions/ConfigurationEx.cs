@@ -11,8 +11,8 @@ namespace Microsoft.Extensions.Configuration
     using Microsoft.Azure.IIoT.Auth.KeyVault;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
-    using Furly.Extensions.Logging;
     using Furly.Exceptions;
+    using Furly.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;

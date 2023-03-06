@@ -417,9 +417,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             }, (uint)dataSetFieldContentMask);
         }
 
-        private static Queue<byte[]> CreateReader(IReadOnlyList<byte[]> buffers)
+        private static Queue<ReadOnlyMemory<byte>> CreateReader(IReadOnlyList<ReadOnlyMemory<byte>> buffers)
         {
-            var reader = new Queue<byte[]>();
+            var reader = new Queue<ReadOnlyMemory<byte>>();
             foreach (var buffer in buffers)
             {
                 reader.Enqueue(buffer);

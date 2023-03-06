@@ -52,9 +52,11 @@ namespace Azure.IIoT.OpcUa.Publisher.State
                 return;
             }
 
-            if (_clientAccessor.Client is null)
+            var client = _clientAccessor.Client;
+            if (client is null)
             {
-                _logger.LogWarning("Hub client is not initialized yet. Unable to send restart announcement.");
+                _logger.LogWarning(
+                    "Hub client is not initialized yet. Unable to send restart announcement.");
                 return;
             }
 
@@ -65,16 +67,12 @@ namespace Azure.IIoT.OpcUa.Publisher.State
                     MessageType = MessageTypeEnum.RestartAnnouncement
                 };
 
-                var bodyJson = _jsonSerializer.SerializeToString(body);
-
-                using var message = _clientAccessor.Client.CreateMessage(
-                    new[] { Encoding.UTF8.GetBytes(bodyJson) },
+                await client.SendEventAsync(string.Empty,
+                    _jsonSerializer.SerializeToMemory(body),
                     contentEncoding: Encoding.UTF8.WebName,
                     contentType: _jsonSerializer.MimeType,
                     messageSchema: _jsonSerializer.MimeType,
-                    routingInfo: RuntimeStateReportingPath);
-
-                await _clientAccessor.Client.SendEventAsync(message).ConfigureAwait(false);
+                    routingInfo: RuntimeStateReportingPath).ConfigureAwait(false);
 
                 _logger.LogInformation("Restart announcement sent successfully.");
             }

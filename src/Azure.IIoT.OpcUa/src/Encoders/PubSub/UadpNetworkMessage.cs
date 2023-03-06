@@ -440,13 +440,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context, Queue<byte[]> reader,
-            IDataSetMetaDataResolver resolver)
+        public override bool TryDecode(IServiceMessageContext context,
+            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver resolver)
         {
             var chunks = new List<Message>();
             while (reader.TryPeek(out var buffer))
             {
-                using (var binaryDecoder = new BinaryDecoder(buffer, context))
+                using (var binaryDecoder = new BinaryDecoder(buffer.ToArray(), context))
                 {
                     ReadNetworkMessageHeaderFlags(binaryDecoder);
 
@@ -480,10 +480,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
-            int maxChunkSize, IDataSetMetaDataResolver resolver)
+        public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(
+            IServiceMessageContext context, int maxChunkSize, IDataSetMetaDataResolver resolver)
         {
-            var messages = new List<byte[]>();
+            var messages = new List<ReadOnlyMemory<byte>>();
             var isChunkMessage = false;
             var remainingChunks = EncodePayloadChunks(context, resolver).AsSpan();
 

@@ -3,32 +3,26 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher
+namespace Microsoft.Azure.IIoT.Module.Framework.Client
 {
     using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.Devices.Client;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Message sink
+    /// The messaging client
     /// </summary>
-    public interface IMessageSink
+    public interface IEventClient
     {
         /// <summary>
-        /// Max message size sink can handle
+        /// Maximum size body of message client can process
         /// </summary>
-        int MaxMessageSize { get; }
+        int MaxEventPayloadSizeInBytes { get; }
 
         /// <summary>
-        /// Create message
+        /// Create a message to send
         /// </summary>
         /// <returns></returns>
-        IEvent CreateMessage();
-
-        /// <summary>
-        /// Send message and dispose
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        Task SendAsync(IEvent message);
+        IEvent CreateEvent();
     }
 }
