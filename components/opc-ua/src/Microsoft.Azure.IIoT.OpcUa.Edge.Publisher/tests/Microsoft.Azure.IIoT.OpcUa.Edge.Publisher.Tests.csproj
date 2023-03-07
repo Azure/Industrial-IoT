@@ -59,6 +59,9 @@
     <None Update="Engine\pn_assets_with_optional_fields.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Engine\publishednodes_with_duplicates.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Engine\publishednodeswithoptionalfields.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

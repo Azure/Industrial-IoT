@@ -1126,7 +1126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Create new stack monitored item
             /// </summary>
-            internal void Create(Session session, IVariantEncoder codec, bool activate) {
+            internal void Create(ISession session, IVariantEncoder codec, bool activate) {
                 Item = new MonitoredItem {
                     Handle = this,
                     DisplayName = Template.DisplayName,

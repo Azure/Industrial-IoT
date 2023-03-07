@@ -208,116 +208,124 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Diagnostics timer
         /// </summary>
         private void DiagnosticsOutputTimer_Elapsed(object state) {
-            var info = GetDiagnosticInfo();
-            var totalSeconds = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
-            double valueChangesPerSec = info.IngressValueChanges / info.IngestionDuration.TotalSeconds;
-            double dataChangesPerSec = info.IngressDataChanges / info.IngestionDuration.TotalSeconds;
-            double valueChangesPerSecLastMin = _messageTrigger.ValueChangesCountLastMinute / Math.Min(totalSeconds, 60d);
-            double dataChangesPerSecLastMin = _messageTrigger.DataChangesCountLastMinute / Math.Min(totalSeconds, 60d);
-            double messageSizeAveragePercent = Math.Round(info.EncoderAvgIoTMessageBodySize / _maxEncodedMessageSize * 100);
-            string messageSizeAveragePercentFormatted = $"({messageSizeAveragePercent}%)";
+            try {
+                var info = GetDiagnosticInfo();
+                if (info == null) {
+                    return;
+                }
+                var totalSeconds = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
+                double valueChangesPerSec = info.IngressValueChanges / info.IngestionDuration.TotalSeconds;
+                double dataChangesPerSec = info.IngressDataChanges / info.IngestionDuration.TotalSeconds;
+                double valueChangesPerSecLastMin = _messageTrigger.ValueChangesCountLastMinute / Math.Min(totalSeconds, 60d);
+                double dataChangesPerSecLastMin = _messageTrigger.DataChangesCountLastMinute / Math.Min(totalSeconds, 60d);
+                double messageSizeAveragePercent = Math.Round(info.EncoderAvgIoTMessageBodySize / _maxEncodedMessageSize * 100);
+                string messageSizeAveragePercentFormatted = $"({messageSizeAveragePercent}%)";
 
-            _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
+                _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
 
-            var diagInfo = new StringBuilder();
-            diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host}");
-            diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
-            string dataChangesPerSecFormatted = info.IngressDataChanges > 0 && info.IngestionDuration.TotalSeconds > 0
-                ? $"(All time ~{dataChangesPerSec:0.##}/s; {_messageTrigger.DataChangesCountLastMinute.ToString("D2")} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
-                : "";
-            diagInfo.AppendLine("  # Ingress DataChanges (from OPC)     : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
-            string valueChangesPerSecFormatted = info.IngressValueChanges > 0 && info.IngestionDuration.TotalSeconds > 0
-                ? $"(All time ~{valueChangesPerSec:0.##}/s; {_messageTrigger.ValueChangesCountLastMinute.ToString("D2")} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)"
-                : "";
-            diagInfo.AppendLine("  # Ingress ValueChanges (from OPC)    : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
+                var diagInfo = new StringBuilder();
+                diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host}");
+                diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
+                string dataChangesPerSecFormatted = info.IngressDataChanges > 0 && info.IngestionDuration.TotalSeconds > 0
+                    ? $"(All time ~{dataChangesPerSec:0.##}/s; {_messageTrigger.DataChangesCountLastMinute.ToString("D2")} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
+                    : "";
+                diagInfo.AppendLine("  # Ingress DataChanges (from OPC)     : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
+                string valueChangesPerSecFormatted = info.IngressValueChanges > 0 && info.IngestionDuration.TotalSeconds > 0
+                    ? $"(All time ~{valueChangesPerSec:0.##}/s; {_messageTrigger.ValueChangesCountLastMinute.ToString("D2")} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)"
+                    : "";
+                diagInfo.AppendLine("  # Ingress ValueChanges (from OPC)    : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
 
-            diagInfo.AppendLine("  # Ingress BatchBlock buffer size     : {batchDataSetMessageBlockOutputCount,14:0}");
-            diagInfo.AppendLine("  # Encoding Block input/output size   : {encodingBlockInputCount,14:0} | {encodingBlockOutputCount:0}");
-            diagInfo.AppendLine("  # Encoder Notifications processed    : {notificationsProcessedCount,14:n0}");
-            diagInfo.AppendLine("  # Encoder Notifications dropped      : {notificationsDroppedCount,14:n0}");
-            diagInfo.AppendLine("  # Encoder IoT Messages processed     : {messagesProcessedCount,14:n0}");
-            diagInfo.AppendLine("  # Encoder avg Notifications/Message  : {notificationsPerMessage,14:0}");
-            diagInfo.AppendLine("  # Encoder avg IoT Message body size  : {messageSizeAverage,14:n0} {messageSizeAveragePercentFormatted}");
-            diagInfo.AppendLine("  # Encoder avg IoT Chunk (4 KB) usage : {chunkSizeAverage,14:0.#}");
-            diagInfo.AppendLine("  # Estimated IoT Chunks (4 KB) per day: {estimatedMsgChunksPerDay,14:n0}");
-            diagInfo.AppendLine("  # Outgress Batch Block buffer size   : {batchNetworkMessageBlockOutputCount,14:0}");
-            diagInfo.AppendLine("  # Outgress input buffer count        : {sinkBlockInputCount,14:n0}");
-            diagInfo.AppendLine("  # Outgress input buffer dropped      : {sinkBlockInputDroppedCount,14:n0}");
+                diagInfo.AppendLine("  # Ingress BatchBlock buffer size     : {batchDataSetMessageBlockOutputCount,14:0}");
+                diagInfo.AppendLine("  # Encoding Block input/output size   : {encodingBlockInputCount,14:0} | {encodingBlockOutputCount:0}");
+                diagInfo.AppendLine("  # Encoder Notifications processed    : {notificationsProcessedCount,14:n0}");
+                diagInfo.AppendLine("  # Encoder Notifications dropped      : {notificationsDroppedCount,14:n0}");
+                diagInfo.AppendLine("  # Encoder IoT Messages processed     : {messagesProcessedCount,14:n0}");
+                diagInfo.AppendLine("  # Encoder avg Notifications/Message  : {notificationsPerMessage,14:0}");
+                diagInfo.AppendLine("  # Encoder avg IoT Message body size  : {messageSizeAverage,14:n0} {messageSizeAveragePercentFormatted}");
+                diagInfo.AppendLine("  # Encoder avg IoT Chunk (4 KB) usage : {chunkSizeAverage,14:0.#}");
+                diagInfo.AppendLine("  # Estimated IoT Chunks (4 KB) per day: {estimatedMsgChunksPerDay,14:n0}");
+                diagInfo.AppendLine("  # Outgress Batch Block buffer size   : {batchNetworkMessageBlockOutputCount,14:0}");
+                diagInfo.AppendLine("  # Outgress input buffer count        : {sinkBlockInputCount,14:n0}");
+                diagInfo.AppendLine("  # Outgress input buffer dropped      : {sinkBlockInputDroppedCount,14:n0}");
 
-            string sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0 && info.IngestionDuration.TotalSeconds > 0 ? $"({info.SentMessagesPerSec:0.##}/s)" : "";
-            diagInfo.AppendLine("  # Outgress IoT message count         : {messageSinkSentMessagesCount,14:n0} {sentMessagesPerSecFormatted}");
-            diagInfo.AppendLine("  # Connection retries                 : {connectionRetries,14:0}");
-            diagInfo.AppendLine("  # Opc endpoint connected?            : {isConnectionOk,14:0}");
-            diagInfo.AppendLine("  # Monitored Opc nodes succeeded count: {goodNodes,14:0}");
-            diagInfo.AppendLine("  # Monitored Opc nodes failed count   : {badNodes,14:0}");
+                string sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0 && info.IngestionDuration.TotalSeconds > 0 ? $"({info.SentMessagesPerSec:0.##}/s)" : "";
+                diagInfo.AppendLine("  # Outgress IoT message count         : {messageSinkSentMessagesCount,14:n0} {sentMessagesPerSecFormatted}");
+                diagInfo.AppendLine("  # Connection retries                 : {connectionRetries,14:0}");
+                diagInfo.AppendLine("  # Opc endpoint connected?            : {isConnectionOk,14:0}");
+                diagInfo.AppendLine("  # Monitored Opc nodes succeeded count: {goodNodes,14:0}");
+                diagInfo.AppendLine("  # Monitored Opc nodes failed count   : {badNodes,14:0}");
 
-            _logger.Information(diagInfo.ToString(),
-                info.Id,
-                info.IngestionDuration,
-                info.IngressDataChanges, dataChangesPerSecFormatted,
-                info.IngressValueChanges, valueChangesPerSecFormatted,
-                info.IngressBatchBlockBufferSize,
-                info.EncodingBlockInputSize, info.EncodingBlockOutputSize,
-                info.EncoderNotificationsProcessed,
-                info.EncoderNotificationsDropped,
-                info.EncoderIoTMessagesProcessed,
-                info.EncoderAvgNotificationsMessage,
-                info.EncoderAvgIoTMessageBodySize, messageSizeAveragePercentFormatted,
-                info.EncoderAvgIoTChunkUsage,
-                info.EstimatedIoTChunksPerDay,
-                info.OutgressBatchBlockBufferSize,
-                info.OutgressInputBufferCount,
-                info.OutgressInputBufferDropped,
-                info.OutgressIoTMessageCount, sentMessagesPerSecFormatted,
-                info.ConnectionRetries,
-                info.OpcEndpointConnected,
-                info.MonitoredOpcNodesSucceededCount,
-                info.MonitoredOpcNodesFailedCount);
+                _logger.Information(diagInfo.ToString(),
+                    info.Id,
+                    info.IngestionDuration,
+                    info.IngressDataChanges, dataChangesPerSecFormatted,
+                    info.IngressValueChanges, valueChangesPerSecFormatted,
+                    info.IngressBatchBlockBufferSize,
+                    info.EncodingBlockInputSize, info.EncodingBlockOutputSize,
+                    info.EncoderNotificationsProcessed,
+                    info.EncoderNotificationsDropped,
+                    info.EncoderIoTMessagesProcessed,
+                    info.EncoderAvgNotificationsMessage,
+                    info.EncoderAvgIoTMessageBodySize, messageSizeAveragePercentFormatted,
+                    info.EncoderAvgIoTChunkUsage,
+                    info.EstimatedIoTChunksPerDay,
+                    info.OutgressBatchBlockBufferSize,
+                    info.OutgressInputBufferCount,
+                    info.OutgressInputBufferDropped,
+                    info.OutgressIoTMessageCount, sentMessagesPerSecFormatted,
+                    info.ConnectionRetries,
+                    info.OpcEndpointConnected,
+                    info.MonitoredOpcNodesSucceededCount,
+                    info.MonitoredOpcNodesFailedCount);
 
-            string deviceId = _identity.DeviceId ?? "";
-            string moduleId = _identity.ModuleId ?? "";
-            kDataChangesCount.WithLabels(deviceId, moduleId, Name)
-                .Set(info.IngressDataChanges);
-            kDataChangesPerSecond.WithLabels(deviceId, moduleId, Name)
-                .Set(dataChangesPerSec);
-            kDataChangesPerSecondLastMin.WithLabels(deviceId, moduleId, Name)
-                .Set(dataChangesPerSecLastMin);
-            kValueChangesCount.WithLabels(deviceId, moduleId, Name)
-                .Set(info.IngressValueChanges);
-            kValueChangesPerSecond.WithLabels(deviceId, moduleId, Name)
-                .Set(valueChangesPerSec);
-            kValueChangesPerSecondLastMin.WithLabels(deviceId, moduleId, Name)
-                .Set(valueChangesPerSecLastMin);
-            kNotificationsProcessedCount.WithLabels(deviceId, moduleId, Name)
-                .Set(info.EncoderNotificationsProcessed);
-            kNotificationsDroppedCount.WithLabels(deviceId, moduleId, Name)
-                .Set(info.EncoderNotificationsDropped);
-            kMessagesProcessedCount.WithLabels(deviceId, moduleId, Name)
-                .Set(info.EncoderIoTMessagesProcessed);
-            kNotificationsPerMessageAvg.WithLabels(deviceId, moduleId, Name)
-                .Set(info.EncoderAvgNotificationsMessage);
-            kMessageSizeAvg.WithLabels(deviceId, moduleId, Name)
-                .Set(info.EncoderAvgIoTMessageBodySize);
-            kIoTHubQueueBuffer.WithLabels(deviceId, moduleId, Name)
-                .Set(info.OutgressInputBufferCount);
-            kIoTHubQueueBufferDroppedCount.WithLabels(deviceId, moduleId, Name)
-                .Set(info.OutgressInputBufferDropped);
-            kSentMessagesCount.WithLabels(deviceId, moduleId, Name)
-                .Set(info.OutgressIoTMessageCount);
-            kSentMessagesPerSecond.WithLabels(deviceId, moduleId, Name)
-                .Set(info.SentMessagesPerSec);
-            kNumberOfConnectionRetries.WithLabels(deviceId, moduleId, Name)
-                .Set(info.ConnectionRetries);
-            kIsConnectionOk.WithLabels(deviceId, moduleId, Name)
-                .Set(info.OpcEndpointConnected ? 1 : 0);
-            kNumberOfGoodNodes.WithLabels(deviceId, moduleId, Name)
-                .Set(info.MonitoredOpcNodesSucceededCount);
-            kNumberOfBadNodes.WithLabels(deviceId, moduleId, Name)
-                .Set(info.MonitoredOpcNodesFailedCount);
-            kChunkSizeAvg.WithLabels(deviceId, moduleId, Name)
-                .Set(info.EncoderAvgIoTChunkUsage);
-            kEstimatedMsgChunksPerday.WithLabels(deviceId, moduleId, Name)
-                .Set(info.EstimatedIoTChunksPerDay);
+                string deviceId = _identity.DeviceId ?? "";
+                string moduleId = _identity.ModuleId ?? "";
+                kDataChangesCount.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.IngressDataChanges);
+                kDataChangesPerSecond.WithLabels(deviceId, moduleId, Name)
+                    .Set(dataChangesPerSec);
+                kDataChangesPerSecondLastMin.WithLabels(deviceId, moduleId, Name)
+                    .Set(dataChangesPerSecLastMin);
+                kValueChangesCount.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.IngressValueChanges);
+                kValueChangesPerSecond.WithLabels(deviceId, moduleId, Name)
+                    .Set(valueChangesPerSec);
+                kValueChangesPerSecondLastMin.WithLabels(deviceId, moduleId, Name)
+                    .Set(valueChangesPerSecLastMin);
+                kNotificationsProcessedCount.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.EncoderNotificationsProcessed);
+                kNotificationsDroppedCount.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.EncoderNotificationsDropped);
+                kMessagesProcessedCount.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.EncoderIoTMessagesProcessed);
+                kNotificationsPerMessageAvg.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.EncoderAvgNotificationsMessage);
+                kMessageSizeAvg.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.EncoderAvgIoTMessageBodySize);
+                kIoTHubQueueBuffer.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.OutgressInputBufferCount);
+                kIoTHubQueueBufferDroppedCount.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.OutgressInputBufferDropped);
+                kSentMessagesCount.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.OutgressIoTMessageCount);
+                kSentMessagesPerSecond.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.SentMessagesPerSec);
+                kNumberOfConnectionRetries.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.ConnectionRetries);
+                kIsConnectionOk.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.OpcEndpointConnected ? 1 : 0);
+                kNumberOfGoodNodes.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.MonitoredOpcNodesSucceededCount);
+                kNumberOfBadNodes.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.MonitoredOpcNodesFailedCount);
+                kChunkSizeAvg.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.EncoderAvgIoTChunkUsage);
+                kEstimatedMsgChunksPerday.WithLabels(deviceId, moduleId, Name)
+                    .Set(info.EstimatedIoTChunksPerDay);
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Error in diagnostics output.");
+            }
         }
 
         /// <summary>

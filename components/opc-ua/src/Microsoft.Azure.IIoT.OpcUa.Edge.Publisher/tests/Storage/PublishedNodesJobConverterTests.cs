@@ -1907,6 +1907,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                     .First().DataSet.DataSetSource.Connection.Endpoint.Url));
         }
 
+        [Theory]
+        [InlineData("Engine/publishednodes_with_duplicates.json")]
+        public async Task PnWithDuplicatesTest(string publishedNodesJsonFile) {
+
+            var pn = await File.ReadAllTextAsync(publishedNodesJsonFile);
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, null);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
+            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
+            Assert.Equal(2, jobs.Single().WriterGroup.DataSetWriters.Count);
+            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://10.0.0.1:59412",
+                dataSetWriter.DataSet.DataSetSource.Connection.Endpoint.Url));
+            Assert.Single(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => TimeSpan.FromMinutes(15) ==
+                dataSetWriter.DataSet.DataSetSource.SubscriptionSettings.PublishingInterval);
+            Assert.Single(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => TimeSpan.FromMinutes(1) ==
+                dataSetWriter.DataSet.DataSetSource.SubscriptionSettings.PublishingInterval);
+            Assert.Single(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
+                dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Any(
+                    p => TimeSpan.FromMinutes(15) == p.SamplingInterval));
+            Assert.Equal(3, jobs.Single().WriterGroup.DataSetWriters.SelectMany(dataSetWriter =>
+                dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData).Count());
+        }
+
+
         [Fact]
         public async Task PnPlcMultiJobBatching1Test() {
 

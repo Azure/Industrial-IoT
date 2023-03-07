@@ -586,6 +586,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/pn_assets_with_optional_fields.json")]
         [InlineData("Engine/publishednodes.json")]
         [InlineData("Engine/publishednodeswithoptionalfields.json")]
+        [InlineData("Engine/publishednodes_with_duplicates.json")]
         [InlineData("Controller/DmApiPayloadCollection.json")]
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
         public async Task Test_AddOrUpdateEndpoints_RemoveEndpoints(string publishedNodesFile) {
