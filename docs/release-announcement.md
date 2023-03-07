@@ -1,5 +1,15 @@
 # Release announcement
 
+## Azure Industrial IoT Platform Release 2.8.5
+
+We are pleased to announce the release of version 2.8.5 of our Industrial IoT Platform components as latest patch update of the 2.8 Long-Term Support (LTS) release. This release contains important security updates fixes, performance optimizations and bugfixes.
+
+### Changes in this release
+
+- [All] Update to latest dependencies.
+- [All] Use latest OPC UA .net stack 371.
+- [OPC Publisher] Fix a crash in the diagnostics output timer in orchestrated mode when endpoint url is reported null. (#1955)
+
 ## Azure Industrial IoT Platform Release 2.8.4
 
 We are pleased to announce the release of version 2.8.4 of our Industrial IoT Platform components as latest patch update of the 2.8 Long-Term Support (LTS) release. This release contains important security updates fixes, performance optimizations and bugfixes.
