@@ -209,6 +209,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         private void DiagnosticsOutputTimer_Elapsed(object state) {
             var info = GetDiagnosticInfo();
+            if (info == null) {
+                return;
+            }
             var totalSeconds = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
             double valueChangesPerSec = info.IngressValueChanges / info.IngestionDuration.TotalSeconds;
             double dataChangesPerSec = info.IngressDataChanges / info.IngestionDuration.TotalSeconds;
