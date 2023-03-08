@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Services.Models
     using AutoFixture;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Hub;
+    using Furly.Azure.IoT;
     using System;
     using System.Linq;
     using Xunit;

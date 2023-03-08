@@ -118,15 +118,15 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         public override int GetHashCode()
         {
             var hashCode = 479558466;
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(DeviceId);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(DeviceType);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(SiteId);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<bool>.Default.GetHashCode(IsDisabled ?? false);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<DateTime?>.Default.GetHashCode(NotSeenSince);
             return hashCode;
         }

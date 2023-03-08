@@ -183,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var dataChangesPerSecLastMin = info.IngressDataChangesInLastMinute / Math.Min(totalSeconds, 60d);
 
                 var diagInfo = new StringBuilder();
-                diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host}");
+                diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host} (OPC Publisher {Version})");
                 diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
                 var dataChangesPerSecFormatted = info.IngressDataChanges > 0 && ingestionDuration.TotalSeconds > 0
                     ? $"(All time ~{dataChangesPerSec:0.##}/s; {dataChangesLastMin.ToString("D2")} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
@@ -219,6 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 _logger.LogInformation(diagInfo.ToString(),
                     writerGroupId,
+                    GetType().Assembly.GetReleaseVersion().ToString(),
                     ingestionDuration,
                     info.IngressDataChanges, dataChangesPerSecFormatted,
                     info.IngressEventNotifications,

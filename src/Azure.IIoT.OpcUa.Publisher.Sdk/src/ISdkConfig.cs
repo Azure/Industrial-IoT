@@ -11,13 +11,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
     public interface ISdkConfig
     {
         /// <summary>
-        /// Edge device id
+        /// Edge target
         /// </summary>
-        string DeviceId { get; }
-
-        /// <summary>
-        /// Module id
-        /// </summary>
-        string ModuleId { get; }
+        string Target { get; }
     }
 }

@@ -29,10 +29,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         }
 
-        /// <param name="query"></param>
-        /// <param name="ct"></param>
-        /// <summary/>
-        /// <exception cref="ResourceNotFoundException"></exception>
+        /// <inheritdoc/>
         public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
             CancellationToken ct = default)
         {

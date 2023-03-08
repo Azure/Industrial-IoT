@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Furly.Azure.IoT.Edge;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using System;
 
     /// <summary>
@@ -15,11 +15,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     public sealed class PublisherIdentity : IProcessInfo
     {
         /// <inheritdoc/>
-        public string ProcessId => _factory.DeviceId;
+        public string ProcessId => _moduleIdentity.DeviceId;
         /// <inheritdoc/>
         public string SiteId => _config?.Site;
         /// <inheritdoc/>
-        public string Id => _factory.ModuleId;
+        public string Id => _moduleIdentity.ModuleId;
         /// <inheritdoc/>
         public string Name => "OPC Publisher";
         /// <inheritdoc/>
@@ -28,16 +28,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create identity
         /// </summary>
-        /// <param name="factory"></param>
+        /// <param name="moduleIdentity"></param>
         /// <param name="config"></param>
-        public PublisherIdentity(IClientFactory factory,
+        public PublisherIdentity(IIoTEdgeDeviceIdentity moduleIdentity,
             IPublisherConfiguration config = null)
         {
-            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            _moduleIdentity = moduleIdentity ??
+                throw new ArgumentNullException(nameof(moduleIdentity));
             _config = config;
         }
 
-        private readonly IClientFactory _factory;
+        private readonly IIoTEdgeDeviceIdentity _moduleIdentity;
         private readonly IPublisherConfiguration _config;
     }
 }

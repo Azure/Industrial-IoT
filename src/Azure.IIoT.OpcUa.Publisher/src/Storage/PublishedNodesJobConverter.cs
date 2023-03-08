@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Azure.IIoT.OpcUa.Models;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -21,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Furly.Azure.IoT.Edge.Services;
 
     /// <summary>
     /// Published nodes
@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <param name="cryptoProvider"></param>
         public PublishedNodesJobConverter(ILogger logger, IJsonSerializer serializer,
             IEngineConfiguration engineConfig, IClientServicesConfig clientConfig,
-            ISecureElement cryptoProvider = null)
+            IIoTEdgeWorkloadApi cryptoProvider = null)
         {
             _engineConfig = engineConfig ??
                 throw new ArgumentNullException(nameof(engineConfig));
@@ -680,12 +680,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         const string kInitializationVector = "alKGJdfsgidfasdO"; // See previous publisher
                         var userBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
                             Convert.FromBase64String(entry.EncryptedAuthUsername)).ConfigureAwait(false);
-                        user = Encoding.UTF8.GetString(userBytes);
+                        user = Encoding.UTF8.GetString(userBytes.Span);
                         if (entry.EncryptedAuthPassword != null)
                         {
                             var passwordBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
                                 Convert.FromBase64String(entry.EncryptedAuthPassword)).ConfigureAwait(false);
-                            password = Encoding.UTF8.GetString(passwordBytes);
+                            password = Encoding.UTF8.GetString(passwordBytes.Span);
                         }
                     }
                     return new CredentialModel
@@ -730,7 +730,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         var passwordBytes = await _cryptoProvider.EncryptAsync(kInitializationVector,
                             Encoding.UTF8.GetBytes(passwordString)).ConfigureAwait(false);
 
-                        return (Convert.ToBase64String(userBytes), Convert.ToBase64String(passwordBytes), true);
+                        return (Convert.ToBase64String(userBytes.Span), Convert.ToBase64String(passwordBytes.Span), true);
                     }
                     return (userString, passwordString, false);
                 case CredentialType.None:
@@ -742,7 +742,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
 
         private readonly IEngineConfiguration _engineConfig;
         private readonly IClientServicesConfig _clientConfig;
-        private readonly ISecureElement _cryptoProvider;
+        private readonly IIoTEdgeWorkloadApi _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
     }

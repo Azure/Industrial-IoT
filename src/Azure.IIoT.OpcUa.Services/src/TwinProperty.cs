@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub
+namespace Azure.IIoT.OpcUa.Services
 {
     /// <summary>
-    /// Common IIoT device twin properties
+    /// Common twin properties
     /// </summary>
     public static class TwinProperty
     {

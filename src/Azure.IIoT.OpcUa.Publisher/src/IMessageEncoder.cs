@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Microsoft.Azure.IIoT.Messaging;
+    using Furly.Extensions.Messaging;
     using System;
     using System.Collections.Generic;
 

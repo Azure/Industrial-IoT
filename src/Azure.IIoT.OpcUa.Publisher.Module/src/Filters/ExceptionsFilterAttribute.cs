@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
 {
     using Azure.IIoT.OpcUa.Exceptions;
     using Furly.Exceptions;
-    using Microsoft.Azure.IIoT.Module.Framework;
+    using Furly.Tunnel.Router;
     using System;
     using System.IO;
     using System.Net;

@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
 {
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -19,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     /// <summary>
     /// Server discovery result handling
     /// </summary>
-    public sealed class DiscoveryResultHandler : IDeviceTelemetryHandler, IDisposable
+    public sealed class DiscoveryResultHandler : IMessageHandler, IDisposable
     {
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.DiscoveryEvents;

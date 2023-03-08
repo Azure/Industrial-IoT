@@ -39,9 +39,9 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR
             if (string.IsNullOrEmpty(name))
             {
                 name = type.Name.ToLowerInvariant();
-                if (name.EndsWith(nameof(Hub), StringComparison.OrdinalIgnoreCase))
+                if (name.EndsWith("Hub", StringComparison.OrdinalIgnoreCase))
                 {
-                    name = name.Replace(nameof(Hub), "", StringComparison.OrdinalIgnoreCase);
+                    name = name.Replace("Hub", "", StringComparison.OrdinalIgnoreCase);
                 }
             }
             return name;

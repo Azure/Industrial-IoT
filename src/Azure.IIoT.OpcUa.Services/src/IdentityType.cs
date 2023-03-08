@@ -3,34 +3,31 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Processor
+namespace Azure.IIoT.OpcUa.Services
 {
-    using Microsoft.Azure.IIoT.Storage.Datalake;
-    using System;
-
     /// <summary>
-    /// Eventprocessor host configuration
+    /// Industrial IoT identity types
     /// </summary>
-    public interface IEventProcessorHostConfig : IStorageConfig
+    public static class IdentityType
     {
         /// <summary>
-        /// Receive batch size
+        /// Gateway identity
         /// </summary>
-        int ReceiveBatchSize { get; }
+        public const string Gateway = "iiotedge";
 
         /// <summary>
-        /// Receive timeout
+        /// Publisher module identity
         /// </summary>
-        TimeSpan ReceiveTimeout { get; }
+        public const string Publisher = "publisher_v2";
 
         /// <summary>
-        /// Whether to read from end or start.
+        /// Endpoint identity
         /// </summary>
-        bool InitialReadFromEnd { get; }
+        public const string Endpoint = "Endpoint";
 
         /// <summary>
-        /// And lease container name.
+        /// Application identity
         /// </summary>
-        string LeaseContainerName { get; }
+        public const string Application = "Application";
     }
 }

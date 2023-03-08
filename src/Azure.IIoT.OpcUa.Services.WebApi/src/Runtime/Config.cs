@@ -7,10 +7,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Runtime
 {
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Hub.Client.Runtime;
-    using Microsoft.Azure.IIoT.Hub.Processor;
-    using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
+    using Furly.Azure.IoT.Client;
+    using Furly.Azure.IoT.Client.Runtime;
+    using Furly.Azure.IoT.Processor;
+    using Furly.Azure.IoT.Processor.Runtime;
     using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
     using Microsoft.Azure.IIoT.Utils;

@@ -9,11 +9,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Autofac;
     using Furly.Extensions.Utils;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Mock;
-    using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Furly.Tunnel.Router;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;

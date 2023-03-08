@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Microsoft.Azure.IIoT.Hub.Module.Client.Runtime;
 
     /// <summary>
     /// Static class that contains the default keys for the command line arguments how they
@@ -177,37 +176,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Key for the transport mode to IoT Hub.
         /// </summary>
-        public const string HubTransport = ModuleConfig.kTransportKey;
+        public const string HubTransport = "Transport";
 
         /// <summary>
         /// Key for configuration flag to determine if a telemetry output routing is enabled.
         /// </summary>
-        public const string EnableRoutingInfo = ModuleConfig.kEnableOutputRouting;
+        public const string EnableRoutingInfo = "EnableRoutingInfo";
 
         /// <summary>
         /// Key for the EdgeHub connection string.
         /// </summary>
-        public const string EdgeHubConnectionString = ModuleConfig.kEdgeHubConnectionStringKey;
+        public const string EdgeHubConnectionString = "EdgeHubConnectionString";
 
         /// <summary>
         /// Key for bypass cert validation flag.
         /// </summary>
-        public const string BypassCertVerificationKey = ModuleConfig.kBypassCertVerificationKey;
+        public const string BypassCertVerificationKey = "BypassCertVerification";
 
         /// <summary>
         /// Key for the Mqtt client connection string.
         /// </summary>
-        public const string MqttClientConnectionString = ModuleConfig.kMqttClientConnectionStringKey;
+        public const string MqttClientConnectionString = "MqttClientConnectionString";
 
         /// <summary>
         /// Key for the Mqtt client connection string.
         /// </summary>
-        public const string TelemetryTopicTemplateKey = ModuleConfig.kTelemetryTopicTemplateKey;
+        public const string TelemetryTopicTemplateKey = "TelemetryTopicTemplate";
 
         /// <summary>
         /// Key for enable metrics flag.
         /// </summary>
-        public const string EnableMetricsKey = ModuleConfig.kEnableMetricsKey;
+        public const string EnableMetricsKey = "EnableMetrics";
 
         /// <summary>
         /// Key for the operation timeout in milliseconds.

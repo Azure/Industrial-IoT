@@ -16,7 +16,6 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <LangVersion>10.0</LangVersion>
     <IsPackable>false</IsPackable>
-
     <Nullable>disable</Nullable>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
     <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>

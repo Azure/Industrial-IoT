@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Auth
 
     /// <summary>
     /// Token retriever uses a strategy to retrieve tokens for a
-    /// particular <see cref="Http.Resource"/>.
+    /// particular Resource.
     /// </summary>
     public interface ITokenSource
     {
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Auth
         bool IsEnabled { get; }
 
         /// <summary>
-        /// Retrieves tokens for this <see cref="Http.Resource"/>
+        /// Retrieves tokens for this Resource
         /// </summary>
         string Resource { get; }
 

@@ -11,8 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Logging;
-    using Microsoft.Azure.IIoT.Abstractions;
-    using Microsoft.Azure.IIoT.Module.Framework;
+    using Furly.Azure.IoT.Edge;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Mono.Options;
@@ -29,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     /// via configuration interfaces that is injected into the publisher container.
     /// </summary>
     public class PublisherCliOptions : Dictionary<string, string>,
-        ISettingsController, IEngineConfiguration, IPublisherConfiguration,
+        IEngineConfiguration, IPublisherConfiguration,
         IRuntimeStateReporterConfiguration, ISubscriptionConfig
     {
         /// <summary>
@@ -412,7 +411,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 // Check that the important values are provided
                 else if (!ContainsKey(PublisherCliConfigKeys.MqttClientConnectionString) &&
                     !ContainsKey(PublisherCliConfigKeys.EdgeHubConnectionString) &&
-                    Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID) == null &&
+                    Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID") == null &&
                     Environment.GetEnvironmentVariable(PublisherCliConfigKeys.EdgeHubConnectionString) == null)
                 {
                     Warning("You must specify a connection string or run inside IoT Edge context, " +

@@ -18,16 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Autofac;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Hub.Mock;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Module.Framework.Hosting;
-    using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Furly.Tunnel.Router;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
@@ -44,6 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using Furly.Azure.IoT.Models;
+    using Furly.Azure.IoT;
 
     /// <summary>
     /// Base class for integration testing, it connects to the server, runs
@@ -59,23 +53,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Device Id
         /// </summary>
-        public string DeviceId { get; } = Utils.GetHostName();
+        public string Target { get; } = Utils.GetHostName();
 
-        /// <summary>
-        /// Module Id
-        /// </summary>
-        public string ModuleId { get; }
-
-        public PublisherIoTHubIntegrationTestBase(ReferenceServerFixture serverFixture, ILoggerFactory loggerFactory)
+        public PublisherIoTHubIntegrationTestBase(ReferenceServerFixture serverFixture,
+            ILoggerFactory loggerFactory)
         {
             // This is a fake but correctly formatted connection string.
             var connectionString = "HostName=dummy.azure-devices.net;" +
-                $"DeviceId={DeviceId};" +
+                $"DeviceId={Target};" +
                 "SharedAccessKeyName=iothubowner;" +
                 "SharedAccessKey=aXRpc25vdGFuYWNjZXNza2V5";
-            var config = connectionString.ToIoTHubConfig();
 
-            _typedConnectionString = ConnectionString.Parse(config.IoTHubConnString);
+            _typedConnectionString = ConnectionString.Parse(connectionString);
             _exit = new TaskCompletionSource<bool>();
             _running = new TaskCompletionSource<bool>();
             _serverFixture = serverFixture;
@@ -300,7 +289,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             }
             try
             {
-                var config = _typedConnectionString.ToIoTHubConfig();
                 arguments = arguments.Concat(
                     new[]
                     {
@@ -323,12 +311,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     // Start publisher module
                     var host = Task.Run(() =>
-                    HostAsync(configuration, new List<(DeviceTwinModel, DeviceModel)>()
+                    HostAsync(configuration, new List<DeviceTwinModel>()
                     {
-                        (new DeviceTwinModel(), new DeviceModel()
+                        new DeviceTwinModel
                         {
                             Id = _typedConnectionString.DeviceId
-                        })
+                        }
                     }), cts.Token);
                     await Task.WhenAny(_exit.Task).ConfigureAwait(false);
                     cts.Cancel();
@@ -354,7 +342,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="logger"></param>
         /// <param name="configurationRoot"></param>
         /// <param name="devices"></param>
-        private async Task HostAsync(IConfiguration configurationRoot, List<(DeviceTwinModel, DeviceModel)> devices)
+        private async Task HostAsync(IConfiguration configurationRoot, List<DeviceTwinModel> devices)
         {
             var logger = _loggerFactory.CreateLogger("Publisher");
             try
@@ -435,7 +423,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="configuration"></param>
         /// <param name="devices"></param>
         private IContainer ConfigureContainer(IConfiguration configuration,
-            List<(DeviceTwinModel, DeviceModel)> devices)
+            List<DeviceTwinModel> devices)
         {
             var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();

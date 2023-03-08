@@ -6,8 +6,8 @@
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Models;
+    using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Models;
     using System;
 
     /// <summary>
@@ -29,9 +29,9 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 return null;
             }
             var type = twin.Tags.GetValueOrDefault<string>(nameof(EntityRegistration.DeviceType), null);
-            if (string.IsNullOrEmpty(type) && twin.Properties.Reported != null)
+            if (string.IsNullOrEmpty(type) && twin.Reported != null)
             {
-                type = twin.Properties.Reported.GetValueOrDefault<string>(TwinProperty.Type, null);
+                type = twin.Reported.GetValueOrDefault<string>(TwinProperty.Type, null);
             }
             if (string.IsNullOrEmpty(type))
             {

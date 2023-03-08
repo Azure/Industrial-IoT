@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
 {
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -18,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     /// <summary>
     /// Discovery progress handling
     /// </summary>
-    public sealed class DiscoveryProgressHandler : IDeviceTelemetryHandler
+    public sealed class DiscoveryProgressHandler : IMessageHandler
     {
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.DiscoveryMessage;

@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using Azure.IIoT.OpcUa.Services.Registry.Models;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Exceptions;
-    using Microsoft.Azure.IIoT.Hub;
+    using Furly.Azure.IoT;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
@@ -153,31 +153,31 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
         /// <inheritdoc/>
         public async Task<GatewayListModel> QueryGatewaysAsync(
-            GatewayQueryModel model, int? pageSize, CancellationToken ct)
+            GatewayQueryModel query, int? pageSize, CancellationToken ct)
         {
-            var query = "SELECT * FROM devices WHERE " +
+            var sql = "SELECT * FROM devices WHERE " +
                 $"tags.{TwinProperty.Type} = '{IdentityType.Gateway}' ";
 
-            if (model?.SiteId != null)
+            if (query?.SiteId != null)
             {
                 // If site id provided, include it in search
-                query +=
-$"AND (tags.{TwinProperty.SiteId} = '{model.SiteId}' OR deviceId = '{model.SiteId}') ";
+                sql +=
+$"AND (tags.{TwinProperty.SiteId} = '{query.SiteId}' OR deviceId = '{query.SiteId}') ";
             }
-            if (model?.Connected != null)
+            if (query?.Connected != null)
             {
                 // If flag provided, include it in search
-                if (model.Connected.Value)
+                if (query.Connected.Value)
                 {
-                    query += "AND connectionState = 'Connected' ";
+                    sql += "AND connectionState = 'Connected' ";
                 }
                 else
                 {
-                    query += "AND connectionState != 'Connected' ";
+                    sql += "AND connectionState != 'Connected' ";
                 }
             }
 
-            var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct).ConfigureAwait(false);
+            var queryResult = await _iothub.QueryDeviceTwinsAsync(sql, null, pageSize, ct).ConfigureAwait(false);
             return new GatewayListModel
             {
                 ContinuationToken = queryResult.ContinuationToken,

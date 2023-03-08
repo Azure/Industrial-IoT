@@ -7,8 +7,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Models;
+    using Furly.Azure.IoT.Models;
     using System;
     using System.Collections.Generic;
 
@@ -38,49 +37,48 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         public static DeviceTwinModel Patch(this PublisherRegistration existing,
             PublisherRegistration update, IJsonSerializer serializer)
         {
-            var twin = new DeviceTwinModel
-            {
-                Etag = existing?.Etag,
-                Tags = new Dictionary<string, VariantValue>(),
-                Properties = new TwinPropertiesModel
-                {
-                    Desired = new Dictionary<string, VariantValue>()
-                }
-            };
+            var tags = new Dictionary<string, VariantValue>();
+            var desired = new Dictionary<string, VariantValue>();
 
             // Tags
 
             if (update?.IsDisabled != null && update.IsDisabled != existing?.IsDisabled)
             {
-                twin.Tags.Add(nameof(PublisherRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
+                tags.Add(nameof(PublisherRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
                     true : (bool?)null);
-                twin.Tags.Add(nameof(PublisherRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
+                tags.Add(nameof(PublisherRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
                     DateTime.UtcNow : (DateTime?)null);
             }
 
             if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId)
             {
-                twin.Tags.Add(nameof(PublisherRegistration.SiteOrGatewayId),
+                tags.Add(nameof(PublisherRegistration.SiteOrGatewayId),
                     update?.SiteOrGatewayId);
             }
 
             // Settings
             if (update?.LogLevel != existing?.LogLevel)
             {
-                twin.Properties.Desired.Add(nameof(PublisherRegistration.LogLevel),
+                desired.Add(nameof(PublisherRegistration.LogLevel),
                     update?.LogLevel == null ?
                     null : serializer.FromObject(update.LogLevel.ToString()));
             }
 
             if (update?.SiteId != existing?.SiteId)
             {
-                twin.Properties.Desired.Add(TwinProperty.SiteId, update?.SiteId);
+                desired.Add(TwinProperty.SiteId, update?.SiteId);
             }
 
-            twin.Tags.Add(nameof(PublisherRegistration.DeviceType), update?.DeviceType);
-            twin.Id = update?.DeviceId ?? existing?.DeviceId;
-            twin.ModuleId = update?.ModuleId ?? existing?.ModuleId;
-            return twin;
+            tags.Add(nameof(PublisherRegistration.DeviceType), update?.DeviceType);
+
+            return new DeviceTwinModel
+            {
+                Id = update?.DeviceId ?? existing?.DeviceId,
+                ModuleId = update?.ModuleId ?? existing?.ModuleId,
+                Etag = existing?.Etag,
+                Tags = tags,
+                Desired = desired
+            };
         }
 
         /// <summary>
@@ -90,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// <param name="properties"></param>
         /// <returns></returns>
         public static PublisherRegistration ToPublisherRegistration(this DeviceTwinModel twin,
-            Dictionary<string, VariantValue> properties)
+            IReadOnlyDictionary<string, VariantValue> properties)
         {
             if (twin == null)
             {
@@ -164,8 +162,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
 
             var consolidated =
                 ToPublisherRegistration(twin, twin.GetConsolidatedProperties());
-            var desired = (twin.Properties?.Desired == null) ? null :
-                ToPublisherRegistration(twin, twin.Properties.Desired);
+            var desired = (twin.Desired == null) ? null :
+                ToPublisherRegistration(twin, twin.Desired);
 
             connected = consolidated.Connected;
             if (desired != null)

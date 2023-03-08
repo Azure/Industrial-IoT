@@ -9,8 +9,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Models;
+    using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Models;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     /// <summary>
     /// Gateway event handler.
     /// </summary>
-    public sealed class RegistryLifecycleHandler : IDeviceTelemetryHandler
+    public sealed class RegistryLifecycleHandler : IMessageHandler
     {
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.DeviceLifecycleNotification;

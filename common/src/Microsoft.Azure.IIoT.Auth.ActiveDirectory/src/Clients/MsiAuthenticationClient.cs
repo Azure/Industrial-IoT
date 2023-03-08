@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
             var provider = new AzureServiceTokenProvider(cs, config.GetAuthorityUrl(true));
             logger.LogInformation("Managed service identity {ClientId} in {Tenant} registered.",
                 config.ClientId, config.TenantId);
-            return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform, (config, provider));
+            return KeyValuePair.Create(config.Resource, (config, provider));
         }
 
         private readonly List<KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)>> _config;

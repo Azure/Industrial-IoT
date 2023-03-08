@@ -21,11 +21,10 @@
     <None Remove="pki\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.9-beta" />
+    <PackageReference Include="Furly.Tunnel" Version="0.2.7" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.9" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Module.Framework\src\Microsoft.Azure.IIoT.Hub.Module.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher\src\Azure.IIoT.OpcUa.Publisher.csproj" />

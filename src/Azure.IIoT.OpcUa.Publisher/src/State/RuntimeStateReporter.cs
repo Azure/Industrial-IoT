@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.State
     using Azure.IIoT.OpcUa.Publisher.State.Models;
     using Azure.IIoT.OpcUa.Publisher;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Text;
@@ -19,47 +19,31 @@ namespace Azure.IIoT.OpcUa.Publisher.State
     /// </summary>
     public class RuntimeStateReporter : IRuntimeStateReporter
     {
-        private const string RuntimeStateReportingPath = "runtimeinfo";
-
-        private readonly IClientAccessor _clientAccessor;
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly IRuntimeStateReporterConfiguration _config;
-        private readonly ILogger _logger;
-
         /// <summary>
         /// Constructor for runtime state reporter.
         /// </summary>
-        /// <param name="clientAccessor"></param>
-        /// <param name="jsonSerializer"></param>
+        /// <param name="events"></param>
+        /// <param name="serializer"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public RuntimeStateReporter(IClientAccessor clientAccessor,
-            IJsonSerializer jsonSerializer,
+        public RuntimeStateReporter(IEventClient events,
+            IJsonSerializer serializer,
             IRuntimeStateReporterConfiguration config,
             ILogger logger)
         {
-            _clientAccessor = clientAccessor ?? throw new ArgumentNullException(nameof(clientAccessor));
-            _jsonSerializer = jsonSerializer ?? throw new ArgumentNullException(nameof(jsonSerializer));
+            _events = events ?? throw new ArgumentNullException(nameof(events));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
-        public async Task SendRestartAnnouncement()
+        public async Task SendRestartAnnouncementAsync()
         {
             if (!_config.EnableRuntimeStateReporting)
             {
                 return;
             }
-
-            var client = _clientAccessor.Client;
-            if (client is null)
-            {
-                _logger.LogWarning(
-                    "Hub client is not initialized yet. Unable to send restart announcement.");
-                return;
-            }
-
             try
             {
                 var body = new RuntimeStateModel
@@ -67,11 +51,11 @@ namespace Azure.IIoT.OpcUa.Publisher.State
                     MessageType = MessageTypeEnum.RestartAnnouncement
                 };
 
-                await client.SendEventAsync(string.Empty,
-                    _jsonSerializer.SerializeToMemory(body),
+                await _events.SendEventAsync(string.Empty,
+                    _serializer.SerializeToMemory(body),
                     contentEncoding: Encoding.UTF8.WebName,
-                    contentType: _jsonSerializer.MimeType,
-                    messageSchema: _jsonSerializer.MimeType,
+                    contentType: _serializer.MimeType,
+                    messageSchema: _serializer.MimeType,
                     routingInfo: RuntimeStateReportingPath).ConfigureAwait(false);
 
                 _logger.LogInformation("Restart announcement sent successfully.");
@@ -88,5 +72,11 @@ namespace Azure.IIoT.OpcUa.Publisher.State
                 _logger.LogError(ex, "Failed to send restart announcement.");
             }
         }
+
+        private const string RuntimeStateReportingPath = "runtimeinfo";
+        private readonly IEventClient _events;
+        private readonly IJsonSerializer _serializer;
+        private readonly IRuntimeStateReporterConfiguration _config;
+        private readonly ILogger _logger;
     }
 }

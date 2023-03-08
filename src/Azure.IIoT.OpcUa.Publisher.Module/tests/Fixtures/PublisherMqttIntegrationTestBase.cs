@@ -22,11 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using MQTTnet;
@@ -45,6 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit;
+    using Furly.Extensions.Rpc;
 
     public readonly record struct JsonMessage(string Topic, JsonElement Message, string ContentType);
 
@@ -380,7 +376,7 @@ $"--ttt={topicRoot}",
         /// <param name="methodClient"></param>
         /// <returns></returns>
         private IContainer ConfigureContainer(IConfiguration configurationRoot,
-            IJsonMethodClient methodClient)
+            IRpcClient methodClient)
         {
             var builder = new ContainerBuilder();
             builder.RegisterInstance(configurationRoot)
@@ -460,7 +456,7 @@ $"--ttt={topicRoot}",
         /// <summary>
         /// Mqtt broker that can serve as event client
         /// </summary>
-        internal sealed class MqttBroker : IDisposable, IJsonMethodClient
+        internal sealed class MqttBroker : IDisposable, IRpcClient
         {
             /// <summary>
             /// Port number

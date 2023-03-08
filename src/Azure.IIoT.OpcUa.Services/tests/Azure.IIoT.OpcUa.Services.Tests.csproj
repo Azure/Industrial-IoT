@@ -19,9 +19,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Mock\src\Microsoft.Azure.IIoT.Hub.Mock.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Services.csproj" />
   </ItemGroup>
   <ItemGroup>

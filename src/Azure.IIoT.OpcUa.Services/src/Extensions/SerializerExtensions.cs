@@ -21,7 +21,7 @@ namespace Furly.Extensions.Serializers
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T GetValueOrDefault<T>(this Dictionary<string, VariantValue> dict,
+        public static T GetValueOrDefault<T>(this IReadOnlyDictionary<string, VariantValue> dict,
             string key, T defaultValue)
         {
             if (dict != null && dict.TryGetValue(key, out var token) && token != null)
@@ -46,7 +46,7 @@ namespace Furly.Extensions.Serializers
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T? GetValueOrDefault<T>(this Dictionary<string, VariantValue> dict,
+        public static T? GetValueOrDefault<T>(this IReadOnlyDictionary<string, VariantValue> dict,
             string key, T? defaultValue) where T : struct
         {
             if (dict != null && dict.TryGetValue(key, out var token) && token != null)

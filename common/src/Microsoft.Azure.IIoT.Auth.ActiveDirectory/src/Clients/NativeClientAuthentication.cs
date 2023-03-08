@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Auth.Clients
 {
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Extensions.Logging;
     using Autofac;
@@ -20,8 +19,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
@@ -54,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
             public NativeClientTokenSource(DevAuthenticationClient ld, AppAuthenticationClient aa,
                 MsalInteractiveClient ic, MsalDeviceCodeClient dc,
                     IEnumerable<ITokenClient> providers, ILogger logger)
-                    : base(providers, Http.Resource.Platform, logger, ld, aa, ic, dc)
+                    : base(providers, logger, ld, aa, ic, dc)
             {
             }
         }

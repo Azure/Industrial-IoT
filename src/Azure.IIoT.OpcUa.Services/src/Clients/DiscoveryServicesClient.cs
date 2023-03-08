@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Module;
+    using Furly.Tunnel;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -42,8 +42,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
         {
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
-                var deviceId = PublisherModelEx.ParseDeviceId(publisher.Id, out var moduleId);
-                var client = new DiscoveryApiClient(_client, deviceId, moduleId, _serializer);
+                var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
                 try
                 {
                     await client.CancelAsync(request, ct).ConfigureAwait(false);
@@ -53,7 +52,6 @@ namespace Azure.IIoT.OpcUa.Services.Clients
                 catch (Exception ex)
                 {
                     _logger.LogTrace(ex, "Failed to cancel discovery on publisher {Id}", publisher.Id);
-                    continue;
                 }
             }
         }
@@ -65,8 +63,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
             var exceptions = new List<Exception>();
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
-                var deviceId = PublisherModelEx.ParseDeviceId(publisher.Id, out var moduleId);
-                var client = new DiscoveryApiClient(_client, deviceId, moduleId, _serializer);
+                var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
                 try
                 {
                     return await client.FindServerAsync(query, ct).ConfigureAwait(false);
@@ -85,8 +82,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
         {
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
-                var deviceId = PublisherModelEx.ParseDeviceId(publisher.Id, out var moduleId);
-                var client = new DiscoveryApiClient(_client, deviceId, moduleId, _serializer);
+                var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
                 try
                 {
                     // We call discovery on all publishers
@@ -104,8 +100,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
         {
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
-                var deviceId = PublisherModelEx.ParseDeviceId(publisher.Id, out var moduleId);
-                var client = new DiscoveryApiClient(_client, deviceId, moduleId, _serializer);
+                var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
                 try
                 {
                     await client.RegisterAsync(request, ct).ConfigureAwait(false);

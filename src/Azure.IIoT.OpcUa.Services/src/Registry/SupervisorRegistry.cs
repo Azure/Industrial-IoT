@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using Azure.IIoT.OpcUa.Models;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Hub;
+    using Furly.Azure.IoT;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
@@ -141,39 +141,39 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
         /// <inheritdoc/>
         public async Task<SupervisorListModel> QuerySupervisorsAsync(
-            SupervisorQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct)
+            SupervisorQueryModel query, bool onlyServerState, int? pageSize, CancellationToken ct)
         {
-            var query = "SELECT * FROM devices.modules WHERE " +
+            var sql = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}'";
 
-            if (model?.SiteId != null)
+            if (query?.SiteId != null)
             {
                 // If site id provided, include it in search
-                query += $"AND (properties.reported.{TwinProperty.SiteId} = " +
-                    $"'{model.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
-                    $"'{model.SiteId}' OR deviceId = '{model.SiteId}') ";
+                sql += $"AND (properties.reported.{TwinProperty.SiteId} = " +
+                    $"'{query.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
+                    $"'{query.SiteId}' OR deviceId = '{query.SiteId}') ";
             }
 
-            if (EndpointInfoModelEx.IsEndpointId(model?.EndpointId))
+            if (EndpointInfoModelEx.IsEndpointId(query?.EndpointId))
             {
                 // If endpoint id provided include in search
-                query += $"AND IS_DEFINED(properties.desired.{model.EndpointId}) ";
+                sql += $"AND IS_DEFINED(properties.desired.{query.EndpointId}) ";
             }
 
-            if (model?.Connected != null)
+            if (query?.Connected != null)
             {
                 // If flag provided, include it in search
-                if (model.Connected.Value)
+                if (query.Connected.Value)
                 {
-                    query += "AND connectionState = 'Connected' ";
+                    sql += "AND connectionState = 'Connected' ";
                 }
                 else
                 {
-                    query += "AND connectionState != 'Connected' ";
+                    sql += "AND connectionState != 'Connected' ";
                 }
             }
 
-            var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct).ConfigureAwait(false);
+            var queryResult = await _iothub.QueryDeviceTwinsAsync(sql, null, pageSize, ct).ConfigureAwait(false);
             return new SupervisorListModel
             {
                 ContinuationToken = queryResult.ContinuationToken,

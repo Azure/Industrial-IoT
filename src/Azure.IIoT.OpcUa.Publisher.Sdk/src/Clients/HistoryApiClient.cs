@@ -6,9 +6,10 @@
 namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 {
     using Azure.IIoT.OpcUa.Models;
+    using Furly;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Module;
+    using Furly.Tunnel;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -22,16 +23,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// Create module client
         /// </summary>
         /// <param name="methodClient"></param>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
+        /// <param name="target"></param>
         /// <param name="serializer"></param>
-        public HistoryApiClient(IMethodClient methodClient, string deviceId,
-            string moduleId = null, ISerializer serializer = null)
+        public HistoryApiClient(IMethodClient methodClient, string target,
+             IJsonSerializer serializer = null)
         {
-            _serializer = serializer ?? new NewtonsoftJsonSerializer();
-            _methodClient = methodClient ?? throw new ArgumentNullException(nameof(methodClient));
-            _moduleId = moduleId;
-            _deviceId = deviceId;
+            _serializer = serializer ??
+                new NewtonsoftJsonSerializer();
+            _methodClient = methodClient ??
+                throw new ArgumentNullException(nameof(methodClient));
+            _target = target;
         }
 
         /// <summary>
@@ -40,9 +41,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// <param name="methodClient"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public HistoryApiClient(IMethodClient methodClient, ISdkConfig config = null,
-            ISerializer serializer = null) :
-            this(methodClient, config?.DeviceId, config?.ModuleId, serializer)
+        public HistoryApiClient(IMethodClient methodClient,
+            ISdkConfig config = null, IJsonSerializer serializer = null) :
+            this(methodClient, config?.Target, serializer)
         {
         }
 
@@ -67,12 +68,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryReadValues_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryReadValues_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -97,12 +98,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryReadModifiedValues_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryReadModifiedValues_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -127,12 +128,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryReadValuesAtTimes_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryReadValuesAtTimes_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -157,12 +158,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryReadProcessedValues_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryReadProcessedValues_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -186,12 +187,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryReadValuesNext_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryReadValuesNext_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadNextResponseModel<HistoricValueModel[]>>(response);
         }
 
@@ -215,12 +216,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryReplaceValues_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryReplaceValues_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -244,12 +245,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryInsertValues_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryInsertValues_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -273,12 +274,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryUpsertValues_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryUpsertValues_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -302,12 +303,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryDeleteValues_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryDeleteValues_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -332,12 +333,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryDeleteModifiedValues_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryDeleteModifiedValues_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -362,12 +363,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryDeleteValuesAtTimes_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryDeleteValuesAtTimes_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -392,12 +393,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryReadEvents_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryReadEvents_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<HistoricEventModel[]>>(response);
         }
 
@@ -421,12 +422,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryReadEventsNext_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryReadEventsNext_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadNextResponseModel<HistoricEventModel[]>>(response);
         }
 
@@ -450,12 +451,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryReplaceEvents_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryReplaceEvents_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -479,12 +480,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryInsertEvents_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryInsertEvents_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -508,12 +509,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryUpsertEvents_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryUpsertEvents_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -537,18 +538,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryDeleteEvents_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryDeleteEvents_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
         private readonly ISerializer _serializer;
         private readonly IMethodClient _methodClient;
-        private readonly string _moduleId;
-        private readonly string _deviceId;
+        private readonly string _target;
     }
 }

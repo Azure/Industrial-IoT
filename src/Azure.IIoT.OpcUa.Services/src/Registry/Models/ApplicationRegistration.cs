@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Azure.IIoT.OpcUa.Models;
-    using Microsoft.Azure.IIoT.Hub;
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -260,19 +259,19 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         public override int GetHashCode()
         {
             var hashCode = base.GetHashCode();
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(DiscovererId);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(ApplicationId);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<ApplicationType?>.Default.GetHashCode(ApplicationType);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(ProductUri);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(DiscoveryProfileUri);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(GatewayServerUri);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(ApplicationName);
             return hashCode;
         }

@@ -39,20 +39,20 @@ namespace Azure.IIoT.OpcUa.Services
         /// <summary>
         /// Get discoverer registration by identifer.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="discovererId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<DiscovererModel> GetDiscovererAsync(string id,
+        Task<DiscovererModel> GetDiscovererAsync(string discovererId,
             CancellationToken ct = default);
 
         /// <summary>
         /// Update discoverer, e.g. set discovery mode
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="discovererId"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task UpdateDiscovererAsync(string id,
+        Task UpdateDiscovererAsync(string discovererId,
             DiscovererUpdateModel request,
             CancellationToken ct = default);
     }

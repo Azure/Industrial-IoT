@@ -16,9 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT;
-    using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Logging;
     using Prometheus;
@@ -32,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Threading;
     using System.Threading.Tasks;
     using System.Text;
+    using Furly.Extensions.Messaging;
 
     /// <summary>
     /// Provides network discovery of endpoints
@@ -47,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="logger"></param>
         /// <param name="progress"></param>
         /// <param name="identity"></param>
-        public NetworkDiscovery(IEndpointDiscovery client, IClientAccessor events,
+        public NetworkDiscovery(IEndpointDiscovery client, IEventClient events,
             IJsonSerializer serializer, ILogger logger, IDiscoveryProgress progress = null,
             IProcessInfo identity = null)
         {
@@ -548,7 +547,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                         if (host.EqualsIgnoreCase("localhost") && Host.IsContainer)
                         {
                             // Also resolve docker internal since we are in a container
-                            host = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
+                            host = Environment.GetEnvironmentVariable(kIoTEdgeGatewayHostNameEnvVar);
                             continue;
                         }
                         break;
@@ -577,7 +576,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private async Task AddLoopbackAddressesAsync(List<IPAddress> addresses)
         {
             // Check local host
-            var hostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
+            var hostName = Environment.GetEnvironmentVariable(kIoTEdgeGatewayHostNameEnvVar);
             try
             {
                 if (Host.IsContainer)
@@ -628,11 +627,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             List<ApplicationRegistrationModel> discovered, DateTime timestamp,
             object diagnostics, CancellationToken ct)
         {
-            var client = _events.Client;
-            if (client == null)
-            {
-                return;
-            }
             _logger.LogInformation("Uploading {Count} results...", discovered.Count);
             var buffers = discovered
                 .SelectMany(server => server.Endpoints
@@ -663,7 +657,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 })
                 .ToList();
 
-            await client.SendEventsAsync(string.Empty, buffers, Encoding.UTF8.WebName,
+            await _events.SendEventAsync(string.Empty, buffers, Encoding.UTF8.WebName,
                 ContentMimeType.Json, MessageSchemaTypes.DiscoveryEvents, ct: ct).ConfigureAwait(false);
             _logger.LogInformation("{Count} results uploaded.", discovered.Count);
         }
@@ -739,12 +733,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             }
             ++_counter;
 #if !NO_WATCHDOG
-            if ((_counter % 200) == 0)
+            if ((_counter % 200) == 0 && _counter >= 2000)
             {
-                if (_counter >= 2000)
-                {
-                    throw new ThreadStateException("Stuck");
-                }
+                throw new ThreadStateException("Stuck");
             }
 #endif
             log();
@@ -757,9 +748,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <summary> Progress reporting every 3 seconds </summary>
         private static readonly TimeSpan kProgressInterval = TimeSpan.FromSeconds(3);
 
+        private const string kIoTEdgeGatewayHostNameEnvVar = "IOTEDGE_GATEWAYHOSTNAME";
         private readonly ILogger _logger;
         private readonly IJsonSerializer _serializer;
-        private readonly IClientAccessor _events;
+        private readonly IEventClient _events;
         private readonly IDiscoveryProgress _progress;
         private readonly IProcessInfo _identity;
         private readonly IEndpointDiscovery _client;

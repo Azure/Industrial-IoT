@@ -15,11 +15,10 @@
     <ContainerPort Include="9045" Type="tcp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.0-beta" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.9-beta" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore\src\Microsoft.Azure.IIoT.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Processor\src\Microsoft.Azure.IIoT.Hub.Processor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Services\src\Azure.IIoT.OpcUa.Services.csproj" />

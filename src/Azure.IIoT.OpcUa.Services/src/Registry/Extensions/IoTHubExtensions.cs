@@ -3,12 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub
+namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
+    using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Models;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Helper utility extensions of several collections and types
@@ -17,8 +23,94 @@ namespace Microsoft.Azure.IIoT.Hub
     /// This includes lists and byte arrays that are longer than
     /// the max field size and more.
     /// </summary>
-    public static class DeviceTwinEncodingEx
+    public static class IoTHubExtensions
     {
+        /// <summary>
+        /// Query hub for device twins
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="query"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static async Task<List<DeviceTwinModel>> QueryAllDeviceTwinsAsync(
+            this IIoTHubTwinServices service, string query, CancellationToken ct = default)
+        {
+            var result = new List<DeviceTwinModel>();
+            string continuation = null;
+            do
+            {
+                var response = await service.QueryDeviceTwinsAsync(query, continuation,
+                    null, ct).ConfigureAwait(false);
+                result.AddRange(response.Items);
+                continuation = response.ContinuationToken;
+            }
+            while (continuation != null);
+            return result;
+        }
+
+        /// <summary>
+        /// Check whether twin is connected
+        /// </summary>
+        /// <param name="twin"></param>
+        /// <returns></returns>
+        public static bool? IsConnected(this DeviceTwinModel twin)
+        {
+            return twin.ConnectionState?.EqualsIgnoreCase("Connected");
+        }
+
+        /// <summary>
+        /// Check whether twin is disabled
+        /// </summary>
+        /// <param name="twin"></param>
+        /// <returns></returns>
+        public static bool? IsDisabled(this DeviceTwinModel twin)
+        {
+            return twin.Status?.EqualsIgnoreCase("disabled");
+        }
+
+        /// <summary>
+        /// Consolidated
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static IReadOnlyDictionary<string, VariantValue> GetConsolidatedProperties(
+            this DeviceTwinModel model)
+        {
+            var desired = model.Desired;
+            var reported = model.Reported;
+            if (reported == null || desired == null)
+            {
+                return (reported ?? desired) ??
+                    new Dictionary<string, VariantValue>();
+            }
+
+            var properties = new Dictionary<string, VariantValue>(desired);
+
+            // Merge with reported
+            foreach (var prop in reported)
+            {
+                if (properties.TryGetValue(prop.Key, out var existing))
+                {
+                    if (existing.IsNull() || prop.Value.IsNull())
+                    {
+                        if (existing.IsNull() && prop.Value.IsNull())
+                        {
+                            continue;
+                        }
+                    }
+                    else if (VariantValue.DeepEquals(existing, prop.Value))
+                    {
+                        continue;
+                    }
+                    properties[prop.Key] = prop.Value;
+                }
+                else
+                {
+                    properties.Add(prop.Key, prop.Value);
+                }
+            }
+            return properties;
+        }
         /// <summary>
         /// Convert list to dictionary
         /// </summary>
@@ -135,7 +227,7 @@ namespace Microsoft.Azure.IIoT.Hub
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string SanitizePropertyName(string value)
+        public static string SanitizePropertyName(this string value)
         {
             var chars = new char[value.Length];
             for (var i = 0; i < value.Length; i++)

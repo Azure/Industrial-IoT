@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Auth
     public interface IOAuthClientConfig : IOAuthConfig
     {
         /// <summary>
-        /// The <see cref="Http.Resource"/> that
+        /// The Resource that
         /// can be accessed with this configuration.
         /// </summary>
         string Resource { get; }

@@ -22,9 +22,6 @@
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Mock\src\Microsoft.Azure.IIoT.Hub.Mock.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Services.Sdk\src\Azure.IIoT.OpcUa.Services.Sdk.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Module\src\Azure.IIoT.OpcUa.Publisher.Module.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Testing\src\Azure.IIoT.OpcUa.Testing.csproj" />

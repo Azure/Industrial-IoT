@@ -8,13 +8,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
     using Azure.IIoT.OpcUa.Publisher.State;
     using FluentAssertions;
     using Furly.Extensions.Logging;
+    using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Moq;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -25,9 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
         [Fact]
         public async Task ReportingDisabledTest()
         {
-            var _client = new Mock<IClient>();
-            var _clientAccessorMock = new Mock<IClientAccessor>();
-            _clientAccessorMock.Setup(m => m.Client).Returns(_client.Object);
+            var _client = new Mock<IEventClient>();
 
             IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
             var _config = new Mock<IRuntimeStateReporterConfiguration>();
@@ -37,14 +36,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
             var _logger = Log.Console<RuntimeStateReporter>();
 
             var runtimeStateReporter = new RuntimeStateReporter(
-                _clientAccessorMock.Object,
+                _client.Object,
                 _serializer,
                 _config.Object,
                 _logger
             );
 
             await FluentActions
-                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false))
+                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync().ConfigureAwait(false))
                 .Should()
                 .NotThrowAsync()
                 .ConfigureAwait(false);
@@ -55,8 +54,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
         [Fact]
         public async Task ClientNotInitializedTest()
         {
-            var _clientAccessorMock = new Mock<IClientAccessor>();
-            _clientAccessorMock.Setup(m => m.Client).Returns((IClient)null);
+            var _clientAccessorMock = new Mock<IEventClient>();
+            _clientAccessorMock.Setup(m => m.CreateEvent()).Throws<IOException>();
 
             IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
             var _config = new Mock<IRuntimeStateReporterConfiguration>();
@@ -71,10 +70,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
                 _logger
             );
 
-            await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false);
+            await runtimeStateReporter.SendRestartAnnouncementAsync().ConfigureAwait(false);
 
             await FluentActions
-                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false))
+                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync().ConfigureAwait(false))
                 .Should()
                 .NotThrowAsync()
                 .ConfigureAwait(false);
@@ -83,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
         [Fact]
         public async Task ReportingTest()
         {
-            var _client = new Mock<IClient>();
+            var _client = new Mock<IEventClient>();
 
             var _message = new Mock<IEvent>()
                 .SetupAllProperties();
@@ -94,13 +93,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
                 .Returns(_message.Object);
             _message
                 .Setup(c => c.SendAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+                .Returns(ValueTask.CompletedTask);
 
             var contentType = string.Empty;
             var contentEncoding = string.Empty;
             var routingInfo = string.Empty;
             IReadOnlyList<ReadOnlyMemory<byte>> buffers = null;
-            _message.Setup(c => c.SetRoutingInfo(It.IsAny<string>()))
+            _message.Setup(c => c.AddProperty(It.Is<string>(v => v == "RoutingInfo"), It.IsAny<string>()))
                 .Callback<string>(v => routingInfo = v)
                 .Returns(_message.Object);
             _message.Setup(c => c.SetContentType(It.IsAny<string>()))
@@ -113,9 +112,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
                 .Callback<IReadOnlyList<ReadOnlyMemory<byte>>>(v => buffers = v)
                 .Returns(_message.Object);
 
-            var _clientAccessorMock = new Mock<IClientAccessor>();
-            _clientAccessorMock.Setup(m => m.Client).Returns(_client.Object);
-
             IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
             var _config = new Mock<IRuntimeStateReporterConfiguration>();
             _config.Setup(c => c.EnableRuntimeStateReporting).Returns(true);
@@ -123,14 +119,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
             var _logger = Log.Console<RuntimeStateReporter>();
 
             var runtimeStateReporter = new RuntimeStateReporter(
-                _clientAccessorMock.Object,
+                _client.Object,
                 _serializer,
                 _config.Object,
                 _logger
             );
 
             await FluentActions
-                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false))
+                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync().ConfigureAwait(false))
                 .Should()
                 .NotThrowAsync()
                 .ConfigureAwait(false);

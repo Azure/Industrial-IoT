@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         where T : ITokenClient
     {
         /// <inheritdoc/>
-        public string Resource { get; } = Http.Resource.Platform;
+        public string Resource { get; }
 
         /// <inheritdoc/>
         public bool IsEnabled => _client.Supports(Resource);

@@ -14,8 +14,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Hub.Mock;
+    using Furly.Azure.IoT.Client;
+    using Furly.Azure.IoT.Mock;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;

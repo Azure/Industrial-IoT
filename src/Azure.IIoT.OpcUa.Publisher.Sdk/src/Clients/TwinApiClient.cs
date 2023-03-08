@@ -6,9 +6,10 @@
 namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 {
     using Azure.IIoT.OpcUa.Models;
+    using Furly;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Module;
+    using Furly.Tunnel;
     using System;
     using System.Linq;
     using System.Threading;
@@ -23,16 +24,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// Create module client
         /// </summary>
         /// <param name="methodClient"></param>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
+        /// <param name="target"></param>
         /// <param name="serializer"></param>
-        public TwinApiClient(IMethodClient methodClient, string deviceId,
-            string moduleId = null, IJsonSerializer serializer = null)
+        public TwinApiClient(IMethodClient methodClient, string target,
+            IJsonSerializer serializer = null)
         {
-            _serializer = serializer ?? new NewtonsoftJsonSerializer();
-            _methodClient = methodClient ?? throw new ArgumentNullException(nameof(methodClient));
-            _moduleId = moduleId;
-            _deviceId = deviceId;
+            _serializer = serializer ??
+                new NewtonsoftJsonSerializer();
+            _methodClient = methodClient ??
+                throw new ArgumentNullException(nameof(methodClient));
+            _target = target;
         }
 
         /// <summary>
@@ -43,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// <param name="serializer"></param>
         public TwinApiClient(IMethodClient methodClient, ISdkConfig config = null,
             IJsonSerializer serializer = null) :
-            this(methodClient, config?.DeviceId, config?.ModuleId, serializer)
+            this(methodClient, config?.Target, serializer)
         {
         }
 
@@ -63,12 +64,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "Browse_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "Browse_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<BrowseFirstResponseModel>(response);
         }
 
@@ -92,12 +93,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "BrowseNext_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "BrowseNext_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<BrowseNextResponseModel>(response);
         }
 
@@ -122,12 +123,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Browse paths missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "BrowsePath_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "BrowsePath_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<BrowsePathResponseModel>(response);
         }
 
@@ -151,12 +152,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException(nameof(request.Attributes));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "NodeRead_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "NodeRead_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<ReadResponseModel>(response);
         }
 
@@ -180,12 +181,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException(nameof(request.Attributes));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "NodeWrite_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "NodeWrite_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<WriteResponseModel>(response);
         }
 
@@ -205,12 +206,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "ValueRead_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "ValueRead_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<ValueReadResponseModel>(response);
         }
 
@@ -234,12 +235,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Value missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "ValueWrite_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "ValueWrite_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<ValueWriteResponseModel>(response);
         }
 
@@ -259,12 +260,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "MethodMetadata_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "MethodMetadata_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<MethodMetadataResponseModel>(response);
         }
 
@@ -284,12 +285,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "MethodCall_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "MethodCall_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<MethodCallResponseModel>(response);
         }
 
@@ -305,8 +306,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "GetServerCapabilities_V2", _serializer.SerializeToString(connection), null, ct).ConfigureAwait(false);
+            var response = await _methodClient.CallMethodAsync(_target,
+                "GetServerCapabilities_V2", _serializer.SerializeToMemory(connection), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<ServerCapabilitiesModel>(response);
         }
 
@@ -326,12 +327,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "GetMetadata_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "GetMetadata_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<NodeMetadataResponseModel>(response);
         }
 
@@ -347,8 +348,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryGetServerCapabilities_V2", _serializer.SerializeToString(connection), null, ct).ConfigureAwait(false);
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryGetServerCapabilities_V2", _serializer.SerializeToMemory(connection), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryServerCapabilitiesModel>(response);
         }
 
@@ -368,12 +369,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryGetConfiguration_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryGetConfiguration_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryConfigurationResponseModel>(response);
         }
 
@@ -398,12 +399,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryRead_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryRead_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadResponseModel<VariantValue>>(response);
         }
 
@@ -428,12 +429,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Continuation missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryReadNext_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryReadNext_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryReadNextResponseModel<VariantValue>>(response);
         }
 
@@ -458,12 +459,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Details missing.", nameof(request));
             }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryUpdate_V2", _serializer.SerializeToString(new
+            var response = await _methodClient.CallMethodAsync(_target,
+                "HistoryUpdate_V2", _serializer.SerializeToMemory(new
                 {
                     connection,
                     request
-                }), null, ct).ConfigureAwait(false);
+                }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
@@ -478,8 +479,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "Connect_V2", _serializer.SerializeToString(connection), null, ct).ConfigureAwait(false);
+            await _methodClient.CallMethodAsync(_target,
+                "Connect_V2", _serializer.SerializeToMemory(connection),
+                ContentMimeType.Json, null, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -493,13 +495,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "Disconnect_V2", _serializer.SerializeToString(connection), null, ct).ConfigureAwait(false);
+            await _methodClient.CallMethodAsync(_target,
+                "Disconnect_V2", _serializer.SerializeToMemory(connection),
+                ContentMimeType.Json, null, ct).ConfigureAwait(false);
         }
 
         private readonly IJsonSerializer _serializer;
         private readonly IMethodClient _methodClient;
-        private readonly string _moduleId;
-        private readonly string _deviceId;
+        private readonly string _target;
     }
 }

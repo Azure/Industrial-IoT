@@ -6,10 +6,10 @@
 namespace Azure.IIoT.OpcUa.Publisher.Discovery
 {
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Text;
@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="serializer"></param>
         /// <param name="identity"></param>
         /// <param name="logger"></param>
-        public ProgressPublisher(IClientAccessor events,
+        public ProgressPublisher(IEventClient events,
             IJsonSerializer serializer, IProcessInfo identity, ILogger logger)
             : base(logger)
         {
@@ -72,14 +72,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             await foreach (var progress in _channel.Reader.ReadAllAsync())
             {
-                var client = _events.Client;
-                if (client == null)
-                {
-                    continue;
-                }
                 try
                 {
-                     await client.SendEventAsync(string.Empty,
+                     await _events.SendEventAsync(string.Empty,
                          _serializer.SerializeToMemory((object)progress),
                          Encoding.UTF8.WebName, ContentMimeType.Json,
                          MessageSchemaTypes.DiscoveryMessage).ConfigureAwait(false);
@@ -96,6 +91,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly IProcessInfo _identity;
         private readonly Task _sender;
         private readonly Channel<DiscoveryProgressModel> _channel;
-        private readonly IClientAccessor _events;
+        private readonly IEventClient _events;
     }
 }

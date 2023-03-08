@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
-    using Microsoft.Azure.IIoT.Messaging;
+    using Furly.Extensions.Messaging;
     using System.Threading.Tasks;
 
     /// <summary>

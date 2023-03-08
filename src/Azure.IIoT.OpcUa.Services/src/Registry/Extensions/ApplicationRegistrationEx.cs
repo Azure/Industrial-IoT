@@ -6,9 +6,8 @@
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Azure.IoT.Models;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -40,112 +39,105 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         public static DeviceTwinModel Patch(this ApplicationRegistration existing,
             ApplicationRegistration update, IJsonSerializer serializer)
         {
-            var twin = new DeviceTwinModel
-            {
-                Etag = existing?.Etag,
-                Tags = new Dictionary<string, VariantValue>(),
-                Properties = new TwinPropertiesModel
-                {
-                    Desired = new Dictionary<string, VariantValue>()
-                }
-            };
+            var tags = new Dictionary<string, VariantValue>();
+            var desired = new Dictionary<string, VariantValue>();
 
             // Tags
 
             if (update?.ApplicationId != null &&
                 update.ApplicationId != existing?.ApplicationId)
             {
-                twin.Tags.Add(nameof(ApplicationId), update.ApplicationId);
+                tags.Add(nameof(ApplicationId), update.ApplicationId);
             }
 
             if (update?.IsDisabled != null &&
                 update.IsDisabled != existing?.IsDisabled)
             {
-                twin.Tags.Add(nameof(EntityRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
+                tags.Add(nameof(EntityRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
                     true : (bool?)null);
-                twin.Tags.Add(nameof(EntityRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
+                tags.Add(nameof(EntityRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
                     DateTime.UtcNow : (DateTime?)null);
             }
 
             if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId)
             {
-                twin.Tags.Add(nameof(EntityRegistration.SiteOrGatewayId), update?.SiteOrGatewayId);
+                tags.Add(nameof(EntityRegistration.SiteOrGatewayId), update?.SiteOrGatewayId);
             }
 
             if (update?.DiscovererId != existing?.DiscovererId)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.DiscovererId), update?.DiscovererId);
+                tags.Add(nameof(ApplicationRegistration.DiscovererId), update?.DiscovererId);
             }
 
             if (update?.SiteId != existing?.SiteId)
             {
-                twin.Tags.Add(nameof(EntityRegistration.SiteId), update?.SiteId);
+                tags.Add(nameof(EntityRegistration.SiteId), update?.SiteId);
             }
 
-            twin.Tags.Add(nameof(EntityRegistration.DeviceType), update?.DeviceType);
+            tags.Add(nameof(EntityRegistration.DeviceType), update?.DeviceType);
 
             if (update?.ApplicationType != null &&
                 update?.ApplicationType != existing?.ApplicationType)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.ApplicationType),
+                tags.Add(nameof(ApplicationRegistration.ApplicationType),
                     serializer.FromObject(update.ApplicationType.ToString()));
-                twin.Tags.Add(nameof(ApplicationType.Server),
+                tags.Add(nameof(ApplicationType.Server),
                     update.ApplicationType != ApplicationType.Client);
-                twin.Tags.Add(nameof(ApplicationType.Client),
+                tags.Add(nameof(ApplicationType.Client),
                     update.ApplicationType != ApplicationType.Server &&
                     update.ApplicationType != ApplicationType.DiscoveryServer);
-                twin.Tags.Add(nameof(ApplicationType.DiscoveryServer),
+                tags.Add(nameof(ApplicationType.DiscoveryServer),
                     update.ApplicationType == ApplicationType.DiscoveryServer);
             }
 
             if (update?.ApplicationUri != existing?.ApplicationUri)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.ApplicationUri),
+                tags.Add(nameof(ApplicationRegistration.ApplicationUri),
                     update?.ApplicationUri);
-                twin.Tags.Add(nameof(ApplicationRegistration.ApplicationUriLC),
+                tags.Add(nameof(ApplicationRegistration.ApplicationUriLC),
                     update?.ApplicationUriLC);
             }
 
             if (update?.RecordId != existing?.RecordId)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.RecordId),
+                tags.Add(nameof(ApplicationRegistration.RecordId),
                     update?.RecordId);
             }
 
             if (update?.ApplicationName != existing?.ApplicationName)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.ApplicationName),
+                tags.Add(nameof(ApplicationRegistration.ApplicationName),
                     update?.ApplicationName);
             }
 
             if (update?.Locale != existing?.Locale)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.Locale),
+                tags.Add(nameof(ApplicationRegistration.Locale),
                     update?.Locale);
             }
 
             if (update?.DiscoveryProfileUri != existing?.DiscoveryProfileUri)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.DiscoveryProfileUri),
+                tags.Add(nameof(ApplicationRegistration.DiscoveryProfileUri),
                     update?.DiscoveryProfileUri);
             }
 
             if (update?.GatewayServerUri != existing?.GatewayServerUri)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.GatewayServerUri),
+                tags.Add(nameof(ApplicationRegistration.GatewayServerUri),
                     update?.GatewayServerUri);
             }
 
             if (update?.ProductUri != existing?.ProductUri)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.ProductUri), update?.ProductUri);
+                tags.Add(nameof(ApplicationRegistration.ProductUri), update?.ProductUri);
             }
 
             var urlUpdate = update?.DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
                 existing?.DiscoveryUrls?.DecodeAsList());
             if (!(urlUpdate ?? true))
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.DiscoveryUrls),
+                tags.Add(nameof(ApplicationRegistration.DiscoveryUrls),
                     update?.DiscoveryUrls == null ?
                     null : serializer.FromObject(update.DiscoveryUrls));
             }
@@ -154,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 existing?.Capabilities?.DecodeAsSet());
             if (!(capsUpdate ?? true))
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.Capabilities),
+                tags.Add(nameof(ApplicationRegistration.Capabilities),
                     update?.Capabilities == null ?
                     null : serializer.FromObject(update.Capabilities));
             }
@@ -163,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 existing?.LocalizedNames);
             if (!(namesUpdate ?? true))
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.LocalizedNames),
+                tags.Add(nameof(ApplicationRegistration.LocalizedNames),
                     update?.LocalizedNames == null ?
                     null : serializer.FromObject(update.LocalizedNames));
             }
@@ -172,30 +164,30 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 existing?.HostAddresses?.DecodeAsList());
             if (!(hostsUpdate ?? true))
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.HostAddresses),
+                tags.Add(nameof(ApplicationRegistration.HostAddresses),
                     update?.HostAddresses == null ?
                     null : serializer.FromObject(update.HostAddresses));
             }
 
             if (update?.CreateAuthorityId != existing?.CreateAuthorityId)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.CreateAuthorityId),
+                tags.Add(nameof(ApplicationRegistration.CreateAuthorityId),
                     update?.CreateAuthorityId);
             }
             if (update?.CreateTime != existing?.CreateTime)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.CreateTime),
+                tags.Add(nameof(ApplicationRegistration.CreateTime),
                     update?.CreateTime);
             }
 
             if (update?.UpdateAuthorityId != existing?.UpdateAuthorityId)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.UpdateAuthorityId),
+                tags.Add(nameof(ApplicationRegistration.UpdateAuthorityId),
                     update?.UpdateAuthorityId);
             }
             if (update?.UpdateTime != existing?.UpdateTime)
             {
-                twin.Tags.Add(nameof(ApplicationRegistration.UpdateTime),
+                tags.Add(nameof(ApplicationRegistration.UpdateTime),
                     update?.UpdateTime);
             }
 
@@ -227,143 +219,17 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 applicationType = update?.ApplicationType;
             }
 
-            twin.Id = ApplicationInfoModelEx.CreateApplicationId(
+            var id = ApplicationInfoModelEx.CreateApplicationId(
                 siteOrGatewayId, applicationUri, applicationType);
-
-            if (existing?.DeviceId != twin.Id)
+            return new DeviceTwinModel
             {
-                twin.Etag = null; // Force creation of new identity
-            }
-            return twin;
+                Id = id,
+                // Force creation of new identity
+                Etag = existing?.DeviceId != id ? null : existing?.Etag,
+                Tags = tags,
+                Desired = desired
+            };
         }
-#if ZOMBIE
-#if ZOMBIE
-
-        /// <summary>
-        /// Patch registration
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="request"></param>
-        public static void Patch(this ApplicationRegistration registration,
-            ApplicationRegistrationUpdateModel request) {
-            // Patch
-            if (!string.IsNullOrEmpty(request.ApplicationName)) {
-                registration.ApplicationName = request.ApplicationName;
-            }
-            if (request.Capabilities != null) {
-                registration.Capabilities =
-                    request.Capabilities.EncodeAsDictionary();
-            }
-            if (!string.IsNullOrEmpty(request.DiscoveryProfileUri)) {
-                registration.DiscoveryProfileUri = request.DiscoveryProfileUri;
-            }
-            if (!string.IsNullOrEmpty(request.GatewayServerUri)) {
-                registration.GatewayServerUri = request.GatewayServerUri;
-            }
-            if (!string.IsNullOrEmpty(request.ProductUri)) {
-                registration.ProductUri = request.ProductUri;
-            }
-            if (request.DiscoveryUrls != null) {
-                registration.DiscoveryUrls =
-                    request.DiscoveryUrls?.ToList().EncodeAsDictionary();
-            }
-            if (request.LocalizedNames != null) {
-                var table = registration.LocalizedNames;
-                if (table == null) {
-                    table = new Dictionary<string, string>();
-                }
-                foreach (var item in request.LocalizedNames) {
-                    if (item.Value == null) {
-                        table.Remove(item.Key);
-                    }
-                    else {
-                        table.AddOrUpdate(item.Key, item.Value);
-                    }
-                }
-                registration.LocalizedNames = table;
-            }
-            registration.Validate();
-        }
-#endif
-
-        /// <summary>
-        /// Validates all fields in an application record to be consistent with
-        /// the OPC UA specification.
-        /// </summary>
-        /// <param name="registration">The application registration</param>
-        public static void Validate(this ApplicationRegistration registration) {
-            if (registration == null) {
-                throw new ArgumentNullException(nameof(registration));
-            }
-
-            if (registration.ApplicationUri == null) {
-                throw new ArgumentNullException(nameof(registration.ApplicationUri));
-            }
-
-            if (!Uri.IsWellFormedUriString(registration.ApplicationUri, UriKind.Absolute)) {
-                throw new ArgumentException(registration.ApplicationUri +
-                    " is not a valid URI.", nameof(registration.ApplicationUri));
-            }
-
-            if ((registration.ApplicationType < ApplicationType.Server) ||
-                (registration.ApplicationType > ApplicationType.DiscoveryServer)) {
-                throw new ArgumentException(registration.ApplicationType.ToString() +
-                    " is not a valid ApplicationType.", nameof(registration.ApplicationType));
-            }
-
-            if (string.IsNullOrEmpty(registration.GetApplicationName())) {
-                throw new ArgumentException(
-                    "At least one ApplicationName must be provided.",
-                    nameof(registration.LocalizedNames));
-            }
-
-            if (string.IsNullOrEmpty(registration.ProductUri)) {
-                throw new ArgumentException(
-                    "A ProductUri must be provided.", nameof(registration.ProductUri));
-            }
-
-            if (!Uri.IsWellFormedUriString(registration.ProductUri, UriKind.Absolute)) {
-                throw new ArgumentException(registration.ProductUri +
-                    " is not a valid URI.", nameof(registration.ProductUri));
-            }
-
-            if (registration.DiscoveryUrls != null) {
-                foreach (var discoveryUrl in registration.DiscoveryUrls.DecodeAsList()) {
-                    if (string.IsNullOrEmpty(discoveryUrl)) {
-                        continue;
-                    }
-                    if (!Uri.IsWellFormedUriString(discoveryUrl, UriKind.Absolute)) {
-                        throw new ArgumentException(discoveryUrl + " is not a valid URL.",
-                            nameof(registration.DiscoveryUrls));
-                    }
-                    // TODO: check for https:/hostname:62541, typo is not detected here
-                }
-            }
-
-            if (registration.ApplicationType != ApplicationType.Client) {
-                if (!(registration.DiscoveryUrls.DecodeAsList()?.Any() ?? false)) {
-                    throw new ArgumentException(
-                        "At least one DiscoveryUrl must be provided.",
-                        nameof(registration.DiscoveryUrls));
-                }
-
-                if (!registration.Capabilities.Any()) {
-                    throw new ArgumentException(
-                        "At least one Server Capability must be provided.",
-                        nameof(registration.Capabilities));
-                }
-
-                // TODO: check for valid servercapabilities
-            }
-            else {
-                if (registration.DiscoveryUrls.DecodeAsList()?.Any() ?? false) {
-                    throw new ArgumentException(
-                        "DiscoveryUrls must not be specified for clients.",
-                        nameof(registration.DiscoveryUrls));
-                }
-            }
-        }
-#endif
 
         /// <summary>
         /// Make sure to get the registration information from the right place.

@@ -19,8 +19,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces();
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces();
             builder.RegisterType<DefaultTokenProvider>()

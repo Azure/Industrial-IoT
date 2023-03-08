@@ -7,8 +7,8 @@
     <Description>Azure Industrial IoT default abstraction implementations and utilities</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions" Version="0.4.0" />
-    <PackageReference Include="Furly.Extensions.Autofac" Version="0.4.0" />
+    <PackageReference Include="Furly.Extensions" Version="0.4.9" />
+    <PackageReference Include="Furly.Extensions.Autofac" Version="0.4.9" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="prometheus-net" Version="8.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
@@ -17,5 +17,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.3" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="7.0.3" />
     <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Hub\" />
   </ItemGroup>
 </Project>

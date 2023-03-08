@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT Web API SDK</Description>
   </PropertyGroup>
@@ -8,8 +10,8 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="7.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="7.0.3" />
-	<PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.0" />
-	<PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.0" />
+	  <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.9" />
+	  <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.9" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory.csproj" />

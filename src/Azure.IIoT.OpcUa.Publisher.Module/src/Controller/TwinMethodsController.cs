@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
     using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Module.Framework;
+    using Furly.Tunnel.Router;
     using System;
     using System.Threading.Tasks;
 

@@ -45,11 +45,11 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
             var authority = config.GetAuthorityUrl(true);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                yield return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
+                yield return KeyValuePair.Create(config.Resource,
                     (config, new AzureServiceTokenProvider(
                         "RunAs=Developer; DeveloperTool=VisualStudio", authority)));
             }
-            yield return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
+            yield return KeyValuePair.Create(config.Resource,
                 (config, new AzureServiceTokenProvider(
                     "RunAs=Developer; DeveloperTool=AzureCli", authority)));
         }

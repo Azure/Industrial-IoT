@@ -10,13 +10,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Logging;
-    using Microsoft.Azure.IIoT.Messaging;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Threading;
+    using Furly.Extensions.Messaging;
 
     public sealed class NetworkMessage : IEvent
     {
@@ -84,12 +84,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             return this;
         }
 
-        public IReadOnlyList<ReadOnlyMemory<byte>> Buffers { get; private set; }
+        public List<ReadOnlyMemory<byte>> Buffers { get; } = new();
 
-        public IEvent AddBuffers(IReadOnlyList<ReadOnlyMemory<byte>> value)
+        public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
         {
-            Buffers = value;
+            Buffers.AddRange(value);
             return this;
+        }
+
+        public Dictionary<string, string> Properties { get; } = new();
+
+        public IEvent AddProperty(string name, string value)
+        {
+            Properties.AddOrUpdate(name, value);
+            return this;
+        }
+
+        ValueTask IEvent.SendAsync(CancellationToken ct)
+        {
+            throw new NotImplementedException();
         }
 
         public static IEvent Create()
@@ -225,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         {
         }
 
-        public Task SendAsync(CancellationToken ct = default)
+        public ValueTask SendAsync(CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }

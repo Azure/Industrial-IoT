@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime
             () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,
                 () => null))?.Trim();
         /// <summary>Resource</summary>
-        public string Resource => Http.Resource.Platform;
+        public string Resource => null;
 
         /// <summary>
         /// Configuration constructor

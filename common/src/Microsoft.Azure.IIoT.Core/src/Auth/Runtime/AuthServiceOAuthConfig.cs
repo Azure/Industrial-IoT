@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime
         /// <summary>Scheme</summary>
         public string Provider => AuthProvider.AuthService;
         /// <summary>Applicable resource</summary>
-        public string Resource => Http.Resource.Platform;
+        public string Resource => null;
         /// <summary>Application id</summary>
         public string ClientId => ClientSecret == null ? null : GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_SERVICE_APPID,

@@ -16,10 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Models;
     using Autofac;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Furly.Tunnel.Router;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
@@ -29,11 +26,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Hosting;
 
     /// <summary>
     /// Publisher module
     /// </summary>
-    public class ModuleProcess : IProcessControl
+    public class ModuleProcess : IHostedService
     {
         /// <summary>
         /// Create process
@@ -49,11 +47,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             AssemblyLoadContext.Default.Unloading += _ => _exit.TrySetResult(true);
         }
 
-        /// <inheritdoc/>
-        public void Reset()
-        {
-            _reset.TrySetResult(true);
-        }
+        /// <summary>
+        /// Running in container
+        /// </summary>
+        public static bool IsContainer
+            => Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
+                .EqualsIgnoreCase("true") ?? false;
 
         /// <inheritdoc/>
         public void Exit(int exitCode)
@@ -62,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             _exitCode = exitCode;
             _exit.TrySetResult(true);
 
-            if (Host.IsContainer)
+            if (IsContainer)
             {
                 // Set timer to kill the entire process after 5 minutes.
                 _ = new Timer(o => Process.GetCurrentProcess().Kill(),
@@ -78,61 +77,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <summary>
         /// Run module host
         /// </summary>
-        public async Task<int> RunAsync()
+        public async Task StartAsync(CancellationToken ct)
         {
             // Wait until the module unloads
             while (true)
             {
                 using (var hostScope = ConfigureContainer(_config))
                 {
-                    _reset = new TaskCompletionSource<bool>();
-                    var module = hostScope.Resolve<IModuleHost>();
-                    var client = hostScope.Resolve<IClientHost>();
                     var logger = hostScope.Resolve<ILogger>();
-                    var moduleConfig = hostScope.Resolve<IModuleConfig>();
-                    var server = new MetricServer(port: kPublisherPrometheusPort);
                     try
                     {
+                        // Resolves client and starts client and errors if it fails.
+                        var runtimeStateReporter = hostScope.Resolve<IRuntimeStateReporter>();
+                        // Resolves OPC UA client and starts and errors if it fails.
+                        var uaClient = hostScope.Resolve<IClientHost>();
+
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         logger.LogInformation("Starting module OpcPublisher version {Version}.", version);
-                        logger.LogInformation("Initiating prometheus at port {Port}/metrics", kPublisherPrometheusPort);
-                        server.StartWhenEnabled(moduleConfig, logger);
 
-                        // Start module
-                        await module.StartAsync(IdentityType.Publisher, "OpcPublisher",
-                            version, this).ConfigureAwait(false);
-                        await client.StartAsync().ConfigureAwait(false);
-
+                        // Connect
+                        await uaClient.StartAsync().ConfigureAwait(false);
                         // Reporting runtime state on restart.
-                        // Reporting will happen only in stadalone mode.
-                        var runtimeStateReporter = hostScope.Resolve<IRuntimeStateReporter>();
-                        // Needs to be called only after module.StartAsync() so that IClient is initialized.
-                        await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false);
+                        await runtimeStateReporter.SendRestartAnnouncementAsync().ConfigureAwait(false);
 
                         OnRunning?.Invoke(this, true);
-                        await Task.WhenAny(_reset.Task, _exit.Task).ConfigureAwait(false);
-                        if (_exit.Task.IsCompleted)
-                        {
-                            logger.LogInformation("Module exits...");
-                            return _exitCode;
-                        }
-                        _reset = new TaskCompletionSource<bool>();
-                        logger.LogInformation("Module reset...");
+                        await _exit.Task.ConfigureAwait(false);
+                        logger.LogInformation("Module exits...");
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "Error during module execution - restarting!");
+                        logger.LogCritical(ex, "Error during module start!");
                     }
                     finally
                     {
                         OnRunning?.Invoke(this, false);
-
-                        server.StopWhenEnabled(moduleConfig, logger);
-                        await module.StopAsync().ConfigureAwait(false);
-                        logger.LogInformation("Module stopped.");
+                        logger.LogInformation("Stopped module OpcPublisher.");
                     }
                 }
             }
+        }
+
+        /// <inheritdoc/>
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -153,8 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             builder.RegisterInstance(this)
                 .AsImplementedInterfaces();
 
-            // Register module framework ...
-            builder.RegisterModule<ModuleFramework>();
+            builder.AddIoTEdgeServices();
             builder.AddNewtonsoftJsonSerializer();
 
             builder.AddDiagnostics();
@@ -223,7 +210,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         private readonly IInjector _injector;
         private readonly TaskCompletionSource<bool> _exit;
         private int _exitCode;
-        private TaskCompletionSource<bool> _reset;
         private const int kPublisherPrometheusPort = 9702;
     }
 }

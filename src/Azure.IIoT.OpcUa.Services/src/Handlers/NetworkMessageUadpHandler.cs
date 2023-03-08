@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Microsoft.Azure.IIoT;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using System;
@@ -20,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     /// <summary>
     /// Publisher message handling
     /// </summary>
-    public sealed class NetworkMessageUadpHandler : IDeviceTelemetryHandler
+    public sealed class NetworkMessageUadpHandler : IMessageHandler
     {
         /// <inheritdoc/>
         public string MessageSchema => MessageSchemaTypes.NetworkMessageUadp;

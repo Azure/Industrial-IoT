@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using Furly.Extensions.Messaging;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -105,16 +106,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 if (validChunks > 0)
                 {
-                    var chunkedMessage = factory();
-                    chunkedMessage.SetTimestamp(DateTime.UtcNow);
-                    chunkedMessage.SetContentEncoding(networkMessage.ContentEncoding);
-                    chunkedMessage.SetContentType(networkMessage.ContentType);
-                    chunkedMessage.SetMessageSchema(networkMessage.MessageSchema);
-                    chunkedMessage.SetRoutingInfo(networkMessage.DataSetWriterGroup);
-                    chunkedMessage.SetTopic(output);
-                    chunkedMessage.SetRetain(retain);
-                    chunkedMessage.SetTtl(ttl);
-                    chunkedMessage.AddBuffers(chunks);
+                    var chunkedMessage = factory()
+                        .SetTimestamp(DateTime.UtcNow)
+                        .SetContentEncoding(networkMessage.ContentEncoding)
+                        .SetContentType(networkMessage.ContentType)
+                        .AddProperty("MessageSchema", networkMessage.MessageSchema)
+                        .AddProperty("$$RoutingInfo", networkMessage.DataSetWriterGroup)
+                        .SetTopic(output)
+                        .SetRetain(retain)
+                        .SetTtl(ttl)
+                        .AddBuffers(chunks);
                     chunkedMessages.Add(chunkedMessage);
                 }
 

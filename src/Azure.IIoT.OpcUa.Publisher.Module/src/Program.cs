@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 #endif
 
             var module = new ModuleProcess(config);
-            module.RunAsync().GetAwaiter().GetResult();
+            module.StartAsync(default).GetAwaiter().GetResult();
         }
     }
 }

@@ -22,8 +22,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Hub.Processor.Services;
+    using Furly.Azure.IoT.Client;
+    using Furly.Azure.IoT.Processor.Services;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Utils;

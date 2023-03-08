@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Auth
         /// cannot be retrieved should not throw but return null and
         /// log errors as appropriate.
         /// </summary>
-        /// <param name="resource"><see cref="Http.Resource"/> to
+        /// <param name="resource">Resource to
         /// acquire token for</param>
         /// <param name="scopes">Scope permissions to request</param>
         /// <returns>null if no token could be retrieved</returns>
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Auth
         /// Invalidate tokens for a target resource after
         /// failed authentication.
         /// </summary>
-        /// <param name="resource"><see cref="Http.Resource"/> to
+        /// <param name="resource">Resource to
         /// invalidate</param>
         Task InvalidateAsync(string resource);
     }

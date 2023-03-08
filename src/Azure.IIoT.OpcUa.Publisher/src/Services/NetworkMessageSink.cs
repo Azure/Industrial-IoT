@@ -5,9 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Furly.Extensions.Messaging;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics;
@@ -20,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     public class NetworkMessageSink : IMessageSink
     {
         /// <inheritdoc/>
-        public int MaxMessageSize => _clientAccessor.Client.MaxEventPayloadSizeInBytes;
+        public int MaxMessageSize => _clientAccessor.MaxEventPayloadSizeInBytes;
 
         /// <summary>
         /// Create network message sink
@@ -28,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="clientAccessor"></param>
         /// <param name="metrics"></param>
         /// <param name="logger"></param>
-        public NetworkMessageSink(IClientAccessor clientAccessor, IMetricsContext metrics,
+        public NetworkMessageSink(IEventClient clientAccessor, IMetricsContext metrics,
             ILogger logger) : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {
             _clientAccessor = clientAccessor
@@ -40,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public IEvent CreateMessage()
         {
-            return _clientAccessor.Client.CreateEvent();
+            return _clientAccessor.CreateEvent();
         }
 
         /// <inheritdoc/>
@@ -96,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;
         private readonly DateTime _startTime = DateTime.UtcNow;
         private readonly ILogger _logger;
-        private readonly IClientAccessor _clientAccessor;
+        private readonly IEventClient _clientAccessor;
         private readonly TagList _tagList;
         private long _messagesSentCount;
     }

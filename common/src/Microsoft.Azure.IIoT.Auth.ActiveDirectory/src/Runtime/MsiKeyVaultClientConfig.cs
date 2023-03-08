@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime
         /// <inheritdoc/>
         public string Audience => "https://vault.azure.net";
         /// <inheritdoc/>
-        public string Resource => Http.Resource.KeyVault;
+        public string Resource => "KeyVault";
         /// <inheritdoc/>
         public bool IsValid => ClientId != null && TenantId != null;
         /// <inheritdoc/>

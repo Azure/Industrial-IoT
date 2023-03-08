@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
                 cs += $";TenantId={config.TenantId}";
             }
             cs += $";AppKey={config.ClientSecret}";
-            return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
+            return KeyValuePair.Create(config.Resource,
                 (config, new AzureServiceTokenProvider(cs, config.GetAuthorityUrl(true))));
         }
 

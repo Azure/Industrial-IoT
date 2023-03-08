@@ -7,31 +7,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Microsoft.Azure.IIoT.Hub.Module.Client.Runtime;
-    using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Furly.Azure.IoT.Edge;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
-    public class PublisherConfig : ConfigBase, IModuleConfig, IClientServicesConfig
+    public class PublisherConfig : ConfigBase, IClientServicesConfig
     {
-        /// <inheritdoc/>
-        public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
-        /// <inheritdoc/>
-        public string MqttClientConnectionString => _module.MqttClientConnectionString;
-        /// <inheritdoc/>
-        public string TelemetryTopicTemplate => _module.TelemetryTopicTemplate;
-        /// <inheritdoc/>
-        public bool EnableOutputRouting => _module.EnableOutputRouting;
-        /// <inheritdoc/>
-        public bool BypassCertVerification => _module.BypassCertVerification;
-        /// <inheritdoc/>
-        public bool EnableMetrics => _module.EnableMetrics;
-        /// <inheritdoc/>
-        public TransportOption Transport => _module.Transport;
         /// <inheritdoc/>
         public string ApplicationName => _opc.ApplicationName;
         /// <inheritdoc/>
@@ -91,10 +75,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             base(configuration)
         {
             _opc = new ClientServicesConfig(configuration);
-            _module = new ModuleConfig(configuration);
         }
 
         private readonly ClientServicesConfig _opc;
-        private readonly ModuleConfig _module;
     }
 }

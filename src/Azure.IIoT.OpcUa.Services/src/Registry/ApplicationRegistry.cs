@@ -9,8 +9,8 @@ namespace Azure.IIoT.OpcUa.Services.Services
     using Azure.IIoT.OpcUa.Models;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Models;
+    using Furly.Azure.IoT.Models;
+    using Furly.Azure.IoT;
     using Microsoft.Extensions.Logging;
     using Prometheus;
     using System;
@@ -310,8 +310,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
             if (query?.Capability != null)
             {
                 // If Capabilities provided, filter results
-                var tag = SanitizePropertyName(query.Capability)
-                    .ToUpperInvariant();
+                var tag = query.Capability.SanitizePropertyName().ToUpperInvariant();
                 sql += $"AND tags.{tag} = true ";
             }
             if (query?.SiteOrGatewayId != null)
@@ -1281,20 +1280,6 @@ namespace Azure.IIoT.OpcUa.Services.Services
             return registration.ToServiceModel();
         }
 
-        /// <summary>
-        /// Replace whitespace in a property name
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static string SanitizePropertyName(string value)
-        {
-            var chars = new char[value.Length];
-            for (var i = 0; i < value.Length; i++)
-            {
-                chars[i] = !char.IsLetterOrDigit(value[i]) ? '_' : value[i];
-            }
-            return new string(chars);
-        }
         private static readonly Gauge kAppsAdded = Metrics
             .CreateGauge("iiot_registry_applicationAdded", "Number of applications added ");
         private static readonly Gauge kAppsUpdated = Metrics

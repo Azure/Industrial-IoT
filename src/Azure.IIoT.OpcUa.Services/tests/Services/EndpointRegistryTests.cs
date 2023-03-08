@@ -15,9 +15,9 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Mock;
-    using Microsoft.Azure.IIoT.Hub.Models;
+    using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Mock;
+    using Furly.Azure.IoT.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;

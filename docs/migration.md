@@ -9,3 +9,4 @@
     * The GetSupervisorStatus and ResetSupervisor API has been removed without replacement.
   * GetEndpointCertificate API now returns a `X509CertificateChainModel` instead of byte array in 2.8.
 * OPC Discovery capabiltiies are integrated into OPC Publisher. 
+

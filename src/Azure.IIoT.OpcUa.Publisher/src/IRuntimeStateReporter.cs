@@ -15,6 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Send restart announcement.
         /// </summary>
-        Task SendRestartAnnouncement();
+        Task SendRestartAnnouncementAsync();
     }
 }

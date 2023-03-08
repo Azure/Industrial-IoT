@@ -7,8 +7,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Models;
+    using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Models;
     using System;
     using System.Collections.Generic;
 
@@ -35,34 +35,33 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         public static DeviceTwinModel Patch(this GatewayRegistration existing,
             GatewayRegistration update)
         {
-            var twin = new DeviceTwinModel
-            {
-                Etag = existing?.Etag,
-                Tags = new Dictionary<string, VariantValue>(),
-                Properties = new TwinPropertiesModel
-                {
-                    Desired = new Dictionary<string, VariantValue>()
-                }
-            };
+            var tags = new Dictionary<string, VariantValue>();
+            var desired = new Dictionary<string, VariantValue>();
 
             // Tags
 
             if (update?.IsDisabled != null && update.IsDisabled != existing?.IsDisabled)
             {
-                twin.Tags.Add(nameof(GatewayRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
+                tags.Add(nameof(GatewayRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
                     true : (bool?)null);
-                twin.Tags.Add(nameof(GatewayRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
+                tags.Add(nameof(GatewayRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
                     DateTime.UtcNow : (DateTime?)null);
             }
 
             if (update?.SiteId != existing?.SiteId)
             {
-                twin.Tags.Add(TwinProperty.SiteId, update?.SiteId);
+                tags.Add(TwinProperty.SiteId, update?.SiteId);
             }
 
-            twin.Tags.Add(nameof(GatewayRegistration.DeviceType), update?.DeviceType);
-            twin.Id = update?.DeviceId ?? existing?.DeviceId;
-            return twin;
+            tags.Add(nameof(GatewayRegistration.DeviceType), update?.DeviceType);
+
+            return new DeviceTwinModel
+            {
+                Id = update?.DeviceId ?? existing?.DeviceId,
+                Etag = existing?.Etag,
+                Tags = tags,
+                Desired = desired
+            };
         }
 
         /// <summary>
@@ -72,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// <param name="properties"></param>
         /// <returns></returns>
         public static GatewayRegistration ToGatewayRegistration(this DeviceTwinModel twin,
-            Dictionary<string, VariantValue> properties)
+            IReadOnlyDictionary<string, VariantValue> properties)
         {
             if (twin == null)
             {
@@ -103,7 +102,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                     tags.GetValueOrDefault<string>(TwinProperty.SiteId, null)
 
                 // Properties
-
             };
         }
 

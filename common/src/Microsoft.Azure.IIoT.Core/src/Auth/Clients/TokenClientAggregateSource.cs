@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         /// <param name="clients"></param>
         /// <param name="logger"></param>
         public TokenClientAggregateSource(IEnumerable<ITokenClient> clients, ILogger logger) :
-            this(Reorder(clients), Http.Resource.Platform, logger)
+            this(Reorder(clients), logger)
         {
         }
 
@@ -40,12 +40,11 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         /// Create aggregate
         /// </summary>
         /// <param name="clients"></param>
-        /// <param name="resource"></param>
         /// <param name="logger"></param>
         /// <param name="prefer"></param>
         protected TokenClientAggregateSource(IEnumerable<ITokenClient> clients,
-            string resource, ILogger logger, params ITokenClient[] prefer)
-            : this(Reorder(clients, prefer), resource, logger)
+             ILogger logger, params ITokenClient[] prefer)
+            : this(Reorder(clients, prefer), logger)
         {
         }
 
@@ -53,14 +52,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         /// Create aggregate
         /// </summary>
         /// <param name="clients"></param>
-        /// <param name="resource"></param>
         /// <param name="logger"></param>
-        private TokenClientAggregateSource(List<ITokenClient> clients, string resource,
+        private TokenClientAggregateSource(List<ITokenClient> clients,
             ILogger logger)
         {
             _clients = clients ?? throw new ArgumentNullException(nameof(clients));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            Resource = resource ?? throw new ArgumentNullException(nameof(resource));
         }
 
         /// <inheritdoc/>

@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using Azure.IIoT.OpcUa.Models;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Hub;
+    using Furly.Azure.IoT;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -152,10 +152,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
         /// <inheritdoc/>
         public async Task<DiscovererListModel> QueryDiscoverersAsync(
-            DiscovererQueryModel model, int? pageSize, CancellationToken ct)
+            DiscovererQueryModel query, int? pageSize, CancellationToken ct)
         {
             // This is no longer supported, return empty result
-            if (model?.Discovery != null && model?.Discovery != DiscoveryMode.Off)
+            if (query?.Discovery != null && query?.Discovery != DiscoveryMode.Off)
             {
                 return new DiscovererListModel
                 {
@@ -163,30 +163,30 @@ namespace Azure.IIoT.OpcUa.Services.Registry
                 };
             }
 
-            var query = "SELECT * FROM devices.modules WHERE " +
+            var sql = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}'";
 
-            if (model?.SiteId != null)
+            if (query?.SiteId != null)
             {
                 // If site id provided, include it in search
-                query += $"AND (properties.reported.{TwinProperty.SiteId} = " +
-                    $"'{model.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
-                    $"'{model.SiteId}' OR deviceId ='{model.SiteId}') ";
+                sql += $"AND (properties.reported.{TwinProperty.SiteId} = " +
+                    $"'{query.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
+                    $"'{query.SiteId}' OR deviceId ='{query.SiteId}') ";
             }
-            if (model?.Connected != null)
+            if (query?.Connected != null)
             {
                 // If flag provided, include it in search
-                if (model.Connected.Value)
+                if (query.Connected.Value)
                 {
-                    query += "AND connectionState = 'Connected' ";
+                    sql += "AND connectionState = 'Connected' ";
                 }
                 else
                 {
-                    query += "AND connectionState != 'Connected' ";
+                    sql += "AND connectionState != 'Connected' ";
                 }
             }
 
-            var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct).ConfigureAwait(false);
+            var queryResult = await _iothub.QueryDeviceTwinsAsync(sql, null, pageSize, ct).ConfigureAwait(false);
             return new DiscovererListModel
             {
                 ContinuationToken = queryResult.ContinuationToken,
