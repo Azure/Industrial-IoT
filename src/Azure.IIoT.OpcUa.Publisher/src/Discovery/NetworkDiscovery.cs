@@ -13,11 +13,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Exceptions;
+    using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Logging;
     using Prometheus;
     using System;
@@ -27,10 +26,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Text;
-    using Furly.Extensions.Messaging;
 
     /// <summary>
     /// Provides network discovery of endpoints
@@ -38,24 +36,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     public sealed class NetworkDiscovery : INetworkDiscovery, IDisposable
     {
         /// <summary>
+        /// Running in container
+        /// </summary>
+        public static bool IsContainer
+            => Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
+                .EqualsIgnoreCase("true") ?? false;
+
+        /// <summary>
         /// Create services
         /// </summary>
         /// <param name="client"></param>
         /// <param name="events"></param>
         /// <param name="serializer"></param>
-        /// <param name="logger"></param>
+        /// <param name="loggerFactory"></param>
         /// <param name="progress"></param>
-        /// <param name="identity"></param>
+        /// <param name="config"></param>
         public NetworkDiscovery(IEndpointDiscovery client, IEventClient events,
-            IJsonSerializer serializer, ILogger logger, IDiscoveryProgress progress = null,
-            IProcessInfo identity = null)
+            IJsonSerializer serializer, ILoggerFactory loggerFactory,
+            IDiscoveryProgress progress = null, IPublisherConfiguration config = null)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-            _events = events ?? throw new ArgumentNullException(nameof(events));
-            _progress = progress ?? new ProgressLogger(logger);
-            _identity = identity;
+            _loggerFactory = loggerFactory ??
+                throw new ArgumentNullException(nameof(loggerFactory));
+            _serializer = serializer ??
+                throw new ArgumentNullException(nameof(serializer));
+            _client = client ??
+                throw new ArgumentNullException(nameof(client));
+            _events = events ??
+                throw new ArgumentNullException(nameof(events));
+
+            _logger = loggerFactory.CreateLogger<NetworkDiscovery>();
+            _progress = progress ?? new ProgressLogger(loggerFactory.CreateLogger<ProgressLogger>());
+            _config = config;
             _runner = Task.Run(() => ProcessDiscoveryRequestsAsync(_cts.Token));
             _timer = new Timer(_ => OnScanScheduling(), null,
                 TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan);
@@ -328,12 +339,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
 #endif
             var addresses = new List<IPAddress>();
             _progress.OnNetScanStarted(request.Request, 0, 0, request.TotalAddresses);
-            using (var netscanner = new NetworkScanner(_logger, (scanner, reply) =>
-            {
-                _progress.OnNetScanResult(request.Request, scanner.ActiveProbes,
-                    scanner.ScanCount, request.TotalAddresses, addresses.Count, reply.Address);
-                addresses.Add(reply.Address);
-            }, local, local ? null : request.AddressRanges, request.NetworkClass,
+            using (var netscanner = new NetworkScanner(_loggerFactory.CreateLogger<NetworkScanner>(),
+                (scanner, reply) =>
+                {
+                    _progress.OnNetScanResult(request.Request, scanner.ActiveProbes,
+                        scanner.ScanCount, request.TotalAddresses, addresses.Count, reply.Address);
+                    addresses.Add(reply.Address);
+                }, local, local ? null : request.AddressRanges, request.NetworkClass,
                 request.Configuration.MaxNetworkProbes, request.Configuration.NetworkProbeTimeout,
                 request.Token))
             {
@@ -363,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             _counter = 0;
 #endif
             _progress.OnPortScanStart(request.Request, 0, 0, totalPorts);
-            using (var portscan = new PortScanner(_logger,
+            using (var portscan = new PortScanner(_loggerFactory.CreateLogger<PortScanner>(),
                 addresses.SelectMany(address =>
                 {
                     var ranges = request.PortRanges ?? PortRange.OpcUa;
@@ -450,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 foreach (var ep in eps)
                 {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
-                        _identity.SiteId, _identity.ProcessId, _identity.Id, _serializer));
+                        _config?.Site, _events.Identity, _serializer));
                     endpoints++;
                 }
                 _progress.OnFindEndpointsFinished(request.Request, 1, count, discoveryUrls.Count,
@@ -544,7 +556,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                         }
 
                         // Check local host
-                        if (host.EqualsIgnoreCase("localhost") && Host.IsContainer)
+                        if (host.EqualsIgnoreCase("localhost") && IsContainer)
                         {
                             // Also resolve docker internal since we are in a container
                             host = Environment.GetEnvironmentVariable(kIoTEdgeGatewayHostNameEnvVar);
@@ -579,7 +591,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             var hostName = Environment.GetEnvironmentVariable(kIoTEdgeGatewayHostNameEnvVar);
             try
             {
-                if (Host.IsContainer)
+                if (IsContainer)
                 {
                     // Resolve docker host since we are running in a container
                     if (string.IsNullOrEmpty(hostName))
@@ -657,8 +669,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 })
                 .ToList();
 
-            await _events.SendEventAsync(string.Empty, buffers, Encoding.UTF8.WebName,
-                ContentMimeType.Json, MessageSchemaTypes.DiscoveryEvents, ct: ct).ConfigureAwait(false);
+            await _events.SendEventAsync(string.Empty, buffers, _serializer.MimeType,
+                Encoding.UTF8.WebName, e => e.AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
+                    MessageSchemaTypes.DiscoveryEvents), ct: ct).ConfigureAwait(false);
             _logger.LogInformation("{Count} results uploaded.", discovered.Count);
         }
 
@@ -750,10 +763,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
 
         private const string kIoTEdgeGatewayHostNameEnvVar = "IOTEDGE_GATEWAYHOSTNAME";
         private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly IJsonSerializer _serializer;
         private readonly IEventClient _events;
         private readonly IDiscoveryProgress _progress;
-        private readonly IProcessInfo _identity;
+        private readonly IPublisherConfiguration _config;
         private readonly IEndpointDiscovery _client;
         private readonly Task _runner;
         private readonly Timer _timer;

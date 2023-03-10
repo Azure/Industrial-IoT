@@ -5,7 +5,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
 {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
-    using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
     using Microsoft.AspNetCore.Http;
@@ -52,7 +51,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            Http = new HttpClientFactory(logger); // TODO: Use logger factory here
         }
 
         /// <inheritdoc/>

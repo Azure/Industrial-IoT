@@ -53,6 +53,12 @@ namespace Azure.IIoT.OpcUa
             "application/x-discovery-message-v2-json";
 
         /// <summary>
+        /// Runtime state message
+        /// </summary>
+        public const string RuntimeStateMessage =
+            "application/x-runtimestate-message-v2-json";
+
+        /// <summary>
         /// Content is a twin change event
         /// </summary>
         public const string TwinChangeNotification =

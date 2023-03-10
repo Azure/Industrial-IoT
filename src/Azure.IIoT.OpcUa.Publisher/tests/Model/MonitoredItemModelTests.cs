@@ -86,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
         }
 
         [Fact]
-        public void CompareDataModelTest_ShouldSucceed()
+        public void CompareDataModelTestShouldSucceed()
         {
             var clone = _dataModel.Clone();
 
@@ -96,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
         }
 
         [Fact]
-        public void CompareDataModelTest_ShouldFail()
+        public void CompareDataModelTestShouldFail()
         {
             var clone = _dataModel.Clone();
             clone.QueueSize = 47000;
@@ -117,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
         }
 
         [Fact]
-        public void CompareEventModelTest_ShouldSucceed()
+        public void CompareEventModelTestShouldSucceed()
         {
             var clone = _eventModel.Clone();
 
@@ -127,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
         }
 
         [Fact]
-        public void CompareEventModelTest_ShouldFail()
+        public void CompareEventModelTestShouldFail()
         {
             var clone = _eventModel.Clone();
             clone.StartNodeId = "SomethingElse";

@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         /// <returns></returns>
         private static NetworkMessageEncoder GetEncoder()
         {
-            var loggerMock = new Mock<ILogger>();
+            var loggerMock = new Mock<ILogger<NetworkMessageEncoder>>();
             var metricsMock = new Mock<IMetricsContext>();
             metricsMock.SetupGet(m => m.TagList).Returns(new TagList());
             return new NetworkMessageEncoder(new WriterGroupJobConfig

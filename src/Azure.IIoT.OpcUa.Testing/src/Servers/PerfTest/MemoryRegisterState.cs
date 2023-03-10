@@ -126,6 +126,15 @@ namespace PerfTest
         /// <summary>
         /// Creates a new browser object with a set of filters.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="view"></param>
+        /// <param name="referenceType"></param>
+        /// <param name="includeSubtypes"></param>
+        /// <param name="browseDirection"></param>
+        /// <param name="browseName"></param>
+        /// <param name="additionalReferences"></param>
+        /// <param name="internalOnly"></param>
+        /// <param name="parent"></param>
         public MemoryRegisterBrowser(
             ISystemContext context,
             ViewDescription view,

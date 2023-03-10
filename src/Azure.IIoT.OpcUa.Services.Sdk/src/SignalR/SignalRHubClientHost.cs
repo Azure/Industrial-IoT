@@ -34,12 +34,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
         /// <param name="endpointUrl"></param>
         /// <param name="useMessagePack"></param>
         /// <param name="logger"></param>
-        /// <param name="resourceId"></param>
         /// <param name="provider"></param>
         /// <param name="jsonSettings"></param>
         /// <param name="msgPack"></param>
         public SignalRHubClientHost(string endpointUrl, bool? useMessagePack,
-            ILogger logger, string resourceId, ITokenProvider provider = null,
+            ILogger logger, ITokenProvider provider = null,
             INewtonsoftSerializerSettingsProvider jsonSettings = null,
             IMessagePackFormatterResolverProvider msgPack = null)
         {
@@ -52,7 +51,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             _endpointUri = new Uri(endpointUrl);
             _useMessagePack = (useMessagePack ?? false) && _msgPack != null;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _resourceId = provider?.Supports(resourceId) == true ? resourceId : null;
             _provider = provider;
         }
 
@@ -181,12 +179,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
                     {
                         options.AccessTokenProvider = async () =>
                         {
-                            var token = await _provider.GetTokenForAsync(_resourceId).ConfigureAwait(false);
+                            var token = await _provider.GetTokenForAsync(null).ConfigureAwait(false);
                             if (token?.RawToken == null)
                             {
-                                _logger.LogError("Failed to aquire token for hub calling " +
-                                    "({Resource}) - calling without...",
-                                    _resourceId);
+                                _logger.LogError("Failed to aquire token for hub calling without...");
                             }
                             return token?.RawToken;
                         };
@@ -238,7 +234,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
         private readonly bool _useMessagePack;
         private readonly ILogger _logger;
         private readonly ITokenProvider _provider;
-        private readonly string _resourceId;
         private HubConnection _connection;
         private bool _started;
     }

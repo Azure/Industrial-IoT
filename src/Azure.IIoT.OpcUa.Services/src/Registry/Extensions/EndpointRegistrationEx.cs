@@ -6,9 +6,9 @@
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Azure.IIoT.OpcUa.Models;
-    using Furly.Extensions.Serializers;
-    using Furly.Azure.IoT;
+    using Furly.Azure;
     using Furly.Azure.IoT.Models;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -216,38 +216,38 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 IsDisabled =
                     tags.GetValueOrDefault(nameof(EndpointRegistration.IsDisabled), twin.IsDisabled()),
                 NotSeenSince =
-                    tags.GetValueOrDefault<DateTime>(nameof(EndpointRegistration.NotSeenSince), null),
+                    tags.GetValueOrDefault(nameof(EndpointRegistration.NotSeenSince), (DateTime?)null),
 
                 DiscovererId =
-                    tags.GetValueOrDefault<string>(nameof(EndpointRegistration.DiscovererId), null),
+                    tags.GetValueOrDefault(nameof(EndpointRegistration.DiscovererId), (string)null),
                 ApplicationId =
-                    tags.GetValueOrDefault<string>(nameof(EndpointRegistration.ApplicationId), null),
+                    tags.GetValueOrDefault(nameof(EndpointRegistration.ApplicationId), (string)null),
                 SecurityLevel =
-                    tags.GetValueOrDefault<int>(nameof(EndpointRegistration.SecurityLevel), null),
+                    tags.GetValueOrDefault(nameof(EndpointRegistration.SecurityLevel), (int?)null),
                 AuthenticationMethods =
-                    tags.GetValueOrDefault<Dictionary<string, AuthenticationMethodModel>>(nameof(EndpointRegistration.AuthenticationMethods), null),
+                    tags.GetValueOrDefault(nameof(EndpointRegistration.AuthenticationMethods), (Dictionary<string, AuthenticationMethodModel>)null),
                 EndpointRegistrationUrl =
-                    tags.GetValueOrDefault<string>(nameof(EndpointRegistration.EndpointRegistrationUrl), null),
+                    tags.GetValueOrDefault(nameof(EndpointRegistration.EndpointRegistrationUrl), (string)null),
 
                 // Properties
 
                 Type =
-                    properties.GetValueOrDefault<string>(TwinProperty.Type, null),
+                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertyTypeKey, (string)null),
                 State =
                     properties.GetValueOrDefault(nameof(EndpointRegistration.State), EndpointConnectivityState.Disconnected),
                 SiteId =
-                    properties.GetValueOrDefault(TwinProperty.SiteId,
-                        tags.GetValueOrDefault<string>(nameof(EndpointRegistration.SiteId), null)),
+                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertySiteKey,
+                        tags.GetValueOrDefault(nameof(EndpointRegistration.SiteId), (string)null)),
                 EndpointUrl =
-                    properties.GetValueOrDefault<string>(nameof(EndpointRegistration.EndpointUrl), null),
+                    properties.GetValueOrDefault(nameof(EndpointRegistration.EndpointUrl), (string)null),
                 AlternativeUrls =
-                    properties.GetValueOrDefault<Dictionary<string, string>>(nameof(EndpointRegistration.AlternativeUrls), null),
+                    properties.GetValueOrDefault(nameof(EndpointRegistration.AlternativeUrls), (Dictionary<string, string>)null),
                 SecurityMode =
-                    properties.GetValueOrDefault<SecurityMode>(nameof(EndpointRegistration.SecurityMode), null),
+                    properties.GetValueOrDefault(nameof(EndpointRegistration.SecurityMode), (SecurityMode?)null),
                 SecurityPolicy =
-                    properties.GetValueOrDefault<string>(nameof(EndpointRegistration.SecurityPolicy), null),
+                    properties.GetValueOrDefault(nameof(EndpointRegistration.SecurityPolicy), (string)null),
                 Thumbprint =
-                    properties.GetValueOrDefault<string>(nameof(EndpointRegistration.Thumbprint), null)
+                    properties.GetValueOrDefault(nameof(EndpointRegistration.Thumbprint), (string)null)
             };
         }
 
@@ -328,7 +328,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 },
                 NotSeenSince = registration.NotSeenSince,
                 EndpointState = registration.State,
-                OutOfSync = registration.Connected && !registration._isInSync ? true : (bool?)null
+                OutOfSync = registration.Connected && !registration._isInSync ? true : null
             };
         }
 
@@ -374,6 +374,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static string GetSiteOrGatewayId(this EndpointRegistration registration)
         {
             if (registration == null)
@@ -384,9 +385,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
             if (siteOrGatewayId == null)
             {
                 var id = registration?.DiscovererId;
-                if (id != null)
+                if (id != null &&
+                    !HubResource.Parse(id, out _, out siteOrGatewayId, out _, out var error))
                 {
-                    siteOrGatewayId = PublisherModelEx.ParseDeviceId(id, out _);
+                    throw new ArgumentException(error, nameof(registration));
                 }
             }
             return siteOrGatewayId;

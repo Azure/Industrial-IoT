@@ -17,11 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     /// </summary>
     public sealed class PublishedNodesProvider : IPublishedNodesProvider, IDisposable
     {
-        private readonly IPublisherConfiguration _config;
-        private readonly ILogger _logger;
-        private readonly SemaphoreSlim _lock;
-        private readonly FileSystemWatcher _fileSystemWatcher;
-
         /// <inheritdoc/>
         public event FileSystemEventHandler Deleted;
 
@@ -44,9 +39,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <summary>
         /// Provider of utilities for published nodes file.
         /// </summary>
-        /// <param name="config"> Publisher configuration with location of published nodes file. </param>
+        /// <param name="config"> Publisher configuration with location
+        /// of published nodes file. </param>
         /// <param name="logger"> Logger </param>
-        public PublishedNodesProvider(IPublisherConfiguration config, ILogger logger)
+        public PublishedNodesProvider(IPublisherConfiguration config,
+            ILogger<PublishedNodesProvider> logger)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -214,5 +211,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         {
             Renamed?.Invoke(sender, e);
         }
+
+        private readonly IPublisherConfiguration _config;
+        private readonly ILogger _logger;
+        private readonly SemaphoreSlim _lock;
+        private readonly FileSystemWatcher _fileSystemWatcher;
     }
 }

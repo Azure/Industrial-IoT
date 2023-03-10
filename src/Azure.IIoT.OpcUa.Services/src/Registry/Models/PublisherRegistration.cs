@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Azure.IIoT.OpcUa.Models;
-    using Furly.Azure.IoT;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -18,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
     {
         /// <inheritdoc/>
         [DataMember]
-        public override string DeviceType => IdentityType.Publisher;
+        public override string DeviceType => Constants.EntityTypePublisher;
 
         /// <summary>
         /// Device id for registration

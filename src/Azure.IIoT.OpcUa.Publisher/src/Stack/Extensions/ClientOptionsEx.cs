@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Furly.Exceptions;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
@@ -18,24 +19,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Configuration extensions
     /// </summary>
-    public static class OpcConfigEx
+    public static class ClientOptionsEx
     {
         /// <summary>
         /// Build the opc ua stack application configuration
         /// </summary>
-        /// <param name="opcConfig"></param>
+        /// <param name="options"></param>
         /// <param name="identity"></param>
         /// <param name="handler"></param>
         /// <param name="logger"></param>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         /// <exception cref="InvalidConfigurationException"></exception>
         public static async Task<ApplicationConfiguration> BuildApplicationConfigurationAsync(
-            this IClientServicesConfig opcConfig, string identity,
+            this ClientOptions options, string identity,
             CertificateValidationEventHandler handler, ILogger logger)
         {
-            if (string.IsNullOrWhiteSpace(opcConfig.ApplicationName))
+            if (string.IsNullOrWhiteSpace(options.ApplicationName))
             {
-                throw new ArgumentNullException(nameof(opcConfig.ApplicationName));
+                throw new ArgumentException("Application name is empty", nameof(options));
             }
 
             // wait with the configuration until network is up
@@ -45,15 +46,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 {
                     break;
                 }
-                else
-                {
-                    await Task.Delay(3000).ConfigureAwait(false);
-                }
+
+                await Task.Delay(3000).ConfigureAwait(false);
             }
 
             var appInstance = new ApplicationInstance
             {
-                ApplicationName = opcConfig.ApplicationName,
+                ApplicationName = options.ApplicationName,
                 ApplicationType = ApplicationType.Client
             };
 
@@ -69,12 +68,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 
                         var appBuilder = appInstance
                             .Build(
-                                opcConfig.ApplicationUri.Replace("urn:localhost", $"urn:{hostname}", StringComparison.Ordinal),
-                                opcConfig.ProductUri)
-                            .SetTransportQuotas(opcConfig.ToTransportQuotas())
+                                options.ApplicationUri.Replace("urn:localhost", $"urn:{hostname}", StringComparison.Ordinal),
+                                options.ProductUri)
+                            .SetTransportQuotas(options.Quotas.ToTransportQuotas())
                             .AsClient();
 
-                        var appConfig = await opcConfig
+                        var appConfig = await options.Security
                             .BuildSecurityConfiguration(
                                 appBuilder,
                                 appInstance.ApplicationConfiguration,
@@ -233,6 +232,98 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 logger.LogError(e, "Error while trying to read information from rejected certificate store.");
             }
+        }
+
+        /// <summary>
+        /// Convert to transport quota
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static TransportQuotas ToTransportQuotas(this TransportOptions options)
+        {
+            return new TransportQuotas
+            {
+                OperationTimeout = options.OperationTimeout,
+                MaxStringLength = options.MaxStringLength,
+                MaxByteStringLength = options.MaxByteStringLength,
+                MaxArrayLength = options.MaxArrayLength,
+                MaxMessageSize = options.MaxMessageSize,
+                MaxBufferSize = options.MaxBufferSize,
+                ChannelLifetime = options.ChannelLifetime,
+                SecurityTokenLifetime = options.SecurityTokenLifetime
+            };
+        }
+
+        /// <summary>
+        /// Builds and applies the security configuration according to the local settings. Returns a the
+        /// configuration application ready to use for initialization of the OPC UA SDK client object.
+        /// </summary>
+        /// <remarks>
+        /// Please note the input argument <cref>applicationConfiguration</cref> will be altered during execution
+        /// with the locally provided security configuration and shall not be used after calling this method.
+        /// </remarks>
+        /// <param name="securityOptions"></param>
+        /// <param name="applicationConfigurationBuilder"></param>
+        /// <param name="applicationConfiguration"></param>
+        /// <param name="hostname"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="securityOptions"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException"></exception>
+        private static async Task<ApplicationConfiguration> BuildSecurityConfiguration(
+            this SecurityOptions securityOptions,
+            IApplicationConfigurationBuilderClientSelected applicationConfigurationBuilder,
+            ApplicationConfiguration applicationConfiguration,
+            string hostname)
+        {
+            if (securityOptions == null)
+            {
+                throw new ArgumentNullException(nameof(securityOptions));
+            }
+
+            if (securityOptions.TrustedIssuerCertificates == null)
+            {
+                throw new ArgumentException("Trusted issuer certificates missing",
+                    nameof(securityOptions));
+            }
+
+            if (securityOptions.TrustedPeerCertificates == null)
+            {
+                throw new ArgumentException("Trusted peer certificates missing",
+                    nameof(securityOptions));
+            }
+
+            if (securityOptions.RejectedCertificateStore == null)
+            {
+                throw new ArgumentException("Rejected certificate store missing",
+                    nameof(securityOptions));
+            }
+
+            if (securityOptions.ApplicationCertificate == null)
+            {
+                throw new ArgumentException("Application certificate missing",
+                    nameof(securityOptions));
+            }
+
+            var options = applicationConfigurationBuilder
+                .AddSecurityConfiguration(
+                    securityOptions.ApplicationCertificate.SubjectName.Replace("localhost", hostname),
+                    securityOptions.PkiRootPath)
+                .SetAutoAcceptUntrustedCertificates(securityOptions.AutoAcceptUntrustedCertificates.Value)
+                .SetRejectSHA1SignedCertificates(securityOptions.RejectSha1SignedCertificates.Value)
+                .SetMinimumCertificateKeySize(securityOptions.MinimumCertificateKeySize)
+                .SetAddAppCertToTrustedStore(securityOptions.AddAppCertToTrustedStore.Value)
+                .SetRejectUnknownRevocationStatus(securityOptions.RejectUnknownRevocationStatus.Value);
+
+            applicationConfiguration.SecurityConfiguration.ApplicationCertificate
+                .ApplyLocalConfig(securityOptions.ApplicationCertificate);
+            applicationConfiguration.SecurityConfiguration.TrustedPeerCertificates
+                .ApplyLocalConfig(securityOptions.TrustedPeerCertificates);
+            applicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates
+                .ApplyLocalConfig(securityOptions.TrustedIssuerCertificates);
+            applicationConfiguration.SecurityConfiguration.RejectedCertificateStore
+                .ApplyLocalConfig(securityOptions.RejectedCertificateStore);
+
+            return await options.Create().ConfigureAwait(false);
         }
     }
 }

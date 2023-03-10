@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.TestData.Tests
         {
             return new NodeMetadataTests<ConnectionModel>(
                 () => new NodeServices<ConnectionModel>(_server.Client,
-                    _output.BuildLogger()), _server.GetConnection());
+                    _output.BuildLoggerFor<NodeServices<ConnectionModel>>()), _server.GetConnection());
         }
 
         private readonly TestDataServer _server;

@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -26,16 +27,10 @@ namespace Azure.IIoT.OpcUa.Services
         /// <param name="moduleId"></param>
         /// <param name="payload"></param>
         /// <param name="properties"></param>
-        /// <param name="checkpoint"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, IDictionary<string, string> properties,
-            Func<Task> checkpoint);
-
-        /// <summary>
-        /// Called when batch is completed
-        /// </summary>
-        /// <returns></returns>
-        Task OnBatchCompleteAsync();
+        ValueTask HandleAsync(string deviceId, string moduleId,
+            ReadOnlyMemory<byte> payload, IReadOnlyDictionary<string, string> properties,
+            CancellationToken ct = default);
     }
 }

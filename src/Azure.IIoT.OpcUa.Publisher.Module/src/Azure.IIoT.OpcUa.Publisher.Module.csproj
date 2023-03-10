@@ -21,9 +21,9 @@
     <None Remove="pki\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.9-beta" />
-    <PackageReference Include="Furly.Tunnel" Version="0.2.7" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.9" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.10-beta" />
+    <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.10-beta" />
+    <PackageReference Include="Furly.Tunnel" Version="0.2.9" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
   </ItemGroup>
   <ItemGroup>

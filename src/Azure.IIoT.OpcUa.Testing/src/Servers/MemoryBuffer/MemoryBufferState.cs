@@ -41,6 +41,8 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the buffer from the configuration.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="configuration"></param>
         public MemoryBufferState(ISystemContext context, MemoryBufferInstance configuration) :
             base(null)
         {
@@ -182,6 +184,14 @@ namespace MemoryBuffer
         /// <summary>
         /// Creates an object which can browser the tags in the buffer.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="view"></param>
+        /// <param name="referenceType"></param>
+        /// <param name="includeSubtypes"></param>
+        /// <param name="browseDirection"></param>
+        /// <param name="browseName"></param>
+        /// <param name="additionalReferences"></param>
+        /// <param name="internalOnly"></param>
         public override INodeBrowser CreateBrowser(
             ISystemContext context,
             ViewDescription view,
@@ -211,6 +221,13 @@ namespace MemoryBuffer
         /// <summary>
         /// Handles the read operation for an invidual tag.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="node"></param>
+        /// <param name="indexRange"></param>
+        /// <param name="dataEncoding"></param>
+        /// <param name="value"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="timestamp"></param>
         public ServiceResult ReadTagValue(
 #pragma warning disable RCS1163 // Unused parameter.
 #pragma warning disable IDE0079 // Remove unnecessary suppression
@@ -267,6 +284,13 @@ namespace MemoryBuffer
         /// <summary>
         /// Handles a write operation for an individual tag.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="node"></param>
+        /// <param name="indexRange"></param>
+        /// <param name="dataEncoding"></param>
+        /// <param name="value"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="timestamp"></param>
         public ServiceResult WriteTagValue(
 #pragma warning disable RCS1163 // Unused parameter.
 #pragma warning disable IDE0079 // Remove unnecessary suppression
@@ -379,6 +403,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Returns the value at the specified offset.
         /// </summary>
+        /// <param name="offset"></param>
         public Variant GetValueAtOffset(int offset)
         {
             lock (_dataLock)
@@ -413,6 +438,8 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the instance with the context for the node being monitored.
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="nodeManager"></param>
         public void InitializeMonitoring(
             IServerInternal server,
             INodeManager nodeManager)
@@ -428,6 +455,14 @@ namespace MemoryBuffer
         /// <summary>
         /// Creates a new data change monitored item.
         /// </summary>
+        /// <param name="tag"></param>
+        /// <param name="monitoredItemId"></param>
+        /// <param name="itemToMonitor"></param>
+        /// <param name="diagnosticsMasks"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="monitoringMode"></param>
+        /// <param name="clientHandle"></param>
+        /// <param name="samplingInterval"></param>
         public MemoryBufferMonitoredItem CreateDataChangeItem(
             MemoryTagState tag,
             uint monitoredItemId,
@@ -499,6 +534,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Scans the buffer and updates every other element.
         /// </summary>
+        /// <param name="state"></param>
         private void DoScan(object state)
         {
             var start1 = DateTime.UtcNow;
@@ -529,6 +565,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Deletes the monitored item.
         /// </summary>
+        /// <param name="monitoredItem"></param>
         public void DeleteItem(MemoryBufferMonitoredItem monitoredItem)
         {
             lock (_dataLock)
@@ -584,6 +621,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Handles change events raised by the node.
         /// </summary>
+        /// <param name="offset"></param>
         public void OnBufferChanged(int offset)
         {
             lock (_dataLock)

@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
-    using Furly.Azure.IoT;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -17,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
     {
         /// <inheritdoc/>
         [DataMember]
-        public override string DeviceType => IdentityType.Gateway;
+        public override string DeviceType => Constants.EntityTypeGateway;
 
         /// <summary>
         /// Create registration - for testing purposes

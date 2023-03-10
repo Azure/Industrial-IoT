@@ -38,6 +38,18 @@ namespace Azure.IIoT.OpcUa.Publisher
         MessagingProfile MessagingProfile { get; }
 
         /// <summary>
+        /// Configuration flag for enabling/disabling
+        /// runtime state reporting.
+        /// </summary>
+        bool EnableRuntimeStateReporting { get; }
+
+        /// <summary>
+        /// The routing info to add to the runtime state
+        /// events.
+        /// </summary>
+        string RuntimeStateRoutingInfo { get; }
+
+        /// <summary>
         /// Scale test option
         /// </summary>
         int? ScaleTestCount { get; }

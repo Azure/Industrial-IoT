@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime
         /// <inheritdoc/>
         public string Provider => AuthProvider.AzureAD;
         /// <inheritdoc/>
-        public string Resource => Microsoft.Azure.IIoT.Http.Resource.Platform;
+        public string Resource => null;
         /// <inheritdoc/>
         public string ClientId => GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_PUBLIC_CLIENT_APPID,

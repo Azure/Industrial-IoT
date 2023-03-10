@@ -33,10 +33,6 @@ namespace Azure.IIoT.OpcUa.Models
                 throw new ArgumentNullException(nameof(model));
             }
             var siteOrGatewayId = model.SiteId;
-            if (siteOrGatewayId == null && model.DiscovererId != null)
-            {
-                siteOrGatewayId = PublisherModelEx.ParseDeviceId(model.DiscovererId, out _);
-            }
             return CreateApplicationId(siteOrGatewayId, model.ApplicationUri,
                 model.ApplicationType);
         }
@@ -203,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Models
                 Capabilities = request.Capabilities,
                 GatewayServerUri = request.GatewayServerUri,
                 SiteId = request.SiteId,
-                NotSeenSince = disabled ? DateTime.UtcNow : (DateTime?)null,
+                NotSeenSince = disabled ? DateTime.UtcNow : null,
                 Created = context,
                 Updated = null,
                 ApplicationId = null,

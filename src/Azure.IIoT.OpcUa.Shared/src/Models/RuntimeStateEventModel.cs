@@ -3,30 +3,28 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils
+namespace Azure.IIoT.OpcUa.Models
 {
-    using Newtonsoft.Json;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Method call exception model.
+    /// Model for reporting runtime state.
     /// </summary>
     [DataContract]
-    public class MethodCallStatusExceptionModel
+    public class RuntimeStateEventModel
     {
         /// <summary>
-        /// Exception message.
+        /// Defines the message type that is sent.
         /// </summary>
-        [DataMember(Name = "Message", Order = 0,
+        [DataMember(Name = "MessageType", Order = 0,
             EmitDefaultValue = true)]
-        public string Message { get; set; }
+        public RuntimeStateEventType MessageType { get; set; }
 
         /// <summary>
-        /// Details of the exception.
+        /// Defines the message version.
         /// </summary>
-        [DataMember(Name = "Details", Order = 1,
+        [DataMember(Name = "MessageVersion", Order = 1,
             EmitDefaultValue = true)]
-        [JsonConverter(typeof(Tests.Utils.NewtonsoftJsonSerializerRaw.RawJsonConverter))]
-        public string Details { get; set; }
+        public int MessageVersion { get; set; }
     }
 }

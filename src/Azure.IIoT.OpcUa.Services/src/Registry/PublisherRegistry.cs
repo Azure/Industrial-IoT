@@ -7,9 +7,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 {
     using Azure.IIoT.OpcUa.Services.Registry.Models;
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Azure;
+    using Furly.Azure.IoT;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
-    using Furly.Azure.IoT;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
@@ -39,39 +40,41 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         }
 
         /// <inheritdoc/>
-        public async Task<PublisherModel> GetPublisherAsync(string id,
+        public async Task<PublisherModel> GetPublisherAsync(string publisherId,
             bool onlyServerState, CancellationToken ct)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(publisherId))
             {
-                throw new ArgumentNullException(nameof(id));
+                throw new ArgumentNullException(nameof(publisherId));
             }
-            var deviceId = PublisherModelEx.ParseDeviceId(id, out var moduleId);
+            if (!HubResource.Parse(publisherId, out _, out var deviceId, out var moduleId, out var error))
+            {
+                throw new ArgumentException(error, nameof(publisherId));
+            }
             var device = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
             if (!(device.ToEntityRegistration(onlyServerState) is PublisherRegistration registration))
             {
-                throw new ResourceNotFoundException(
-                    $"{id} is not a publisher registration.");
+                throw new ResourceNotFoundException($"{publisherId} is not a publisher registration.");
             }
             return registration.ToPublisherModel();
         }
 
         /// <inheritdoc/>
-        public async Task UpdatePublisherAsync(string id,
+        public async Task UpdatePublisherAsync(string publisherId,
             PublisherUpdateModel request, CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(publisherId))
             {
-                throw new ArgumentNullException(nameof(id));
+                throw new ArgumentNullException(nameof(publisherId));
             }
-
-            // Get existing endpoint and compare to see if we need to patch.
-            var deviceId = PublisherModelEx.ParseDeviceId(id, out var moduleId);
-
+            if (!HubResource.Parse(publisherId, out _, out var deviceId, out var moduleId, out var error))
+            {
+                throw new ArgumentException(error, nameof(publisherId));
+            }
             while (true)
             {
                 try
@@ -80,13 +83,13 @@ namespace Azure.IIoT.OpcUa.Services.Registry
                     if (twin.Id != deviceId && twin.ModuleId != moduleId)
                     {
                         throw new ArgumentException("Id must be same as twin to patch",
-                            nameof(id));
+                            nameof(publisherId));
                     }
 
                     if (!(twin.ToEntityRegistration(true) is PublisherRegistration registration))
                     {
                         throw new ResourceNotFoundException(
-                            $"{id} is not a publisher registration.");
+                            $"{publisherId} is not a publisher registration.");
                     }
                     // Update registration from update request
                     var patched = registration.ToPublisherModel();
@@ -124,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             string continuation, bool onlyServerState, int? pageSize, CancellationToken ct)
         {
             const string query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}' " +
+                $"properties.reported.{OpcUa.Constants.TwinPropertyTypeKey} = '{Constants.EntityTypePublisher}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
             return new PublisherListModel
@@ -142,13 +145,13 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             PublisherQueryModel query, bool onlyServerState, int? pageSize, CancellationToken ct)
         {
             var sql = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}'";
+                $"properties.reported.{OpcUa.Constants.TwinPropertyTypeKey} = '{Constants.EntityTypePublisher}'";
 
             if (query?.SiteId != null)
             {
                 // If site id provided, include it in search
-                sql += $"AND (properties.reported.{TwinProperty.SiteId} = " +
-                    $"'{query.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
+                sql += $"AND (properties.reported.{OpcUa.Constants.TwinPropertySiteKey} = " +
+                    $"'{query.SiteId}' OR properties.desired.{OpcUa.Constants.TwinPropertySiteKey} = " +
                     $"'{query.SiteId}' OR deviceId = '{query.SiteId}') ";
             }
 

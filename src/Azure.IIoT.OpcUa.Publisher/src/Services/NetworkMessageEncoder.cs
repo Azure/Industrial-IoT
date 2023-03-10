@@ -12,8 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Extensions.Messaging;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using System;
@@ -21,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
-    using Furly.Extensions.Messaging;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -53,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="metrics"> Metrics context </param>
         /// <param name="logger"> Logger to be used for reporting. </param>
         public NetworkMessageEncoder(IEngineConfiguration config,
-            IMetricsContext metrics, ILogger logger)
+            IMetricsContext metrics, ILogger<NetworkMessageEncoder> logger)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {
             _logger = logger;
@@ -62,22 +61,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public IEnumerable<IEvent> Encode(Func<IEvent> factory,
-            IEnumerable<SubscriptionNotificationModel> messages, int maxMessageSize, bool asBatch)
+            IEnumerable<SubscriptionNotificationModel> notifications, int maxMessageSize, bool asBatch)
         {
             //
             // by design all messages are generated in the same session context, therefore it is safe to
             // get the first message's context
             //
-            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)?.ServiceMessageContext;
+            var encodingContext = notifications.FirstOrDefault(m => m.ServiceMessageContext != null)?.ServiceMessageContext;
             var chunkedMessages = new List<IEvent>();
             if (encodingContext == null)
             {
                 // Drop all messages
-                Drop(messages);
+                Drop(notifications);
                 return chunkedMessages;
             }
 
-            var networkMessages = GetNetworkMessages(messages, asBatch);
+            var networkMessages = GetNetworkMessages(notifications, asBatch);
             foreach (var (notificationsPerMessage, networkMessage, output, retain, ttl) in networkMessages)
             {
                 var chunks = networkMessage.Encode(encodingContext, maxMessageSize);
@@ -107,11 +106,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (validChunks > 0)
                 {
                     var chunkedMessage = factory()
+                        .AddProperty(OpcUa.Constants.MessagePropertySchemaKey, networkMessage.MessageSchema)
+                        .AddProperty(OpcUa.Constants.MessagePropertyRoutingKey, networkMessage.DataSetWriterGroup)
                         .SetTimestamp(DateTime.UtcNow)
                         .SetContentEncoding(networkMessage.ContentEncoding)
                         .SetContentType(networkMessage.ContentType)
-                        .AddProperty("MessageSchema", networkMessage.MessageSchema)
-                        .AddProperty("$$RoutingInfo", networkMessage.DataSetWriterGroup)
                         .SetTopic(output)
                         .SetRetain(retain)
                         .SetTtl(ttl)

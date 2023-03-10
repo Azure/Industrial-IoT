@@ -41,6 +41,8 @@ namespace TestData
         /// <summary>
         /// Creates a new file.
         /// </summary>
+        /// <param name="dataLock"></param>
+        /// <param name="entries"></param>
         internal HistoryFile(object dataLock, List<HistoryEntry> entries)
         {
             _lock = dataLock;

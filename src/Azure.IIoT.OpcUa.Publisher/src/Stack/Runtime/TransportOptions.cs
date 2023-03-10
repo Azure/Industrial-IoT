@@ -8,46 +8,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Transport quota configuration
     /// </summary>
-    public interface ITransportQuotaConfig
+    public sealed class TransportOptions
     {
         /// <summary>
         /// Channel lifetime in milliseconds.
         /// </summary>
-        int ChannelLifetime { get; }
+        public int ChannelLifetime { get; set; }
 
         /// <summary>
         /// Max array length
         /// </summary>
-        int MaxArrayLength { get; }
+        public int MaxArrayLength { get; set; }
 
         /// <summary>
         /// Max buffer size
         /// </summary>
-        int MaxBufferSize { get; }
+        public int MaxBufferSize { get; set; }
 
         /// <summary>
         /// Max string length
         /// </summary>
-        int MaxByteStringLength { get; }
+        public int MaxByteStringLength { get; set; }
 
         /// <summary>
         /// Max message size
         /// </summary>
-        int MaxMessageSize { get; }
+        public int MaxMessageSize { get; set; }
 
         /// <summary>
         /// Max string length
         /// </summary>
-        int MaxStringLength { get; }
+        public int MaxStringLength { get; set; }
 
         /// <summary>
         /// Operation timeout in milliseconds.
         /// </summary>
-        int OperationTimeout { get; }
+        public int OperationTimeout { get; set; }
 
         /// <summary>
         /// Security token lifetime in milliseconds.
         /// </summary>
-        int SecurityTokenLifetime { get; }
+        public int SecurityTokenLifetime { get; set; }
     }
 }

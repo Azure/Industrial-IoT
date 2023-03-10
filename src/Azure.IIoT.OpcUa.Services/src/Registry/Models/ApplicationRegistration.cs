@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
     {
         /// <inheritdoc/>
         [DataMember]
-        public override string DeviceType => IdentityType.Application;
+        public override string DeviceType => Constants.EntityTypeApplication;
 
         /// <summary>
         /// Identity that owns the twin.

@@ -223,6 +223,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Deletes the event with the specified event id.
         /// </summary>
+        /// <param name="eventId"></param>
         public bool DeleteEvent(string eventId)
         {
             var filter = new StringBuilder();
@@ -255,6 +256,10 @@ namespace HistoricalEvents
         /// <summary>
         /// Reads the report history for the specified time range.
         /// </summary>
+        /// <param name="reportType"></param>
+        /// <param name="uidWell"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
         public DataView ReadHistoryForWellId(ReportType reportType, string uidWell, DateTime startTime, DateTime endTime)
         {
             var filter = new StringBuilder();
@@ -273,6 +278,10 @@ namespace HistoricalEvents
         /// <summary>
         /// Reads the report history for the specified time range.
         /// </summary>
+        /// <param name="reportType"></param>
+        /// <param name="areaName"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
         public DataView ReadHistoryForArea(ReportType reportType, string areaName, DateTime startTime, DateTime endTime)
         {
             var filter = new StringBuilder();
@@ -295,6 +304,10 @@ namespace HistoricalEvents
         /// <summary>
         /// Reads the history for the specified time range.
         /// </summary>
+        /// <param name="reportType"></param>
+        /// <param name="filter"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
         private DataView ReadHistory(ReportType reportType, StringBuilder filter, DateTime startTime, DateTime endTime)
         {
             var earlyTime = startTime;

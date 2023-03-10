@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Models;
     using Autofac;
     using Furly.Exceptions;
+    using Furly.Extensions.Hosting;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
     using System;
@@ -17,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -54,11 +56,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="factory"></param>
         /// <param name="identity"></param>
         /// <param name="logger"></param>
+        /// <param name="config"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public PublisherHostService(IWriterGroupScopeFactory factory,
-            IProcessInfo identity, ILogger logger)
+        public PublisherHostService(IWriterGroupScopeFactory factory, IProcessIdentity identity,
+            ILogger<PublisherHostService> logger, IPublisherConfiguration config = null)
         {
-            PublisherId = identity.ToIdentityString();
+            PublisherId = (config?.Site == null ? "" : (config?.Site + "_")) +
+                (identity?.Id ?? Dns.GetHostName());
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _currentJobs = new Dictionary<string, JobContext>();
@@ -127,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 try
                 {
-                    await ProcessChanges(task, changes, ct).ConfigureAwait(false);
+                    await ProcessChangesAsync(task, changes, ct).ConfigureAwait(false);
                 }
                 catch (ObjectDisposedException)
                 {
@@ -143,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="changes"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask ProcessChanges(TaskCompletionSource task,
+        private async ValueTask ProcessChangesAsync(TaskCompletionSource task,
             List<WriterGroupJobModel> changes, CancellationToken ct)
         {
             // Increment change number

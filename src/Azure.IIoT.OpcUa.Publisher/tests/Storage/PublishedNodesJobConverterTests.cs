@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using Furly.Extensions.Configuration;
 
     /// <summary>
     /// Test
@@ -39,11 +40,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var jobs = converter.Read(pn);
 
@@ -70,11 +72,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -103,11 +106,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -137,11 +141,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -173,11 +178,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -211,11 +217,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -255,11 +262,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -299,11 +307,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -345,11 +354,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -392,11 +402,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -446,11 +457,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -481,11 +493,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -518,11 +531,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -556,11 +570,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -589,11 +604,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -624,11 +640,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -661,11 +678,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -699,11 +717,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -733,11 +752,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -767,11 +787,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -803,11 +824,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -838,11 +860,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -873,11 +896,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -907,11 +931,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -943,11 +968,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -978,11 +1004,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1012,11 +1039,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1055,11 +1083,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1098,11 +1127,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1137,11 +1167,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1173,11 +1204,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1212,11 +1244,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1252,11 +1285,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1293,11 +1327,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1344,11 +1379,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
 
@@ -1385,11 +1421,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1448,11 +1485,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1511,11 +1549,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1581,11 +1620,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             };
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1651,11 +1691,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             };
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1719,11 +1760,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             };
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1744,11 +1786,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         {
             var pn = await File.ReadAllTextAsync(publishedNodesJsonFile).ConfigureAwait(false);
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
@@ -1797,11 +1840,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ");
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn.ToString());
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
@@ -1852,11 +1896,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ");
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn.ToString());
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
@@ -1942,11 +1987,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ");
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn.ToString());
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
@@ -2058,11 +2104,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
@@ -2212,11 +2259,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
@@ -2279,11 +2327,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();

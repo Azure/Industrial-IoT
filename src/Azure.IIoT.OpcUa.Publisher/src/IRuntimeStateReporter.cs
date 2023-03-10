@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -15,6 +16,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Send restart announcement.
         /// </summary>
-        Task SendRestartAnnouncementAsync();
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task SendRestartAnnouncementAsync(
+            CancellationToken ct = default);
     }
 }

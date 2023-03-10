@@ -15,7 +15,8 @@
     <ContainerPort Include="9045" Type="tcp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.9-beta" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.10-beta" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.13" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore\src\Microsoft.Azure.IIoT.AspNetCore.csproj" />

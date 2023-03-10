@@ -92,6 +92,7 @@ namespace Reference
         /// <summary>
         /// Empties the event queue and saves it in the dataset.
         /// </summary>
+        /// <param name="dataset"></param>
         public static DataSet EmptyQueue(DataSet dataset)
         {
             if (dataset == null)
@@ -161,6 +162,9 @@ namespace Reference
         /// <summary>
         /// Reports a value written.
         /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="value"></param>
+        /// <param name="error"></param>
         public static void ReportWriteValue(NodeId nodeId, DataValue value, StatusCode error)
         {
             if (!_eventsEnabled)
@@ -196,6 +200,9 @@ namespace Reference
         /// <summary>
         /// Reports a value queued.
         /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="serverHandle"></param>
+        /// <param name="value"></param>
         public static void ReportQueuedValue(NodeId nodeId, uint serverHandle, DataValue value)
         {
             if (!_eventsEnabled)
@@ -222,6 +229,9 @@ namespace Reference
         /// <summary>
         /// Reports a value excluded by the filter.
         /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="serverHandle"></param>
+        /// <param name="value"></param>
         public static void ReportFilteredValue(NodeId nodeId, uint serverHandle, DataValue value)
         {
             if (!_eventsEnabled)
@@ -248,6 +258,9 @@ namespace Reference
         /// <summary>
         /// Reports a value discarded because of queue overflow.
         /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="serverHandle"></param>
+        /// <param name="value"></param>
         public static void ReportDiscardedValue(NodeId nodeId, uint serverHandle, DataValue value)
         {
             if (!_eventsEnabled)
@@ -274,6 +287,9 @@ namespace Reference
         /// <summary>
         /// Reports a value published.
         /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="serverHandle"></param>
+        /// <param name="value"></param>
         public static void ReportPublishValue(NodeId nodeId, uint serverHandle, DataValue value)
         {
             if (!_eventsEnabled)
@@ -300,6 +316,13 @@ namespace Reference
         /// <summary>
         /// Reports a new monitored item.
         /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="serverHandle"></param>
+        /// <param name="samplingInterval"></param>
+        /// <param name="queueSize"></param>
+        /// <param name="discardOldest"></param>
+        /// <param name="filter"></param>
+        /// <param name="monitoringMode"></param>
         public static void ReportCreateMonitoredItem(
             NodeId nodeId,
             uint serverHandle,
@@ -339,6 +362,13 @@ namespace Reference
         /// <summary>
         /// Reports a modified monitored item.
         /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="serverHandle"></param>
+        /// <param name="samplingInterval"></param>
+        /// <param name="queueSize"></param>
+        /// <param name="discardOldest"></param>
+        /// <param name="filter"></param>
+        /// <param name="monitoringMode"></param>
         public static void ReportModifyMonitoredItem(
             NodeId nodeId,
             uint serverHandle,
@@ -378,6 +408,10 @@ namespace Reference
         /// <summary>
         /// Fills in the diagnostic information after an error.
         /// </summary>
+        /// <param name="code"></param>
+        /// <param name="context"></param>
+        /// <param name="diagnosticInfos"></param>
+        /// <param name="index"></param>
         public static uint CreateError(
             uint code,
             OperationContext context,
@@ -397,6 +431,10 @@ namespace Reference
         /// <summary>
         /// Fills in the diagnostic information after an error.
         /// </summary>
+        /// <param name="code"></param>
+        /// <param name="results"></param>
+        /// <param name="diagnosticInfos"></param>
+        /// <param name="context"></param>
         public static bool CreateError(
             uint code,
             StatusCodeCollection results,
@@ -418,6 +456,11 @@ namespace Reference
         /// <summary>
         /// Fills in the diagnostic information after an error.
         /// </summary>
+        /// <param name="code"></param>
+        /// <param name="results"></param>
+        /// <param name="diagnosticInfos"></param>
+        /// <param name="index"></param>
+        /// <param name="context"></param>
         public static bool CreateError(
             uint code,
             StatusCodeCollection results,
@@ -440,6 +483,9 @@ namespace Reference
         /// <summary>
         /// Creates a place holder in the lists for the results.
         /// </summary>
+        /// <param name="results"></param>
+        /// <param name="diagnosticInfos"></param>
+        /// <param name="context"></param>
         public static void CreateSuccess(
             StatusCodeCollection results,
             DiagnosticInfoCollection diagnosticInfos,
@@ -456,6 +502,8 @@ namespace Reference
         /// <summary>
         /// Creates a collection of diagnostics from a set of errors.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="errors"></param>
         public static DiagnosticInfoCollection CreateDiagnosticInfoCollection(
             OperationContext context,
             IList<ServiceResult> errors)
@@ -487,6 +535,9 @@ namespace Reference
         /// <summary>
         /// Creates a collection of status codes and diagnostics from a set of errors.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="errors"></param>
+        /// <param name="diagnosticInfos"></param>
         public static StatusCodeCollection CreateStatusCodeCollection(
             OperationContext context,
             IList<ServiceResult> errors,

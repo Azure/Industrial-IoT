@@ -211,147 +211,147 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Key for the operation timeout in milliseconds.
         /// </summary>
-        public const string OpcOperationTimeout = TransportQuotaConfig.OperationTimeoutKey;
+        public const string OpcOperationTimeout = ClientConfig.OperationTimeoutKey;
 
         /// <summary>
         /// Key for the max string length.
         /// </summary>
-        public const string OpcMaxStringLength = TransportQuotaConfig.MaxStringLengthKey;
+        public const string OpcMaxStringLength = ClientConfig.MaxStringLengthKey;
 
         /// <summary>
         /// Key for security token lifetime in milliseconds.
         /// </summary>
-        public const string SecurityTokenLifetimeKey = TransportQuotaConfig.SecurityTokenLifetimeKey;
+        public const string SecurityTokenLifetimeKey = ClientConfig.SecurityTokenLifetimeKey;
 
         /// <summary>
         /// Key for channel lifetime in milliseconds.
         /// </summary>
-        public const string ChannelLifetimeKey = TransportQuotaConfig.ChannelLifetimeKey;
+        public const string ChannelLifetimeKey = ClientConfig.ChannelLifetimeKey;
 
         /// <summary>
         /// Key for max buffer size.
         /// </summary>
-        public const string MaxBufferSizeKey = TransportQuotaConfig.MaxBufferSizeKey;
+        public const string MaxBufferSizeKey = ClientConfig.MaxBufferSizeKey;
 
         /// <summary>
         /// Key for max message size.
         /// </summary>
-        public const string MaxMessageSizeKey = TransportQuotaConfig.MaxMessageSizeKey;
+        public const string MaxMessageSizeKey = ClientConfig.MaxMessageSizeKey;
 
         /// <summary>
         /// Key for max array length.
         /// </summary>
-        public const string MaxArrayLengthKey = TransportQuotaConfig.MaxArrayLengthKey;
+        public const string MaxArrayLengthKey = ClientConfig.MaxArrayLengthKey;
 
         /// <summary>
         /// Key for max byte string length.
         /// </summary>
-        public const string MaxByteStringLengthKey = TransportQuotaConfig.MaxByteStringLengthKey;
+        public const string MaxByteStringLengthKey = ClientConfig.MaxByteStringLengthKey;
 
         /// <summary>
         /// Key for application uri.
         /// </summary>
-        public const string ApplicationUriKey = ClientServicesConfig.ApplicationUriKey;
+        public const string ApplicationUriKey = ClientConfig.ApplicationUriKey;
 
         /// <summary>
         /// Key for product uri.
         /// </summary>
-        public const string ProductUriKey = ClientServicesConfig.ProductUriKey;
+        public const string ProductUriKey = ClientConfig.ProductUriKey;
 
         /// <summary>
         /// Key for the default OPC Session timeout in seconds - to request from the OPC server at session creation.
         /// </summary>
-        public const string OpcSessionCreationTimeout = ClientServicesConfig.DefaultSessionTimeoutKey;
+        public const string OpcSessionCreationTimeout = ClientConfig.DefaultSessionTimeoutKey;
 
         /// <summary>
         /// Key for minimum subscription lifetime in seconds.
         /// </summary>
-        public const string MinSubscriptionLifetimeKey = ClientServicesConfig.MinSubscriptionLifetimeKey;
+        public const string MinSubscriptionLifetimeKey = ClientConfig.MinSubscriptionLifetimeKey;
 
         /// <summary>
         /// Key for the OPC Keep Alive Interval in seconds.
         /// </summary>
-        public const string OpcKeepAliveIntervalInSec = ClientServicesConfig.KeepAliveIntervalKey;
+        public const string OpcKeepAliveIntervalInSec = ClientConfig.KeepAliveIntervalKey;
 
         /// <summary>
         /// Key for the disconnect thresholt for missed keep alive signals.
         /// </summary>
-        public const string OpcKeepAliveDisconnectThreshold = ClientServicesConfig.MaxKeepAliveCountKey;
+        public const string OpcKeepAliveDisconnectThreshold = ClientConfig.MaxKeepAliveCountKey;
 
         /// <summary>
         /// Key for the flag to trust own certificate.
         /// </summary>
-        public const string TrustMyself = SecurityConfig.AddAppCertToTrustedStoreKey;
+        public const string TrustMyself = ClientConfig.AddAppCertToTrustedStoreKey;
 
         /// <summary>
         /// Key for the flat to auto-accept untrusted certificates.
         /// </summary>
-        public const string AutoAcceptCerts = SecurityConfig.AutoAcceptUntrustedCertificatesKey;
+        public const string AutoAcceptCerts = ClientConfig.AutoAcceptUntrustedCertificatesKey;
 
         /// <summary>
         /// Key for the Application Certificate store type.
         /// </summary>
-        public const string OpcOwnCertStoreType = SecurityConfig.ApplicationCertificateStoreTypeKey;
+        public const string OpcOwnCertStoreType = ClientConfig.ApplicationCertificateStoreTypeKey;
 
         /// <summary>
         /// Key for the Aplication Certificate Store path.
         /// </summary>
-        public const string OpcOwnCertStorePath = SecurityConfig.ApplicationCertificateStorePathKey;
+        public const string OpcOwnCertStorePath = ClientConfig.ApplicationCertificateStorePathKey;
 
         /// <summary>
         /// Key for app cert subject name.
         /// </summary>
-        public const string OpcApplicationCertificateSubjectName = SecurityConfig.ApplicationCertificateSubjectNameKey;
+        public const string OpcApplicationCertificateSubjectName = ClientConfig.ApplicationCertificateSubjectNameKey;
 
         /// <summary>
         /// Key for app name.
         /// </summary>
-        public const string OpcApplicationName = SecurityConfig.ApplicationNameKey;
+        public const string OpcApplicationName = ClientConfig.ApplicationNameKey;
 
         /// <summary>
         /// Key for the trusted peer certificates path.
         /// </summary>
-        public const string OpcTrustedCertStorePath = SecurityConfig.TrustedPeerCertificatesPathKey;
+        public const string OpcTrustedCertStorePath = ClientConfig.TrustedPeerCertificatesPathKey;
 
         /// <summary>
         /// Key for the rejected certificate store path.
         /// </summary>
-        public const string OpcRejectedCertStorePath = SecurityConfig.RejectedCertificateStorePathKey;
+        public const string OpcRejectedCertStorePath = ClientConfig.RejectedCertificateStorePathKey;
 
         /// <summary>
         /// Key for the trusted issuer certificates.
         /// </summary>
-        public const string OpcIssuerCertStorePath = SecurityConfig.TrustedIssuerCertificatesPathKey;
+        public const string OpcIssuerCertStorePath = ClientConfig.TrustedIssuerCertificatesPathKey;
 
         /// <summary>
         /// Key for PkiRootPath.
         /// </summary>
-        public const string PkiRootPathKey = SecurityConfig.PkiRootPathKey;
+        public const string PkiRootPathKey = ClientConfig.PkiRootPathKey;
 
         /// <summary>
         /// Key for trusted issuer certificates type.
         /// </summary>
-        public const string TrustedIssuerCertificatesTypeKey = SecurityConfig.TrustedIssuerCertificatesTypeKey;
+        public const string TrustedIssuerCertificatesTypeKey = ClientConfig.TrustedIssuerCertificatesTypeKey;
 
         /// <summary>
         /// Key for trusted peer certificates type.
         /// </summary>
-        public const string TrustedPeerCertificatesTypeKey = SecurityConfig.TrustedPeerCertificatesTypeKey;
+        public const string TrustedPeerCertificatesTypeKey = ClientConfig.TrustedPeerCertificatesTypeKey;
 
         /// <summary>
         /// Key for rejected certificate store type.
         /// </summary>
-        public const string RejectedCertificateStoreTypeKey = SecurityConfig.RejectedCertificateStoreTypeKey;
+        public const string RejectedCertificateStoreTypeKey = ClientConfig.RejectedCertificateStoreTypeKey;
 
         /// <summary>
         /// Key for the reject unsecure signatures flag.
         /// </summary>
-        public const string RejectSha1SignedCertificatesKey = SecurityConfig.RejectSha1SignedCertificatesKey;
+        public const string RejectSha1SignedCertificatesKey = ClientConfig.RejectSha1SignedCertificatesKey;
 
         /// <summary>
         /// Key for minimum certificate size.
         /// </summary>
-        public const string MinimumCertificateKeySizeKey = SecurityConfig.MinimumCertificateKeySizeKey;
+        public const string MinimumCertificateKeySizeKey = ClientConfig.MinimumCertificateKeySizeKey;
 
         /// <summary>
         /// Key for configuring reporting of OPC Publisher restarts.

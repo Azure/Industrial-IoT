@@ -3,7 +3,8 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.3.1-beta" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.10-beta" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.13" />
     <PackageReference Include="Accelist.FluentValidation.Blazor" Version="4.0.0" />
     <PackageReference Include="Blazored.Modal" Version="4.1.0" />
     <PackageReference Include="Blazored.SessionStorage" Version="2.3.0" />

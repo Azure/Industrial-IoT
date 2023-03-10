@@ -101,7 +101,7 @@ namespace Opc.Ua.Extensions
         [Fact]
         public void TestGetMissingSequenceNumbers5()
         {
-            const uint maxInt = unchecked((uint)int.MaxValue);
+            const uint maxInt = unchecked(int.MaxValue);
             const uint minInt = unchecked((uint)int.MinValue);
             var missing = SequenceNumber.Missing(maxInt - 1, minInt + 1, out var dropped).ToList();
             Assert.Equal(new uint[] { maxInt, minInt }, missing);

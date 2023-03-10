@@ -131,8 +131,6 @@ namespace Microsoft.Azure.IIoT.App
             services.AddValidatorsFromAssemblyContaining<DiscovererInfoValidator>();
             services.AddValidatorsFromAssemblyContaining<ListNodeValidator>();
 
-            // Protect anything using keyvault and storage persisted keys
-            services.AddAzureDataProtection(Config.Configuration);
             services.AddDistributedMemoryCache();
 
             services.Configure<CookiePolicyOptions>(options =>

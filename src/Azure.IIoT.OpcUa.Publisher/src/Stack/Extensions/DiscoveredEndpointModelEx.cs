@@ -20,25 +20,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <param name="result"></param>
         /// <param name="hostAddress"></param>
         /// <param name="siteId"></param>
-        /// <param name="gatewayId"></param>
-        /// <param name="moduleId"></param>
+        /// <param name="discovererId"></param>
         /// <param name="serializer"></param>
         /// <returns></returns>
         public static ApplicationRegistrationModel ToServiceModel(this DiscoveredEndpointModel result,
-            string hostAddress, string siteId, string gatewayId, string moduleId,
-            IJsonSerializer serializer)
+            string hostAddress, string siteId, string discovererId, IJsonSerializer serializer)
         {
             var type = result.Description.Server.ApplicationType.ToServiceType() ??
                 ApplicationType.Server;
-            var discovererId = PublisherModelEx.CreatePublisherId(gatewayId, moduleId);
             return new ApplicationRegistrationModel
             {
                 Application = new ApplicationInfoModel
                 {
-                    SiteId = siteId,
+                    SiteId = siteId ?? discovererId,
                     DiscovererId = discovererId,
                     ApplicationType = type,
-                    ApplicationId = ApplicationInfoModelEx.CreateApplicationId(siteId ?? gatewayId,
+                    ApplicationId = ApplicationInfoModelEx.CreateApplicationId(siteId ?? discovererId,
                         result.Description.Server.ApplicationUri, type),
                     ProductUri = result.Description.Server.ProductUri,
                     ApplicationUri = result.Description.Server.ApplicationUri,

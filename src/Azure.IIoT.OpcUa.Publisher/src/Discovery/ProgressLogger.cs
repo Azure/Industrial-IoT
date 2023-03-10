@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Net;
 
     /// <summary>
@@ -167,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
 
         /// <inheritdoc/>
         public void OnPortScanResult(DiscoveryRequestModel request,
-            int workers, int progress, int total, int discovered, IPEndPoint result)
+            int workers, int progress, int total, int discovered, IPEndPoint ep)
         {
             Send(new DiscoveryProgressModel
             {
@@ -177,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 Progress = progress,
                 Total = total,
                 Discovered = discovered,
-                Result = result.ToString(),
+                Result = ep.ToString(),
                 Request = request
             });
         }
@@ -263,7 +264,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 Progress = progress,
                 Total = total,
                 Discovered = discovered,
-                Result = endpoints.ToString(),
+                Result = endpoints.ToString(CultureInfo.InvariantCulture),
                 Request = request
             });
         }

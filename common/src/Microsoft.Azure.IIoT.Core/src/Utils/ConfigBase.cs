@@ -159,29 +159,5 @@ namespace Microsoft.Azure.IIoT.Utils
                 return defaultValue?.Invoke();
             }
         }
-
-        /// <summary>
-        /// Read variable and get connection string token from it
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="getter"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        protected string GetConnectonStringTokenOrDefault(string key,
-            Func<ConnectionString, string> getter, Func<string> defaultValue = null)
-        {
-            var value = Configuration.GetValue<string>(key);
-            if (string.IsNullOrEmpty(value)
-                || !ConnectionString.TryParse(value.Trim(), out var cs)
-                || string.IsNullOrEmpty(value = getter(cs)))
-            {
-                if (defaultValue == null)
-                {
-                    return string.Empty;
-                }
-                return defaultValue.Invoke();
-            }
-            return value;
-        }
     }
 }

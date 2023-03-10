@@ -17,9 +17,8 @@ namespace Microsoft.Azure.IIoT.Messaging
         /// at endoint
         /// </summary>
         /// <param name="endpointUrl"></param>
-        /// <param name="resourceId"></param>
         /// <returns></returns>
         Task<ICallbackRegistrar> GetHubAsync(
-            string endpointUrl, string resourceId);
+            string endpointUrl);
     }
 }

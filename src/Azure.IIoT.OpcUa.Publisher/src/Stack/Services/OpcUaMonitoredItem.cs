@@ -117,9 +117,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="template"></param>
         /// <param name="logger"></param>
-        public OpcUaMonitoredItem(BaseMonitoredItemModel template, ILogger logger)
+        public OpcUaMonitoredItem(BaseMonitoredItemModel template, ILogger<OpcUaMonitoredItem> logger)
         {
-            _logger = logger /*?.ForContext<OpcUaMonitoredItem>() TODO: USE LOGGERFACTORY HERE */ ??
+            _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             Template = template?.Clone() ??
                 throw new ArgumentNullException(nameof(template));
@@ -538,8 +538,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             {
                                 if (selectClause.BrowsePath[i].NamespaceIndex < nodeCache.NamespaceUris.Count)
                                 {
-                                    sb.Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
-                                    sb.Append('#');
+                                    sb
+                                        .Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex))
+                                        .Append('#');
                                 }
                                 else
                                 {
@@ -1279,20 +1280,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return Interlocked.CompareExchange(ref _skipDataChangeNotification,
                     (int)SkipSetting.Skip, (int)SkipSetting.Unconfigured) == (int)SkipSetting.Unconfigured;
             }
-            else
-            {
-                // Unset skip setting if it was configured but first message was not yet processed
-                Interlocked.CompareExchange(ref _skipDataChangeNotification,
-                    (int)SkipSetting.Unconfigured, (int)SkipSetting.Skip);
-                return true;
-            }
+            // Unset skip setting if it was configured but first message was not yet processed
+            Interlocked.CompareExchange(ref _skipDataChangeNotification,
+                (int)SkipSetting.Unconfigured, (int)SkipSetting.Skip);
+
+            return true;
         }
 
-        enum SkipSetting : int
+        enum SkipSetting
         {
-            DontSkip, // Default
-            Skip, // Skip first value
-            Unconfigured, // Configuration not applied yet
+            /// <summary> Default </summary>
+            DontSkip,
+            /// <summary> Skip first value </summary>
+            Skip,
+            /// <summary> Configuration not applied yet </summary>
+            Unconfigured,
         }
 
         private sealed class ConditionHandlingState

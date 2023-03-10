@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Services.Registry
 {
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Azure;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -33,9 +34,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-
-            var gatewayId = PublisherModelEx.ParseDeviceId(discovererId, out _);
-
+            if (!HubResource.Parse(discovererId, out _, out var gatewayId, out _, out var error))
+            {
+                throw new ArgumentException(error, nameof(discovererId));
+            }
             if (result == null)
             {
                 throw new ArgumentNullException(nameof(result));

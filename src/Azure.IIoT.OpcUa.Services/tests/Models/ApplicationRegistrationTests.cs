@@ -9,8 +9,8 @@ namespace Azure.IIoT.OpcUa.Services.Models
     using AutoFixture;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Furly.Azure.IoT;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using Xunit;
 
@@ -86,7 +86,9 @@ namespace Azure.IIoT.OpcUa.Services.Models
         {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin(_serializer);
-            m.Tags["DiscoveryProfileUri"] = null;
+            var newTags = new Dictionary<string, VariantValue>(m.Tags);
+            newTags["DiscoveryProfileUri"] = null;
+            m.Tags = newTags;
             var r2 = m.ToEntityRegistration();
 
             Assert.NotEqual(r1, r2);

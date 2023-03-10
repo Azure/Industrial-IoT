@@ -307,7 +307,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             var response = await _methodClient.CallMethodAsync(_target,
-                "GetServerCapabilities_V2", _serializer.SerializeToMemory(connection), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                "GetServerCapabilities_V2", _serializer.SerializeToMemory(connection),
+                ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<ServerCapabilitiesModel>(response);
         }
 
@@ -349,7 +350,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
             var response = await _methodClient.CallMethodAsync(_target,
-                "HistoryGetServerCapabilities_V2", _serializer.SerializeToMemory(connection), ContentMimeType.Json, null, ct).ConfigureAwait(false);
+                "HistoryGetServerCapabilities_V2", _serializer.SerializeToMemory(connection),
+                ContentMimeType.Json, null, ct).ConfigureAwait(false);
             return _serializer.Deserialize<HistoryServerCapabilitiesModel>(response);
         }
 

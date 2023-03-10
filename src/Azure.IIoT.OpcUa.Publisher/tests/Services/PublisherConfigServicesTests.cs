@@ -28,6 +28,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using Divergic.Logging.Xunit;
+    using Xunit.Abstractions;
+    using Microsoft.Extensions.Options;
+    using Furly.Extensions.Configuration;
 
     /// <summary>
     /// Tests the PublisherConfigService class
@@ -35,8 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     public class PublisherConfigServicesTests : TempFileProviderBase
     {
         private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
-        private readonly NewtonsoftJsonSerializerRaw _newtonSoftJsonSerializerRaw;
-        private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private readonly Mock<IPublisherConfiguration> _configMock;
         private PublisherConfigurationService _configService;
@@ -47,17 +50,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         /// <summary>
         /// Constructor that initializes common resources used by tests.
         /// </summary>
-        public PublisherConfigServicesTests()
+        /// <param name="output"></param>
+        public PublisherConfigServicesTests(ITestOutputHelper output)
         {
             _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
-            _newtonSoftJsonSerializerRaw = new NewtonsoftJsonSerializerRaw();
-            _logger = Log.Console<PublisherConfigServicesTests>();
+            _loggerFactory = LogFactory.Create(output);
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
 
-            _publishedNodesJobConverter = new PublishedNodesJobConverter(_logger, _newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+            _publishedNodesJobConverter = new PublishedNodesJobConverter(
+                _loggerFactory.CreateLogger<PublishedNodesJobConverter>(), _newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfigMock.Object);
 
             // Note that each test is responsible for setting content of _tempFile;
             Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
@@ -70,7 +75,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             _configMock.SetupGet(p => p.MessagingProfile).Returns(MessagingProfile.Get(
                 MessagingMode.PubSub, MessageEncoding.Json));
 
-            _publishedNodesProvider = new PublishedNodesProvider(_configMock.Object, _logger);
+            _publishedNodesProvider = new PublishedNodesProvider(_configMock.Object,
+                _loggerFactory.CreateLogger<PublishedNodesProvider>());
             _triggerMock = new Mock<IMessageSource>();
             var factoryMock = new Mock<IWriterGroupScopeFactory>();
             var writerGroup = new Mock<IWriterGroup>();
@@ -80,7 +86,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             factoryMock
                 .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
-            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessInfo>().Object, _logger);
+            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessInfo>().Object,
+                _loggerFactory.CreateLogger<PublisherHostService>());
         }
 
         /// <summary>
@@ -92,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                 _publishedNodesJobConverter,
                 _configMock.Object,
                 _publisher,
-                _logger,
+                _loggerFactory.CreateLogger<PublisherConfigurationService>(),
                 _publishedNodesProvider,
                 _newtonSoftJsonSerializer
             );
@@ -186,7 +193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         [Theory]
         [InlineData("Publisher/pn_assets.json")]
         [InlineData("Publisher/pn_assets_with_optional_fields.json")]
-        public void Test_PnJson_With_Multiple_Jobs_Expect_DifferentJobIds(string publishedNodesFile)
+        public void TestPnJsonWithMultipleJobsExpectDifferentJobIds(string publishedNodesFile)
         {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
@@ -194,11 +201,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         }
 
         [Fact]
-        public async Task Test_SerializableExceptionResponse()
+        public async Task TestSerializableExceptionResponse()
         {
             InitPublisherConfigService();
 
-            var exceptionResponse = "{\"Message\":\"Response 400 null request is provided\",\"Details\":{}}";
+            var exceptionResponse = "Response 400 null request is provided";
 
             // Check null request.
             await FluentActions
@@ -209,15 +216,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                 .ThrowAsync<MethodCallStatusException>()
                 .WithMessage(exceptionResponse)
                 .ConfigureAwait(false);
-
-            // empty description
-            var exceptionModel = new MethodCallStatusExceptionModel
-            {
-                Message = "Response 400 null request is provided",
-                Details = "{}"
-            };
-            var serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
-            serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
 
             const int numberOfEndpoints = 1;
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
@@ -234,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             await _configService.PublishNodesAsync(endpoints[0]).ConfigureAwait(false);
 
             const string details = "{\"DataSetWriterId\":\"DataSetWriterId0\",\"DataSetWriterGroup\":\"DataSetWriterGroup\",\"OpcNodes\":[{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\",\"OpcPublishingIntervalTimespan\":\"00:00:01\"}],\"EndpointUrl\":\"opc.tcp://opcplc:50000\",\"UseSecurity\":false,\"OpcAuthenticationMode\":\"anonymous\"}";
-            exceptionResponse = "{\"Message\":\"Response 404 Nodes not found\",\"Details\":" + details + "}";
+            exceptionResponse = "Response 404 Nodes not found: " + details;
             var opcNodes1 = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel
                 {
@@ -255,33 +253,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                 .WithMessage(exceptionResponse)
                 .ConfigureAwait(false);
 
-            // Details equal to a json string
-            exceptionModel = new MethodCallStatusExceptionModel
-            {
-                Message = "Response 404 Nodes not found",
-                Details = details
-            };
-            serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
-            serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
-
             // test for null payload
-            exceptionResponse = "{\"Message\":\"Response 400 \",\"Details\":null}";
+            exceptionResponse = "Response 400 : ";
             FluentActions.Invoking(
                     () => throw new MethodCallStatusException(null, 400))
                     .Should()
                     .Throw<MethodCallStatusException>()
                     .WithMessage(exceptionResponse);
-
-            exceptionModel = new MethodCallStatusExceptionModel
-            {
-                Message = "Response 400 "
-            };
-            serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
-            serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
         }
 
         [Fact]
-        public async Task Test_PublishNodes_NullOrEmpty()
+        public async Task TestPublishNodesNullOrEmpty()
         {
             InitPublisherConfigService();
 
@@ -292,7 +274,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("{\"Message\":\"Response 400 null request is provided\",\"Details\":{}}")
+                .WithMessage("Response 400 null request is provided")
                 .ConfigureAwait(false);
 
             var request = new PublishedNodesEntryModel
@@ -307,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("{\"Message\":\"Response 400 null or empty OpcNodes is provided in request\",\"Details\":{}}")
+                .WithMessage("Response 400 null or empty OpcNodes is provided in request")
                 .ConfigureAwait(false);
 
             request.OpcNodes = new List<OpcNodeModel>();
@@ -319,12 +301,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("{\"Message\":\"Response 400 null or empty OpcNodes is provided in request\",\"Details\":{}}")
+                .WithMessage("Response 400 null or empty OpcNodes is provided in request")
                 .ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task Test_UnpublishNodes_NullRequest()
+        public async Task TestUnpublishNodesNullRequest()
         {
             InitPublisherConfigService();
 
@@ -335,7 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("{\"Message\":\"Response 400 null request is provided\",\"Details\":{}}")
+                .WithMessage("Response 400 null request is provided")
                 .ConfigureAwait(false);
         }
 
@@ -344,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         [InlineData(false, true)]
         [InlineData(true, false)]
         [InlineData(true, true)]
-        public async Task Test_UnpublishNodes_NullOrEmptyOpcNodes(
+        public async Task TestUnpublishNodesNullOrEmptyOpcNodes(
             bool useEmptyOpcNodes,
             bool customEndpoint)
         {
@@ -390,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         }
 
         [Fact]
-        public async Task Test_GetConfiguredNodesOnEndpoint_NullRequest()
+        public async Task TestGetConfiguredNodesOnEndpointNullRequest()
         {
             InitPublisherConfigService();
 
@@ -401,12 +383,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("{\"Message\":\"Response 400 null request is provided\",\"Details\":{}}")
+                .WithMessage("Response 400 null request is provided")
                 .ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task Test_AddOrUpdateEndpoints_NullRequest()
+        public async Task TestAddOrUpdateEndpointsNullRequest()
         {
             InitPublisherConfigService();
 
@@ -417,12 +399,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("{\"Message\":\"Response 400 null request is provided\",\"Details\":{}}")
+                .WithMessage("Response 400 null request is provided")
                 .ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task Test_AddOrUpdateEndpoints_MultipleEndpointEntries()
+        public async Task TestAddOrUpdateEndpointsMultipleEndpointEntries()
         {
             InitPublisherConfigService();
 
@@ -450,12 +432,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("{\"Message\":\"Response 400 Request contains two entries for the same endpoint at index 0 and 2\",\"Details\":{}}")
+                .WithMessage("Response 400 Request contains two entries for the same endpoint at index 0 and 2")
                 .ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task Test_AddOrUpdateEndpoints_MultipleEndpointEntries_Timesapn()
+        public async Task TestAddOrUpdateEndpointsMultipleEndpointEntriesTimesapn()
         {
             InitPublisherConfigService();
 
@@ -487,14 +469,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("{\"Message\":\"Response 400 Request contains two entries for the same endpoint at index 0 and 2\",\"Details\":{}}")
+                .WithMessage("Response 400 Request contains two entries for the same endpoint at index 0 and 2")
                 .ConfigureAwait(false);
         }
 
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task Test_AddOrUpdateEndpoints_AddEndpoints(
+        public async Task TestAddOrUpdateEndpointsAddEndpoints(
             bool useDataSetSpecificEndpoints
         )
         {
@@ -547,7 +529,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         [InlineData("Publisher/publishednodes.json")]
         [InlineData("Publisher/publishednodeswithoptionalfields.json")]
         [InlineData("Publisher/publishednodes_with_duplicates.json")]
-        public async Task Test_AddOrUpdateEndpoints_RemoveEndpoints(string publishedNodesFile)
+        public async Task TestAddOrUpdateEndpointsRemoveEndpoints(string publishedNodesFile)
         {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
@@ -574,7 +556,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                             .ConfigureAwait(false))
                         .Should()
                         .ThrowAsync<MethodCallStatusException>()
-                        .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {request.EndpointUrl}\",\"Details\":{{}}}}")
+                        .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}")
                         .ConfigureAwait(false);
                 }
                 else
@@ -596,7 +578,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         }
 
         [Fact]
-        public async Task Test_AddOrUpdateEndpoints_AddAndRemove()
+        public async Task TestAddOrUpdateEndpointsAddAndRemove()
         {
             _configMock.SetupGet(m => m.MaxNodesPerPublishedEndpoint).Returns(2);
 
@@ -644,7 +626,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                         .ConfigureAwait(false))
                     .Should()
                     .ThrowAsync<MethodCallStatusException>()
-                    .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {endpoint.EndpointUrl}\",\"Details\":{{}}}}")
+                    .WithMessage($"Response 404 Endpoint not found: {endpoint.EndpointUrl}")
                     .ConfigureAwait(false);
             }
 
@@ -670,7 +652,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {updateRequest[3].EndpointUrl}\",\"Details\":{{}}}}")
+                .WithMessage($"Response 404 Endpoint not found: {updateRequest[3].EndpointUrl}")
                 .ConfigureAwait(false);
 
             updateRequest.RemoveAt(3);
@@ -707,7 +689,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         [InlineData("Publisher/pn_opc_nodes_empty.json")]
         [InlineData("Publisher/pn_opc_nodes_null.json")]
         [InlineData("Publisher/pn_opc_nodes_empty_and_null.json")]
-        public async Task Test_InitStandaloneJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile)
+        public async Task TestInitStandaloneJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile)
         {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
@@ -910,7 +892,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     .Invoking(async () => await _configService.UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .ThrowAsync<MethodCallStatusException>()
-                    .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {request.EndpointUrl}\",\"Details\":{{}}}}")
+                    .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}")
                     .ConfigureAwait(false);
             }
 

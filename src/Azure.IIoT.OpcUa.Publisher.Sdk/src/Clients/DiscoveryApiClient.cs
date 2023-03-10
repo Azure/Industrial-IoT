@@ -7,13 +7,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 {
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Models;
+    using Furly;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Furly.Tunnel;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Tunnel;
-    using Furly;
 
     /// <summary>
     /// Implements node and publish services through command control against

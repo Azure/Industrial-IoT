@@ -8,10 +8,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Models;
-    using Furly.Extensions.Logging;
     using Furly.Azure.IoT.Edge;
+    using Furly.Extensions.Logging;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Mono.Options;
@@ -28,8 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     /// via configuration interfaces that is injected into the publisher container.
     /// </summary>
     public class PublisherCliOptions : Dictionary<string, string>,
-        IEngineConfiguration, IPublisherConfiguration,
-        IRuntimeStateReporterConfiguration, ISubscriptionConfig
+        IEngineConfiguration, IPublisherConfiguration, ISubscriptionConfig
     {
         /// <summary>
         /// Creates a new instance of the cli options based on existing configuration values.
@@ -478,6 +476,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 
         /// <inheritdoc/>
         public bool EnableRuntimeStateReporting => StandaloneCliModel.EnableRuntimeStateReporting;
+
+        /// <inheritdoc/>
+        public string RuntimeStateRoutingInfo => StandaloneCliModel.RuntimeStateRoutingInfo;
 
         /// <inheritdoc/>
         public uint? DefaultKeyFrameCount => StandaloneCliModel.DefaultKeyFrameCount;

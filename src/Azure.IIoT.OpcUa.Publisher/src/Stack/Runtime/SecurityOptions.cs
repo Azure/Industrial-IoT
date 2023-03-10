@@ -10,57 +10,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Security configuration
     /// </summary>
-    public interface ISecurityConfig
+    public sealed class SecurityOptions
     {
         /// <summary>
         /// PkiRootPath
         /// </summary>
-        string PkiRootPath { get; }
+        public string PkiRootPath { get; set; }
 
         /// <summary>
         /// Certificate
         /// </summary>
-        CertificateInfo ApplicationCertificate { get; }
+        public CertificateInfo ApplicationCertificate { get; set; }
 
         /// <summary>
         /// Whether to auto accept untrusted certificates
         /// </summary>
-        bool AutoAcceptUntrustedCertificates { get; }
+        public bool? AutoAcceptUntrustedCertificates { get; set; }
 
         /// <summary>
         /// Minimum key size
         /// </summary>
-        ushort MinimumCertificateKeySize { get; }
+        public ushort MinimumCertificateKeySize { get; set; }
 
         /// <summary>
         /// Rejected store
         /// </summary>
-        CertificateStore RejectedCertificateStore { get; }
+        public CertificateStore RejectedCertificateStore { get; set; }
 
         /// <summary>
         /// Whether to reject unsecure signatures
         /// </summary>
-        bool RejectSha1SignedCertificates { get; }
+        public bool? RejectSha1SignedCertificates { get; set; }
 
         /// <summary>
         /// Trusted certificates
         /// </summary>
-        CertificateStore TrustedIssuerCertificates { get; }
+        public CertificateStore TrustedIssuerCertificates { get; set; }
 
         /// <summary>
         /// Trusted peer certificates
         /// </summary>
-        CertificateStore TrustedPeerCertificates { get; }
+        public CertificateStore TrustedPeerCertificates { get; set; }
 
         /// <summary>
         /// Automatically add application certificate to the trusted store
         /// </summary>
-        bool AddAppCertToTrustedStore { get; }
+        public bool? AddAppCertToTrustedStore { get; set; }
 
         /// <summary>
         /// Reject chain validation with CA certs with unknown revocation status,
         /// e.g.when the CRL is not available or the OCSP provider is offline.
         /// </summary>
-        bool RejectUnknownRevocationStatus { get; }
+        public bool? RejectUnknownRevocationStatus { get; set; }
     }
 }

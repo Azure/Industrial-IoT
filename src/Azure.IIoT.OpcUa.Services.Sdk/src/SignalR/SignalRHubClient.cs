@@ -39,8 +39,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
         }
 
         /// <inheritdoc/>
-        public async Task<ICallbackRegistrar> GetHubAsync(string endpointUrl,
-            string resourceId)
+        public async Task<ICallbackRegistrar> GetHubAsync(string endpointUrl)
         {
             if (_disposed)
             {
@@ -54,10 +53,6 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             try
             {
                 var lookup = endpointUrl;
-                if (!string.IsNullOrEmpty(resourceId))
-                {
-                    lookup += resourceId;
-                }
                 if (!_clients.TryGetValue(lookup, out var client) ||
                     client.ConnectionId == null)
                 {
@@ -67,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
                         _clients.Remove(lookup);
                     }
                     client = await SignalRClientRegistrar.CreateAsync(_config,
-                        endpointUrl, _logger, resourceId, _provider, _jsonSettings).ConfigureAwait(false);
+                        endpointUrl, _logger, _provider, _jsonSettings).ConfigureAwait(false);
                     _clients.Add(lookup, client);
                 }
                 return client;
@@ -140,14 +135,13 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             /// <param name="config"></param>
             /// <param name="endpointUrl"></param>
             /// <param name="logger"></param>
-            /// <param name="resourceId"></param>
             /// <param name="provider"></param>
             /// <param name="jsonSettings"></param>
             /// <returns></returns>
             /// <exception cref="ArgumentNullException"></exception>
             internal static async Task<SignalRClientRegistrar> CreateAsync(
                 ISignalRClientConfig config, string endpointUrl, ILogger logger,
-                string resourceId, ITokenProvider provider,
+                ITokenProvider provider,
                 INewtonsoftSerializerSettingsProvider jsonSettings = null)
             {
                 if (string.IsNullOrEmpty(endpointUrl))
@@ -158,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
                 var host = new SignalRHubClientHost(endpointUrl,
                     config.UseMessagePackProtocol,
                     logger, // TODO: should use logger factory here
-                    resourceId, provider, jsonSettings);
+                    provider, jsonSettings);
 
                 await host.StartAsync().ConfigureAwait(false);
                 return new SignalRClientRegistrar(host);

@@ -7,13 +7,15 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
 {
     using Azure.IIoT.OpcUa.Services.Registry.Models;
     using Azure.IIoT.OpcUa.Models;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Utils;
+    using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Models;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -58,8 +60,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
         }
 
         /// <inheritdoc/>
-        public async Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint)
+        public async ValueTask HandleAsync(string deviceId, string moduleId, ReadOnlyMemory<byte> payload,
+            IReadOnlyDictionary<string, string> properties, CancellationToken ct)
         {
             if (!properties.TryGetValue("opType", out var opType) ||
                 !properties.TryGetValue("operationTimestamp", out var ts))
@@ -81,13 +83,13 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
             }
             twin.ModuleId ??= moduleId;
             twin.Id ??= deviceId;
-            var type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
+            var type = twin.Tags?.GetValueOrDefault<string>(OpcUa.Constants.TwinPropertyTypeKey, null);
             if (string.IsNullOrEmpty(type))
             {
                 try
                 {
-                    twin = await _iothub.GetAsync(deviceId, moduleId).ConfigureAwait(false);
-                    type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
+                    twin = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
+                    type = twin.Tags?.GetValueOrDefault<string>(OpcUa.Constants.TwinPropertyTypeKey, null);
                 }
                 catch (Exception ex)
                 {
@@ -116,31 +118,31 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
         /// <returns></returns>
         private async Task HandleDeleteAsync(DeviceTwinModel twin, DateTime timestamp)
         {
-            var type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
+            var type = twin.Tags?.GetValueOrDefault<string>(Constants.TwinPropertyTypeKey, null);
             var ctx = new OperationContextModel
             {
                 Time = timestamp
             };
             switch (type)
             {
-                case IdentityType.Gateway:
+                case Constants.EntityTypeGateway:
                     await (_gateways?.OnGatewayDeletedAsync(ctx, twin.Id)).ConfigureAwait(false);
                     break;
-                case IdentityType.Endpoint:
+                case Constants.EntityTypeEndpoint:
                     await (_endpoints?.OnEndpointDeletedAsync(ctx, twin.Id,
                         twin.ToEndpointRegistration(true).ToServiceModel())).ConfigureAwait(false);
                     break;
-                case IdentityType.Application:
+                case Constants.EntityTypeApplication:
                     await (_applications?.OnApplicationDeletedAsync(ctx, twin.Id,
                         twin.ToApplicationRegistration().ToServiceModel())).ConfigureAwait(false);
                     break;
-                case IdentityType.Publisher:
+                case Constants.EntityTypePublisher:
                     await (_supervisors?.OnSupervisorDeletedAsync(ctx,
-                        PublisherModelEx.CreatePublisherId(twin.Id, twin.ModuleId))).ConfigureAwait(false);
+                        HubResource.Format(null, twin.Id, twin.ModuleId))).ConfigureAwait(false);
                     await (_publishers?.OnPublisherDeletedAsync(ctx,
-                        PublisherModelEx.CreatePublisherId(twin.Id, twin.ModuleId))).ConfigureAwait(false);
+                        HubResource.Format(null, twin.Id, twin.ModuleId))).ConfigureAwait(false);
                     await (_discoverers?.OnDiscovererDeletedAsync(ctx,
-                        PublisherModelEx.CreatePublisherId(twin.Id, twin.ModuleId))).ConfigureAwait(false);
+                        HubResource.Format(null, twin.Id, twin.ModuleId))).ConfigureAwait(false);
                     break;
             }
         }
@@ -153,26 +155,26 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
         /// <returns></returns>
         private async Task HandleCreateAsync(DeviceTwinModel twin, DateTime timestamp)
         {
-            var type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
+            var type = twin.Tags?.GetValueOrDefault<string>(OpcUa.Constants.TwinPropertyTypeKey, null);
             var ctx = new OperationContextModel
             {
                 Time = timestamp
             };
             switch (type)
             {
-                case IdentityType.Gateway:
+                case Constants.EntityTypeGateway:
                     await (_gateways?.OnGatewayNewAsync(ctx,
                         twin.ToGatewayRegistration().ToServiceModel())).ConfigureAwait(false);
                     break;
-                case IdentityType.Endpoint:
+                case Constants.EntityTypeEndpoint:
                     await (_endpoints?.OnEndpointNewAsync(ctx,
                         twin.ToEndpointRegistration(true).ToServiceModel())).ConfigureAwait(false);
                     break;
-                case IdentityType.Application:
+                case Constants.EntityTypeApplication:
                     await (_applications?.OnApplicationNewAsync(ctx,
                         twin.ToApplicationRegistration().ToServiceModel())).ConfigureAwait(false);
                     break;
-                case IdentityType.Publisher:
+                case Constants.EntityTypePublisher:
                     await (_supervisors?.OnSupervisorNewAsync(ctx,
                         twin.ToPublisherRegistration(true).ToSupervisorModel())).ConfigureAwait(false);
                     await (_publishers?.OnPublisherNewAsync(ctx,
@@ -181,12 +183,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
                         twin.ToPublisherRegistration().ToDiscovererModel())).ConfigureAwait(false);
                     break;
             }
-        }
-
-        /// <inheritdoc/>
-        public Task OnBatchCompleteAsync()
-        {
-            return Task.CompletedTask;
         }
 
         private readonly IJsonSerializer _serializer;

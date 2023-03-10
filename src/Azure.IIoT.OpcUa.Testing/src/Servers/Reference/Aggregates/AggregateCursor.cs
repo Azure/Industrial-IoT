@@ -114,7 +114,9 @@ namespace Opc.Ua.Aggregates
 
         /// <summary>
         /// Creates a new instance.
-        /// </summary>>
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="actor"></param>>
         public AggregateState(IAggregationContext context, IAggregationActor actor)
         {
             _aggregationContext = context;
@@ -135,10 +137,8 @@ namespace Opc.Ua.Aggregates
             {
                 return StatusCode.IsGood(value.StatusCode);
             }
-            else
-            {
-                return !StatusCode.IsBad(value.StatusCode);
-            }
+
+            return !StatusCode.IsBad(value.StatusCode);
         }
 
         /// <summary>
@@ -182,6 +182,7 @@ namespace Opc.Ua.Aggregates
         /// Accept one raw data value.
         /// </summary>
         /// <param name="rawData"></param>
+        /// <exception cref="ArgumentException"><paramref name="rawData"/></exception>
         public void AddRawData(DataValue rawData)
         {
             if (rawData == null)

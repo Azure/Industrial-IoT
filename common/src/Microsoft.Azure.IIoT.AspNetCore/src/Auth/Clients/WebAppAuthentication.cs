@@ -8,8 +8,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Http.Auth;
-    using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Extensions.Logging;
@@ -24,10 +22,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<HttpHandlerFactory>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces();
+            //   builder.RegisterType<HttpHandlerFactory>()
+            //       .AsImplementedInterfaces();
+            //   builder.RegisterType<HttpBearerAuthentication>()
+            //       .AsImplementedInterfaces();
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces();
             builder.RegisterType<DefaultTokenProvider>()
@@ -64,7 +62,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
             /// <inheritdoc/>
             public UserTokenSource(OpenIdUserTokenClient oi, MsalUserTokenClient uc,
                 IEnumerable<ITokenClient> providers, ILogger logger)
-                : base(providers, Http.Resource.Platform, logger, oi, uc)
+                : base(providers, logger, oi, uc)
             {
             }
         }

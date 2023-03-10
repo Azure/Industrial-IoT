@@ -35,7 +35,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         /// <param name="logger"></param>
         /// <param name="replies"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, Action<NetworkScanner, PingReply> replies,
+        public NetworkScanner(ILogger<NetworkScanner> logger,
+            Action<NetworkScanner, PingReply> replies,
             CancellationToken ct) :
             this(logger, replies, false, null, NetworkClass.Wired, null, null, ct)
         {
@@ -48,7 +49,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         /// <param name="replies"></param>
         /// <param name="netclass"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, Action<NetworkScanner, PingReply> replies,
+        public NetworkScanner(ILogger<NetworkScanner> logger,
+            Action<NetworkScanner, PingReply> replies,
             NetworkClass netclass, CancellationToken ct) :
             this(logger, replies, false, null, netclass, null, null, ct)
         {
@@ -65,7 +67,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         /// <param name="maxProbeCount"></param>
         /// <param name="timeout"></param>
         /// <param name="ct"></param>
-        public NetworkScanner(ILogger logger, Action<NetworkScanner, PingReply> replies,
+        public NetworkScanner(ILogger<NetworkScanner> logger,
+            Action<NetworkScanner, PingReply> replies,
             bool local, IEnumerable<AddressRange>? addresses, NetworkClass netclass,
             int? maxProbeCount, TimeSpan? timeout, CancellationToken ct)
         {

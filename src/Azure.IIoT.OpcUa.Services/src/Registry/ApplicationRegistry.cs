@@ -7,10 +7,10 @@ namespace Azure.IIoT.OpcUa.Services.Services
 {
     using Azure.IIoT.OpcUa.Services.Registry.Models;
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Models;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
-    using Furly.Azure.IoT.Models;
-    using Furly.Azure.IoT;
     using Microsoft.Extensions.Logging;
     using Prometheus;
     using System;
@@ -231,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
             ApplicationRegistrationQueryModel query, int? pageSize, CancellationToken ct)
         {
             var sql = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Application}' ";
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{Constants.EntityTypeApplication}' ";
 
             if (!(query?.IncludeNotSeenSince ?? false))
             {
@@ -337,7 +337,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
         {
             const string tag = nameof(EntityRegistration.SiteOrGatewayId);
             const string sql = $"SELECT tags.{tag}, COUNT() FROM devices WHERE " +
-                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Application}' " +
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{Constants.EntityTypeApplication}' " +
                 $"GROUP BY tags.{tag}";
             var result = await _iothub.QueryAsync(sql, continuation, pageSize,
                 ct).ConfigureAwait(false);
@@ -377,7 +377,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
             string continuation, int? pageSize, CancellationToken ct)
         {
             const string sql = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Application}' ";
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{Constants.EntityTypeApplication}' ";
             var result = await _iothub.QueryDeviceTwinsAsync(sql, continuation,
                 pageSize, ct).ConfigureAwait(false);
             return new ApplicationInfoListModel
@@ -461,7 +461,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
         {
             // Find all devices where endpoint information is configured
             const string query = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}'";
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{Constants.EntityTypeEndpoint}'";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation,
                 pageSize, ct).ConfigureAwait(false);
 
@@ -481,7 +481,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
             CancellationToken ct)
         {
             var sql = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{Constants.EntityTypeEndpoint}' ";
 
             if (!(query?.IncludeNotSeenSince ?? false))
             {
@@ -568,7 +568,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
             // different site reported).
             //
             var sql = "SELECT * FROM devices WHERE " +
-                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Application}' AND " +
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{Constants.EntityTypeApplication}' AND " +
                 $"(tags.{nameof(ApplicationRegistration.SiteId)} = '{siteId}' OR" +
                 $" tags.{nameof(ApplicationRegistration.DiscovererId)} = '{discovererId}')";
 
@@ -690,12 +690,11 @@ namespace Azure.IIoT.OpcUa.Services.Services
                 try
                 {
                     var application = addition.Clone();
-                    application.ApplicationId =
-                        ApplicationInfoModelEx.CreateApplicationId(application);
+                    application.SiteId = siteId;
+                    application.ApplicationId = ApplicationInfoModelEx.CreateApplicationId(application);
                     application.Created = context;
                     application.NotSeenSince = null;
                     application.DiscovererId = discovererId;
-                    application.SiteId = siteId;
 
                     var app = await AddOrUpdateApplicationAsync(application, false,
                         false, default).ConfigureAwait(false);
@@ -1233,7 +1232,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EndpointRegistration.ApplicationId)} = " +
                     $"'{applicationId}' AND " +
-                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{Constants.EntityTypeEndpoint}' ";
 
             if (!includeDeleted)
             {

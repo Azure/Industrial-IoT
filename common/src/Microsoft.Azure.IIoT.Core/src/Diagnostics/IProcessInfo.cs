@@ -13,11 +13,6 @@ namespace Microsoft.Azure.IIoT.Diagnostics
     public interface IProcessInfo : IProcessIdentity
     {
         /// <summary>
-        /// Process identity
-        /// </summary>
-        string ProcessId { get; }
-
-        /// <summary>
         /// Site id
         /// </summary>
         string SiteId { get; }

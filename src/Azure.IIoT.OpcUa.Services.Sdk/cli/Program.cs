@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Services.Cli
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
@@ -1858,16 +1857,19 @@ namespace Azure.IIoT.OpcUa.Services.Cli
                             try
                             {
                                 var supervisors = await _client.Registry.ListAllDiscoverersAsync().ConfigureAwait(false);
-                                var discovery = await supervisors
+                                var discovery = await Task.WhenAll(supervisors
                                     .Select(s => events.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                                        s.Id, PrintProgressAsync)).AsAsyncDisposable().ConfigureAwait(false);
+                                        s.Id, PrintProgressAsync)).ToArray()).ConfigureAwait(false);
                                 try
                                 {
                                     Console.ReadKey();
                                 }
                                 finally
                                 {
-                                    await discovery.DisposeAsync().ConfigureAwait(false);
+                                    foreach (var disposable in discovery)
+                                    {
+                                        await disposable.DisposeAsync().ConfigureAwait(false);
+                                    }
                                 }
                             }
                             finally

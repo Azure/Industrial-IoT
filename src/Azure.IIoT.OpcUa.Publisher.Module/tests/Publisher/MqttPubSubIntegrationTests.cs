@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
 
-            BasicPubSubIntegrationTests.AssertSimpleEventsMetadata(metadata.Value.Message);
+            BasicPubSubIntegrationTests.AssertSimpleEventsMetadata(metadata.Value);
         }
 
         [Theory]
@@ -183,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
             });
 
-            BasicPubSubIntegrationTests.AssertSimpleEventsMetadata(metadata.Value.Message);
+            BasicPubSubIntegrationTests.AssertSimpleEventsMetadata(metadata.Value);
         }
 
         [Theory]
@@ -222,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
 
-            BasicPubSubIntegrationTests.AssertCompliantSimpleEventsMetadata(metadata.Value.Message);
+            BasicPubSubIntegrationTests.AssertCompliantSimpleEventsMetadata(metadata.Value);
         }
 
         [Theory]
@@ -266,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
             });
 
-            BasicPubSubIntegrationTests.AssertCompliantSimpleEventsMetadata(metadata.Value.Message);
+            BasicPubSubIntegrationTests.AssertCompliantSimpleEventsMetadata(metadata.Value);
         }
 
         [Fact]

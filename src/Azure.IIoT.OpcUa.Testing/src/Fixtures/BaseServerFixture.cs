@@ -24,6 +24,10 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
+    using Autofac;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
+    using Microsoft.Extensions.Options;
+    using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -46,19 +50,9 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
         public X509Certificate2 Certificate => _serverHost.Certificate;
 
         /// <summary>
-        /// Cert folder
-        /// </summary>
-        public string PkiRootPath { get; }
-
-        /// <summary>
-        /// Logger
-        /// </summary>
-        public ILogger Logger { get; }
-
-        /// <summary>
         /// Client
         /// </summary>
-        public OpcUaClientManager Client => _client.Value;
+        public OpcUaClientManager Client => _container.Resolve<OpcUaClientManager>();
 
         /// <summary>
         /// Get server connection
@@ -85,36 +79,37 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
         /// Create fixture
         /// </summary>
         /// <param name="nodes"></param>
-        protected BaseServerFixture(IEnumerable<INodeManagerFactory> nodes)
+        /// <param name="loggerFactory"></param>
+        protected BaseServerFixture(IEnumerable<INodeManagerFactory> nodes,
+            ILoggerFactory loggerFactory = null)
         {
             if (nodes == null)
             {
                 throw new ArgumentNullException(nameof(nodes));
             }
+
             Host = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
-            Logger = Log.Console<BaseServerFixture>(LogLevel.Debug);
-            _config = new TestClientServicesConfig();
-            var serializer = new DefaultJsonSerializer();
-            _client = new Lazy<OpcUaClientManager>(
-                () => new OpcUaClientManager(Logger, _config, serializer), false);
-            PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
-               Guid.NewGuid().ToByteArray().ToBase16String());
+            _container = CreateContainer(loggerFactory ?? Log.ConsoleFactory(LogLevel.Debug));
+
             // Retry 200 times
+            var logger = _container.Resolve<ILogger<BaseServerFixture>>();
+            var options = _container.Resolve<IOptions<ClientOptions>>();
             for (var i = 0; i < 200; i++)
             {
                 try
                 {
-                    _serverHost = new ServerConsoleHost(new ServerFactory(Logger, nodes)
+                    _serverHost = new ServerConsoleHost(new ServerFactory(
+                        _container.Resolve<ILogger<ServerFactory>>(), nodes)
                     {
                         LogStatus = false
-                    }, Logger)
+                    },  _container.Resolve<ILogger<ServerConsoleHost>>())
                     {
-                        PkiRootPath = PkiRootPath,
+                        PkiRootPath = options.Value.Security.PkiRootPath,
                         AutoAccept = true
                     };
                     var port = GetRandomPort();
-                    Logger.LogInformation("Starting server host on {Port}...",
+                    logger.LogInformation("Starting server host on {Port}...",
                         port);
                     _serverHost.StartAsync(new int[] { port }).Wait();
                     Port = port;
@@ -122,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, "Failed to start server host, retrying...");
+                    logger.LogError(ex, "Failed to start server host, retrying...");
                 }
             }
         }
@@ -145,28 +140,44 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
             {
                 if (disposing)
                 {
-                    Logger.LogInformation("Disposing server and client fixture...");
+                    var logger = _container.Resolve<ILogger<BaseServerFixture>>();
+                    logger.LogInformation("Disposing server and client fixture...");
                     _serverHost.Dispose();
-                    // Clean up all created certificates
-                    if (Directory.Exists(PkiRootPath))
-                    {
-                        Logger.LogInformation("Server disposed - cleaning up server certificates...");
-                        Try.Op(() => Directory.Delete(PkiRootPath, true));
-                    }
-                    if (_client.IsValueCreated)
-                    {
-                        Logger.LogInformation("Disposing client...");
-                        Task.Run(() => _client.Value.Dispose()).Wait();
-                    }
-                    Logger.LogInformation("Client disposed - cleaning up client certificates...");
-                    _config?.Dispose();
-                    Logger.LogInformation("Server and client fixture disposed.");
-                }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
+                    // Clean up all created certificates
+                    if (_container.TryResolve<IOptions<ClientOptions>>(out var options) &&
+                        Directory.Exists(options.Value.Security.PkiRootPath))
+                    {
+                        logger.LogInformation("Server disposed - cleaning up server certificates...");
+                        Try.Op(() => Directory.Delete(options.Value.Security.PkiRootPath, true));
+                    }
+                    _container.Dispose();
+                    logger.LogInformation("Client disposed - cleaning up client certificates...");
+                }
                 _disposedValue = true;
             }
+        }
+
+        private static IContainer CreateContainer(ILoggerFactory loggerFactory)
+        {
+            var builder = new ContainerBuilder();
+            builder.AddLogging();
+            builder.RegisterInstance(new ConfigurationBuilder().Build())
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(loggerFactory)
+                .AsImplementedInterfaces();
+
+            builder.AddDefaultJsonSerializer();
+            builder.RegisterType<TestClientServicesConfig>()
+                .AsImplementedInterfaces();
+
+            builder.RegisterType<StackLogger>()
+                .AsImplementedInterfaces().SingleInstance().AutoActivate();
+            builder.RegisterType<OpcUaClientManager>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ClientConfig>()
+                .AsImplementedInterfaces().SingleInstance();
+            return builder.Build();
         }
 
         private static int GetRandomPort()
@@ -177,8 +188,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
         }
 
         private bool _disposedValue;
+        private readonly IContainer _container;
         private readonly IServerHost _serverHost;
-        private readonly TestClientServicesConfig _config;
-        private readonly Lazy<OpcUaClientManager> _client;
     }
 }

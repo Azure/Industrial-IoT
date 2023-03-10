@@ -5,18 +5,17 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
-    using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
     using Azure.IIoT.OpcUa.Services.Sdk.Clients;
     using Azure.IIoT.OpcUa.Services.Sdk.Runtime;
     using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
     using Autofac;
+    using Furly.Azure;
+    using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Mock.Services;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Furly.Azure.IoT.Client;
-    using Furly.Azure.IoT.Mock;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
@@ -34,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <param name="env"></param>
         /// <param name="configuration"></param>
         public TestStartup(IWebHostEnvironment env, IConfiguration configuration) :
-            base(env, new Config(configuration))
+            base(env, configuration)
         {
         }
 
@@ -42,16 +41,21 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         public override void ConfigureContainer(ContainerBuilder builder)
         {
             // Override real IoT hub and edge services with the mocks.
-            builder.RegisterType<TestIoTHubConfig>()
+            builder.RegisterType<IoTHubMock>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterModule<IoTHubMockService>();
+            builder.Configure<IoTHubServiceOptions>(options =>
+                options.ConnectionString = ConnectionString.CreateServiceConnectionString(
+                    "test.test.org", "iothubowner", Convert.ToBase64String(
+                        Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString());
+
             builder.RegisterType<EmptyMetricsContext>()
                 .AsImplementedInterfaces();
 
             base.ConfigureContainer(builder);
 
             // Re-add mock
-            builder.RegisterModule<IoTHubMockService>();
+            builder.RegisterType<IoTHubMock>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<TestAuthConfig>()
                 .AsImplementedInterfaces();
 
@@ -66,6 +70,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(new AadApiClientConfig(null))
                 .AsImplementedInterfaces().SingleInstance();
+
             // ... as well as signalR client (needed for api)
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
@@ -74,14 +79,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
 
             builder.RegisterType<PublisherModule>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-        }
-
-        public class TestIoTHubConfig : IIoTHubConfig
-        {
-            public string IoTHubConnString =>
-                ConnectionString.CreateServiceConnectionString(
-                    "test.test.org", "iothubowner", Convert.ToBase64String(
-                        Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
         }
 
         public class TestAuthConfig : IServerAuthConfig, ITokenProvider

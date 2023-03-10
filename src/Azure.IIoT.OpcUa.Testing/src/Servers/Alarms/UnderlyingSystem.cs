@@ -67,6 +67,7 @@ namespace Alarms
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -190,6 +191,7 @@ namespace Alarms
         /// <summary>
         /// Simulates a source by updating the state of the alarms belonging to the condition.
         /// </summary>
+        /// <param name="state"></param>
         private void DoSimulation(object state)
         {
             try

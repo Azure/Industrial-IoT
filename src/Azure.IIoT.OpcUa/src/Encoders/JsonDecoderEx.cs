@@ -1125,10 +1125,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return number;
             }
-            else
-            {
-                // TODO Log or throw for bad type
-            }
+            
             return Variant.Null;
         }
 
@@ -1169,10 +1166,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return number;
             }
-            else
-            {
-                // TODO Log or throw for bad type
-            }
+            
             return Variant.Null;
         }
 
@@ -1210,10 +1204,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return number;
             }
-            else
-            {
-                // TODO Log or throw for bad type
-            }
+            
             return Variant.Null;
         }
 

@@ -5,9 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
-    using Furly.Extensions.Serializers;
-    using Furly.Azure.IoT;
     using Furly.Azure.IoT.Models;
+    using Furly.Extensions.Serializers;
     using System;
 
     /// <summary>
@@ -31,25 +30,25 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
             var type = twin.Tags.GetValueOrDefault<string>(nameof(EntityRegistration.DeviceType), null);
             if (string.IsNullOrEmpty(type) && twin.Reported != null)
             {
-                type = twin.Reported.GetValueOrDefault<string>(TwinProperty.Type, null);
+                type = twin.Reported.GetValueOrDefault(OpcUa.Constants.TwinPropertyTypeKey, (string)null);
             }
             if (string.IsNullOrEmpty(type))
             {
-                type = twin.Tags.GetValueOrDefault<string>(TwinProperty.Type, null);
+                type = twin.Tags.GetValueOrDefault(OpcUa.Constants.TwinPropertyTypeKey, (string)null);
             }
-            if (IdentityType.Gateway.EqualsIgnoreCase(type))
+            if (Constants.EntityTypeGateway.EqualsIgnoreCase(type))
             {
                 return twin.ToGatewayRegistration();
             }
-            if (IdentityType.Application.EqualsIgnoreCase(type))
+            if (Constants.EntityTypeApplication.EqualsIgnoreCase(type))
             {
                 return twin.ToApplicationRegistration();
             }
-            if (IdentityType.Endpoint.EqualsIgnoreCase(type))
+            if (Constants.EntityTypeEndpoint.EqualsIgnoreCase(type))
             {
                 return twin.ToEndpointRegistration(onlyServerState);
             }
-            if (IdentityType.Publisher.EqualsIgnoreCase(type))
+            if (Constants.EntityTypePublisher.EqualsIgnoreCase(type))
             {
                 return twin.ToPublisherRegistration(onlyServerState);
             }

@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -39,8 +40,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
         }
 
         /// <inheritdoc/>
-        public async Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint)
+        public async ValueTask HandleAsync(string deviceId, string moduleId, ReadOnlyMemory<byte> payload,
+            IReadOnlyDictionary<string, string> properties, CancellationToken ct)
         {
             try
             {
@@ -95,12 +96,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
             {
                 _logger.LogError(ex, "Publishing messages failed - skip");
             }
-        }
-
-        /// <inheritdoc/>
-        public Task OnBatchCompleteAsync()
-        {
-            return Task.CompletedTask;
         }
 
         private readonly IVariantEncoderFactory _encoder;

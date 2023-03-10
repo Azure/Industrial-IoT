@@ -10,9 +10,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Azure.IoT.Edge.Services;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -20,12 +22,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Furly.Azure.IoT.Edge.Services;
 
     /// <summary>
     /// Published nodes
     /// </summary>
-    public class PublishedNodesJobConverter
+    public sealed class PublishedNodesJobConverter
     {
         /// <summary>
         /// Create converter
@@ -33,21 +34,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <param name="logger"></param>
         /// <param name="serializer"></param>
         /// <param name="engineConfig"></param>
-        /// <param name="clientConfig"></param>
+        /// <param name="options"></param>
         /// <param name="cryptoProvider"></param>
-        public PublishedNodesJobConverter(ILogger logger, IJsonSerializer serializer,
-            IEngineConfiguration engineConfig, IClientServicesConfig clientConfig,
-            IIoTEdgeWorkloadApi cryptoProvider = null)
+        public PublishedNodesJobConverter(ILogger<PublishedNodesJobConverter> logger,
+            IJsonSerializer serializer, IEngineConfiguration engineConfig,
+            IOptions<ClientOptions> options, IIoTEdgeWorkloadApi cryptoProvider = null)
         {
             _engineConfig = engineConfig ??
                 throw new ArgumentNullException(nameof(engineConfig));
-            _clientConfig = clientConfig ??
-                throw new ArgumentNullException(nameof(clientConfig));
-            _cryptoProvider = cryptoProvider;
+            _options = options ??
+                throw new ArgumentNullException(nameof(options));
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
+            _cryptoProvider = cryptoProvider;
         }
 
         /// <summary>
@@ -275,8 +276,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             SubscriptionSettings = new PublishedDataSetSettingsModel
                             {
                                 PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node)),
-                                LifeTimeCount = (uint)_clientConfig.MinSubscriptionLifetime,
-                                MaxKeepAliveCount = _clientConfig.MaxKeepAliveCount,
+                                LifeTimeCount = (uint)_options.Value.MinSubscriptionLifetime,
+                                MaxKeepAliveCount = _options.Value.MaxKeepAliveCount,
                                 Priority = 0 // TODO
                             },
                             PublishedVariables = new PublishedDataItemsModel
@@ -741,7 +742,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         }
 
         private readonly IEngineConfiguration _engineConfig;
-        private readonly IClientServicesConfig _clientConfig;
+        private readonly IOptions<ClientOptions> _options;
         private readonly IIoTEdgeWorkloadApi _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;

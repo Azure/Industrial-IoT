@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -45,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 }).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
-            Assert.All(results.History.Where(h => h.Value == null), arg =>
+            Assert.All(results.History.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -54,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            var values = results.History.Where(h => h.Value != null).ToList();
+            var values = results.History.Where(h => !VariantValue.IsNullOrNullValue(h.Value)).ToList();
             Assert.Equal(2, values.Count);
             Assert.Collection(values,
                 arg =>
@@ -98,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 }).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
-            Assert.All(results.History.Where(h => h.Value == null), arg =>
+            Assert.All(results.History.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -107,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            var values = results.History.Where(h => h.Value != null).ToList();
+            var values = results.History.Where(h => !VariantValue.IsNullOrNullValue(h.Value)).ToList();
             Assert.Equal(2, values.Count);
             Assert.Collection(values,
                 arg =>
@@ -151,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 }).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
-            Assert.All(results.History.Where(h => h.Value == null), arg =>
+            Assert.All(results.History.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -160,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            var arg = Assert.Single(results.History.Where(h => h.Value != null));
+            var arg = Assert.Single(results.History.Where(h => !VariantValue.IsNullOrNullValue(h.Value)));
             Assert.Null(arg.Status);
             Assert.True(arg.Value == 80);
             Assert.Equal(DataLocation.Calculated, arg.DataLocation);
@@ -190,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 }).ToListAsync().ConfigureAwait(false);
 
             Assert.NotNull(history);
-            Assert.All(history.Where(h => h.Value == null), arg =>
+            Assert.All(history.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -199,7 +200,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            var values = history.Where(h => h.Value != null).ToList();
+            var values = history.Where(h => !VariantValue.IsNullOrNullValue(h.Value)).ToList();
             Assert.Equal(2, values.Count);
             Assert.Collection(values,
                 arg =>
@@ -243,7 +244,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 }).ToListAsync().ConfigureAwait(false);
 
             Assert.NotNull(history);
-            Assert.All(history.Where(h => h.Value == null), arg =>
+            Assert.All(history.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -252,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            var values = history.Where(h => h.Value != null).ToList();
+            var values = history.Where(h => !VariantValue.IsNullOrNullValue(h.Value)).ToList();
             Assert.Equal(2, values.Count);
             Assert.Collection(values,
                 arg =>
@@ -296,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 }).ToListAsync().ConfigureAwait(false);
 
             Assert.NotNull(history);
-            Assert.All(history.Where(h => h.Value == null), arg =>
+            Assert.All(history.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -305,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            var arg = Assert.Single(history.Where(h => h.Value != null));
+            var arg = Assert.Single(history.Where(h => !VariantValue.IsNullOrNullValue(h.Value)));
             Assert.Null(arg.Status);
             Assert.True(arg.Value == 80);
             Assert.Equal(DataLocation.Calculated, arg.DataLocation);

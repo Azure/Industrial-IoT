@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
-    using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
     using Azure.IIoT.OpcUa.Services;
     using Azure.IIoT.OpcUa.Services.Clients;
     using Azure.IIoT.OpcUa.Services.Events;
@@ -15,17 +14,12 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
+    using Furly.Tunnel.Protocol;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
-    using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.Ssl;
-    using Furly.Azure.IoT.Client;
-    using Furly.Azure.IoT.Processor.Services;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
-    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -42,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <summary>
         /// Configuration - Initialized in constructor
         /// </summary>
-        public Config Config { get; }
+        public IConfigurationRoot Config { get; }
 
         /// <summary>
         /// Service info - Initialized in constructor
@@ -59,8 +53,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
-            this(env, new Config(new ConfigurationBuilder()
+        public Startup(IWebHostEnvironment env, IConfiguration configuration)
+        {
+            Environment = env;
+            Config = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
@@ -68,19 +64,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 // Above configuration providers will provide connection
                 // details for KeyVault configuration provider.
                 .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
-                .Build()))
-        {
-        }
-
-        /// <summary>
-        /// Create startup
-        /// </summary>
-        /// <param name="env"></param>
-        /// <param name="configuration"></param>
-        public Startup(IWebHostEnvironment env, Config configuration)
-        {
-            Environment = env;
-            Config = configuration;
+                .Build();
         }
 
         /// <summary>
@@ -99,6 +83,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
 
             services.AddHttpsRedirect();
             services.AddHttpClient();
+
+            services.AddIoTHubServices();
 
             services.AddAuthentication()
                 .AddJwtBearerProvider(AuthProvider.AzureAD);
@@ -161,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
 
             // Print some useful information at bootstrap time
             log.LogInformation("{Service} web service started with id {Id}",
-                ServiceInfo.Name, ServiceInfo.ProcessId);
+                ServiceInfo.Name, ServiceInfo.Id);
         }
 
         /// <summary>
@@ -170,35 +156,22 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <param name="builder"></param>
         public virtual void ConfigureContainer(ContainerBuilder builder)
         {
-            // Register service info and configuration interfaces
+            // Register service info and configuration
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces();
             builder.RegisterInstance(Config)
                 .AsImplementedInterfaces();
-            builder.RegisterInstance(Config.Configuration)
-                .AsImplementedInterfaces();
 
             // Add diagnostics
             builder.AddDiagnostics();
-            // Register http client module
-            builder.RegisterModule<HttpClientModule>();
-#if DEBUG
-            builder.RegisterType<NoOpCertValidator>()
-                .AsImplementedInterfaces();
-#endif
+
             // Add serializers
             builder.AddMessagePackSerializer();
             builder.AddNewtonsoftJsonSerializer();
 
-            // Add service to service authentication
-            // builder.RegisterModule<WebApiAuthentication>();
-
             // Register IoT Hub services for registry and edge clients.
             builder.RegisterModule<RegistryServices>();
-            builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<IoTHubTwinMethodClient>()
-                .AsImplementedInterfaces();
+            builder.AddIoTHubServices();
             builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherServicesClient>()
@@ -206,15 +179,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
             builder.RegisterType<DiscoveryServicesClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
-                .AsImplementedInterfaces();
-
-            // Register event processor host to process IoT hub telemetry
-            //    builder.RegisterType<EventProcessorHost>()
-            //        .AsImplementedInterfaces().SingleInstance()
-            //      .IfNotRegistered(typeof(IEventProcessingHost));
-            builder.RegisterType<EventProcessorFactory>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<EventHubDeviceEventHandler>()
                 .AsImplementedInterfaces();
 
             // Register handlers for registry events and device telemetry ...

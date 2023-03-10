@@ -46,6 +46,7 @@ namespace Boiler
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public GenericControllerState(NodeState parent) : base(parent)
         {
         }
@@ -53,6 +54,7 @@ namespace Boiler
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.GenericControllerType, Namespaces.Boiler, namespaceUris);
@@ -62,6 +64,7 @@ namespace Boiler
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -71,6 +74,8 @@ namespace Boiler
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -80,6 +85,7 @@ namespace Boiler
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -186,6 +192,10 @@ namespace Boiler
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,
@@ -1321,6 +1331,7 @@ namespace Boiler
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public BoilerStateMachineState(NodeState parent) : base(parent)
         {
         }
@@ -1328,6 +1339,7 @@ namespace Boiler
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.BoilerStateMachineType, Namespaces.Boiler, namespaceUris);
@@ -1337,6 +1349,7 @@ namespace Boiler
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -1346,6 +1359,8 @@ namespace Boiler
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -1355,6 +1370,7 @@ namespace Boiler
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -1552,6 +1568,10 @@ namespace Boiler
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,
@@ -2246,6 +2266,7 @@ namespace Boiler
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public BoilerState(NodeState parent) : base(parent)
         {
         }
@@ -2253,6 +2274,7 @@ namespace Boiler
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.BoilerType, Namespaces.Boiler, namespaceUris);
@@ -2262,6 +2284,7 @@ namespace Boiler
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -2271,6 +2294,8 @@ namespace Boiler
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -2280,6 +2305,7 @@ namespace Boiler
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -2532,6 +2558,10 @@ namespace Boiler
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,

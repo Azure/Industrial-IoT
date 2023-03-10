@@ -12,9 +12,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Helper utility extensions of several collections and types

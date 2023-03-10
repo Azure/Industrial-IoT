@@ -42,6 +42,8 @@ namespace Boiler
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="configuration"></param>
         public BoilerNodeManager(
             Opc.Ua.Server.IServerInternal server,
             ApplicationConfiguration configuration)
@@ -92,6 +94,7 @@ namespace Boiler
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
+        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -180,6 +183,7 @@ namespace Boiler
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
+        /// <param name="context"></param>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
             var type = GetType().GetTypeInfo();
@@ -193,6 +197,8 @@ namespace Boiler
         /// <summary>
         /// Replaces the generic node with a node specific to the model.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="predefinedNode"></param>
         protected override NodeState AddBehaviourToPredefinedNode(ISystemContext context, NodeState predefinedNode)
         {
             if (predefinedNode is not BaseObjectState passiveNode)
@@ -240,6 +246,10 @@ namespace Boiler
         /// <summary>
         /// Does any processing after a monitored item is created.
         /// </summary>
+        /// <param name="systemContext"></param>
+        /// <param name="itemToCreate"></param>
+        /// <param name="monitoredNode"></param>
+        /// <param name="monitoredItem"></param>
         protected override void OnCreateMonitoredItem(
             ISystemContext systemContext,
             MonitoredItemCreateRequest itemToCreate,
@@ -252,6 +262,11 @@ namespace Boiler
         /// <summary>
         /// Does any processing after a monitored item is created.
         /// </summary>
+        /// <param name="systemContext"></param>
+        /// <param name="itemToModify"></param>
+        /// <param name="monitoredNode"></param>
+        /// <param name="monitoredItem"></param>
+        /// <param name="previousSamplingInterval"></param>
         protected override void OnModifyMonitoredItem(
             ISystemContext systemContext,
             MonitoredItemModifyRequest itemToModify,
@@ -265,6 +280,9 @@ namespace Boiler
         /// <summary>
         /// Does any processing after a monitored item is deleted.
         /// </summary>
+        /// <param name="systemContext"></param>
+        /// <param name="monitoredNode"></param>
+        /// <param name="monitoredItem"></param>
         protected override void OnDeleteMonitoredItem(
             ISystemContext systemContext,
             MonitoredNode monitoredNode,
@@ -276,6 +294,11 @@ namespace Boiler
         /// <summary>
         /// Does any processing after a monitored item is created.
         /// </summary>
+        /// <param name="systemContext"></param>
+        /// <param name="monitoredNode"></param>
+        /// <param name="monitoredItem"></param>
+        /// <param name="previousMode"></param>
+        /// <param name="currentMode"></param>
         protected override void OnSetMonitoringMode(
             ISystemContext systemContext,
             MonitoredNode monitoredNode,

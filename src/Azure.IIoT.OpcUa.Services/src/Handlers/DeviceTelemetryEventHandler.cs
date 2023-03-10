@@ -5,17 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Services.Handlers
 {
-    using Furly.Extensions.Utils;
     using Furly.Azure.IoT;
-    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Threading;
-    using Azure.Messaging.EventHubs;
-    using Microsoft.Azure.Amqp.Framing;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Default iot hub device event handler implementation
@@ -33,19 +29,24 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
                 throw new ArgumentNullException(nameof(handlers));
             }
             _handlers = new ConcurrentDictionary<string, IMessageHandler>(
-                handlers.Select(h => KeyValuePair.Create(h.MessageSchema.ToLowerInvariant(), h)));
+                handlers.Select(h => KeyValuePair.Create(h.MessageSchema.ToUpperInvariant(), h)));
         }
 
         /// <inheritdoc/>
         public async ValueTask HandleAsync(string deviceId, string moduleId, string topic,
-            ReadOnlyMemory<byte> data, string contentType, CancellationToken ct)
+            ReadOnlyMemory<byte> data, string contentType, string contentEncoding,
+            IReadOnlyDictionary<string, string> properties, CancellationToken ct)
+
         {
-            if (_handlers.TryGetValue(topic.ToLowerInvariant(), out var handler))
+            if (!properties.TryGetValue(Constants.MessagePropertySchemaKey, out var schema))
             {
-                // TODO: Pass properties down
-                // !!!!!!!!!!!!!!!!!!!!!!!!!!!
+                schema = topic;
+            }
+
+            if (_handlers.TryGetValue(schema.ToUpperInvariant(), out var handler))
+            {
                 await handler.HandleAsync(deviceId, moduleId, data.ToArray(),
-                    null, null).ConfigureAwait(false);
+                    properties, ct).ConfigureAwait(false);
             }
             else
             {

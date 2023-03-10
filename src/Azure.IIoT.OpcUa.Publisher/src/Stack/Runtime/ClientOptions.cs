@@ -6,43 +6,53 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     /// <summary>
-    /// Client services configuration
+    /// Opc ua client options
     /// </summary>
-    public interface IClientServicesConfig : ITransportQuotaConfig, ISecurityConfig
+    public sealed class ClientOptions
     {
         /// <summary>
         /// Application name
         /// </summary>
-        string ApplicationName { get; }
+        public string ApplicationName { get; set; }
 
         /// <summary>
         /// Application uri
         /// </summary>
-        string ApplicationUri { get; }
+        public string ApplicationUri { get; set; }
 
         /// <summary>
         /// Product uri
         /// </summary>
-        string ProductUri { get; }
+        public string ProductUri { get; set; }
 
         /// <summary>
         /// Default session timeout in milliseconds.
         /// </summary>
-        uint DefaultSessionTimeout { get; }
+        public uint DefaultSessionTimeout { get; set; }
 
         /// <summary>
         /// Keep alive interval in milliseconds.
         /// </summary>
-        int KeepAliveInterval { get; }
+        public int KeepAliveInterval { get; set; }
 
         /// <summary>
         /// Max keep alive count
         /// </summary>
-        uint MaxKeepAliveCount { get; }
+        public uint MaxKeepAliveCount { get; set; }
 
         /// <summary>
         /// Minimum subscription lifetime in milliseconds.
         /// </summary>
-        int MinSubscriptionLifetime { get; }
+        public int MinSubscriptionLifetime { get; set; }
+
+        /// <summary>
+        /// Transport quota
+        /// </summary>
+        public TransportOptions Quotas { get; } = new TransportOptions();
+
+        /// <summary>
+        /// Security configuration
+        /// </summary>
+        public SecurityOptions Security { get; } = new SecurityOptions();
     }
 }

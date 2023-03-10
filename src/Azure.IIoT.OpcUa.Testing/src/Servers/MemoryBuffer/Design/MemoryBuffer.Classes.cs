@@ -45,6 +45,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public MemoryTagState(NodeState parent) : base(parent)
         {
         }
@@ -52,6 +53,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(VariableTypes.MemoryTagType, Namespaces.MemoryBuffer, namespaceUris);
@@ -60,6 +62,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Returns the id of the default data type node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultDataTypeId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(DataTypes.BaseDataType, Opc.Ua.Namespaces.OpcUa, namespaceUris);
@@ -77,6 +80,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -86,6 +90,8 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -95,6 +101,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -192,6 +199,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public MemoryBufferState(NodeState parent) : base(parent)
         {
         }
@@ -199,6 +207,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.MemoryBufferType, Namespaces.MemoryBuffer, namespaceUris);
@@ -208,6 +217,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -217,6 +227,8 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -226,6 +238,7 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -301,6 +314,10 @@ namespace MemoryBuffer
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,

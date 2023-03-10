@@ -158,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         RejectUnknownRevocationStatus = true
                     },
                     TransportConfigurations = new TransportConfigurationCollection(),
-                    TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),
+                    TransportQuotas = new TransportQuotas(),
                     ServerConfiguration = new ServerConfiguration
                     {
                         // Sample server specific

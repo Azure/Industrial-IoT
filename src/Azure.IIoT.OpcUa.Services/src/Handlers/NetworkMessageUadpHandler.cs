@@ -13,7 +13,9 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -39,8 +41,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
         }
 
         /// <inheritdoc/>
-        public async Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint)
+        public async ValueTask HandleAsync(string deviceId, string moduleId, ReadOnlyMemory<byte> payload,
+            IReadOnlyDictionary<string, string> properties, CancellationToken ct)
         {
             try
             {
@@ -58,9 +60,9 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
                         var dataset = new DataSetMessageModel
                         {
                             PublisherId = message.PublisherId,
-                            MessageId = message.NetworkMessageNumber.ToString(),
+                            MessageId = message.NetworkMessageNumber.ToString(CultureInfo.InvariantCulture),
                             DataSetClassId = message.DataSetClassId.ToString(),
-                            DataSetWriterId = dataSetMessage.DataSetWriterId.ToString(),
+                            DataSetWriterId = dataSetMessage.DataSetWriterId.ToString(CultureInfo.InvariantCulture),
                             SequenceNumber = dataSetMessage.SequenceNumber,
                             Status = dataSetMessage.Status == null ? null :
                                 StatusCode.LookupSymbolicId(dataSetMessage.Status.Value.Code),
@@ -99,12 +101,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
             {
                 _logger.LogError(ex, "Subscriber binary network message handling failed - skip");
             }
-        }
-
-        /// <inheritdoc/>
-        public Task OnBatchCompleteAsync()
-        {
-            return Task.CompletedTask;
         }
 
         private readonly IVariantEncoderFactory _encoder;

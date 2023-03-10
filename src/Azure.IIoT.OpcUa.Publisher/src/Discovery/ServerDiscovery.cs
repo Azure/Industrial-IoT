@@ -9,8 +9,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Exceptions;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -26,12 +26,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="client"></param>
         /// <param name="serializer"></param>
         /// <param name="identity"></param>
+        /// <param name="config"></param>
         public ServerDiscovery(IEndpointDiscovery client, IJsonSerializer serializer,
-            IProcessInfo identity)
+            IProcessIdentity identity, IPublisherConfiguration config = null)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _identity = identity ?? throw new ArgumentNullException(nameof(identity));
+            _config = config;
         }
 
         /// <inheritdoc/>
@@ -70,14 +72,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     // no match
                     continue;
                 }
-                return ep.ToServiceModel(discoveryUrl.Host,
-                    _identity.SiteId, _identity.ProcessId, _identity.Id, _serializer);
+                return ep.ToServiceModel(discoveryUrl.Host, _config?.Site, _identity.Id, _serializer);
             }
             throw new ResourceNotFoundException("Endpoints could not be found.");
         }
 
         private readonly IJsonSerializer _serializer;
-        private readonly IProcessInfo _identity;
+        private readonly IProcessIdentity _identity;
+        private readonly IPublisherConfiguration _config;
         private readonly IEndpointDiscovery _client;
     }
 }

@@ -42,22 +42,22 @@ namespace Azure.IIoT.OpcUa.Services
         /// <summary>
         /// Get publisher registration by identifer.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="publisherId"></param>
         /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<PublisherModel> GetPublisherAsync(
-            string id, bool onlyServerState = false,
+            string publisherId, bool onlyServerState = false,
             CancellationToken ct = default);
 
         /// <summary>
         /// Update publisher configuration
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="publisherId"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task UpdatePublisherAsync(string id,
+        Task UpdatePublisherAsync(string publisherId,
             PublisherUpdateModel request,
             CancellationToken ct = default);
     }

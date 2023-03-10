@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="diagnostics"></param>
         public PublisherConfigurationService(PublishedNodesJobConverter publishedNodesJobConverter,
             IPublisherConfiguration configuration, IPublisherHost publisherHost,
-            ILogger logger, IPublishedNodesProvider publishedNodesProvider,
+            ILogger<PublisherConfigurationService> logger, IPublishedNodesProvider publishedNodesProvider,
             IJsonSerializer jsonSerializer, IPublisherDiagnosticCollector diagnostics = null)
         {
             _publishedNodesJobConverter = publishedNodesJobConverter ??
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async Task<PublishStartResponseModel> PublishStartAsync(ConnectionModel id,
+        public async Task<PublishStartResponseModel> PublishStartAsync(ConnectionModel endpoint,
             PublishStartRequestModel request, CancellationToken ct = default)
         {
             _logger.LogInformation("{Method} method triggered ... ", nameof(PublishStartAsync));
@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                var entry = id.ToPublishedNodesEntry();
+                var entry = endpoint.ToPublishedNodesEntry();
                 var currentNodes = GetCurrentPublishedNodes().ToList();
                 AddItem(currentNodes, entry, request.Item);
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async Task<PublishStopResponseModel> PublishStopAsync(ConnectionModel id,
+        public async Task<PublishStopResponseModel> PublishStopAsync(ConnectionModel endpoint,
             PublishStopRequestModel request, CancellationToken ct = default)
         {
             _logger.LogInformation("{Method} method triggered ... ", nameof(PublishStopAsync));
@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 var currentNodes = GetCurrentPublishedNodes();
-                var entry = id.ToPublishedNodesEntry();
+                var entry = endpoint.ToPublishedNodesEntry();
                 foreach (var nodeset in currentNodes.Where(n => n.HasSameDataSet(entry)))
                 {
                     nodeset.OpcNodes.RemoveAll(n => n.Id == request.NodeId);
@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async Task<PublishBulkResponseModel> PublishBulkAsync(ConnectionModel id,
+        public async Task<PublishBulkResponseModel> PublishBulkAsync(ConnectionModel endpoint,
             PublishBulkRequestModel request, CancellationToken ct = default)
         {
             _logger.LogInformation("{Method} method triggered ... ", nameof(PublishBulkAsync));
@@ -197,7 +197,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 var currentNodes = GetCurrentPublishedNodes().ToList();
-                var entry = id.ToPublishedNodesEntry();
+                var entry = endpoint.ToPublishedNodesEntry();
                 // Remove all nodes
                 if (request.NodesToRemove != null)
                 {
@@ -233,7 +233,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedItemListResponseModel> PublishListAsync(ConnectionModel id,
+        public async Task<PublishedItemListResponseModel> PublishListAsync(ConnectionModel endpoint,
             PublishedItemListRequestModel request, CancellationToken ct = default)
         {
             _logger.LogInformation("{Method} method triggered ... ", nameof(PublishListAsync));
@@ -249,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                var entry = id.ToPublishedNodesEntry();
+                var entry = endpoint.ToPublishedNodesEntry();
                 var existingGroups = new List<PublishedNodesEntryModel>();
                 return new PublishedItemListResponseModel
                 {

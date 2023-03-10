@@ -12,11 +12,11 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using Autofac.Extras.Moq;
     using AutoFixture;
     using AutoFixture.Kernel;
+    using Furly.Azure;
+    using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Mock.Services;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Furly.Azure.IoT;
-    using Furly.Azure.IoT.Mock;
-    using Furly.Azure.IoT.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -31,37 +31,33 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             var fix = new Fixture();
 
             var gateway = fix.Create<string>();
-            var Gateway = (new GatewayModel
+            var Gateway = new GatewayModel
             {
                 Id = gateway
-            }.ToGatewayRegistration().ToDeviceTwin(),
-                    new DeviceModel { Id = gateway });
+            }.ToGatewayRegistration().ToDeviceTwin();
             var module = fix.Create<string>();
-            var discoverer = PublisherModelEx.CreatePublisherId(gateway, module);
-            var Discoverer = (new DiscovererModel
+            var discoverer = HubResource.Format(null, gateway, module);
+            var Discoverer = new DiscovererModel
             {
                 Id = discoverer
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
-                    new DeviceModel { Id = gateway, ModuleId = module });
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
             module = fix.Create<string>();
-            var supervisor = PublisherModelEx.CreatePublisherId(gateway, module);
-            var Supervisor = (new SupervisorModel
+            var supervisor = HubResource.Format(null, gateway, module);
+            var Supervisor = new SupervisorModel
             {
                 Id = supervisor
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
-                    new DeviceModel { Id = gateway, ModuleId = module });
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
             module = fix.Create<string>();
-            var publisher = PublisherModelEx.CreatePublisherId(gateway, module);
-            var Publisher = (new PublisherModel
+            var publisher = HubResource.Format(null, gateway, module);
+            var Publisher = new PublisherModel
             {
                 Id = publisher
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
-                    new DeviceModel { Id = gateway, ModuleId = module });
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
 
-            var registry = IoTHubServices.Create(Gateway.YieldReturn() // Single device
+            var registry = IoTHubMock.Create(Gateway.YieldReturn() // Single device
                 .Append(Discoverer)
                 .Append(Supervisor)
-                .Append(Publisher));
+                .Append(Publisher), _serializer);
 
             using (var mock = AutoMock.GetLoose(builder =>
             {
@@ -81,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
                 // Assert
                 Assert.Single(registry.Devices);
-                Assert.Equal(gateway, registry.Devices.First().Device.Id);
+                Assert.Equal(gateway, registry.Devices.First().Id);
             }
         }
 
@@ -171,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         public void ProcessDiscoveryWithDifferentDiscoverersSameSiteApplications()
         {
             var fix = new Fixture();
-            var discoverer2 = PublisherModelEx.CreatePublisherId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
 
             // Readjust existing to be reported from different Discoverer...
             CreateFixtures(out var site, out var discoverer, out var supervisor,
@@ -199,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         public void ProcessOneDiscoveryWithDifferentDiscoverersFromExisting()
         {
             var fix = new Fixture();
-            var discoverer2 = PublisherModelEx.CreatePublisherId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
 
             // Readjust existing to be reported from different Discoverer...
             CreateFixtures(out var site, out var discoverer, out var supervisor,
@@ -229,7 +225,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         public void ProcessDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled()
         {
             var fix = new Fixture();
-            var discoverer2 = PublisherModelEx.CreatePublisherId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
 
             // Readjust existing to be reported from different Discoverer...
             CreateFixtures(out var site, out var discoverer, out var supervisor,
@@ -263,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         public void ProcessOneDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled()
         {
             var fix = new Fixture();
-            var discoverer2 = PublisherModelEx.CreatePublisherId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
 
             // Readjust existing to be reported from different Discoverer...
             CreateFixtures(out var site, out var discoverer, out var supervisor,
@@ -299,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         public void ProcessDiscoveryWithNoResultsWithDifferentDiscoverersFromExisting()
         {
             var fix = new Fixture();
-            var discoverer2 = PublisherModelEx.CreatePublisherId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
 
             // Readjust existing to be reported from different Discoverer...
             CreateFixtures(out var site, out var discoverer, out var supervisor,
@@ -377,11 +373,11 @@ namespace Azure.IIoT.OpcUa.Services.Registry
                 Assert.Equal(count, registry.Devices.Count());
                 var disabled = registry.Devices.Count(d =>
                 {
-                    if (!d.Twin.Tags.ContainsKey("IsDisabled"))
+                    if (!d.Tags.ContainsKey("IsDisabled"))
                     {
                         return false;
                     }
-                    return (bool?)d.Twin.Tags["IsDisabled"] == true;
+                    return (bool?)d.Tags["IsDisabled"] == true;
                 });
                 Assert.Equal(count - (inreg.Count * 2) - 1, disabled);
             }
@@ -393,7 +389,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// <param name="mock"></param>
         /// <param name="registry"></param>
         /// <param name="processor"></param>
-        private static AutoMock Setup(IoTHubServices registry, out IDiscoveryResultProcessor processor)
+        private static AutoMock Setup(IoTHubMock registry, out IDiscoveryResultProcessor processor)
         {
             var mock = AutoMock.GetLoose(builder =>
             {
@@ -415,10 +411,9 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// </summary>
         /// <param name="registry"></param>
         /// <returns></returns>
-        private static List<ApplicationRegistrationModel> ApplicationsIn(IoTHubServices registry)
+        private static List<ApplicationRegistrationModel> ApplicationsIn(IoTHubMock registry)
         {
             var registrations = registry.Devices
-                .Select(d => d.Twin)
                 .Select(t => t.ToEntityRegistration())
                 .ToList();
             var endpoints = registrations
@@ -455,7 +450,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         private void CreateFixtures(out string site, out string discoverer,
             out string supervisor, out string publisher, out string gateway,
             out List<ApplicationRegistrationModel> existing, out List<DiscoveryEventModel> found,
-            out IoTHubServices registry, int countDevices = -1,
+            out IoTHubMock registry, int countDevices = -1,
             Func<ApplicationRegistrationModel, ApplicationRegistrationModel> fixup = null,
             bool disable = false)
         {
@@ -471,36 +466,32 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             var sitex = site = fixture.Create<string>();
 
             gateway = fixture.Create<string>();
-            var Gateway = (new GatewayModel
+            var Gateway = new GatewayModel
             {
                 SiteId = site,
                 Id = gateway
-            }.ToGatewayRegistration().ToDeviceTwin(),
-                    new DeviceModel { Id = gateway });
+            }.ToGatewayRegistration().ToDeviceTwin();
             var module = fixture.Create<string>();
-            var discovererx = discoverer = PublisherModelEx.CreatePublisherId(gateway, module);
-            var Discoverer = (new DiscovererModel
+            var discovererx = discoverer = HubResource.Format(null, gateway, module);
+            var Discoverer = new DiscovererModel
             {
                 SiteId = site,
                 Id = discovererx
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
-                    new DeviceModel { Id = gateway, ModuleId = module });
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
             module = fixture.Create<string>();
-            var supervisorx = supervisor = PublisherModelEx.CreatePublisherId(gateway, module);
-            var Supervisor = (new SupervisorModel
+            var supervisorx = supervisor = HubResource.Format(null, gateway, module);
+            var Supervisor = new SupervisorModel
             {
                 SiteId = site,
                 Id = supervisorx
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
-                    new DeviceModel { Id = gateway, ModuleId = module });
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
             module = fixture.Create<string>();
-            var publisherx = publisher = PublisherModelEx.CreatePublisherId(gateway, module);
-            var Publisher = (new PublisherModel
+            var publisherx = publisher = HubResource.Format(null, gateway, module);
+            var Publisher = new PublisherModel
             {
                 SiteId = site,
                 Id = publisherx
-            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
-                    new DeviceModel { Id = gateway, ModuleId = module });
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer);
 
             var template = fixture
                 .Build<ApplicationRegistrationModel>()
@@ -546,8 +537,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             // and fill registry with them...
             var appdevices = existing
                 .Select(a => a.Application.ToApplicationRegistration(disable))
-                .Select(a => a.ToDeviceTwin(_serializer))
-                .Select(d => (d, new DeviceModel { Id = d.Id }));
+                .Select(a => a.ToDeviceTwin(_serializer));
             var epdevices = existing
                 .SelectMany(a => a.Endpoints
                     .Select(e =>
@@ -556,18 +546,17 @@ namespace Azure.IIoT.OpcUa.Services.Registry
                             ApplicationId = a.Application.ApplicationId,
                             Registration = e
                         }.ToEndpointRegistration(disable))
-                .Select(e => e.ToDeviceTwin(_serializer)))
-                .Select(d => (d, new DeviceModel { Id = d.Id }));
+                .Select(e => e.ToDeviceTwin(_serializer)));
             appdevices = appdevices.Concat(epdevices);
             if (countDevices != -1)
             {
                 appdevices = appdevices.Take(countDevices);
             }
-            registry = IoTHubServices.Create(appdevices
+            registry = IoTHubMock.Create(appdevices
                 .Concat(Gateway.YieldReturn())
                 .Concat(Discoverer.YieldReturn())
                 .Concat(Supervisor.YieldReturn())
-                .Concat(Publisher.YieldReturn()));
+                .Concat(Publisher.YieldReturn()), _serializer);
         }
 
         private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();

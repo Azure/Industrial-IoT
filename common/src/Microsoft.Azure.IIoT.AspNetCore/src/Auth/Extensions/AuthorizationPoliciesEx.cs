@@ -88,9 +88,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth
                 if (allowAnonymousAccess || providers.Length == 0)
                 {
                     // No schemes configured - require nothing in terms of authorization
-                    configure = (n, builder, p) => builder.RequireAssertion(ctx => true);
+                    configure = (_, builder, _) => builder.RequireAssertion(_ => true);
                 }
-                else configure ??= (n, builder, p) => builder.RequireAuthenticatedUser();
+                else
+                {
+                    configure ??= (_, builder, _) => builder.RequireAuthenticatedUser();
+                }
 
                 return new ConfigureNamedOptions<AuthorizationOptions>(Options.DefaultName, options =>
                 {

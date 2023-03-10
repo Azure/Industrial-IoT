@@ -28,21 +28,21 @@ namespace Azure.IIoT.OpcUa.Services.Clients.Adapters
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseFirstResponseModel> BrowseFirstAsync(ConnectionModel connection,
+        public async Task<BrowseFirstResponseModel> BrowseFirstAsync(ConnectionModel endpoint,
             BrowseFirstRequestModel request, CancellationToken ct)
         {
-            return await _client.NodeBrowseFirstAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.NodeBrowseFirstAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseNextResponseModel> BrowseNextAsync(ConnectionModel connection,
+        public async Task<BrowseNextResponseModel> BrowseNextAsync(ConnectionModel endpoint,
             BrowseNextRequestModel request, CancellationToken ct)
         {
-            return await _client.NodeBrowseNextAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.NodeBrowseNextAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public IAsyncEnumerable<BrowseStreamChunkModel> BrowseAsync(ConnectionModel connection,
+        public IAsyncEnumerable<BrowseStreamChunkModel> BrowseAsync(ConnectionModel endpoint,
             BrowseStreamRequestModel request, CancellationToken ct = default)
         {
             // TODO
@@ -50,104 +50,104 @@ namespace Azure.IIoT.OpcUa.Services.Clients.Adapters
         }
 
         /// <inheritdoc/>
-        public async Task<BrowsePathResponseModel> BrowsePathAsync(ConnectionModel connection,
+        public async Task<BrowsePathResponseModel> BrowsePathAsync(ConnectionModel endpoint,
             BrowsePathRequestModel request, CancellationToken ct)
         {
-            return await _client.NodeBrowsePathAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.NodeBrowsePathAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<ValueReadResponseModel> ValueReadAsync(ConnectionModel connection,
+        public async Task<ValueReadResponseModel> ValueReadAsync(ConnectionModel endpoint,
             ValueReadRequestModel request, CancellationToken ct)
         {
-            return await _client.NodeValueReadAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.NodeValueReadAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<ValueWriteResponseModel> ValueWriteAsync(ConnectionModel connection,
+        public async Task<ValueWriteResponseModel> ValueWriteAsync(ConnectionModel endpoint,
             ValueWriteRequestModel request, CancellationToken ct)
         {
-            return await _client.NodeValueWriteAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.NodeValueWriteAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<MethodMetadataResponseModel> GetMethodMetadataAsync(ConnectionModel connection,
+        public async Task<MethodMetadataResponseModel> GetMethodMetadataAsync(ConnectionModel endpoint,
             MethodMetadataRequestModel request, CancellationToken ct)
         {
-            return await _client.NodeMethodGetMetadataAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.NodeMethodGetMetadataAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<MethodCallResponseModel> MethodCallAsync(ConnectionModel connection,
+        public async Task<MethodCallResponseModel> MethodCallAsync(ConnectionModel endpoint,
             MethodCallRequestModel request, CancellationToken ct)
         {
-            return await _client.NodeMethodCallAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.NodeMethodCallAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<ReadResponseModel> ReadAsync(ConnectionModel connection,
+        public async Task<ReadResponseModel> ReadAsync(ConnectionModel endpoint,
             ReadRequestModel request, CancellationToken ct)
         {
-            return await _client.NodeReadAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.NodeReadAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<WriteResponseModel> WriteAsync(ConnectionModel connection,
+        public async Task<WriteResponseModel> WriteAsync(ConnectionModel endpoint,
             WriteRequestModel request, CancellationToken ct)
         {
-            return await _client.NodeWriteAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.NodeWriteAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(ConnectionModel connection,
+        public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(ConnectionModel endpoint,
             CancellationToken ct)
         {
-            return await _client.GetServerCapabilitiesAsync(connection, ct).ConfigureAwait(false);
+            return await _client.GetServerCapabilitiesAsync(endpoint, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<NodeMetadataResponseModel> GetMetadataAsync(ConnectionModel connection,
+        public async Task<NodeMetadataResponseModel> GetMetadataAsync(ConnectionModel endpoint,
             NodeMetadataRequestModel request, CancellationToken ct)
         {
-            return await _client.GetMetadataAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.GetMetadataAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            ConnectionModel connection, CancellationToken ct)
+            ConnectionModel endpoint, CancellationToken ct)
         {
-            return await _client.HistoryGetServerCapabilitiesAsync(connection, ct).ConfigureAwait(false);
+            return await _client.HistoryGetServerCapabilitiesAsync(endpoint, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
-            ConnectionModel connection, HistoryConfigurationRequestModel request, CancellationToken ct)
+            ConnectionModel endpoint, HistoryConfigurationRequestModel request, CancellationToken ct)
         {
-            return await _client.HistoryGetConfigurationAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.HistoryGetConfigurationAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
-            ConnectionModel connection, HistoryReadRequestModel<VariantValue> request,
+            ConnectionModel endpoint, HistoryReadRequestModel<VariantValue> request,
             CancellationToken ct)
         {
-            return await _client.HistoryReadAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.HistoryReadAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
-            ConnectionModel connection, HistoryReadNextRequestModel request,
+            ConnectionModel endpoint, HistoryReadNextRequestModel request,
             CancellationToken ct)
         {
-            return await _client.HistoryReadNextAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.HistoryReadNextAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request,
+            ConnectionModel endpoint, HistoryUpdateRequestModel<VariantValue> request,
             CancellationToken ct)
         {
-            return await _client.HistoryUpdateAsync(connection, request, ct).ConfigureAwait(false);
+            return await _client.HistoryUpdateAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         private readonly ITwinApi _client;

@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using FluentAssertions;
-    using Microsoft.Azure.IIoT.Abstractions;
     using System;
     using Xunit;
 
@@ -18,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
     {
         public PublisherCliTests()
         {
-            Environment.SetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID, "deviceId");
+            Environment.SetEnvironmentVariable("IOTEDGE_DEVICEID", "deviceId");
         }
 
         /// <summary>

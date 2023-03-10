@@ -40,6 +40,8 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Processes an incoming value.
         /// </summary>
+        /// <param name="value"></param>
+        /// <param name="result"></param>
         /// <remarks>
         /// Returns a set of processed data values if any intervals are complete.
         /// </remarks>
@@ -48,6 +50,7 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Processes the fact that there is no more data.
         /// </summary>
+        /// <param name="result"></param>
         /// <remarks>
         /// Returns a set of processed data values if any intervals is remain to be processed.
         /// </remarks>

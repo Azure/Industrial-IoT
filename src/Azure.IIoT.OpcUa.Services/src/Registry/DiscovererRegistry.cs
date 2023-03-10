@@ -7,9 +7,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 {
     using Azure.IIoT.OpcUa.Services.Registry.Models;
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Azure;
+    using Furly.Azure.IoT;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
-    using Furly.Azure.IoT;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -47,7 +48,11 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-            var deviceId = PublisherModelEx.ParseDeviceId(discovererId, out var moduleId);
+            if (!HubResource.Parse(discovererId, out _, out var deviceId, out var moduleId,
+                out var error))
+            {
+                throw new ArgumentException(error, nameof(discovererId));
+            }
             var device = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
             if (device.ToEntityRegistration() is not PublisherRegistration registration)
             {
@@ -69,9 +74,11 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             {
                 throw new ArgumentNullException(nameof(discovererId));
             }
-
-            // Get existing endpoint and compare to see if we need to patch.
-            var deviceId = PublisherModelEx.ParseDeviceId(discovererId, out var moduleId);
+            if (!HubResource.Parse(discovererId, out _, out var deviceId, out var moduleId,
+                out var error))
+            {
+                throw new ArgumentException(error, nameof(discovererId));
+            }
 
             while (true)
             {
@@ -137,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             string continuation, int? pageSize, CancellationToken ct)
         {
             const string query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}' " +
+                $"properties.reported.{OpcUa.Constants.TwinPropertyTypeKey} = '{Constants.EntityTypePublisher}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
             return new DiscovererListModel
@@ -164,13 +171,13 @@ namespace Azure.IIoT.OpcUa.Services.Registry
             }
 
             var sql = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Publisher}'";
+                $"properties.reported.{OpcUa.Constants.TwinPropertyTypeKey} = '{Constants.EntityTypePublisher}'";
 
             if (query?.SiteId != null)
             {
                 // If site id provided, include it in search
-                sql += $"AND (properties.reported.{TwinProperty.SiteId} = " +
-                    $"'{query.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
+                sql += $"AND (properties.reported.{OpcUa.Constants.TwinPropertySiteKey} = " +
+                    $"'{query.SiteId}' OR properties.desired.{OpcUa.Constants.TwinPropertySiteKey} = " +
                     $"'{query.SiteId}' OR deviceId ='{query.SiteId}') ";
             }
             if (query?.Connected != null)

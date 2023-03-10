@@ -122,11 +122,12 @@ Operations (Mutually exclusive):
         /// <param name="ports"></param>
         private static async Task RunServerAsync(IEnumerable<int> ports)
         {
-            var logger = StackLogger.Create(Log.Console<StackLogger>());
+            var loggerFactory = Log.ConsoleFactory();
+            var logger = StackLogger.Create(loggerFactory.CreateLogger<StackLogger>());
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-            using (var server = new ServerConsoleHost(new ServerFactory(logger.Logger),
-                logger.Logger)
+            using (var server = new ServerConsoleHost(new ServerFactory(loggerFactory.CreateLogger<ServerFactory>()),
+                loggerFactory.CreateLogger<ServerConsoleHost>())
             {
                 AutoAccept = true
             })

@@ -31,7 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="config"></param>
-        public PublisherDiagnosticCollector(ILogger logger, IEngineConfiguration config = null)
+        public PublisherDiagnosticCollector(ILogger<PublisherDiagnosticCollector> logger,
+            IEngineConfiguration config = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 

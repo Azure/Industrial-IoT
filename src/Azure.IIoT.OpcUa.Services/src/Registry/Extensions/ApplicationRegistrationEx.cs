@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Azure.IIoT.OpcUa.Models;
+    using Furly.Azure;
     using Furly.Azure.IoT.Models;
     using Furly.Extensions.Serializers;
     using System;
@@ -428,6 +429,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static string GetSiteOrGatewayId(this ApplicationRegistration registration)
         {
             if (registration == null)
@@ -438,9 +440,10 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
             if (siteOrGatewayId == null)
             {
                 var id = registration?.DiscovererId;
-                if (id != null)
+                if (id != null &&
+                    !HubResource.Parse(id, out _, out siteOrGatewayId, out _, out var error))
                 {
-                    siteOrGatewayId = PublisherModelEx.ParseDeviceId(id, out _);
+                    throw new ArgumentException(error, nameof(registration));
                 }
             }
             return siteOrGatewayId;

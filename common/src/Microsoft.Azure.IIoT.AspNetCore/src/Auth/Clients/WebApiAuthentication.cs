@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Autofac;
 
     /// <summary>

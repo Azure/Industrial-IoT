@@ -6,9 +6,8 @@
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Azure.IIoT.OpcUa.Models;
-    using Furly.Extensions.Serializers;
-    using Furly.Azure.IoT;
     using Furly.Azure.IoT.Models;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
 
@@ -50,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
 
             if (update?.SiteId != existing?.SiteId)
             {
-                tags.Add(TwinProperty.SiteId, update?.SiteId);
+                tags.Add(OpcUa.Constants.TwinPropertySiteKey, update?.SiteId);
             }
 
             tags.Add(nameof(GatewayRegistration.DeviceType), update?.DeviceType);
@@ -93,13 +92,13 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 // Tags
 
                 IsDisabled =
-                    tags.GetValueOrDefault<bool>(nameof(GatewayRegistration.IsDisabled), null),
+                    tags.GetValueOrDefault(nameof(GatewayRegistration.IsDisabled), (bool?)null),
                 NotSeenSince =
-                    tags.GetValueOrDefault<DateTime>(nameof(GatewayRegistration.NotSeenSince), null),
+                    tags.GetValueOrDefault(nameof(GatewayRegistration.NotSeenSince), (DateTime?)null),
                 Type =
-                    tags.GetValueOrDefault<string>(TwinProperty.Type, null),
+                    tags.GetValueOrDefault(OpcUa.Constants.TwinPropertyTypeKey, (string)null),
                 SiteId =
-                    tags.GetValueOrDefault<string>(TwinProperty.SiteId, null)
+                    tags.GetValueOrDefault(OpcUa.Constants.TwinPropertySiteKey, (string)null)
 
                 // Properties
             };
@@ -179,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
             {
                 Id = registration.DeviceId,
                 SiteId = registration.SiteId,
-                Connected = registration.IsConnected() ? true : (bool?)null
+                Connected = registration.IsConnected() ? true : null
             };
         }
     }

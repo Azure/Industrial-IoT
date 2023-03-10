@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create stack logger
         /// </summary>
         /// <param name="logger"></param>
-        public StackLogger(ILogger logger)
+        public StackLogger(ILogger<StackLogger> logger)
         {
             Logger = logger;
         }
@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="logger"></param>
         /// <returns></returns>
-        public static StackLogger Create(ILogger logger)
+        public static StackLogger Create(ILogger<StackLogger> logger)
         {
             var stackLogger = new StackLogger(logger);
             stackLogger.Start();

@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.HistoricalEvents.Tests
         {
             return new NodeHistoricalEventsTests<ConnectionModel>(
                 () => new NodeServices<ConnectionModel>(_server.Client,
-                    _output.BuildLogger()), _server.GetConnection());
+                    _output.BuildLoggerFor<NodeServices<ConnectionModel>>()), _server.GetConnection());
         }
 
         private readonly HistoricalEventsServer _server;

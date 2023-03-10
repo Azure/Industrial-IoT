@@ -6,8 +6,9 @@
 namespace Azure.IIoT.OpcUa.Services.Registry.Models
 {
     using Azure.IIoT.OpcUa.Models;
-    using Furly.Extensions.Serializers;
+    using Furly.Azure;
     using Furly.Azure.IoT.Models;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
 
@@ -66,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
 
             if (update?.SiteId != existing?.SiteId)
             {
-                desired.Add(TwinProperty.SiteId, update?.SiteId);
+                desired.Add(OpcUa.Constants.TwinPropertySiteKey, update?.SiteId);
             }
 
             tags.Add(nameof(PublisherRegistration.DeviceType), update?.DeviceType);
@@ -109,20 +110,20 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
                 // Tags
 
                 IsDisabled =
-                    tags.GetValueOrDefault<bool>(nameof(PublisherRegistration.IsDisabled), null),
+                    tags.GetValueOrDefault(nameof(PublisherRegistration.IsDisabled), (bool?)null),
                 NotSeenSince =
-                    tags.GetValueOrDefault<DateTime>(nameof(PublisherRegistration.NotSeenSince), null),
+                    tags.GetValueOrDefault(nameof(PublisherRegistration.NotSeenSince), (DateTime?)null),
 
                 // Properties
 
                 LogLevel =
-                    properties.GetValueOrDefault<TraceLogLevel>(nameof(PublisherRegistration.LogLevel), null),
+                    properties.GetValueOrDefault(nameof(PublisherRegistration.LogLevel), (TraceLogLevel?)null),
                 SiteId =
-                    properties.GetValueOrDefault<string>(TwinProperty.SiteId, null),
+                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertySiteKey, (string)null),
                 Version =
-                    properties.GetValueOrDefault<string>(TwinProperty.Version, null),
+                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertyVersionKey, (string)null),
                 Type =
-                    properties.GetValueOrDefault<string>(TwinProperty.Type, null)
+                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertyTypeKey, (string)null)
             };
         }
 
@@ -199,7 +200,9 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="disabled"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException"></exception>
         public static PublisherRegistration ToPublisherRegistration(
             this PublisherModel model, bool? disabled = null)
         {
@@ -207,8 +210,11 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
             {
                 throw new ArgumentNullException(nameof(model));
             }
-            var deviceId = PublisherModelEx.ParseDeviceId(model.Id,
-                out var moduleId);
+            if (!HubResource.Parse(model.Id, out _, out var deviceId,
+                out var moduleId, out var error))
+            {
+                throw new ArgumentException(error, nameof(model));
+            }
             return new PublisherRegistration
             {
                 IsDisabled = disabled,
@@ -226,7 +232,9 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="disabled"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException"></exception>
         public static PublisherRegistration ToPublisherRegistration(
             this SupervisorModel model, bool? disabled = null)
         {
@@ -234,8 +242,11 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
             {
                 throw new ArgumentNullException(nameof(model));
             }
-            var deviceId = PublisherModelEx.ParseDeviceId(model.Id,
-                out var moduleId);
+            if (!HubResource.Parse(model.Id, out _, out var deviceId,
+                out var moduleId, out var error))
+            {
+                throw new ArgumentException(error, nameof(model));
+            }
             return new PublisherRegistration
             {
                 IsDisabled = disabled,
@@ -253,7 +264,9 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="disabled"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="model"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException"></exception>
         public static PublisherRegistration ToPublisherRegistration(
             this DiscovererModel model, bool? disabled = null)
         {
@@ -261,8 +274,11 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
             {
                 throw new ArgumentNullException(nameof(model));
             }
-            var deviceId = PublisherModelEx.ParseDeviceId(model.Id,
-                out var moduleId);
+            if (!HubResource.Parse(model.Id, out _, out var deviceId,
+                out var moduleId, out var error))
+            {
+                throw new ArgumentException(error, nameof(model));
+            }
             return new PublisherRegistration
             {
                 IsDisabled = disabled,
@@ -288,12 +304,12 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
             }
             return new PublisherModel
             {
-                Id = PublisherModelEx.CreatePublisherId(registration.DeviceId, registration.ModuleId),
+                Id = HubResource.Format(null, registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
                 LogLevel = registration.LogLevel,
                 Version = registration.Version,
-                Connected = registration.IsConnected() ? true : (bool?)null,
-                OutOfSync = registration.IsConnected() && !registration._isInSync ? true : (bool?)null
+                Connected = registration.IsConnected() ? true : null,
+                OutOfSync = registration.IsConnected() && !registration._isInSync ? true : null
             };
         }
 
@@ -310,12 +326,12 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
             }
             return new SupervisorModel
             {
-                Id = PublisherModelEx.CreatePublisherId(registration.DeviceId, registration.ModuleId),
+                Id = HubResource.Format(null, registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
                 LogLevel = registration.LogLevel,
                 Version = registration.Version,
-                Connected = registration.IsConnected() ? true : (bool?)null,
-                OutOfSync = registration.IsConnected() && !registration._isInSync ? true : (bool?)null
+                Connected = registration.IsConnected() ? true : null,
+                OutOfSync = registration.IsConnected() && !registration._isInSync ? true : null
             };
         }
 
@@ -333,15 +349,15 @@ namespace Azure.IIoT.OpcUa.Services.Registry.Models
             return new DiscovererModel
             {
                 Discovery = DiscoveryMode.Off,
-                Id = PublisherModelEx.CreatePublisherId(registration.DeviceId, registration.ModuleId),
+                Id = HubResource.Format(null, registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
                 Version = registration.Version,
                 LogLevel = registration.LogLevel,
                 DiscoveryConfig = null,
                 RequestedMode = null,
                 RequestedConfig = null,
-                Connected = registration.IsConnected() ? true : (bool?)null,
-                OutOfSync = registration.IsConnected() && !registration._isInSync ? true : (bool?)null
+                Connected = registration.IsConnected() ? true : null,
+                OutOfSync = registration.IsConnected() && !registration._isInSync ? true : null
             };
         }
 

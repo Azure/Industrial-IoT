@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// Console host for servers
     /// </summary>
-    public class ServerConsoleHost : IServerHost
+    public sealed class ServerConsoleHost : IServerHost
     {
         /// <inheritdoc/>
         public X509Certificate2 Certificate { get; private set; }
@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="logger"></param>
-        public ServerConsoleHost(IServerFactory factory, ILogger logger)
+        public ServerConsoleHost(IServerFactory factory, ILogger<ServerConsoleHost> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));

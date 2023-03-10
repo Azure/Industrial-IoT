@@ -428,10 +428,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                         case State.Disposed:
                             // Stay in error state or disposed - this should not happen.
                             return true;
-                        case State.Begin:
                         // Unexpected.
+                        // case State.Begin:
                         default:
-                            throw new InvalidProgramException("Unexpected");
+                            throw new InvalidProgramException($"Unexpected state {_state}.");
                     }
                 }
                 catch

@@ -103,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
             Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
-            Assert.All(result.Results, r => Assert.Equal((int)expected, (int)r.Value));
+            Assert.All(result.Results, r => Assert.Equal(expected, (int)r.Value));
         }
 
         public async Task NodeReadAllStaticArrayVariableWriteMaskTest1Async()

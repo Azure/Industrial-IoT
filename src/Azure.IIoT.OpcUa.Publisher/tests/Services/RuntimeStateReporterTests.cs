@@ -3,19 +3,20 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Tests.State
+namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
 {
-    using Azure.IIoT.OpcUa.Publisher.State;
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using FluentAssertions;
+    using Furly;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Messaging;
     using Moq;
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
             var _client = new Mock<IEventClient>();
 
             IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
-            var _config = new Mock<IRuntimeStateReporterConfiguration>();
+            var _config = new Mock<IPublisherConfiguration>();
             // This will disable state reporting.
             _config.Setup(c => c.EnableRuntimeStateReporting).Returns(false);
 
@@ -43,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
             );
 
             await FluentActions
-                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync().ConfigureAwait(false))
+                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default).ConfigureAwait(false))
                 .Should()
                 .NotThrowAsync()
                 .ConfigureAwait(false);
@@ -58,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
             _clientAccessorMock.Setup(m => m.CreateEvent()).Throws<IOException>();
 
             IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
-            var _config = new Mock<IRuntimeStateReporterConfiguration>();
+            var _config = new Mock<IPublisherConfiguration>();
             _config.Setup(c => c.EnableRuntimeStateReporting).Returns(true);
 
             var _logger = Log.Console<RuntimeStateReporter>();
@@ -70,12 +71,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
                 _logger
             );
 
-            await runtimeStateReporter.SendRestartAnnouncementAsync().ConfigureAwait(false);
-
             await FluentActions
-                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync().ConfigureAwait(false))
+                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default).ConfigureAwait(false))
                 .Should()
-                .NotThrowAsync()
+                .ThrowAsync<Exception>()
                 .ConfigureAwait(false);
         }
 
@@ -99,8 +98,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
             var contentEncoding = string.Empty;
             var routingInfo = string.Empty;
             IReadOnlyList<ReadOnlyMemory<byte>> buffers = null;
-            _message.Setup(c => c.AddProperty(It.Is<string>(v => v == "RoutingInfo"), It.IsAny<string>()))
-                .Callback<string>(v => routingInfo = v)
+            _message.Setup(c => c.AddProperty(It.IsAny<string>(), It.IsAny<string>()))
+                .Callback<string, string>((k, v) =>
+                {
+                    if (k == Constants.MessagePropertyRoutingKey)
+                    {
+                        routingInfo = v;
+                    }
+                })
                 .Returns(_message.Object);
             _message.Setup(c => c.SetContentType(It.IsAny<string>()))
                 .Callback<string>(v => contentType = v)
@@ -108,13 +113,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
             _message.Setup(c => c.SetContentEncoding(It.IsAny<string>()))
                 .Callback<string>(v => contentEncoding = v)
                 .Returns(_message.Object);
-            _message.Setup(c => c.AddBuffers(It.IsAny<IReadOnlyList<ReadOnlyMemory<byte>>>()))
-                .Callback<IReadOnlyList<ReadOnlyMemory<byte>>>(v => buffers = v)
+            _message.Setup(c => c.AddBuffers(It.IsAny<IEnumerable<ReadOnlyMemory<byte>>>()))
+                .Callback<IEnumerable<ReadOnlyMemory<byte>>>(v => buffers = v.ToList())
+                .Returns(_message.Object);
+            _message.Setup(c => c.SetTopic(It.IsAny<string>()))
                 .Returns(_message.Object);
 
             IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
-            var _config = new Mock<IRuntimeStateReporterConfiguration>();
+            var _config = new Mock<IPublisherConfiguration>();
             _config.Setup(c => c.EnableRuntimeStateReporting).Returns(true);
+            _config.Setup(c => c.RuntimeStateRoutingInfo).Returns("runtimeinfo");
 
             var _logger = Log.Console<RuntimeStateReporter>();
 
@@ -126,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
             );
 
             await FluentActions
-                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync().ConfigureAwait(false))
+                .Invoking(async () => await runtimeStateReporter.SendRestartAnnouncementAsync(default).ConfigureAwait(false))
                 .Should()
                 .NotThrowAsync()
                 .ConfigureAwait(false);
@@ -135,8 +143,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State
             _message.Verify(m => m.Dispose(), Times.Once());
 
             Assert.Equal("runtimeinfo", routingInfo);
-            Assert.Equal("application/json", contentType);
-            Assert.Equal("utf-8", contentEncoding);
+            Assert.Equal(ContentMimeType.Json, contentType);
+            Assert.Equal(Encoding.UTF8.WebName, contentEncoding);
 
             Assert.Equal(1, buffers.Count);
             var body = Encoding.UTF8.GetString(buffers[0].Span);

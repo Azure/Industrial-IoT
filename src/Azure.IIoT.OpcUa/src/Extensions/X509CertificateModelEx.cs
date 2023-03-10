@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Models
                 SerialNumber = cert.GetSerialNumberString(),
                 Subject = cert.Subject,
                 Thumbprint = cert.Thumbprint,
-                SelfSigned = IsSelfIssued(cert) ? true : (bool?)null
+                SelfSigned = IsSelfIssued(cert) ? true : null
             };
         }
 

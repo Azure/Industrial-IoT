@@ -5,8 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
+    using Autofac.Extensions.DependencyInjection;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Hosting;
     using System;
     using System.Diagnostics;
     using System.IO;
@@ -24,17 +27,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <param name="args"></param>
         public static void Main(string[] args)
         {
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true)
-                .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddFromDotEnvFile()
-                .AddCommandLine(args)
-                .AddInMemoryCollection(new PublisherCliOptions(args))
-                // making sure the arguments are processed last so they are not overriden
-                .Build();
-
 #if DEBUG
             if (args.Any(a => a.Contains("wfd", StringComparison.InvariantCultureIgnoreCase) ||
                     a.Contains("waitfordebugger", StringComparison.InvariantCultureIgnoreCase)))
@@ -47,9 +39,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 Console.WriteLine("Debugger attached.");
             }
 #endif
+            CreateHostBuilder(args).Build().Run();
+        }
 
-            var module = new ModuleProcess(config);
-            module.StartAsync(default).GetAwaiter().GetResult();
+        /// <summary>
+        /// Create host builder
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            return Host.CreateDefaultBuilder(args)
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .ConfigureHostConfiguration(builder => builder
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", true)
+                    .AddEnvironmentVariables()
+                    .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                    .AddFromDotEnvFile()
+                    .AddInMemoryCollection(new PublisherCliOptions(args)))
+                .ConfigureWebHostDefaults(builder => builder
+                    .UseUrls("http://*:9702")
+                    .UseStartup<Startup>()
+                    .UseKestrel(o => o.AddServerHeader = false));
         }
     }
 }

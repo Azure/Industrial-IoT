@@ -36,10 +36,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(
-            T connectionId, HistoryUpdateRequestModel<DeleteEventsDetailsModel> request,
+            T endpoint, HistoryUpdateRequestModel<DeleteEventsDetailsModel> request,
             CancellationToken ct)
         {
-            return _services.HistoryUpdateAsync(connectionId, request,
+            return _services.HistoryUpdateAsync(endpoint, request,
                 (nodeId, details, _) =>
                 {
                     if (details.EventIds == null || details.EventIds.Count == 0)
@@ -56,10 +56,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(
-            T connectionId, HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request,
+            T endpoint, HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request,
             CancellationToken ct)
         {
-            return _services.HistoryUpdateAsync(connectionId, request,
+            return _services.HistoryUpdateAsync(endpoint, request,
                 (nodeId, details, _) =>
                 {
                     if (details.ReqTimes == null || details.ReqTimes.Count == 0)
@@ -76,10 +76,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
-            T connectionId, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
+            T endpoint, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct)
         {
-            return _services.HistoryUpdateAsync(connectionId, request,
+            return _services.HistoryUpdateAsync(endpoint, request,
                 (nodeId, details, _) =>
                 {
                     if (details.EndTime == null && details.StartTime == null)
@@ -99,10 +99,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(
-            T connectionId, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
+            T endpoint, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct)
         {
-            return _services.HistoryUpdateAsync(connectionId, request, (nodeId, details, _) =>
+            return _services.HistoryUpdateAsync(endpoint, request, (nodeId, details, _) =>
             {
                 if (details.EndTime == null && details.StartTime == null)
                 {
@@ -121,10 +121,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
-            T connectionId, HistoryReadRequestModel<ReadEventsDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadEventsDetailsModel> request,
             CancellationToken ct)
         {
-            return _services.HistoryReadAsync(connectionId, request, (details, session) =>
+            return _services.HistoryReadAsync(endpoint, request, (details, session) =>
             {
                 if (details.EndTime == null && details.StartTime == null)
                 {
@@ -149,17 +149,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
-            T connectionId, HistoryReadNextRequestModel request, CancellationToken ct)
+            T endpoint, HistoryReadNextRequestModel request, CancellationToken ct)
         {
-            return _services.HistoryReadNextAsync(connectionId, request, DecodeEvents, ct);
+            return _services.HistoryReadNextAsync(endpoint, request, DecodeEvents, ct);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
-            T connectionId, HistoryReadRequestModel<ReadValuesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadValuesDetailsModel> request,
             CancellationToken ct)
         {
-            return await _services.HistoryReadAsync(connectionId, request, (details, _) =>
+            return await _services.HistoryReadAsync(endpoint, request, (details, _) =>
             {
                 if (details.EndTime == null && details.StartTime == null)
                 {
@@ -185,10 +185,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
-            T connectionId, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
             CancellationToken ct)
         {
-            return _services.HistoryReadAsync(connectionId, request, (details, _) =>
+            return _services.HistoryReadAsync(endpoint, request, (details, _) =>
             {
                 if (details.ReqTimes == null || details.ReqTimes.Count == 0)
                 {
@@ -204,10 +204,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
-            T connectionId, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
             CancellationToken ct)
         {
-            return _services.HistoryReadAsync(connectionId, request, (details, session) =>
+            return _services.HistoryReadAsync(endpoint, request, (details, session) =>
             {
                 if (details.EndTime == null && details.StartTime == null)
                 {
@@ -217,7 +217,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var aggregateType = details.AggregateType;
                 if (aggregateType != null)
                 {
-                    var capabilities = session.GetHistoryCapabilitiesAsync(ct).Result;
+                    // TODO: Should be async!
+                    var capabilities = session.GetHistoryCapabilitiesAsync(ct).AsTask().Result;
                     if (capabilities?.AggregateFunctions != null &&
                         capabilities.AggregateFunctions.TryGetValue(aggregateType, out var id))
                     {
@@ -240,10 +241,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
-            T connectionId, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
             CancellationToken ct)
         {
-            return _services.HistoryReadAsync(connectionId, request, (details, _) =>
+            return _services.HistoryReadAsync(endpoint, request, (details, _) =>
             {
                 if (details.EndTime == null && details.StartTime == null)
                 {
@@ -268,66 +269,66 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
-            T connectionId, HistoryReadNextRequestModel request, CancellationToken ct)
+            T endpoint, HistoryReadNextRequestModel request, CancellationToken ct)
         {
-            return _services.HistoryReadNextAsync(connectionId, request, DecodeValues, ct);
+            return _services.HistoryReadNextAsync(endpoint, request, DecodeValues, ct);
         }
 
         /// <inheritdoc/>
-        public Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(T connectionId,
+        public Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
         {
-            return HistoryUpdateEventsAsync(connectionId, request, PerformUpdateType.Replace, ct);
+            return HistoryUpdateEventsAsync(endpoint, request, PerformUpdateType.Replace, ct);
         }
 
         /// <inheritdoc/>
-        public Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(T connectionId,
+        public Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
         {
-            return HistoryUpdateValuesAsync(connectionId, request, PerformUpdateType.Replace, ct);
+            return HistoryUpdateValuesAsync(endpoint, request, PerformUpdateType.Replace, ct);
         }
 
         /// <inheritdoc/>
-        public Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(T connectionId,
+        public Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
         {
-            return HistoryUpdateEventsAsync(connectionId, request, PerformUpdateType.Insert, ct);
+            return HistoryUpdateEventsAsync(endpoint, request, PerformUpdateType.Insert, ct);
         }
 
         /// <inheritdoc/>
-        public Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(T connectionId,
+        public Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
         {
-            return HistoryUpdateValuesAsync(connectionId, request, PerformUpdateType.Insert, ct);
+            return HistoryUpdateValuesAsync(endpoint, request, PerformUpdateType.Insert, ct);
         }
 
         /// <inheritdoc/>
-        public Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(T connectionId,
+        public Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct)
         {
-            return HistoryUpdateEventsAsync(connectionId, request, PerformUpdateType.Update, ct);
+            return HistoryUpdateEventsAsync(endpoint, request, PerformUpdateType.Update, ct);
         }
 
         /// <inheritdoc/>
-        public Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(T connectionId,
+        public Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(T endpoint,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct)
         {
-            return HistoryUpdateValuesAsync(connectionId, request, PerformUpdateType.Update, ct);
+            return HistoryUpdateValuesAsync(endpoint, request, PerformUpdateType.Update, ct);
         }
 
         /// <inheritdoc/>
         public async IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAsync(
-            T connectionId, HistoryReadRequestModel<ReadValuesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadValuesDetailsModel> request,
             [EnumeratorCancellation] CancellationToken ct)
         {
-            var result = await HistoryReadValuesAsync(connectionId, request,
+            var result = await HistoryReadValuesAsync(endpoint, request,
                 ct).ConfigureAwait(false);
             foreach (var item in result.History)
             {
                 yield return item;
             }
             await foreach (var item in HistoryStreamRemainingValuesAsync(
-                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
+                endpoint, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
             {
                 yield return item;
             }
@@ -335,17 +336,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public async IAsyncEnumerable<HistoricValueModel> HistoryStreamModifiedValuesAsync(
-            T connectionId, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
             [EnumeratorCancellation] CancellationToken ct)
         {
-            var result = await HistoryReadModifiedValuesAsync(connectionId, request,
+            var result = await HistoryReadModifiedValuesAsync(endpoint, request,
                 ct).ConfigureAwait(false);
             foreach (var item in result.History)
             {
                 yield return item;
             }
             await foreach (var item in HistoryStreamRemainingValuesAsync(
-                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
+                endpoint, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
             {
                 yield return item;
             }
@@ -353,17 +354,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public async IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAtTimesAsync(
-            T connectionId, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
             [EnumeratorCancellation] CancellationToken ct)
         {
-            var result = await HistoryReadValuesAtTimesAsync(connectionId, request,
+            var result = await HistoryReadValuesAtTimesAsync(endpoint, request,
                 ct).ConfigureAwait(false);
             foreach (var item in result.History)
             {
                 yield return item;
             }
             await foreach (var item in HistoryStreamRemainingValuesAsync(
-                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
+                endpoint, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
             {
                 yield return item;
             }
@@ -371,17 +372,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public async IAsyncEnumerable<HistoricValueModel> HistoryStreamProcessedValuesAsync(
-            T connectionId, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
             [EnumeratorCancellation] CancellationToken ct)
         {
-            var result = await HistoryReadProcessedValuesAsync(connectionId, request,
+            var result = await HistoryReadProcessedValuesAsync(endpoint, request,
                 ct).ConfigureAwait(false);
             foreach (var item in result.History)
             {
                 yield return item;
             }
             await foreach (var item in HistoryStreamRemainingValuesAsync(
-                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
+                endpoint, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
             {
                 yield return item;
             }
@@ -389,17 +390,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public async IAsyncEnumerable<HistoricEventModel> HistoryStreamEventsAsync(
-            T connectionId, HistoryReadRequestModel<ReadEventsDetailsModel> request,
+            T endpoint, HistoryReadRequestModel<ReadEventsDetailsModel> request,
             [EnumeratorCancellation] CancellationToken ct)
         {
-            var result = await HistoryReadEventsAsync(connectionId, request,
+            var result = await HistoryReadEventsAsync(endpoint, request,
                 ct).ConfigureAwait(false);
             foreach (var item in result.History)
             {
                 yield return item;
             }
             await foreach (var item in HistoryStreamRemainingEventsAsync(
-                connectionId, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
+                endpoint, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
             {
                 yield return item;
             }

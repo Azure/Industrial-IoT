@@ -223,6 +223,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         public bool EnableRuntimeStateReporting { get; set; }
 
+        /// <summary>
+        /// Runtime state routing info
+        /// </summary>
+        public string RuntimeStateRoutingInfo { get; set; } = "runtimeinfo";
+
         private bool _fullFeaturedMessage;
         private MessagingMode? _messagingMode;
     }

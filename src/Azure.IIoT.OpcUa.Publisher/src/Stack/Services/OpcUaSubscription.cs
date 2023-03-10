@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Subscription implementation
@@ -72,19 +73,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Subscription
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="config"></param>
-        /// <param name="logger"></param>
+        /// <param name="options"></param>
+        /// <param name="loggerFactory"></param>
         /// <param name="metrics"></param>
         private OpcUaSubscription(ISessionProvider<ConnectionModel> session,
-            IClientServicesConfig config, ILogger logger, IMetricsContext metrics)
+            IOptions<ClientOptions> options, ILoggerFactory loggerFactory, IMetricsContext metrics)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {
             _sessions = session ??
                 throw new ArgumentNullException(nameof(session));
-            _config = config ??
-                throw new ArgumentNullException(nameof(config));
-            _logger = logger /*?.ForContext<OpcUaSubscription>() TODO: USE loggerFactory here*/ ??
-                throw new ArgumentNullException(nameof(logger));
+            _options = options ??
+                throw new ArgumentNullException(nameof(options));
+            _loggerFactory = loggerFactory ??
+                throw new ArgumentNullException(nameof(loggerFactory));
+            _logger = loggerFactory.CreateLogger<OpcUaSubscription>();
             _lock = new SemaphoreSlim(1, 1);
             _currentlyMonitored = ImmutableDictionary<uint, OpcUaMonitoredItem>.Empty;
             Id = SequenceNumber.Increment16(ref _lastIndex);
@@ -94,19 +96,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create subscription
         /// </summary>
         /// <param name="outer"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         /// <param name="subscription"></param>
-        /// <param name="logger"></param>
+        /// <param name="loggerFactory"></param>
         /// <param name="metrics"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async ValueTask<ISubscription> CreateAsync(
-            ISessionProvider<ConnectionModel> outer, IClientServicesConfig config,
-            SubscriptionModel subscription, ILogger logger, IMetricsContext metrics,
-            CancellationToken ct = default)
+            ISessionProvider<ConnectionModel> outer, IOptions<ClientOptions> options,
+            SubscriptionModel subscription, ILoggerFactory loggerFactory,
+            IMetricsContext metrics, CancellationToken ct = default)
         {
             // Create object
-            var newSubscription = new OpcUaSubscription(outer, config, logger, metrics);
+            var newSubscription = new OpcUaSubscription(outer, options, loggerFactory, metrics);
 
             // Initialize
             await newSubscription.UpdateAsync(subscription, ct).ConfigureAwait(false);
@@ -559,7 +561,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             // Synchronize the desired items with the state of the raw subscription
             var desiredState = monitoredItems
-                .Select(m => new OpcUaMonitoredItem(m, _logger))
+                .Select(m => new OpcUaMonitoredItem(m, _loggerFactory.CreateLogger<OpcUaMonitoredItem>()))
                 .ToHashSetSafe();
 
             var metadataChanged = false;
@@ -882,7 +884,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}", item.Item.StartNodeId, _subscription.
                 return;
             }
 
-            var currentOperationTimeout = _config.OperationTimeout;
+            var currentOperationTimeout = _options.Value.Quotas.OperationTimeout;
             var localMaxOperationTimeout =
                 newSubscription.PublishingInterval * (int)newSubscription.KeepAliveCount;
             if (currentOperationTimeout < localMaxOperationTimeout)
@@ -925,7 +927,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}", item.Item.StartNodeId, _subscription.
 
             // calculate the KeepAliveCount no matter what, perhaps monitored items were changed
             var revisedKeepAliveCount = (_subscription.Configuration?.KeepAliveCount)
-                ?? _config.MaxKeepAliveCount;
+                ?? _options.Value.MaxKeepAliveCount;
 
             _subscription.MonitoredItems?.ForEach(m =>
             {
@@ -1383,7 +1385,8 @@ Actual (revised) state/desired state:
         private ImmutableDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel _subscription;
         private readonly ISessionProvider<ConnectionModel> _sessions;
-        private readonly IClientServicesConfig _config;
+        private readonly IOptions<ClientOptions> _options;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private readonly IMetricsContext _metrics;
         private readonly SemaphoreSlim _lock;

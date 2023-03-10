@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="ct"></param>
-        public PortScanner(ILogger logger, IEnumerable<IPEndPoint> source,
+        public PortScanner(ILogger<PortScanner> logger, IEnumerable<IPEndPoint> source,
             Action<PortScanner, IPEndPoint> target, CancellationToken ct) :
             this(logger, source, target, null, ct)
         {
@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         /// <param name="target"></param>
         /// <param name="portProbe"></param>
         /// <param name="ct"></param>
-        public PortScanner(ILogger logger, IEnumerable<IPEndPoint> source,
+        public PortScanner(ILogger<PortScanner> logger, IEnumerable<IPEndPoint> source,
             Action<PortScanner, IPEndPoint> target, IPortProbe? portProbe, CancellationToken ct) :
             this(logger, source, target, portProbe, null, null, null, ct)
         {
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         /// <param name="minProbePercent"></param>
         /// <param name="timeout"></param>
         /// <param name="ct"></param>
-        public PortScanner(ILogger logger, IEnumerable<IPEndPoint> source,
+        public PortScanner(ILogger<PortScanner> logger, IEnumerable<IPEndPoint> source,
             Action<PortScanner, IPEndPoint> target, IPortProbe? portProbe, int? maxProbeCount,
             int? minProbePercent, TimeSpan? timeout, CancellationToken ct)
         {
@@ -84,7 +84,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
             _timeout = timeout ?? kDefaultProbeTimeout;
             _portProbe = portProbe ?? new NullPortProbe();
             _requeued = new ConcurrentQueue<IPEndPoint>();
-            _rand = new Random();
 
             _probePool = Repeat(i => new ConnectProbe(this, i), _maxProbeCount)
                 .ToList();
@@ -179,9 +178,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         /// <summary>
         /// Returns probe timeout in milliseconds but with entropy
         /// </summary>
-        private int ProbeTimeoutInMilliseconds => _rand.Next(
+#pragma warning disable CA5394 // Do not use insecure randomness
+        private int ProbeTimeoutInMilliseconds => Random.Shared.Next(
             (int)(_timeout.TotalMilliseconds * 0.7),
             (int)(_timeout.TotalMilliseconds * 1.5));
+#pragma warning restore CA5394 // Do not use insecure randomness
 
         /// <summary>
         /// Port connect probe
@@ -310,7 +311,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         private readonly int _minProbeCount;
         private readonly TimeSpan _timeout;
         private readonly CancellationTokenSource _cts;
-        private readonly Random _rand;
         private readonly IPortProbe _portProbe;
         private readonly ILogger _logger;
         private int _active;

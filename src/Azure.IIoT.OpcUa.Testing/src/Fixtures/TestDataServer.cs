@@ -28,8 +28,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
         }
 
         /// <inheritdoc/>
-        public TestDataServer() :
-            base(SampleServer)
+        public TestDataServer() : base(SampleServer)
         {
         }
     }

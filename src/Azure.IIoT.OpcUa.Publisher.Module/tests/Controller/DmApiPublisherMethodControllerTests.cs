@@ -14,10 +14,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using Azure.IIoT.OpcUa.Models;
     using Autofac;
     using FluentAssertions;
-    using Furly.Extensions.Logging;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
     using Models;
     using Moq;
@@ -28,6 +27,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
+    using Divergic.Logging.Xunit;
+    using System.Globalization;
+    using Microsoft.Extensions.Options;
+    using Furly.Extensions.Configuration;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
@@ -35,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     public class DmApiPublisherControllerTests : TempFileProviderBase
     {
         private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
-        private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private readonly Mock<IPublisherConfiguration> _configMock;
         private PublisherConfigurationService _configService;
@@ -47,16 +51,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         /// <summary>
         /// Constructor that initializes common resources used by tests.
         /// </summary>
-        public DmApiPublisherControllerTests()
+        /// <param name="output"></param>
+        public DmApiPublisherControllerTests(ITestOutputHelper output)
         {
             _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
-            _logger = Log.Console<DmApiPublisherControllerTests>();
+            _loggerFactory = LogFactory.Create(output);
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            clientConfigMock.SetupAllProperties();
 
-            _publishedNodesJobConverter = new PublishedNodesJobConverter(_logger, _newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+            _publishedNodesJobConverter = new PublishedNodesJobConverter(
+                _loggerFactory.CreateLogger<PublishedNodesJobConverter>(), _newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfigMock.Object);
 
             // Note that each test is responsible for setting content of _tempFile;
             CopyContent("Controller/empty_pn.json", _tempFile);
@@ -69,7 +76,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             _configMock.SetupGet(p => p.MessagingProfile).Returns(MessagingProfile.Get(
                 MessagingMode.PubSub, MessageEncoding.Json));
 
-            _publishedNodesProvider = new PublishedNodesProvider(_configMock.Object, _logger);
+            _publishedNodesProvider = new PublishedNodesProvider(_configMock.Object,
+                _loggerFactory.CreateLogger<PublishedNodesProvider>());
             _triggerMock = new Mock<IMessageSource>();
             var factoryMock = new Mock<IWriterGroupScopeFactory>();
             var writerGroup = new Mock<IWriterGroup>();
@@ -79,7 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             factoryMock
                 .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
-            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessInfo>().Object, _logger);
+            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessIdentity>().Object,
+                _loggerFactory.CreateLogger<PublisherHostService>());
             _diagnostic = new Mock<IPublisherDiagnosticCollector>();
             var mockDiag = new WriterGroupDiagnosticModel();
             _diagnostic.Setup(m => m.TryGetDiagnosticsForWriterGroup(It.IsAny<string>(), out mockDiag)).Returns(true);
@@ -94,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 _publishedNodesJobConverter,
                 _configMock.Object,
                 _publisher,
-                _logger,
+                _loggerFactory.CreateLogger<PublisherConfigurationService>(),
                 _publishedNodesProvider,
                 _newtonSoftJsonSerializer,
                 _diagnostic.Object
@@ -122,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 {
                     request.OpcNodes.Add(new OpcNodeModel
                     {
-                        Id = initialNode.Id + i.ToString(),
+                        Id = initialNode.Id + i.ToString(CultureInfo.InvariantCulture),
                         DataSetFieldId = initialNode.DataSetFieldId,
                         DisplayName = initialNode.DisplayName,
                         ExpandedNodeId = initialNode.ExpandedNodeId,
@@ -181,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 {
                     request.OpcNodes.Add(new OpcNodeModel
                     {
-                        Id = initialNode.Id + i.ToString(),
+                        Id = initialNode.Id + i.ToString(CultureInfo.InvariantCulture),
                         DataSetFieldId = initialNode.DataSetFieldId,
                         DisplayName = initialNode.DisplayName,
                         ExpandedNodeId = initialNode.ExpandedNodeId,

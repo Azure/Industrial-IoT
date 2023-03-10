@@ -158,12 +158,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             builder.Append(" | ");
             builder.Append(NetworkMessageContentMask);
             builder.Append("<br>(");
-            builder.AppendFormat("0x{0:X}", (uint)StackTypesEx.ToStackType(
+            builder.AppendFormat("0x{0:X}", StackTypesEx.ToStackType(
                 NetworkMessageContentMask, MessageEncoding));
             builder.Append(") | ");
             builder.Append(DataSetMessageContentMask);
             builder.Append("<br>(");
-            builder.AppendFormat("0x{0:X}", (uint)StackTypesEx.ToStackType(
+            builder.AppendFormat("0x{0:X}", StackTypesEx.ToStackType(
                 DataSetMessageContentMask, DataSetFieldContentMask, MessageEncoding));
             builder.Append(") | ");
             builder.Append(DataSetFieldContentMask);

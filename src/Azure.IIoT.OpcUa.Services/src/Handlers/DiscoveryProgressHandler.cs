@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -40,8 +41,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
         }
 
         /// <inheritdoc/>
-        public async Task HandleAsync(string deviceId, string moduleId,
-            byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint)
+        public async ValueTask HandleAsync(string deviceId, string moduleId, ReadOnlyMemory<byte> payload,
+            IReadOnlyDictionary<string, string> properties, CancellationToken ct)
         {
             DiscoveryProgressModel discovery;
             try
@@ -51,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to convert discovery message {Json}",
-                    Encoding.UTF8.GetString(payload));
+                    Encoding.UTF8.GetString(payload.Span));
                 return;
             }
             try
@@ -63,12 +64,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
                 _logger.LogError(ex,
                     "Publishing discovery message failed with exception - skip");
             }
-        }
-
-        /// <inheritdoc/>
-        public Task OnBatchCompleteAsync()
-        {
-            return Task.CompletedTask;
         }
 
         private readonly IJsonSerializer _serializer;

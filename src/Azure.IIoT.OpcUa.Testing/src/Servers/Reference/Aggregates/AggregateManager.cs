@@ -41,6 +41,7 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Initilizes the manager.
         /// </summary>
+        /// <param name="server"></param>
         public AggregateManager(IServerInternal server)
         {
             _server = server;

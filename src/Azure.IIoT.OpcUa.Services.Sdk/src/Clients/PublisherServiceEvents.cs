@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Utils;
+    using Nito.Disposables;
     using System;
     using System.Net.Http;
     using System.Threading;
@@ -62,16 +62,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events",
-                null).ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events").ConfigureAwait(false);
             var registration = hub.Register(EventTargets.PublisherSampleTarget, callback);
             try
             {
                 await NodePublishSubscribeByEndpointAsync(endpointId, hub.ConnectionId,
                     default).ConfigureAwait(false);
-                return new AsyncDisposable(registration,
-                    () => NodePublishUnsubscribeByEndpointAsync(endpointId,
-                        hub.ConnectionId, default));
+                return new AsyncDisposable(async () =>
+                {
+                    registration.Dispose();
+                    await NodePublishUnsubscribeByEndpointAsync(endpointId,
+                        hub.ConnectionId, default).ConfigureAwait(false);
+                });
             }
             catch
             {

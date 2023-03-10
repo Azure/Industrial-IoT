@@ -5,34 +5,20 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// Service information
     /// </summary>
-    public class ServiceInfo : IProcessInfo
+    public class ServiceInfo : IProcessIdentity
     {
-        /// <summary>
-        /// ID
-        /// </summary>
-        public string Id => "OPC_PUBLISHER";
-
-        /// <summary>
-        /// Process id
-        /// </summary>
-        public string ProcessId => System.Guid.NewGuid().ToString();
-
-        /// <summary>
-        /// Name of service
-        /// </summary>
-        public string Name => "Opc-Publisher-Service";
-
-        /// <summary>
-        /// Description of service
-        /// </summary>
-        public string Description => "Azure Industrial IoT OPC UA Publisher Service";
+        /// <inheritdoc/>
+        public string Id => System.Guid.NewGuid().ToString();
 
         /// <inheritdoc/>
-        public string SiteId { get; }
+        public string Name => "Opc-Publisher-Service";
+
+        /// <inheritdoc/>
+        public string Description => "Azure Industrial IoT OPC UA Publisher Service";
     }
 }

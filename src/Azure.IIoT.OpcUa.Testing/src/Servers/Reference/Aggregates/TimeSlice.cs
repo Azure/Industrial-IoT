@@ -192,10 +192,8 @@ namespace Opc.Ua.Aggregates
 
                 return true;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         /// <summary>

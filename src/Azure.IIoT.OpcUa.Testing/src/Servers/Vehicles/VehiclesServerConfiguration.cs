@@ -48,6 +48,7 @@ namespace Vehicles
         /// <summary>
         /// Initializes the object during deserialization.
         /// </summary>
+        /// <param name="context"></param>
         [OnDeserializing]
 #pragma warning disable RCS1163 // Unused parameter.
         private void Initialize(StreamingContext context)

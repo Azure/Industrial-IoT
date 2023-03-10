@@ -12,12 +12,12 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using Autofac.Extras.Moq;
     using AutoFixture;
     using AutoFixture.Kernel;
+    using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Mock.Services;
+    using Furly.Azure.IoT.Models;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Furly.Azure.IoT;
-    using Furly.Azure.IoT.Mock;
-    using Furly.Azure.IoT.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
             using (var mock = AutoMock.GetLoose(builder =>
             {
-                var hub = IoTHubServices.Create(devices);
+                var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
             using (var mock = AutoMock.GetLoose(builder =>
             {
-                var hub = IoTHubServices.Create(devices);
+                var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
             using (var mock = AutoMock.GetLoose(builder =>
             {
-                var hub = IoTHubServices.Create(devices);
+                var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
             using (var mock = AutoMock.GetLoose(builder =>
             {
-                var hub = IoTHubServices.Create(devices);
+                var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
@@ -131,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
             using (var mock = AutoMock.GetLoose(builder =>
             {
-                var hub = IoTHubServices.Create(devices);
+                var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
@@ -157,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
             using (var mock = AutoMock.GetLoose(builder =>
             {
-                var hub = IoTHubServices.Create(devices);
+                var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
@@ -184,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
             using (var mock = AutoMock.GetLoose(builder =>
             {
-                var hub = IoTHubServices.Create(devices);
+                var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
@@ -210,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
 
             using (var mock = AutoMock.GetLoose(builder =>
             {
-                var hub = IoTHubServices.Create(devices);
+                var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
@@ -239,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// <param name="devices"></param>
         /// <param name="noSite"></param>
         private void CreateEndpointFixtures(out string site, out string super,
-            out List<EndpointInfoModel> endpoints, out List<(DeviceTwinModel, DeviceModel)> devices,
+            out List<EndpointInfoModel> endpoints, out List<DeviceTwinModel> devices,
             bool noSite = false)
         {
             var fixture = new Fixture();
@@ -264,24 +264,24 @@ namespace Azure.IIoT.OpcUa.Services.Registry
                 .ToList();
 
             devices = endpoints
-                .Select(a =>
+                .ConvertAll(a =>
                 {
                     a.Registration.EndpointUrl = a.Registration.Endpoint.Url;
                     var r = a.ToEndpointRegistration();
                     var t = r.ToDeviceTwin(_serializer);
-                    t.Properties.Reported = new Dictionary<string, VariantValue>
+                    var reported = new Dictionary<string, VariantValue>
                     {
-                        [TwinProperty.Type] = "Twin"
+                        [OpcUa.Constants.TwinPropertyTypeKey] = "Twin"
                     };
                     if (a.Registration.SiteId != null)
                     {
-                        t.Properties.Reported.Add(TwinProperty.SiteId, a.Registration.SiteId);
+                        reported.Add(OpcUa.Constants.TwinPropertySiteKey, a.Registration.SiteId);
                     }
+                    t.Reported = reported;
                     t.ConnectionState = "Disconnected";
                     return t;
                 })
-                .Select(t => (t, new DeviceModel { Id = t.Id }))
-                .ToList();
+;
         }
 
         private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();

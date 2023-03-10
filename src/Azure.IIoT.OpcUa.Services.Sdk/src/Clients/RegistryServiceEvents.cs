@@ -8,9 +8,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Utils;
+    using Nito.Disposables;
     using System;
     using System.Net.Http;
     using System.Threading;
@@ -63,10 +62,13 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/applications/events",
-                Resource.Platform).ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/applications/events").ConfigureAwait(false);
             var registration = hub.Register(EventTargets.ApplicationEventTarget, callback);
-            return new AsyncDisposable(registration);
+            return new AsyncDisposable(() =>
+            {
+                registration.Dispose();
+                return ValueTask.CompletedTask;
+            });
         }
 
         /// <inheritdoc/>
@@ -77,10 +79,13 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/endpoints/events",
-                Resource.Platform).ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/endpoints/events").ConfigureAwait(false);
             var registration = hub.Register(EventTargets.EndpointEventTarget, callback);
-            return new AsyncDisposable(registration);
+            return new AsyncDisposable(() =>
+            {
+                registration.Dispose();
+                return ValueTask.CompletedTask;
+            });
         }
 
         /// <inheritdoc/>
@@ -91,10 +96,13 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/gateways/events",
-                Resource.Platform).ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/gateways/events").ConfigureAwait(false);
             var registration = hub.Register(EventTargets.GatewayEventTarget, callback);
-            return new AsyncDisposable(registration);
+            return new AsyncDisposable(() =>
+            {
+                registration.Dispose();
+                return ValueTask.CompletedTask;
+            });
         }
 
         /// <inheritdoc/>
@@ -105,10 +113,13 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/supervisors/events",
-                Resource.Platform).ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/supervisors/events").ConfigureAwait(false);
             var registration = hub.Register(EventTargets.SupervisorEventTarget, callback);
-            return new AsyncDisposable(registration);
+            return new AsyncDisposable(() =>
+            {
+                registration.Dispose();
+                return ValueTask.CompletedTask;
+            });
         }
 
         /// <inheritdoc/>
@@ -119,10 +130,13 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events",
-                Resource.Platform).ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events").ConfigureAwait(false);
             var registration = hub.Register(EventTargets.DiscovererEventTarget, callback);
-            return new AsyncDisposable(registration);
+            return new AsyncDisposable(() =>
+            {
+                registration.Dispose();
+                return ValueTask.CompletedTask;
+            });
         }
 
         /// <inheritdoc/>
@@ -133,10 +147,13 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events",
-                Resource.Platform).ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events").ConfigureAwait(false);
             var registration = hub.Register(EventTargets.PublisherEventTarget, callback);
-            return new AsyncDisposable(registration);
+            return new AsyncDisposable(() =>
+            {
+                registration.Dispose();
+                return ValueTask.CompletedTask;
+            });
         }
 
         /// <inheritdoc/>
@@ -147,16 +164,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events",
-                Resource.Platform).ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events").ConfigureAwait(false);
             var registration = hub.Register(EventTargets.DiscoveryProgressTarget, callback);
             try
             {
                 await SubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
                     hub.ConnectionId, default).ConfigureAwait(false);
-                return new AsyncDisposable(registration,
-                    () => UnsubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
-                        hub.ConnectionId, default));
+                return new AsyncDisposable(async () =>
+                {
+                    registration.Dispose();
+                    await UnsubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
+                        hub.ConnectionId, default).ConfigureAwait(false);
+                });
             }
             catch
             {
@@ -173,16 +192,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients
             {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events",
-                Resource.Platform).ConfigureAwait(false);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events").ConfigureAwait(false);
             var registration = hub.Register(EventTargets.DiscoveryProgressTarget, callback);
             try
             {
                 await SubscribeDiscoveryProgressByRequestIdAsync(requestId, hub.ConnectionId,
                     default).ConfigureAwait(false);
-                return new AsyncDisposable(registration,
-                    () => UnsubscribeDiscoveryProgressByRequestIdAsync(requestId,
-                        hub.ConnectionId, default));
+                return new AsyncDisposable(async () =>
+                {
+                    registration.Dispose();
+                    await UnsubscribeDiscoveryProgressByRequestIdAsync(requestId,
+                        hub.ConnectionId, default).ConfigureAwait(false);
+                });
             }
             catch
             {

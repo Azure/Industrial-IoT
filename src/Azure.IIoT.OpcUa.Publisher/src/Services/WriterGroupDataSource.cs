@@ -44,11 +44,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="logger"></param>
         public WriterGroupDataSource(IWriterGroupConfig writerGroupConfig,
             ISubscriptionManager subscriptionManager, ISubscriptionConfig subscriptionConfig,
-            IMetricsContext metrics, ILogger logger)
+            IMetricsContext metrics, ILogger<WriterGroupDataSource> logger)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {
             _writerGroup = writerGroupConfig?.WriterGroup?.Clone() ??
-                throw new ArgumentNullException(nameof(writerGroupConfig.WriterGroup));
+                throw new ArgumentNullException(nameof(writerGroupConfig));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _subscriptionManager = subscriptionManager ??
@@ -83,12 +83,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask UpdateAsync(WriterGroupJobModel jobConfig, CancellationToken ct)
+        public async ValueTask UpdateAsync(WriterGroupJobModel config, CancellationToken ct)
         {
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                var writerGroupConfig = jobConfig.ToWriterGroupJobConfiguration(_publisherId);
+                var writerGroupConfig = config.ToWriterGroupJobConfiguration(_publisherId);
                 var writerGroup = writerGroupConfig.WriterGroup.Clone();
 
                 if (writerGroup?.DataSetWriters == null ||

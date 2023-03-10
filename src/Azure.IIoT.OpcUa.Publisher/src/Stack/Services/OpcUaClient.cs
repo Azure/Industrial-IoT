@@ -110,9 +110,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="metrics"></param>
         /// <param name="sessionName"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public OpcUaClient(ApplicationConfiguration configuration,
-            ConnectionIdentifier connection, IJsonSerializer serializer,
-            ILogger logger, IMetricsContext metrics, string? sessionName = null)
+        public OpcUaClient(ApplicationConfiguration configuration, ConnectionIdentifier connection,
+            IJsonSerializer serializer, ILogger<OpcUaClient> logger, IMetricsContext metrics,
+            string? sessionName = null)
         {
             if (connection?.Connection?.Endpoint == null)
             {

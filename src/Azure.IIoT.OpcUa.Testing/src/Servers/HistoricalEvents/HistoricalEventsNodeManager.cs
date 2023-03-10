@@ -45,6 +45,8 @@ namespace HistoricalEvents
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="configuration"></param>
         public HistoricalEventsNodeManager(IServerInternal server,
             ApplicationConfiguration configuration) :
             base(server, configuration)
@@ -69,6 +71,7 @@ namespace HistoricalEvents
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
+        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -85,6 +88,8 @@ namespace HistoricalEvents
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="node"></param>
         public override NodeId New(ISystemContext context, NodeState node)
         {
             return node.NodeId;
@@ -93,6 +98,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
+        /// <param name="context"></param>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
             var type = GetType().GetTypeInfo();
@@ -106,6 +112,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
+        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -139,6 +146,9 @@ namespace HistoricalEvents
         /// <summary>
         /// Creates a new area.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="platforms"></param>
+        /// <param name="areaName"></param>
         private BaseObjectState CreateArea(SystemContext context, BaseObjectState platforms, string areaName)
         {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
@@ -162,6 +172,10 @@ namespace HistoricalEvents
         /// <summary>
         /// Creates a new well.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="area"></param>
+        /// <param name="wellId"></param>
+        /// <param name="wellName"></param>
         private void CreateWell(SystemContext context, BaseObjectState area, string wellId, string wellName)
         {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
@@ -194,6 +208,9 @@ namespace HistoricalEvents
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="cache"></param>
         protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
         {
             lock (Lock)
@@ -227,6 +244,9 @@ namespace HistoricalEvents
         /// <summary>
         /// Verifies that the specified node exists.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="handle"></param>
+        /// <param name="cache"></param>
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
@@ -252,6 +272,14 @@ namespace HistoricalEvents
         /// <summary>
         /// Reads history events.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="details"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="nodesToRead"></param>
+        /// <param name="results"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryReadEvents(
             ServerSystemContext context,
             ReadEventDetails details,
@@ -344,6 +372,12 @@ namespace HistoricalEvents
         /// <summary>
         /// Updates or inserts events.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodesToUpdate"></param>
+        /// <param name="results"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryUpdateEvents(
             ServerSystemContext context,
             IList<UpdateEventDetails> nodesToUpdate,
@@ -375,6 +409,12 @@ namespace HistoricalEvents
         /// <summary>
         /// Deletes history events.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodesToUpdate"></param>
+        /// <param name="results"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryDeleteEvents(
             ServerSystemContext context,
             IList<DeleteEventDetails> nodesToUpdate,
@@ -443,6 +483,8 @@ namespace HistoricalEvents
         /// <summary>
         /// Fetches the requested event fields from the event.
         /// </summary>
+        /// <param name="request"></param>
+        /// <param name="instance"></param>
         private HistoryEventFieldList GetEventFields(HistoryReadRequest request, IFilterTarget instance)
         {
             // fetch the event fields.
@@ -486,6 +528,10 @@ namespace HistoricalEvents
         /// <summary>
         /// Creates a new history request.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="details"></param>
+        /// <param name="handle"></param>
+        /// <param name="nodeToRead"></param>
         private HistoryReadRequest CreateHistoryReadRequest(
             ServerSystemContext context,
             ReadEventDetails details,
@@ -589,6 +635,11 @@ namespace HistoricalEvents
         /// <summary>
         /// Releases the history continuation point.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodesToRead"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryReleaseContinuationPoints(
             ServerSystemContext context,
             IList<HistoryReadValueId> nodesToRead,
@@ -618,6 +669,8 @@ namespace HistoricalEvents
         /// <summary>
         /// Loads a history continuation point.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="continuationPoint"></param>
         private static HistoryReadRequest LoadContinuationPoint(
             ServerSystemContext context,
             byte[] continuationPoint)
@@ -641,6 +694,8 @@ namespace HistoricalEvents
         /// <summary>
         /// Saves a history continuation point.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="request"></param>
         private static byte[] SaveContinuationPoint(
             ServerSystemContext context,
             HistoryReadRequest request)

@@ -217,7 +217,7 @@ namespace Opc.Ua.Sample
             QualifiedName browseName,
             BaseInstanceState instance)
         {
-            var contextToUse = (ServerSystemContext)SystemContext.Copy(context);
+            var contextToUse = SystemContext.Copy(context);
 
             lock (Lock)
             {

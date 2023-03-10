@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Furly.Extensions.Messaging;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics.Metrics;
@@ -37,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="metrics"></param>
         /// <param name="diagnostics"></param>
         public WriterGroupDataFlow(IMessageSource source, IMessageEncoder encoder,
-            IMessageSink sink, IEngineConfiguration config, ILogger logger,
+            IMessageSink sink, IEngineConfiguration config, ILogger<WriterGroupDataFlow> logger,
             IMetricsContext metrics, IWriterGroupDiagnostics diagnostics = null)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {

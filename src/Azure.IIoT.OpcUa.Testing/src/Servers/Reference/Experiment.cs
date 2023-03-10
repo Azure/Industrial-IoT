@@ -114,15 +114,9 @@ namespace Reference
         public DataValue GetProcessedValue(bool returnPartial)
         {
             // do nothing if slice not complete and partial values not requested.
-            if (!_nextSlice.Complete)
+            if (!_nextSlice.Complete && CompareTimestamps(_endTime, _nextSlice.EndTime) > 0 && !returnPartial)
             {
-                if (CompareTimestamps(_endTime, _nextSlice.EndTime) > 0)
-                {
-                    if (!returnPartial)
-                    {
-                        return null;
-                    }
-                }
+                return null;
             }
 
             // check for end.
@@ -189,12 +183,9 @@ namespace Reference
                 var difference = CompareTimestamps(ii.Value.SourceTimestamp, timestamp);
 
                 // check for an exact match.
-                if (difference == 0)
+                if (difference == 0 && IsGood(ii.Value))
                 {
-                    if (IsGood(ii.Value))
-                    {
-                        return ii.Value;
-                    }
+                    return ii.Value;
                 }
 
                 // find the first good value before the timestamp.
@@ -218,10 +209,8 @@ namespace Reference
                         lastBound = ii;
                         break;
                     }
-                    else
-                    {
-                        lastBoundBad = true;
-                    }
+
+                    lastBoundBad = true;
                 }
             }
 
@@ -248,22 +237,19 @@ namespace Reference
             // use stepped interpolation/extrapolation if a bound is missing.
             if (!_configuration.UseSlopedExtrapolation || lastBound == null || firstBound == null)
             {
+                StatusCode statusCode;
                 if (_timeFlowsBackward)
                 {
-                    StatusCode statusCode = lastBoundBad ? StatusCodes.UncertainDataSubNormal : StatusCodes.Good;
+                    statusCode = lastBoundBad ? StatusCodes.UncertainDataSubNormal : StatusCodes.Good;
                     statusCode = statusCode.SetAggregateBits(AggregateBits.Interpolated);
                     return new DataValue(lastBound.Value.WrappedValue, statusCode, timestamp, timestamp);
                 }
-                else
-                {
-                    StatusCode statusCode = firstBoundBad ? StatusCodes.UncertainDataSubNormal : StatusCodes.Good;
-                    statusCode = statusCode.SetAggregateBits(AggregateBits.Interpolated);
-                    return new DataValue(firstBound.Value.WrappedValue, statusCode, timestamp, timestamp);
-                }
+                statusCode = firstBoundBad ? StatusCodes.UncertainDataSubNormal : StatusCodes.Good;
+                statusCode = statusCode.SetAggregateBits(AggregateBits.Interpolated);
+                return new DataValue(firstBound.Value.WrappedValue, statusCode, timestamp, timestamp);
             }
 
             // calculate sloped interpolation.
-            else
             {
                 var dataValue = new DataValue
                 {
@@ -319,12 +305,9 @@ namespace Reference
         {
             for (var ii = _values.Last; ii != null; ii = ii.Previous)
             {
-                if (IsGood(ii.Value))
+                if (IsGood(ii.Value) && CompareTimestamps(ii.Value.SourceTimestamp, timestamp) <= 0)
                 {
-                    if (CompareTimestamps(ii.Value.SourceTimestamp, timestamp) <= 0)
-                    {
-                        return ii;
-                    }
+                    return ii;
                 }
             }
 
@@ -351,12 +334,9 @@ namespace Reference
 
             for (var ii = start; ii != null; ii = ii.Next)
             {
-                if (IsGood(ii.Value))
+                if (IsGood(ii.Value) && CompareTimestamps(ii.Value.SourceTimestamp, timestamp) >= 0)
                 {
-                    if (CompareTimestamps(ii.Value.SourceTimestamp, timestamp) >= 0)
-                    {
-                        return ii;
-                    }
+                    return ii;
                 }
             }
 

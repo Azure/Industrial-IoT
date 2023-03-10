@@ -39,6 +39,8 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Updates the bounding values for the time slice.
         /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="state"></param>
         public override void UpdateBoundingValues(TimeSlice bucket, AggregateState state)
         {
             var EarlyBound = bucket.EarlyBound;

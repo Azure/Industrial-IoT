@@ -10,13 +10,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Logging;
+    using Furly.Extensions.Messaging;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
     using System.Threading;
-    using Furly.Extensions.Messaging;
+    using System.Threading.Tasks;
 
     public sealed class NetworkMessage : IEvent
     {
@@ -41,22 +41,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         public IEvent SetContentEncoding(string value)
         {
             ContentEncoding = value;
-            return this;
-        }
-
-        public string MessageSchema { get; private set; }
-
-        public IEvent SetMessageSchema(string value)
-        {
-            MessageSchema = value;
-            return this;
-        }
-
-        public string RoutingInfo { get; private set; }
-
-        public IEvent SetRoutingInfo(string value)
-        {
-            RoutingInfo = value;
             return this;
         }
 
@@ -220,8 +204,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     },
                     Timestamp = DateTime.UtcNow,
                     MetaData = null,
-                    MessageType = eventList ? Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.Event : Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.KeyFrame,
-                    ServiceMessageContext = new ServiceMessageContext { },
+                    MessageType = eventList ? Encoders.PubSub.MessageType.Event : Encoders.PubSub.MessageType.KeyFrame,
+                    ServiceMessageContext = new ServiceMessageContext(),
                     Notifications = notifications,
                     SubscriptionId = 22,
                     EndpointUrl = "EndpointUrl" + suffix,

@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using System.Net;
     using System.Net.Sockets;
     using System.Threading;
+    using Azure.IIoT.OpcUa.Publisher.Discovery;
 
     /// <summary>
     /// Discovery request wrapper
@@ -141,29 +142,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 
             // Parse whatever provided
 
-            if (!string.IsNullOrEmpty(Request.Configuration.PortRangesToScan))
-            {
-                if (PortRange.TryParse(Request.Configuration.PortRangesToScan,
+            if (!string.IsNullOrEmpty(Request.Configuration.PortRangesToScan) &&
+                PortRange.TryParse(Request.Configuration.PortRangesToScan,
                     out var ports))
+            {
+                PortRanges = ports;
+                if (Request.Discovery == null)
                 {
-                    PortRanges = ports;
-                    if (Request.Discovery == null)
-                    {
-                        Request.Discovery = DiscoveryMode.Fast;
-                    }
+                    Request.Discovery = DiscoveryMode.Fast;
                 }
             }
 
-            if (!string.IsNullOrEmpty(Request.Configuration.AddressRangesToScan))
-            {
-                if (AddressRange.TryParse(Request.Configuration.AddressRangesToScan,
+            if (!string.IsNullOrEmpty(Request.Configuration.AddressRangesToScan) &&
+                AddressRange.TryParse(Request.Configuration.AddressRangesToScan,
                     out var addresses))
+            {
+                AddressRanges = addresses;
+                if (Request.Discovery == null)
                 {
-                    AddressRanges = addresses;
-                    if (Request.Discovery == null)
-                    {
-                        Request.Discovery = DiscoveryMode.Fast;
-                    }
+                    Request.Discovery = DiscoveryMode.Fast;
                 }
             }
 
@@ -201,7 +198,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                                 .Select(i => new AddressRange(i.Gateway, 32)))
                             .Distinct());
                         break;
-                    case DiscoveryMode.Off:
                     default:
                         AddressRanges = Enumerable.Empty<AddressRange>();
                         break;
@@ -224,7 +220,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     case DiscoveryMode.Network:
                         PortRanges = PortRange.OpcUa;
                         break;
-                    case DiscoveryMode.Off:
                     default:
                         PortRanges = Enumerable.Empty<PortRange>();
                         break;
@@ -289,7 +284,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static IEnumerable<AddressRange> AddLocalHost(IEnumerable<AddressRange> ranges)
         {
-            if (Host.IsContainer)
+            if (NetworkDiscovery.IsContainer)
             {
                 try
                 {

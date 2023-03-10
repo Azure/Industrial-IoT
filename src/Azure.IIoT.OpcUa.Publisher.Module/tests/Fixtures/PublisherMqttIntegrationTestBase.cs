@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Models;
@@ -20,8 +19,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Autofac;
     using Furly.Exceptions;
     using Furly.Extensions.Logging;
+    using Furly.Extensions.Rpc;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Furly.Tunnel.Protocol;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using MQTTnet;
@@ -40,7 +41,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit;
-    using Furly.Extensions.Rpc;
+    using Furly;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
 
     public readonly record struct JsonMessage(string Topic, JsonElement Message, string ContentType);
 
@@ -49,6 +51,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// </summary>
     public class PublisherMqttIntegrationTestBase : ISdkConfig
     {
+        public string Target => null;
+
         public PublisherMqttIntegrationTestBase(ReferenceServerFixture serverFixture, ILoggerFactory loggerFactory)
         {
             _exit = new TaskCompletionSource<bool>();
@@ -83,9 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             try
             {
                 JsonMessage? metadata = null;
-                var messages = await WaitForMessagesAndMetadataAsync(messageCollectionTimeout, messageCount,
+                return await WaitForMessagesAndMetadataAsync(messageCollectionTimeout, messageCount,
                     metadata, predicate, messageType).ConfigureAwait(false);
-                return messages;
             }
             finally
             {
@@ -98,11 +101,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// </summary>
         /// <param name="predicate"></param>
         /// <param name="messageType"></param>
-        protected Task<List<JsonMessage>> WaitForMessages(
+        protected Task<List<JsonMessage>> WaitForMessagesAsync(
             Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
             // Collect messages from server with default settings
-            return WaitForMessages(TimeSpan.FromMinutes(200), 1, predicate, messageType);
+            return WaitForMessagesAsync(TimeSpan.FromMinutes(200), 1, predicate, messageType);
         }
 
         /// <summary>
@@ -112,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="messageCount"></param>
         /// <param name="predicate"></param>
         /// <param name="messageType"></param>
-        protected async Task<List<JsonMessage>> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
+        protected async Task<List<JsonMessage>> WaitForMessagesAsync(TimeSpan messageCollectionTimeout, int messageCount,
             Func<JsonElement, JsonElement> predicate = null, string messageType = null)
         {
             // Collect messages from server with default settings
@@ -250,9 +253,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }
 
-        public string DeviceId => null;
-        public string ModuleId => null;
-
         /// <summary>
         /// Setup publishing from sample server.
         /// </summary>
@@ -332,8 +332,8 @@ $"--ttt={topicRoot}",
             {
                 using (var hostScope = ConfigureContainer(configurationRoot))
                 {
-                    var module = hostScope.Resolve<IModuleHost>();
-                    var moduleConfig = hostScope.Resolve<IModuleConfig>();
+                    //     var module = hostScope.Resolve<IModuleHost>();
+                    //     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     ISessionProvider<ConnectionModel> sessionManager = null;
 
                     try
@@ -341,7 +341,7 @@ $"--ttt={topicRoot}",
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         logger.LogInformation("Starting module OpcPublisher version {Version}.", version);
                         // Start module
-                        await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null).ConfigureAwait(false);
+                        //    await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null).ConfigureAwait(false);
                         sessionManager = hostScope.Resolve<ISessionProvider<ConnectionModel>>();
 
                         _apiScope = ConfigureContainer(configurationRoot, mqttBroker);
@@ -355,7 +355,7 @@ $"--ttt={topicRoot}",
                     }
                     finally
                     {
-                        await module.StopAsync().ConfigureAwait(false);
+                        //   await module.StopAsync().ConfigureAwait(false);
 
                         _apiScope?.Dispose();
                         _apiScope = null;
@@ -403,17 +403,13 @@ $"--ttt={topicRoot}",
         /// <param name="configuration"></param>
         private IContainer ConfigureContainer(IConfiguration configuration)
         {
-            var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
 
             // Register configuration interfaces
-            builder.RegisterInstance(config)
-                .AsImplementedInterfaces();
-            builder.RegisterInstance(config.Configuration)
+            builder.RegisterInstance(configuration)
                 .AsImplementedInterfaces();
 
             // Register module and agent framework ...
-            builder.RegisterModule<ModuleFramework>();
             builder.AddNewtonsoftJsonSerializer();
 
             builder.AddDiagnostics(logging => logging.AddConsole());
@@ -446,6 +442,8 @@ $"--ttt={topicRoot}",
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
             builder.RegisterType<OpcUaClientManager>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ClientConfig>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
@@ -527,7 +525,7 @@ $"--ttt={topicRoot}",
                     _useMqtt5 ? $"{_topicRoot}/methods/{method}" : $"{_topicRoot}/methods/{method}/?$rid={requestId}",
                     _useMqtt5 ? $"{_topicRoot}/responses/{method}" : null,
                     _useMqtt5 ? requestId.ToByteArray() : null,
-                    payload.AsMemory(), "application/json", ct: ct).ConfigureAwait(false);
+                    payload.AsMemory(), ContentMimeType.Json, ct: ct).ConfigureAwait(false);
 
                 var result = await _currentCall.callback.Task.ConfigureAwait(false);
                 var status = 0;
@@ -739,6 +737,11 @@ $"--ttt={topicRoot}",
                     server.Dispose();
                     throw;
                 }
+            }
+
+            public ValueTask<string> CallMethodAsync(string target, string method, string payload, TimeSpan? timeout = null, CancellationToken ct = default)
+            {
+                throw new NotImplementedException();
             }
 
             private readonly ILogger _logger;

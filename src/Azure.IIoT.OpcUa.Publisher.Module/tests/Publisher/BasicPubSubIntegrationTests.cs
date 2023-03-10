@@ -7,8 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Divergic.Logging.Xunit;
-    using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -21,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
     /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
     /// </summary>
     [Collection(ReferenceServerReadCollection.Name)]
-    public class BasicPubSubIntegrationTests : PublisherIoTHubIntegrationTestBase
+    public class BasicPubSubIntegrationTests : PublisherIntegrationTestBase
     {
         internal const string kEventId = "EventId";
         internal const string kMessage = "Message";
@@ -30,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         private readonly ITestOutputHelper _output;
 
         public BasicPubSubIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output)
-            : base(fixture, LogFactory.Create(output, new LoggingConfig { LogLevel = LogLevel.Information }))
+            : base(fixture, output)
         {
             _output = output;
         }
@@ -44,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 messageType: "ua-data", arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
 
             // Assert
-            var message = Assert.Single(messages);
+            var message = Assert.Single(messages).Message;
             var output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output");
             Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
             Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
@@ -61,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 arguments: new string[] { "--dm", "--mm=DataSetMessages" }).ConfigureAwait(false);
 
             // Assert
-            var message = Assert.Single(messages);
+            var message = Assert.Single(messages).Message;
             var output = message.GetProperty("Payload").GetProperty("Output");
             Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
             Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
@@ -78,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 messageType: "ua-deltaframe", arguments: new string[] { "-c", "--mm=DataSetMessages" }).ConfigureAwait(false);
 
             // Assert
-            var message = Assert.Single(messages);
+            var message = Assert.Single(messages).Message;
             var output = message.GetProperty("Payload").GetProperty("Output");
             Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
             Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
@@ -95,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 messageType: "ua-deltaframe", arguments: new string[] { "-c", "--dm=False", "--mm=RawDataSets" }).ConfigureAwait(false);
 
             // Assert
-            var output = Assert.Single(messages);
+            var output = Assert.Single(messages).Message;
             Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
             Assert.InRange(output.GetProperty("Output").GetDouble(), double.MinValue, double.MaxValue);
 
@@ -117,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             Assert.Single(result);
 
             var messages = result
-                .SelectMany(x => x.GetProperty("Messages").EnumerateArray())
+                .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
                 .ToArray();
 
             // Assert
@@ -154,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             ).ConfigureAwait(false);
 
             var messages = result
-                .SelectMany(x => x.GetProperty("Messages").EnumerateArray())
+                .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
                 .ToArray();
 
             // Assert
@@ -201,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             Assert.Single(result);
 
             var messages = result
-                .SelectMany(x => x.GetProperty("Messages").EnumerateArray())
+                .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
                 .ToArray();
 
             // Assert
@@ -238,7 +236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             ).ConfigureAwait(false);
 
             var messages = result
-                .SelectMany(x => x.GetProperty("Messages").EnumerateArray())
+                .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
                 .ToArray();
 
             // Assert
@@ -280,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 
             // Assert
             _output.WriteLine(messages.ToString());
-            var evt = Assert.Single(messages);
+            var evt = Assert.Single(messages).Message;
 
             Assert.Equal(JsonValueKind.Object, evt.ValueKind);
             Assert.True(evt.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 100);
@@ -304,10 +302,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 });
         }
 
-        internal static void AssertCompliantSimpleEventsMetadata(JsonElement? metadata)
+        internal static void AssertCompliantSimpleEventsMetadata(JsonMessage? metadata)
         {
             Assert.NotNull(metadata);
-            var eventFields = metadata.Value.GetProperty("MetaData").GetProperty("Fields");
+            var eventFields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, eventFields.ValueKind);
             Assert.Collection(eventFields.EnumerateArray(),
                 v =>
@@ -333,10 +331,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                         v.GetProperty("DataType").GetProperty("Namespace").GetString());
                 });
 
-            var namespaces = metadata.Value.GetProperty("MetaData").GetProperty("Namespaces");
+            var namespaces = metadata.Value.Message.GetProperty("MetaData").GetProperty("Namespaces");
             Assert.Equal(JsonValueKind.Array, namespaces.ValueKind);
             Assert.Equal(22, namespaces.GetArrayLength());
-            var structureDataTypes = metadata.Value.GetProperty("MetaData").GetProperty("StructureDataTypes");
+            var structureDataTypes = metadata.Value.Message.GetProperty("MetaData").GetProperty("StructureDataTypes");
             Assert.Equal(JsonValueKind.Array, structureDataTypes.ValueKind);
             var s = structureDataTypes.EnumerateArray().First().GetProperty("StructureDefinition");
             Assert.Equal("Structure_0", s.GetProperty("StructureType").GetString());
@@ -355,10 +353,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                 });
         }
 
-        internal static void AssertSimpleEventsMetadata(JsonElement? metadata)
+        internal static void AssertSimpleEventsMetadata(JsonMessage? metadata)
         {
             Assert.NotNull(metadata);
-            var eventFields = metadata.Value.GetProperty("MetaData").GetProperty("Fields");
+            var eventFields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, eventFields.ValueKind);
             Assert.Collection(eventFields.EnumerateArray(),
                 v =>
@@ -382,10 +380,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
                     Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", v.GetProperty("DataType").GetString());
                 });
 
-            var namespaces = metadata.Value.GetProperty("MetaData").GetProperty("Namespaces");
+            var namespaces = metadata.Value.Message.GetProperty("MetaData").GetProperty("Namespaces");
             Assert.Equal(JsonValueKind.Array, namespaces.ValueKind);
             Assert.Equal(22, namespaces.GetArrayLength());
-            var structureDataTypes = metadata.Value.GetProperty("MetaData").GetProperty("StructureDataTypes");
+            var structureDataTypes = metadata.Value.Message.GetProperty("MetaData").GetProperty("StructureDataTypes");
             Assert.Equal(JsonValueKind.Array, structureDataTypes.ValueKind);
             var s = structureDataTypes.EnumerateArray().First().GetProperty("StructureDefinition");
             Assert.Equal("Structure_0", s.GetProperty("StructureType").GetString());

@@ -37,6 +37,8 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Returns true if more data is required for the next interval.
         /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="state"></param>
         public override bool WaitForMoreData(TimeSlice bucket, AggregateState state)
         {
             if (!state.HasTerminated)
@@ -73,6 +75,10 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Calculates the status for the time slice.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="numGood"></param>
+        /// <param name="numBad"></param>
+        /// <param name="bucket"></param>
         protected override StatusCode ComputeStatus(IAggregationContext context, int numGood, int numBad, TimeSlice bucket)
         {
             var code = (bucket.EarlyBound.Value == null && numGood + numBad == 0) ? // no inital bound, do not extrapolate
@@ -83,6 +89,8 @@ namespace Opc.Ua.Aggregates
         /// <summary>
         /// Determines the best good point before the end bound.
         /// </summary>
+        /// <param name="bound"></param>
+        /// <param name="state"></param>
         protected void UpdatePriorPoint(BoundingValue bound, AggregateState state)
         {
             if (state.HasTerminated && (state.LatePoint == null) && bound.PriorPoint == null)

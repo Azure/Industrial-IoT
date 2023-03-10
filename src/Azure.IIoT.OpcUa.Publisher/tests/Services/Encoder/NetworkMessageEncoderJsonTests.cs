@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using System.Diagnostics;
     using System.Linq;
     using Xunit;
+    using System.Globalization;
 
     public class NetworkMessageEncoderJsonTests
     {
@@ -26,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         /// <returns></returns>
         private static NetworkMessageEncoder GetEncoder()
         {
-            var loggerMock = new Mock<ILogger>();
+            var loggerMock = new Mock<ILogger<NetworkMessageEncoder>>();
             var metricsMock = new Mock<IMetricsContext>();
             metricsMock.SetupGet(m => m.TagList).Returns(new TagList());
             return new NetworkMessageEncoder(new WriterGroupJobConfig
@@ -120,7 +121,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             var count = networkMessages.Sum(m => ((NetworkMessage)m).Buffers.Count(b => b.Length != 0));
-            Assert.All(networkMessages, m => Assert.All(((NetworkMessage)m).Buffers, m => Assert.True(m.Length <= maxMessageSize, m.Length.ToString())));
+            Assert.All(networkMessages, m => Assert.All(((NetworkMessage)m).Buffers,
+                m => Assert.True(m.Length <= maxMessageSize, m.Length.ToString(CultureInfo.InvariantCulture))));
             Assert.InRange(count, 66, 68);
             Assert.Equal(96, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)500 - 96, encoder.NotificationsDroppedCount);

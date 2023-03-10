@@ -7,15 +7,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Autofac;
+    using Furly.Azure;
+    using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Models;
     using Furly.Exceptions;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT;
-    using Microsoft.Azure.IIoT.Http.Default;
-    using Furly.Azure.IoT;
-    using Furly.Azure.IoT.Client;
-    using Furly.Azure.IoT.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
@@ -43,7 +42,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             var verbose = false;
             string deviceId = null, moduleId = null;
 
-            var logger = Log.Console<Program>();
+            var loggerFactory = Log.ConsoleFactory();
+            var logger = loggerFactory.CreateLogger<Program>();
 
             logger.LogInformation("Publisher module command line interface.");
             var configuration = new ConfigurationBuilder()
@@ -59,7 +59,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 cs = configuration.GetValue<string>("_HUB_CS", null);
             }
-            IIoTHubConfig config = null;
             var instances = 1;
             var unknownArgs = new List<string>();
             try
@@ -116,7 +115,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     throw new ArgumentException("Bad connection string.");
                 }
-                config = connectionString.ToIoTHubConfig();
 
                 if (deviceId == null)
                 {
@@ -160,15 +158,15 @@ Options:
                 var enableEventBroker = instances == 1;
                 for (var i = 1; i < instances; i++)
                 {
-                    tasks.Add(HostAsync(config, logger, deviceId + "_" + i, moduleId, args, verbose, !checkTrust));
+                    tasks.Add(HostAsync(cs, loggerFactory, deviceId + "_" + i, moduleId, args, verbose, !checkTrust));
                 }
                 if (!withServer)
                 {
-                    tasks.Add(HostAsync(config, logger, deviceId, moduleId, args, verbose, !checkTrust));
+                    tasks.Add(HostAsync(cs, loggerFactory, deviceId, moduleId, args, verbose, !checkTrust));
                 }
                 else
                 {
-                    tasks.Add(WithServerAsync(config, logger, deviceId, moduleId, args, verbose));
+                    tasks.Add(WithServerAsync(cs, loggerFactory, deviceId, moduleId, args, verbose));
                 }
                 Task.WaitAll(tasks.ToArray());
             }
@@ -181,22 +179,23 @@ Options:
         /// <summary>
         /// Host the module giving it its connection string.
         /// </summary>
-        /// <param name="config"></param>
-        /// <param name="logger"></param>
+        /// <param name="connectionString"></param>
+        /// <param name="loggerFactory"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="args"></param>
         /// <param name="verbose"></param>
         /// <param name="acceptAll"></param>
-        private static async Task HostAsync(IIoTHubConfig config, ILogger logger,
+        private static async Task HostAsync(string connectionString, ILoggerFactory loggerFactory,
             string deviceId, string moduleId, string[] args, bool verbose = false,
             bool acceptAll = false)
         {
+            var logger = loggerFactory.CreateLogger<Program>();
             logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
                 deviceId, moduleId);
 
             var cs = await Retry2.WithExponentialBackoffAsync(logger,
-                () => AddOrGetAsync(config, deviceId, moduleId, logger)).ConfigureAwait(false);
+                () => AddOrGetAsync(connectionString, deviceId, moduleId, logger)).ConfigureAwait(false);
 
             Run(logger, deviceId, moduleId, args, verbose, acceptAll, cs);
 
@@ -211,7 +210,7 @@ Options:
                 {
                     arguments.Add("--aa");
                 }
-                Module.Program.Main(arguments.ToArray());
+                Publisher.Module.Program.Main(arguments.ToArray());
                 logger.LogInformation("Publisher module {DeviceId} {ModuleId} exited.",
                     deviceId, moduleId);
             }
@@ -220,22 +219,23 @@ Options:
         /// <summary>
         /// setup publishing from sample server
         /// </summary>
-        /// <param name="config"></param>
-        /// <param name="logger"></param>
+        /// <param name="connectionString"></param>
+        /// <param name="loggerFactory"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="args"></param>
         /// <param name="verbose"></param>
-        private static async Task WithServerAsync(IIoTHubConfig config, ILogger logger,
+        private static async Task WithServerAsync(string connectionString, ILoggerFactory loggerFactory,
             string deviceId, string moduleId, string[] args, bool verbose = false)
         {
+            var logger = loggerFactory.CreateLogger<Program>();
             try
             {
                 using (var cts = new CancellationTokenSource())
-                using (var server = new ServerWrapper(logger))
+                using (var server = new ServerWrapper(loggerFactory))
                 { // Start test server
                     // Start publisher module
-                    var host = Task.Run(() => HostAsync(config, logger, deviceId,
+                    var host = Task.Run(() => HostAsync(connectionString, loggerFactory, deviceId,
                         moduleId, args, verbose, false), cts.Token);
 
                     Console.WriteLine("Press key to cancel...");
@@ -253,15 +253,24 @@ Options:
         /// <summary>
         /// Add or get module identity
         /// </summary>
-        /// <param name="config"></param>
+        /// <param name="connectionString"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="logger"></param>
-        private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
+        private static async Task<ConnectionString> AddOrGetAsync(string connectionString,
             string deviceId, string moduleId, ILogger logger)
         {
-            var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, new NewtonsoftJsonSerializer(), logger);
+            var builder = new ContainerBuilder();
+            builder.AddIoTHubServiceClient();
+            builder.Configure<IoTHubServiceOptions>(
+                options => options.ConnectionString = connectionString);
+            builder.AddNewtonsoftJsonSerializer();
+            builder.AddLogging();
+            using var container = builder.Build();
+
+            var registry = container.Resolve<IIoTHubTwinServices>();
+
+            // Create iot edge gateway
             try
             {
                 await registry.CreateOrUpdateAsync(new DeviceTwinModel
@@ -269,18 +278,17 @@ Options:
                     Id = deviceId,
                     Tags = new Dictionary<string, VariantValue>
                     {
-                        [TwinProperty.Type] = IdentityType.Gateway
+                        [Constants.TwinPropertyTypeKey] = Constants.EntityTypeGateway
                     },
-                    Capabilities = new DeviceCapabilitiesModel
-                    {
-                        IotEdge = true
-                    }
-                }, false, default).ConfigureAwait(false);
+                    IotEdge = true
+                }, false).ConfigureAwait(false);
             }
             catch (ResourceConflictException)
             {
-                logger.LogInformation("Gateway {DeviceId} exists.", deviceId);
+                logger.LogInformation("IoT Edge device {DeviceId} already exists.", deviceId);
             }
+
+            // Create publisher module
             try
             {
                 await registry.CreateOrUpdateAsync(new DeviceTwinModel
@@ -291,9 +299,11 @@ Options:
             }
             catch (ResourceConflictException)
             {
-                logger.LogInformation("Module {ModuleId} exists...", moduleId);
+                logger.LogInformation("Publisher {ModuleId} already exists...", moduleId);
             }
-            return await registry.GetConnectionStringAsync(deviceId, moduleId).ConfigureAwait(false);
+            var module = await registry.GetRegistrationAsync(deviceId, moduleId).ConfigureAwait(false);
+            return ConnectionString.CreateModuleConnectionString(registry.HostName,
+                deviceId, moduleId, module.PrimaryKey);
         }
 
         /// <summary>
@@ -307,7 +317,7 @@ Options:
             /// Create wrapper
             /// </summary>
             /// <param name="logger"></param>
-            public ServerWrapper(ILogger logger)
+            public ServerWrapper(ILoggerFactory logger)
             {
                 _cts = new CancellationTokenSource();
                 _server = RunSampleServerAsync(logger, _cts.Token);
@@ -327,19 +337,22 @@ Options:
             /// Run server until cancelled
             /// </summary>
             /// <param name="logger"></param>
+            /// <param name="loggerFactory"></param>
             /// <param name="ct"></param>
-            private static async Task RunSampleServerAsync(ILogger logger, CancellationToken ct)
+            private static async Task RunSampleServerAsync(ILoggerFactory loggerFactory, CancellationToken ct)
             {
                 var tcs = new TaskCompletionSource<bool>();
                 ct.Register(() => tcs.TrySetResult(true));
-                using (var server = new ServerConsoleHost(new ServerFactory(logger)
-                {
-                    LogStatus = false
-                }, logger)
+                using (var server = new ServerConsoleHost(
+                    new ServerFactory(loggerFactory.CreateLogger<ServerFactory>())
+                    {
+                        LogStatus = false
+                    }, loggerFactory.CreateLogger<ServerConsoleHost>())
                 {
                     AutoAccept = true
                 })
                 {
+                    var logger = loggerFactory.CreateLogger<ServerWrapper>();
                     logger.LogInformation("Starting server.");
                     await server.StartAsync(new List<int> { 51210 }).ConfigureAwait(false);
                     logger.LogInformation("Server started.");

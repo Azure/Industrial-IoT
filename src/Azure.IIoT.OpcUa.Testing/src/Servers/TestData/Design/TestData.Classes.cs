@@ -139,6 +139,10 @@ namespace TestData
     /// <summary>
     /// Used to receive notifications when the method is called.
     /// </summary>
+    /// <param name="context"></param>
+    /// <param name="method"></param>
+    /// <param name="objectId"></param>
+    /// <param name="iterations"></param>
     /// <exclude />
     public delegate ServiceResult GenerateValuesMethodStateMethodCallHandler(
         ISystemContext context,
@@ -371,6 +375,7 @@ namespace TestData
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public TestDataObjectState(NodeState parent) : base(parent)
         {
         }
@@ -378,6 +383,7 @@ namespace TestData
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.TestDataObjectType, Namespaces.TestData, namespaceUris);
@@ -387,6 +393,7 @@ namespace TestData
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -396,6 +403,8 @@ namespace TestData
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -405,6 +414,7 @@ namespace TestData
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -539,6 +549,10 @@ namespace TestData
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,
@@ -802,6 +816,31 @@ namespace TestData
     /// <summary>
     /// Used to receive notifications when the method is called.
     /// </summary>
+    /// <param name="context"></param>
+    /// <param name="method"></param>
+    /// <param name="objectId"></param>
+    /// <param name="booleanIn"></param>
+    /// <param name="sByteIn"></param>
+    /// <param name="byteIn"></param>
+    /// <param name="int16In"></param>
+    /// <param name="uInt16In"></param>
+    /// <param name="int32In"></param>
+    /// <param name="uInt32In"></param>
+    /// <param name="int64In"></param>
+    /// <param name="uInt64In"></param>
+    /// <param name="floatIn"></param>
+    /// <param name="doubleIn"></param>
+    /// <param name="booleanOut"></param>
+    /// <param name="sByteOut"></param>
+    /// <param name="byteOut"></param>
+    /// <param name="int16Out"></param>
+    /// <param name="uInt16Out"></param>
+    /// <param name="int32Out"></param>
+    /// <param name="uInt32Out"></param>
+    /// <param name="int64Out"></param>
+    /// <param name="uInt64Out"></param>
+    /// <param name="floatOut"></param>
+    /// <param name="doubleOut"></param>
     /// <exclude />
     public delegate ServiceResult ScalarValue1MethodStateMethodCallHandler(
         ISystemContext context,
@@ -998,6 +1037,29 @@ namespace TestData
     /// <summary>
     /// Used to receive notifications when the method is called.
     /// </summary>
+    /// <param name="context"></param>
+    /// <param name="method"></param>
+    /// <param name="objectId"></param>
+    /// <param name="stringIn"></param>
+    /// <param name="dateTimeIn"></param>
+    /// <param name="guidIn"></param>
+    /// <param name="byteStringIn"></param>
+    /// <param name="xmlElementIn"></param>
+    /// <param name="nodeIdIn"></param>
+    /// <param name="expandedNodeIdIn"></param>
+    /// <param name="qualifiedNameIn"></param>
+    /// <param name="localizedTextIn"></param>
+    /// <param name="statusCodeIn"></param>
+    /// <param name="stringOut"></param>
+    /// <param name="dateTimeOut"></param>
+    /// <param name="guidOut"></param>
+    /// <param name="byteStringOut"></param>
+    /// <param name="xmlElementOut"></param>
+    /// <param name="nodeIdOut"></param>
+    /// <param name="expandedNodeIdOut"></param>
+    /// <param name="qualifiedNameOut"></param>
+    /// <param name="localizedTextOut"></param>
+    /// <param name="statusCodeOut"></param>
     /// <exclude />
     public delegate ServiceResult ScalarValue2MethodStateMethodCallHandler(
         ISystemContext context,
@@ -1149,6 +1211,15 @@ namespace TestData
     /// <summary>
     /// Used to receive notifications when the method is called.
     /// </summary>
+    /// <param name="context"></param>
+    /// <param name="method"></param>
+    /// <param name="objectId"></param>
+    /// <param name="variantIn"></param>
+    /// <param name="enumerationIn"></param>
+    /// <param name="structureIn"></param>
+    /// <param name="variantOut"></param>
+    /// <param name="enumerationOut"></param>
+    /// <param name="structureOut"></param>
     /// <exclude />
     public delegate ServiceResult ScalarValue3MethodStateMethodCallHandler(
         ISystemContext context,
@@ -1176,6 +1247,7 @@ namespace TestData
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public ScalarValueObjectState(NodeState parent) : base(parent)
         {
         }
@@ -1183,6 +1255,7 @@ namespace TestData
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.ScalarValueObjectType, Namespaces.TestData, namespaceUris);
@@ -1192,6 +1265,7 @@ namespace TestData
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -1201,6 +1275,8 @@ namespace TestData
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -1210,6 +1286,7 @@ namespace TestData
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -1872,6 +1949,10 @@ namespace TestData
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,
@@ -2505,6 +2586,7 @@ namespace TestData
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public AnalogScalarValueObjectState(NodeState parent) : base(parent)
         {
         }
@@ -2512,6 +2594,7 @@ namespace TestData
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.AnalogScalarValueObjectType, Namespaces.TestData, namespaceUris);
@@ -2521,6 +2604,7 @@ namespace TestData
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -2530,6 +2614,8 @@ namespace TestData
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -2539,6 +2625,7 @@ namespace TestData
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -2906,6 +2993,10 @@ namespace TestData
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,
@@ -3391,6 +3482,31 @@ namespace TestData
     /// <summary>
     /// Used to receive notifications when the method is called.
     /// </summary>
+    /// <param name="context"></param>
+    /// <param name="method"></param>
+    /// <param name="objectId"></param>
+    /// <param name="booleanIn"></param>
+    /// <param name="sByteIn"></param>
+    /// <param name="byteIn"></param>
+    /// <param name="int16In"></param>
+    /// <param name="uInt16In"></param>
+    /// <param name="int32In"></param>
+    /// <param name="uInt32In"></param>
+    /// <param name="int64In"></param>
+    /// <param name="uInt64In"></param>
+    /// <param name="floatIn"></param>
+    /// <param name="doubleIn"></param>
+    /// <param name="booleanOut"></param>
+    /// <param name="sByteOut"></param>
+    /// <param name="byteOut"></param>
+    /// <param name="int16Out"></param>
+    /// <param name="uInt16Out"></param>
+    /// <param name="int32Out"></param>
+    /// <param name="uInt32Out"></param>
+    /// <param name="int64Out"></param>
+    /// <param name="uInt64Out"></param>
+    /// <param name="floatOut"></param>
+    /// <param name="doubleOut"></param>
     /// <exclude />
     public delegate ServiceResult ArrayValue1MethodStateMethodCallHandler(
         ISystemContext context,
@@ -3589,6 +3705,29 @@ namespace TestData
     /// <summary>
     /// Used to receive notifications when the method is called.
     /// </summary>
+    /// <param name="context"></param>
+    /// <param name="method"></param>
+    /// <param name="objectId"></param>
+    /// <param name="stringIn"></param>
+    /// <param name="dateTimeIn"></param>
+    /// <param name="guidIn"></param>
+    /// <param name="byteStringIn"></param>
+    /// <param name="xmlElementIn"></param>
+    /// <param name="nodeIdIn"></param>
+    /// <param name="expandedNodeIdIn"></param>
+    /// <param name="qualifiedNameIn"></param>
+    /// <param name="localizedTextIn"></param>
+    /// <param name="statusCodeIn"></param>
+    /// <param name="stringOut"></param>
+    /// <param name="dateTimeOut"></param>
+    /// <param name="guidOut"></param>
+    /// <param name="byteStringOut"></param>
+    /// <param name="xmlElementOut"></param>
+    /// <param name="nodeIdOut"></param>
+    /// <param name="expandedNodeIdOut"></param>
+    /// <param name="qualifiedNameOut"></param>
+    /// <param name="localizedTextOut"></param>
+    /// <param name="statusCodeOut"></param>
     /// <exclude />
     public delegate ServiceResult ArrayValue2MethodStateMethodCallHandler(
         ISystemContext context,
@@ -3740,6 +3879,15 @@ namespace TestData
     /// <summary>
     /// Used to receive notifications when the method is called.
     /// </summary>
+    /// <param name="context"></param>
+    /// <param name="method"></param>
+    /// <param name="objectId"></param>
+    /// <param name="variantIn"></param>
+    /// <param name="enumerationIn"></param>
+    /// <param name="structureIn"></param>
+    /// <param name="variantOut"></param>
+    /// <param name="enumerationOut"></param>
+    /// <param name="structureOut"></param>
     /// <exclude />
     public delegate ServiceResult ArrayValue3MethodStateMethodCallHandler(
         ISystemContext context,
@@ -3767,6 +3915,7 @@ namespace TestData
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public ArrayValueObjectState(NodeState parent) : base(parent)
         {
         }
@@ -3774,6 +3923,7 @@ namespace TestData
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.ArrayValueObjectType, Namespaces.TestData, namespaceUris);
@@ -3783,6 +3933,7 @@ namespace TestData
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -3792,6 +3943,8 @@ namespace TestData
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -3801,6 +3954,7 @@ namespace TestData
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -4467,6 +4621,10 @@ namespace TestData
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,
@@ -5100,6 +5258,7 @@ namespace TestData
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public AnalogArrayValueObjectState(NodeState parent) : base(parent)
         {
         }
@@ -5107,6 +5266,7 @@ namespace TestData
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.AnalogArrayValueObjectType, Namespaces.TestData, namespaceUris);
@@ -5116,6 +5276,7 @@ namespace TestData
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -5125,6 +5286,8 @@ namespace TestData
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -5134,6 +5297,7 @@ namespace TestData
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -5502,6 +5666,10 @@ namespace TestData
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,
@@ -5827,6 +5995,7 @@ namespace TestData
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public UserScalarValueObjectState(NodeState parent) : base(parent)
         {
         }
@@ -5834,6 +6003,7 @@ namespace TestData
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.UserScalarValueObjectType, Namespaces.TestData, namespaceUris);
@@ -5843,6 +6013,7 @@ namespace TestData
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -5852,6 +6023,8 @@ namespace TestData
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -5861,6 +6034,7 @@ namespace TestData
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -6414,6 +6588,10 @@ namespace TestData
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,
@@ -7102,6 +7280,33 @@ namespace TestData
     /// <summary>
     /// Used to receive notifications when the method is called.
     /// </summary>
+    /// <param name="context"></param>
+    /// <param name="method"></param>
+    /// <param name="objectId"></param>
+    /// <param name="booleanIn"></param>
+    /// <param name="sByteIn"></param>
+    /// <param name="byteIn"></param>
+    /// <param name="int16In"></param>
+    /// <param name="uInt16In"></param>
+    /// <param name="int32In"></param>
+    /// <param name="uInt32In"></param>
+    /// <param name="int64In"></param>
+    /// <param name="uInt64In"></param>
+    /// <param name="floatIn"></param>
+    /// <param name="doubleIn"></param>
+    /// <param name="stringIn"></param>
+    /// <param name="booleanOut"></param>
+    /// <param name="sByteOut"></param>
+    /// <param name="byteOut"></param>
+    /// <param name="int16Out"></param>
+    /// <param name="uInt16Out"></param>
+    /// <param name="int32Out"></param>
+    /// <param name="uInt32Out"></param>
+    /// <param name="int64Out"></param>
+    /// <param name="uInt64Out"></param>
+    /// <param name="floatOut"></param>
+    /// <param name="doubleOut"></param>
+    /// <param name="stringOut"></param>
     /// <exclude />
     public delegate ServiceResult UserScalarValue1MethodStateMethodCallHandler(
         ISystemContext context,
@@ -7301,6 +7506,29 @@ namespace TestData
     /// <summary>
     /// Used to receive notifications when the method is called.
     /// </summary>
+    /// <param name="context"></param>
+    /// <param name="method"></param>
+    /// <param name="objectId"></param>
+    /// <param name="dateTimeIn"></param>
+    /// <param name="guidIn"></param>
+    /// <param name="byteStringIn"></param>
+    /// <param name="xmlElementIn"></param>
+    /// <param name="nodeIdIn"></param>
+    /// <param name="expandedNodeIdIn"></param>
+    /// <param name="qualifiedNameIn"></param>
+    /// <param name="localizedTextIn"></param>
+    /// <param name="statusCodeIn"></param>
+    /// <param name="variantIn"></param>
+    /// <param name="dateTimeOut"></param>
+    /// <param name="guidOut"></param>
+    /// <param name="byteStringOut"></param>
+    /// <param name="xmlElementOut"></param>
+    /// <param name="nodeIdOut"></param>
+    /// <param name="expandedNodeIdOut"></param>
+    /// <param name="qualifiedNameOut"></param>
+    /// <param name="localizedTextOut"></param>
+    /// <param name="statusCodeOut"></param>
+    /// <param name="variantOut"></param>
     /// <exclude />
     public delegate ServiceResult UserScalarValue2MethodStateMethodCallHandler(
         ISystemContext context,
@@ -7342,6 +7570,7 @@ namespace TestData
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public UserArrayValueObjectState(NodeState parent) : base(parent)
         {
         }
@@ -7349,6 +7578,7 @@ namespace TestData
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.UserArrayValueObjectType, Namespaces.TestData, namespaceUris);
@@ -7358,6 +7588,7 @@ namespace TestData
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -7367,6 +7598,8 @@ namespace TestData
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -7376,6 +7609,7 @@ namespace TestData
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -7932,6 +8166,10 @@ namespace TestData
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,
@@ -8622,6 +8860,33 @@ namespace TestData
     /// <summary>
     /// Used to receive notifications when the method is called.
     /// </summary>
+    /// <param name="context"></param>
+    /// <param name="method"></param>
+    /// <param name="objectId"></param>
+    /// <param name="booleanIn"></param>
+    /// <param name="sByteIn"></param>
+    /// <param name="byteIn"></param>
+    /// <param name="int16In"></param>
+    /// <param name="uInt16In"></param>
+    /// <param name="int32In"></param>
+    /// <param name="uInt32In"></param>
+    /// <param name="int64In"></param>
+    /// <param name="uInt64In"></param>
+    /// <param name="floatIn"></param>
+    /// <param name="doubleIn"></param>
+    /// <param name="stringIn"></param>
+    /// <param name="booleanOut"></param>
+    /// <param name="sByteOut"></param>
+    /// <param name="byteOut"></param>
+    /// <param name="int16Out"></param>
+    /// <param name="uInt16Out"></param>
+    /// <param name="int32Out"></param>
+    /// <param name="uInt32Out"></param>
+    /// <param name="int64Out"></param>
+    /// <param name="uInt64Out"></param>
+    /// <param name="floatOut"></param>
+    /// <param name="doubleOut"></param>
+    /// <param name="stringOut"></param>
     /// <exclude />
     public delegate ServiceResult UserArrayValue1MethodStateMethodCallHandler(
         ISystemContext context,
@@ -8823,6 +9088,29 @@ namespace TestData
     /// <summary>
     /// Used to receive notifications when the method is called.
     /// </summary>
+    /// <param name="context"></param>
+    /// <param name="method"></param>
+    /// <param name="objectId"></param>
+    /// <param name="dateTimeIn"></param>
+    /// <param name="guidIn"></param>
+    /// <param name="byteStringIn"></param>
+    /// <param name="xmlElementIn"></param>
+    /// <param name="nodeIdIn"></param>
+    /// <param name="expandedNodeIdIn"></param>
+    /// <param name="qualifiedNameIn"></param>
+    /// <param name="localizedTextIn"></param>
+    /// <param name="statusCodeIn"></param>
+    /// <param name="variantIn"></param>
+    /// <param name="dateTimeOut"></param>
+    /// <param name="guidOut"></param>
+    /// <param name="byteStringOut"></param>
+    /// <param name="xmlElementOut"></param>
+    /// <param name="nodeIdOut"></param>
+    /// <param name="expandedNodeIdOut"></param>
+    /// <param name="qualifiedNameOut"></param>
+    /// <param name="localizedTextOut"></param>
+    /// <param name="statusCodeOut"></param>
+    /// <param name="variantOut"></param>
     /// <exclude />
     public delegate ServiceResult UserArrayValue2MethodStateMethodCallHandler(
         ISystemContext context,
@@ -8864,6 +9152,7 @@ namespace TestData
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public MethodTestState(NodeState parent) : base(parent)
         {
         }
@@ -8871,6 +9160,7 @@ namespace TestData
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.MethodTestType, Namespaces.TestData, namespaceUris);
@@ -8880,6 +9170,7 @@ namespace TestData
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -8889,6 +9180,8 @@ namespace TestData
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -8898,6 +9191,7 @@ namespace TestData
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -9285,6 +9579,10 @@ namespace TestData
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,
@@ -9544,6 +9842,7 @@ namespace TestData
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
+        /// <param name="parent"></param>
         public TestSystemConditionState(NodeState parent) : base(parent)
         {
         }
@@ -9551,6 +9850,7 @@ namespace TestData
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
+        /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
             return NodeId.Create(ObjectTypes.TestSystemConditionType, Namespaces.TestData, namespaceUris);
@@ -9560,6 +9860,7 @@ namespace TestData
         /// <summary>
         /// Initializes the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void Initialize(ISystemContext context)
         {
             Initialize(context, InitializationString);
@@ -9569,6 +9870,8 @@ namespace TestData
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="source"></param>
         protected override void Initialize(ISystemContext context, NodeState source)
         {
             InitializeOptionalChildren(context);
@@ -9578,6 +9881,7 @@ namespace TestData
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
+        /// <param name="context"></param>
         protected override void InitializeOptionalChildren(ISystemContext context)
         {
             base.InitializeOptionalChildren(context);
@@ -9657,6 +9961,10 @@ namespace TestData
         /// <summary>
         /// Finds the child with the specified browse name.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="browseName"></param>
+        /// <param name="createOrReplace"></param>
+        /// <param name="replacement"></param>
         protected override BaseInstanceState FindChild(
             ISystemContext context,
             QualifiedName browseName,

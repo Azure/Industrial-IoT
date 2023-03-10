@@ -3,16 +3,20 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.State
+namespace Azure.IIoT.OpcUa.Models
 {
+    using System.Runtime.Serialization;
+
     /// <summary>
-    /// Configuration of RuntimeStateReporter.
+    /// Enum of valid values for MessageType.
     /// </summary>
-    public interface IRuntimeStateReporterConfiguration
+    [DataContract]
+    public enum RuntimeStateEventType
     {
         /// <summary>
-        /// Configuration flag for enabling/disabling runtime state reporting.
+        /// Defines a message of restart announcement type.
         /// </summary>
-        bool EnableRuntimeStateReporting { get; }
+        [EnumMember]
+        RestartAnnouncement
     }
 }

@@ -118,6 +118,7 @@ namespace TestData
         /// <summary>
         /// Creates an archive for the variable.
         /// </summary>
+        /// <param name="variable"></param>
         public void EnableHistoryArchiving(BaseVariableState variable)
         {
             if (variable == null)
@@ -134,6 +135,7 @@ namespace TestData
         /// <summary>
         /// Returns the history file for the variable.
         /// </summary>
+        /// <param name="variable"></param>
         public IHistoryDataSource GetHistoryFile(BaseVariableState variable)
         {
             if (variable == null)
@@ -147,6 +149,7 @@ namespace TestData
         /// <summary>
         /// Returns a new value for the variable.
         /// </summary>
+        /// <param name="variable"></param>
         public object ReadValue(BaseVariableState variable)
         {
             lock (_lock)
@@ -440,7 +443,7 @@ namespace TestData
         {
             if (_generator.GetRandomBoolean())
             {
-                var value = new ScalarValueDataType
+                var scalarValue = new ScalarValueDataType
                 {
                     BooleanValue = _generator.GetRandom<bool>(),
                     SByteValue = _generator.GetRandom<sbyte>(),
@@ -465,43 +468,40 @@ namespace TestData
                     StatusCodeValue = _generator.GetRandom<StatusCode>(),
                     VariantValue = _generator.GetRandomVariant()
                 };
-                return new ExtensionObject(value);
+                return new ExtensionObject(scalarValue);
             }
-            else
+            var arrayValue = new ArrayValueDataType
             {
-                var value = new ArrayValueDataType
-                {
-                    BooleanValue = _generator.GetRandomArray<bool>(10),
-                    SByteValue = _generator.GetRandomArray<sbyte>(10),
-                    ByteValue = _generator.GetRandomArray<byte>(10),
-                    Int16Value = _generator.GetRandomArray<short>(10),
-                    UInt16Value = _generator.GetRandomArray<ushort>(10),
-                    Int32Value = _generator.GetRandomArray<int>(10),
-                    UInt32Value = _generator.GetRandomArray<uint>(10),
-                    Int64Value = _generator.GetRandomArray<long>(10),
-                    UInt64Value = _generator.GetRandomArray<ulong>(10),
-                    FloatValue = _generator.GetRandomArray<float>(10),
-                    DoubleValue = _generator.GetRandomArray<double>(10),
-                    StringValue = _generator.GetRandomArray<string>(10),
-                    DateTimeValue = _generator.GetRandomArray<DateTime>(10),
-                    GuidValue = _generator.GetRandomArray<Uuid>(10),
-                    ByteStringValue = _generator.GetRandomArray<byte[]>(10),
-                    XmlElementValue = _generator.GetRandomArray<XmlElement>(10),
-                    NodeIdValue = _generator.GetRandomArray<NodeId>(10),
-                    ExpandedNodeIdValue = _generator.GetRandomArray<ExpandedNodeId>(10),
-                    QualifiedNameValue = _generator.GetRandomArray<QualifiedName>(10),
-                    LocalizedTextValue = _generator.GetRandomArray<LocalizedText>(10),
-                    StatusCodeValue = _generator.GetRandomArray<StatusCode>(10)
-                };
+                BooleanValue = _generator.GetRandomArray<bool>(10),
+                SByteValue = _generator.GetRandomArray<sbyte>(10),
+                ByteValue = _generator.GetRandomArray<byte>(10),
+                Int16Value = _generator.GetRandomArray<short>(10),
+                UInt16Value = _generator.GetRandomArray<ushort>(10),
+                Int32Value = _generator.GetRandomArray<int>(10),
+                UInt32Value = _generator.GetRandomArray<uint>(10),
+                Int64Value = _generator.GetRandomArray<long>(10),
+                UInt64Value = _generator.GetRandomArray<ulong>(10),
+                FloatValue = _generator.GetRandomArray<float>(10),
+                DoubleValue = _generator.GetRandomArray<double>(10),
+                StringValue = _generator.GetRandomArray<string>(10),
+                DateTimeValue = _generator.GetRandomArray<DateTime>(10),
+                GuidValue = _generator.GetRandomArray<Uuid>(10),
+                ByteStringValue = _generator.GetRandomArray<byte[]>(10),
+                XmlElementValue = _generator.GetRandomArray<XmlElement>(10),
+                NodeIdValue = _generator.GetRandomArray<NodeId>(10),
+                ExpandedNodeIdValue = _generator.GetRandomArray<ExpandedNodeId>(10),
+                QualifiedNameValue = _generator.GetRandomArray<QualifiedName>(10),
+                LocalizedTextValue = _generator.GetRandomArray<LocalizedText>(10),
+                StatusCodeValue = _generator.GetRandomArray<StatusCode>(10)
+            };
 
-                var values = _generator.GetRandomArray<object>(10);
-                for (var i = 0; values != null && i < values.Length; i++)
-                {
-                    value.VariantValue.Add(new Variant(values[i]));
-                }
-
-                return new ExtensionObject(value);
+            var values = _generator.GetRandomArray<object>(10);
+            for (var i = 0; values != null && i < values.Length; i++)
+            {
+                arrayValue.VariantValue.Add(new Variant(values[i]));
             }
+
+            return new ExtensionObject(arrayValue);
         }
 
         public void StartMonitoringValue(uint monitoredItemId, double samplingInterval, BaseVariableState variable)

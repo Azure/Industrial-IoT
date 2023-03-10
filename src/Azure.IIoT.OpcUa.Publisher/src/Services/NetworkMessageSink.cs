@@ -28,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="metrics"></param>
         /// <param name="logger"></param>
         public NetworkMessageSink(IEventClient clientAccessor, IMetricsContext metrics,
-            ILogger logger) : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
+            ILogger<NetworkMessageSink> logger)
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {
             _clientAccessor = clientAccessor
                 ?? throw new ArgumentNullException(nameof(clientAccessor));
