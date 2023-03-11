@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
             try
             {
                 var context = new ServiceMessageContext();
-                var pubSubMessage = PubSubMessage.Decode(payload, ContentMimeType.Uadp, context, null, MessageSchema);
+                var pubSubMessage = PubSubMessage.Decode(payload, ContentType.Uadp, context, null, MessageSchema);
                 if (pubSubMessage is not BaseNetworkMessage networkMessage)
                 {
                     _logger.LogInformation("Received non network message.");

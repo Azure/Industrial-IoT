@@ -3,34 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT
+namespace Azure.IIoT.OpcUa.Encoders
 {
     /// <summary>
-    /// Content mime types
+    /// Content types
     /// </summary>
-    public static class ContentMimeType
+    public static class ContentType
     {
-        /// <summary>
-        /// Binary blob
-        /// </summary>
-        public const string Binary =
-             "application/octet-stream";
-        /// <summary>
-        /// Json encoding
-        /// </summary>
-        public const string Json =
-            "application/json";
         /// <summary>
         /// Json+Gzip encoding
         /// </summary>
         public const string JsonGzip =
             "application/json+gzip";
-
-        /// <summary>
-        /// Message pack encoding
-        /// </summary>
-        public const string MsgPack =
-            "application/x-msgpack";
 
         /// <summary>
         /// OPC UA json encoding as per OPC UA part 6

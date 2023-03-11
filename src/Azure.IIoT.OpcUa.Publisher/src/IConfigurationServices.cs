@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Enables remote configuration of the publisher
     /// </summary>
-    public interface IPublisherConfigurationServices : IPublishServices<ConnectionModel>
+    public interface IConfigurationServices : IPublishServices<ConnectionModel>
     {
         /// <summary>
         /// Add nodes to be published to the configuration

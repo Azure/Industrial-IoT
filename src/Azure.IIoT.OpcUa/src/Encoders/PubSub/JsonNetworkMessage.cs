@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using System.IO.Compression;
     using System.Linq;
     using System.Text;
+    using Furly;
 
     /// <summary>
     /// Json Network message
@@ -27,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override string ContentType => UseGzipCompression ?
-            ContentMimeType.JsonGzip : ContentMimeType.Json;
+            Encoders.ContentType.JsonGzip : ContentMimeType.Json;
 
         /// <inheritdoc/>
         public override string ContentEncoding => Encoding.UTF8.WebName;

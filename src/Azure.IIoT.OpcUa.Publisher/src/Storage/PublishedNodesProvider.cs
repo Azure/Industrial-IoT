@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     /// <summary>
     /// Utilities provider for published nodes file.
     /// </summary>
-    public sealed class PublishedNodesProvider : IPublishedNodesProvider, IDisposable
+    public sealed class PublishedNodesProvider : IStorageProvider, IDisposable
     {
         /// <inheritdoc/>
         public event FileSystemEventHandler Deleted;

@@ -38,6 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.TestHost;
+    using Furly.Azure.IoT.Edge.Services;
 
     /// <summary>
     /// Publisher telemetry
@@ -56,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// <summary>
     /// Harness for opc publisher module
     /// </summary>
-    public class PublisherModule : WebApplicationFactory<Startup>, ISdkConfig
+    public class PublisherModule : WebApplicationFactory<ModuleStartup>, ISdkConfig
     {
         /// <summary>
         /// Taret
@@ -144,6 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 .AddInMemoryCollection(new PublisherCliOptions(arguments))
                 ;
             _config = configBuilder.Build();
+            _ = Server; // Ensure server is created
         }
 
         /// <inheritdoc/>
@@ -157,9 +159,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         {
             builder
                 .UseContentRoot(".")
-                .UseStartup<Startup>()
+                .UseStartup<ModuleStartup>()
                 .UseConfiguration(_config)
-                .ConfigureTestContainer<ContainerBuilder>(ConfigureContainer)
                 ;
             base.ConfigureWebHost(builder);
         }
@@ -167,7 +168,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <inheritdoc/>
         protected override IHost CreateHost(IHostBuilder builder)
         {
-            builder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+            builder
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .ConfigureContainer<ContainerBuilder>(ConfigureContainer)
+                ;
             return base.CreateHost(builder);
         }
 
@@ -211,15 +215,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <inheritdoc/>
         public void ConfigureContainer(ContainerBuilder builder)
         {
-            // Add connection to hub
-            builder.RegisterInstance(_connection.EventClient);
-            builder.RegisterInstance(_connection.RpcServer);
-            builder.RegisterInstance(_connection.Twin);
-
+            // Register publisher services
+            builder.AddPublisherServices();
             // Override client config
             builder.RegisterInstance(_config).AsImplementedInterfaces();
             builder.RegisterType<TestClientServicesConfig>()
                 .AsImplementedInterfaces();
+
+            // Register connectivity services
+            builder.RegisterType<IoTEdgeIdentity>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterInstance(_connection.EventClient);
+            builder.RegisterInstance(_connection.RpcServer);
+            builder.RegisterInstance(_connection.Twin);
         }
 
         /// <summary>
@@ -324,5 +332,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private readonly IConfiguration _config;
         private readonly IoTHubTelemetryHandler _telemetry;
         private readonly IDisposable _handler;
+    }
+
+    public class ModuleStartup : Startup
+    {
+        public ModuleStartup(IWebHostEnvironment env, IConfiguration configuration)
+            : base(env, configuration)
+        {
+        }
+
+        public override void ConfigureContainer(ContainerBuilder builder)
+        {
+        }
     }
 }

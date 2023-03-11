@@ -119,6 +119,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private readonly ILifetimeScope _lifetimeScope;
-        private readonly IPublisherDiagnosticCollector _collector;
+        private readonly IDiagnosticCollector _collector;
     }
 }

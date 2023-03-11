@@ -52,7 +52,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             // Try a crash restart loop here if we are not in a container context.
             while (true)
             {
-                var logger = _scope.Resolve<ILogger>();
                 try
                 {
                     // Resolves client and starts client and errors if it fails.
@@ -61,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     var uaClient = _scope.Resolve<IClientHost>();
 
                     var version = GetType().Assembly.GetReleaseVersion().ToString();
-                    logger.LogInformation("Starting OpcPublisher module version {Version}...",
+                    _logger.LogInformation("Starting OpcPublisher module version {Version}...",
                         version);
 
                     // Connect
@@ -71,27 +70,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     await runtimeStateReporter.SendRestartAnnouncementAsync(
                         cancellationToken).ConfigureAwait(false);
 
-                    logger.LogInformation("OpcPublisher module version {Version} started.",
+                    _logger.LogInformation("OpcPublisher module version {Version} started.",
                         version);
                     OnRunning?.Invoke(this, true);
                     return;
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Error trying to start OpcPublisher module!");
+                    _logger.LogError(ex, "Error trying to start OpcPublisher module!");
                     if (IsContainer)
                     {
-                        logger.LogCritical(ex, "Waiting for container restart - exiting...");
+                        _logger.LogCritical(ex, "Waiting for container restart - exiting...");
                         Process.GetCurrentProcess().Kill();
                         return;
                     }
-                    logger.LogInformation("Retrying in 30 seconds...");
+                    _logger.LogInformation("Retrying in 30 seconds...");
                     await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
                     OnRunning?.Invoke(this, false);
-                    logger.LogInformation("Stopped module OpcPublisher.");
+                    _logger.LogInformation("Stopped module OpcPublisher.");
                 }
             }
         }

@@ -32,6 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using System.Globalization;
     using Microsoft.Extensions.Options;
     using Furly.Extensions.Configuration;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
+    using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
@@ -42,11 +44,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         private readonly ILoggerFactory _loggerFactory;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private readonly Mock<IPublisherConfiguration> _configMock;
-        private PublisherConfigurationService _configService;
         private readonly PublishedNodesProvider _publishedNodesProvider;
         private readonly Mock<IMessageSource> _triggerMock;
         private readonly IPublisherHost _publisher;
-        private readonly Mock<IPublisherDiagnosticCollector> _diagnostic;
+        private readonly Mock<IDiagnosticCollector> _diagnostic;
 
         /// <summary>
         /// Constructor that initializes common resources used by tests.
@@ -58,12 +59,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             _loggerFactory = LogFactory.Create(output);
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
-            clientConfigMock.SetupAllProperties();
+            var clientConfigMock = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
 
             _publishedNodesJobConverter = new PublishedNodesJobConverter(
                 _loggerFactory.CreateLogger<PublishedNodesJobConverter>(), _newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfigMock.Object);
+                engineConfigMock.Object, clientConfigMock);
 
             // Note that each test is responsible for setting content of _tempFile;
             CopyContent("Controller/empty_pn.json", _tempFile);
@@ -89,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 .Returns(lifetime.Object);
             _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessIdentity>().Object,
                 _loggerFactory.CreateLogger<PublisherHostService>());
-            _diagnostic = new Mock<IPublisherDiagnosticCollector>();
+            _diagnostic = new Mock<IDiagnosticCollector>();
             var mockDiag = new WriterGroupDiagnosticModel();
             _diagnostic.Setup(m => m.TryGetDiagnosticsForWriterGroup(It.IsAny<string>(), out mockDiag)).Returns(true);
         }
@@ -97,9 +97,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         /// <summary>
         /// This method should be called only after content of _tempFile is set.
         /// </summary>
-        private void InitPublisherConfigService()
+        private PublisherConfigurationService InitPublisherConfigService()
         {
-            _configService = new PublisherConfigurationService(
+            var configService = new PublisherConfigurationService(
                 _publishedNodesJobConverter,
                 _configMock.Object,
                 _publisher,
@@ -108,7 +108,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 _newtonSoftJsonSerializer,
                 _diagnostic.Object
             );
-            _configService.StartAsync().AsTask().GetAwaiter().GetResult();
+            configService.StartAsync().AsTask().GetAwaiter().GetResult();
+            return configService;
         }
 
         [Theory]
@@ -116,9 +117,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public async Task DmApiPublishUnpublishNodesTestAsync(string publishedNodesFile)
         {
             CopyContent("Controller/empty_pn.json", _tempFile);
-            InitPublisherConfigService();
+            using var configService = InitPublisherConfigService();
 
-            var methodsController = new PublisherMethodsController(_configService);
+            var methodsController = new PublisherMethodsController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
@@ -176,8 +177,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public async Task DmApiPublishUnpublishAllNodesTestAsync(string publishedNodesFile)
         {
             CopyContent("Controller/empty_pn.json", _tempFile);
-            InitPublisherConfigService();
-            var methodsController = new PublisherMethodsController(_configService);
+            using var configService = InitPublisherConfigService();
+            var methodsController = new PublisherMethodsController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
@@ -236,9 +237,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public async Task DmApiPublishNodesToJobTestAsync(string publishedNodesFile)
         {
             CopyContent("Controller/empty_pn.json", _tempFile);
-            InitPublisherConfigService();
+            using var configService = InitPublisherConfigService();
 
-            var methodsController = new PublisherMethodsController(_configService);
+            var methodsController = new PublisherMethodsController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>
@@ -280,13 +281,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 EndpointUrl = endpointUrl
             };
 
-            var methodsController = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
+            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
+            d.Dispose();
 
             response.Subject.OpcNodes.Count
                 .Should()
@@ -322,14 +324,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 OpcAuthenticationPassword = password
             };
 
-            var methodsController = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf0").ConfigureAwait(false);
-
+            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf0").ConfigureAwait(false);
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
+            d.Dispose();
 
             response.Subject.OpcNodes.Count
                 .Should()
@@ -363,7 +365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 })
                 .ToList();
 
-            var methodsController = await PublishNodeAsync("Controller/empty_pn.json").ConfigureAwait(false);
+            var (d, methodsController) = await PublishNodeAsync("Controller/empty_pn.json").ConfigureAwait(false);
 
             for (var i = 0; i < 5; ++i)
             {
@@ -386,6 +388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Should()
                     .Be($"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}");
             }
+            d.Dispose();
         }
 
         [Theory]
@@ -401,7 +404,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 UseSecurity = useSecurity
             };
 
-            var methodsController = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
+            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -409,6 +412,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
+            d.Dispose();
 
             response.Subject.OpcNodes.Count
                 .Should()
@@ -439,7 +443,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 OpcAuthenticationMode = authenticationMode
             };
 
-            var methodsController = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf1").ConfigureAwait(false);
+            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf1").ConfigureAwait(false);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -447,6 +451,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
+            d.Dispose();
 
             response.Subject.OpcNodes.Count
                 .Should()
@@ -473,7 +478,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 OpcAuthenticationPassword = password
             };
 
-            var methodsController = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
+            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile).ConfigureAwait(false);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -481,6 +486,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
+            d.Dispose();
 
             response.Subject.OpcNodes.Count
                 .Should()
@@ -498,13 +504,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         /// </summary>
         /// <param name="publishedNodesFile"></param>
         /// <param name="predicate"></param>
-        private async Task<PublisherMethodsController> PublishNodeAsync(string publishedNodesFile,
+        private async Task<(PublisherConfigurationService, PublisherMethodsController)> PublishNodeAsync(string publishedNodesFile,
             Func<PublishedNodesEntryModel, bool> predicate = null)
         {
             CopyContent("Controller/empty_pn.json", _tempFile);
-            InitPublisherConfigService();
+            var configService = InitPublisherConfigService();
 
-            var methodsController = new PublisherMethodsController(_configService);
+            var methodsController = new PublisherMethodsController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
@@ -518,7 +524,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .NotThrowAsync()
                     .ConfigureAwait(false);
             }
-            return methodsController;
+            return (configService, methodsController);
         }
 
         [Theory]
@@ -526,8 +532,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public async Task DmApiGetConfiguredEndpointsTestAsync(string publishedNodesFile)
         {
             CopyContent("Controller/empty_pn.json", _tempFile);
-            InitPublisherConfigService();
-            var methodsController = new PublisherMethodsController(_configService);
+            using var configService = InitPublisherConfigService();
+            var methodsController = new PublisherMethodsController(configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
             var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>
@@ -578,8 +584,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public async Task DmApiGetDiagnosticInfoTestAsync()
         {
             CopyContent("Controller/empty_pn.json", _tempFile);
-            InitPublisherConfigService();
-            var methodsController = new PublisherMethodsController(_configService);
+            using var configService = InitPublisherConfigService();
+            var methodsController = new PublisherMethodsController(configService);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController

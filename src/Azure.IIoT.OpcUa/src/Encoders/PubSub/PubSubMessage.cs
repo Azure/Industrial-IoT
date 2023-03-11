@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
+    using Furly;
     using Microsoft.Azure.IIoT;
     using Microsoft.IO;
     using Opc.Ua;
@@ -135,16 +136,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             PubSubMessage message;
             switch (contentType.ToLowerInvariant())
             {
-                case ContentMimeType.JsonGzip:
+                case Encoders.ContentType.JsonGzip:
                 case ContentMimeType.Json:
-                case ContentMimeType.UaJson:
-                case ContentMimeType.UaLegacyPublisher:
-                case ContentMimeType.UaNonReversibleJson:
+                case Encoders.ContentType.UaJson:
+                case Encoders.ContentType.UaLegacyPublisher:
+                case Encoders.ContentType.UaNonReversibleJson:
                     message = new JsonNetworkMessage
                     {
                         MessageSchemaToUse = messageSchema,
                         UseGzipCompression = contentType.Equals(
-                            ContentMimeType.JsonGzip, StringComparison.OrdinalIgnoreCase)
+                            Encoders.ContentType.JsonGzip, StringComparison.OrdinalIgnoreCase)
                     };
                     if (message.TryDecode(context, reader, resolver))
                     {
@@ -161,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     }
                     break;
                 case ContentMimeType.Binary:
-                case ContentMimeType.Uadp:
+                case Encoders.ContentType.Uadp:
                     message = new UadpNetworkMessage();
                     if (message.TryDecode(context, reader, resolver))
                     {

@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// as optional, i.e., it is possible to disable any of the legacy diagnostics api and rely
     /// solely on modern OTEL based telemetry collection.
     /// </summary>
-    public sealed class PublisherDiagnosticCollector : IPublisherDiagnosticCollector,
+    public sealed class PublisherDiagnosticCollector : IDiagnosticCollector,
         IStartable, IDisposable
     {
         /// <summary>

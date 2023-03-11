@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// ctor
         /// </summary>
         /// <param name="configServices"></param>
-        public PublisherMethodsController(IPublisherConfigurationServices configServices)
+        public PublisherMethodsController(IConfigurationServices configServices)
         {
             _configServices = configServices ?? throw new ArgumentNullException(nameof(configServices));
         }
@@ -206,6 +206,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
             throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Not supported");
         }
 
-        private readonly IPublisherConfigurationServices _configServices;
+        private readonly IConfigurationServices _configServices;
     }
 }

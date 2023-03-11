@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// Publisher collector collects metrics from for writer groups
     /// inside the publisher during runtime.
     /// </summary>
-    public interface IPublisherDiagnosticCollector
+    public interface IDiagnosticCollector
     {
         /// <summary>
         /// Remove writer group from collector

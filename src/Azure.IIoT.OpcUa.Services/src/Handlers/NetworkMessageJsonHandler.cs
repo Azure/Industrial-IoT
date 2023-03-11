@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly;
 
     /// <summary>
     /// Publisher message handling

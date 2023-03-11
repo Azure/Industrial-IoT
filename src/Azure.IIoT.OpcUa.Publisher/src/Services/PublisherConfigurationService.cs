@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// Provides configuration services for publisher using either published nodes
     /// configuration update or api services.
     /// </summary>
-    public sealed class PublisherConfigurationService : IPublisherConfigurationServices,
+    public sealed class PublisherConfigurationService : IConfigurationServices,
         IHostProcess, IAsyncDisposable, IDisposable
     {
         /// <summary>
@@ -45,8 +45,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="diagnostics"></param>
         public PublisherConfigurationService(PublishedNodesJobConverter publishedNodesJobConverter,
             IPublisherConfiguration configuration, IPublisherHost publisherHost,
-            ILogger<PublisherConfigurationService> logger, IPublishedNodesProvider publishedNodesProvider,
-            IJsonSerializer jsonSerializer, IPublisherDiagnosticCollector diagnostics = null)
+            ILogger<PublisherConfigurationService> logger, IStorageProvider publishedNodesProvider,
+            IJsonSerializer jsonSerializer, IDiagnosticCollector diagnostics = null)
         {
             _publishedNodesJobConverter = publishedNodesJobConverter ??
                 throw new ArgumentNullException(nameof(publishedNodesJobConverter));
@@ -1091,9 +1091,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly IPublisherConfiguration _configuration;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
-        private readonly IPublishedNodesProvider _publishedNodesProvider;
+        private readonly IStorageProvider _publishedNodesProvider;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly IPublisherDiagnosticCollector _diagnostics;
+        private readonly IDiagnosticCollector _diagnostics;
         private readonly IPublisherHost _publisherHost;
         private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;

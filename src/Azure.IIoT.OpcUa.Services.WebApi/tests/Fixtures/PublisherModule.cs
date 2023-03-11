@@ -24,6 +24,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.TestHost;
+    using Azure.IIoT.OpcUa.Publisher.Module;
+    using Furly.Azure.IoT.Edge.Services;
 
     /// <summary>
     /// Opc Publisher module fixture
@@ -101,6 +103,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 .AddInMemoryCollection(new PublisherCliOptions(arguments))
                 ;
             _config = configBuilder.Build();
+            _ = Server; // Ensure server is created
         }
 
         /// <inheritdoc/>
@@ -114,9 +117,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         {
             builder
                 .UseContentRoot(".")
-                .UseStartup<Startup>()
+                .UseStartup<ModuleStartup>()
                 .UseConfiguration(_config)
-                .ConfigureTestContainer<ContainerBuilder>(ConfigureContainer)
                 ;
             base.ConfigureWebHost(builder);
         }
@@ -124,7 +126,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <inheritdoc/>
         protected override IHost CreateHost(IHostBuilder builder)
         {
-            builder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+            builder
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .ConfigureContainer<ContainerBuilder>(ConfigureContainer)
+                ;
             return base.CreateHost(builder);
         }
 
@@ -161,18 +166,34 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <inheritdoc/>
         public void ConfigureContainer(ContainerBuilder builder)
         {
-            // Add connection to hub
-            builder.RegisterInstance(_connection.EventClient);
-            builder.RegisterInstance(_connection.RpcServer);
-            builder.RegisterInstance(_connection.Twin);
-
+            // Register publisher services
+            builder.AddPublisherServices();
             // Override client config
             builder.RegisterInstance(_config).AsImplementedInterfaces();
             builder.RegisterType<TestClientServicesConfig>()
                 .AsImplementedInterfaces();
+
+            // Register connectivity services
+            builder.RegisterType<IoTEdgeIdentity>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterInstance(_connection.EventClient);
+            builder.RegisterInstance(_connection.RpcServer);
+            builder.RegisterInstance(_connection.Twin);
         }
 
         private readonly IIoTHubConnection _connection;
         private readonly IConfiguration _config;
+    }
+
+    public class ModuleStartup : Publisher.Module.Startup
+    {
+        public ModuleStartup(IWebHostEnvironment env, IConfiguration configuration)
+            : base(env, configuration)
+        {
+        }
+
+        public override void ConfigureContainer(ContainerBuilder builder)
+        {
+        }
     }
 }
