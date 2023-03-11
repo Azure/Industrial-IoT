@@ -158,7 +158,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         RejectUnknownRevocationStatus = true
                     },
                     TransportConfigurations = new TransportConfigurationCollection(),
-                    TransportQuotas = new TransportQuotas(),
+                    TransportQuotas = new TransportQuotas
+                    {
+                        SecurityTokenLifetime = 60 * 60 * 1000,
+                        ChannelLifetime = 300 * 1000,
+                        MaxBufferSize = (64 * 1024) - 1,
+                        MaxMessageSize = 4 * 1024 * 1024,
+                        MaxArrayLength = (64 * 1024) - 1,
+                        MaxByteStringLength = 1024 * 1024,
+                        MaxStringLength = (128 * 1024) - 256,
+                        OperationTimeout = 120 * 1000
+                    },
                     ServerConfiguration = new ServerConfiguration
                     {
                         // Sample server specific

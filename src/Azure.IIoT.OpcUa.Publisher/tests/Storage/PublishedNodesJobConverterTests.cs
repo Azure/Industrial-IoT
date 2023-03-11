@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     using System.Threading.Tasks;
     using Xunit;
     using Furly.Extensions.Configuration;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Test
@@ -40,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -72,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -106,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -141,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -178,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -217,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -262,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -307,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -354,7 +355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -402,7 +403,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -457,7 +458,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -493,7 +494,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -531,7 +532,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -570,7 +571,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -604,7 +605,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -640,7 +641,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -678,7 +679,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -717,7 +718,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -752,7 +753,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -787,7 +788,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -824,7 +825,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -860,7 +861,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -896,7 +897,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -931,7 +932,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -968,7 +969,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1004,7 +1005,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1039,7 +1040,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1083,7 +1084,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1127,7 +1128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1167,7 +1168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1204,7 +1205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1244,7 +1245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1285,7 +1286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1327,7 +1328,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1379,7 +1380,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1421,7 +1422,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1485,7 +1486,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1549,7 +1550,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ";
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1620,7 +1621,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             };
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1691,7 +1692,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             };
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1760,7 +1761,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             };
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1786,7 +1787,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         {
             var pn = await File.ReadAllTextAsync(publishedNodesJsonFile).ConfigureAwait(false);
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1840,7 +1841,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ");
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1896,7 +1897,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ");
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -1987,7 +1988,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ");
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -2104,7 +2105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -2259,7 +2260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
@@ -2327,7 +2328,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<OptionsMock<ClientOptions>>();
+            var clientConfigMock = new Mock<IOptions<ClientOptions>>();
             clientConfigMock.SetupAllProperties();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
