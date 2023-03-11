@@ -5,13 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
-    using Azure.IIoT.OpcUa.Publisher.Module;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Autofac;
+    using Autofac.Extensions.DependencyInjection;
     using Furly.Azure;
     using Furly.Azure.IoT;
-    using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Mock;
     using Furly.Azure.IoT.Models;
     using Furly.Extensions.Utils;
@@ -21,13 +20,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.TestHost;
-    using Autofac.Extensions.DependencyInjection;
 
     /// <summary>
     /// Opc Publisher module fixture
@@ -85,7 +81,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
             // Create a virtual connection betwenn publisher module and hub
             var hub = HubContainer.Resolve<IIoTHub>();
             _connection = hub.Connect(device.Id, device.ModuleId);
-
 
             // Start module
             var publisherCs = ConnectionString.CreateModuleConnectionString(
