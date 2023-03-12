@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
@@ -43,7 +44,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="metrics"></param>
         /// <param name="logger"></param>
         public WriterGroupDataSource(IWriterGroupConfig writerGroupConfig,
-            ISubscriptionManager subscriptionManager, ISubscriptionConfig subscriptionConfig,
+            ISubscriptionManager subscriptionManager,
+            IOptions<SubscriptionOptions> subscriptionConfig,
             IMetricsContext metrics, ILogger<WriterGroupDataSource> logger)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {
@@ -196,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _dataSetWriter = dataSetWriter?.Clone() ??
                     throw new ArgumentNullException(nameof(dataSetWriter));
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
-                    _outer._subscriptionConfig, outer._writerGroup.WriterGroupId);
+                    _outer._subscriptionConfig.Value, outer._writerGroup.WriterGroupId);
             }
 
             /// <summary>
@@ -234,7 +236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 _dataSetWriter = dataSetWriter.Clone();
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
-                    _outer._subscriptionConfig, _outer._writerGroup.WriterGroupId);
+                    _outer._subscriptionConfig.Value, _outer._writerGroup.WriterGroupId);
 
                 InitializeKeyframeTrigger();
                 InitializeMetaDataTrigger();
@@ -334,9 +336,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private void InitializeKeyframeTrigger()
             {
                 _frameCount = 0;
-                _keyFrameCount = _outer._subscriptionConfig.DisableKeyFrames == true
+                _keyFrameCount = _outer._subscriptionConfig.Value.DisableKeyFrames == true
                     ? 0 : _dataSetWriter.KeyFrameCount
-                        ?? _outer._subscriptionConfig.DefaultKeyFrameCount ?? 0;
+                        ?? _outer._subscriptionConfig.Value.DefaultKeyFrameCount ?? 0;
             }
 
             /// <summary>
@@ -348,7 +350,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .GetValueOrDefault(TimeSpan.Zero)
                     .TotalMilliseconds;
 
-                if (metaDataSendInterval > 0 && _outer._subscriptionConfig.DisableDataSetMetaData != true)
+                if (metaDataSendInterval > 0 &&
+                    _outer._subscriptionConfig.Value.DisableDataSetMetaData != true)
                 {
                     if (_metadataTimer == null)
                     {
@@ -756,7 +759,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly Dictionary<SubscriptionIdentifier, DataSetWriterSubscription> _subscriptions;
         private readonly ISubscriptionManager _subscriptionManager;
-        private readonly ISubscriptionConfig _subscriptionConfig;
+        private readonly IOptions<SubscriptionOptions> _subscriptionConfig;
         private WriterGroupModel _writerGroup;
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly string _publisherId;

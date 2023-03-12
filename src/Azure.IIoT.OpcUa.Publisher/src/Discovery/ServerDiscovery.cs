@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Server discovery on top of OPC UA endpoint discovery
@@ -26,14 +27,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="client"></param>
         /// <param name="serializer"></param>
         /// <param name="identity"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         public ServerDiscovery(IEndpointDiscovery client, IJsonSerializer serializer,
-            IProcessIdentity identity, IPublisherConfiguration config = null)
+            IProcessIdentity identity, IOptions<PublisherOptions> options = null)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _identity = identity ?? throw new ArgumentNullException(nameof(identity));
-            _config = config;
+            _options = options;
         }
 
         /// <inheritdoc/>
@@ -72,14 +73,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     // no match
                     continue;
                 }
-                return ep.ToServiceModel(discoveryUrl.Host, _config?.Site, _identity.Id, _serializer);
+                return ep.ToServiceModel(discoveryUrl.Host, _options?.Value.Site, _identity.Id, _serializer);
             }
             throw new ResourceNotFoundException("Endpoints could not be found.");
         }
 
         private readonly IJsonSerializer _serializer;
         private readonly IProcessIdentity _identity;
-        private readonly IPublisherConfiguration _config;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly IEndpointDiscovery _client;
     }
 }

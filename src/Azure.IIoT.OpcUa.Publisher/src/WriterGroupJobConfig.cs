@@ -11,37 +11,15 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Configuration for WriterGroup jobs
     /// </summary>
-    public class WriterGroupJobConfig : IWriterGroupConfig,
-        IEngineConfiguration
+    public class WriterGroupJobConfig : IWriterGroupConfig
     {
-        /// <inheritdoc/>
-        public WriterGroupModel WriterGroup { get; set; }
-
-        /// <inheritdoc/>
-        public int? BatchSize { get; set; }
-
-        /// <inheritdoc/>
-        public TimeSpan? BatchTriggerInterval { get; set; }
-
-        /// <inheritdoc/>
-        public int? MaxMessageSize { get; set; }
-
-        /// <inheritdoc/>
-        public TimeSpan? DiagnosticsInterval { get; set; }
-
         /// <inheritdoc/>
         public string PublisherId { get; set; }
 
         /// <inheritdoc/>
-        public int? MaxOutgressMessages { get; set; }
+        public WriterGroupModel WriterGroup { get; set; }
 
-        /// <inheritdoc/>
-        public bool UseStandardsCompliantEncoding { get; set; }
-
-        /// <inheritdoc/>
-        public string DefaultMetaDataQueueName { get; set; }
-
-        /// <inheritdoc/>
-        public uint? DefaultMaxMessagesPerPublish { get; set; }
+        ///// <inheritdoc/>
+        //public DataFlowOptions Options { get; set; }
     }
 }

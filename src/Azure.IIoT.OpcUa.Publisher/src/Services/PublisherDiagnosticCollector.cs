@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.Metrics;
     using System.Text;
     using System.Threading;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Collects metrics from the writer groups inside the publisher using the .net Meter listener
@@ -32,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="logger"></param>
         /// <param name="config"></param>
         public PublisherDiagnosticCollector(ILogger<PublisherDiagnosticCollector> logger,
-            IEngineConfiguration config = null)
+            IOptions<PublisherOptions> config = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -46,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meterListener.SetMeasurementEventCallback<decimal>(OnMeasurementRecorded);
             _meterListener.SetMeasurementEventCallback<short>(OnMeasurementRecorded);
 
-            _diagnosticInterval = config?.DiagnosticsInterval ?? TimeSpan.Zero;
+            _diagnosticInterval = config?.Value.DiagnosticsInterval ?? TimeSpan.Zero;
             if (_diagnosticInterval == TimeSpan.Zero)
             {
                 _diagnosticInterval = Timeout.InfiniteTimeSpan;
@@ -251,64 +252,64 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly TimeSpan _diagnosticInterval;
         private readonly DateTime _diagnosticStart = DateTime.UtcNow;
-        private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _diagnostics
-            = new();
-        // TODO: Split this per measurement type to avoid boxing
-        private readonly ConcurrentDictionary<string, Action<WriterGroupDiagnosticModel, object>> _bindings
-            = new()
-            {
-                ["iiot_edge_publisher_sent_iot_messages"] =
-                    (d, i) => d.OutgressIoTMessageCount = (long)i,
-                ["iiot_edge_publisher_data_changes"] =
-                    (d, i) => d.IngressDataChanges = (long)i,
-                ["iiot_edge_publisher_value_changes"] =
-                    (d, i) => d.IngressValueChanges = (long)i,
-                ["iiot_edge_publisher_data_changes_per_second_last_min"] =
-                    (d, i) => d.IngressDataChangesInLastMinute = (long)i,
-                ["iiot_edge_publisher_value_changes_per_second_last_min"] =
-                    (d, i) => d.IngressValueChangesInLastMinute = (long)i,
-                ["iiot_edge_publisher_events"] =
-                    (d, i) => d.IngressEvents = (long)i,
-                ["iiot_edge_publisher_event_notifications"] =
-                    (d, i) => d.IngressEventNotifications = (long)i,
-                ["iiot_edge_publisher_estimated_message_chunks_per_day"] =
-                    (d, i) => d.EstimatedIoTChunksPerDay = (double)i,
-                ["iiot_edge_publisher_sent_iot_messages_per_second"] =
-                    (d, i) => d.SentMessagesPerSec = (double)i,
-                ["iiot_edge_publisher_chunk_size_average"] =
-                    (d, i) => d.EncoderAvgIoTChunkUsage = (double)i,
-                ["iiot_edge_publisher_iothub_queue_size"] =
-                    (d, i) => d.OutgressInputBufferCount = (long)i,
-                ["iiot_edge_publisher_iothub_queue_dropped_count"] =
-                    (d, i) => d.OutgressInputBufferDropped = (long)i,
-                ["iiot_edge_publisher_batch_input_queue_size"] =
-                    (d, i) => d.IngressBatchBlockBufferSize = (long)i,
-                ["iiot_edge_publisher_encoding_input_queue_size"] =
-                    (d, i) => d.EncodingBlockInputSize = (long)i,
-                ["iiot_edge_publisher_encoding_output_queue_size"] =
-                    (d, i) => d.EncodingBlockOutputSize = (long)i,
-                ["iiot_edge_publisher_encoded_notifications"] =
-                    (d, i) => d.EncoderNotificationsProcessed = (long)i,
-                ["iiot_edge_publisher_message_split_ratio_max"] =
-                    (d, i) => d.EncoderMaxMessageSplitRatio = (double)i,
-                ["iiot_edge_publisher_dropped_notifications"] =
-                    (d, i) => d.EncoderNotificationsDropped = (long)i,
-                ["iiot_edge_publisher_processed_messages"] =
-                    (d, i) => d.EncoderIoTMessagesProcessed = (long)i,
-                ["iiot_edge_publisher_notifications_per_message_average"] =
-                    (d, i) => d.EncoderAvgNotificationsMessage = (double)i,
-                ["iiot_edge_publisher_encoded_message_size_average"] =
-                    (d, i) => d.EncoderAvgIoTMessageBodySize = (double)i,
-                ["iiot_edge_publisher_good_nodes"] =
-                    (d, i) => d.MonitoredOpcNodesSucceededCount = (long)i,
-                ["iiot_edge_publisher_bad_nodes"] =
-                    (d, i) => d.MonitoredOpcNodesFailedCount = (long)i,
-                ["iiot_edge_publisher_is_connection_ok"] =
-                    (d, i) => d.OpcEndpointConnected = ((int)i) != 0,
-                ["iiot_edge_publisher_connection_retries"] =
-                    (d, i) => d.ConnectionRetries = (long)i
+        private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _diagnostics = new();
 
-                    // ... Add here more items if needed
-            };
+        // TODO: Split this per measurement type to avoid boxing
+        private readonly ConcurrentDictionary<string,
+            Action<WriterGroupDiagnosticModel, object>> _bindings = new()
+        {
+            ["iiot_edge_publisher_sent_iot_messages"] =
+                (d, i) => d.OutgressIoTMessageCount = (long)i,
+            ["iiot_edge_publisher_data_changes"] =
+                (d, i) => d.IngressDataChanges = (long)i,
+            ["iiot_edge_publisher_value_changes"] =
+                (d, i) => d.IngressValueChanges = (long)i,
+            ["iiot_edge_publisher_data_changes_per_second_last_min"] =
+                (d, i) => d.IngressDataChangesInLastMinute = (long)i,
+            ["iiot_edge_publisher_value_changes_per_second_last_min"] =
+                (d, i) => d.IngressValueChangesInLastMinute = (long)i,
+            ["iiot_edge_publisher_events"] =
+                (d, i) => d.IngressEvents = (long)i,
+            ["iiot_edge_publisher_event_notifications"] =
+                (d, i) => d.IngressEventNotifications = (long)i,
+            ["iiot_edge_publisher_estimated_message_chunks_per_day"] =
+                (d, i) => d.EstimatedIoTChunksPerDay = (double)i,
+            ["iiot_edge_publisher_sent_iot_messages_per_second"] =
+                (d, i) => d.SentMessagesPerSec = (double)i,
+            ["iiot_edge_publisher_chunk_size_average"] =
+                (d, i) => d.EncoderAvgIoTChunkUsage = (double)i,
+            ["iiot_edge_publisher_iothub_queue_size"] =
+                (d, i) => d.OutgressInputBufferCount = (long)i,
+            ["iiot_edge_publisher_iothub_queue_dropped_count"] =
+                (d, i) => d.OutgressInputBufferDropped = (long)i,
+            ["iiot_edge_publisher_batch_input_queue_size"] =
+                (d, i) => d.IngressBatchBlockBufferSize = (long)i,
+            ["iiot_edge_publisher_encoding_input_queue_size"] =
+                (d, i) => d.EncodingBlockInputSize = (long)i,
+            ["iiot_edge_publisher_encoding_output_queue_size"] =
+                (d, i) => d.EncodingBlockOutputSize = (long)i,
+            ["iiot_edge_publisher_encoded_notifications"] =
+                (d, i) => d.EncoderNotificationsProcessed = (long)i,
+            ["iiot_edge_publisher_message_split_ratio_max"] =
+                (d, i) => d.EncoderMaxMessageSplitRatio = (double)i,
+            ["iiot_edge_publisher_dropped_notifications"] =
+                (d, i) => d.EncoderNotificationsDropped = (long)i,
+            ["iiot_edge_publisher_processed_messages"] =
+                (d, i) => d.EncoderIoTMessagesProcessed = (long)i,
+            ["iiot_edge_publisher_notifications_per_message_average"] =
+                (d, i) => d.EncoderAvgNotificationsMessage = (double)i,
+            ["iiot_edge_publisher_encoded_message_size_average"] =
+                (d, i) => d.EncoderAvgIoTMessageBodySize = (double)i,
+            ["iiot_edge_publisher_good_nodes"] =
+                (d, i) => d.MonitoredOpcNodesSucceededCount = (long)i,
+            ["iiot_edge_publisher_bad_nodes"] =
+                (d, i) => d.MonitoredOpcNodesFailedCount = (long)i,
+            ["iiot_edge_publisher_is_connection_ok"] =
+                (d, i) => d.OpcEndpointConnected = ((int)i) != 0,
+            ["iiot_edge_publisher_connection_retries"] =
+                (d, i) => d.ConnectionRetries = (long)i
+
+                // ... Add here more items if needed
+        };
     }
 }

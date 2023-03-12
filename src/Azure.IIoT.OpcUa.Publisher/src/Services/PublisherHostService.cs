@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Publisher host. Manages updates to the state of the publisher through
@@ -56,12 +57,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="factory"></param>
         /// <param name="identity"></param>
         /// <param name="logger"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public PublisherHostService(IWriterGroupScopeFactory factory, IProcessIdentity identity,
-            ILogger<PublisherHostService> logger, IPublisherConfiguration config = null)
+            ILogger<PublisherHostService> logger, IOptions<PublisherOptions> options = null)
         {
-            PublisherId = (config?.Site == null ? "" : (config?.Site + "_")) +
+            PublisherId = (options?.Value.Site == null ? "" : (options?.Value.Site + "_")) +
                 (identity?.Id ?? Dns.GetHostName());
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

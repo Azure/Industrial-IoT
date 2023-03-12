@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Models;
     using Moq;
     using Publisher.Services;
@@ -39,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
         private readonly ILoggerFactory _loggerFactory;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
-        private readonly Mock<IPublisherConfiguration> _configMock;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly PublishedNodesProvider _publishedNodesProvider;
         private readonly Mock<IMessageSource> _triggerMock;
         private readonly IPublisherHost _publisher;
@@ -53,25 +54,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
             _loggerFactory = LogFactory.Create(output);
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfigMock = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
+
+            _options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            _options.Value.PublishedNodesFile = _tempFile;
+            _options.Value.MessagingProfile = MessagingProfile.Get(
+                MessagingMode.PubSub, MessageEncoding.Json));
 
             _publishedNodesJobConverter = new PublishedNodesJobConverter(
                 _loggerFactory.CreateLogger<PublishedNodesJobConverter>(), _newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfigMock);
+                _options, clientConfigMock);
 
             // Note that each test is responsible for setting content of _tempFile;
             Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
 
-            _configMock = new Mock<IPublisherConfiguration>();
-            _configMock.SetupAllProperties();
-            _configMock.SetupGet(p => p.PublishedNodesFile).Returns(_tempFile);
-            _configMock.SetupGet(p => p.PublishedNodesSchemaFile).Returns("Storage/publishednodesschema.json");
-            _configMock.SetupGet(p => p.MaxNodesPerPublishedEndpoint).Returns(1000);
-            _configMock.SetupGet(p => p.MessagingProfile).Returns(MessagingProfile.Get(
-                MessagingMode.PubSub, MessageEncoding.Json));
-
-            _publishedNodesProvider = new PublishedNodesProvider(_configMock.Object,
+            _publishedNodesProvider = new PublishedNodesProvider(_options,
                 _loggerFactory.CreateLogger<PublishedNodesProvider>());
             _triggerMock = new Mock<IMessageSource>();
             var factoryMock = new Mock<IWriterGroupScopeFactory>();
@@ -93,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         {
             var configService = new PublisherConfigurationService(
                 _publishedNodesJobConverter,
-                _configMock.Object,
+                _options,
                 _publisher,
                 _loggerFactory.CreateLogger<PublisherConfigurationService>(),
                 _publishedNodesProvider,
@@ -169,15 +166,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         }
 
         [Theory]
-        [InlineData("Publisher/pn_2.5_legacy_error.json", false)]
-        [InlineData("Publisher/pn_2.5_legacy_error.json", true)]
-        public async Task Legacy25PublishedNodesFileError(string publishedNodesFile, bool useSchemaValidation)
+        [InlineData("Publisher/pn_2.5_legacy_error.json")]
+        public async Task Legacy25PublishedNodesFileError(string publishedNodesFile)
         {
-            if (!useSchemaValidation)
-            {
-                _configMock.SetupGet(m => m.PublishedNodesSchemaFile).Returns((string)null);
-            }
-
             Utils.CopyContent(publishedNodesFile, _tempFile);
             using var configService = InitPublisherConfigService();
 
@@ -478,7 +469,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             bool useDataSetSpecificEndpoints
         )
         {
-            _configMock.SetupGet(m => m.MaxNodesPerPublishedEndpoint).Returns(2);
+            _options.Value.MaxNodesPerPublishedEndpoint = 2;
 
             using var configService = InitPublisherConfigService();
 
@@ -578,7 +569,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         [Fact]
         public async Task TestAddOrUpdateEndpointsAddAndRemove()
         {
-            _configMock.SetupGet(m => m.MaxNodesPerPublishedEndpoint).Returns(2);
+            _options.Value.MaxNodesPerPublishedEndpoint = 2;
 
             using var configService = InitPublisherConfigService();
 

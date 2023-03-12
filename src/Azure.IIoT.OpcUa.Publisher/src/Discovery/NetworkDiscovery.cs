@@ -29,6 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Provides network discovery of endpoints
@@ -50,10 +51,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="serializer"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="progress"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         public NetworkDiscovery(IEndpointDiscovery client, IEventClient events,
             IJsonSerializer serializer, ILoggerFactory loggerFactory,
-            IDiscoveryProgress progress = null, IPublisherConfiguration config = null)
+            IDiscoveryProgress progress = null, IOptions<PublisherOptions> options = null)
         {
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
@@ -66,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
 
             _logger = loggerFactory.CreateLogger<NetworkDiscovery>();
             _progress = progress ?? new ProgressLogger(loggerFactory.CreateLogger<ProgressLogger>());
-            _config = config;
+            _options = options;
             _runner = Task.Run(() => ProcessDiscoveryRequestsAsync(_cts.Token));
             _timer = new Timer(_ => OnScanScheduling(), null,
                 TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan);
@@ -462,7 +463,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 foreach (var ep in eps)
                 {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
-                        _config?.Site, _events.Identity, _serializer));
+                        _options?.Value.Site, _events.Identity, _serializer));
                     endpoints++;
                 }
                 _progress.OnFindEndpointsFinished(request.Request, 1, count, discoveryUrls.Count,
@@ -767,7 +768,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly IJsonSerializer _serializer;
         private readonly IEventClient _events;
         private readonly IDiscoveryProgress _progress;
-        private readonly IPublisherConfiguration _config;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly IEndpointDiscovery _client;
         private readonly Task _runner;
         private readonly Timer _timer;

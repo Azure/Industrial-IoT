@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Threading;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -26,16 +27,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="events"></param>
         /// <param name="serializer"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         /// <param name="logger"></param>
         /// <param name="properties"></param>
         public RuntimeStateReporter(IEventClient events, IJsonSerializer serializer,
-            IPublisherConfiguration config, ILogger<RuntimeStateReporter> logger,
+            IOptions<PublisherOptions> options, ILogger<RuntimeStateReporter> logger,
             IDictionary<string, VariantValue> properties = null)
         {
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _properties = properties;
         }
@@ -46,14 +47,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (_properties != null)
             {
                 // Set runtime state in twin properties
-                _properties[OpcUa.Constants.TwinPropertySiteKey] = _config.Site;
+                _properties[OpcUa.Constants.TwinPropertySiteKey] =
+                    _options.Value.Site;
                 _properties[OpcUa.Constants.TwinPropertyTypeKey] =
                     OpcUa.Constants.EntityTypePublisher;
                 _properties[OpcUa.Constants.TwinPropertyVersionKey] =
                     GetType().Assembly.GetReleaseVersion().ToString();
             }
 
-            if (_config.EnableRuntimeStateReporting)
+            if (_options.Value.EnableRuntimeStateReporting ?? false)
             {
                 var body = new RuntimeStateEventModel
                 {
@@ -66,10 +68,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Encoding.UTF8.WebName, configure: e => {
                         e.AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
                             MessageSchemaTypes.RuntimeStateMessage);
-                        if (_config.RuntimeStateRoutingInfo != null)
+                        if (_options.Value.RuntimeStateRoutingInfo != null)
                         {
                             e.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
-                                _config.RuntimeStateRoutingInfo);
+                                _options.Value.RuntimeStateRoutingInfo);
                         }
                     }, ct).ConfigureAwait(false);
 
@@ -80,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly IEventClient _events;
         private readonly IJsonSerializer _serializer;
-        private readonly IPublisherConfiguration _config;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly IDictionary<string, VariantValue> _properties;
     }
 }

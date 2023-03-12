@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Models
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using System;
@@ -26,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Models
         /// <exception cref="ArgumentNullException"><paramref name="dataSetSource"/> is <c>null</c>.</exception>
         public static SubscriptionConfigurationModel ToSubscriptionConfigurationModel(
             this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel dataSetMetaData,
-            ISubscriptionConfig configuration)
+            SubscriptionOptions configuration)
         {
             if (dataSetSource == null)
             {
@@ -56,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Models
         /// <returns></returns>
         public static List<BaseMonitoredItemModel> ToMonitoredItems(
             this PublishedDataSetSourceModel dataSetSource,
-            ISubscriptionConfig configuration)
+            SubscriptionOptions configuration)
         {
             var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();
             if (dataSetSource.PublishedVariables?.PublishedData != null)

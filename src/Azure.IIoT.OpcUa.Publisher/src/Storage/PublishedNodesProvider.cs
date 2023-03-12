@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.IO;
     using System.Text;
@@ -39,23 +40,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <summary>
         /// Provider of utilities for published nodes file.
         /// </summary>
-        /// <param name="config"> Publisher configuration with location
+        /// <param name="options"> Publisher configuration with location
         /// of published nodes file. </param>
         /// <param name="logger"> Logger </param>
-        public PublishedNodesProvider(IPublisherConfiguration config,
+        public PublishedNodesProvider(IOptions<PublisherOptions> options,
             ILogger<PublishedNodesProvider> logger)
         {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            var directory = Path.GetDirectoryName(_config.PublishedNodesFile);
+            var directory = Path.GetDirectoryName(_options.Value.PublishedNodesFile);
 
             if (string.IsNullOrWhiteSpace(directory))
             {
                 directory = Environment.CurrentDirectory;
             }
 
-            var file = Path.GetFileName(_config.PublishedNodesFile);
+            var file = Path.GetFileName(_options.Value.PublishedNodesFile);
             _fileSystemWatcher = new FileSystemWatcher(directory, file);
             _fileSystemWatcher.Deleted += FileSystemWatcher_Deleted;
             _fileSystemWatcher.Created += FileSystemWatcher_Created;
@@ -72,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             _lock.Wait();
             try
             {
-                return File.GetLastWriteTime(_config.PublishedNodesFile);
+                return File.GetLastWriteTime(_options.Value.PublishedNodesFile);
             }
             finally
             {
@@ -87,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             try
             {
                 using (var fileStream = new FileStream(
-                    _config.PublishedNodesFile,
+                    _options.Value.PublishedNodesFile,
                     FileMode.OpenOrCreate,
                     FileAccess.Read,
                     FileShare.Read
@@ -99,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             catch (Exception e)
             {
                 _logger.LogError(e, "Failed to read content of published nodes file from \"{Path}\"",
-                    _config.PublishedNodesFile);
+                    _options.Value.PublishedNodesFile);
                 throw;
             }
             finally
@@ -125,7 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 try
                 {
                     using (var fileStream = new FileStream(
-                        _config.PublishedNodesFile,
+                        _options.Value.PublishedNodesFile,
                         FileMode.OpenOrCreate,
                         FileAccess.Write,
                         // We will require that there is no other process using the file.
@@ -141,13 +142,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     _logger.LogWarning("Failed to update published nodes file at \"{Path}\" with restricted share policies. " +
                         "Please close any other application that uses this file. " +
                         "Falling back to opening it with more relaxed share policies.",
-                        _config.PublishedNodesFile);
+                        _options.Value.PublishedNodesFile);
 
                     // We will fall back to writing with ReadWrite access.
                     try
                     {
                         using (var fileStream = new FileStream(
-                            _config.PublishedNodesFile,
+                            _options.Value.PublishedNodesFile,
                             FileMode.OpenOrCreate,
                             FileAccess.Write,
                             // Relaxing requirements.
@@ -162,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     {
                         // Report and raise original exception if fallback also failed.
                         _logger.LogError(e, "Failed to update published nodes file at \"{Path}\"",
-                            _config.PublishedNodesFile);
+                            _options.Value.PublishedNodesFile);
 
                         throw e;
                     }
@@ -212,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             Renamed?.Invoke(sender, e);
         }
 
-        private readonly IPublisherConfiguration _config;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;
         private readonly SemaphoreSlim _lock;
         private readonly FileSystemWatcher _fileSystemWatcher;

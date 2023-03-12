@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Models
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
 
@@ -22,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Models
         /// <returns></returns>
         public static DataMonitoredItemModel ToMonitoredItem(
             this PublishedDataSetVariableModel publishedVariable,
-            ISubscriptionConfig configuration = null, string displayName = null)
+            SubscriptionOptions configuration = null, string displayName = null)
         {
             if (string.IsNullOrEmpty(publishedVariable?.PublishedVariableNodeId))
             {
@@ -69,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Models
         /// <returns></returns>
         private static DataChangeFilterModel ToDataChangeFilter(
             this PublishedDataSetVariableModel publishedVariable,
-            ISubscriptionConfig configuration = null)
+            SubscriptionOptions configuration = null)
         {
             if (publishedVariable?.DataChangeTrigger == null &&
                 configuration?.DefaultDataChangeTrigger == null &&

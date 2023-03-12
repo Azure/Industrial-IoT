@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Messaging;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Diagnostics.Metrics;
     using System.Linq;
@@ -31,29 +32,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="source"></param>
         /// <param name="encoder"></param>
         /// <param name="sink"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
         /// <param name="diagnostics"></param>
         public WriterGroupDataFlow(IMessageSource source, IMessageEncoder encoder,
-            IMessageSink sink, IEngineConfiguration config, ILogger<WriterGroupDataFlow> logger,
-            IMetricsContext metrics, IWriterGroupDiagnostics diagnostics = null)
+            IMessageSink sink, IOptions<PublisherOptions> options,
+            ILogger<WriterGroupDataFlow> logger, IMetricsContext metrics,
+            IWriterGroupDiagnostics diagnostics = null)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {
-            _config = config;
+            _options = options;
             Source = source;
             _messageSink = sink;
             _messageEncoder = encoder;
             _logger = logger;
             _diagnostics = diagnostics;
 
-            if (_config.BatchSize > 1)
+            if (_options.Value.BatchSize > 1)
             {
-                _notificationBufferSize = _config.BatchSize.Value;
+                _notificationBufferSize = _options.Value.BatchSize.Value;
             }
-            if (_config.MaxMessageSize > 0)
+            if (_options.Value.MaxMessageSize > 0)
             {
-                _maxEncodedMessageSize = _config.MaxMessageSize.Value;
+                _maxEncodedMessageSize = _options.Value.MaxMessageSize.Value;
             }
             if (_maxEncodedMessageSize <= 0)
             {
@@ -64,9 +66,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _maxEncodedMessageSize = _messageSink.MaxMessageSize;
             }
 
-            _batchTriggerInterval = _config.BatchTriggerInterval ?? TimeSpan.Zero;
+            _batchTriggerInterval = _options.Value.BatchTriggerInterval ?? TimeSpan.Zero;
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
-            _maxOutgressMessages = _config.MaxOutgressMessages ?? 4096; // = 1 GB
+            _maxOutgressMessages = _options.Value.MaxOutgressMessages ?? 4096; // = 1 GB
 
             _encodingBlock = new TransformManyBlock<SubscriptionNotificationModel[], IEvent>(
                 input =>
@@ -206,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly int _maxOutgressMessages;
         private readonly Timer _batchTriggerIntervalTimer;
         private readonly TimeSpan _batchTriggerInterval;
-        private readonly IEngineConfiguration _config;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly IMessageSink _messageSink;
         private readonly IMessageEncoder _messageEncoder;
         private readonly ILogger _logger;

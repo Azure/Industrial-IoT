@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
+namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Models;
     using System;
@@ -11,81 +11,81 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
     /// <summary>
     /// Subscription configuration
     /// </summary>
-    public interface ISubscriptionConfig
+    public sealed class SubscriptionOptions
     {
         /// <summary>
         /// The default interval for heartbeats if not configured.
         /// </summary>
-        TimeSpan? DefaultHeartbeatInterval { get; }
+        public TimeSpan? DefaultHeartbeatInterval { get; set; }
 
         /// <summary>
         /// The default flag whether to skip the first value if
         /// not set on node level.
         /// </summary>
-        bool DefaultSkipFirst { get; }
+        public bool? DefaultSkipFirst { get; set; }
 
         /// <summary>
         /// The default flag whether to descard new items in queue
         /// </summary>
-        bool DefaultDiscardNew { get; }
+        public bool? DefaultDiscardNew { get; set; }
 
         /// <summary>
         /// The default sampling interval.
         /// </summary>
-        TimeSpan? DefaultSamplingInterval { get; }
+        public TimeSpan? DefaultSamplingInterval { get; set; }
 
         /// <summary>
         /// The default publishing interval.
         /// </summary>
-        TimeSpan? DefaultPublishingInterval { get; }
+        public TimeSpan? DefaultPublishingInterval { get; set; }
 
         /// <summary>
         /// Default subscription keep alive counter
         /// </summary>
-        uint? DefaultKeepAliveCount { get; }
+        public uint? DefaultKeepAliveCount { get; set; }
 
         /// <summary>
         /// Default subscription lifetime counter
         /// </summary>
-        uint? DefaultLifeTimeCount { get; }
+        public uint? DefaultLifeTimeCount { get; set; }
 
         /// <summary>
         /// Whether to enable or disable data set metadata explicitly
         /// </summary>
-        bool? DisableDataSetMetaData { get; }
+        public bool? DisableDataSetMetaData { get; set; }
 
         /// <summary>
         /// Default metadata send interval.
         /// </summary>
-        TimeSpan? DefaultMetaDataUpdateTime { get; }
+        public TimeSpan? DefaultMetaDataUpdateTime { get; set; }
 
         /// <summary>
         /// Whether to enable or disable key frames explicitly
         /// </summary>
-        bool? DisableKeyFrames { get; }
+        public bool? DisableKeyFrames { get; set; }
 
         /// <summary>
         /// Default keyframe count
         /// </summary>
-        uint? DefaultKeyFrameCount { get; }
+        public uint? DefaultKeyFrameCount { get; set; }
 
         /// <summary>
         /// Flag wether to grab the display name of nodes form
         /// the OPC UA Server.
         /// </summary>
-        bool ResolveDisplayName { get; }
+        public bool? ResolveDisplayName { get; set; }
 
         /// <summary>
         /// set the default queue size for monitored items. If not
         /// set the default queue size will be configured (1 for
         /// data monitored items, and 0 for event monitoring).
         /// </summary>
-        uint? DefaultQueueSize { get; }
+        public uint? DefaultQueueSize { get; set; }
 
         /// <summary>
         /// set the default data change filter for monitored items. Default is
         /// status and value change triggering.
         /// </summary>
-        DataChangeTriggerType? DefaultDataChangeTrigger { get; }
+        public DataChangeTriggerType? DefaultDataChangeTrigger { get; set; }
     }
 }

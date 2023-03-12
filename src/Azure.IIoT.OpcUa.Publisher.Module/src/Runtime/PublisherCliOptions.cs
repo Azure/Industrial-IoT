@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Models;
@@ -17,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Globalization;
     using System.Linq;
 
@@ -26,8 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     /// the current and legacy versions of the OPC Publisher. They are represented
     /// via configuration interfaces that is injected into the publisher container.
     /// </summary>
-    public class PublisherCliOptions : Dictionary<string, string>,
-        IEngineConfiguration, IPublisherConfiguration, ISubscriptionConfig
+    public class PublisherCliOptions : Dictionary<string, string>
     {
         /// <summary>
         /// Creates a new instance of the cli options based on existing configuration values.
@@ -397,17 +394,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 
             if (!showHelp)
             {
-                if (!MessagingProfile.IsSupported(StandaloneCliModel.MessagingMode, StandaloneCliModel.MessageEncoding))
+                var configuration = new ConfigurationBuilder().AddInMemoryCollection(this).Build();
+                try
                 {
-                    Warning("The specified combination of --mm, and --me is not (yet) supported. Currently supported combinations are: {MessageProfiles}), " +
+                    new PublisherConfig(configuration).ToOptions();
+                }
+                catch
+                {
+                    Warning("The specified combination of --mm, and --me is not (yet) supported. " +
+                        "Currently supported combinations are: {MessageProfiles}), " +
                             "please use -h option to get all the supported options.",
-                        MessagingProfile.Supported.Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})").Aggregate((a, b) => $"{a}, {b}"));
+                        MessagingProfile.Supported
+                            .Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})")
+                            .Aggregate((a, b) => $"{a}, {b}"));
                     ExitProcess(170);
                     return;
                 }
 
                 // Check that the important values are provided
-                else if (!ContainsKey(PublisherCliConfigKeys.MqttClientConnectionString) &&
+                if (!ContainsKey(PublisherCliConfigKeys.MqttClientConnectionString) &&
                     !ContainsKey(PublisherCliConfigKeys.EdgeHubConnectionString) &&
                     Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID") == null &&
                     Environment.GetEnvironmentVariable(PublisherCliConfigKeys.EdgeHubConnectionString) == null)
@@ -441,113 +446,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     return;
                 }
                 throw new OptionException("Bad store type", optionName);
-            }
-        }
-
-        /// <inheritdoc/>
-        public string Site => StandaloneCliModel.PublisherSite;
-
-        /// <inheritdoc/>
-        public int? BatchSize => StandaloneCliModel.BatchSize;
-
-        /// <inheritdoc/>
-        public TimeSpan? BatchTriggerInterval => StandaloneCliModel.BatchTriggerInterval;
-
-        /// <inheritdoc/>
-        public TimeSpan? DiagnosticsInterval => StandaloneCliModel.DiagnosticsInterval;
-
-        /// <inheritdoc/>
-        public int? MaxMessageSize => StandaloneCliModel.MaxMessageSize;
-
-        /// <inheritdoc/>
-        public int? MaxOutgressMessages => StandaloneCliModel.MaxOutgressMessages;
-
-        /// <inheritdoc/>
-        public bool UseStandardsCompliantEncoding => StandaloneCliModel.UseStandardsCompliantEncoding;
-
-        /// <inheritdoc/>
-        public bool EnableRoutingInfo => StandaloneCliModel.EnableRoutingInfo;
-
-        /// <inheritdoc/>
-        public string DefaultMetaDataQueueName => StandaloneCliModel.DefaultMetaDataQueueName;
-
-        /// <inheritdoc/>
-        public uint? DefaultMaxMessagesPerPublish => StandaloneCliModel.DefaultMaxMessagesPerPublish;
-
-        /// <inheritdoc/>
-        public bool EnableRuntimeStateReporting => StandaloneCliModel.EnableRuntimeStateReporting;
-
-        /// <inheritdoc/>
-        public string RuntimeStateRoutingInfo => StandaloneCliModel.RuntimeStateRoutingInfo;
-
-        /// <inheritdoc/>
-        public uint? DefaultKeyFrameCount => StandaloneCliModel.DefaultKeyFrameCount;
-
-        /// <inheritdoc/>
-        public bool? DisableKeyFrames => !StandaloneCliModel.MessagingProfile.SupportsKeyFrames;
-
-        /// <inheritdoc/>
-        public TimeSpan? DefaultHeartbeatInterval => StandaloneCliModel.DefaultHeartbeatInterval;
-
-        /// <inheritdoc/>
-        public bool DefaultSkipFirst => StandaloneCliModel.DefaultSkipFirst;
-
-        /// <inheritdoc/>
-        public bool DefaultDiscardNew => StandaloneCliModel.DefaultDiscardNew ?? false;
-
-        /// <inheritdoc/>
-        public TimeSpan? DefaultSamplingInterval => StandaloneCliModel.DefaultSamplingInterval;
-
-        /// <inheritdoc/>
-        public TimeSpan? DefaultPublishingInterval => StandaloneCliModel.DefaultPublishingInterval;
-
-        /// <inheritdoc/>
-        public TimeSpan? DefaultMetaDataUpdateTime => StandaloneCliModel.DefaultMetaDataUpdateTime;
-
-        /// <inheritdoc/>
-        public uint? DefaultKeepAliveCount => StandaloneCliModel.DefaultKeepAliveCount;
-
-        /// <inheritdoc/>
-        public uint? DefaultLifeTimeCount => StandaloneCliModel.DefaultLifeTimeCount;
-
-        /// <inheritdoc/>
-        public bool? DisableDataSetMetaData => StandaloneCliModel.DisableDataSetMetaData
-            ?? !StandaloneCliModel.MessagingProfile.SupportsMetadata;
-
-        /// <inheritdoc/>
-        public bool ResolveDisplayName => StandaloneCliModel.FetchOpcNodeDisplayName;
-
-        /// <inheritdoc/>
-        public uint? DefaultQueueSize => StandaloneCliModel.DefaultQueueSize;
-
-        /// <inheritdoc/>
-        public DataChangeTriggerType? DefaultDataChangeTrigger { get; }
-
-        /// <inheritdoc/>
-        public string PublishedNodesFile => StandaloneCliModel.PublishedNodesFile;
-
-        /// <inheritdoc/>
-        public string PublishedNodesSchemaFile => StandaloneCliModel.PublishedNodesSchemaFile;
-
-        /// <inheritdoc/>
-        public int MaxNodesPerPublishedEndpoint => StandaloneCliModel.MaxNodesPerPublishedEndpoint;
-
-        /// <inheritdoc/>
-        public MessagingProfile MessagingProfile => StandaloneCliModel.MessagingProfile;
-
-        /// <inheritdoc/>
-        public int? ScaleTestCount => StandaloneCliModel.ScaleTestCount;
-
-        /// <summary>
-        /// The model of the CLI arguments.
-        /// </summary>
-        public StandaloneCliModel StandaloneCliModel
-        {
-            get
-            {
-                _standaloneCliModel ??= ToStandaloneCliModel();
-
-                return _standaloneCliModel;
             }
         }
 
@@ -593,55 +491,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             _logger.LogDebug(messageTemplate, propertyValue0, propertyValue1);
         }
 
-        private StandaloneCliModel ToStandaloneCliModel()
-        {
-            var model = new StandaloneCliModel
-            {
-                PublishedNodesFile = GetValueOrDefault(PublisherCliConfigKeys.PublishedNodesConfigurationFilename, PublisherCliConfigKeys.DefaultPublishedNodesFilename),
-                PublishedNodesSchemaFile = GetValueOrDefault(PublisherCliConfigKeys.PublishedNodesConfigurationSchemaFilename, PublisherCliConfigKeys.DefaultPublishedNodesSchemaFilename)
-            };
-            model.PublisherSite = GetValueOrDefault(PublisherCliConfigKeys.PublisherSite, model.PublisherSite);
-            model.UseStandardsCompliantEncoding = GetValueOrDefault(PublisherCliConfigKeys.UseStandardsCompliantEncoding, model.UseStandardsCompliantEncoding);
-            model.DefaultHeartbeatInterval = GetValueOrDefault(PublisherCliConfigKeys.HeartbeatIntervalDefault, model.DefaultHeartbeatInterval);
-            model.DefaultSkipFirst = GetValueOrDefault(PublisherCliConfigKeys.SkipFirstDefault, model.DefaultSkipFirst);
-            model.DefaultDiscardNew = GetValueOrDefault(PublisherCliConfigKeys.DiscardNewDefault, model.DefaultDiscardNew);
-            model.DefaultSamplingInterval = GetValueOrDefault(PublisherCliConfigKeys.OpcSamplingInterval, model.DefaultSamplingInterval);
-            model.DefaultPublishingInterval = GetValueOrDefault(PublisherCliConfigKeys.OpcPublishingInterval, model.DefaultPublishingInterval);
-            model.DefaultMetaDataUpdateTime = GetValueOrDefault(PublisherCliConfigKeys.DefaultMetaDataUpdateTime, model.DefaultMetaDataUpdateTime);
-            model.DefaultMetaDataQueueName = GetValueOrDefault(PublisherCliConfigKeys.DefaultDataSetMetaDataQueueName, model.DefaultMetaDataQueueName);
-            model.DisableDataSetMetaData = GetValueOrDefault(PublisherCliConfigKeys.DisableDataSetMetaData, model.DisableDataSetMetaData);
-            model.DefaultKeyFrameCount = GetValueOrDefault(PublisherCliConfigKeys.DefaultKeyFrameCount, model.DefaultKeyFrameCount);
-            model.FetchOpcNodeDisplayName = GetValueOrDefault(PublisherCliConfigKeys.FetchOpcNodeDisplayName, model.FetchOpcNodeDisplayName);
-            model.DefaultQueueSize = GetValueOrDefault(PublisherCliConfigKeys.DefaultQueueSize, model.DefaultQueueSize);
-            model.DiagnosticsInterval = GetValueOrDefault(PublisherCliConfigKeys.DiagnosticsInterval, model.DiagnosticsInterval);
-            model.LogFileFlushTimeSpan = GetValueOrDefault(PublisherCliConfigKeys.LogFileFlushTimeSpanSec, model.LogFileFlushTimeSpan);
-            model.LogFilename = GetValueOrDefault(PublisherCliConfigKeys.LogFileName, model.LogFilename);
-            model.SetFullFeaturedMessage(GetValueOrDefault(PublisherCliConfigKeys.FullFeaturedMessage, false));
-            model.MessagingMode = GetValueOrDefault(PublisherCliConfigKeys.MessagingMode, model.MessagingMode);
-            model.MessageEncoding = GetValueOrDefault(PublisherCliConfigKeys.MessageEncoding, model.MessageEncoding);
-            model.BatchSize = GetValueOrDefault(PublisherCliConfigKeys.BatchSize, model.BatchSize);
-            model.BatchTriggerInterval = GetValueOrDefault(PublisherCliConfigKeys.BatchTriggerInterval, model.BatchTriggerInterval);
-            model.MaxMessageSize = GetValueOrDefault(PublisherCliConfigKeys.IoTHubMaxMessageSize, model.MaxMessageSize);
-            model.ScaleTestCount = GetValueOrDefault(PublisherCliConfigKeys.ScaleTestCount, model.ScaleTestCount);
-            model.MaxOutgressMessages = GetValueOrDefault(PublisherCliConfigKeys.MaxOutgressMessages, model.MaxOutgressMessages);
-            model.MaxNodesPerPublishedEndpoint = GetValueOrDefault(PublisherCliConfigKeys.MaxNodesPerDataSet, model.MaxNodesPerPublishedEndpoint);
-            model.LegacyCompatibility = GetValueOrDefault(PublisherCliConfigKeys.LegacyCompatibility, model.LegacyCompatibility);
-            model.EnableRuntimeStateReporting = GetValueOrDefault(PublisherCliConfigKeys.RuntimeStateReporting, model.EnableRuntimeStateReporting);
-            model.EnableRoutingInfo = GetValueOrDefault(PublisherCliConfigKeys.EnableRoutingInfo, model.EnableRoutingInfo);
-            return model;
-        }
-
-        private T GetValueOrDefault<T>(string key, T defaultValue)
-        {
-            if (!ContainsKey(key))
-            {
-                return defaultValue;
-            }
-            var converter = TypeDescriptor.GetConverter(typeof(T));
-            return (T)converter.ConvertFrom(this[key]);
-        }
-
         private readonly ILogger _logger;
-        private StandaloneCliModel _standaloneCliModel;
     }
 }

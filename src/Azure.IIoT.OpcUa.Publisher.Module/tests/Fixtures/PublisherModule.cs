@@ -39,6 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.TestHost;
     using Furly.Azure.IoT.Edge.Services;
+    using Furly.Extensions.Mqtt;
 
     /// <summary>
     /// Publisher telemetry
@@ -236,9 +237,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="messageSink"></param>
         /// <param name="testOutputHelper"></param>
         /// <param name="devices"></param>
+        /// <param name="mqttVersion"></param>
         /// <returns></returns>
         private IContainer CreateClientContainer(IMessageSink messageSink = null,
-            ITestOutputHelper testOutputHelper = null, IEnumerable<DeviceTwinModel> devices = null)
+            ITestOutputHelper testOutputHelper = null,
+            IEnumerable<DeviceTwinModel> devices = null, MqttVersion? mqttVersion = null)
         {
             var builder = new ContainerBuilder();
 
@@ -279,6 +282,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             {
                 builder.RegisterType<IoTHubMock>()
                     .AsImplementedInterfaces().SingleInstance();
+            }
+
+            if (mqttVersion != null)
+            {
+                // Override the iothub rpcclient with an mqtt server implementation
+                builder.AddMqttServer();
+                builder.Configure<MqttOptions>(options =>
+                {
+                    options.AllowUntrustedCertificates = true;
+                    options.Version = mqttVersion.Value;
+                });
             }
 
             builder.RegisterType<ChunkMethodClient>()

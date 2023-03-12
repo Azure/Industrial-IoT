@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Provides configuration services for publisher using either published nodes
@@ -44,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="jsonSerializer"></param>
         /// <param name="diagnostics"></param>
         public PublisherConfigurationService(PublishedNodesJobConverter publishedNodesJobConverter,
-            IPublisherConfiguration configuration, IPublisherHost publisherHost,
+            IOptions<PublisherOptions> configuration, IPublisherHost publisherHost,
             ILogger<PublisherConfigurationService> logger, IStorageProvider publishedNodesProvider,
             IJsonSerializer jsonSerializer, IDiagnosticCollector diagnostics = null)
         {
@@ -89,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var currentNodes = GetCurrentPublishedNodes().ToList();
                 AddItem(currentNodes, entry, request.Item);
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
-                    _configuration);
+                    _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishStartResponseModel();
@@ -161,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     nodeset.OpcNodes.RemoveAll(n => n.Id == request.NodeId);
                 }
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
-                    _configuration);
+                    _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishStopResponseModel();
@@ -214,7 +215,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
-                    _configuration);
+                    _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishBulkResponseModel();
@@ -337,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     existingGroups.Add(request);
                 }
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups,
-                    _configuration);
+                    _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
@@ -468,7 +469,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups,
-                    _configuration);
+                    _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
@@ -530,7 +531,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
 
                     var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(matchingGroups,
-                        _configuration);
+                        _configuration.Value);
                     await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 }
                 else
@@ -619,7 +620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
-                    _configuration);
+                    _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
@@ -864,7 +865,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private void OnChanged(object sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} changed. Triggering file refresh ...",
-                _configuration.PublishedNodesFile);
+                _configuration.Value.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(false);
         }
 
@@ -876,7 +877,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private void OnCreated(object sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} created. Triggering file refresh ...",
-                _configuration.PublishedNodesFile);
+                _configuration.Value.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(false);
         }
 
@@ -888,7 +889,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private void OnRenamed(object sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} renamed. Triggering file refresh ...",
-                _configuration.PublishedNodesFile);
+                _configuration.Value.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(false);
         }
 
@@ -900,7 +901,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private void OnDeleted(object sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} deleted. Clearing configuration ...",
-                _configuration.PublishedNodesFile);
+                _configuration.Value.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(true);
         }
 
@@ -939,13 +940,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     _logger.LogInformation("File {PublishedNodesFile} has changed, " +
                                         "last known hash {LastHash}, new hash {NewHash}, reloading...",
-                                        _configuration.PublishedNodesFile, _lastKnownFileHash,
+                                        _configuration.Value.PublishedNodesFile, _lastKnownFileHash,
                                         currentFileHash);
 
                                     var entries = _publishedNodesJobConverter.Read(content).ToList();
                                     TransformFromLegacyNodeId(entries);
                                     jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries,
-                                        _configuration);
+                                        _configuration.Value);
                                 }
                                 try
                                 {
@@ -971,7 +972,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     _logger.LogInformation("File {PublishedNodesFile} has changed and " +
                                         "content-hash is equal to last one, nothing to do...",
-                                        _configuration.PublishedNodesFile);
+                                        _configuration.Value.PublishedNodesFile);
                                 }
                             }
                             _lastRead = lastWriteTime;
@@ -1089,7 +1090,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             = "null or empty OpcNodes is provided in request";
 
         private readonly ILogger _logger;
-        private readonly IPublisherConfiguration _configuration;
+        private readonly IOptions<PublisherOptions> _configuration;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private readonly IStorageProvider _publishedNodesProvider;
         private readonly IJsonSerializer _jsonSerializer;

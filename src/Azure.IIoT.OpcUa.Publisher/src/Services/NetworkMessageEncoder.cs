@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -51,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="config"> injected configuration. </param>
         /// <param name="metrics"> Metrics context </param>
         /// <param name="logger"> Logger to be used for reporting. </param>
-        public NetworkMessageEncoder(IEngineConfiguration config,
+        public NetworkMessageEncoder(IOptions<PublisherOptions> config,
             IMetricsContext metrics, ILogger<NetworkMessageEncoder> logger)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {
@@ -152,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private List<(int, PubSubMessage, string, bool, TimeSpan)> GetNetworkMessages(IEnumerable<SubscriptionNotificationModel> messages,
             bool isBatched)
         {
-            var standardsCompliant = _config.UseStandardsCompliantEncoding;
+            var standardsCompliant = _config.Value.UseStandardsCompliantEncoding ?? false;
             var result = new List<(int, PubSubMessage, string, bool, TimeSpan)>();
             // Group messages by publisher, then writer group and then by dataset class id
             foreach (var publishers in messages
@@ -300,7 +301,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     {
                                         currentMessage.Messages.Add(dataSetMessage);
                                         var maxMessagesToPublish = writerGroup.MessageSettings?.MaxMessagesPerPublish ??
-                                            _config.DefaultMaxMessagesPerPublish;
+                                            _config.Value.DefaultMaxMessagesPerPublish;
                                         if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
                                         {
                                             result.Add((currentNotificationCount, currentMessage, default, false, default));
@@ -340,7 +341,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 metadataMessage.DataSetWriterGroup = writerGroup.WriterGroupId;
 
                                 var queueName = message.Context.Writer.MetaDataQueueName
-                                    ?? _config.DefaultMetaDataQueueName;
+                                    ?? _config.Value.DefaultMetaDataQueueName;
                                 result.Add((0, metadataMessage, queueName, true,
                                     message.Context.Writer.MetaDataUpdateTime ?? default));
                             }
@@ -389,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private static readonly ConfigurationVersionDataType kEmptyConfiguration =
             new() { MajorVersion = 1u };
-        private readonly IEngineConfiguration _config;
+        private readonly IOptions<PublisherOptions> _config;
         private readonly ILogger _logger;
         private uint _sequenceNumber;
 

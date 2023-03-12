@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Models
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using System;
@@ -23,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Models
         /// <returns></returns>
         public static EventMonitoredItemModel ToMonitoredItem(
             this PublishedDataSetEventModel publishedEvent,
-            ISubscriptionConfig configuration)
+            SubscriptionOptions configuration)
         {
             if (publishedEvent == null)
             {

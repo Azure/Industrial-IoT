@@ -37,12 +37,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <param name="options"></param>
         /// <param name="cryptoProvider"></param>
         public PublishedNodesJobConverter(ILogger<PublishedNodesJobConverter> logger,
-            IJsonSerializer serializer, IEngineConfiguration engineConfig,
+            IJsonSerializer serializer, IOptions<PublisherOptions> engineConfig,
             IOptions<ClientOptions> options, IIoTEdgeWorkloadApi cryptoProvider = null)
         {
-            _engineConfig = engineConfig ??
+            _publisherOptions = engineConfig ??
                 throw new ArgumentNullException(nameof(engineConfig));
-            _options = options ??
+            _clientOptions = options ??
                 throw new ArgumentNullException(nameof(options));
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
@@ -230,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <param name="configuration">Publisher configuration</param>
         public IEnumerable<WriterGroupJobModel> ToWriterGroupJobs(
             IEnumerable<PublishedNodesEntryModel> items,
-            IPublisherConfiguration configuration)
+            PublisherOptions configuration)
         {
             if (items == null)
             {
@@ -276,8 +276,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             SubscriptionSettings = new PublishedDataSetSettingsModel
                             {
                                 PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node)),
-                                LifeTimeCount = (uint)_options.Value.MinSubscriptionLifetime,
-                                MaxKeepAliveCount = _options.Value.MaxKeepAliveCount,
+                                LifeTimeCount = (uint)_clientOptions.Value.MinSubscriptionLifetime,
+                                MaxKeepAliveCount = _clientOptions.Value.MaxKeepAliveCount,
                                 Priority = 0 // TODO
                             },
                             PublishedVariables = new PublishedDataItemsModel
@@ -336,15 +336,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     .Select(dataSetBatches => (First: dataSetBatches[0], Items: dataSetBatches))
                     .Select(dataSetBatches => new WriterGroupJobModel
                     {
-                        Engine = _engineConfig == null ? null : new EngineConfigurationModel
+                        Engine = _publisherOptions == null ? null : new EngineConfigurationModel
                         {
-                            BatchSize = _engineConfig.BatchSize,
-                            BatchTriggerInterval = _engineConfig.BatchTriggerInterval,
-                            DefaultMetaDataQueueName = _engineConfig.DefaultMetaDataQueueName,
-                            DefaultMaxMessagesPerPublish = _engineConfig.DefaultMaxMessagesPerPublish,
-                            MaxMessageSize = _engineConfig.MaxMessageSize,
-                            MaxOutgressMessages = _engineConfig.MaxOutgressMessages,
-                            UseStandardsCompliantEncoding = _engineConfig.UseStandardsCompliantEncoding
+                            BatchSize = _publisherOptions.Value.BatchSize,
+                            BatchTriggerInterval = _publisherOptions.Value.BatchTriggerInterval,
+                            DefaultMetaDataQueueName = _publisherOptions.Value.DefaultMetaDataQueueName,
+                            DefaultMaxMessagesPerPublish = _publisherOptions.Value.DefaultMaxMessagesPerPublish,
+                            MaxMessageSize = _publisherOptions.Value.MaxMessageSize,
+                            MaxOutgressMessages = _publisherOptions.Value.MaxOutgressMessages,
+                            UseStandardsCompliantEncoding =
+                                _publisherOptions.Value.UseStandardsCompliantEncoding ?? false
                         },
                         WriterGroup = new WriterGroupModel
                         {
@@ -741,8 +742,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
         }
 
-        private readonly IEngineConfiguration _engineConfig;
-        private readonly IOptions<ClientOptions> _options;
+        private readonly IOptions<PublisherOptions> _publisherOptions;
+        private readonly IOptions<ClientOptions> _clientOptions;
         private readonly IIoTEdgeWorkloadApi _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;

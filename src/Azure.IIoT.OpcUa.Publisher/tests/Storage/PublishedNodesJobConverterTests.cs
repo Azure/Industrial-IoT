@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 {
-    using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
@@ -25,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     using Microsoft.Extensions.Options;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Microsoft.Extensions.Configuration;
+    using Azure.IIoT.OpcUa.Publisher.Runtime;
 
     /// <summary>
     /// Test
