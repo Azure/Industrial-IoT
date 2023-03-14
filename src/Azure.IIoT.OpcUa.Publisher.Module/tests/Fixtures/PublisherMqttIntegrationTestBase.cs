@@ -282,7 +282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     new[]
                     {
 $"--mqc=HostName=localhost;Port={broker.Port};Username={broker.UserName};Password={broker.Password};Protocol={protocol}",
-$"--ttt={topicRoot}",
+$"--tr={topicRoot}",
                         "--aa",
                         $"--pf={publishedNodesFilePath}"
                     }

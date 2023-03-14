@@ -36,16 +36,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public int KeepAliveInterval { get; set; }
 
         /// <summary>
-        /// Max keep alive count
-        /// </summary>
-        public uint MaxKeepAliveCount { get; set; }
-
-        /// <summary>
-        /// Minimum subscription lifetime in milliseconds.
-        /// </summary>
-        public int MinSubscriptionLifetime { get; set; }
-
-        /// <summary>
         /// Transport quota
         /// </summary>
         public TransportOptions Quotas { get; } = new TransportOptions();

@@ -7,8 +7,8 @@
     <Description>Azure Industrial IoT OPC Publisher API</Description>
   </PropertyGroup>
   <ItemGroup>
-	  <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.10" />
-	  <PackageReference Include="Furly.Tunnel" Version="0.2.9" />
+	  <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.11" />
+	  <PackageReference Include="Furly.Tunnel" Version="0.2.10" />
     <PackageReference Include="Furly.Azure.IoT" Version="0.1.13" />
     <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.10-beta" />
   </ItemGroup>

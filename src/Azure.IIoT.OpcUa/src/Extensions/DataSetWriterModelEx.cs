@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Models
                 DataSet = model.DataSet.Clone(),
                 DataSetFieldContentMask = model.DataSetFieldContentMask,
                 MetaDataUpdateTime = model.MetaDataUpdateTime,
-                MetaDataQueueName = model.MetaDataQueueName,
                 DataSetWriterName = model.DataSetWriterName,
                 KeyFrameCount = model.KeyFrameCount,
                 MessageSettings = model.MessageSettings.Clone()

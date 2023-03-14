@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     MessageVersion = 1
                 };
 
-                await _events.SendEventAsync(string.Empty,
+                await _events.SendEventAsync(new TopicBuilder(_options).RootTopic,
                     _serializer.SerializeToMemory(body), _serializer.MimeType,
                     Encoding.UTF8.WebName, configure: e => {
                         e.AddProperty(OpcUa.Constants.MessagePropertySchemaKey,

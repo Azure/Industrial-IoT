@@ -106,13 +106,6 @@ namespace Azure.IIoT.OpcUa.Models
         public TimeSpan? MetaDataUpdateTimeTimespan { get; set; }
 
         /// <summary>
-        /// Queue name to send metadata to
-        /// </summary>
-        [DataMember(Name = "MetaDataQueueName", Order = 12,
-            EmitDefaultValue = false)]
-        public string? MetaDataQueueName { get; set; }
-
-        /// <summary>
         /// The endpoint URL of the OPC UA server.
         /// </summary>
         [DataMember(Name = "EndpointUrl", Order = 13,

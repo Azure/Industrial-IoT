@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     /// <summary>
     /// Data monitored item
     /// </summary>
-    public class DataMonitoredItemModel : BaseMonitoredItemModel
+    public sealed class DataMonitoredItemModel : BaseMonitoredItemModel
     {
         /// <summary>
         /// Field id in class

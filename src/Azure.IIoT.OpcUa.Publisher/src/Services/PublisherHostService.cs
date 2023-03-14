@@ -38,8 +38,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public string PublisherId { get; }
 
         /// <inheritdoc/>
-        public IEnumerable<WriterGroupJobModel> WriterGroups { get; private set; }
-            = Enumerable.Empty<WriterGroupJobModel>();
+        public IEnumerable<WriterGroupModel> WriterGroups { get; private set; }
+            = Enumerable.Empty<WriterGroupModel>();
 
         /// <inheritdoc/>
         public DateTime LastChange { get; private set; }
@@ -55,18 +55,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create Job host
         /// </summary>
         /// <param name="factory"></param>
-        /// <param name="identity"></param>
         /// <param name="logger"></param>
         /// <param name="options"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public PublisherHostService(IWriterGroupScopeFactory factory, IProcessIdentity identity,
-            ILogger<PublisherHostService> logger, IOptions<PublisherOptions> options = null)
+        public PublisherHostService(IWriterGroupScopeFactory factory,
+            IOptions<PublisherOptions> options, ILogger<PublisherHostService> logger)
         {
-            PublisherId = (options?.Value.Site == null ? "" : (options?.Value.Site + "_")) +
-                (identity?.Id ?? Dns.GetHostName());
-            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            PublisherId = options?.Value.PublisherId ??
+                throw new ArgumentNullException(nameof(options));
+            _factory = factory ??
+                throw new ArgumentNullException(nameof(factory));
+            _logger = logger ??
+                throw new ArgumentNullException(nameof(logger));
+
             _currentJobs = new Dictionary<string, JobContext>();
+
             TagList = new TagList(new[] {
                 new KeyValuePair<string, object>("publisherId", PublisherId),
                 new KeyValuePair<string, object>("timestamp_utc",
@@ -76,19 +79,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _completedTask = new TaskCompletionSource();
             _cts = new CancellationTokenSource();
             _changeFeed
-                = Channel.CreateUnbounded<(TaskCompletionSource, List<WriterGroupJobModel>)>();
+                = Channel.CreateUnbounded<(TaskCompletionSource, List<WriterGroupModel>)>();
             _processor = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
 
         /// <inheritdoc/>
-        public bool TryUpdate(IEnumerable<WriterGroupJobModel> jobs)
+        public bool TryUpdate(IEnumerable<WriterGroupModel> jobs)
         {
             return _changeFeed.Writer.TryWrite((_completedTask, jobs.ToList()));
         }
 
         /// <inheritdoc/>
-        public Task UpdateAsync(IEnumerable<WriterGroupJobModel> jobs)
+        public Task UpdateAsync(IEnumerable<WriterGroupModel> jobs)
         {
             var tcs = new TaskCompletionSource(
                 TaskCreationOptions.RunContinuationsAsynchronously);
@@ -149,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="ct"></param>
         /// <returns></returns>
         private async ValueTask ProcessChangesAsync(TaskCompletionSource task,
-            List<WriterGroupJobModel> changes, CancellationToken ct)
+            List<WriterGroupModel> changes, CancellationToken ct)
         {
             // Increment change number
             unchecked
@@ -166,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     continue;
                 }
 
-                if (job.WriterGroup?.DataSetWriters?.Count > 0)
+                if (job.DataSetWriters?.Count > 0)
                 {
                     try
                     {
@@ -209,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Update writer groups
                 LastChange = DateTime.UtcNow;
                 WriterGroups = _currentJobs.Values
-                    .Select(j => j.Job)
+                    .Select(j => j.WriterGroup)
                     .ToImmutableList();
                 // Complete
                 task.TrySetResult();
@@ -240,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Current job configuration
             /// </summary>
-            public WriterGroupJobModel Job { get; private set; }
+            public WriterGroupModel WriterGroup { get; private set; }
 
             /// <summary>
             /// Message source
@@ -259,15 +262,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="version"></param>
             /// <param name="writerGroup"></param>
             private JobContext(PublisherHostService outer, int version,
-                WriterGroupJobModel writerGroup)
+                WriterGroupModel writerGroup)
             {
                 _outer = outer;
                 Version = version;
-                Job = writerGroup;
-                Id = Job.GetJobId();
-                _configuration = writerGroup.ToWriterGroupJobConfiguration(
-                    _outer.PublisherId);
-                _scope = _outer._factory.Create(_configuration);
+                WriterGroup = writerGroup with { };
+                Id = WriterGroup.GetJobId();
+                _scope = _outer._factory.Create(WriterGroup);
                 Source = _scope.WriterGroup.Source;
             }
 
@@ -280,7 +281,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="ct"></param>
             /// <returns></returns>
             public static async ValueTask<JobContext> CreateAsync(PublisherHostService outer,
-                int version, WriterGroupJobModel writerGroup, CancellationToken ct)
+                int version, WriterGroupModel writerGroup, CancellationToken ct)
             {
                 var job = new JobContext(outer, version, writerGroup);
                 try
@@ -303,7 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="writerGroup"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            public async ValueTask UpdateAsync(int version, WriterGroupJobModel writerGroup,
+            public async ValueTask UpdateAsync(int version, WriterGroupModel writerGroup,
                 CancellationToken ct)
             {
                 try
@@ -311,8 +312,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     await Source.UpdateAsync(writerGroup, ct).ConfigureAwait(false);
 
                     // Update if successful
-                    Job = writerGroup;
-                    Id = Job.GetJobId();
+                    WriterGroup = writerGroup;
+                    Id = WriterGroup.GetJobId();
                 }
                 catch (Exception ex)
                 {
@@ -344,7 +345,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             private readonly IWriterGroupScope _scope;
             private readonly PublisherHostService _outer;
-            private readonly IWriterGroupConfig _configuration;
         }
 
         private readonly IWriterGroupScopeFactory _factory;
@@ -353,6 +353,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Dictionary<string, JobContext> _currentJobs;
         private readonly TaskCompletionSource _completedTask;
         private readonly CancellationTokenSource _cts;
-        private readonly Channel<(TaskCompletionSource, List<WriterGroupJobModel>)> _changeFeed;
+        private readonly Channel<(TaskCompletionSource, List<WriterGroupModel>)> _changeFeed;
     }
 }

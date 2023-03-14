@@ -138,7 +138,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 DataSetWriterId = model.DataSetWriterId,
                 EncryptedAuthUsername = model.EncryptedAuthUsername,
                 EndpointUrl = model.EndpointUrl,
-                MetaDataQueueName = model.MetaDataQueueName,
                 MetaDataUpdateTime = model.MetaDataUpdateTime,
                 MetaDataUpdateTimeTimespan = model.MetaDataUpdateTimeTimespan,
                 LastChangeTimespan = model.LastChangeTimespan,
@@ -185,11 +184,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if (model.DataSetKeyFrameCount != that.DataSetKeyFrameCount)
-            {
-                return false;
-            }
-            if (!string.Equals(model.MetaDataQueueName ?? string.Empty,
-                that.MetaDataQueueName ?? string.Empty, StringComparison.Ordinal))
             {
                 return false;
             }

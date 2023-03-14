@@ -8,8 +8,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Text;
     using System.Threading.Channels;
@@ -25,15 +25,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// </summary>
         /// <param name="events"></param>
         /// <param name="serializer"></param>
+        /// <param name="options"></param>
         /// <param name="logger"></param>
         public ProgressPublisher(IEventClient events, IJsonSerializer serializer,
-            ILogger<ProgressPublisher> logger)
+            IOptions<PublisherOptions> options, ILogger<ProgressPublisher> logger)
             : base(logger)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _channel = Channel.CreateUnbounded<DiscoveryProgressModel>();
+            _topic = new TopicBuilder(options).RootTopic;
             _sender = Task.Factory.StartNew(() => SendProgressAsync(),
                 default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
@@ -70,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             {
                 try
                 {
-                    await _events.SendEventAsync(string.Empty,
+                    await _events.SendEventAsync(_topic,
                         _serializer.SerializeToMemory((object)progress),
                         _serializer.MimeType, Encoding.UTF8.WebName,
                         e => e.AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
@@ -87,6 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly IJsonSerializer _serializer;
         private readonly Task _sender;
         private readonly Channel<DiscoveryProgressModel> _channel;
+        private readonly string _topic;
         private readonly IEventClient _events;
     }
 }

@@ -926,8 +926,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}", item.Item.StartNodeId, _subscription.
             var normedPublishingInterval = (uint)(configuredPublishingInterval > 0 ? configuredPublishingInterval : 1);
 
             // calculate the KeepAliveCount no matter what, perhaps monitored items were changed
-            var revisedKeepAliveCount = (_subscription.Configuration?.KeepAliveCount)
-                ?? _options.Value.MaxKeepAliveCount;
+            var revisedKeepAliveCount = (_subscription.Configuration?.KeepAliveCount) ?? 10;
 
             _subscription.MonitoredItems?.ForEach(m =>
             {

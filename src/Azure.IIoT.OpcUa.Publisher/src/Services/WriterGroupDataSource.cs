@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Timers;
     using Timer = System.Timers.Timer;
     using Microsoft.Extensions.Options;
+    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
@@ -38,19 +39,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create trigger from writer group
         /// </summary>
-        /// <param name="writerGroupConfig"></param>
+        /// <param name="writerGroup"></param>
         /// <param name="subscriptionManager"></param>
+        /// <param name="options"></param>
         /// <param name="subscriptionConfig"></param>
         /// <param name="metrics"></param>
         /// <param name="logger"></param>
-        public WriterGroupDataSource(IWriterGroupConfig writerGroupConfig,
-            ISubscriptionManager subscriptionManager,
+        public WriterGroupDataSource(WriterGroupModel writerGroup,
+            IOptions<PublisherOptions> options, ISubscriptionManager subscriptionManager,
             IOptions<SubscriptionOptions> subscriptionConfig,
             IMetricsContext metrics, ILogger<WriterGroupDataSource> logger)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {
-            _writerGroup = writerGroupConfig?.WriterGroup?.Clone() ??
-                throw new ArgumentNullException(nameof(writerGroupConfig));
+            _writerGroup = writerGroup?.Clone() ??
+                throw new ArgumentNullException(nameof(writerGroup));
+            _options = options ??
+                throw new ArgumentNullException(nameof(options));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _subscriptionManager = subscriptionManager ??
@@ -59,7 +63,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 throw new ArgumentNullException(nameof(subscriptionConfig));
 
             _subscriptions = new Dictionary<SubscriptionIdentifier, DataSetWriterSubscription>();
-            _publisherId = writerGroupConfig.PublisherId ?? Guid.NewGuid().ToString();
         }
 
         /// <inheritdoc/>
@@ -85,13 +88,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask UpdateAsync(WriterGroupJobModel config, CancellationToken ct)
+        public async ValueTask UpdateAsync(WriterGroupModel writerGroup, CancellationToken ct)
         {
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                var writerGroupConfig = config.ToWriterGroupJobConfiguration(_publisherId);
-                var writerGroup = writerGroupConfig.WriterGroup.Clone();
+                writerGroup = writerGroup.Clone();
 
                 if (writerGroup?.DataSetWriters == null ||
                     writerGroup.DataSetWriters.Count == 0)
@@ -199,6 +201,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     throw new ArgumentNullException(nameof(dataSetWriter));
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
                     _outer._subscriptionConfig.Value, outer._writerGroup.WriterGroupId);
+
+                var builder = new TopicBuilder(_outer._options, new Dictionary<string, string>
+                {
+                    [PublisherConfig.DataSetWriterNameVariableName] =
+                        dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName,
+                    [PublisherConfig.DataSetClassIdVariableName] =
+                        dataSetWriter.DataSet.DataSetMetaData.DataSetClassId.ToString(),
+                    [PublisherConfig.DataSetWriterGroupVariableName] =
+                        outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId,
+                    // ...
+                });
+                _topic = builder.TelemetryTopic;
+                _metadataTopic = builder.DataSetMetaDataTopic;
             }
 
             /// <summary>
@@ -526,7 +541,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 var metadata = new SubscriptionNotificationModel
                                 {
                                     Context = CreateMessageContext(ref _metadataSequenceNumber),
-                                    MessageType = Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.Metadata,
+                                    MessageType = Encoders.PubSub.MessageType.Metadata,
                                     SequenceNumber = notification.SequenceNumber,
                                     ServiceMessageContext = notification.ServiceMessageContext,
                                     MetaData = notification.MetaData,
@@ -547,8 +562,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             notification.Context = CreateMessageContext(ref _dataSetSequenceNumber);
                             _outer.OnMessage?.Invoke(sender, notification);
 
-                            if (notification.MessageType != Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.DeltaFrame &&
-                                notification.MessageType != Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.KeepAlive)
+                            if (notification.MessageType != Encoders.PubSub.MessageType.DeltaFrame &&
+                                notification.MessageType != Encoders.PubSub.MessageType.KeepAlive)
                             {
                                 // Reset keyframe trigger for events, keyframe, and conditions
                                 // which are all key frame like messages
@@ -570,10 +585,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     return new WriterGroupMessageContext
                     {
-                        PublisherId = _outer._publisherId,
+                        PublisherId = _outer._options.Value.PublisherId,
                         Writer = _dataSetWriter,
                         SequenceNumber = sequenceNumber,
-                        WriterGroup = _outer._writerGroup
+                        WriterGroup = _outer._writerGroup,
+                        Topic = _topic,
+                        MetaDataTopic = _metadataTopic,
                     };
                 }
             }
@@ -583,6 +600,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private Timer _metadataTimer;
             private uint _keyFrameCount;
             private volatile uint _frameCount;
+            private string _topic;
+            private string _metadataTopic;
             private SubscriptionModel _subscriptionInfo;
             private DataSetWriterModel _dataSetWriter;
             private uint _dataSetSequenceNumber;
@@ -761,8 +780,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ISubscriptionManager _subscriptionManager;
         private readonly IOptions<SubscriptionOptions> _subscriptionConfig;
         private WriterGroupModel _writerGroup;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly SemaphoreSlim _lock = new(1, 1);
-        private readonly string _publisherId;
         private int _lastPointerValueChanges;
         private long _valueChangesCount;
         private int _lastPointerDataChanges;

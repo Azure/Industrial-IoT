@@ -180,6 +180,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             using var cts = new CancellationTokenSource(messageCollectionTimeout);
             await foreach (var evt in _publisher.ReadTelemetryAsync(cts.Token))
             {
+                if (evt.Properties.TryGetValue(Constants.MessagePropertySchemaKey, out var schematype) &&
+                    schematype != MessageSchemaTypes.NetworkMessageJson &&
+                    schematype != MessageSchemaTypes.MonitoredItemMessageJson &&
+                    schematype != MessageSchemaTypes.NetworkMessageUadp)
+                {
+                    continue;
+                }
                 var json = Encoding.UTF8.GetString(evt.Data.ToArray());
                 var document = JsonDocument.Parse(json);
                 json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });

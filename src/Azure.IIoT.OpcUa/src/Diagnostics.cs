@@ -3,23 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher
+namespace Azure.IIoT.OpcUa
 {
-    using Azure.IIoT.OpcUa.Models;
+    using System.Diagnostics.Metrics;
 
     /// <summary>
-    /// Writer group configuration provider
+    /// Industrial iot diagnostics
     /// </summary>
-    public interface IWriterGroupConfig
+    public static class Diagnostics
     {
         /// <summary>
-        /// Publisher id
+        /// Metrics
         /// </summary>
-        string PublisherId { get; }
-
-        /// <summary>
-        /// The writer group to execute
-        /// </summary>
-        WriterGroupModel WriterGroup { get; }
+        public static readonly Meter Meter = new("Azure.Industrial-IoT", "2.9");
     }
 }

@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Default dataset writer id
         /// </summary>
-        public const string DefaultDataSetWriterId = "<<UnknownDataSet>>";
+        public const string DefaultDataSetWriterName = "<<UnknownDataSet>>";
 
         /// <summary>
         /// Writer group identifier tag
@@ -34,6 +34,16 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Default publisher id
         /// </summary>
         public const string DefaultPublisherId = "<<UnknownPublisher>>";
+
+        /// <summary>
+        /// Site identifier tag
+        /// </summary>
+        public const string SiteIdTag = "siteId";
+
+        /// <summary>
+        /// Default Site id
+        /// </summary>
+        public const string DefaultSite = "<<UnknownSite>>";
 
         /// <summary>
         /// Timestamp tag (start time)

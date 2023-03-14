@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             _batchTriggerInterval = _options.Value.BatchTriggerInterval ?? TimeSpan.Zero;
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
-            _maxOutgressMessages = _options.Value.MaxOutgressMessages ?? 4096; // = 1 GB
+            _maxOutgressMessages = _options.Value.MaxEgressMessages ?? 4096; // = 1 GB
 
             _encodingBlock = new TransformManyBlock<SubscriptionNotificationModel[], IEvent>(
                 input =>

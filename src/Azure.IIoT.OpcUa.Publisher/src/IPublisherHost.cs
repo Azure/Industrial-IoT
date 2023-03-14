@@ -28,20 +28,20 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Current list of writer groups in publisher
         /// </summary>
-        IEnumerable<WriterGroupJobModel> WriterGroups { get; }
+        IEnumerable<WriterGroupModel> WriterGroups { get; }
 
         /// <summary>
         /// Try update configuration
         /// </summary>
         /// <param name="jobs"></param>
         /// <returns></returns>
-        bool TryUpdate(IEnumerable<WriterGroupJobModel> jobs);
+        bool TryUpdate(IEnumerable<WriterGroupModel> jobs);
 
         /// <summary>
         /// Update configuration
         /// </summary>
         /// <param name="jobs"></param>
         /// <returns></returns>
-        Task UpdateAsync(IEnumerable<WriterGroupJobModel> jobs);
+        Task UpdateAsync(IEnumerable<WriterGroupModel> jobs);
     }
 }

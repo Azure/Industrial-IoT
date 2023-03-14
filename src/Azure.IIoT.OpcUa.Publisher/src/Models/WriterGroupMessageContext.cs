@@ -19,6 +19,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public uint SequenceNumber { get; set; }
 
         /// <summary>
+        /// Topic for the message if not metadata message
+        /// </summary>
+        public string Topic { get; set; }
+
+        /// <summary>
+        /// Metadata topic for metadata messages
+        /// </summary>
+        public string MetaDataTopic { get; set; }
+
+        /// <summary>
         /// Publisher id
         /// </summary>
         public string PublisherId { get; set; }

@@ -14,6 +14,11 @@ namespace Azure.IIoT.OpcUa.Publisher
     public sealed class PublisherOptions
     {
         /// <summary>
+        /// Publisher id
+        /// </summary>
+        public string PublisherId { get; set; }
+
+        /// <summary>
         /// Site of the publisher
         /// </summary>
         public string Site { get; set; }
@@ -58,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Define the maximum number of messages in outgress buffer,
         /// Default: 4096 messages with 256KB ends up in 1 GB memory consumed.
         /// </summary>
-        public int? MaxOutgressMessages { get; set; }
+        public int? MaxEgressMessages { get; set; }
 
         /// <summary>
         /// Flag to use reversible encoding for messages
@@ -66,9 +71,24 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? UseStandardsCompliantEncoding { get; set; }
 
         /// <summary>
+        /// Root topic template
+        /// </summary>
+        public string RootTopicTemplate { get; set; }
+
+        /// <summary>
+        /// Method topic template
+        /// </summary>
+        public string MethodTopicTemplate { get; set; }
+
+        /// <summary>
+        /// Telemetry topic template
+        /// </summary>
+        public string TelemetryTopicTemplate { get; set; }
+
+        /// <summary>
         /// Default metadata queue name
         /// </summary>
-        public string DefaultMetaDataQueueName { get; set; }
+        public string DataSetMetaDataTopicTemplate { get; set; }
 
         /// <summary>
         /// Default Max messages per publish
@@ -86,6 +106,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// events.
         /// </summary>
         public string RuntimeStateRoutingInfo { get; set; }
+
+        /// <summary>
+        /// Enable adding data set routing info to messages
+        /// </summary>
+        public bool? EnableDataSetRoutingInfo { get; set; }
 
         /// <summary>
         /// Scale test option

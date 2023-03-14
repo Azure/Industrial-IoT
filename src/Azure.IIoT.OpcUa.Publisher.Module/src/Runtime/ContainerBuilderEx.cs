@@ -10,6 +10,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Azure.IIoT.OpcUa.Publisher;
     using Furly.Tunnel.Router.Services;
     using Autofac;
+    using Microsoft.Extensions.Configuration;
+    using Furly.Azure.IoT.Edge;
+    using Furly.Extensions.Mqtt;
 
     /// <summary>
     /// Container builder extensions
@@ -28,21 +31,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 
             builder.RegisterType<PublisherCliOptions>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
+            builder.RegisterType<LoggerFilterConfig>()
+                .AsImplementedInterfaces();
 
-            // Register controllers
+            // Register and configure controllers
             builder.RegisterType<MethodRouter>()
                 .AsImplementedInterfaces().SingleInstance()
                 .PropertiesAutowired(
                     PropertyWiringOptions.AllowCircularDependencies);
+            builder.RegisterType<MethodRouterConfig>()
+                .AsImplementedInterfaces();
 
             builder.RegisterType<PublisherMethodsController>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinMethodsController>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces();
             builder.RegisterType<HistoryMethodsController>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces();
             builder.RegisterType<DiscoveryMethodsController>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces();
+        }
+
+        /// <summary>
+        /// Add transports
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddTransports(this ContainerBuilder builder,
+            IConfiguration configuration)
+        {
+            var mqttOptions = new MqttOptions();
+            new MqttBrokerConfig(configuration).Configure(mqttOptions);
+            if (mqttOptions.HostName != null)
+            {
+                builder.AddMqttClient();
+                builder.RegisterType<MqttBrokerConfig>()
+                    .AsImplementedInterfaces();
+            }
+
+            // Validate edge configuration
+            var iotEdgeOptions = new IoTEdgeClientOptions();
+            new IoTEdgeClientConfig(configuration).Configure(iotEdgeOptions);
+            if (iotEdgeOptions.EdgeHubConnectionString != null)
+            {
+                builder.AddIoTEdgeServices();
+                builder.RegisterType<IoTEdgeClientConfig>()
+                    .AsImplementedInterfaces();
+            }
         }
     }
 }

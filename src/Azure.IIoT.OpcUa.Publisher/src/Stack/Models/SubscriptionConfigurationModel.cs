@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     /// <summary>
     /// Represents a standard OPC UA Subscription
     /// </summary>
-    public class SubscriptionConfigurationModel
+    public sealed record class SubscriptionConfigurationModel
     {
         /// <summary>
         /// Publishing interval

@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     /// <summary>
     /// An activated monitored item subscription on an endpoint
     /// </summary>
-    public class SubscriptionModel
+    public sealed record class SubscriptionModel
     {
         /// <summary>
         /// Id of the subscription

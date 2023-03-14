@@ -5,12 +5,12 @@
     <Description>Azure Industrial IoT common ASP.net Core abstractions and utilities</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="7.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="7.0.3" />
-  	<PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.10" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="7.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="7.0.4" />
+  	<PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.11" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.11" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

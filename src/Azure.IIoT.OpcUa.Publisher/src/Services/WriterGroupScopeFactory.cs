@@ -13,6 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
+    using Azure.IIoT.OpcUa.Models;
+    using Furly.Extensions.Hosting;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Container builder for data set writer jobs
@@ -26,17 +29,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public WriterGroupScopeFactory(ILifetimeScope lifetimeScope)
         {
             _lifetimeScope = lifetimeScope;
-            lifetimeScope.TryResolve(out _collector);
+            _lifetimeScope.TryResolve(out _collector);
+            _lifetimeScope.TryResolve(out _options);
         }
 
         /// <inheritdoc/>
-        public IWriterGroupScope Create(IWriterGroupConfig config)
+        public IWriterGroupScope Create(WriterGroupModel writerGroup)
         {
-            if (config is null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-            return new WriterGroupScope(this, config, _lifetimeScope.Resolve<IJsonSerializer>());
+            return new WriterGroupScope(this, writerGroup, _lifetimeScope.Resolve<IJsonSerializer>());
         }
 
         /// <summary>
@@ -55,17 +55,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Create scope
             /// </summary>
             /// <param name="outer"></param>
-            /// <param name="config"></param>
+            /// <param name="writerGroup"></param>
             /// <param name="serializer"></param>
-            public WriterGroupScope(WriterGroupScopeFactory outer, IWriterGroupConfig config,
-                IJsonSerializer serializer)
+            public WriterGroupScope(WriterGroupScopeFactory outer,
+                WriterGroupModel writerGroup, IJsonSerializer serializer)
             {
-                _writerGroup = config.WriterGroup?.WriterGroupId ?? Constants.DefaultWriterGroupId;
                 _outer = outer;
+                _writerGroup = writerGroup?.WriterGroupId ?? Constants.DefaultWriterGroupId;
 
                 TagList = new TagList(new[] {
                     new KeyValuePair<string, object>(Constants.PublisherIdTag,
-                        config.PublisherId ?? Constants.DefaultPublisherId),
+                        _outer._options?.Value.PublisherId ?? Constants.DefaultPublisherId),
+                    new KeyValuePair<string, object>(Constants.SiteIdTag,
+                        _outer._options?.Value.Site ?? Constants.DefaultSite),
                     new KeyValuePair<string, object>(Constants.WriterGroupIdTag,
                         _writerGroup),
                     new KeyValuePair<string, object>(Constants.TimeStampTag,
@@ -75,9 +77,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 _scope = _outer._lifetimeScope.BeginLifetimeScope(builder =>
                 {
-                    // Register job configuration
-                    builder.RegisterInstance(config)
-                        .AsImplementedInterfaces();
+                    // Register writer group for the scope
+                    builder.RegisterInstance(writerGroup).As<WriterGroupModel>();
 
                     builder.RegisterInstance(this)
                         .As<IWriterGroupDiagnostics>()
@@ -120,5 +121,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private readonly ILifetimeScope _lifetimeScope;
         private readonly IDiagnosticCollector _collector;
+        private readonly IOptions<PublisherOptions> _options;
     }
 }

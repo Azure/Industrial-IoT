@@ -6,13 +6,12 @@
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Moq;
+    using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -20,11 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using Furly.Extensions.Configuration;
-    using Microsoft.Extensions.Options;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Microsoft.Extensions.Configuration;
-    using Azure.IIoT.OpcUa.Publisher.Runtime;
 
     /// <summary>
     /// Test
@@ -42,17 +36,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 [
 ]
 ";
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
-            var jobs = converter.Read(pn);
+            var writerGroups = converter.Read(pn);
 
-            // No jobs
-            Assert.Empty(jobs);
+            // No writerGroups
+            Assert.Empty(writerGroups);
         }
 
         [Fact]
@@ -73,19 +64,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal("testid", jobs
-                .Single().WriterGroup.DataSetWriters
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal("testid", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSetWriterName);
         }
 
@@ -106,20 +94,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal("<<UnknownDataSet>>_($b6589fc6ab0dc82cf12099d1c2d40ab994e8410c)", jobs
-                .Single().WriterGroup.DataSetWriters
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal("<<UnknownDataSet>>_($b6589fc6ab0dc82cf12099d1c2d40ab994e8410c)", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSetWriterName);
         }
 
@@ -140,24 +124,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     }
 ]
 ";
-
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal("testgroup", jobs
-                .Single().WriterGroup.WriterGroupId);
-            Assert.Equal("testgroup", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal("testgroup", writerGroups
+                .Single().WriterGroupId);
+            Assert.Equal("testgroup", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Group);
         }
 
@@ -177,22 +156,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     }
 ]
 ";
-
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal("testfieldid1", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal("testfieldid1", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
         }
 
@@ -216,28 +190,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     }
 ]
 ";
-
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(2, jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(2, writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
-            Assert.Equal("testfieldid1", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.Equal("testfieldid1", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
-            Assert.Equal("testfieldid2", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.Equal("testfieldid2", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
         }
 
@@ -261,28 +230,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     }
 ]
 ";
-
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(2, jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(2, writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
-            Assert.Equal("testfieldid", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.Equal("testfieldid", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
-            Assert.Equal("testfieldid", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.Equal("testfieldid", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
         }
 
@@ -307,27 +271,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(2, jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(2, writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
-            Assert.Equal("testdisplayname", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.Equal("testdisplayname", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].PublishedVariableDisplayName);
-            Assert.Equal("testdisplayname", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.Equal("testdisplayname", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().PublishedVariableDisplayName);
         }
 
@@ -354,27 +314,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(2, jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(2, writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
-            Assert.Equal("testfieldid", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.Equal("testfieldid", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
-            Assert.Equal("testfieldid", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.Equal("testfieldid", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
         }
 
@@ -402,41 +358,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
-            Assert.Equal("testfieldid1", jobs
-                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
-            Assert.Equal("i=2258", jobs
-                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].PublishedVariableNodeId);
-            Assert.Null(jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Single(writerGroups
+                .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Equal("testfieldid1", writerGroups
+                .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].Id);
+            Assert.Equal("i=2258", writerGroups
+                .Single().DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0].PublishedVariableNodeId);
+            Assert.Null(writerGroups
+                .Single().DataSetWriters
                 .Last().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
-            Assert.Equal("i=2259", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.Equal("i=2259", writerGroups
+                .Single().DataSetWriters
                 .Last().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().PublishedVariableNodeId);
-            Assert.Equal("testgroup", jobs
-                .Single().WriterGroup.WriterGroupId);
-            Assert.Equal("testgroup", jobs
-                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.Connection.Group);
-            Assert.Equal("testwriterid_($a4ac914c09d7c097fe1f4f96b897e625b6922069)", jobs
-                .Single().WriterGroup.DataSetWriters[0].DataSetWriterName);
-            Assert.Equal(2000, jobs
-                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
-            Assert.Equal(1000, jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.Equal("testgroup", writerGroups
+                .Single().WriterGroupId);
+            Assert.Equal("testgroup", writerGroups
+                .Single().DataSetWriters[0].DataSet.DataSetSource.Connection.Group);
+            Assert.Equal("testwriterid_($a4ac914c09d7c097fe1f4f96b897e625b6922069)", writerGroups
+                .Single().DataSetWriters[0].DataSetWriterName);
+            Assert.Equal(2000, writerGroups
+                .Single().DataSetWriters[0].DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+            Assert.Equal(1000, writerGroups
+                .Single().DataSetWriters
                 .Last().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
@@ -457,21 +409,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(1000, jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(1000, writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
@@ -493,21 +441,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(2000, jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(2000, writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
@@ -531,21 +475,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(1000, jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(1000, writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
@@ -570,21 +510,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(2000, jobs
-                .First().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(2000, writerGroups
+                .First().DataSetWriters[0].DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
         [Fact]
@@ -604,21 +540,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(1000, jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(1000, writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
@@ -640,21 +572,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(2000, jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(2000, writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
@@ -678,21 +606,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(1000, jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(1000, writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
@@ -717,21 +641,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal(1000, jobs
-                .Single().WriterGroup.DataSetWriters[0].DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal(1000, writerGroups
+                .Single().DataSetWriters[0].DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
         [Fact]
@@ -752,21 +672,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal("testdisplayname1", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal("testdisplayname1", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
         }
 
@@ -787,21 +703,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Null(jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Null(writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
         }
 
@@ -824,21 +736,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal("testdatasetfieldid1", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal("testdatasetfieldid1", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
         }
 
@@ -860,21 +768,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal("testdatasetfieldid1", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal("testdatasetfieldid1", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
         }
 
@@ -896,21 +800,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal("testdisplayname1", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal("testdisplayname1", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
         }
 
@@ -931,21 +831,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Null(jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Null(writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
         }
 
@@ -968,21 +864,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal("testdisplayname1", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Equal("testdisplayname1", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
         }
 
@@ -1004,21 +896,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Null(jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Null(writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
         }
 
@@ -1039,29 +927,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters);
-            Assert.Equal("opc.tcp://localhost:50000", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Single(writerGroups
+                .Single().DataSetWriters);
+            Assert.Equal("opc.tcp://localhost:50000", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
             Assert.Equal(2, j
-                .WriterGroup.DataSetWriters.Single()
+                .DataSetWriters.Single()
                 .DataSet.DataSetSource.PublishedVariables.PublishedData.Single()
                 .HeartbeatInterval.Value.TotalSeconds);
         }
@@ -1083,29 +967,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters);
-            Assert.Equal("opc.tcp://localhost:50000", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Single(writerGroups
+                .Single().DataSetWriters);
+            Assert.Equal("opc.tcp://localhost:50000", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
             Assert.Equal(1500, j
-                .WriterGroup.DataSetWriters.Single()
+                .DataSetWriters.Single()
                 .DataSet.DataSetSource.PublishedVariables.PublishedData.Single()
                 .HeartbeatInterval.Value.TotalMilliseconds);
         }
@@ -1127,26 +1007,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
-            Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters);
-            Assert.Equal("opc.tcp://localhost:50000", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Single(writerGroups
+                .Single().DataSetWriters);
+            Assert.Equal("opc.tcp://localhost:50000", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
@@ -1167,23 +1043,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters);
-            Assert.Equal("opc.tcp://localhost:50000", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            Assert.Single(writerGroups);
+            Assert.Single(writerGroups
+                .Single().DataSetWriters);
+            Assert.Equal("opc.tcp://localhost:50000", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
@@ -1204,27 +1076,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Single(j.WriterGroup.DataSetWriters);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Equal("opc.tcp://localhost:50000", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+            Assert.Single(j.DataSetWriters);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Equal("opc.tcp://localhost:50000", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
-            Assert.Equal(2000, j.WriterGroup.DataSetWriters.Single()
+            Assert.Equal(2000, j.DataSetWriters.Single()
                 .DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
@@ -1244,27 +1112,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Single(j.WriterGroup.DataSetWriters);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Equal("opc.tcp://localhost:50000", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+            Assert.Single(j.DataSetWriters);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Equal("opc.tcp://localhost:50000", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
-            Assert.Null(j.WriterGroup.DataSetWriters.Single()
+            Assert.Null(j.DataSetWriters.Single()
                 .DataSet.DataSetSource.SubscriptionSettings.PublishingInterval);
         }
 
@@ -1285,28 +1149,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Single(j.WriterGroup.DataSetWriters);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Equal("opc.tcp://localhost:50000", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+            Assert.Single(j.DataSetWriters);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Equal("opc.tcp://localhost:50000", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
             Assert.Equal(2000, j
-             .WriterGroup.DataSetWriters.Single()
+             .DataSetWriters.Single()
              .DataSet.DataSetSource.PublishedVariables.PublishedData.Single()
              .SamplingInterval.Value.TotalMilliseconds);
         }
@@ -1327,25 +1187,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Single(j.WriterGroup.DataSetWriters);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Equal("opc.tcp://localhost:50000", jobs
-                .Single().WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+            Assert.Single(j.DataSetWriters);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Equal("opc.tcp://localhost:50000", writerGroups
+                .Single().DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
@@ -1379,23 +1235,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Single(j.WriterGroup.DataSetWriters);
-            Assert.Equal("opc.tcp://localhost:50000", j.WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Single(j.DataSetWriters);
+            Assert.Equal("opc.tcp://localhost:50000", j.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
@@ -1421,24 +1273,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Single(j.WriterGroup.DataSetWriters);
-            Assert.Equal("opc.tcp://localhost:50000", j.WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Single(j.DataSetWriters);
+            Assert.Equal("opc.tcp://localhost:50000", j.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
@@ -1485,24 +1333,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Single(j.WriterGroup.DataSetWriters);
-            Assert.Equal("opc.tcp://localhost:50000", j.WriterGroup.DataSetWriters
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Single(j.DataSetWriters);
+            Assert.Equal("opc.tcp://localhost:50000", j.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
@@ -1549,23 +1393,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ";
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Equal(4, j.WriterGroup.DataSetWriters.Count);
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Equal(4, j.DataSetWriters.Count);
         }
 
         [Fact]
@@ -1620,25 +1460,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 "opc.tcp://localhost:50004"
             };
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Equal(4, j.WriterGroup.DataSetWriters.Count);
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Equal(4, j.DataSetWriters.Count);
             Assert.True(endpointUrls.ToHashSet().SetEqualsSafe(
-                j.WriterGroup.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.Url)));
+                j.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.Url)));
         }
 
         [Fact]
@@ -1691,25 +1527,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 "opc.tcp://localhost:50001"
             };
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Equal(2, j.WriterGroup.DataSetWriters.Count);
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Equal(2, j.DataSetWriters.Count);
             Assert.True(endpointUrls.ToHashSet().SetEqualsSafe(
-                j.WriterGroup.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.Url)));
+                j.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.Url)));
         }
 
         [Fact]
@@ -1760,25 +1592,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                 "opc.tcp://localhost:50001"
             };
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions());
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Equal(3, j.WriterGroup.DataSetWriters.Count);
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Equal(3, j.DataSetWriters.Count);
             Assert.True(endpointUrls.ToHashSet().SetEqualsSafe(
-                j.WriterGroup.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.Url)));
+                j.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.Url)));
         }
 
         [Theory]
@@ -1786,33 +1614,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         public async Task PnWithDuplicatesTest(string publishedNodesJsonFile)
         {
             var pn = await File.ReadAllTextAsync(publishedNodesJsonFile).ConfigureAwait(false);
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
 
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Equal(2, j.WriterGroup.DataSetWriters.Count);
-            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://10.0.0.1:59412",
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Equal(2, j.DataSetWriters.Count);
+            Assert.All(j.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://10.0.0.1:59412",
                 dataSetWriter.DataSet.DataSetSource.Connection.Endpoint.Url));
-            Assert.Single(j.WriterGroup.DataSetWriters, dataSetWriter => TimeSpan.FromMinutes(15) ==
+            Assert.Single(j.DataSetWriters, dataSetWriter => TimeSpan.FromMinutes(15) ==
                 dataSetWriter.DataSet.DataSetSource.SubscriptionSettings.PublishingInterval);
-            Assert.Single(j.WriterGroup.DataSetWriters, dataSetWriter => TimeSpan.FromMinutes(1) ==
+            Assert.Single(j.DataSetWriters, dataSetWriter => TimeSpan.FromMinutes(1) ==
                 dataSetWriter.DataSet.DataSetSource.SubscriptionSettings.PublishingInterval);
-            Assert.Single(j.WriterGroup.DataSetWriters, dataSetWriter =>
+            Assert.Single(j.DataSetWriters, dataSetWriter =>
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Any(
                     p => TimeSpan.FromMinutes(15) == p.SamplingInterval));
-            Assert.Equal(3, j.WriterGroup.DataSetWriters.Sum(dataSetWriter =>
+            Assert.Equal(3, j.DataSetWriters.Sum(dataSetWriter =>
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
 
@@ -1828,9 +1653,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             for (var i = 1; i < 10000; i++)
             {
-                pn.Append("{ \"Id\": \"i=");
-                pn.Append(i);
-                pn.Append("\" },");
+                pn
+                    .Append("{ \"Id\": \"i=")
+                    .Append(i)
+                    .Append("\" },");
             }
 
             pn.Append(@"
@@ -1840,32 +1666,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ");
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn.ToString());
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
-            // No jobs
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Equal(10, j.WriterGroup.DataSetWriters.Count);
-            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
+            // No writerGroups
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Equal(10, j.DataSetWriters.Count);
+            Assert.All(j.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
                 dataSetWriter.DataSet.DataSetSource.Connection.Endpoint.Url));
-            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.Null(
+            Assert.All(j.DataSetWriters, dataSetWriter => Assert.Null(
                 dataSetWriter.DataSet.DataSetSource.SubscriptionSettings.PublishingInterval));
-            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.All(
+            Assert.All(j.DataSetWriters, dataSetWriter => Assert.All(
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData,
                     p => Assert.Null(p.SamplingInterval)));
-            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter =>
+            Assert.All(j.DataSetWriters, dataSetWriter =>
                 Assert.Equal(1000,
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
@@ -1882,11 +1704,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 
             for (var i = 1; i < 10000; i++)
             {
-                pn.Append("{ \"Id\": \"i=");
-                pn.Append(i);
-                pn.Append('\"');
-                pn.Append(i % 2 == 1 ? ",\"OpcPublishingInterval\": 2000" : null);
-                pn.Append("},");
+                pn
+                    .Append("{ \"Id\": \"i=")
+                    .Append(i)
+                    .Append('\"')
+                    .Append(i % 2 == 1 ? ",\"OpcPublishingInterval\": 2000" : null)
+                    .Append("},");
             }
 
             pn.Append(@"
@@ -1896,25 +1719,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 ]
 ");
 
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn.ToString());
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
-            // No jobs
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Null(j.MessagingMode);
-            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
-            Assert.Null(j.ConnectionString);
-            Assert.Equal(10, j.WriterGroup.DataSetWriters.Count);
-            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
+            // No writerGroups
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+
+            Assert.True((j.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+
+            Assert.Equal(10, j.DataSetWriters.Count);
+            Assert.All(j.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
                 dataSetWriter.DataSet.DataSetSource.Connection.Endpoint.Url));
             Assert.Equal(
                 new TimeSpan?[] {
@@ -1928,13 +1747,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                     null,
                     null,
                     null
-                }, j.WriterGroup.DataSetWriters.ConvertAll(dataSetWriter =>
+                }, j.DataSetWriters.ConvertAll(dataSetWriter =>
                     dataSetWriter.DataSet.DataSetSource.SubscriptionSettings?.PublishingInterval));
 
-            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.All(
+            Assert.All(j.DataSetWriters, dataSetWriter => Assert.All(
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData,
                     p => Assert.Null(p.SamplingInterval)));
-            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter =>
+            Assert.All(j.DataSetWriters, dataSetWriter =>
                 Assert.Equal(1000,
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
@@ -1987,28 +1806,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     }
 ]
 ");
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
 
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn.ToString());
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
-            // Check jobs
-            Assert.Single(jobs);
-            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
-            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
-            Assert.NotNull(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables);
-            Assert.NotNull(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents);
-            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
-            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            // Check writerGroups
+            Assert.Single(writerGroups);
+            Assert.Single(writerGroups[0].DataSetWriters);
+            Assert.Single(writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.NotNull(writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedVariables);
+            Assert.NotNull(writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedEvents);
+            Assert.Empty(writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
 
             // Check model
-            var model = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
+            var model = writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
             Assert.Equal("TestingDisplayName", model.PublishedEventName);
             Assert.Equal("i=2258", model.EventNotifier);
 
@@ -2104,19 +1920,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     }
 ]
 ";
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
 
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
-            Assert.NotEmpty(jobs);
-            var writers = Assert.Single(jobs).WriterGroup.DataSetWriters;
+            Assert.NotEmpty(writerGroups);
+            var writers = Assert.Single(writerGroups).DataSetWriters;
 
             Assert.Equal(5, writers.Count);
             Assert.Single(writers[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
@@ -2259,27 +2072,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     }
 ]
 ";
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
 
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
-            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
-            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+            Assert.Single(writerGroups[0].DataSetWriters);
+            Assert.Empty(writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
 
-            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter =>
+            Assert.All(j.DataSetWriters, dataSetWriter =>
                Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
 
-            var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
+            var eventModel = writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
             Assert.Equal("DisplayName2253", eventModel.PublishedEventName);
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Equal(11, eventModel.SelectClauses.Count);
@@ -2327,27 +2137,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     }
 ]
 ";
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfig = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
 
             var logger = Log.Console<PublishedNodesJobConverter>();
 
-            var converter = new PublishedNodesJobConverter(logger, _serializer,
-                engineConfigMock.Object, clientConfig);
+            var converter = new PublishedNodesJobConverter(logger, _serializer);
 
             var entries = converter.Read(pn);
-            var jobs = converter.ToWriterGroupJobs(entries, GetConfig()).ToList();
+            var writerGroups = converter.ToWriterGroups(entries, GetOptions()).ToList();
 
-            Assert.NotEmpty(jobs);
-            var j = Assert.Single(jobs);
-            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
-            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
-            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.NotEmpty(writerGroups);
+            var j = Assert.Single(writerGroups);
+            Assert.Single(writerGroups[0].DataSetWriters);
+            Assert.Empty(writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
 
-            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter =>
+            Assert.All(j.DataSetWriters, dataSetWriter =>
                Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
 
-            var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
+            var eventModel = writerGroups[0].DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Equal("ns=2;i=235", eventModel.TypeDefinitionId);
             Assert.NotNull(eventModel.ConditionHandling);
@@ -2355,14 +2162,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal(30, eventModel.ConditionHandling.SnapshotInterval);
         }
 
-        private static IPublisherConfiguration GetConfig()
+        private static PublisherOptions GetOptions()
         {
-            var configMock = new Mock<IPublisherConfiguration>();
-            configMock.SetupAllProperties();
-            configMock.SetupGet(p => p.MaxNodesPerPublishedEndpoint).Returns(1000);
-            configMock.SetupGet(p => p.MessagingProfile).Returns(MessagingProfile.Get(
-                MessagingMode.Samples, MessageEncoding.Json));
-            return configMock.Object;
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.MessagingProfile = MessagingProfile.Get(MessagingMode.Samples, MessageEncoding.Json);
+            return options.Value;
         }
 
         private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();

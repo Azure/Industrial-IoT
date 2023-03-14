@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Azure.IoT.Edge;
+    using Furly.Extensions.Configuration;
     using Furly.Extensions.Logging;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
@@ -18,6 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using System.IO;
+    using Furly.Extensions.Mqtt;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from
@@ -33,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <param name="logger"></param>
         public PublisherCliOptions(IConfiguration config, ILogger logger)
         {
-            var configKeyNames = typeof(PublisherCliConfigKeys)
+            var configKeyNames = typeof(PublisherConfig)
                 .GetFields()
                 .Select(fi => fi.Name)
                 .ToList();
@@ -58,6 +61,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             var unsupportedOptions = new List<string>();
             var legacyOptions = new List<string>();
 
+            // TODO: Remove. Key for the Legacy (2.5.x) compatibility mode. Controlled the content type value
+            const string LegacyCompatibility = "LegacyCompatibility";
+
             // command line options
             var options = new Mono.Options.OptionSet {
                 "",
@@ -71,30 +77,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     b => showHelp = true },
 
                 // Publisher configuration options
-                { $"f|pf|publishfile=|{PublisherCliConfigKeys.PublishedNodesConfigurationFilename}=",
+                { $"f|pf|publishfile=|{PublisherConfig.PublishedNodesFileKey}=",
                     "The name of the file containing the configuration of the nodes to be published as well as the information to connect to the OPC UA server sources.\nThis file is also used to persist changes made through the control plane, e.g., through IoT Hub device method calls.\nWhen this file is specified, or the default file is accessible by the module, OPC Publisher will start in standalone mode.\nDefault: `publishednodes.json`\n",
-                    s => this[PublisherCliConfigKeys.PublishedNodesConfigurationFilename] = s },
-                { $"pfs|publishfileschema=|{PublisherCliConfigKeys.PublishedNodesConfigurationSchemaFilename}=",
-                    "The validation schema filename for publish file. Schema validation is disabled by default.\nDefault: `not set` (disabled)\n",
-                    s => this[PublisherCliConfigKeys.PublishedNodesConfigurationSchemaFilename] = s },
-                { "s|site=",
+                    s => this[PublisherConfig.PublishedNodesFileKey] = s },
+                { $"id|publisherid=|{PublisherConfig.PublisherIdKey}=",
+                    "Sets the publisher id of the publisher.\nDefault: `not set` which results in the IoT edge identity being used \n",
+                    s => this[PublisherConfig.PublisherIdKey] = s},
+                { $"s|site=|{PublisherConfig.SiteIdKey}=",
                     "Sets the site name of the publisher module.\nDefault: `not set` \n",
-                    s => this[PublisherCliConfigKeys.PublisherSite] = s},
-                { $"rs|runtimestatereporting:|{PublisherCliConfigKeys.RuntimeStateReporting}:",
+                    s => this[PublisherConfig.SiteIdKey] = s},
+                { $"rs|runtimestatereporting:|{PublisherConfig.EnableRuntimeStateReportingKey}:",
                     "Enable that when publisher starts or restarts it reports its runtime state using a restart message.\nDefault: `False` (disabled)\n",
-                    (bool? b) => this[PublisherCliConfigKeys.RuntimeStateReporting] = b?.ToString() ?? "True"},
+                    (bool? b) => this[PublisherConfig.EnableRuntimeStateReportingKey] = b?.ToString() ?? "True"},
 
                 "",
                 "Messaging configuration",
                 "-----------------------",
                 "",
 
-                { $"c|strict:|{PublisherCliConfigKeys.UseStandardsCompliantEncoding}:",
+                { $"c|strict:|{PublisherConfig.UseStandardsCompliantEncodingKey}:",
                     "Use strict UA compliant encodings. Default is 'false' for backwards (2.5.x - 2.8.x) compatibility. It is recommended to run the publisher in compliant mode for best interoperability.\nDefault: `False`\n",
-                    (bool? b) => this[PublisherCliConfigKeys.UseStandardsCompliantEncoding] = b?.ToString() ?? "True" },
-                { $"mm|messagingmode=|{PublisherCliConfigKeys.MessagingMode}=",
-                    $"The messaging mode for messages Allowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessagingMode)))}`\nDefault: `{nameof(MessagingMode.PubSub)}` if `-c` is specified, otherwise `{nameof(MessagingMode.Samples)}` for backwards compatibility.\n",
-                    (MessagingMode m) => this[PublisherCliConfigKeys.MessagingMode] = m.ToString() },
+                    (bool? b) => this[PublisherConfig.UseStandardsCompliantEncodingKey] = b?.ToString() ?? "True" },
+                { $"mm|messagingmode=|{PublisherConfig.MessagingModeKey}=",
+                    $"The messaging mode for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessagingMode)))}`\nDefault: `{nameof(MessagingMode.PubSub)}` if `-c` is specified, otherwise `{nameof(MessagingMode.Samples)}` for backwards compatibility.\n",
+                    (MessagingMode m) => this[PublisherConfig.MessagingModeKey] = m.ToString() },
+
 
                 // TODO: Add ability to specify networkmessage mask
                 // TODO: Add ability to specify dataset message mask
@@ -102,222 +109,229 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 // TODO: Allow override of content type
                 // TODO: Allow overriding schema
 
-                { $"me|messageencoding=|{PublisherCliConfigKeys.MessageEncoding}=",
-                    $"The message encoding for messages Allowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessageEncoding)))}`\nDefault: `{nameof(MessageEncoding.Json)}`.\n",
-                    (MessageEncoding m) => this[PublisherCliConfigKeys.MessageEncoding] = m.ToString() },
-                    { $"fm|fullfeaturedmessage=|{PublisherCliConfigKeys.FullFeaturedMessage}=",
+                { $"me|messageencoding=|{PublisherConfig.MessageEncodingKey}=",
+                    $"The message encoding for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessageEncoding)))}`\nDefault: `{nameof(MessageEncoding.Json)}`.\n",
+                    (MessageEncoding m) => this[PublisherConfig.MessageEncodingKey] = m.ToString() },
+                    { $"fm|fullfeaturedmessage=|{PublisherConfig.FullFeaturedMessage}=",
                         "The full featured mode for messages (all fields filled in) for backwards compatibilty. \nDefault: `False` for legacy compatibility.\n",
-                        (string b) => this[PublisherCliConfigKeys.FullFeaturedMessage] = b, true },
-                { $"bi|batchtriggerinterval=|{PublisherCliConfigKeys.BatchTriggerInterval}=",
-                    "The network message publishing interval in milliseconds. Determines the publishing period at which point messages are emitted. When `--bs` is 1 and `--bi` is set to 0 batching is disabled.\nDefault: `10000` (10 seconds).\nAlternatively can be set using `BatchTriggerInterval` environment variable in the form of a time span string formatted string `[d.]hh:mm:ss[.fffffff]`.\n",
-                    (int k) => this[PublisherCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromMilliseconds(k).ToString() },
+                        (string b) => this[PublisherConfig.FullFeaturedMessage] = b, true },
+                { $"bi|batchtriggerinterval=|{PublisherConfig.BatchTriggerIntervalKey}=",
+                    "The network message publishing interval in milliseconds. Determines the publishing period at which point messages are emitted.\nWhen `--bs` is 1 and `--bi` is set to 0 batching is disabled.\nDefault: `10000` (10 seconds).\nAlternatively can be set using `BatchTriggerInterval` environment variable in the form of a time span string formatted string `[d.]hh:mm:ss[.fffffff]`.\n",
+                    (int k) => this[PublisherConfig.BatchTriggerIntervalKey] = TimeSpan.FromMilliseconds(k).ToString() },
                     { "si|iothubsendinterval=",
                         "The network message publishing interval in seconds for backwards compatibilty. \nDefault: `10` seconds.\n",
-                        (string k) => this[PublisherCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(int.Parse(k, CultureInfo.CurrentCulture)).ToString(), true },
-                { $"bs|batchsize=|{PublisherCliConfigKeys.BatchSize}=",
+                        (string k) => this[PublisherConfig.BatchTriggerIntervalKey] = TimeSpan.FromSeconds(int.Parse(k, CultureInfo.CurrentCulture)).ToString(), true },
+                { $"bs|batchsize=|{PublisherConfig.BatchSizeKey}=",
                     "The number of incoming OPC UA subscription notifications to collect until sending a network messages. When `--bs` is set to 1 and `--bi` is 0 batching is disabled and messages are sent as soon as notifications arrive.\nDefault: `50`.\n",
-                    (int i) => this[PublisherCliConfigKeys.BatchSize] = i.ToString(CultureInfo.CurrentCulture) },
-                { $"ms|maxmessagesize=|iothubmessagesize=|{PublisherCliConfigKeys.IoTHubMaxMessageSize}=",
+                    (int i) => this[PublisherConfig.BatchSizeKey] = i.ToString(CultureInfo.CurrentCulture) },
+                { $"ms|maxmessagesize=|iothubmessagesize=|{PublisherConfig.IoTHubMaxMessageSize}=",
                     "The maximum size of the messages to emit. In case the encoder cannot encode a message because the size would be exceeded, the message is dropped. Otherwise the encoder will aim to chunk messages if possible. \nDefault: `256k` in case of IoT Hub messages, `0` otherwise.\n",
-                    (int i) => this[PublisherCliConfigKeys.IoTHubMaxMessageSize] = i.ToString(CultureInfo.CurrentCulture) },
+                    (int i) => this[PublisherConfig.IoTHubMaxMessageSize] = i.ToString(CultureInfo.CurrentCulture) },
 
                 // TODO: Add ConfiguredMessageSize
 
-                { $"npd|maxnodesperdataset=|{PublisherCliConfigKeys.MaxNodesPerDataSet}=",
+                { $"npd|maxnodesperdataset=|{PublisherConfig.MaxNodesPerDataSetKey}=",
                     "Maximum number of nodes within a Subscription. When there are more nodes configured for a data set writer, they will be added to new subscriptions. This also affects metadata message size. \nDefault: `1000`.\n",
-                    (int i) => this[PublisherCliConfigKeys.MaxNodesPerDataSet] = i.ToString(CultureInfo.CurrentCulture) },
-                { $"kfc|keyframecount=|{PublisherCliConfigKeys.DefaultKeyFrameCount}=",
+                    (int i) => this[PublisherConfig.MaxNodesPerDataSetKey] = i.ToString(CultureInfo.CurrentCulture) },
+
+                { $"kfc|keyframecount=|{SubscriptionConfig.DefaultKeyFrameCount}=",
                     "The default number of delta messages to send until a key frame message is sent. If 0, no key frame messages are sent, if 1, every message will be a key frame. \nDefault: `0`.\n",
-                    (int i) => this[PublisherCliConfigKeys.DefaultKeyFrameCount] = TimeSpan.FromMilliseconds(i).ToString() },
-                { $"msi|metadatasendinterval=|{PublisherCliConfigKeys.DefaultMetaDataUpdateTime}=",
+                    (int i) => this[SubscriptionConfig.DefaultKeyFrameCount] = TimeSpan.FromMilliseconds(i).ToString() },
+                { $"msi|metadatasendinterval=|{SubscriptionConfig.DefaultMetaDataUpdateTime}=",
                     "Default value in milliseconds for the metadata send interval which determines in which interval metadata is sent.\nEven when disabled, metadata is still sent when the metadata version changes unless `--mm=*Samples` is set in which case this setting is ignored. Only valid for network message encodings. \nDefault: `0` which means periodic sending of metadata is disabled.\n",
-                    (int i) => this[PublisherCliConfigKeys.DefaultMetaDataUpdateTime] = TimeSpan.FromMilliseconds(i).ToString() },
-                { $"dm|disablemetadata:|{PublisherCliConfigKeys.DisableDataSetMetaData}:",
+                    (int i) => this[SubscriptionConfig.DefaultMetaDataUpdateTime] = TimeSpan.FromMilliseconds(i).ToString() },
+                { $"dm|disablemetadata:|{SubscriptionConfig.DisableDataSetMetaData}:",
                     "Disables sending any metadata when metadata version changes. This setting can be used to also override the messaging profile's default support for metadata sending. \nDefault: `False` if the messaging profile selected supports sending metadata, `True` otherwise.\n",
-                    (bool? b) => this[PublisherCliConfigKeys.DisableDataSetMetaData] = b?.ToString() ?? "True" },
-                    { $"lc|legacycompatibility=|{PublisherCliConfigKeys.LegacyCompatibility}=",
+                    (bool? b) => this[SubscriptionConfig.DisableDataSetMetaData] = b?.ToString() ?? "True" },
+                    { $"lc|legacycompatibility=|{LegacyCompatibility}=",
                         "Run the publisher in legacy (2.5.x) compatibility mode.\nDefault: `False` (disabled).\n",
-                        (string b) => this[PublisherCliConfigKeys.LegacyCompatibility] = b, true },
+                        (string b) => this[LegacyCompatibility] = b, true },
+
+                "",
+                "Routing configuration",
+                "---------------------",
+                "",
+
+                { $"rtt|roottopictemplate:|{PublisherConfig.RootTopicTemplateKey}:",
+                    "The default root topic of OPC Publisher.\nIf not specified, the `{{PublisherId}}` template is the root topic.\nCurrently only the template variables\n    `{{SiteId}}` and\n    `{{PublisherId}}`\ncan be used as dynamic substituations in the template. If the template variable does not exist it is replaced with the `$default` string.\nDefault: `{{PublisherId}}`.\n",
+                    t => this[PublisherConfig.RootTopicTemplateKey] = t },
+                { $"mtt|methodtopictemplate=|{PublisherConfig.MethodTopicTemplateKey}=",
+                    "The topic at which OPC Publisher's method handler is mounted.\nIf not specified, the `{{RootTopic}}/methods` template will be used as root topic with the method names as sub topic.\nOnly\n    `{{RootTopic}}`\n    `{{SiteId}}` and\n    `{{PublisherId}}`\ncan currently be used as replacement variables in the template.\nDefault: `{{RootTopic}}/methods`.\n",
+                    t => this[PublisherConfig.MethodTopicTemplateKey] = t },
+                { $"ttt|telemetrytopictemplate:|{PublisherConfig.TelemetryTopicTemplateKey}:",
+                    "The default topic that all messages are sent to.\nIf not specified, the `{{RootTopic}}/{{DataSetWriterGroup}}` template will be used as root topic for all events sent by OPC Publisher.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriterName}}` and\n    `{{DataSetWriterGroup}}`\n can be used as dynamic parts in the template. If a template variable does not exist the name of the variable is emitted.\nDefault: `{{RootTopic}}/{{DataSetWriterGroup}}`.\n",
+                    t => this[PublisherConfig.TelemetryTopicTemplateKey] = t },
+                { $"mdt|metadatatopictemplate:|{PublisherConfig.DataSetMetaDataTopicTemplateKey}:",
+                    "The topic that metadata should be sent to.\nIn case of MQTT the message will be sent as RETAIN message with a TTL of either metadata send interval or infinite if metadata send interval is not configured.\nOnly valid if metadata is supported and/or explicitely enabled.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{TelemetryTopic}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriterName}}` and\n    `{{DatasetWriterGroup}}`\ncan be used as dynamic parts in the template. \nDefault: `{{TelemetryTopic}}` which means metadata is sent to the same output as regular messages. If specified without value, the default output is `{{TelemetryTopic}}/$metadata`.\n",
+                    (string s) => this[PublisherConfig.DataSetMetaDataTopicTemplateKey] = !string.IsNullOrEmpty(s) ? s : "{{TelemetryTopic}}/$metadata" },
+                { $"ri|enableroutinginfo:|{PublisherConfig.EnableDataSetRoutingInfoKey}:",
+                    $"Add routing information to messages. The name of the property is `{Constants.MessagePropertyRoutingKey}` and the value is the `DataSetWriterGroup` for that particular message.\nWhen the `DataSetWriterGroup` is not configured, the `{Constants.MessagePropertyRoutingKey}` property will not be added to the message even if this argument is set.\nDefault: `{PublisherConfig.EnableDataSetRoutingInfoDefault}`.\n",
+                    (bool? b) => this[PublisherConfig.EnableDataSetRoutingInfoKey] = b?.ToString() ?? "True" },
 
                 "",
                 "Transport settings",
                 "------------------",
                 "",
+                { $"om|maxoutgressmessages=|{PublisherConfig.MaxEgressMessagesKey}=",
+                    $"The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `{PublisherConfig.MaxEgressMessagesDefault}`\n",
+                    (int i) => this[PublisherConfig.MaxEgressMessagesKey] = i.ToString(CultureInfo.InvariantCulture) },
 
-                { $"b|mqc=|mqttclientconnectionstring=|{PublisherCliConfigKeys.MqttClientConnectionString}=",
-                    "An mqtt client connection string to use. Use this option to connect OPC Publisher to a MQTT Broker or to an EdgeHub or IoT Hub MQTT endpoint.\nTo connect to an MQTT broker use the format 'HostName=<IPorDnsName>;Port=<Port>[;Username=<Username>;Password=<Password>;DeviceId=<IoTDeviceId>;Protocol=<v500 or v311>]'.\nTo connect to IoT Hub or EdgeHub MQTT endpoint use a regular IoT Hub connection string.\nIgnored if `-c` option is used to set a connection string.\nDefault: `not set` (disabled).\nFor more information consult https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#using-the-mqtt-protocol-directly-as-a-device) and https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#for-azure-iot-tools) on how to retrieve the device connection string or generate a SharedAccessSignature for one.\n",
-                    mqc => this[PublisherCliConfigKeys.MqttClientConnectionString] = mqc },
-                { $"ttt|telemetrytopictemplate=|{PublisherCliConfigKeys.TelemetryTopicTemplateKey}=",
-                    "A template that shall be used to build the topic for outgoing telemetry messages. If not specified IoT Hub and EdgeHub compatible topics will be used. The placeholder '{device_id}' can be used to inject the device id and '{output_name}' to inject routing info into the topic template.\nDefault: `not set`.\n",
-                    ttt => this[PublisherCliConfigKeys.TelemetryTopicTemplateKey] = ttt },
-                { $"ri|enableroutinginfo:|{PublisherCliConfigKeys.EnableRoutingInfo}:",
-                    "Add routing information to telemetry messages. The name of the property is `$$RoutingInfo` and the value is the `DataSetWriterGroup` for that particular message.\nWhen the `DataSetWriterGroup` is not configured, the `$$RoutingInfo` property will not be added to the message even if this argument is set.\nDefault: `False` (disabled).\n",
-                    (bool? b) => this[PublisherCliConfigKeys.EnableRoutingInfo] = b?.ToString() ?? "True" },
-                { $"mqn|metadataqueuename:|{PublisherCliConfigKeys.DefaultDataSetMetaDataQueueName}:",
-                    "The output that metadata should be sent to.\nThis will be a sub path of the configured telemetry topic or replacement of the output name token in the topic template, or in case of EdgeHub, the output name or appended sub path to existing configured output name.\nIn case of MQTT the message will be sent as RETAIN message with a TTL of either metadata send interval or infinite if metadata send interval is not configured.\nOnly valid if metadata is supported and/or explicitely enabled. \nDefault: `disabled` which means metadata is sent to the same output as regular messages. If specified without value, the default output is `$metadata`.\n",
-                    (string s) => this[PublisherCliConfigKeys.DefaultDataSetMetaDataQueueName] = !string.IsNullOrEmpty(s) ? s : "$metadata" },
-                { $"ht|ih=|iothubprotocol=|{PublisherCliConfigKeys.HubTransport}=",
-                    $"Protocol to use for communication with EdgeHub. Allowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(TransportOption)))}`\nDefault: `{nameof(TransportOption.Mqtt)}` if device or edge hub connection string is provided, ignored otherwise.\n",
-                    (TransportOption p) => this[PublisherCliConfigKeys.HubTransport] = p.ToString() },
-                { $"ec|edgehubconnectionstring=|dc=|deviceconnectionstring=|{PublisherCliConfigKeys.EdgeHubConnectionString}=",
-                    "A edge hub or iot hub connection string to use if you run OPC Publisher outside of IoT Edge. The connection string can be obtained from the IoT Hub portal. Use this setting for testing only.\nDefault: `not set`.\n",
-                    dc => this[PublisherCliConfigKeys.EdgeHubConnectionString] = dc },
-                { $"{PublisherCliConfigKeys.BypassCertVerificationKey}=",
-                    "Enables bypass of certificate verification for upstream communication to edgeHub. This setting is for debugging purposes only and should not be used in production.\nDefault: `False`\n",
-                    (bool b) => this[PublisherCliConfigKeys.BypassCertVerificationKey] = b.ToString() },
-                { $"om|maxoutgressmessages=|{PublisherCliConfigKeys.MaxOutgressMessages}=",
-                    "The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `4096`\n",
-                    (int i) => this[PublisherCliConfigKeys.MaxOutgressMessages] = i.ToString(CultureInfo.InvariantCulture) },
+                { $"b|mqc=|mqttclientconnectionstring=|{MqttBrokerConfig.MqttClientConnectionStringKey}=",
+                    "An mqtt connection string to use. Use this option to connect OPC Publisher to a MQTT Broker endpoint.\nTo connect to an MQTT broker use the format 'HostName=<IPorDnsName>;Port=<Port>[;Username=<Username>;Password=<Password>;Protocol=<'v5'|'v311'>]'.\nDefault: `not set`.\n",
+                    mqc => this[MqttBrokerConfig.MqttClientConnectionStringKey] = mqc },
+                { $"ec|edgehubconnectionstring=|dc=|deviceconnectionstring=|{IoTEdgeClientConfig.EdgeHubConnectionString}=",
+                    "A edge hub or iot hub connection string to use if you run OPC Publisher outside of IoT Edge. The connection string can be obtained from the IoT Hub portal. It is not required to use this option if running inside IoT Edge.\nDefault: `not set`.\n",
+                    dc => this[IoTEdgeClientConfig.EdgeHubConnectionString] = dc },
+                { $"ht|ih=|iothubprotocol=|{IoTEdgeClientConfig.HubTransport}=",
+                    $"Protocol to use for communication with EdgeHub.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(TransportOption)))}`\nDefault: `{nameof(TransportOption.Mqtt)}` if device or edge hub connection string is provided, ignored otherwise.\n",
+                    (TransportOption p) => this[IoTEdgeClientConfig.HubTransport] = p.ToString() },
 
                 "",
                 "Subscription settings",
                 "---------------------",
                 "",
 
-                { $"oi|opcsamplinginterval=|{PublisherCliConfigKeys.OpcSamplingInterval}=",
+                { $"oi|opcsamplinginterval=|{SubscriptionConfig.DefaultSamplingIntervalKey}=",
                     "Default value in milliseconds to request the servers to sample values. This value is used if an explicit sampling interval for a node was not configured. \nDefault: `1000`.\nAlternatively can be set using `DefaultSamplingInterval` environment variable in the form of a time span string formatted string `[d.]hh:mm:ss[.fffffff]`.\n",
-                    (int i) => this[PublisherCliConfigKeys.OpcSamplingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
-                { $"op|opcpublishinginterval=|{PublisherCliConfigKeys.OpcPublishingInterval}=",
+                    (int i) => this[SubscriptionConfig.DefaultSamplingIntervalKey] = TimeSpan.FromMilliseconds(i).ToString() },
+                { $"op|opcpublishinginterval=|{SubscriptionConfig.DefaultPublishingIntervalKey}=",
                     "Default value in milliseconds for the publishing interval setting of a subscription created with an OPC UA server. This value is used if an explicit publishing interval was not configured.\nDefault: `1000`.\nAlternatively can be set using `DefaultPublishingInterval` environment variable in the form of a time span string formatted string `[d.]hh:mm:ss[.fffffff]`.\n",
-                    (int i) => this[PublisherCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
-                { $"ki|keepaliveinterval=|{PublisherCliConfigKeys.OpcKeepAliveIntervalInSec}=",
-                    "The interval in seconds the publisher is sending keep alive messages to the OPC servers on the endpoints it is connected to.\nDefault: `10000` (10 seconds).\n",
-                    (int i) => this[PublisherCliConfigKeys.OpcKeepAliveIntervalInSec] = i.ToString(CultureInfo.CurrentCulture) },
-                { $"kt|keepalivethreshold=|{PublisherCliConfigKeys.OpcKeepAliveDisconnectThreshold}=",
+                    (int i) => this[SubscriptionConfig.DefaultPublishingIntervalKey] = TimeSpan.FromMilliseconds(i).ToString() },
+                { $"kt|keepalivethreshold=|{SubscriptionConfig.MaxKeepAliveCountKey}=",
                     "Specify the number of keep alive packets a server can miss, before the session is disconneced.\nDefault: `50`.\n",
-                    (uint u) => this[PublisherCliConfigKeys.OpcKeepAliveDisconnectThreshold] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"fd|fetchdisplayname:|{PublisherCliConfigKeys.FetchOpcNodeDisplayName}:",
+                    (uint u) => this[SubscriptionConfig.MaxKeepAliveCountKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"fd|fetchdisplayname:|{SubscriptionConfig.FetchOpcNodeDisplayName}:",
                     "Fetches the displayname for the monitored items subscribed if a display name was not specified in the configuration.\nNote: This has high impact on OPC Publisher startup performance.\nDefault: `False` (disabled).\n",
-                    (bool? b) => this[PublisherCliConfigKeys.FetchOpcNodeDisplayName] = b?.ToString() ?? "True" },
-                { $"qs|queuesize=|{PublisherCliConfigKeys.DefaultQueueSize}=",
+                    (bool? b) => this[SubscriptionConfig.FetchOpcNodeDisplayName] = b?.ToString() ?? "True" },
+                { $"qs|queuesize=|{SubscriptionConfig.DefaultQueueSize}=",
                     "Default queue size for all monitored items if queue size was not specified in the configuration.\nDefault: `1` (for backwards compatibility).\n",
-                    (uint u) => this[PublisherCliConfigKeys.DefaultQueueSize] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"ndo|nodiscardold:|{PublisherCliConfigKeys.DiscardNewDefault}:",
+                    (uint u) => this[SubscriptionConfig.DefaultQueueSize] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"ndo|nodiscardold:|{SubscriptionConfig.DefaultDiscardNewKey}:",
                     "The publisher is using this as default value for the discard old setting of monitored item queue configuration. Setting to true will ensure that new values are dropped before older ones are drained. \nDefault: `False` (which is the OPC UA default).\n",
-                    (bool? b) => this[PublisherCliConfigKeys.DiscardNewDefault] = b?.ToString() ?? "True" },
-                { $"mc|monitoreditemdatachangetrigger=|{PublisherCliConfigKeys.DefaultDataChangeTrigger}=",
-                    $"Default data change trigger for all monitored items configured in the published nodes configuration unless explicitly overridden. Allowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(DataChangeTriggerType)))}`\nDefault: `{nameof(DataChangeTriggerType.StatusValue)}` (which is the OPC UA default).\n",
-                    (DataChangeTriggerType t) => this[PublisherCliConfigKeys.DefaultDataChangeTrigger] = t.ToString() },
-                { $"sf|skipfirst:|{PublisherCliConfigKeys.SkipFirstDefault}:",
+                    (bool? b) => this[SubscriptionConfig.DefaultDiscardNewKey] = b?.ToString() ?? "True" },
+                { $"mc|monitoreditemdatachangetrigger=|{SubscriptionConfig.DefaultDataChangeTrigger}=",
+                    $"Default data change trigger for all monitored items configured in the published nodes configuration unless explicitly overridden.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(DataChangeTriggerType)))}`\nDefault: `{nameof(DataChangeTriggerType.StatusValue)}` (which is the OPC UA default).\n",
+                    (DataChangeTriggerType t) => this[SubscriptionConfig.DefaultDataChangeTrigger] = t.ToString() },
+                { $"sf|skipfirst:|{SubscriptionConfig.DefaultSkipFirstKey}:",
                     "The publisher is using this as default value for the skip first setting of nodes configured without a skip first setting. A value of True will skip sending the first notification received when the monitored item is added to the subscription.\nDefault: `False` (disabled).\n",
-                    (bool? b) => this[PublisherCliConfigKeys.SkipFirstDefault] = b?.ToString() ?? "True" },
+                    (bool? b) => this[SubscriptionConfig.DefaultSkipFirstKey] = b?.ToString() ?? "True" },
                     { "skipfirstevent:", "Maintained for backwards compatibility, do not use.",
-                        (string b) => this[PublisherCliConfigKeys.SkipFirstDefault] = b ?? "True", /* hidden = */ true },
-                { $"hb|heartbeatinterval=|{PublisherCliConfigKeys.HeartbeatIntervalDefault}=",
+                        (string b) => this[SubscriptionConfig.DefaultSkipFirstKey] = b ?? "True", /* hidden = */ true },
+                { $"hb|heartbeatinterval=|{SubscriptionConfig.DefaultHeartbeatIntervalKey}=",
                     "The publisher is using this as default value in seconds for the heartbeat interval setting of nodes that were configured without a heartbeat interval setting. A heartbeat is sent at this interval if no value has been received.\nDefault: `0` (disabled)\nAlternatively can be set using `DefaultHeartbeatInterval` environment variable in the form of a time span string formatted string `[d.]hh:mm:ss[.fffffff]`.\n",
-                    (int i) => this[PublisherCliConfigKeys.HeartbeatIntervalDefault] = TimeSpan.FromSeconds(i).ToString() },
+                    (int i) => this[SubscriptionConfig.DefaultHeartbeatIntervalKey] = TimeSpan.FromSeconds(i).ToString() },
+                { $"slt|{SubscriptionConfig.MinSubscriptionLifetimeKey}=",
+                    "Minimum subscription lifetime in seconds as per OPC UA definition.\nDefault: `not set`.\n",
+                    (int i) => this[SubscriptionConfig.MinSubscriptionLifetimeKey] = i.ToString(CultureInfo.CurrentCulture) },
 
                 "",
                 "OPC UA Client configuration",
                 "---------------------------",
                 "",
 
-                { $"aa|acceptuntrusted:|{PublisherCliConfigKeys.AutoAcceptCerts}:",
+                { $"ki|keepaliveinterval=|{ClientConfig.KeepAliveIntervalKey}=",
+                    "The interval in seconds the publisher is sending keep alive messages to the OPC servers on the endpoints it is connected to.\nDefault: `10000` (10 seconds).\n",
+                    (int i) => this[ClientConfig.KeepAliveIntervalKey] = i.ToString(CultureInfo.CurrentCulture) },
+                { $"aa|acceptuntrusted:|{ClientConfig.AutoAcceptUntrustedCertificatesKey}:",
                     "The publisher accepts untrusted certificates presented by a server it connects to.\nThis does not include servers presenting bad certificates or certificates that fail chain validation. These errors cannot be suppressed and connection will always be rejected.\nWARNING: This setting should never be used in production environments!\n",
-                    (bool? b) => this[PublisherCliConfigKeys.AutoAcceptCerts] = b?.ToString() ?? "True" },
+                    (bool? b) => this[ClientConfig.AutoAcceptUntrustedCertificatesKey] = b?.ToString() ?? "True" },
                      { "autoaccept:", "Maintained for backwards compatibility, do not use.",
-                        (string b) => this[PublisherCliConfigKeys.AutoAcceptCerts] = b ?? "True", /* hidden = */ true },
-                { $"ot|operationtimeout=|{PublisherCliConfigKeys.OpcOperationTimeout}=",
+                        (string b) => this[ClientConfig.AutoAcceptUntrustedCertificatesKey] = b ?? "True", /* hidden = */ true },
+                { $"ot|operationtimeout=|{ClientConfig.OperationTimeoutKey}=",
                     "The operation service call timeout of the publisher OPC UA client in milliseconds. \nDefault: `120000` (2 minutes).\n",
-                    (uint u) => this[PublisherCliConfigKeys.OpcOperationTimeout] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"ct|createsessiontimeout=|{PublisherCliConfigKeys.OpcSessionCreationTimeout}=",
+                    (uint u) => this[ClientConfig.OperationTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"ct|createsessiontimeout=|{ClientConfig.DefaultSessionTimeoutKey}=",
                     "Maximum amount of time in seconds that a session should remain open by the OPC server without any activity (session timeout) to request from the OPC server at session creation.\nDefault: `not set`.\n",
-                    (uint u) => this[PublisherCliConfigKeys.OpcSessionCreationTimeout] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"slt|{PublisherCliConfigKeys.MinSubscriptionLifetimeKey}=",
-                    "Minimum subscription lifetime in seconds as per OPC UA definition.\nDefault: `not set`.\n",
-                    (int i) => this[PublisherCliConfigKeys.MinSubscriptionLifetimeKey] = i.ToString(CultureInfo.CurrentCulture) },
+                    (uint u) => this[ClientConfig.DefaultSessionTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
 
-                { $"otl|opctokenlifetime=|{PublisherCliConfigKeys.SecurityTokenLifetimeKey}=",
+                { $"otl|opctokenlifetime=|{ClientConfig.SecurityTokenLifetimeKey}=",
                     "OPC UA Stack Transport Secure Channel - Security token lifetime in milliseconds.\nDefault: `3600000` (1h).\n",
-                    (uint u) => this[PublisherCliConfigKeys.SecurityTokenLifetimeKey] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"ocl|opcchannellifetime=|{PublisherCliConfigKeys.ChannelLifetimeKey}=",
+                    (uint u) => this[ClientConfig.SecurityTokenLifetimeKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"ocl|opcchannellifetime=|{ClientConfig.ChannelLifetimeKey}=",
                     "OPC UA Stack Transport Secure Channel - Channel lifetime in milliseconds.\nDefault: `300000` (5 min).\n",
-                    (uint u) => this[PublisherCliConfigKeys.ChannelLifetimeKey] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"omb|opcmaxbufferlen=|{PublisherCliConfigKeys.MaxBufferSizeKey}=",
+                    (uint u) => this[ClientConfig.ChannelLifetimeKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"omb|opcmaxbufferlen=|{ClientConfig.MaxBufferSizeKey}=",
                     "OPC UA Stack Transport Secure Channel - Max buffer size.\nDefault: `65535` (64KB -1).\n",
-                    (uint u) => this[PublisherCliConfigKeys.MaxBufferSizeKey] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"oml|opcmaxmessagelen=|{PublisherCliConfigKeys.MaxMessageSizeKey}=",
+                    (uint u) => this[ClientConfig.MaxBufferSizeKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"oml|opcmaxmessagelen=|{ClientConfig.MaxMessageSizeKey}=",
                     "OPC UA Stack Transport Secure Channel - Max message size.\nDefault: `4194304` (4 MB).\n",
-                    (uint u) => this[PublisherCliConfigKeys.MaxMessageSizeKey] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"oal|opcmaxarraylen=|{PublisherCliConfigKeys.MaxArrayLengthKey}=",
+                    (uint u) => this[ClientConfig.MaxMessageSizeKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"oal|opcmaxarraylen=|{ClientConfig.MaxArrayLengthKey}=",
                     "OPC UA Stack Transport Secure Channel - Max array length.\nDefault: `65535` (64KB - 1).\n",
-                    (uint u) => this[PublisherCliConfigKeys.MaxArrayLengthKey] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"ol|opcmaxstringlen=|{PublisherCliConfigKeys.OpcMaxStringLength}=",
+                    (uint u) => this[ClientConfig.MaxArrayLengthKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"ol|opcmaxstringlen=|{ClientConfig.MaxStringLengthKey}=",
                     "The max length of a string opc can transmit/receive over the OPC UA secure channel.\nDefault: `130816` (128KB - 256).\n",
-                    (uint u) => this[PublisherCliConfigKeys.OpcMaxStringLength] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"obl|opcmaxbytestringlen=|{PublisherCliConfigKeys.MaxByteStringLengthKey}=",
+                    (uint u) => this[ClientConfig.MaxStringLengthKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"obl|opcmaxbytestringlen=|{ClientConfig.MaxByteStringLengthKey}=",
                     "OPC UA Stack Transport Secure Channel - Max byte string length.\nDefault: `1048576` (1MB).\n",
-                    (uint u) => this[PublisherCliConfigKeys.MaxByteStringLengthKey] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"au|appuri=|{PublisherCliConfigKeys.ApplicationUriKey}=",
+                    (uint u) => this[ClientConfig.MaxByteStringLengthKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"au|appuri=|{ClientConfig.ApplicationUriKey}=",
                     "Application URI as per OPC UA definition inside the OPC UA client application configuration presented to the server.\nDefault: `not set`.\n",
-                    s => this[PublisherCliConfigKeys.ApplicationUriKey] = s },
-                { $"pu|producturi=|{PublisherCliConfigKeys.ProductUriKey}=",
+                    s => this[ClientConfig.ApplicationUriKey] = s },
+                { $"pu|producturi=|{ClientConfig.ProductUriKey}=",
                     "The Product URI as per OPC UA definition insde the OPC UA client application configuration presented to the server.\nDefault: `not set`.\n",
-                    s => this[PublisherCliConfigKeys.ProductUriKey] = s },
+                    s => this[ClientConfig.ProductUriKey] = s },
 
-                { $"rejectsha1=|{PublisherCliConfigKeys.RejectSha1SignedCertificatesKey}=",
-                    "The publisher rejects deprecated SHA1 certificates.\nNote: It is recommended to always set this value to `True` if the connected OPC UA servers does not use Sha1 signed certificates.\nDefault: `False` (to support older equipment).\n",
-                    (bool b) => this[PublisherCliConfigKeys.RejectSha1SignedCertificatesKey] = b.ToString() },
-                { $"mks|minkeysize=|{PublisherCliConfigKeys.MinimumCertificateKeySizeKey}=",
+                { $"rejectsha1=|{ClientConfig.RejectSha1SignedCertificatesKey}=",
+                    "If set OPC Publisher will reject SHA1 certificates which have been officially deprecated and are unsafe to use.\nNote: It is recommended to always set this value to `True` if the connected OPC UA servers does not use Sha1 signed certificates.\nDefault: `False` (to support older equipment).\n",
+                    (bool b) => this[ClientConfig.RejectSha1SignedCertificatesKey] = b.ToString() },
+                { $"mks|minkeysize=|{ClientConfig.MinimumCertificateKeySizeKey}=",
                     "Minimum accepted certificate size.\nNote: It is recommended to this value to the highest certificate key size possible based on the connected OPC UA servers.\nDefault: 1024.\n",
-                    s => this[PublisherCliConfigKeys.MinimumCertificateKeySizeKey] = s },
-                { $"tm|trustmyself=|{PublisherCliConfigKeys.TrustMyself}=",
+                    s => this[ClientConfig.MinimumCertificateKeySizeKey] = s },
+                { $"tm|trustmyself=|{ClientConfig.AddAppCertToTrustedStoreKey}=",
                     "Set to `False` to disable adding the publisher's own certificate to the trusted store automatically.\nDefault: `True`.\n",
-                    (bool b) => this[PublisherCliConfigKeys.TrustMyself] = b.ToString() },
-                { $"sn|appcertsubjectname=|{PublisherCliConfigKeys.OpcApplicationCertificateSubjectName}=",
+                    (bool b) => this[ClientConfig.AddAppCertToTrustedStoreKey] = b.ToString() },
+                { $"sn|appcertsubjectname=|{ClientConfig.ApplicationCertificateSubjectNameKey}=",
                     "The subject name for the app cert.\nDefault: `CN=Microsoft.Azure.IIoT, C=DE, S=Bav, O=Microsoft, DC=localhost`.\n",
-                    s => this[PublisherCliConfigKeys.OpcApplicationCertificateSubjectName] = s },
-                { $"an|appname=|{PublisherCliConfigKeys.OpcApplicationName}=",
+                    s => this[ClientConfig.ApplicationCertificateSubjectNameKey] = s },
+                { $"an|appname=|{ClientConfig.ApplicationNameKey}=",
                     "The name for the app (used during OPC UA authentication).\nDefault: `Microsoft.Azure.IIoT`\n",
-                    s => this[PublisherCliConfigKeys.OpcApplicationName] = s },
-                { $"pki|pkirootpath=|{PublisherCliConfigKeys.PkiRootPathKey}=",
+                    s => this[ClientConfig.ApplicationNameKey] = s },
+                { $"pki|pkirootpath=|{ClientConfig.PkiRootPathKey}=",
                     "PKI certificate store root path.\nDefault: `pki`.\n",
-                    s => this[PublisherCliConfigKeys.PkiRootPathKey] = s },
-                { $"ap|appcertstorepath=|{PublisherCliConfigKeys.OpcOwnCertStorePath}=",
-                    "The path where the own application cert should be stored.\nDefault: $\"{PkiRootPath}/own\".\n",
-                    s => this[PublisherCliConfigKeys.OpcOwnCertStorePath] = s },
-                { $"apt|at=|appcertstoretype=|{PublisherCliConfigKeys.OpcOwnCertStoreType}=",
-                    $"The own application cert store type. Allowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
-                    s => SetStoreType(s, PublisherCliConfigKeys.OpcOwnCertStoreType, "apt") },
-                { $"tp|trustedcertstorepath=|{PublisherCliConfigKeys.OpcTrustedCertStorePath}=",
-                    "The path of the trusted cert store.\nDefault: $\"{PkiRootPath}/trusted\".\n",
-                    s => this[PublisherCliConfigKeys.OpcTrustedCertStorePath] = s },
-                { $"tpt|{PublisherCliConfigKeys.TrustedPeerCertificatesTypeKey}=",
-                    $"Trusted peer certificate store type. Allowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
-                    s => SetStoreType(s, PublisherCliConfigKeys.TrustedPeerCertificatesTypeKey, "tpt") },
-                { $"rp|rejectedcertstorepath=|{PublisherCliConfigKeys.OpcRejectedCertStorePath}=",
-                    "The path of the rejected cert store.\nDefault: $\"{PkiRootPath}/rejected\".\n",
-                    s => this[PublisherCliConfigKeys.OpcRejectedCertStorePath] = s },
-                { $"rpt|{PublisherCliConfigKeys.RejectedCertificateStoreTypeKey}=",
-                    $"Rejected certificate store type. Allowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
-                    s => SetStoreType(s, PublisherCliConfigKeys.RejectedCertificateStoreTypeKey, "rpt") },
-                { $"ip|issuercertstorepath=|{PublisherCliConfigKeys.OpcIssuerCertStorePath}=",
-                    "The path of the trusted issuer cert store.\nDefault: $\"{PkiRootPath}/issuers\".\n",
-                    s => this[PublisherCliConfigKeys.OpcIssuerCertStorePath] = s },
-                { $"tit|{PublisherCliConfigKeys.TrustedIssuerCertificatesTypeKey}=",
-                    $"Trusted issuer certificate store types. Allowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
-                    s => SetStoreType(s, PublisherCliConfigKeys.TrustedIssuerCertificatesTypeKey, "tit") },
+                    s => this[ClientConfig.PkiRootPathKey] = s },
+                { $"ap|appcertstorepath=|{ClientConfig.ApplicationCertificateStorePathKey}=",
+                    "The path where the own application cert should be stored.\nDefault: $\"{{PkiRootPath}}/own\".\n",
+                    s => this[ClientConfig.ApplicationCertificateStorePathKey] = s },
+                { $"apt|at=|appcertstoretype=|{ClientConfig.ApplicationCertificateStoreTypeKey}=",
+                    $"The own application cert store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    s => SetStoreType(s, ClientConfig.ApplicationCertificateStoreTypeKey, "apt") },
+                { $"tp|trustedcertstorepath=|{ClientConfig.TrustedPeerCertificatesPathKey}=",
+                    "The path of the trusted cert store.\nDefault: $\"{{PkiRootPath}}/trusted\".\n",
+                    s => this[ClientConfig.TrustedPeerCertificatesPathKey] = s },
+                { $"tpt|{ClientConfig.TrustedPeerCertificatesTypeKey}=",
+                    $"Trusted peer certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    s => SetStoreType(s, ClientConfig.TrustedPeerCertificatesTypeKey, "tpt") },
+                { $"rp|rejectedcertstorepath=|{ClientConfig.RejectedCertificateStorePathKey}=",
+                    "The path of the rejected cert store.\nDefault: $\"{{PkiRootPath}}/rejected\".\n",
+                    s => this[ClientConfig.RejectedCertificateStorePathKey] = s },
+                { $"rpt|{ClientConfig.RejectedCertificateStoreTypeKey}=",
+                    $"Rejected certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    s => SetStoreType(s, ClientConfig.RejectedCertificateStoreTypeKey, "rpt") },
+                { $"ip|issuercertstorepath=|{ClientConfig.TrustedIssuerCertificatesPathKey}=",
+                    "The path of the trusted issuer cert store.\nDefault: $\"{{PkiRootPath}}/issuers\".\n",
+                    s => this[ClientConfig.TrustedIssuerCertificatesPathKey] = s },
+                { $"tit|{ClientConfig.TrustedIssuerCertificatesTypeKey}=",
+                    $"Trusted issuer certificate store types.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    s => SetStoreType(s, ClientConfig.TrustedIssuerCertificatesTypeKey, "tit") },
 
                 "",
                 "Diagnostic options",
                 "------------------",
                 "",
 
-                { $"di|diagnosticsinterval=|{PublisherCliConfigKeys.DiagnosticsInterval}=",
+                { $"di|diagnosticsinterval=|{PublisherConfig.DiagnosticsIntervalKey}=",
                     "Shows publisher diagnostic information at this specified interval in seconds in the OPC Publisher log (need log level info). `-1` disables remote diagnostic log and diagnostic output.\nDefault:60000 (60 seconds).\nAlternatively can be set using `DiagnosticsInterval` environment variable in the form of a time span string formatted string `[d.]hh:mm:ss[.fffffff]`\".\n",
-                    (int i) => this[PublisherCliConfigKeys.DiagnosticsInterval] = TimeSpan.FromSeconds(i).ToString() },
-                { "ll|loglevel=",
-                    $"The loglevel to use. Allowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(LogLevel)))}`\nDefault: `{LogLevel.Information}`.\n",
-                    (LogLevel l) => this[PublisherCliConfigKeys.LogLevelKey] = l.ToString() },
-                { $"em|{PublisherCliConfigKeys.EnableMetricsKey}=",
-                    "Enables exporting prometheus metrics on the default prometheus endpoint.\nDefault: `True` (set to `False` to disable metrics exporting).\n",
-                    (bool b) => this[PublisherCliConfigKeys.EnableMetricsKey] = b.ToString() },
+                    (int i) => this[PublisherConfig.DiagnosticsIntervalKey] = TimeSpan.FromSeconds(i).ToString() },
+                { $"ll|loglevel=|{LoggerFilterConfig.LogLevelKey}=",
+                    $"The loglevel to use.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(LogLevel)))}`\nDefault: `{LogLevel.Information}`.\n",
+                    (LogLevel l) => this[LoggerFilterConfig.LogLevelKey] = l.ToString() },
 
                 // testing purposes
 
                 { "sc|scaletestcount=",
                     "The number of monitored item clones in scale tests.\n",
-                    (string i) => this[PublisherCliConfigKeys.ScaleTestCount] = i, true },
+                    (string i) => this[PublisherConfig.ScaleTestCountKey] = i, true },
 
                 // Legacy: unsupported and hidden
                 { "mq|monitoreditemqueuecapacity=", "Legacy - do not use.", _ => legacyOptions.Add("mq|monitoreditemqueuecapacity"), true },
@@ -353,7 +367,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { "vc|verboseconsole=", "Legacy - do not use.", _ => legacyOptions.Add("vc|verboseconsole"), true },
                 { "as|autotrustservercerts=", "Legacy - do not use.", _ => legacyOptions.Add("as|autotrustservercerts"), true },
                 { "l|lf|logfile=", "Legacy - do not use.", _ => legacyOptions.Add("l|lf|logfile"), true },
-                { "lt|logflushtimespan=", "Legacy - do not use.", _ => legacyOptions.Add("lt|logflushtimespan"), true }
+                { "lt|logflushtimespan=", "Legacy - do not use.", _ => legacyOptions.Add("lt|logflushtimespan"), true },
+                { "em|EnableMetrics=", "Legacy - do not use.", _ => legacyOptions.Add("em|EnableMetrics"), true }
             };
 
             try
@@ -394,9 +409,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 
             if (!showHelp)
             {
-                var configuration = new ConfigurationBuilder().AddInMemoryCollection(this).Build();
+                // Test the publisher configuration for having all necessary content
+                var configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", true)
+                    .AddEnvironmentVariables()
+                    .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                    .AddFromDotEnvFile()
+                    .AddInMemoryCollection(this).Build();
                 try
                 {
+                    // Throws if the messaging profile configuration is invalid
                     new PublisherConfig(configuration).ToOptions();
                 }
                 catch
@@ -411,13 +434,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     return;
                 }
 
+                // Validate edge configuration
+                var iotEdgeOptions = new IoTEdgeClientOptions();
+                new IoTEdgeClientConfig(configuration).Configure(iotEdgeOptions);
+                var mqttOptions = new MqttOptions();
+                new MqttBrokerConfig(configuration).Configure(mqttOptions);
+
                 // Check that the important values are provided
-                if (!ContainsKey(PublisherCliConfigKeys.MqttClientConnectionString) &&
-                    !ContainsKey(PublisherCliConfigKeys.EdgeHubConnectionString) &&
-                    Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID") == null &&
-                    Environment.GetEnvironmentVariable(PublisherCliConfigKeys.EdgeHubConnectionString) == null)
+                if (iotEdgeOptions.EdgeHubConnectionString == null && mqttOptions.HostName == null)
                 {
-                    Warning("You must specify a connection string or run inside IoT Edge context, " +
+                    Warning("You must specify connection strings or run inside IoT Edge context, " +
                             "please use -h option to get all the supported options.");
                     ExitProcess(180);
                     return;

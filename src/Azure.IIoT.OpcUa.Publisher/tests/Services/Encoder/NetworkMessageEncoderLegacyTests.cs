@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using System.Diagnostics;
     using System.Linq;
     using Xunit;
+    using Microsoft.Extensions.Configuration;
 
     public class NetworkMessageEncoderLegacyTests
     {
@@ -29,10 +30,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var loggerMock = new Mock<ILogger<NetworkMessageEncoder>>();
             var metricsMock = new Mock<IMetricsContext>();
             metricsMock.SetupGet(m => m.TagList).Returns(new TagList());
-            return new NetworkMessageEncoder(new WriterGroupJobConfig
-            {
-                UseStandardsCompliantEncoding = false
-            }, metricsMock.Object, loggerMock.Object);
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.UseStandardsCompliantEncoding = false;
+            return new NetworkMessageEncoder(options, metricsMock.Object, loggerMock.Object);
         }
 
         [Theory]

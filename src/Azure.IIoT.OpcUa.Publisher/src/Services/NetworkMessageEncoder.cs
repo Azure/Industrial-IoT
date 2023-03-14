@@ -49,15 +49,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create instance of NetworkMessageEncoder.
         /// </summary>
-        /// <param name="config"> injected configuration. </param>
+        /// <param name="options"> injected configuration. </param>
         /// <param name="metrics"> Metrics context </param>
         /// <param name="logger"> Logger to be used for reporting. </param>
-        public NetworkMessageEncoder(IOptions<PublisherOptions> config,
+        public NetworkMessageEncoder(IOptions<PublisherOptions> options,
             IMetricsContext metrics, ILogger<NetworkMessageEncoder> logger)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {
             _logger = logger;
-            _config = config;
+            _options = options;
         }
 
         /// <inheritdoc/>
@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             var networkMessages = GetNetworkMessages(notifications, asBatch);
-            foreach (var (notificationsPerMessage, networkMessage, output, retain, ttl) in networkMessages)
+            foreach (var (notificationsPerMessage, networkMessage, topic, retain, ttl) in networkMessages)
             {
                 var chunks = networkMessage.Encode(encodingContext, maxMessageSize);
                 var notificationsPerChunk = notificationsPerMessage / (double)chunks.Count;
@@ -108,14 +108,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var chunkedMessage = factory()
                         .AddProperty(OpcUa.Constants.MessagePropertySchemaKey, networkMessage.MessageSchema)
-                        .AddProperty(OpcUa.Constants.MessagePropertyRoutingKey, networkMessage.DataSetWriterGroup)
                         .SetTimestamp(DateTime.UtcNow)
                         .SetContentEncoding(networkMessage.ContentEncoding)
                         .SetContentType(networkMessage.ContentType)
-                        .SetTopic(output)
+                        .SetTopic(topic)
                         .SetRetain(retain)
                         .SetTtl(ttl)
                         .AddBuffers(chunks);
+                    if (_options.Value.EnableDataSetRoutingInfo ?? false)
+                    {
+                        chunkedMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
+                            networkMessage.DataSetWriterGroup);
+                    }
                     chunkedMessages.Add(chunkedMessage);
                 }
 
@@ -150,234 +154,237 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="messages"></param>
         /// <param name="isBatched"></param>
         /// <returns></returns>
-        private List<(int, PubSubMessage, string, bool, TimeSpan)> GetNetworkMessages(IEnumerable<SubscriptionNotificationModel> messages,
-            bool isBatched)
+        private List<(int, PubSubMessage, string, bool, TimeSpan)> GetNetworkMessages(
+            IEnumerable<SubscriptionNotificationModel> messages, bool isBatched)
         {
-            var standardsCompliant = _config.Value.UseStandardsCompliantEncoding ?? false;
+            var standardsCompliant = _options.Value.UseStandardsCompliantEncoding ?? false;
             var result = new List<(int, PubSubMessage, string, bool, TimeSpan)>();
             // Group messages by publisher, then writer group and then by dataset class id
-            foreach (var publishers in messages
+            foreach (var topics in messages
                 .Select(m => (Notification: m, Context: m.Context as WriterGroupMessageContext))
                 .Where(m => m.Context != null)
-                .GroupBy(m => m.Context.PublisherId))
+                .GroupBy(m => m.Context.Topic))
             {
-                var publisherId = publishers.Key;
-                foreach (var groups in publishers.GroupBy(m => m.Context.WriterGroup))
+                var topic = topics.Key;
+                foreach (var publishers in topics.GroupBy(m => m.Context.PublisherId))
                 {
-                    var writerGroup = groups.Key;
-                    if (writerGroup?.MessageSettings == null)
+                    var publisherId = publishers.Key;
+                    foreach (var groups in publishers.GroupBy(m => m.Context.WriterGroup))
                     {
-                        // Must have a writer group
-                        Drop(groups.Select(m => m.Notification));
-                        continue;
-                    }
-                    var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
-                    var messageMask = writerGroup.MessageSettings.NetworkMessageContentMask;
-                    var hasSamplesPayload = (messageMask & NetworkMessageContentMask.MonitoredItemMessage) != 0;
-                    if (hasSamplesPayload && !isBatched)
-                    {
-                        messageMask |= NetworkMessageContentMask.SingleDataSetMessage;
-                    }
-                    var networkMessageContentMask = messageMask.ToStackType(encoding);
-                    foreach (var dataSetClass in groups
-                        .GroupBy(m => m.Context.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty))
-                    {
-                        var dataSetClassId = dataSetClass.Key;
-                        var currentMessage = CreateMessage(writerGroup, encoding,
-                            networkMessageContentMask, dataSetClassId, publisherId);
-                        var currentNotificationCount = 0;
-                        foreach (var message in dataSetClass)
+                        var writerGroup = groups.Key;
+                        if (writerGroup?.MessageSettings == null)
                         {
-                            if (message.Context.Writer == null ||
-                                (hasSamplesPayload && !encoding.HasFlag(MessageEncoding.Json)))
+                            // Must have a writer group
+                            Drop(groups.Select(m => m.Notification));
+                            continue;
+                        }
+                        var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
+                        var messageMask = writerGroup.MessageSettings.NetworkMessageContentMask;
+                        var hasSamplesPayload = (messageMask & NetworkMessageContentMask.MonitoredItemMessage) != 0;
+                        if (hasSamplesPayload && !isBatched)
+                        {
+                            messageMask |= NetworkMessageContentMask.SingleDataSetMessage;
+                        }
+                        var networkMessageContentMask = messageMask.ToStackType(encoding);
+                        foreach (var dataSetClass in groups
+                            .GroupBy(m => m.Context.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty))
+                        {
+                            var dataSetClassId = dataSetClass.Key;
+                            var currentMessage = CreateMessage(writerGroup, encoding,
+                                networkMessageContentMask, dataSetClassId, publisherId);
+                            var currentNotificationCount = 0;
+                            foreach (var (Notification, Context) in dataSetClass)
                             {
-                                // Must have a writer or if samples mode, must be json
-                                Drop(message.Notification.YieldReturn());
-                                continue;
-                            }
-                            var dataSetMessageContentMask =
-                                (message.Context.Writer.MessageSettings?.DataSetMessageContentMask).ToStackType(
-                                    message.Context.Writer.DataSetFieldContentMask, encoding);
-                            var dataSetFieldContentMask =
-                                    message.Context.Writer.DataSetFieldContentMask.ToStackType();
-
-                            if (message.Notification.MessageType != MessageType.Metadata)
-                            {
-                                Debug.Assert(message.Notification.Notifications != null);
-                                var notificationQueues = message.Notification.Notifications
-                                    .GroupBy(m => m.DataSetFieldName)
-                                    .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
-                                    .ToArray();
-
-                                while (notificationQueues.Any(q => q.Count > 0))
+                                if (Context.Writer == null ||
+                                    (hasSamplesPayload && !encoding.HasFlag(MessageEncoding.Json)))
                                 {
-                                    var orderedNotifications = notificationQueues
-                                        .Select(q => q.Count > 0 ? q.Dequeue() : null)
-                                        .Where(s => s != null);
+                                    // Must have a writer or if samples mode, must be json
+                                    Drop(Notification.YieldReturn());
+                                    continue;
+                                }
+                                var dataSetMessageContentMask =
+                                    (Context.Writer.MessageSettings?.DataSetMessageContentMask).ToStackType(
+                                        Context.Writer.DataSetFieldContentMask, encoding);
+                                var dataSetFieldContentMask =
+                                        Context.Writer.DataSetFieldContentMask.ToStackType();
 
-                                    if (!hasSamplesPayload)
+                                if (Notification.MessageType != MessageType.Metadata)
+                                {
+                                    Debug.Assert(Notification.Notifications != null);
+                                    var notificationQueues = Notification.Notifications
+                                        .GroupBy(m => m.DataSetFieldName)
+                                        .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
+                                        .ToArray();
+
+                                    while (notificationQueues.Any(q => q.Count > 0))
                                     {
-                                        // Create regular data set messages
-                                        BaseDataSetMessage dataSetMessage = encoding.HasFlag(MessageEncoding.Json)
-                                            ? new JsonDataSetMessage
-                                            {
-                                                UseCompatibilityMode = !standardsCompliant,
-                                                DataSetWriterName = message.Context.Writer.DataSetWriterName
-                                            }
-                                            : new UadpDataSetMessage();
+                                        var orderedNotifications = notificationQueues
+                                            .Select(q => q.Count > 0 ? q.Dequeue() : null)
+                                            .Where(s => s != null);
 
-                                        dataSetMessage.DataSetWriterId = message.Notification.SubscriptionId;
-                                        dataSetMessage.MessageType = message.Notification.MessageType;
-                                        dataSetMessage.MetaDataVersion = message.Notification.MetaData?.ConfigurationVersion
-                                            ?? kEmptyConfiguration;
-                                        dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
-                                        dataSetMessage.Timestamp = message.Notification.Timestamp;
-                                        dataSetMessage.SequenceNumber = message.Context.SequenceNumber;
-                                        dataSetMessage.Payload = new DataSet(orderedNotifications.ToDictionary(
-                                            s => s.DataSetFieldName, s => s.Value), (uint)dataSetFieldContentMask);
-
-                                        AddMessage(dataSetMessage);
-                                    }
-                                    else
-                                    {
-                                        // Add monitored item message payload to network message to handle backcompat
-                                        foreach (var itemNotifications in orderedNotifications.GroupBy(f => f.Id + f.MessageId))
+                                        if (!hasSamplesPayload)
                                         {
-                                            var notificationsInGroup = itemNotifications.ToList();
-                                            Debug.Assert(notificationsInGroup.Count != 0);
-                                            //
-                                            // Special monitored item handling for events and conditions. Collate all
-                                            // values into a single key value data dictionary extension object value.
-                                            // Regular notifications we send as single messages.
-                                            //
-                                            if (notificationsInGroup.Count > 1 &&
-                                                (message.Notification.MessageType == MessageType.Event ||
-                                                 message.Notification.MessageType == MessageType.Condition))
-                                            {
-                                                Debug.Assert(notificationsInGroup
-                                                    .Select(n => n.DataSetFieldName).Distinct().Count() == notificationsInGroup.Count,
-                                                    "There should not be duplicates in fields in a group.");
-                                                Debug.Assert(notificationsInGroup
-                                                    .All(n => n.SequenceNumber == notificationsInGroup[0].SequenceNumber),
-                                                    "All notifications in the group should have the same sequence number.");
-
-                                                var eventNotification = notificationsInGroup[0]; // No clone, mutate ok.
-                                                eventNotification.Value = new DataValue
-                                                {
-                                                    Value = new EncodeableDictionary(notificationsInGroup
-                                                        .Select(n => new KeyDataValuePair(n.DataSetFieldName, n.Value)))
-                                                };
-                                                eventNotification.DataSetFieldName = notificationsInGroup[0].DisplayName;
-                                                notificationsInGroup = new List<MonitoredItemNotificationModel> {
-                                                    eventNotification
-                                                };
-                                            }
-                                            foreach (var notification in notificationsInGroup)
-                                            {
-                                                var dataSetMessage = new MonitoredItemMessage
+                                            // Create regular data set messages
+                                            BaseDataSetMessage dataSetMessage = encoding.HasFlag(MessageEncoding.Json)
+                                                ? new JsonDataSetMessage
                                                 {
                                                     UseCompatibilityMode = !standardsCompliant,
-                                                    ApplicationUri = message.Notification.ApplicationUri,
-                                                    EndpointUrl = message.Notification.EndpointUrl,
-                                                    NodeId = notification.NodeId,
-                                                    MessageType = message.Notification.MessageType,
-                                                    DataSetMessageContentMask = dataSetMessageContentMask,
-                                                    Timestamp = message.Notification.Timestamp,
-                                                    SequenceNumber = message.Context.SequenceNumber,
-                                                    ExtensionFields = message.Context.Writer.DataSet.ExtensionFields,
-                                                    Payload = new DataSet(notification.DataSetFieldName, notification.Value,
-                                                        (uint)dataSetFieldContentMask)
+                                                    DataSetWriterName = Context.Writer.DataSetWriterName
+                                                }
+                                                : new UadpDataSetMessage();
+
+                                            dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
+                                            dataSetMessage.MessageType = Notification.MessageType;
+                                            dataSetMessage.MetaDataVersion = Notification.MetaData?.ConfigurationVersion
+                                                ?? kEmptyConfiguration;
+                                            dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
+                                            dataSetMessage.Timestamp = Notification.Timestamp;
+                                            dataSetMessage.SequenceNumber = Context.SequenceNumber;
+                                            dataSetMessage.Payload = new DataSet(orderedNotifications.ToDictionary(
+                                                s => s.DataSetFieldName, s => s.Value), (uint)dataSetFieldContentMask);
+
+                                            AddMessage(dataSetMessage);
+                                        }
+                                        else
+                                        {
+                                            // Add monitored item message payload to network message to handle backcompat
+                                            foreach (var itemNotifications in orderedNotifications.GroupBy(f => f.Id + f.MessageId))
+                                            {
+                                                var notificationsInGroup = itemNotifications.ToList();
+                                                Debug.Assert(notificationsInGroup.Count != 0);
+                                                //
+                                                // Special monitored item handling for events and conditions. Collate all
+                                                // values into a single key value data dictionary extension object value.
+                                                // Regular notifications we send as single messages.
+                                                //
+                                                if (notificationsInGroup.Count > 1 &&
+                                                    (Notification.MessageType == MessageType.Event ||
+                                                     Notification.MessageType == MessageType.Condition))
+                                                {
+                                                    Debug.Assert(notificationsInGroup
+                                                        .Select(n => n.DataSetFieldName).Distinct().Count() == notificationsInGroup.Count,
+                                                        "There should not be duplicates in fields in a group.");
+                                                    Debug.Assert(notificationsInGroup
+                                                        .All(n => n.SequenceNumber == notificationsInGroup[0].SequenceNumber),
+                                                        "All notifications in the group should have the same sequence number.");
+
+                                                    var eventNotification = notificationsInGroup[0]; // No clone, mutate ok.
+                                                    eventNotification.Value = new DataValue
+                                                    {
+                                                        Value = new EncodeableDictionary(notificationsInGroup
+                                                            .Select(n => new KeyDataValuePair(n.DataSetFieldName, n.Value)))
+                                                    };
+                                                    eventNotification.DataSetFieldName = notificationsInGroup[0].DisplayName;
+                                                    notificationsInGroup = new List<MonitoredItemNotificationModel> {
+                                                    eventNotification
                                                 };
-                                                AddMessage(dataSetMessage);
+                                                }
+                                                foreach (var notification in notificationsInGroup)
+                                                {
+                                                    var dataSetMessage = new MonitoredItemMessage
+                                                    {
+                                                        UseCompatibilityMode = !standardsCompliant,
+                                                        ApplicationUri = Notification.ApplicationUri,
+                                                        EndpointUrl = Notification.EndpointUrl,
+                                                        NodeId = notification.NodeId,
+                                                        MessageType = Notification.MessageType,
+                                                        DataSetMessageContentMask = dataSetMessageContentMask,
+                                                        Timestamp = Notification.Timestamp,
+                                                        SequenceNumber = Context.SequenceNumber,
+                                                        ExtensionFields = Context.Writer.DataSet.ExtensionFields,
+                                                        Payload = new DataSet(notification.DataSetFieldName, notification.Value,
+                                                            (uint)dataSetFieldContentMask)
+                                                    };
+                                                    AddMessage(dataSetMessage);
+                                                }
+                                            }
+                                        }
+
+                                        //
+                                        // Add message and number of notifications processed count to method result.
+                                        // Checks current length and splits if max items reached if configured.
+                                        //
+                                        void AddMessage(BaseDataSetMessage dataSetMessage)
+                                        {
+                                            currentMessage.Messages.Add(dataSetMessage);
+                                            var maxMessagesToPublish = writerGroup.MessageSettings?.MaxMessagesPerPublish ??
+                                                _options.Value.DefaultMaxMessagesPerPublish;
+                                            if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
+                                            {
+                                                result.Add((currentNotificationCount, currentMessage, topic, false, default));
+                                                currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
+                                                    dataSetClassId, publisherId);
+                                                currentNotificationCount = 0;
                                             }
                                         }
                                     }
-
-                                    //
-                                    // Add message and number of notifications processed count to method result.
-                                    // Checks current length and splits if max items reached if configured.
-                                    //
-                                    void AddMessage(BaseDataSetMessage dataSetMessage)
-                                    {
-                                        currentMessage.Messages.Add(dataSetMessage);
-                                        var maxMessagesToPublish = writerGroup.MessageSettings?.MaxMessagesPerPublish ??
-                                            _config.Value.DefaultMaxMessagesPerPublish;
-                                        if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
-                                        {
-                                            result.Add((currentNotificationCount, currentMessage, default, false, default));
-                                            currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
-                                                dataSetClassId, publisherId);
-                                            currentNotificationCount = 0;
-                                        }
-                                    }
+                                    currentNotificationCount++;
                                 }
-                                currentNotificationCount++;
-                            }
-                            else if (message.Notification.MetaData != null && !hasSamplesPayload)
-                            {
-                                if (currentMessage.Messages.Count > 0)
+                                else if (Notification.MetaData != null && !hasSamplesPayload)
                                 {
-                                    // Start a new message but first emit current
-                                    result.Add((currentNotificationCount, currentMessage, default, false, default));
-                                    currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
-                                        dataSetClassId, publisherId);
-                                    currentNotificationCount = 0;
+                                    if (currentMessage.Messages.Count > 0)
+                                    {
+                                        // Start a new message but first emit current
+                                        result.Add((currentNotificationCount, currentMessage, topic, false, default));
+                                        currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
+                                            dataSetClassId, publisherId);
+                                        currentNotificationCount = 0;
+                                    }
+                                    PubSubMessage metadataMessage = encoding.HasFlag(MessageEncoding.Json)
+                                        ? new JsonMetaDataMessage
+                                        {
+                                            UseAdvancedEncoding = !standardsCompliant,
+                                            UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
+                                            DataSetWriterId = Notification.SubscriptionId,
+                                            MetaData = Notification.MetaData,
+                                            MessageId = Guid.NewGuid().ToString(),
+                                            DataSetWriterName = Context.Writer.DataSetWriterName
+                                        } : new UadpMetaDataMessage
+                                        {
+                                            DataSetWriterId = Notification.SubscriptionId,
+                                            MetaData = Notification.MetaData
+                                        };
+                                    metadataMessage.PublisherId = publisherId;
+                                    metadataMessage.DataSetWriterGroup = writerGroup.WriterGroupId;
+
+                                    result.Add((0, metadataMessage, Context.MetaDataTopic ?? topic, true,
+                                        Context.Writer.MetaDataUpdateTime ?? default));
                                 }
-                                PubSubMessage metadataMessage = encoding.HasFlag(MessageEncoding.Json)
-                                    ? new JsonMetaDataMessage
+                            }
+                            if (currentMessage.Messages.Count > 0)
+                            {
+                                result.Add((currentNotificationCount, currentMessage, topic, false, default));
+                            }
+
+                            BaseNetworkMessage CreateMessage(WriterGroupModel writerGroup, MessageEncoding encoding,
+                                uint networkMessageContentMask, Guid dataSetClassId, string publisherId)
+                            {
+                                BaseNetworkMessage currentMessage = encoding.HasFlag(MessageEncoding.Json) ?
+                                    new JsonNetworkMessage
                                     {
                                         UseAdvancedEncoding = !standardsCompliant,
                                         UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
-                                        DataSetWriterId = message.Notification.SubscriptionId,
-                                        MetaData = message.Notification.MetaData,
-                                        MessageId = Guid.NewGuid().ToString(),
-                                        DataSetWriterName = message.Context.Writer.DataSetWriterName
-                                    } : new UadpMetaDataMessage
+                                        UseArrayEnvelope = !standardsCompliant && isBatched,
+                                        MessageId = () => Guid.NewGuid().ToString()
+                                    } : new UadpNetworkMessage
                                     {
-                                        DataSetWriterId = message.Notification.SubscriptionId,
-                                        MetaData = message.Notification.MetaData
+                                        //   WriterGroupId = writerGroup.Index,
+                                        //   GroupVersion = writerGroup.Version,
+                                        SequenceNumber = () => SequenceNumber.Increment16(ref _sequenceNumber),
+                                        Timestamp = DateTime.UtcNow,
+                                        PicoSeconds = 0
                                     };
-                                metadataMessage.PublisherId = publisherId;
-                                metadataMessage.DataSetWriterGroup = writerGroup.WriterGroupId;
-
-                                var queueName = message.Context.Writer.MetaDataQueueName
-                                    ?? _config.Value.DefaultMetaDataQueueName;
-                                result.Add((0, metadataMessage, queueName, true,
-                                    message.Context.Writer.MetaDataUpdateTime ?? default));
+                                currentMessage.NetworkMessageContentMask = networkMessageContentMask;
+                                currentMessage.PublisherId = publisherId;
+                                currentMessage.DataSetClassId = dataSetClassId;
+                                currentMessage.DataSetWriterGroup = writerGroup.WriterGroupId;
+                                return currentMessage;
                             }
-                        }
-                        if (currentMessage.Messages.Count > 0)
-                        {
-                            result.Add((currentNotificationCount, currentMessage, default, false, default));
-                        }
-
-                        BaseNetworkMessage CreateMessage(WriterGroupModel writerGroup, MessageEncoding encoding,
-                            uint networkMessageContentMask, Guid dataSetClassId, string publisherId)
-                        {
-                            BaseNetworkMessage currentMessage = encoding.HasFlag(MessageEncoding.Json) ?
-                                new JsonNetworkMessage
-                                {
-                                    UseAdvancedEncoding = !standardsCompliant,
-                                    UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
-                                    UseArrayEnvelope = !standardsCompliant && isBatched,
-                                    MessageId = () => Guid.NewGuid().ToString()
-                                } : new UadpNetworkMessage
-                                {
-                                    //   WriterGroupId = writerGroup.Index,
-                                    //   GroupVersion = writerGroup.Version,
-                                    SequenceNumber = () => SequenceNumber.Increment16(ref _sequenceNumber),
-                                    Timestamp = DateTime.UtcNow,
-                                    PicoSeconds = 0
-                                };
-                            currentMessage.NetworkMessageContentMask = networkMessageContentMask;
-                            currentMessage.PublisherId = publisherId;
-                            currentMessage.DataSetClassId = dataSetClassId;
-                            currentMessage.DataSetWriterGroup = writerGroup.WriterGroupId;
-                            return currentMessage;
                         }
                     }
                 }
             }
+
             return result;
         }
 
@@ -390,7 +397,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private static readonly ConfigurationVersionDataType kEmptyConfiguration =
             new() { MajorVersion = 1u };
-        private readonly IOptions<PublisherOptions> _config;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;
         private uint _sequenceNumber;
 

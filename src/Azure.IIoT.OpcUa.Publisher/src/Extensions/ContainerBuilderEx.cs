@@ -27,6 +27,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         {
             builder.RegisterType<PublisherIdentity>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<PublisherConfig>()
+                .AsImplementedInterfaces();
 
             builder.RegisterType<PublishedNodesProvider>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -57,7 +59,9 @@ namespace Azure.IIoT.OpcUa.Publisher
             builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ClientConfig>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+            builder.RegisterType<SubscriptionConfig>()
+                .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
         }

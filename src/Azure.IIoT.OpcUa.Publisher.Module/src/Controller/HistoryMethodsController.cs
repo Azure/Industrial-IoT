@@ -11,14 +11,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
     using Furly.Tunnel.Router;
     using System;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
 
     /// <summary>
     /// History method controller
     /// </summary>
     [Version("_V1")]
     [Version("_V2")]
-    [ExceptionsFilter]
-    public class HistoryMethodsController : IMethodController
+    [Version("")]
+    [RouterExceptionFilter]
+    [ControllerExceptionFilter]
+    [ApiVersion("2")]
+    [Route("v{version:apiVersion}/history")]
+    [ApiController]
+    public class HistoryMethodsController : ControllerBase, IMethodController
     {
         /// <summary>
         /// Create controller with service
@@ -36,6 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("events/replace")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request)
         {
@@ -53,6 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("events/insert")]
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request)
         {
@@ -70,6 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("events/upsert")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateEventsDetailsModel> request)
         {
@@ -87,6 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("events/delete")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<DeleteEventsDetailsModel> request)
         {
@@ -104,6 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("values/delete/attimes")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request)
         {
@@ -121,6 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("values/delete/modified")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<DeleteValuesDetailsModel> request)
         {
@@ -138,6 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("values/delete")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<DeleteValuesDetailsModel> request)
         {
@@ -155,6 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("values/replace")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request)
         {
@@ -172,6 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("values/insert")]
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request)
         {
@@ -189,6 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("values/upsert")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<UpdateValuesDetailsModel> request)
         {
@@ -206,6 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("events/read")]
         public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadEventsDetailsModel> request)
         {
@@ -223,6 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("events/read/next")]
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request)
         {
@@ -240,6 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("values/read")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadValuesDetailsModel> request)
         {
@@ -257,6 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("values/read/attimes")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request)
         {
@@ -274,6 +294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("values/read/processed")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request)
         {
@@ -291,6 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("values/read/modified")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request)
         {
@@ -308,6 +330,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        [HttpPost("values/read/next")]
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request)
         {

@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="config"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask UpdateAsync(WriterGroupJobModel config,
+        ValueTask UpdateAsync(WriterGroupModel config,
             CancellationToken ct);
     }
 }

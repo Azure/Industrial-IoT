@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 {
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Configuration;
@@ -19,27 +19,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Configuration
         /// </summary>
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public const string HeartbeatIntervalDefault = "DefaultHeartbeatInterval";
-        public const string SkipFirstDefault = "DefaultSkipFirst";
-        public const string DiscardNewDefault = "DiscardNew";
-        public const string OpcSamplingInterval = "DefaultSamplingInterval";
-        public const string OpcPublishingInterval = "DefaultPublishingInterval";
+        public const string DefaultHeartbeatIntervalKey = "DefaultHeartbeatInterval";
+        public const string DefaultSkipFirstKey = "DefaultSkipFirst";
+        public const string DefaultDiscardNewKey = "DiscardNew";
+        public const string DefaultSamplingIntervalKey = "DefaultSamplingInterval";
+        public const string DefaultPublishingIntervalKey = "DefaultPublishingInterval";
         public const string DisableKeyFrames = "DisableKeyFrames";
         public const string DefaultKeyFrameCount = "DefaultKeyFrameCount";
         public const string DisableDataSetMetaData = "DisableDataSetMetaData";
-        public const string DefaultKeepAliveCount = "DefaultKeepAliveCount";
         public const string DefaultLifeTimeCount = "DefaultLifeTimeCount";
         public const string DefaultMetaDataUpdateTime = "DefaultMetaDataUpdateTime";
         public const string DefaultDataChangeTrigger = "DefaulDataChangeTrigger";
         public const string FetchOpcNodeDisplayName = "FetchOpcNodeDisplayName";
-        public const string LegacyCompatibility = "LegacyCompatibility";
         public const string EnableMetricsKey = "EnableMetrics";
         public const string DefaultQueueSize = "DefaultQueueSize";
+        public const string MinSubscriptionLifetimeKey = "MinSubscriptionLifetime";
+        public const string MaxKeepAliveCountKey = "MaxKeepAliveCount";
 
         /// <summary>
         /// Default values
         /// </summary>
-        public const string DefaultPublishedNodesFilename = "publishednodes.json";
+        public const int MaxKeepAliveCountDefault = 10;
+        public const bool ResolveDisplayNameDefault = false;
+        public const int MinSubscriptionLifetimeDefaultSec = 10;
+        public const int DefaultSamplingIntervalDefaultMillis = 1000;
+        public const int DefaultPublishingIntervalDefaultMillis = 1000;
+        public const bool DefaultSkipFirstDefault = false;
+        public const bool DefaultDiscardNewDefault = false;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -47,34 +53,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         {
             if (options.DefaultHeartbeatInterval == null)
             {
-                options.DefaultHeartbeatInterval = GetDurationOrDefault(
-                    HeartbeatIntervalDefault, TimeSpan.Zero);
+                options.DefaultHeartbeatInterval = GetDurationOrNull(
+                    DefaultHeartbeatIntervalKey);
             }
             if (options.DefaultSkipFirst == null)
             {
-                options.DefaultSkipFirst = GetBoolOrDefault(SkipFirstDefault, false);
+                options.DefaultSkipFirst = GetBoolOrDefault(DefaultSkipFirstKey,
+                    DefaultSkipFirstDefault);
             }
             if (options.DefaultDiscardNew == null)
             {
-                options.DefaultDiscardNew = GetBoolOrDefault(DiscardNewDefault, false);
+                options.DefaultDiscardNew = GetBoolOrDefault(DefaultDiscardNewKey,
+                    DefaultDiscardNewDefault);
             }
             if (options.DefaultSamplingInterval == null)
             {
-                options.DefaultSamplingInterval = GetDurationOrDefault(OpcSamplingInterval,
-                    TimeSpan.FromSeconds(1));
+                options.DefaultSamplingInterval = GetDurationOrNull(DefaultSamplingIntervalKey) ??
+                    TimeSpan.FromMilliseconds(GetIntOrDefault(DefaultSamplingIntervalKey,
+                    DefaultSamplingIntervalDefaultMillis));
             }
             if (options.DefaultPublishingInterval == null)
             {
-                options.DefaultPublishingInterval = GetDurationOrDefault(OpcPublishingInterval,
-                    TimeSpan.FromSeconds(1));
+                options.DefaultPublishingInterval = GetDurationOrNull(DefaultPublishingIntervalKey) ??
+                    TimeSpan.FromMilliseconds(GetIntOrDefault(DefaultPublishingIntervalKey,
+                    DefaultPublishingIntervalDefaultMillis));
             }
             if (options.DefaultKeepAliveCount == null)
             {
-                options.DefaultKeepAliveCount = (uint?)GetIntOrNull(DefaultKeepAliveCount);
+                options.DefaultKeepAliveCount = (uint)GetIntOrDefault(MaxKeepAliveCountKey,
+                    MaxKeepAliveCountDefault);
             }
             if (options.DefaultLifeTimeCount == null)
             {
-                options.DefaultLifeTimeCount = (uint?)GetIntOrNull(DefaultLifeTimeCount);
+                options.DefaultLifeTimeCount = (uint)GetIntOrDefault(MinSubscriptionLifetimeKey,
+                    MinSubscriptionLifetimeDefaultSec) * 1000;
             }
             if (options.DisableDataSetMetaData == null)
             {
@@ -94,7 +106,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             if (options.ResolveDisplayName == null)
             {
-                options.ResolveDisplayName = GetBoolOrDefault(FetchOpcNodeDisplayName, false);
+                options.ResolveDisplayName = GetBoolOrDefault(FetchOpcNodeDisplayName,
+                    ResolveDisplayNameDefault);
             }
             if (options.DefaultQueueSize == null)
             {

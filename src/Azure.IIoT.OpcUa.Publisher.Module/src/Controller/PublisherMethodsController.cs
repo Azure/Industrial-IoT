@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Exceptions;
     using Furly.Tunnel.Router;
@@ -14,6 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
+    using Azure.IIoT.OpcUa.Publisher.Module.Filters;
 
     /// <summary>
     /// Publisher direct  method controller
@@ -21,8 +22,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
     [Version("_V2")]
     [Version("_V1")]
     [Version("")]
-    [ExceptionsFilter]
-    public class PublisherMethodsController : IMethodController
+    [RouterExceptionFilter]
+    [ControllerExceptionFilter]
+    [ApiVersion("2")]
+    [Route("v{version:apiVersion}/publish")]
+    [ApiController]
+    public class PublisherMethodsController : ControllerBase, IMethodController
     {
         /// <summary>
         /// ctor
@@ -39,6 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("start")]
         public async Task<PublishStartResponseModel> PublishStartAsync(
             ConnectionModel connection, PublishStartRequestModel request)
         {
@@ -52,6 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("stop")]
         public async Task<PublishStopResponseModel> PublishStopAsync(
             ConnectionModel connection, PublishStopRequestModel request)
         {
@@ -65,6 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("bulk")]
         public async Task<PublishBulkResponseModel> PublishBulkAsync(
             ConnectionModel connection, PublishBulkRequestModel request)
         {
@@ -78,9 +86,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("list")]
         public async Task<PublishedItemListResponseModel> PublishListAsync(
-            ConnectionModel connection,
-            PublishedItemListRequestModel request)
+            ConnectionModel connection, PublishedItemListRequestModel request)
         {
             return await _configServices.PublishListAsync(connection,
                 request).ConfigureAwait(false);
@@ -90,6 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// Handler for PublishNodes direct method
         /// </summary>
         /// <param name="request"></param>
+        [HttpPost("nodes")]
         public async Task<PublishedNodesResponseModel> PublishNodesAsync(
             PublishedNodesEntryModel request)
         {
@@ -101,6 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// Handler for UnpublishNodes direct method
         /// </summary>
         /// <param name="request"></param>
+        [HttpPost("nodes/unpublish")]
         public async Task<PublishedNodesResponseModel> UnpublishNodesAsync(
             PublishedNodesEntryModel request)
         {
@@ -112,6 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// Handler for UnpublishAllNodes direct method
         /// </summary>
         /// <param name="request"></param>
+        [HttpPost("nodes/unpublish/all")]
         public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
             PublishedNodesEntryModel request)
         {
@@ -123,6 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// Handler for AddOrUpdateEndpoints direct method
         /// </summary>
         /// <param name="request"></param>
+        [HttpPost("endpoints/addorupdate")]
         public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
             List<PublishedNodesEntryModel> request)
         {
@@ -134,6 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// Handler for GetConfiguredEndpoints direct method
         /// </summary>
+        [HttpPost("endpoints/list")]
         public async Task<GetConfiguredEndpointsResponseModel> GetConfiguredEndpointsAsync()
         {
             var response = await _configServices.GetConfiguredEndpointsAsync().ConfigureAwait(false);
@@ -147,6 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// Handler for GetConfiguredNodesOnEndpoint direct method
         /// </summary>
         /// <param name="request"></param>
+        [HttpPost("endpoints/list/nodes")]
         public async Task<GetConfiguredNodesOnEndpointResponseModel> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request)
         {
@@ -161,6 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <summary>
         /// Handler for GetDiagnosticInfo direct method
         /// </summary>
+        [HttpPost("diagnostics")]
         public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync()
         {
             return await _configServices.GetDiagnosticInfoAsync().ConfigureAwait(false);

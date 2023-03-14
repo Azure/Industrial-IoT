@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using Azure.IIoT.OpcUa.Models;
+
     /// <summary>
     /// Creates writer group scopes
     /// </summary>
@@ -14,8 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Create a writer group container containing everything
         /// needed to resolve the writer group processing engine.
         /// </summary>
-        /// <param name="config"></param>
+        /// <param name="writerGroup"></param>
         /// <returns></returns>
-        IWriterGroupScope Create(IWriterGroupConfig config);
+        IWriterGroupScope Create(WriterGroupModel writerGroup);
     }
 }

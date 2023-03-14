@@ -15,6 +15,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Microsoft.AspNetCore.Builder;
     using Autofac.Extensions.DependencyInjection;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using OpenTelemetry.Metrics;
+    using OpenTelemetry.Resources;
+    using Microsoft.OpenApi.Models;
 
     /// <summary>
     /// Webservice startup
@@ -22,12 +25,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     public class Startup
     {
         /// <summary>
-        /// Configuration - Initialized in constructor
+        /// Configuration
         /// </summary>
-        public IConfigurationRoot Config { get; }
+        public IConfigurationRoot Configuration { get; }
 
         /// <summary>
-        /// Current hosting environment - Initialized in constructor
+        /// Current hosting environment
         /// </summary>
         public IWebHostEnvironment Environment { get; }
 
@@ -39,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public Startup(IWebHostEnvironment env, IConfiguration configuration)
         {
             Environment = env;
-            Config = new ConfigurationBuilder()
+            Configuration = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
@@ -59,8 +62,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             services.AddHealthChecks();
 
             services.AddHttpClient();
-            //  services.AddPrometheus();
-            //  services.AddOpenTelemetry("OpcPublisher");
+            services.AddOpenTelemetry()
+                .ConfigureResource(r => r.AddService(Constants.EntityTypePublisher,
+                    default, GetType().Assembly.GetReleaseVersion().ToString()))
+                .WithMetrics(builder => builder
+                    .AddMeter(Diagnostics.Meter.Name)
+                    .AddRuntimeInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddAspNetCoreInstrumentation()
+                    .AddPrometheusExporter()
+                    .AddConsoleExporter())
+                ;
+
+            services.AddControllers()
+                .AddNewtonsoftSerializer()
+                .AddMessagePackSerializer()
+                ;
+
+            services.AddSwagger(Constants.EntityTypePublisher, string.Empty);
             services.AddHostedService<ModuleProcess>();
         }
 
@@ -72,14 +91,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <param name="appLifetime"></param>
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
         {
-            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-
             app.UseRouting();
-            app.UseEndpoints(endpoints => endpoints.MapHealthChecks("/healthz"));
-            //app.UsePrometheus();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/healthz");
+            });
 
-            // If you want to dispose of resources that have been resolved in the
-            // application container, register for the "ApplicationStopped" event.
+            app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
         }
 
@@ -90,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public virtual void ConfigureContainer(ContainerBuilder builder)
         {
             // Register configuration interfaces
-            builder.RegisterInstance(Config)
+            builder.RegisterInstance(Configuration)
                 .AsImplementedInterfaces();
 
             // Register publisher services
@@ -98,8 +119,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
 
-            // Register connectivity services
-            builder.AddIoTEdgeServices();
+            // Register transport services
+            builder.AddTransports(Configuration);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
     /// Convert all the exceptions returned by the module controllers to a
     /// status code.
     /// </summary>
-    public class ExceptionsFilterAttribute : ExceptionFilterAttribute
+    public class RouterExceptionFilterAttribute : ExceptionFilterAttribute
     {
         /// <inheritdoc />
         public override Exception Filter(Exception exception, out int status)

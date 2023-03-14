@@ -7,14 +7,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Azure.IoT.Edge.Services;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -33,17 +31,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="serializer"></param>
-        /// <param name="engineConfig"></param>
-        /// <param name="options"></param>
         /// <param name="cryptoProvider"></param>
         public PublishedNodesJobConverter(ILogger<PublishedNodesJobConverter> logger,
-            IJsonSerializer serializer, IOptions<PublisherOptions> engineConfig,
-            IOptions<ClientOptions> options, IIoTEdgeWorkloadApi cryptoProvider = null)
+            IJsonSerializer serializer, IIoTEdgeWorkloadApi cryptoProvider = null)
         {
-            _publisherOptions = engineConfig ??
-                throw new ArgumentNullException(nameof(engineConfig));
-            _clientOptions = options ??
-                throw new ArgumentNullException(nameof(options));
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
             _logger = logger ??
@@ -91,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <param name="preferTimeSpan"></param>
         /// <returns></returns>
         public IEnumerable<PublishedNodesEntryModel> ToPublishedNodes(int version, DateTime lastChanged,
-            IEnumerable<WriterGroupJobModel> items, bool preferTimeSpan = true)
+            IEnumerable<WriterGroupModel> items, bool preferTimeSpan = true)
         {
             if (items == null)
             {
@@ -101,11 +92,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             try
             {
                 var publishedNodesEntries = items
-                    .Where(group => group?.WriterGroup?.DataSetWriters?.Count > 0)
-                    .SelectMany(group => group.WriterGroup.DataSetWriters
+                    .Where(group => group?.DataSetWriters?.Count > 0)
+                    .SelectMany(group => group.DataSetWriters
                         .Where(writer => writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData != null
                             || writer.DataSet?.DataSetSource?.PublishedEvents?.PublishedData != null)
-                        .Select(writer => (group.WriterGroup, Writer: writer)))
+                        .Select(writer => (WriterGroup: group, Writer: writer)))
                     .Select(item => AddConnectionModel(item.Writer.DataSet?.DataSetSource?.Connection,
                         new PublishedNodesEntryModel
                         {
@@ -115,7 +106,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DataSetDescription = item.Writer.DataSet.DataSetMetaData?.Description,
                             DataSetKeyFrameCount = item.Writer.KeyFrameCount,
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
-                            MetaDataQueueName = item.Writer.MetaDataQueueName,
                             DataSetName = item.Writer.DataSet.Name,
                             DataSetWriterGroup = item.WriterGroup.WriterGroupId,
                             DataSetWriterId =
@@ -228,13 +218,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// </summary>
         /// <param name="items"></param>
         /// <param name="configuration">Publisher configuration</param>
-        public IEnumerable<WriterGroupJobModel> ToWriterGroupJobs(
-            IEnumerable<PublishedNodesEntryModel> items,
-            PublisherOptions configuration)
+        public IEnumerable<WriterGroupModel> ToWriterGroups(
+            IEnumerable<PublishedNodesEntryModel> items, PublisherOptions configuration)
         {
             if (items == null)
             {
-                return Enumerable.Empty<WriterGroupJobModel>();
+                return Enumerable.Empty<WriterGroupModel>();
             }
             var sw = Stopwatch.StartNew();
             try
@@ -276,8 +265,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             SubscriptionSettings = new PublishedDataSetSettingsModel
                             {
                                 PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node)),
-                                LifeTimeCount = (uint)_clientOptions.Value.MinSubscriptionLifetime,
-                                MaxKeepAliveCount = _clientOptions.Value.MaxKeepAliveCount,
                                 Priority = 0 // TODO
                             },
                             PublishedVariables = new PublishedDataItemsModel
@@ -328,87 +315,71 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 if (flattenedEndpoints.Count == 0)
                 {
                     _logger.LogInformation("No OpcNodes after job conversion.");
-                    return Enumerable.Empty<WriterGroupJobModel>();
+                    return Enumerable.Empty<WriterGroupModel>();
                 }
 
                 var result = flattenedEndpoints
                     .Where(dataSetBatches => dataSetBatches.Count > 0)
                     .Select(dataSetBatches => (First: dataSetBatches[0], Items: dataSetBatches))
-                    .Select(dataSetBatches => new WriterGroupJobModel
+                    .Select(dataSetBatches => new WriterGroupModel
                     {
-                        Engine = _publisherOptions == null ? null : new EngineConfigurationModel
+                        MessageType = configuration.MessagingProfile.MessageEncoding,
+                        WriterGroupId = dataSetBatches.First.Source.Connection.Group,
+                        DataSetWriters = dataSetBatches.Items.ConvertAll(dataSet => new DataSetWriterModel
                         {
-                            BatchSize = _publisherOptions.Value.BatchSize,
-                            BatchTriggerInterval = _publisherOptions.Value.BatchTriggerInterval,
-                            DefaultMetaDataQueueName = _publisherOptions.Value.DefaultMetaDataQueueName,
-                            DefaultMaxMessagesPerPublish = _publisherOptions.Value.DefaultMaxMessagesPerPublish,
-                            MaxMessageSize = _publisherOptions.Value.MaxMessageSize,
-                            MaxOutgressMessages = _publisherOptions.Value.MaxOutgressMessages,
-                            UseStandardsCompliantEncoding =
-                                _publisherOptions.Value.UseStandardsCompliantEncoding ?? false
-                        },
-                        WriterGroup = new WriterGroupModel
-                        {
-                            MessageType = configuration.MessagingProfile.MessageEncoding,
-                            WriterGroupId = dataSetBatches.First.Source.Connection.Group,
-                            DataSetWriters = dataSetBatches.Items.ConvertAll(dataSet => new DataSetWriterModel
+                            DataSetWriterName = GetUniqueWriterNameInSet(dataSet.Header.DataSetWriterId,
+                                dataSet.Source, dataSetBatches.Items.Select(a => (a.Header.DataSetWriterId, a.Source))),
+                            MetaDataUpdateTime =
+                                dataSet.Header.MetaDataUpdateTimeTimespan,
+                            KeyFrameCount =
+                                dataSet.Header.DataSetKeyFrameCount,
+                            DataSet = new PublishedDataSetModel
                             {
-                                DataSetWriterName = GetUniqueWriterNameInSet(dataSet.Header.DataSetWriterId,
-                                    dataSet.Source, dataSetBatches.Items.Select(a => (a.Header.DataSetWriterId, a.Source))),
-                                MetaDataUpdateTime =
-                                    dataSet.Header.MetaDataUpdateTimeTimespan,
-                                MetaDataQueueName =
-                                    dataSet.Header.MetaDataQueueName,
-                                KeyFrameCount =
-                                    dataSet.Header.DataSetKeyFrameCount,
-                                DataSet = new PublishedDataSetModel
-                                {
-                                    Name = dataSet.Header.DataSetName,
-                                    DataSetMetaData =
-                                        new DataSetMetaDataModel
-                                        {
-                                            DataSetClassId = dataSet.Header.DataSetClassId,
-                                            Description = dataSet.Header.DataSetDescription,
-                                            Name = dataSet.Header.DataSetName
-                                        },
-                                    // TODO: Add extension information from configuration
-                                    ExtensionFields = new Dictionary<string, string>(),
-                                    DataSetSource = new PublishedDataSetSourceModel
+                                Name = dataSet.Header.DataSetName,
+                                DataSetMetaData =
+                                    new DataSetMetaDataModel
                                     {
-                                        Connection = new ConnectionModel
-                                        {
-                                            Endpoint = dataSet.Source.Connection.Endpoint.Clone(),
-                                            User = dataSet.Source.Connection.User.Clone(),
-                                            Diagnostics = dataSet.Source.Connection.Diagnostics.Clone(),
-                                            Group = dataSet.Source.Connection.Group
-                                        },
-                                        PublishedEvents = dataSet.Source.PublishedEvents.Clone(),
-                                        PublishedVariables = dataSet.Source.PublishedVariables.Clone(),
-                                        SubscriptionSettings = dataSet.Source.SubscriptionSettings.Clone()
-                                    }
-                                },
-                                DataSetFieldContentMask = configuration.MessagingProfile.DataSetFieldContentMask,
-                                MessageSettings = new DataSetWriterMessageSettingsModel
+                                        DataSetClassId = dataSet.Header.DataSetClassId,
+                                        Description = dataSet.Header.DataSetDescription,
+                                        Name = dataSet.Header.DataSetName
+                                    },
+                                // TODO: Add extension information from configuration
+                                ExtensionFields = new Dictionary<string, string>(),
+                                DataSetSource = new PublishedDataSetSourceModel
                                 {
-                                    DataSetMessageContentMask = configuration.MessagingProfile.DataSetMessageContentMask
+                                    Connection = new ConnectionModel
+                                    {
+                                        Endpoint = dataSet.Source.Connection.Endpoint.Clone(),
+                                        User = dataSet.Source.Connection.User.Clone(),
+                                        Diagnostics = dataSet.Source.Connection.Diagnostics.Clone(),
+                                        Group = dataSet.Source.Connection.Group
+                                    },
+                                    PublishedEvents = dataSet.Source.PublishedEvents.Clone(),
+                                    PublishedVariables = dataSet.Source.PublishedVariables.Clone(),
+                                    SubscriptionSettings = dataSet.Source.SubscriptionSettings.Clone()
                                 }
-                            }),
-                            MessageSettings = new WriterGroupMessageSettingsModel
+                            },
+                            DataSetFieldContentMask = configuration.MessagingProfile.DataSetFieldContentMask,
+                            MessageSettings = new DataSetWriterMessageSettingsModel
                             {
-                                NetworkMessageContentMask = configuration.MessagingProfile.NetworkMessageContentMask
+                                DataSetMessageContentMask = configuration.MessagingProfile.DataSetMessageContentMask
                             }
+                        }),
+                        MessageSettings = new WriterGroupMessageSettingsModel
+                        {
+                            NetworkMessageContentMask = configuration.MessagingProfile.NetworkMessageContentMask
                         }
                     });
 
                 // Coalesce into writer group
                 // TODO: We should start with the grouping by writer group
                 return result
-                    .GroupBy(item => item.WriterGroup,
+                    .GroupBy(item => item,
                         new FuncCompare<WriterGroupModel>((x, y) => x.IsSameAs(y)))
                     .Select(group =>
                     {
                         var writers = group
-                            .SelectMany(g => g.WriterGroup.DataSetWriters)
+                            .SelectMany(g => g.DataSetWriters)
                             .ToList();
                         foreach (var dataSetWriter in writers)
                         {
@@ -418,14 +389,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 dataSetWriter.DataSetWriterName, count);
                         }
                         var top = group.First();
-                        top.WriterGroup.DataSetWriters = writers;
+                        top.DataSetWriters = writers;
                         return top;
                     });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "failed to convert the published nodes.");
-                return Enumerable.Empty<WriterGroupJobModel>();
+                return Enumerable.Empty<WriterGroupModel>();
             }
             finally
             {
@@ -439,7 +410,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// Transforms a published nodes model connection header to a Connection Model object
         /// </summary>
         /// <param name="model"></param>
-        public ConnectionModel ToConnectionModel(PublishedNodesEntryModel model)
+        private ConnectionModel ToConnectionModel(PublishedNodesEntryModel model)
         {
             return new ConnectionModel
             {
@@ -502,7 +473,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             if (components.Length == 1 ||
                 (components.Length == 2 && components[1].EndsWith(')')))
             {
-                return components[0] == Constants.DefaultDataSetWriterId ? null : components[0];
+                return components[0] == Constants.DefaultDataSetWriterName ? null : components[0];
             }
             return uniqueDataSetWriter;
         }
@@ -540,13 +511,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 }
                 if (string.IsNullOrEmpty(writerId))
                 {
-                    return $"{Constants.DefaultDataSetWriterId}_(${result.ToSha1Hash()})";
+                    return $"{Constants.DefaultDataSetWriterName}_(${result.ToSha1Hash()})";
                 }
                 return $"{writerId}_(${result.ToSha1Hash()})";
             }
             if (string.IsNullOrEmpty(writerId))
             {
-                return $"{Constants.DefaultDataSetWriterId}_(${result.ToSha1Hash()})";
+                return $"{Constants.DefaultDataSetWriterName}_(${result.ToSha1Hash()})";
             }
             return writerId;
         }
@@ -742,8 +713,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
         }
 
-        private readonly IOptions<PublisherOptions> _publisherOptions;
-        private readonly IOptions<ClientOptions> _clientOptions;
         private readonly IIoTEdgeWorkloadApi _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;

@@ -10,14 +10,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
     using Furly.Tunnel.Router;
     using System;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
 
     /// <summary>
     /// Discovery method controller
     /// </summary>
     [Version("_V1")]
     [Version("_V2")]
-    [ExceptionsFilter]
-    public class DiscoveryMethodsController : IMethodController
+    [Version("")]
+    [RouterExceptionFilter]
+    [ControllerExceptionFilter]
+    [ApiVersion("2")]
+    [Route("v{version:apiVersion}/discovery")]
+    [ApiController]
+    public class DiscoveryMethodsController : ControllerBase, IMethodController
     {
         /// <summary>
         /// Create controller with service
@@ -37,6 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="endpoint"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="endpoint"/> is <c>null</c>.</exception>
+        [HttpPost("findserver")]
         public async Task<ApplicationRegistrationModel> FindServerAsync(
             ServerEndpointQueryModel endpoint)
         {
@@ -54,6 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        [HttpPost("register")]
         public async Task<bool> RegisterAsync(ServerRegistrationRequestModel request)
         {
             if (request == null)
@@ -71,6 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        [HttpPost]
         public async Task<bool> DiscoverAsync(DiscoveryRequestModel request)
         {
             if (request == null)
@@ -88,6 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        [HttpPost("cancel")]
         public async Task<bool> CancelAsync(DiscoveryCancelRequestModel request)
         {
             if (request == null)

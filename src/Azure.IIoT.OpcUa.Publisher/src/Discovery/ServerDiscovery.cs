@@ -26,15 +26,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// </summary>
         /// <param name="client"></param>
         /// <param name="serializer"></param>
-        /// <param name="identity"></param>
         /// <param name="options"></param>
         public ServerDiscovery(IEndpointDiscovery client, IJsonSerializer serializer,
-            IProcessIdentity identity, IOptions<PublisherOptions> options = null)
+            IOptions<PublisherOptions> options)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _identity = identity ?? throw new ArgumentNullException(nameof(identity));
-            _options = options;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         /// <inheritdoc/>
@@ -73,13 +71,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     // no match
                     continue;
                 }
-                return ep.ToServiceModel(discoveryUrl.Host, _options?.Value.Site, _identity.Id, _serializer);
+                return ep.ToServiceModel(discoveryUrl.Host, _options.Value.Site,
+                    _options.Value.PublisherId, _serializer);
             }
             throw new ResourceNotFoundException("Endpoints could not be found.");
         }
 
         private readonly IJsonSerializer _serializer;
-        private readonly IProcessIdentity _identity;
         private readonly IOptions<PublisherOptions> _options;
         private readonly IEndpointDiscovery _client;
     }

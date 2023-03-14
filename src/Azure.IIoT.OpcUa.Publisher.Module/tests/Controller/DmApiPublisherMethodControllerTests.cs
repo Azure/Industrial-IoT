@@ -58,16 +58,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
             _loggerFactory = LogFactory.Create(output);
 
-            var clientOptions = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
-
             _options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             _options.Value.PublishedNodesFile = _tempFile;
             _options.Value.MessagingProfile = MessagingProfile.Get(
-                MessagingMode.PubSub, MessageEncoding.Json));
+                MessagingMode.PubSub, MessageEncoding.Json);
 
             _publishedNodesJobConverter = new PublishedNodesJobConverter(
-                _loggerFactory.CreateLogger<PublishedNodesJobConverter>(), _newtonSoftJsonSerializer,
-                _options, clientOptions);
+                _loggerFactory.CreateLogger<PublishedNodesJobConverter>(), _newtonSoftJsonSerializer);
 
             // Note that each test is responsible for setting content of _tempFile;
             CopyContent("Controller/empty_pn.json", _tempFile);
@@ -81,9 +78,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             var lifetime = new Mock<IWriterGroupScope>();
             lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
             factoryMock
-                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
+                .Setup(factory => factory.Create(It.IsAny<WriterGroupModel>()))
                 .Returns(lifetime.Object);
-            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessIdentity>().Object,
+            _publisher = new PublisherHostService(factoryMock.Object, _options,
                 _loggerFactory.CreateLogger<PublisherHostService>());
             _diagnostic = new Mock<IDiagnosticCollector>();
             var mockDiag = new WriterGroupDiagnosticModel();
@@ -251,17 +248,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .ConfigureAwait(false);
             }
 
-            var jobModel = Assert.Single(_publisher.WriterGroups);
+            var writerGroup = Assert.Single(_publisher.WriterGroups);
 
-            jobModel.WriterGroup.DataSetWriters.Count.Should().Be(6);
+            writerGroup.DataSetWriters.Count.Should().Be(6);
 
-            Assert.All(jobModel.WriterGroup.DataSetWriters,
+            Assert.All(writerGroup.DataSetWriters,
                 writer => Assert.Equal(publishNodesRequests[0].EndpointUrl,
                     writer.DataSet.DataSetSource.Connection.Endpoint.Url));
             Assert.Equal(publishNodesRequests
                 .Select(n => n.UseSecurity ? SecurityMode.Best : SecurityMode.None)
                 .ToHashSet(),
-                jobModel.WriterGroup.DataSetWriters
+                writerGroup.DataSetWriters
                 .Select(w => w.DataSet.DataSetSource.Connection.Endpoint.SecurityMode.Value)
                 .ToHashSet());
         }

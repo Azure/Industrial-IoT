@@ -12,14 +12,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
     using Furly.Tunnel.Router;
     using System;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
 
     /// <summary>
     /// Twin method controller
     /// </summary>
     [Version("_V1")]
     [Version("_V2")]
-    [ExceptionsFilter]
-    public class TwinMethodsController : IMethodController
+    [Version("")]
+    [RouterExceptionFilter]
+    [ControllerExceptionFilter]
+    [ApiVersion("2")]
+    [Route("v{version:apiVersion}")]
+    [ApiController]
+    public class TwinMethodsController : ControllerBase, IMethodController
     {
         /// <summary>
         /// Create controller with service
@@ -44,6 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
+        [HttpPost("capabilities")]
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
             ConnectionModel connection)
         {
@@ -56,6 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("browse")]
         public async Task<BrowseFirstResponseModel> BrowseAsync(
             ConnectionModel connection, BrowseFirstRequestModel request)
         {
@@ -68,6 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("browse/next")]
         public async Task<BrowseNextResponseModel> BrowseNextAsync(
             ConnectionModel connection, BrowseNextRequestModel request)
         {
@@ -80,6 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("browse/path")]
         public async Task<BrowsePathResponseModel> BrowsePathAsync(
             ConnectionModel connection, BrowsePathRequestModel request)
         {
@@ -92,6 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("read")]
         public async Task<ValueReadResponseModel> ValueReadAsync(
             ConnectionModel connection, ValueReadRequestModel request)
         {
@@ -104,6 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("write")]
         public async Task<ValueWriteResponseModel> ValueWriteAsync(
             ConnectionModel connection, ValueWriteRequestModel request)
         {
@@ -116,6 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("metadata")]
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(
             ConnectionModel connection, NodeMetadataRequestModel request)
         {
@@ -128,6 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("call/$metadata")]
         public async Task<MethodMetadataResponseModel> MethodMetadataAsync(
             ConnectionModel connection, MethodMetadataRequestModel request)
         {
@@ -142,6 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        [HttpPost("call")]
         public async Task<MethodCallResponseModel> MethodCallAsync(
             ConnectionModel connection, MethodCallRequestModel request)
         {
@@ -154,6 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("read/attributes")]
         public async Task<ReadResponseModel> NodeReadAsync(
             ConnectionModel connection, ReadRequestModel request)
         {
@@ -166,6 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("write/attributes")]
         public async Task<WriteResponseModel> NodeWriteAsync(
             ConnectionModel connection, WriteRequestModel request)
         {
@@ -178,6 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("historyread")]
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
             ConnectionModel connection, HistoryReadRequestModel<VariantValue> request)
         {
@@ -190,6 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("historyread/next")]
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request)
         {
@@ -202,6 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("historyupdate")]
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
             ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request)
         {
@@ -213,6 +233,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
+        [HttpPost("certificate")]
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             EndpointModel endpoint)
         {
@@ -224,6 +245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
+        [HttpPost("history/capabilities")]
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
             ConnectionModel connection)
         {
@@ -236,6 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        [HttpPost("history/configuration")]
         public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
             ConnectionModel connection, HistoryConfigurationRequestModel request)
         {
@@ -247,6 +270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
+        [HttpPost("connect")]
         public async Task<bool> ConnectAsync(ConnectionModel connection)
         {
             await _endpoints.ConnectAsync(connection).ConfigureAwait(false);
@@ -258,6 +282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
+        [HttpPost("disconnect")]
         public async Task<bool> DisconnectAsync(ConnectionModel connection)
         {
             await _endpoints.DisconnectAsync(connection).ConfigureAwait(false);

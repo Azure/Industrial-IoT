@@ -16,8 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
-    using Microsoft.Azure.IIoT;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Prometheus;
     using System;
     using System.Collections.Concurrent;
@@ -29,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Provides network discovery of endpoints
@@ -53,8 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="progress"></param>
         /// <param name="options"></param>
         public NetworkDiscovery(IEndpointDiscovery client, IEventClient events,
-            IJsonSerializer serializer, ILoggerFactory loggerFactory,
-            IDiscoveryProgress progress = null, IOptions<PublisherOptions> options = null)
+            IJsonSerializer serializer, IOptions<PublisherOptions> options,
+            ILoggerFactory loggerFactory, IDiscoveryProgress progress = null)
         {
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
@@ -64,13 +63,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 throw new ArgumentNullException(nameof(client));
             _events = events ??
                 throw new ArgumentNullException(nameof(events));
+            _options = options ??
+                throw new ArgumentNullException(nameof(options));
 
             _logger = loggerFactory.CreateLogger<NetworkDiscovery>();
+            _topic = new TopicBuilder(options).RootTopic;
             _progress = progress ?? new ProgressLogger(loggerFactory.CreateLogger<ProgressLogger>());
-            _options = options;
             _runner = Task.Run(() => ProcessDiscoveryRequestsAsync(_cts.Token));
             _timer = new Timer(_ => OnScanScheduling(), null,
                 TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan);
+
         }
 
         /// <inheritdoc/>
@@ -670,7 +672,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 })
                 .ToList();
 
-            await _events.SendEventAsync(string.Empty, buffers, _serializer.MimeType,
+            await _events.SendEventAsync(_topic, buffers, _serializer.MimeType,
                 Encoding.UTF8.WebName, e => e.AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
                     MessageSchemaTypes.DiscoveryEvents), ct: ct).ConfigureAwait(false);
             _logger.LogInformation("{Count} results uploaded.", discovered.Count);
@@ -772,6 +774,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly IEndpointDiscovery _client;
         private readonly Task _runner;
         private readonly Timer _timer;
+        private readonly string _topic;
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly List<DiscoveryRequest> _pending = new();
         private readonly BlockingCollection<DiscoveryRequest> _queue = new();

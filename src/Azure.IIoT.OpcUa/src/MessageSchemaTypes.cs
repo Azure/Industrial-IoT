@@ -29,18 +29,6 @@ namespace Azure.IIoT.OpcUa
             "application/x-network-message-uadp-v1";
 
         /// <summary>
-        /// Moniored Item Message Model using json encoding
-        /// </summary>
-        public const string MonitoredItemMessageModelJson =
-            "application/x-monitored-itemsample-model-json-v1";
-
-        /// <summary>
-        /// Network Message Model using json encoding
-        /// </summary>
-        public const string NetworkMessageModelJson =
-            "application/x-network-message-model-json-v1";
-
-        /// <summary>
         /// Message contains discovery events
         /// </summary>
         public const string DiscoveryEvents =

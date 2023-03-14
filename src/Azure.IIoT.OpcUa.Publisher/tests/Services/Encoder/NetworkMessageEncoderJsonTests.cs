@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using System.Linq;
     using Xunit;
     using System.Globalization;
+    using Microsoft.Extensions.Configuration;
 
     public class NetworkMessageEncoderJsonTests
     {
@@ -30,10 +31,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var loggerMock = new Mock<ILogger<NetworkMessageEncoder>>();
             var metricsMock = new Mock<IMetricsContext>();
             metricsMock.SetupGet(m => m.TagList).Returns(new TagList());
-            return new NetworkMessageEncoder(new WriterGroupJobConfig
-            {
-                UseStandardsCompliantEncoding = true
-            }, metricsMock.Object, loggerMock.Object);
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.UseStandardsCompliantEncoding = true;
+            return new NetworkMessageEncoder(options, metricsMock.Object, loggerMock.Object);
         }
 
         [Theory]

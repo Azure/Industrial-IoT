@@ -89,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var entry = endpoint.ToPublishedNodesEntry();
                 var currentNodes = GetCurrentPublishedNodes().ToList();
                 AddItem(currentNodes, entry, request.Item);
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes,
                     _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
@@ -161,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     nodeset.OpcNodes.RemoveAll(n => n.Id == request.NodeId);
                 }
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes,
                     _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
@@ -214,7 +214,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         AddItem(currentNodes, entry, item);
                     }
                 }
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes,
                     _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
@@ -337,7 +337,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     existingGroups.Add(request);
                 }
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups,
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(existingGroups,
                     _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
@@ -468,7 +468,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     existingGroups.Add(entry);
                 }
 
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups,
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(existingGroups,
                     _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
@@ -530,13 +530,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             $"Endpoint or node not found: {request.EndpointUrl}");
                     }
 
-                    var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(matchingGroups,
+                    var jobs = _publishedNodesJobConverter.ToWriterGroups(matchingGroups,
                         _configuration.Value);
                     await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 }
                 else
                 {
-                    await _publisherHost.UpdateAsync(Enumerable.Empty<WriterGroupJobModel>()).ConfigureAwait(false);
+                    await _publisherHost.UpdateAsync(Enumerable.Empty<WriterGroupModel>()).ConfigureAwait(false);
                 }
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
@@ -619,7 +619,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         currentNodes.Add(updateRequest);
                     }
                 }
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes,
                     _configuration.Value);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
@@ -935,7 +935,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                             if (currentFileHash != _lastKnownFileHash)
                             {
-                                var jobs = Enumerable.Empty<WriterGroupJobModel>();
+                                var jobs = Enumerable.Empty<WriterGroupModel>();
                                 if (!clear && !string.IsNullOrEmpty(content))
                                 {
                                     _logger.LogInformation("File {PublishedNodesFile} has changed, " +
@@ -945,7 +945,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                                     var entries = _publishedNodesJobConverter.Read(content).ToList();
                                     TransformFromLegacyNodeId(entries);
-                                    jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries,
+                                    jobs = _publishedNodesJobConverter.ToWriterGroups(entries,
                                         _configuration.Value);
                                 }
                                 try

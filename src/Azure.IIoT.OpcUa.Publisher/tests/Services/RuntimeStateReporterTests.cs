@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Microsoft.Extensions.Configuration;
     using Moq;
     using System;
     using System.Collections.Generic;
@@ -27,19 +28,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         [Fact]
         public async Task ReportingDisabledTest()
         {
-            var _client = new Mock<IEventClient>();
+            var client = new Mock<IEventClient>();
 
             IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
-            var _config = new Mock<IPublisherConfiguration>();
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             // This will disable state reporting.
-            _config.Setup(c => c.EnableRuntimeStateReporting).Returns(false);
+            options.Value.EnableRuntimeStateReporting = false;
 
             var _logger = Log.Console<RuntimeStateReporter>();
 
             var runtimeStateReporter = new RuntimeStateReporter(
-                _client.Object,
+                client.Object,
                 _serializer,
-                _config.Object,
+                options,
                 _logger
             );
 
@@ -49,25 +50,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            _client.Verify(c => c.CreateEvent(), Times.Never());
+            client.Verify(c => c.CreateEvent(), Times.Never());
         }
 
         [Fact]
         public async Task ClientNotInitializedTest()
         {
-            var _clientAccessorMock = new Mock<IEventClient>();
-            _clientAccessorMock.Setup(m => m.CreateEvent()).Throws<IOException>();
+            var client = new Mock<IEventClient>();
+            client.Setup(m => m.CreateEvent()).Throws<IOException>();
 
             IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
-            var _config = new Mock<IPublisherConfiguration>();
-            _config.Setup(c => c.EnableRuntimeStateReporting).Returns(true);
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.EnableRuntimeStateReporting = true;
 
             var _logger = Log.Console<RuntimeStateReporter>();
 
             var runtimeStateReporter = new RuntimeStateReporter(
-                _clientAccessorMock.Object,
+                client.Object,
                 _serializer,
-                _config.Object,
+                options,
                 _logger
             );
 
@@ -120,16 +121,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                 .Returns(_message.Object);
 
             IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
-            var _config = new Mock<IPublisherConfiguration>();
-            _config.Setup(c => c.EnableRuntimeStateReporting).Returns(true);
-            _config.Setup(c => c.RuntimeStateRoutingInfo).Returns("runtimeinfo");
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.EnableRuntimeStateReporting = true;
+            options.Value.RuntimeStateRoutingInfo = "runtimeinfo";
 
             var _logger = Log.Console<RuntimeStateReporter>();
 
             var runtimeStateReporter = new RuntimeStateReporter(
                 _client.Object,
                 _serializer,
-                _config.Object,
+                options,
                 _logger
             );
 

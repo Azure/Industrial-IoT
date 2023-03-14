@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
     using Furly.Extensions.Configuration;
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;
+    using System.Globalization;
     using System.IO;
 
     /// <summary>
@@ -23,9 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string ApplicationUriKey = "ApplicationUri";
         public const string ProductUriKey = "ProductUri";
         public const string DefaultSessionTimeoutKey = "DefaultSessionTimeout";
-        public const string MinSubscriptionLifetimeKey = "MinSubscriptionLifetime";
         public const string KeepAliveIntervalKey = "KeepAliveInterval";
-        public const string MaxKeepAliveCountKey = "MaxKeepAliveCount";
         public const string PkiRootPathKey = "PkiRootPath";
         public const string ApplicationCertificateStorePathKey = "ApplicationCertificateStorePath";
         public const string ApplicationCertificateStoreTypeKey = "ApplicationCertificateStoreType";
@@ -53,14 +52,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// <summary>
         /// Default values for transport quotas.
         /// </summary>
-        public const int DefaultSecurityTokenLifetime = 60 * 60 * 1000;
-        public const int DefaultChannelLifetime = 300 * 1000;
-        public const int DefaultMaxBufferSize = (64 * 1024) - 1;
-        public const int DefaultMaxMessageSize = 4 * 1024 * 1024;
-        public const int DefaultMaxArrayLength = (64 * 1024) - 1;
-        public const int DefaultMaxByteStringLength = 1024 * 1024;
-        public const int DefaultMaxStringLength = (128 * 1024) - 256;
-        public const int DefaultOperationTimeout = 120 * 1000;
+        public const string ApplicationNameDefault = "Microsoft.Azure.IIoT";
+        public const string ApplicationUriDefault = "urn:localhost:{0}:microsoft:";
+        public const string ProductUriDefault = "https://www.github.com/Azure/Industrial-IoT";
+        public const string PkiRootPathDefault = "pki";
+        public const int SecurityTokenLifetimeDefault = 60 * 60 * 1000;
+        public const int ChannelLifetimeDefault = 300 * 1000;
+        public const int MaxBufferSizeDefault = (64 * 1024) - 1;
+        public const int MaxMessageSizeDefault = 4 * 1024 * 1024;
+        public const int MaxArrayLengthDefault = (64 * 1024) - 1;
+        public const int MaxByteStringLengthDefault = 1024 * 1024;
+        public const int MaxStringLengthDefault = (128 * 1024) - 256;
+        public const int OperationTimeoutDefault = 120 * 1000;
+        public const int DefaultSessionTimeoutDefaultSec = 60;
+        public const int KeepAliveIntervalDefaultSec = 10;
+        public const int MinimumCertificateKeySizeDefault = 1024;
+        public const bool AutoAcceptUntrustedCertificatesDefault = false;
+        public const bool RejectSha1SignedCertificatesDefault = false;
+        public const bool AddAppCertToTrustedStoreDefault = true;
+        public const bool RejectUnknownRevocationStatusDefault = true;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -69,73 +79,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             if (options.ApplicationName == null)
             {
                 options.ApplicationName =
-                    GetStringOrDefault(ApplicationNameKey, "Microsoft.Azure.IIoT");
+                    GetStringOrDefault(ApplicationNameKey, ApplicationNameDefault);
             }
 
             if (options.ApplicationUri == null)
             {
                 options.ApplicationUri = GetStringOrDefault(ApplicationUriKey,
-                    $"urn:localhost:{options.ApplicationName}:microsoft:");
+                    string.Format(CultureInfo.InvariantCulture,
+                        ApplicationUriDefault, options.ApplicationName));
             }
 
             if (options.ProductUri == null)
             {
                 options.ProductUri = GetStringOrDefault(ProductUriKey,
-                    "https://www.github.com/Azure/Industrial-IoT");
+                    ProductUriDefault);
             }
 
             if (options.DefaultSessionTimeout == 0)
             {
                 options.DefaultSessionTimeout = (uint)GetIntOrDefault(DefaultSessionTimeoutKey,
-                    60) * 1000;
-            }
-
-            if (options.MinSubscriptionLifetime == 0)
-            {
-                options.MinSubscriptionLifetime = GetIntOrDefault(MinSubscriptionLifetimeKey,
-                    10) * 1000;
+                    DefaultSessionTimeoutDefaultSec) * 1000;
             }
 
             if (options.KeepAliveInterval == 0)
             {
                 options.KeepAliveInterval = GetIntOrDefault(KeepAliveIntervalKey,
-                    10) * 1000;
-            }
-
-            if (options.MaxKeepAliveCount == 0)
-            {
-                options.MaxKeepAliveCount = (uint)GetIntOrDefault(MaxKeepAliveCountKey,
-                    10);
+                    KeepAliveIntervalDefaultSec) * 1000;
             }
 
             if (options.Security.MinimumCertificateKeySize == 0)
             {
                 options.Security.MinimumCertificateKeySize = (ushort)GetIntOrDefault(
-                    MinimumCertificateKeySizeKey, 1024);
+                    MinimumCertificateKeySizeKey, MinimumCertificateKeySizeDefault);
             }
 
             if (options.Security.AutoAcceptUntrustedCertificates == null)
             {
                 options.Security.AutoAcceptUntrustedCertificates = GetBoolOrDefault(
-                    AutoAcceptUntrustedCertificatesKey, false);
+                    AutoAcceptUntrustedCertificatesKey, AutoAcceptUntrustedCertificatesDefault);
             }
 
             if (options.Security.RejectSha1SignedCertificates == null)
             {
                 options.Security.RejectSha1SignedCertificates = GetBoolOrDefault(
-                    RejectSha1SignedCertificatesKey, false);
+                    RejectSha1SignedCertificatesKey, RejectSha1SignedCertificatesDefault);
             }
 
             if (options.Security.AddAppCertToTrustedStore == null)
             {
                 options.Security.AddAppCertToTrustedStore = GetBoolOrDefault(
-                    AddAppCertToTrustedStoreKey, true);
+                    AddAppCertToTrustedStoreKey, AddAppCertToTrustedStoreDefault);
             }
 
             if (options.Security.RejectUnknownRevocationStatus == null)
             {
                 options.Security.RejectUnknownRevocationStatus = GetBoolOrDefault(
-                    RejectUnknownRevocationStatusKey, true);
+                    RejectUnknownRevocationStatusKey, RejectUnknownRevocationStatusDefault);
             }
 
             // https://github.com/OPCFoundation/UA-.NETStandard/blob/master/Docs/Certificates.md
@@ -143,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             if (options.Security.PkiRootPath == null)
             {
                 options.Security.PkiRootPath = GetStringOrDefault(PkiRootPathKey,
-                    "pki");
+                    PkiRootPathDefault);
             }
 
             if (options.Security.ApplicationCertificate == null)
@@ -203,49 +202,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             if (options.Quotas.ChannelLifetime == 0)
             {
                 options.Quotas.ChannelLifetime = GetIntOrDefault(ChannelLifetimeKey,
-                    DefaultChannelLifetime);
+                    ChannelLifetimeDefault);
             }
 
             if (options.Quotas.MaxArrayLength == 0)
             {
                 options.Quotas.MaxArrayLength = GetIntOrDefault(MaxArrayLengthKey,
-                    DefaultMaxArrayLength);
+                    MaxArrayLengthDefault);
             }
 
             if (options.Quotas.MaxBufferSize == 0)
             {
                 options.Quotas.MaxBufferSize = GetIntOrDefault(MaxBufferSizeKey,
-                    DefaultMaxBufferSize);
+                    MaxBufferSizeDefault);
             }
 
             if (options.Quotas.MaxByteStringLength == 0)
             {
                 options.Quotas.MaxByteStringLength = GetIntOrDefault(MaxByteStringLengthKey,
-                    DefaultMaxByteStringLength);
+                    MaxByteStringLengthDefault);
             }
 
             if (options.Quotas.MaxMessageSize == 0)
             {
                 options.Quotas.MaxMessageSize = GetIntOrDefault(MaxMessageSizeKey,
-                    DefaultMaxMessageSize);
+                    MaxMessageSizeDefault);
             }
 
             if (options.Quotas.MaxStringLength == 0)
             {
                 options.Quotas.MaxStringLength = GetIntOrDefault(MaxStringLengthKey,
-                    DefaultMaxStringLength);
+                    MaxStringLengthDefault);
             }
 
             if (options.Quotas.OperationTimeout == 0)
             {
                 options.Quotas.OperationTimeout = GetIntOrDefault(OperationTimeoutKey,
-                    DefaultOperationTimeout);
+                    OperationTimeoutDefault);
             }
 
             if (options.Quotas.SecurityTokenLifetime == 0)
             {
                 options.Quotas.SecurityTokenLifetime = GetIntOrDefault(SecurityTokenLifetimeKey,
-                    DefaultSecurityTokenLifetime);
+                    SecurityTokenLifetimeDefault);
             }
         }
 

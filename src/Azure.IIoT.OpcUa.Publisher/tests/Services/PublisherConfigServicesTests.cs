@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Divergic.Logging.Xunit;
     using FluentAssertions;
     using Furly.Exceptions;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -59,11 +60,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             _options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             _options.Value.PublishedNodesFile = _tempFile;
             _options.Value.MessagingProfile = MessagingProfile.Get(
-                MessagingMode.PubSub, MessageEncoding.Json));
+                MessagingMode.PubSub, MessageEncoding.Json);
 
             _publishedNodesJobConverter = new PublishedNodesJobConverter(
-                _loggerFactory.CreateLogger<PublishedNodesJobConverter>(), _newtonSoftJsonSerializer,
-                _options, clientConfigMock);
+                _loggerFactory.CreateLogger<PublishedNodesJobConverter>(), _newtonSoftJsonSerializer);
 
             // Note that each test is responsible for setting content of _tempFile;
             Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
@@ -77,9 +77,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             var lifetime = new Mock<IWriterGroupScope>();
             lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
             factoryMock
-                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
+                .Setup(factory => factory.Create(It.IsAny<WriterGroupModel>()))
                 .Returns(lifetime.Object);
-            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessInfo>().Object,
+            _publisher = new PublisherHostService(factoryMock.Object, _options,
                 _loggerFactory.CreateLogger<PublisherHostService>());
         }
 
@@ -886,7 +886,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                     .ConfigureAwait(false);
             }
 
-            _publisher.WriterGroups.Sum(g => g.WriterGroup.DataSetWriters.Count)
+            _publisher.WriterGroups.Sum(writerGroup => writerGroup.DataSetWriters.Count)
                 .Should()
                 .Be(2);
         }
@@ -939,7 +939,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             {
                 var writerGroups = _publisher.WriterGroups;
                 writerGroups
-                    .SelectMany(jobModel => jobModel.WriterGroup.DataSetWriters)
+                    .SelectMany(writerGroup => writerGroup.DataSetWriters)
                     .Count(v => v.DataSet.DataSetSource.PublishedVariables.PublishedData.Count == expectedNumberOfNodesPerEndpoint)
                     .Should()
                     .Be(expectedNumberOfEndpoints);

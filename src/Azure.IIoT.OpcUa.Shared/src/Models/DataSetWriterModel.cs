@@ -54,12 +54,5 @@ namespace Azure.IIoT.OpcUa.Models
         [DataMember(Name = "metaDataUpdateTime", Order = 6,
             EmitDefaultValue = false)]
         public TimeSpan? MetaDataUpdateTime { get; set; }
-
-        /// <summary>
-        /// Metadata queue name
-        /// </summary>
-        [DataMember(Name = "metaDataQueueName", Order = 7,
-            EmitDefaultValue = false)]
-        public string? MetaDataQueueName { get; set; }
     }
 }

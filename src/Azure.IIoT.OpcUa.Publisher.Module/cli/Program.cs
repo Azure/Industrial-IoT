@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Utils;
 
     /// <summary>
     /// Publisher module host process
@@ -194,13 +195,29 @@ Options:
             logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
                 deviceId, moduleId);
 
-            var cs = await Retry2.WithExponentialBackoffAsync(logger,
-                () => AddOrGetAsync(connectionString, deviceId, moduleId, logger)).ConfigureAwait(false);
+            ConnectionString cs;
+            while (true)
+            {
+                try
+                {
+                    cs = await AddOrGetAsync(connectionString, deviceId, moduleId,
+                        logger).ConfigureAwait(false);
 
-            Run(logger, deviceId, moduleId, args, verbose, acceptAll, cs);
+                    logger.LogInformation("Retrieved connection string for {DeviceId} {ModuleId}.",
+                       deviceId, moduleId);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to get connection string for {DeviceId} {ModuleId}...",
+                        deviceId, moduleId);
+                }
+            }
+
+            Run(logger, deviceId, moduleId, args, acceptAll, cs);
 
             static void Run(ILogger logger, string deviceId, string moduleId, string[] args,
-                bool verbose, bool acceptAll, ConnectionString cs)
+                bool acceptAll, ConnectionString cs)
             {
                 logger.LogInformation("Starting publisher module {DeviceId} {ModuleId}...",
                     deviceId, moduleId);

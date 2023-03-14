@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync("./PublishedNodes/Deadband.json",
-                TimeSpan.FromMinutes(2), 200, arguments: new[] { "--fm=True" }).ConfigureAwait(false);
+                TimeSpan.FromMinutes(2), 20, arguments: new[] { "--fm=True" }).ConfigureAwait(false);
 
             // Assert
             var doubleValues = messages

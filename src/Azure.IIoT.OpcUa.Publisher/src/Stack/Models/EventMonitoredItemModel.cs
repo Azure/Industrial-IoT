@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     /// <summary>
     /// Event monitored item
     /// </summary>
-    public class EventMonitoredItemModel : BaseMonitoredItemModel
+    public sealed class EventMonitoredItemModel : BaseMonitoredItemModel
     {
         /// <summary>
         /// Event filter

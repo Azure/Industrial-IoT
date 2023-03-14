@@ -17,16 +17,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using System.Linq;
     using Xunit;
     using System.Globalization;
+    using Microsoft.Extensions.Configuration;
 
     public class NetworkMessageEncoderUadpTests
     {
         private static NetworkMessageEncoder GetEncoder()
         {
             var loggerMock = new Mock<ILogger<NetworkMessageEncoder>>();
-            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             var metricsMock = new Mock<IMetricsContext>();
             metricsMock.SetupGet(m => m.TagList).Returns(new TagList());
-            return new NetworkMessageEncoder(engineConfigMock.Object, metricsMock.Object, loggerMock.Object);
+            return new NetworkMessageEncoder(options, metricsMock.Object, loggerMock.Object);
         }
 
         [Theory]
