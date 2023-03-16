@@ -3,17 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi
+namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 {
-    using Azure.IIoT.OpcUa.Services.WebApi.Auth;
-    using Azure.IIoT.OpcUa.Services;
-    using Azure.IIoT.OpcUa.Services.Clients;
-    using Azure.IIoT.OpcUa.Services.Events;
-    using Azure.IIoT.OpcUa.Services.Registry;
-    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Auth;
+    using Azure.IIoT.OpcUa.Publisher.Service;
+    using Azure.IIoT.OpcUa.Publisher.Service.Clients;
+    using Azure.IIoT.OpcUa.Publisher.Service.Events;
+    using Azure.IIoT.OpcUa.Publisher.Service.Registry;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
+    using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
+    using Furly;
     using Furly.Tunnel.Protocol;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -25,13 +26,11 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
-    using System;
     using Nito.AsyncEx;
-    using System.Collections;
-    using Furly;
-    using System.Threading.Tasks;
-    using System.Threading;
+    using System;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Webservice startup

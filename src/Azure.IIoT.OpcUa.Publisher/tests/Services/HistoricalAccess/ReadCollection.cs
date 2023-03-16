@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services.HistoricalAccess.Tests
 {
-    using Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Xunit;
 
     [CollectionDefinition(Name)]

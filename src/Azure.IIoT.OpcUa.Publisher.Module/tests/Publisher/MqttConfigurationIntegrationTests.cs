@@ -6,8 +6,9 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
-    using Azure.IIoT.OpcUa.Models;
-    using Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using Furly.Extensions.Mqtt;
     using Json.More;
     using System;
     using System.Collections.Generic;
@@ -15,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using Furly.Extensions.Mqtt;
 
     /// <summary>
     /// Currently, we create new independent instances of server, publisher and services for each test,

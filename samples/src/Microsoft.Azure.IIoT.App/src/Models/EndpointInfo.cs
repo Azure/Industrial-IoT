@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.App.Models
 {
-    using global::Azure.IIoT.OpcUa.Models;
+    using global::Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Endpoint info wrapper

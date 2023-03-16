@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using Azure.IIoT.OpcUa.Publisher.Discovery;
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport;
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models;
-    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;

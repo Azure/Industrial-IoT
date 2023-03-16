@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Fixtures
+namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 {
-    using Azure.IIoT.OpcUa.Testing.Runtime;
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;

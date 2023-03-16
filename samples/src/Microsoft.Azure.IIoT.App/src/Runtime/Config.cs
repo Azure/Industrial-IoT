@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Runtime
 {
     using Microsoft.Extensions.Configuration;
-    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
+    using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
 
     /// <summary>
     /// Configuration aggregation

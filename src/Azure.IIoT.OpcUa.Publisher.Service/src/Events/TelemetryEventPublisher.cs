@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients
 {
-    using Azure.IIoT.OpcUa.Models;
-    using Azure.IIoT.OpcUa.Services;
-    using Azure.IIoT.OpcUa.Services.Subscriber;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Service;
+    using Azure.IIoT.OpcUa.Publisher.Service.Subscriber;
     using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;

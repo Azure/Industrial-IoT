@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers
+namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 {
-    using Azure.IIoT.OpcUa.Services.WebApi.Auth;
-    using Azure.IIoT.OpcUa.Services.WebApi.Filters;
+    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Auth;
+    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.IIoT.Messaging;

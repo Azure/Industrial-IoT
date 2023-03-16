@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Tests
+namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadInt16ValuesModifiedTestAsync()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int16.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int16.txt";
 
             var results = await services.HistoryReadModifiedValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadModifiedValuesDetailsModel>
@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryStreamInt16ValuesModifiedTestAsync()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int16.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int16.txt";
 
             var history = await services.HistoryStreamModifiedValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadModifiedValuesDetailsModel>

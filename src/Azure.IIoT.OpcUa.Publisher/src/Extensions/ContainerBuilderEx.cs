@@ -6,12 +6,12 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Discovery;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Models;
     using Autofac;
 
     /// <summary>

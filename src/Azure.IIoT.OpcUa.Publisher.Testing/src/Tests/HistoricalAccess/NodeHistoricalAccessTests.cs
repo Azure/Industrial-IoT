@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Tests
+namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Threading.Tasks;
     using Xunit;
@@ -89,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryGetInt16NodeHistoryConfigurationAsync()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int16.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int16.txt";
 
             var results = await services.HistoryGetConfigurationAsync(_connection,
                 new HistoryConfigurationRequestModel
@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryGetInt64NodeHistoryConfigurationAsync()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
 
             var results = await services.HistoryGetConfigurationAsync(_connection,
                 new HistoryConfigurationRequestModel
@@ -151,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryGetNodeHistoryConfigurationFromBadNodeAsync()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Unknown.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Unknown.txt";
 
             var results = await services.HistoryGetConfigurationAsync(_connection,
                 new HistoryConfigurationRequestModel

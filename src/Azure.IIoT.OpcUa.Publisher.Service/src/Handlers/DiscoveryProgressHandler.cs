@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Handlers
+namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using System;

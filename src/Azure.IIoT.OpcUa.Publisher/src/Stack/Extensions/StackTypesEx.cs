@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Azure.IIoT.OpcUa.Models;
     using UaAggregateBits = Opc.Ua.AggregateBits;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;

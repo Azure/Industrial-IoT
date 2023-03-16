@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Hosting;
     using Microsoft.Extensions.Configuration;

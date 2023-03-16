@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.Sdk
+namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
 {
-    using Azure.IIoT.OpcUa.Services.Sdk.Clients;
-    using Azure.IIoT.OpcUa.Services.Sdk.Runtime;
-    using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
+    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients;
+    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR;
     using Autofac;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Extensions.DependencyInjection;

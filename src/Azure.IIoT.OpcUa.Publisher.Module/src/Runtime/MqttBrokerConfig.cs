@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public const string HostNameKey = "MqttBrokerHostName";
         public const string HostPortKey = "MqttBrokerPort";
         public const string ProtocolKey = "MqttProtocolVersion";
-        public const string UseTlsKey  = "MqttBrokerUsesTls";
+        public const string UseTlsKey = "MqttBrokerUsesTls";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>

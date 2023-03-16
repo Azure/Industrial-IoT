@@ -5,17 +5,16 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
-    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Autofac;
+    using Furly;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Publisher module hosted service

@@ -7,10 +7,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
-    using Azure.IIoT.OpcUa.Models;
     using Divergic.Logging.Xunit;
     using FluentAssertions;
     using Furly.Exceptions;
@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Models;
     using Moq;
     using Publisher.Services;
     using System;

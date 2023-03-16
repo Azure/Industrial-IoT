@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using System;

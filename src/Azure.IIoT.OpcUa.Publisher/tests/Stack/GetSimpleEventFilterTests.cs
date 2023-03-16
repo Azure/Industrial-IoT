@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;

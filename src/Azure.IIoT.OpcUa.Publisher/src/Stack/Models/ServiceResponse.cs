@@ -5,7 +5,7 @@
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
     using System.Collections;

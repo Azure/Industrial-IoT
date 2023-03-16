@@ -5,17 +5,17 @@
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Models;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Extensions;
-    using BrowseDirection = OpcUa.Models.BrowseDirection;
-    using NodeClass = OpcUa.Models.NodeClass;
+    using BrowseDirection = OpcUa.Publisher.Models.BrowseDirection;
+    using NodeClass = OpcUa.Publisher.Models.NodeClass;
     using System;
     using System.Collections.Generic;
     using System.Linq;

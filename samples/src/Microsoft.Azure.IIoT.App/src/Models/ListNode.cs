@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.App.Models
 {
-    using global::Azure.IIoT.OpcUa.Models;
+    using global::Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
     public class ListNode

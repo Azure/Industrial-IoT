@@ -2,9 +2,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Models.Tests
+namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;

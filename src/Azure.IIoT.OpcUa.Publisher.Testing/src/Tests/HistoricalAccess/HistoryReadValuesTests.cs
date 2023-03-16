@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Tests
+namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadInt64ValuesTest1Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
 
             var results = await services.HistoryReadValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadValuesDetailsModel>
@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadInt64ValuesTest2Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
 
             var results = await services.HistoryReadValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadValuesDetailsModel>
@@ -208,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadInt64ValuesTest3Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
 
             var results = await services.HistoryReadValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadValuesDetailsModel>
@@ -297,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadInt64ValuesTest4Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
 
             var results = await services.HistoryReadValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadValuesDetailsModel>
@@ -376,7 +376,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryStreamInt64ValuesTest1Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
 
             var history = await services.HistoryStreamValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadValuesDetailsModel>
@@ -476,7 +476,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryStreamInt64ValuesTest2Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
 
             var history = await services.HistoryStreamValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadValuesDetailsModel>
@@ -555,7 +555,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryStreamInt64ValuesTest3Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
 
             var history = await services.HistoryStreamValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadValuesDetailsModel>
@@ -644,7 +644,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryStreamInt64ValuesTest4Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int64.txt";
 
             var history = await services.HistoryStreamValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadValuesDetailsModel>

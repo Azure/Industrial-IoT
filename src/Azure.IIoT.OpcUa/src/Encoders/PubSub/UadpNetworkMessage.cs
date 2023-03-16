@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
-    using Azure.IIoT.OpcUa;
     using Furly;
     using Microsoft.IO;
     using Opc.Ua;

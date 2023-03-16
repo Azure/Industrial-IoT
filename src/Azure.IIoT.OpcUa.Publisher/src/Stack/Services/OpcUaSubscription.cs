@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
-    using MonitoringMode = OpcUa.Models.MonitoringMode;
+    using MonitoringMode = OpcUa.Publisher.Models.MonitoringMode;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;

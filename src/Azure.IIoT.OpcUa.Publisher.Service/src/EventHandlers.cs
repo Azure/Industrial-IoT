@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services
+namespace Azure.IIoT.OpcUa.Publisher.Service
 {
-    using Azure.IIoT.OpcUa.Services.Handlers;
+    using Azure.IIoT.OpcUa.Publisher.Service.Handlers;
     using Autofac;
 
     /// <summary>

@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Net;
 

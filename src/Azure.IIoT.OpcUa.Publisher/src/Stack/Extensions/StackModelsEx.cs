@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
-    using DiagnosticsLevel = OpcUa.Models.DiagnosticsLevel;
+    using DiagnosticsLevel = OpcUa.Publisher.Models.DiagnosticsLevel;
     using System;
     using System.Collections.Generic;
     using System.Linq;

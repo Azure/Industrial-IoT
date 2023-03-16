@@ -26,8 +26,8 @@ namespace Microsoft.Azure.IIoT.App
     using Blazored.Modal;
     using Blazored.SessionStorage;
     using FluentValidation;
-    using global::Azure.IIoT.OpcUa.Services.Sdk;
-    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
+    using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk;
+    using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
     using System;
 
     /// <summary>

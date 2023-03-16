@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             new MqttBrokerConfig(configuration).Configure(mqttOptions);
             if (mqttOptions.HostName != null)
             {
-              //  builder.AddMqttClient();
+                //  builder.AddMqttClient();
                 builder.RegisterType<Furly.Extensions.Mqtt.Clients.MqttClient>().AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<MqttBrokerConfig>()
                     .AsImplementedInterfaces();

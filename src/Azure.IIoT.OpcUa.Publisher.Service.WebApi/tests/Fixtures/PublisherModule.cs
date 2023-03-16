@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services.WebApi
+namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 {
     using Azure.IIoT.OpcUa.Publisher.Module;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
-    using Azure.IIoT.OpcUa.Testing.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Furly.Azure;

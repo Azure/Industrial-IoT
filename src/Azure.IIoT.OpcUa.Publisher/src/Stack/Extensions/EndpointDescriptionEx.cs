@@ -5,7 +5,7 @@
 
 namespace Opc.Ua
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
 
     /// <summary>

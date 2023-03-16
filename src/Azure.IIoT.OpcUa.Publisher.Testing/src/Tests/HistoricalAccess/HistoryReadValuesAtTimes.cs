@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Tests
+namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadInt32ValuesAtTimesTest1Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = DateTime.UtcNow.Subtract(TimeSpan.FromHours(1));
             var results = await services.HistoryReadValuesAtTimesAsync(_connection,
@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadInt32ValuesAtTimesTest2Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = DateTime.UtcNow.Subtract(TimeSpan.FromHours(1));
             var results = await services.HistoryReadValuesAtTimesAsync(_connection,
@@ -89,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadInt32ValuesAtTimesTest3Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = DateTime.UtcNow.Subtract(TimeSpan.FromHours(1));
             var results = await services.HistoryReadValuesAtTimesAsync(_connection,
@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadInt32ValuesAtTimesTest4Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = DateTime.UtcNow.Subtract(TimeSpan.FromHours(1));
             var results = await services.HistoryReadValuesAtTimesAsync(_connection,
@@ -152,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryStreamInt32ValuesAtTimesTest1Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = DateTime.UtcNow.Subtract(TimeSpan.FromHours(5));
             var history = await services.HistoryStreamValuesAtTimesAsync(_connection,
@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryStreamInt32ValuesAtTimesTest2Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = DateTime.UtcNow.Subtract(TimeSpan.FromHours(5));
             var history = await services.HistoryStreamValuesAtTimesAsync(_connection,

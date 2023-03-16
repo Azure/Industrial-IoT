@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
-    using Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using System;
     using System.Linq;
     using System.Text.Json;

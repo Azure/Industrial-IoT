@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Tests
+namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryInsertUInt32ValuesTest1Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = new DateTime(1986, 1, 1);
             var toUpsert = Enumerable.Repeat(0, 10)
@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryInsertUInt32ValuesTest2Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = new DateTime(1992, 1, 1);
             var toUpsert = Enumerable.Repeat(0, 10)
@@ -116,7 +116,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryUpsertUInt32ValuesTest1Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = new DateTime(1976, 1, 1);
             var toUpsert = Enumerable.Repeat(0, 10)
@@ -162,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryUpsertUInt32ValuesTest2Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = new DateTime(1955, 1, 1);
             var reqTimes = Enumerable.Repeat(0, 10)
@@ -239,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReplaceUInt32ValuesTest1Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = new DateTime(1966, 1, 1);
             var reqTimes = Enumerable.Repeat(0, 10)
@@ -324,7 +324,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReplaceUInt32ValuesTest2Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = new DateTime(1963, 1, 1);
             var reqTimes = Enumerable.Repeat(0, 10)
@@ -355,7 +355,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryInsertDeleteUInt32ValuesTest1Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = new DateTime(1999, 1, 1);
             var reqTimes = Enumerable.Repeat(0, 10)
@@ -440,7 +440,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryInsertDeleteUInt32ValuesTest2Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = new DateTime(1989, 1, 1);
             var reqTimes = Enumerable.Repeat(0, 10)
@@ -520,7 +520,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryInsertDeleteUInt32ValuesTest3Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = new DateTime(1959, 1, 1);
             var reqTimes = Enumerable.Repeat(0, 10)
@@ -613,7 +613,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryInsertDeleteUInt32ValuesTest4Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = new DateTime(1979, 1, 1);
             var reqTimes = Enumerable.Repeat(0, 10)
@@ -720,7 +720,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryDeleteUInt32ValuesTest1Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.Int32.txt";
 
             var startTime = new DateTime(1962, 1, 1);
             var reqTimes = Enumerable.Repeat(0, 10)

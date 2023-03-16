@@ -7,12 +7,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.Utils;
-    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
-    using NodeClass = OpcUa.Models.NodeClass;
+    using NodeClass = OpcUa.Publisher.Models.NodeClass;
     using System;
     using System.Collections.Generic;
     using System.Linq;

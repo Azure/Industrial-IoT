@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Subscription model extensions

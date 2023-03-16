@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Pages
 {
     using Microsoft.AspNetCore.Components;
-    using global::Azure.IIoT.OpcUa.Models;
+    using global::Azure.IIoT.OpcUa.Publisher.Models;
 
     public partial class _DrawerAssetContent
     {

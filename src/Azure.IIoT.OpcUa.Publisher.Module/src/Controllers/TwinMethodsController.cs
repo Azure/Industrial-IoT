@@ -6,8 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
-    using Azure.IIoT.OpcUa;
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Mvc;

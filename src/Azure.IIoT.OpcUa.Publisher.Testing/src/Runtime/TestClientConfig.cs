@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Runtime
+namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Furly.Extensions.Configuration;

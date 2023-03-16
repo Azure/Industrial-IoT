@@ -5,12 +5,8 @@
 
 namespace Autofac
 {
-    using Autofac.Core.Registration;
     using Furly.Extensions.Logging;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
-    using System;
 
     /// <summary>
     /// Register console logger

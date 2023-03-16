@@ -7,8 +7,8 @@ namespace Microsoft.Azure.IIoT.App.Services
 {
     using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Extensions.Logging;
-    using global::Azure.IIoT.OpcUa.Models;
-    using global::Azure.IIoT.OpcUa.Services.Sdk;
+    using global::Azure.IIoT.OpcUa.Publisher.Models;
+    using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk;
     using System;
     using System.Threading.Tasks;
 

@@ -7,8 +7,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Exceptions;
-    using Azure.IIoT.OpcUa.Models;
+    using Furly;
     using Furly.Exceptions;
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Serializers;
@@ -27,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly;
 
     /// <summary>
     /// Client manager

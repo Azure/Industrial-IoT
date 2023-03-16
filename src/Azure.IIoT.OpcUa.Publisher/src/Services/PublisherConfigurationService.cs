@@ -7,12 +7,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Models;
     using Autofac;
+    using Furly;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.IIoT;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Furly;
 
     /// <summary>
     /// Provides configuration services for publisher using either published nodes

@@ -8,8 +8,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
-    using Azure.IIoT.OpcUa.Services.Clients.Adapters;
-    using Azure.IIoT.OpcUa.Testing.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Furly.Azure;

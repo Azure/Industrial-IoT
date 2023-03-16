@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Testing.Tests
+namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using System;
     using System.Linq;
@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadUInt64ProcessedValuesTest1Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = DateTime.UtcNow;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);
@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadUInt64ProcessedValuesTest2Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = DateTime.UtcNow;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);
@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryReadUInt64ProcessedValuesTest3Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = DateTime.UtcNow;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);
@@ -173,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryStreamUInt64ProcessedValuesTest1Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = DateTime.UtcNow;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);
@@ -226,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryStreamUInt64ProcessedValuesTest2Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = DateTime.UtcNow;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);
@@ -279,7 +279,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests
         public async Task HistoryStreamUInt64ProcessedValuesTest3Async()
         {
             var services = _services();
-            const string samples = "s=1:Azure.IIoT.OpcUa.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
+            const string samples = "s=1:Azure.IIoT.OpcUa.Publisher.Testing.Servers.HistoricalAccess.Data.Sample.UInt64.txt";
 
             var now = DateTime.UtcNow;
             now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, DateTimeKind.Utc);

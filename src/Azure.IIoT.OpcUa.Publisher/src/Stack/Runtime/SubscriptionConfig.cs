@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Configuration;
     using Microsoft.Extensions.Configuration;
     using System;
