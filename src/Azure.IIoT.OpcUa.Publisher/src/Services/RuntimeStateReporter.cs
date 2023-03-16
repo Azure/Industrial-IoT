@@ -10,12 +10,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
-    using System;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Collections.Generic;
-    using System.Threading;
     using Microsoft.Extensions.Options;
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -63,9 +63,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     MessageVersion = 1
                 };
 
-                await _events.SendEventAsync(new TopicBuilder(_options).RootTopic,
+                await _events.SendEventAsync(new TopicBuilder(_options).EventsTopic,
                     _serializer.SerializeToMemory(body), _serializer.MimeType,
-                    Encoding.UTF8.WebName, configure: e => {
+                    Encoding.UTF8.WebName, configure: e =>
+                    {
                         e.AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
                             MessageSchemaTypes.RuntimeStateMessage);
                         if (_options.Value.RuntimeStateRoutingInfo != null)

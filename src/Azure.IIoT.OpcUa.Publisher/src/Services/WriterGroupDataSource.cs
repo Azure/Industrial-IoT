@@ -9,10 +9,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -22,8 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
-    using Microsoft.Extensions.Options;
-    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes

@@ -9,15 +9,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Moq;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using Xunit;
-    using System.Globalization;
-    using Microsoft.Extensions.Configuration;
 
     public class MonitoredItemMessageEncoderJsonTests
     {

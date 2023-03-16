@@ -54,7 +54,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         {
             /// <inheritdoc/>
             public KeyVaultTokenSource(MsiAuthenticationClient ma, AppAuthenticationClient aa,
-                DevAuthenticationClient ld, IEnumerable<ITokenClient> providers, ILogger logger)
+                DevAuthenticationClient ld, IEnumerable<ITokenClient> providers,
+                ILogger<TokenClientAggregateSource> logger)
                     : base(providers, logger, ma, aa, ld)
             {
             }

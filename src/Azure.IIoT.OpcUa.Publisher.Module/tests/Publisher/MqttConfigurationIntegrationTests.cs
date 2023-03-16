@@ -8,27 +8,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Divergic.Logging.Xunit;
     using Json.More;
-    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using Furly.Extensions.Mqtt;
 
     /// <summary>
-    /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,
-    /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
+    /// Currently, we create new independent instances of server, publisher and services for each test,
+    /// this could be optimised e.g. create only single instance of server and publisher between
+    /// tests in the same class.
     /// </summary>
     [Collection(ReferenceServerReadCollection.Name)]
-    public class MqttConfigurationIntegrationTests : PublisherMqttIntegrationTestBase
+    public class MqttConfigurationIntegrationTests : PublisherIntegrationTestBase
     {
         private readonly ITestOutputHelper _output;
 
         public MqttConfigurationIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output)
-            : base(fixture, LogFactory.Create(output, new LoggingConfig { LogLevel = LogLevel.Information }))
+            : base(fixture, output)
         {
             _output = output;
         }
@@ -39,7 +39,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         public async Task CanSendDataItemToTopicConfiguredWithMethod(bool useMqtt5)
         {
             var testInput = GetEndpointsFromFile("./PublishedNodes/DataItems.json");
-            await StartPublisherAsync(useMqtt5, arguments: new string[] { "--mm=FullSamples" }).ConfigureAwait(false); // Alternative to --fm=True
+            StartPublisher(arguments: new string[] { "--mm=FullSamples" }, // Alternative to --fm=True
+                version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
@@ -69,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                await StopPublisherAsync().ConfigureAwait(false);
+                StopPublisher();
             }
         }
 
@@ -79,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         public async Task CanSendEventToTopicConfiguredWithMethod(bool useMqtt5)
         {
             var testInput = GetEndpointsFromFile("./PublishedNodes/SimpleEvents.json");
-            await StartPublisherAsync(useMqtt5).ConfigureAwait(false);
+            StartPublisher(version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
@@ -108,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                await StopPublisherAsync().ConfigureAwait(false);
+                StopPublisher();
             }
         }
 
@@ -118,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         public async Task CanSendPendingConditionsToTopicConfiguredWithMethod(bool useMqtt5)
         {
             var testInput = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
-            await StartPublisherAsync(useMqtt5).ConfigureAwait(false);
+            StartPublisher(version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
@@ -155,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                await StopPublisherAsync().ConfigureAwait(false);
+                StopPublisher();
             }
         }
 
@@ -167,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             var testInput1 = GetEndpointsFromFile("./PublishedNodes/DataItems.json");
             var testInput2 = GetEndpointsFromFile("./PublishedNodes/SimpleEvents.json");
             var testInput3 = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
-            await StartPublisherAsync(useMqtt5).ConfigureAwait(false);
+            StartPublisher(version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
@@ -218,7 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                await StopPublisherAsync().ConfigureAwait(false);
+                StopPublisher();
             }
         }
 
@@ -228,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         public async Task CanSendPendingConditionsToTopicConfiguredWithMethod2(bool useMqtt5)
         {
             var testInput = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
-            await StartPublisherAsync(useMqtt5).ConfigureAwait(false);
+            StartPublisher(version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync().ConfigureAwait(false);
@@ -286,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             }
             finally
             {
-                await StopPublisherAsync().ConfigureAwait(false);
+                StopPublisher();
             }
         }
 

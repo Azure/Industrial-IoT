@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
     public class DevAuthenticationClient : AppAuthenticationBase
     {
         /// <inheritdoc/>
-        public DevAuthenticationClient(IClientAuthConfig config, ILogger logger) :
+        public DevAuthenticationClient(IClientAuthConfig config, ILogger<DevAuthenticationClient> logger) :
             base(logger)
         {
             _config = config?.Providers?

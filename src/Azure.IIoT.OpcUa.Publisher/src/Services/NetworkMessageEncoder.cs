@@ -15,13 +15,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Messaging;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Creates PubSub encoded messages

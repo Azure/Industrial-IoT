@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     using Azure.IIoT.OpcUa.Services.Subscriber;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Microsoft.Azure.IIoT;
+    using Furly;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using System;
@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly;
 
     /// <summary>
     /// Publisher message handling
@@ -33,7 +32,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
         public NetworkMessageJsonHandler(IVariantEncoderFactory encoder,
-            IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger)
+            IEnumerable<ISubscriberMessageProcessor> handlers,
+            ILogger<NetworkMessageJsonHandler> logger)
         {
             _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

@@ -8,12 +8,15 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Autofac;
     using Furly.Extensions.Logging;
-    using Furly.Extensions.Serializers.Json;
     using Furly.Extensions.Utils;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
@@ -23,11 +26,6 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
     using System.Net;
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
-    using System.Threading.Tasks;
-    using Autofac;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Microsoft.Extensions.Options;
-    using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -103,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
                         _container.Resolve<ILogger<ServerFactory>>(), nodes)
                     {
                         LogStatus = false
-                    },  _container.Resolve<ILogger<ServerConsoleHost>>())
+                    }, _container.Resolve<ILogger<ServerConsoleHost>>())
                     {
                         PkiRootPath = options.Value.Security.PkiRootPath,
                         AutoAccept = true
@@ -168,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures
                 .AsImplementedInterfaces();
 
             builder.AddDefaultJsonSerializer();
-            builder.RegisterType<TestClientServicesConfig>()
+            builder.RegisterType<TestClientConfig>()
                 .AsImplementedInterfaces();
 
             builder.RegisterType<StackLogger>()

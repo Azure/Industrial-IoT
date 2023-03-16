@@ -5,35 +5,31 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Controller;
+    using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Services;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Models;
     using Autofac;
+    using Divergic.Logging.Xunit;
     using FluentAssertions;
-    using Furly.Extensions.Hosting;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Models;
     using Moq;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using Divergic.Logging.Xunit;
-    using System.Globalization;
-    using Microsoft.Extensions.Options;
-    using Furly.Extensions.Configuration;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
@@ -101,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 _newtonSoftJsonSerializer,
                 _diagnostic.Object
             );
-            configService.StartAsync().AsTask().GetAwaiter().GetResult();
+            configService.GetAwaiter().GetResult();
             return configService;
         }
 

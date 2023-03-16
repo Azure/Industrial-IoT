@@ -7,13 +7,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa;
-    using Microsoft.Azure.IIoT;
+    using Furly;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.IO.Compression;
     using System.Text;
-    using Furly;
 
     /// <summary>
     /// Json discovery metdata message

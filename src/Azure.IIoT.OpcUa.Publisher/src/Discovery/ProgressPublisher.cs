@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _channel = Channel.CreateUnbounded<DiscoveryProgressModel>();
-            _topic = new TopicBuilder(options).RootTopic;
+            _topic = new TopicBuilder(options).EventsTopic;
             _sender = Task.Factory.StartNew(() => SendProgressAsync(),
                 default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }

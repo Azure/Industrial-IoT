@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services
         /// </summary>
         /// <param name="hub"></param>
         /// <param name="logger"></param>
-        public SignalRHub(IHubContext<THub> hub, ILogger logger)
+        public SignalRHub(IHubContext<THub> hub, ILogger<THub> logger)
         {
             _hub = hub ?? throw new ArgumentNullException(nameof(hub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

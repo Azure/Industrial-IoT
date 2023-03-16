@@ -5,19 +5,19 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using System;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Builder;
-    using Autofac.Extensions.DependencyInjection;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Microsoft.OpenApi.Models;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Resources;
-    using Microsoft.OpenApi.Models;
+    using System;
 
     /// <summary>
     /// Webservice startup
@@ -92,13 +92,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
         {
             app.UseRouting();
+
+            app.UseHttpsRedirect();
+            app.UseSwagger();
+            app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");
             });
-
-            app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
@@ -120,7 +123,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
 
             // Register transport services
-            builder.AddTransports(Configuration);
+            builder.AddMqttClient(Configuration);
+            builder.AddIoTEdgeServices(Configuration);
         }
     }
 }

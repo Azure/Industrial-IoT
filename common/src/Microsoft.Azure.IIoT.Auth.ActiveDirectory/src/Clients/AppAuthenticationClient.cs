@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
     public class AppAuthenticationClient : AppAuthenticationBase
     {
         /// <inheritdoc/>
-        public AppAuthenticationClient(IClientAuthConfig config, ILogger logger) :
+        public AppAuthenticationClient(IClientAuthConfig config, ILogger<AppAuthenticationClient> logger) :
             base(logger)
         {
             _config = config?.Providers?

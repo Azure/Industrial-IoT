@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Services.Services
         /// <param name="endpointEvents"></param>
         /// <param name="applicationEvents"></param>
         public ApplicationRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
-            ILogger logger, IEndpointRegistryListener endpointEvents = null,
+            ILogger<ApplicationRegistry> logger, IEndpointRegistryListener endpointEvents = null,
             IApplicationRegistryListener applicationEvents = null)
         {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));

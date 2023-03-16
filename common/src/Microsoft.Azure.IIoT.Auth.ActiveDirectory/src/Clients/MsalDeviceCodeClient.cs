@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public MsalDeviceCodeClient(IClientAuthConfig config, ILogger logger) :
+        public MsalDeviceCodeClient(IClientAuthConfig config, ILogger<MsalDeviceCodeClient> logger) :
             this(new ConsolePrompt(), config, logger)
         {
         }
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public MsalDeviceCodeClient(IDeviceCodePrompt prompt,
-            IClientAuthConfig config, ILogger logger) : base(config, logger)
+            IClientAuthConfig config, ILogger<MsalDeviceCodeClient> logger) : base(config, logger)
         {
             _prompt = prompt ?? throw new ArgumentNullException(nameof(prompt));
         }

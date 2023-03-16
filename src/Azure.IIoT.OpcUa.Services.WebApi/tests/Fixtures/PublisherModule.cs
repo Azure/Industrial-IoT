@@ -5,35 +5,34 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi
 {
+    using Azure.IIoT.OpcUa.Publisher.Module;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Furly.Azure;
     using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Edge.Services;
     using Furly.Azure.IoT.Mock;
     using Furly.Azure.IoT.Models;
     using Furly.Extensions.Utils;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Hosting;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using Microsoft.AspNetCore.Mvc.Testing;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Extensions.Hosting;
-    using Microsoft.AspNetCore.TestHost;
-    using Azure.IIoT.OpcUa.Publisher.Module;
-    using Furly.Azure.IoT.Edge.Services;
 
     /// <summary>
     /// Opc Publisher module fixture
     /// </summary>
-    public sealed class PublisherModule : WebApplicationFactory<Publisher.Module.Startup>, IStartable
+    public sealed class PublisherModule : WebApplicationFactory<ModuleStartup>, IStartable
     {
         /// <summary>
-        /// Taret
+        /// Sdk target
         /// </summary>
         public string Target { get; }
 
@@ -50,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <summary>
         /// Hub container
         /// </summary>
-        public ILifetimeScope HubContainer { get; }
+        public ILifetimeScope ClientContainer { get; }
 
         /// <summary>
         /// Create fixture
@@ -58,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <param name="serviceContainer"></param>
         public PublisherModule(ILifetimeScope serviceContainer)
         {
-            HubContainer = serviceContainer;
+            ClientContainer = serviceContainer;
             var deviceId = Utils.GetHostName();
             var moduleId = Guid.NewGuid().ToString();
             var arguments = Array.Empty<string>();
@@ -68,12 +67,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 ModuleId = moduleId
             };
 
-            var service = HubContainer.Resolve<IIoTHubTwinServices>();
-            var twin = service.CreateOrUpdateAsync(publisherModule).AsTask().Result;
-            var device = service.GetRegistrationAsync(twin.Id, twin.ModuleId).AsTask().Result;
+            var service = ClientContainer.Resolve<IIoTHubTwinServices>();
+            var twin = service.CreateOrUpdateAsync(publisherModule).AsTask().GetAwaiter().GetResult();
+            var device = service.GetRegistrationAsync(twin.Id, twin.ModuleId).AsTask().GetAwaiter().GetResult();
 
-            // Start publisher module with the created identity
-            Target = HubResource.Format(null, device.Id, device.ModuleId);
 
             ServerPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
                 Guid.NewGuid().ToByteArray().ToBase16String());
@@ -81,29 +78,30 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 Guid.NewGuid().ToByteArray().ToBase16String());
 
             // Create a virtual connection betwenn publisher module and hub
-            var hub = HubContainer.Resolve<IIoTHub>();
+            var hub = ClientContainer.Resolve<IIoTHub>();
             _connection = hub.Connect(device.Id, device.ModuleId);
 
             // Start module
-            var publisherCs = ConnectionString.CreateModuleConnectionString(
+            var edgeHubCs = ConnectionString.CreateModuleConnectionString(
                 "test.test.org", device.Id, device.ModuleId, device.PrimaryKey);
             arguments = arguments.Concat(
                 new[]
                 {
-                    $"--ec={publisherCs}",
+                    $"--ec={edgeHubCs}",
                     "--aa"
                 }).ToArray();
 
             var configBuilder = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
-                    { "EnableMetrics", "false" },
                     { "PkiRootPath", ClientPkiRootPath }
                 })
                 .AddInMemoryCollection(new PublisherCliOptions(arguments))
                 ;
+
             _config = configBuilder.Build();
             _ = Server; // Ensure server is created
+            Target = HubResource.Format(null, device.Id, device.ModuleId);
         }
 
         /// <inheritdoc/>
@@ -134,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         }
 
         /// <summary>
-        /// Resolve service
+        /// Resolve service from publisher module
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
@@ -151,6 +149,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
             if (disposing)
             {
                 _connection.Close();
@@ -160,7 +159,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                     Try.Op(() => Directory.Delete(ServerPkiRootPath, true));
                 }
             }
-            base.Dispose(disposing);
         }
 
         /// <inheritdoc/>
@@ -170,10 +168,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
             builder.AddPublisherServices();
             // Override client config
             builder.RegisterInstance(_config).AsImplementedInterfaces();
-            builder.RegisterType<TestClientServicesConfig>()
+            builder.RegisterType<TestClientConfig>()
                 .AsImplementedInterfaces();
 
-            // Register connectivity services
             builder.RegisterType<IoTEdgeIdentity>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterInstance(_connection.EventClient);

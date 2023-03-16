@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
@@ -24,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.Utils;
 
     /// <summary>
     /// Publisher module host process

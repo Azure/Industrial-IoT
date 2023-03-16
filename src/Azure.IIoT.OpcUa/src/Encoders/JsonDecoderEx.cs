@@ -1125,7 +1125,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return number;
             }
-            
+
             return Variant.Null;
         }
 
@@ -1166,7 +1166,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return number;
             }
-            
+
             return Variant.Null;
         }
 
@@ -1204,7 +1204,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return number;
             }
-            
+
             return Variant.Null;
         }
 

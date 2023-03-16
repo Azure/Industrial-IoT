@@ -14,6 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Publisher module hosted service
@@ -54,17 +56,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             {
                 try
                 {
-                    // Resolves client and starts client and errors if it fails.
+                    await _scope.Resolve<IEnumerable<IAwaitable>>().WhenAll().ConfigureAwait(false);
                     var runtimeStateReporter = _scope.Resolve<IRuntimeStateReporter>();
-                    // Resolves OPC UA client and starts and errors if it fails.
-                    var uaClient = _scope.Resolve<IClientHost>();
 
                     var version = GetType().Assembly.GetReleaseVersion().ToString();
                     _logger.LogInformation("Starting OpcPublisher module version {Version}...",
                         version);
-
-                    // Connect
-                    await uaClient.StartAsync().ConfigureAwait(false);
 
                     // Now report runtime state as restarted. This can crash and we will retry.
                     await runtimeStateReporter.SendRestartAnnouncementAsync(
@@ -87,11 +84,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     _logger.LogInformation("Retrying in 30 seconds...");
                     await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken).ConfigureAwait(false);
                 }
-                finally
-                {
-                    OnRunning?.Invoke(this, false);
-                    _logger.LogInformation("Stopped module OpcPublisher.");
-                }
             }
         }
 
@@ -107,6 +99,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 _ = new Timer(o => Process.GetCurrentProcess().Kill(),
                     null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
             }
+
+            OnRunning?.Invoke(this, false);
+            _logger.LogInformation("Stopped module OpcPublisher.");
             return Task.CompletedTask;
         }
 

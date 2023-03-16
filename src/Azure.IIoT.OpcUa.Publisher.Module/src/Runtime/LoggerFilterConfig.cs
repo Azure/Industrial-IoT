@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Furly.Extensions.Configuration;
-    using Furly.Extensions.Mqtt;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using System;

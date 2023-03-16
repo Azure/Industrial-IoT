@@ -9,8 +9,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Azure.IoT.Edge;
-    using Furly.Extensions.Configuration;
     using Furly.Extensions.Logging;
+    using Furly.Extensions.Mqtt;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Mono.Options;
@@ -18,9 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System;
     using System.Collections.Generic;
     using System.Globalization;
-    using System.Linq;
     using System.IO;
-    using Furly.Extensions.Mqtt;
+    using System.Linq;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from
@@ -102,7 +101,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"The messaging mode for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(MessagingMode)))}`\nDefault: `{nameof(MessagingMode.PubSub)}` if `-c` is specified, otherwise `{nameof(MessagingMode.Samples)}` for backwards compatibility.\n",
                     (MessagingMode m) => this[PublisherConfig.MessagingModeKey] = m.ToString() },
 
-
                 // TODO: Add ability to specify networkmessage mask
                 // TODO: Add ability to specify dataset message mask
                 // TODO: Add ability to specify dataset field message mask
@@ -159,11 +157,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "The topic at which OPC Publisher's method handler is mounted.\nIf not specified, the `{{RootTopic}}/methods` template will be used as root topic with the method names as sub topic.\nOnly\n    `{{RootTopic}}`\n    `{{SiteId}}` and\n    `{{PublisherId}}`\ncan currently be used as replacement variables in the template.\nDefault: `{{RootTopic}}/methods`.\n",
                     t => this[PublisherConfig.MethodTopicTemplateKey] = t },
                 { $"ttt|telemetrytopictemplate:|{PublisherConfig.TelemetryTopicTemplateKey}:",
-                    "The default topic that all messages are sent to.\nIf not specified, the `{{RootTopic}}/{{DataSetWriterGroup}}` template will be used as root topic for all events sent by OPC Publisher.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriterName}}` and\n    `{{DataSetWriterGroup}}`\n can be used as dynamic parts in the template. If a template variable does not exist the name of the variable is emitted.\nDefault: `{{RootTopic}}/{{DataSetWriterGroup}}`.\n",
+                    "The default topic that all messages are sent to.\nIf not specified, the `{{RootTopic}}/messages/{{DataSetWriterGroup}}` template will be used as root topic for all events sent by OPC Publisher.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriterName}}` and\n    `{{DataSetWriterGroup}}`\n can be used as dynamic parts in the template. If a template variable does not exist the name of the variable is emitted.\nDefault: `{{RootTopic}}/messages/{{DataSetWriterGroup}}`.\n",
                     t => this[PublisherConfig.TelemetryTopicTemplateKey] = t },
+                { $"ett|eventstopictemplate=|{PublisherConfig.EventsTopicTemplateKey}=",
+                    "The topic into which OPC Publisher publishes any events that are not telemetry messages such as discovery or runtime events.\nIf not specified, the `{{RootTopic}}/events` template will be used.\nOnly\n    `{{RootTopic}}`\n    `{{SiteId}}` and\n    `{{PublisherId}}`\ncan currently be used as replacement variables in the template.\nDefault: `{{RootTopic}}/events`.\n",
+                    t => this[PublisherConfig.EventsTopicTemplateKey] = t },
                 { $"mdt|metadatatopictemplate:|{PublisherConfig.DataSetMetaDataTopicTemplateKey}:",
                     "The topic that metadata should be sent to.\nIn case of MQTT the message will be sent as RETAIN message with a TTL of either metadata send interval or infinite if metadata send interval is not configured.\nOnly valid if metadata is supported and/or explicitely enabled.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{TelemetryTopic}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriterName}}` and\n    `{{DatasetWriterGroup}}`\ncan be used as dynamic parts in the template. \nDefault: `{{TelemetryTopic}}` which means metadata is sent to the same output as regular messages. If specified without value, the default output is `{{TelemetryTopic}}/$metadata`.\n",
-                    (string s) => this[PublisherConfig.DataSetMetaDataTopicTemplateKey] = !string.IsNullOrEmpty(s) ? s : "{{TelemetryTopic}}/$metadata" },
+                    s => this[PublisherConfig.DataSetMetaDataTopicTemplateKey] = !string.IsNullOrEmpty(s) ? s : "{TelemetryTopic}/$metadata" },
                 { $"ri|enableroutinginfo:|{PublisherConfig.EnableDataSetRoutingInfoKey}:",
                     $"Add routing information to messages. The name of the property is `{Constants.MessagePropertyRoutingKey}` and the value is the `DataSetWriterGroup` for that particular message.\nWhen the `DataSetWriterGroup` is not configured, the `{Constants.MessagePropertyRoutingKey}` property will not be added to the message even if this argument is set.\nDefault: `{PublisherConfig.EnableDataSetRoutingInfoDefault}`.\n",
                     (bool? b) => this[PublisherConfig.EnableDataSetRoutingInfoKey] = b?.ToString() ?? "True" },

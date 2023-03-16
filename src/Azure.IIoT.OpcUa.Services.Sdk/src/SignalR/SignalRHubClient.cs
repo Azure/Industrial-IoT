@@ -27,8 +27,9 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
         /// <param name="logger"></param>
         /// <param name="provider"></param>
         /// <param name="jsonSettings"></param>
-        public SignalRHubClient(ISignalRClientConfig config, ILogger logger,
-            ITokenProvider provider = null, INewtonsoftSerializerSettingsProvider jsonSettings = null)
+        public SignalRHubClient(ISignalRClientConfig config,
+            ILogger<SignalRHubClient> logger, ITokenProvider provider = null,
+            INewtonsoftSerializerSettingsProvider jsonSettings = null)
         {
             _jsonSettings = jsonSettings;
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -154,8 +155,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
                     logger, // TODO: should use logger factory here
                     provider, jsonSettings);
 
-                await host.StartAsync().ConfigureAwait(false);
-                return new SignalRClientRegistrar(host);
+                return new SignalRClientRegistrar(await host);
             }
 
             /// <inheritdoc/>

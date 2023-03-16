@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Moq;
     using Opc.Ua;
@@ -17,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using System.Diagnostics;
     using System.Linq;
     using Xunit;
-    using Microsoft.Extensions.Configuration;
 
     public class NetworkMessageEncoderLegacyTests
     {

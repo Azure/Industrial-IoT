@@ -27,8 +27,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// <param name="iothub"></param>
         /// <param name="logger"></param>
         /// <param name="events"></param>
-        public GatewayRegistry(IIoTHubTwinServices iothub, ILogger logger,
-            IGatewayRegistryListener events = null)
+        public GatewayRegistry(IIoTHubTwinServices iothub,
+            ILogger<GatewayRegistry> logger, IGatewayRegistryListener events = null)
         {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

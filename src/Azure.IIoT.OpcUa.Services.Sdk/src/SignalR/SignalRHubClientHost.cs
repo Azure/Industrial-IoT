@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
 {
+    using Furly;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using MessagePack.Resolvers;
     using Microsoft.AspNetCore.SignalR.Client;
-    using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Extensions.DependencyInjection;
@@ -22,8 +22,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
     /// <summary>
     /// SignalR hub client
     /// </summary>
-    public sealed class SignalRHubClientHost : ICallbackRegistrar, IHostProcess,
-        IAsyncDisposable, IDisposable
+    internal sealed class SignalRHubClientHost : ICallbackRegistrar,
+        IAwaitable<SignalRHubClientHost>, IAsyncDisposable, IDisposable
     {
         /// <inheritdoc/>
         public string ConnectionId => _connection.ConnectionId;
@@ -52,6 +52,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             _useMessagePack = (useMessagePack ?? false) && _msgPack != null;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _provider = provider;
+            _started = StartAsync();
         }
 
         /// <inheritdoc/>
@@ -61,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             _lock.Wait();
             try
             {
-                if (!_started)
+                if (_connection == null)
                 {
                     throw new InvalidOperationException("Must start before registering");
                 }
@@ -74,31 +75,9 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
         }
 
         /// <inheritdoc/>
-        public async ValueTask StartAsync()
+        public IAwaiter<SignalRHubClientHost> GetAwaiter()
         {
-            await _lock.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                if (_started)
-                {
-                    _logger.LogDebug("SignalR client host already running.");
-                    return;
-                }
-                _logger.LogDebug("Starting SignalR client host...");
-                _started = true;
-                _connection = await OpenAsync().ConfigureAwait(false);
-                _logger.LogInformation("SignalR client host started.");
-            }
-            catch (Exception ex)
-            {
-                _started = false;
-                _logger.LogError(ex, "Error starting SignalR client host.");
-                throw;
-            }
-            finally
-            {
-                _lock.Release();
-            }
+            return _started.AsAwaiter(this);
         }
 
         /// <inheritdoc/>
@@ -107,11 +86,11 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             await _lock.WaitAsync().ConfigureAwait(false);
             try
             {
-                if (!_started)
+                if (_isDisposed)
                 {
                     return;
                 }
-                _started = false;
+                _isDisposed = true;
                 _logger.LogDebug("Stopping SignalR client host...");
                 await DisposeAsync(_connection).ConfigureAwait(false);
                 _connection = null;
@@ -133,19 +112,47 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             _lock.Wait();
             try
             {
+                if (_isDisposed)
+                {
+                    return;
+                }
+                _isDisposed = true;
                 if (_connection != null)
                 {
                     _logger.LogTrace("SignalR client was not stopped before disposing.");
                     Try.Op(() => DisposeAsync(_connection).Wait());
                     _connection = null;
                 }
-                _started = false;
             }
             finally
             {
                 _lock.Release();
             }
             _lock.Dispose();
+        }
+
+        /// <summary>
+        /// Start signal host client
+        /// </summary>
+        /// <returns></returns>
+        private async Task StartAsync()
+        {
+            await _lock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                _logger.LogDebug("Starting SignalR client host...");
+                _connection = await OpenAsync().ConfigureAwait(false);
+                _logger.LogInformation("SignalR client host started.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error starting SignalR client host.");
+                throw;
+            }
+            finally
+            {
+                _lock.Release();
+            }
         }
 
         /// <summary>
@@ -169,7 +176,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
                 var jsonSettings = _jsonSettings?.Settings;
                 if (jsonSettings != null)
                 {
-                    builder = builder.AddNewtonsoftJsonProtocol(options => options.PayloadSerializerSettings = jsonSettings);
+                    builder = builder.AddNewtonsoftJsonProtocol(options =>
+                    options.PayloadSerializerSettings = jsonSettings);
                 }
             }
             var connection = builder
@@ -205,8 +213,10 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
             {
                 return;
             }
-            await Try.Async(() => connection?.StopAsync() ?? Task.CompletedTask).ConfigureAwait(false);
-            await Try.Async(() => connection?.DisposeAsync().AsTask() ?? Task.CompletedTask).ConfigureAwait(false);
+            await Try.Async(() => connection?.StopAsync() ??
+                Task.CompletedTask).ConfigureAwait(false);
+            await Try.Async(() => connection?.DisposeAsync().AsTask() ??
+                Task.CompletedTask).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -219,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
         {
             _logger.LogError(ex, "SignalR client host Disconnected!");
             await DisposeAsync(connection).ConfigureAwait(false);
-            if (_started)
+            if (!_isDisposed)
             {
                 // Reconnect
                 _connection = await OpenAsync().ConfigureAwait(false);
@@ -234,7 +244,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR
         private readonly bool _useMessagePack;
         private readonly ILogger _logger;
         private readonly ITokenProvider _provider;
+        private readonly Task _started;
+        private bool _isDisposed;
         private HubConnection _connection;
-        private bool _started;
     }
 }

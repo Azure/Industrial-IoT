@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
     /// <summary>
     /// Server factory
     /// </summary>
-    public class ServerFactory : IServerFactory
+    public sealed class ServerFactory : IServerFactory
     {
         /// <summary>
         /// Whether to log status
@@ -33,7 +33,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="nodes"></param>
-        public ServerFactory(ILogger logger, IEnumerable<INodeManagerFactory> nodes)
+        public ServerFactory(ILogger<ServerFactory> logger,
+            IEnumerable<INodeManagerFactory> nodes)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
@@ -43,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         /// Full set of servers
         /// </summary>
         /// <param name="logger"></param>
-        public ServerFactory(ILogger logger) :
+        public ServerFactory(ILogger<ServerFactory> logger) :
             this(logger, new List<INodeManagerFactory> {
                 new TestData.TestDataServer(),
                 new MemoryBuffer.MemoryBufferServer(),

@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
             /// <inheritdoc/>
             public NativeClientTokenSource(DevAuthenticationClient ld, AppAuthenticationClient aa,
                 MsalInteractiveClient ic, MsalDeviceCodeClient dc,
-                    IEnumerable<ITokenClient> providers, ILogger logger)
+                    IEnumerable<ITokenClient> providers, ILogger<TokenClientAggregateSource> logger)
                     : base(providers, logger, ld, aa, ic, dc)
             {
             }

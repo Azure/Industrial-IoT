@@ -13,17 +13,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Net;
 
     /// <summary>
-    /// Discovery progress logger
+    /// Discovery progress _logger
     /// </summary>
     public class ProgressLogger : IDiscoveryProgress
     {
         /// <summary>
         /// Create listener
         /// </summary>
-        /// <param name="logger"></param>
-        public ProgressLogger(ILogger logger)
+        /// <param name="_logger"></param>
+        internal ProgressLogger(ILogger _logger)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger = _logger ?? throw new ArgumentNullException(nameof(_logger));
         }
 
         /// <inheritdoc/>
@@ -291,7 +291,92 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         protected virtual void Send(DiscoveryProgressModel progress)
         {
             progress.TimeStamp = DateTime.UtcNow;
-            _logger.LogProgress(progress);
+            switch (progress.EventType)
+            {
+                case DiscoveryProgressType.Pending:
+                    _logger.LogTrace("{Request}: Discovery operations pending.",
+                        progress.Request.Id);
+                    break;
+                case DiscoveryProgressType.Started:
+                    _logger.LogInformation("{Request}: Discovery operation started.",
+                        progress.Request.Id);
+                    break;
+                case DiscoveryProgressType.Cancelled:
+                    _logger.LogInformation("{Request}: Discovery operation cancelled.",
+                        progress.Request.Id);
+                    break;
+                case DiscoveryProgressType.Error:
+                    _logger.LogError("{Request}: Error {Error} during discovery run.",
+                        progress.Request.Id, progress.Result);
+                    break;
+                case DiscoveryProgressType.Finished:
+                    _logger.LogInformation("{Request}: Discovery operation completed.",
+                        progress.Request.Id);
+                    break;
+                case DiscoveryProgressType.NetworkScanStarted:
+                    _logger.LogInformation(
+                        "{Request}: Starting network scan ({Active} probes active)...",
+                        progress.Request.Id, progress.Workers);
+                    break;
+                case DiscoveryProgressType.NetworkScanResult:
+                    _logger.LogInformation("{Request}: Found address {Address} ({Scanned} scanned)...",
+                        progress.Request.Id, progress.Result, progress.Progress);
+                    break;
+                case DiscoveryProgressType.NetworkScanProgress:
+                    _logger.LogInformation("{Request}: {Scanned} addresses scanned - {Discovered} " +
+                        "ev.Discovered ({Active} probes active)...", progress.Request.Id,
+                        progress.Progress, progress.Discovered, progress.Workers);
+                    break;
+                case DiscoveryProgressType.NetworkScanFinished:
+                    _logger.LogInformation("{Request}: Found {Count} addresses. " +
+                        "({Scanned} scanned)...", progress.Request.Id,
+                        progress.Discovered, progress.Progress);
+                    break;
+                case DiscoveryProgressType.PortScanStarted:
+                    _logger.LogInformation(
+                        "{Request}: Starting port scanning ({Active} probes active)...",
+                        progress.Request.Id, progress.Workers);
+                    break;
+                case DiscoveryProgressType.PortScanResult:
+                    _logger.LogInformation("{Request}: Found server {Endpoint} ({Scanned} scanned)...",
+                        progress.Request.Id, progress.Result, progress.Progress);
+                    break;
+                case DiscoveryProgressType.PortScanProgress:
+                    _logger.LogInformation("{Request}: {Scanned} ports scanned - {Discovered} discovered" +
+                        " ({Active} probes active)...", progress.Request.Id,
+                        progress.Progress, progress.Discovered, progress.Workers);
+                    break;
+                case DiscoveryProgressType.PortScanFinished:
+                    _logger.LogInformation("{Request}: Found {Count} ports on servers " +
+                        "({Scanned} scanned)...",
+                        progress.Request.Id, progress.Discovered, progress.Progress);
+                    break;
+                case DiscoveryProgressType.ServerDiscoveryStarted:
+                    _logger.LogInformation(
+                        "{Request}: Searching {Count} discovery urls for endpoints...",
+                        progress.Request.Id, progress.Total);
+                    break;
+                case DiscoveryProgressType.EndpointsDiscoveryStarted:
+                    _logger.LogInformation(
+                        "{Request}: Trying to find endpoints on {Details}...",
+                        progress.Request.Id, progress.RequestDetails["url"]);
+                    break;
+                case DiscoveryProgressType.EndpointsDiscoveryFinished:
+                    if (!progress.Discovered.HasValue || progress.Discovered == 0)
+                    {
+                        _logger.LogInformation(
+                            "{Request}: No endpoints ev.Discovered on {Details}.",
+                            progress.Request.Id, progress.RequestDetails["url"]);
+                    }
+                    _logger.LogInformation(
+                        "{Request}: Found {Count} endpoints on {Details}.",
+                        progress.Request.Id, progress.Discovered, progress.RequestDetails["url"]);
+                    break;
+                case DiscoveryProgressType.ServerDiscoveryFinished:
+                    _logger.LogInformation("{Request}: Found total of {Count} servers ...",
+                        progress.Request.Id, progress.Discovered);
+                    break;
+            }
         }
 
         private readonly ILogger _logger;

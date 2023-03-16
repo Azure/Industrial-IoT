@@ -5,17 +5,29 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
+    using Autofac;
+    using System;
     using Xunit.Abstractions;
 
-    public sealed class PublisherModuleFixture : PublisherModule
+    public sealed class PublisherModuleFixture : IDisposable
     {
+        public IContainer ClientContainer => _publisher.ClientContainer;
+
         /// <summary>
         /// Create fixture
         /// </summary>
         /// <param name="messageSink"></param>
-        public PublisherModuleFixture(IMessageSink messageSink) : base(messageSink)
+        public PublisherModuleFixture(IMessageSink messageSink)
         {
-            // No op
+            _publisher = new PublisherModule(messageSink);
         }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            _publisher.Dispose();
+        }
+
+        private readonly PublisherModule _publisher;
     }
 }

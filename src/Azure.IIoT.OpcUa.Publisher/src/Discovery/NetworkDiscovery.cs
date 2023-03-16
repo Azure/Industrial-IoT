@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 throw new ArgumentNullException(nameof(options));
 
             _logger = loggerFactory.CreateLogger<NetworkDiscovery>();
-            _topic = new TopicBuilder(options).RootTopic;
+            _topic = new TopicBuilder(options).EventsTopic;
             _progress = progress ?? new ProgressLogger(loggerFactory.CreateLogger<ProgressLogger>());
             _runner = Task.Run(() => ProcessDiscoveryRequestsAsync(_cts.Token));
             _timer = new Timer(_ => OnScanScheduling(), null,

@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Testing.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Configuration;
@@ -16,10 +15,10 @@ namespace Azure.IIoT.OpcUa.Testing.Runtime
     /// <summary>
     /// Client's application configuration implementation
     /// </summary>
-    public sealed class TestClientServicesConfig : ConfigureOptionBase<ClientOptions>,
+    public sealed class TestClientConfig : ConfigureOptionBase<ClientOptions>,
         IDisposable
     {
-        public TestClientServicesConfig(IConfiguration configuration,
+        public TestClientConfig(IConfiguration configuration,
             bool autoAccept = false) : base(configuration)
         {
             _autoAccept = autoAccept;

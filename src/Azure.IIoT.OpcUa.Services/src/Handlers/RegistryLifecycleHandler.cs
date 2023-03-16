@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
         /// <param name="supervisors"></param>
         /// <param name="discoverers"></param>
         public RegistryLifecycleHandler(IIoTHubTwinServices iothub,
-            IJsonSerializer serializer, ILogger logger,
+            IJsonSerializer serializer, ILogger<RegistryLifecycleHandler> logger,
             IGatewayRegistryListener gateways = null,
             IPublisherRegistryListener publishers = null,
             IApplicationRegistryListener applications = null,

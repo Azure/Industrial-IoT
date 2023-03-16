@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Models;
     using Furly;
-    using Microsoft.Azure.IIoT;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using System;
@@ -33,7 +32,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
         public MonitoredItemMessageHandler(IVariantEncoderFactory encoder,
-            IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger)
+            IEnumerable<ISubscriberMessageProcessor> handlers,
+            ILogger<MonitoredItemMessageHandler> logger)
         {
             _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

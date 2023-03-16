@@ -31,7 +31,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         /// </summary>
         /// <param name="clients"></param>
         /// <param name="logger"></param>
-        public TokenClientAggregateSource(IEnumerable<ITokenClient> clients, ILogger logger) :
+        public TokenClientAggregateSource(IEnumerable<ITokenClient> clients,
+            ILogger<TokenClientAggregateSource> logger) :
             this(Reorder(clients), logger)
         {
         }
@@ -43,7 +44,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         /// <param name="logger"></param>
         /// <param name="prefer"></param>
         protected TokenClientAggregateSource(IEnumerable<ITokenClient> clients,
-             ILogger logger, params ITokenClient[] prefer)
+             ILogger<TokenClientAggregateSource> logger, params ITokenClient[] prefer)
             : this(Reorder(clients, prefer), logger)
         {
         }
@@ -54,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         /// <param name="clients"></param>
         /// <param name="logger"></param>
         private TokenClientAggregateSource(List<ITokenClient> clients,
-            ILogger logger)
+            ILogger<TokenClientAggregateSource> logger)
         {
             _clients = clients ?? throw new ArgumentNullException(nameof(clients));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

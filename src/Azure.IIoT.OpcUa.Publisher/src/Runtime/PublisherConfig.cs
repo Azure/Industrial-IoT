@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
-    using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Hosting;
     using Microsoft.Extensions.Configuration;
@@ -34,6 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string MethodTopicTemplateKey = "MethodTopicTemplate";
         public const string RootTopicTemplateKey = "RootTopicTemplate";
         public const string TelemetryTopicTemplateKey = "TelemetryTopicTemplate";
+        public const string EventsTopicTemplateKey = "EventsTopicTemplate";
         public const string DataSetMetaDataTopicTemplateKey = "DataSetMetaDataTopicTemplate";
         public const string DefaultMaxMessagesPerPublishKey = "DefaultMaxMessagesPerPublish";
         public const string DiagnosticsIntervalKey = "DiagnosticsInterval";
@@ -62,9 +63,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Default values
         /// </summary>
         public const string TelemetryTopicTemplateDefault =
-            $"{{{RootTopicVariableName}}}/{{{DataSetWriterGroupVariableName}}}";
+            $"{{{RootTopicVariableName}}}/messages/{{{DataSetWriterGroupVariableName}}}";
         public const string MethodTopicTemplateDefault =
             $"{{{RootTopicVariableName}}}/methods";
+        public const string EventsTopicTemplateDefault =
+            $"{{{RootTopicVariableName}}}/events";
         public const string RootTopicTemplateDefault =
             $"{{{PublisherIdVariableName}}}";
         public const string PublishedNodesFileDefault = "publishednodes.json";
@@ -90,31 +93,37 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.PublisherId = GetStringOrDefault(PublisherIdKey,
                     _identity?.Id ?? Dns.GetHostName());
             }
+
             if (options.Site == null)
             {
                 options.Site = GetStringOrDefault(SiteIdKey);
             }
+
             if (options.PublishedNodesFile == null)
             {
                 options.PublishedNodesFile = GetStringOrDefault(PublishedNodesFileKey,
                     PublishedNodesFileDefault);
             }
-            if (options.MaxNodesPerPublishedEndpoint == 0)
+
+            if (options.MaxNodesPerDataSet == 0)
             {
-                options.MaxNodesPerPublishedEndpoint = GetIntOrDefault(MaxNodesPerDataSetKey,
+                options.MaxNodesPerDataSet = GetIntOrDefault(MaxNodesPerDataSetKey,
                     MaxNodesPerDataSetDefault);
             }
+
             if (options.BatchSize == null)
             {
                 options.BatchSize = GetIntOrDefault(BatchSizeKey,
                     BatchSizeDefault);
             }
+
             if (options.BatchTriggerInterval == null)
             {
                 options.BatchTriggerInterval = GetDurationOrNull(BatchTriggerIntervalKey) ??
                     TimeSpan.FromMilliseconds(GetIntOrDefault(BatchTriggerIntervalKey,
                         BatchTriggerIntervalDefaultMillis));
             }
+
             if (options.MaxEgressMessages == null)
             {
                 options.MaxEgressMessages = GetIntOrDefault(MaxEgressMessagesKey,
@@ -131,6 +140,12 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 options.MethodTopicTemplate = GetStringOrDefault(
                     MethodTopicTemplateKey, MethodTopicTemplateDefault);
+            }
+
+            if (options.EventsTopicTemplate == null)
+            {
+                options.EventsTopicTemplate = GetStringOrDefault(
+                    EventsTopicTemplateKey, EventsTopicTemplateDefault);
             }
 
             if (options.TelemetryTopicTemplate == null)
@@ -175,20 +190,24 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.EnableDataSetRoutingInfo = GetBoolOrDefault(
                     EnableDataSetRoutingInfoKey, EnableDataSetRoutingInfoDefault);
             }
+
             if (options.MaxMessageSize == null) // Max encoder message size
             {
                 options.MaxMessageSize = GetIntOrNull(IoTHubMaxMessageSize);
             }
+
             if (options.UseStandardsCompliantEncoding == null)
             {
                 options.UseStandardsCompliantEncoding = GetBoolOrDefault(
                     UseStandardsCompliantEncodingKey, UseStandardsCompliantEncodingDefault);
             }
+
             if (options.DefaultMaxMessagesPerPublish == null)
             {
                 options.DefaultMaxMessagesPerPublish = (uint?)GetIntOrNull(
                     DefaultMaxMessagesPerPublishKey);
             }
+
             if (options.MessagingProfile == null)
             {
                 if (!Enum.TryParse<MessagingMode>(GetStringOrDefault(MessagingModeKey),

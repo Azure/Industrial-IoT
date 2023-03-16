@@ -29,12 +29,14 @@ namespace Azure.IIoT.OpcUa.Publisher
         public string PublishedNodesFile { get; set; }
 
         /// <summary>
-        /// Max number of nodes per publish endpoint
+        /// Max number of nodes per data set (publishing
+        /// endpoint inside the configuration of publisher)
         /// </summary>
-        public int MaxNodesPerPublishedEndpoint { get; set; }
+        public int MaxNodesPerDataSet { get; set; }
 
         /// <summary>
-        /// Messaging profile to use
+        /// Messaging profile to use as default inside the
+        /// publisher.
         /// </summary>
         public MessagingProfile MessagingProfile { get; set; }
 
@@ -79,6 +81,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Method topic template
         /// </summary>
         public string MethodTopicTemplate { get; set; }
+
+        /// <summary>
+        /// Events topic template
+        /// </summary>
+        public string EventsTopicTemplate { get; set; }
 
         /// <summary>
         /// Telemetry topic template

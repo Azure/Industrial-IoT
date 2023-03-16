@@ -6,12 +6,21 @@
 namespace Azure.IIoT.OpcUa.Publisher.Sdk
 {
     /// <summary>
-    /// Configuration for IoT Edge Opc Publisher api
+    /// Configuration for IoT Edge Opc Publisher sdk
     /// </summary>
     public interface ISdkConfig
     {
         /// <summary>
-        /// Edge target
+        /// Edge target path. This is the mount path of the
+        /// publisher'smethod router which using the publisher
+        /// module's command line arguments and is defaulting to
+        /// <code>
+        /// {PublisherId}/methods
+        /// </code>
+        /// or the device and module identifier in the form of
+        /// <code>
+        /// {deviceId}_module_{moduleId}
+        /// </code>.
         /// </summary>
         string Target { get; }
     }

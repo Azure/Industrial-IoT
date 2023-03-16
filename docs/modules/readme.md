@@ -11,7 +11,7 @@ In this document you find information to
 - [Configure mutual trust between OPC Publisher and the OPC UA server](#opc-ua-certificates-management)
 - [Understand message formats supported by OPC Publisher](#opc-publisher-telemetry-formats)
 - [Tune OPC Publisher performance](#performance-and-memory-tuning-opc-publisher)
-- [Monitor and diagnose OPC Publisher](#local-metrics-dashboard-for-opc-publisher)
+- [Monitor and diagnose OPC Publisher](#diagnostics)
 
 ## Getting Started
 
@@ -85,7 +85,6 @@ OPC Publisher has several interfaces that can be used to configure it.
 - [Configuration via configuration file](#configuration-via-configuration-file)
 - [Command Line options configuration](./publisher-commandline.md)
 - [Direct method runtime configuration](./publisher-directmethods.md)
-- [Orchestrated mode based configuration using Industrial IoT Platform API](../services/publisher.md)
 - [How to migrate from previous versions of OPC Publisher](./publisher-migrationpath.md)
 
 ### Configuring Security
@@ -162,7 +161,7 @@ To ensure operation of OPC Publisher over restarts, it's required to map configu
 
 In version 2.6 and above, username and password are stored in plain text in the configuration file. It must be ensured that the configuration file is protected by the file system access control of the host file system. The same must be ensured for the file system based certificate store, since it contains the private certificate and private key of OPC Publisher.
 
-## OPC UA Client Services (OPC Twin)
+## OPC UA Client (OPC Twin)
 
 The control services (formerly OPC Twin services) provides a IoT Hub device method API to invoke OPC UA server functionality on OPC server endpoints. The Payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack to the OPC UA server.  The response is reencoded to JSON and passed back to the cloud service.  This includes [Variant](../api/json.md) encoding and decoding in a consistent JSON format.
 
@@ -316,11 +315,40 @@ The metric `monitored item notifications enqueue failure`  in OPC Publisher vers
 
 When both `si` and `ms` parameters are set to 0, OPC Publisher sends a message to IoT Hub as soon as data is available. This results in an average IoT Hub message size of just over 200 bytes. However, the advantage of this configuration is that OPC Publisher sends the data from the connected asset without delay. The number of lost messages will be high for use cases where a large amount of data must be published and hence this isn't recommended for these scenarios.
 
+### Diagnostics
+
+The OPC Publisher emits metrics through its Prometheus endpoint (`/metrics`). To learn more about how to create a local metrics dashboard for OPC Publisher V2.7, refer to the tutorial [here](../tutorials/tut-publisher-local-metrics-dashboard/MetricsDashboard.md).
+
 To measure the performance of OPC Publisher, the `di` parameter can be used to print performance metrics to the log in the interval specified (in seconds).
 
-## Local metrics dashboard for OPC Publisher
+The following table describes the actual instruments that are logged per endpoint:
 
-To learn more about how to create a local metrics dashboard for OPC Publisher V2.7, refer to the tutorial [here](../tutorials/tut-publisher-local-metrics-dashboard/MetricsDashboard.md).
+| Log line item name                      | Diagnostic info property name                       | Description |
+|-----------------------------------------|-------------------------------------|-------------|
+| # Ingestion duration                    | ingestionDuration                   | How long the data flow inside the publisher has been executing after it was created (either from file or API) |
+| # Ingress DataChanges (from OPC)        | ingressDataChanges                  | The number of OPC UA subscription notification messages with data value changes that have been received by publisher inside this data flow |
+| # Ingress ValueChanges (from OPC)       | ingressValueChanges                 | The number of value changes inside the OPC UA subscription notifications processed by the data flow. |
+| # Ingress EventNotifications (from OPC) | ingressEventNotifications           | The number of OPC UA subscription notification messages with events that have been received by publisher so far inside this data flow |
+| # Ingress EventChanges (from OPC)       | ingressEvents                       | The number of events that were part of these OPC UA subscription notifications that were so far processed by the data flow. |
+| # Ingress BatchBlock buffer size        | ingressBatchBlockBufferSize         | The number of messages awaiting encoding and sending tot he telemetry message destination inside the data flow pipeline. |
+| # Encoding Block input / output size    | encodingBlockInputSize              | The number of messages awaiting encoding into the output format. |
+| # Encoding Block input / output size    | encodingBlockOutputSize             | The number of messages already encoded and waiting to be sent to the telemetry message destination. |
+| # Encoder Notifications processed       | encoderNotificationsProcessed       | The total number of subscription notifications processed by the encoder stage of the data flow pipeline since the pipeline started. |
+| # Encoder Notifications dropped         | encoderNotificationsDropped         | The total number of subscription notifications that were dropped because they could not be encoded, e.g., due to their size being to large to fit into the message. |
+| # Encoder IoT Messages processed        | encoderIoTMessagesProcessed         | The total number of encoded messages produced by the encoder since the start of the pipeline. |
+| # Encoder avg Notifications/Message     | encoderAvgNotificationsMessage      | The average number of subscription notifications that were presssed into a message. |
+| # Encoder avg IoT Message body size     | encoderAvgIoTMessageBodySize        | The average size of the message body produced over the course of the pipeline run. |
+| # Encoder avg IoT Chunk (4 Kb) usage    | encoderAvgIoTChunkUsage             | The average use of IoT Hub chunks (4k). |
+| # Estimated IoT Chunks (4 KB) per day   | estimatedIoTChunksPerDay            | An estimate of how many chunks are used per day by publisher which enables correct sizing of the IoT Hub to avoid data loss due to throttling. |
+| # Outgress Batch Block buffer size      | outgressBatchBlockBufferSize        | The number of messages that are waiting to be sent to all configured telemetry message destination via the message sink. |
+| # Outgress input bufffer count          | outgressInputBufferCount            | The aggregated number of messages waiting in the input buffer of the configured telemetry message destination sinks. |
+| # Outgress input buffer dropped         | outgressInputBufferDropped          | The aggregated number of messages that were dropped in any of the configured telemetry message destination sinks. |
+| # Outgress IoT message count            | outgressIoTMessageCount             | The aggregated number of messages that were sent by all configured telemetry message destination sinks. |
+|                                         | sentMessagesPerSec                  | Publisher throughput meaning the number of messages sent to the telemetry message destination (e.g., IoT Hub / Edge Hub) per second |
+| # Connection retries                    | connectionRetries                   | How many times connections to the OPC UA server broke and needed to be reconnected as it pertains to the data flow. |
+| # Opc endpoint connected?               | opcEndpointConnected                | Whether the pipeline is currently connected to the OPC UA server endpoint or in a reconnect attempt. |
+| # Montitored Opc nodes succeeded count  | monitoredOpcNodesSucceededCount     | How many of the configured monitored items have been established successfully inside the data flow's OPC UA subscription and should be producing data. |
+| # Montitored Opc nodes failed count     | monitoredOpcNodesFailedCount        | How many of the configured monitored items inside the data flow failed to be created in the subscription (the logs will provide more information). |
 
 ## Next steps
 

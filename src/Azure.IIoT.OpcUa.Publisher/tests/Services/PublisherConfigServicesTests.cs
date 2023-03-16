@@ -5,19 +5,17 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
 {
-    using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
+    using Azure.IIoT.OpcUa.Models;
     using Divergic.Logging.Xunit;
     using FluentAssertions;
     using Furly.Exceptions;
-    using Furly.Extensions.Hosting;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -96,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
                 _publishedNodesProvider,
                 _newtonSoftJsonSerializer
             );
-            configService.StartAsync().AsTask().GetAwaiter().GetResult();
+            configService.GetAwaiter().GetResult();
             return configService;
         }
 
@@ -469,7 +467,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             bool useDataSetSpecificEndpoints
         )
         {
-            _options.Value.MaxNodesPerPublishedEndpoint = 2;
+            _options.Value.MaxNodesPerDataSet = 2;
 
             using var configService = InitPublisherConfigService();
 
@@ -569,7 +567,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
         [Fact]
         public async Task TestAddOrUpdateEndpointsAddAndRemove()
         {
-            _options.Value.MaxNodesPerPublishedEndpoint = 2;
+            _options.Value.MaxNodesPerDataSet = 2;
 
             using var configService = InitPublisherConfigService();
 

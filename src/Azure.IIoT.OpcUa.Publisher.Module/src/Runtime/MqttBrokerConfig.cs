@@ -10,9 +10,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
-    using System.Text.RegularExpressions;
-    using System.Linq;
     using System.Globalization;
+    using System.Linq;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Configure mqtt broker
@@ -30,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public const string HostNameKey = "MqttBrokerHostName";
         public const string HostPortKey = "MqttBrokerPort";
         public const string ProtocolKey = "MqttProtocolVersion";
+        public const string UseTlsKey  = "MqttBrokerUsesTls";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -42,9 +43,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 options.HostName = properties[nameof(options.HostName)];
 
                 // Permit the port to be set if provided, otherwise use defaults.
-                if (properties.TryGetValue(nameof(options.Port), out var value))
+                if (properties.TryGetValue(nameof(options.Port), out var value) &&
+                    int.TryParse(value, CultureInfo.InvariantCulture, out var port))
                 {
-                    options.Port = int.Parse(value, CultureInfo.InvariantCulture);
+                    options.Port = port;
                 }
                 if (properties.ContainsKey(nameof(options.UserName)))
                 {
@@ -54,9 +56,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     options.Password = properties[nameof(options.Password)];
                 }
-                if (properties.TryGetValue(nameof(options.Version), out value))
+                if (properties.TryGetValue(nameof(options.Version), out value) &&
+                    Enum.TryParse<MqttVersion>(value, true, out var version))
                 {
-                    options.Version = Enum.Parse<MqttVersion>(value, true);
+                    options.Version = version;
+                }
+                if (properties.TryGetValue(nameof(options.UseTls), out value) &&
+                    bool.TryParse(value, out var useTls))
+                {
+                    options.UseTls = useTls;
                 }
             }
             else
@@ -78,9 +86,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     options.Port = GetIntOrNull(HostPortKey);
                 }
                 if (Enum.TryParse<MqttVersion>(GetStringOrDefault(ProtocolKey),
-                    out var version))
+                    true, out var version))
                 {
                     options.Version = version;
+                }
+                if (options.UseTls == null)
+                {
+                    options.UseTls = GetBoolOrNull(UseTlsKey);
                 }
             }
 
@@ -127,7 +139,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     m.Result("$1"),
                     valuePairString.Substring(
                         m.Index + m.Value.Length,
-                        (m.NextMatch().Success ? m.NextMatch().Index : valuePairString.Length) - (m.Index + m.Value.Length))
+                        (m.NextMatch().Success ? m.NextMatch().Index : valuePairString.Length)
+                            - (m.Index + m.Value.Length))
                 });
 
             if (!parts.Any() || parts.Any(p => p.Length != 2))

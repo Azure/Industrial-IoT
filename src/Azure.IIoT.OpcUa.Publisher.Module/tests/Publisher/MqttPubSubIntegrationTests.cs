@@ -7,8 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Divergic.Logging.Xunit;
-    using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Mqtt;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -17,16 +16,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
     using Xunit.Abstractions;
 
     /// <summary>
-    /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,
-    /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
+    /// Currently, we create new independent instances of server, publisher and services for each test,
+    /// this could be optimised e.g. create only single instance of server and publisher between
+    /// tests in the same class.
     /// </summary>
     [Collection(ReferenceServerReadCollection.Name)]
-    public class MqttPubSubIntegrationTests : PublisherMqttIntegrationTestBase
+    public class MqttPubSubIntegrationTests : PublisherIntegrationTestBase
     {
         private readonly ITestOutputHelper _output;
 
         public MqttPubSubIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output)
-            : base(fixture, LogFactory.Create(output, new LoggingConfig { LogLevel = LogLevel.Information }))
+            : base(fixture, output)
         {
             _output = output;
         }
@@ -37,7 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json",
-                false, messageType: "ua-data", arguments: new string[] { "--mm=PubSub", "--mqn=metadatamessage" }).ConfigureAwait(false);
+                messageType: "ua-data", arguments: new string[] { "--mm=PubSub", "--mdt={TelemetryTopic}/metadatamessage" },
+                version: MqttVersion.v311).ConfigureAwait(false);
 
             // Assert
             var message = Assert.Single(messages);
@@ -54,8 +55,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         {
             // Arrange
             // Act
-            var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json", true,
-                arguments: new string[] { "--dm", "--mm=DataSetMessages" }).ConfigureAwait(false);
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json",
+                arguments: new string[] { "--dm", "--mm=DataSetMessages" },
+                version: MqttVersion.v5).ConfigureAwait(false);
 
             // Assert
             var message = Assert.Single(messages);
@@ -71,8 +73,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         {
             // Arrange
             // Act
-            var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json", false,
-                messageType: "ua-deltaframe", arguments: new string[] { "-c", "--mm=DataSetMessages" }).ConfigureAwait(false);
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
+                "./PublishedNodes/DataItems.json", messageType: "ua-deltaframe",
+                arguments: new string[] { "-c", "--mm=DataSetMessages" },
+                version: MqttVersion.v311).ConfigureAwait(false);
 
             // Assert
             var message = Assert.Single(messages);
@@ -88,8 +92,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         {
             // Arrange
             // Act
-            var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/DataItems.json", true,
-                messageType: "ua-deltaframe", arguments: new string[] { "-c", "--dm=False", "--mm=RawDataSets", "--mqn=$metadata" }).ConfigureAwait(false);
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
+                "./PublishedNodes/DataItems.json", messageType: "ua-deltaframe",
+                arguments: new string[] { "-c", "--dm=False", "--mm=RawDataSets", "--mdt" },
+                version: MqttVersion.v5).ConfigureAwait(false);
 
             // Assert
             var output = Assert.Single(messages);
@@ -108,10 +114,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         {
             // Arrange
             // Act
-            var (metadata, result) = await ProcessMessagesAndMetadataAsync(
-                publishedNodesFile, true, messageType: "ua-data",
-                arguments: new[] { "--mm=PubSub", "--me=Json" }
-            ).ConfigureAwait(false);
+            var (metadata, result) = await ProcessMessagesAndMetadataAsync(publishedNodesFile,
+                messageType: "ua-data", arguments: new[] { "--mm=PubSub", "--me=Json" },
+                version: MqttVersion.v5).ConfigureAwait(false);
 
             Assert.Single(result);
 
@@ -147,10 +152,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         {
             // Arrange
             // Act
-            var (metadata, result) = await ProcessMessagesAndMetadataAsync(
-                publishedNodesFile, TimeSpan.FromMinutes(2), 4, false, messageType: "ua-data",
-                arguments: new[] { "--mm=PubSub", "--me=JsonReversible" }
-            ).ConfigureAwait(false);
+            var (metadata, result) = await ProcessMessagesAndMetadataAsync(publishedNodesFile,
+                TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                arguments: new[] { "--mm=PubSub", "--me=JsonReversible" },
+                version: MqttVersion.v311).ConfigureAwait(false);
 
             var messages = result
                 .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
@@ -192,10 +197,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         {
             // Arrange
             // Act
-            var (metadata, result) = await ProcessMessagesAndMetadataAsync(
-                publishedNodesFile, true, messageType: "ua-data",
-                arguments: new[] { "-c", "--mm=PubSub", "--me=Json" }
-            ).ConfigureAwait(false);
+            var (metadata, result) = await ProcessMessagesAndMetadataAsync(publishedNodesFile,
+                messageType: "ua-data", arguments: new[] { "-c", "--mm=PubSub", "--me=Json" },
+                version: MqttVersion.v5).ConfigureAwait(false);
 
             Assert.Single(result);
 
@@ -232,9 +236,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
-                publishedNodesFile, TimeSpan.FromMinutes(2), 4, false, messageType: "ua-data",
-                arguments: new[] { "-c", "--mm=PubSub", "--me=JsonReversible" }
-            ).ConfigureAwait(false);
+                publishedNodesFile, TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                arguments: new[] { "-c", "--mm=PubSub", "--me=JsonReversible" },
+                version: MqttVersion.v311).ConfigureAwait(false);
 
             var messages = result
                 .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
@@ -275,8 +279,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./PublishedNodes/PendingAlarms.json",
-                false, BasicPubSubIntegrationTests.GetAlarmCondition,
-                messageType: "ua-data", arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
+                BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data",
+arguments: new string[] { "--mm=PubSub" }, version: MqttVersion.v311).ConfigureAwait(false);
 
             // Assert
             _output.WriteLine(messages.ToString());

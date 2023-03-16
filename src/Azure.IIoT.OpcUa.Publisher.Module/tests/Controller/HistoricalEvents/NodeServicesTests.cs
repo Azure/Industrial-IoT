@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.HistoricalEvents
         private NodeHistoricalEventsTests<ConnectionModel> GetTests()
         {
             return new NodeHistoricalEventsTests<ConnectionModel>(
-                () => _module.HubContainer.Resolve<INodeServices<ConnectionModel>>(),
+                () => _module.ClientContainer.Resolve<INodeServices<ConnectionModel>>(),
                 _server.GetConnection());
         }
 

@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using Autofac.Extras.Moq;
     using AutoFixture;
     using AutoFixture.Kernel;
+    using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Mock.Services;
     using Furly.Azure.IoT.Models;
@@ -23,7 +24,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
-    using Furly.Azure;
 
     public class ApplicationRegistryTests
     {

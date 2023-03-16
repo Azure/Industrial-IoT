@@ -51,8 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.4.371.60" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.11" />
-    <PackageReference Include="Furly.Extensions.Json" Version="0.4.11" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.15" />
+    <PackageReference Include="Furly.Extensions.Json" Version="0.4.15" />
     <PackageReference Include="xunit.abstractions" Version="2.0.3" />
   </ItemGroup>
   <ItemGroup>

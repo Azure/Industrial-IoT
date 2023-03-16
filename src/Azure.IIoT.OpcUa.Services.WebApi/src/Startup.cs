@@ -20,13 +20,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
     using System;
+    using Nito.AsyncEx;
+    using System.Collections;
+    using Furly;
+    using System.Threading.Tasks;
+    using System.Threading;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Webservice startup
@@ -36,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <summary>
         /// Configuration - Initialized in constructor
         /// </summary>
-        public IConfigurationRoot Config { get; }
+        public IConfigurationRoot Configuration { get; }
 
         /// <summary>
         /// Service info - Initialized in constructor
@@ -56,14 +61,12 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         public Startup(IWebHostEnvironment env, IConfiguration configuration)
         {
             Environment = env;
-            Config = new ConfigurationBuilder()
+            Configuration = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                // Above configuration providers will provide connection
-                // details for KeyVault configuration provider.
-                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
+                .AddFromKeyVault(ConfigurationProviderPriority.Lowest)
                 .Build();
         }
 
@@ -107,6 +110,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
 
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
             // services.AddOpenTelemetry(ServiceInfo.Name);
+            services.AddHostedService<AwaitableStartable>();
         }
 
         /// <summary>
@@ -117,9 +121,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
         /// <param name="appLifetime"></param>
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
         {
-            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-            var log = applicationContainer.Resolve<ILogger<Startup>>();
-
             app.UsePathBase();
             app.UseHeaderForwarding();
 
@@ -141,11 +142,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
 
             // app.UsePrometheus();
 
-            // If you want to dispose of resources that have been resolved in the
-            // application container, register for the "ApplicationStopped" event.
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            var log = applicationContainer.Resolve<ILogger<Startup>>();
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
-
-            // Print some useful information at bootstrap time
             log.LogInformation("{Service} web service started with id {Id}",
                 ServiceInfo.Name, ServiceInfo.Id);
         }
@@ -159,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
             // Register service info and configuration
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces();
-            builder.RegisterInstance(Config)
+            builder.RegisterInstance(Configuration)
                 .AsImplementedInterfaces();
 
             // Add diagnostics
@@ -170,8 +169,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
             builder.AddNewtonsoftJsonSerializer();
 
             // Register IoT Hub services for registry and edge clients.
-            builder.RegisterModule<RegistryServices>();
             builder.AddIoTHubServices();
+            builder.RegisterModule<RegistryServices>();
+
             builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherServicesClient>()
@@ -217,11 +217,29 @@ namespace Azure.IIoT.OpcUa.Services.WebApi
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DiscoveryProgressPublisher<DiscoverersHub>>()
                 .AsImplementedInterfaces().SingleInstance();
+        }
 
-            // ... and auto start
-            builder.RegisterType<HostAutoStart>()
-                .AutoActivate()
-                .AsImplementedInterfaces().SingleInstance();
+        internal sealed class AwaitableStartable : IHostedService
+        {
+            /// <inheritdoc/>
+            public AwaitableStartable(IEnumerable<IAwaitable> awaitables)
+            {
+                _awaitables = awaitables;
+            }
+
+            /// <inheritdoc/>
+            public async Task StartAsync(CancellationToken cancellationToken)
+            {
+                await _awaitables.WhenAll().ConfigureAwait(false);
+            }
+
+            /// <inheritdoc/>
+            public Task StopAsync(CancellationToken cancellationToken)
+            {
+                return Task.CompletedTask;
+            }
+
+            private readonly IEnumerable<IAwaitable> _awaitables;
         }
     }
 }

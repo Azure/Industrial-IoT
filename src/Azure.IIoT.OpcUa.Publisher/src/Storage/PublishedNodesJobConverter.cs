@@ -250,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     .SelectMany(
                         n => n
                         .Distinct(opcNodeModelComparer)
-                        .Batch(configuration.MaxNodesPerPublishedEndpoint))
+                        .Batch(configuration.MaxNodesPerDataSet))
                     .ToList()
                     .ConvertAll(
                         opcNodes => (opcNodes.First().Header, Source: new PublishedDataSetSourceModel

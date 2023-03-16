@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public DiscoveryProgressHandler(IEnumerable<IDiscoveryProgressProcessor> handlers,
-            IJsonSerializer serializer, ILogger logger)
+            IJsonSerializer serializer, ILogger<DiscoveryProgressHandler> logger)
         {
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));

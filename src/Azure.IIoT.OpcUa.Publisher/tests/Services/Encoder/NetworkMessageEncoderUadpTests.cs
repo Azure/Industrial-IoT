@@ -9,15 +9,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Moq;
     using Opc.Ua;
     using System;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using Xunit;
-    using System.Globalization;
-    using Microsoft.Extensions.Configuration;
 
     public class NetworkMessageEncoderUadpTests
     {

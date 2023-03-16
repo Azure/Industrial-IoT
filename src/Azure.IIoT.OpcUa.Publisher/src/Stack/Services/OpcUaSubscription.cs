@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
@@ -22,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Subscription implementation

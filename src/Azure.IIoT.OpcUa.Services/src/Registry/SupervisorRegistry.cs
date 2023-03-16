@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// <param name="logger"></param>
         /// <param name="events"></param>
         public SupervisorRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
-            ILogger logger, ISupervisorRegistryListener events = null)
+            ILogger<SupervisorRegistry> logger, ISupervisorRegistryListener events = null)
         {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

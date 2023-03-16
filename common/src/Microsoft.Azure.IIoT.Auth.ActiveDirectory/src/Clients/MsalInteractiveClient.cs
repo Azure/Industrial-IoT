@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public MsalInteractiveClient(IClientAuthConfig config, ILogger logger) :
+        public MsalInteractiveClient(IClientAuthConfig config, ILogger<MsalInteractiveClient> logger) :
             base(config, logger)
         {
         }

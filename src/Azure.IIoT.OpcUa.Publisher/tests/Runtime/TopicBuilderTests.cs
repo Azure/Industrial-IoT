@@ -7,11 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Runtime
 {
     using FluentAssertions;
     using Microsoft.Extensions.Configuration;
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using Xunit;
 
     public class TopicBuilderTests
@@ -42,6 +38,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Runtime
         }
 
         [Fact]
+        public void TestEventsTopicBuilding1()
+        {
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.PublisherId = "MyPublisher";
+            new TopicBuilder(options).EventsTopic.Should().Be($"{options.Value.PublisherId}/events");
+        }
+
+        [Fact]
         public void TestTelemetryTopicBuildingWithDefault()
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
@@ -50,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Runtime
             {
                 ["DataSetWriterName"] = "Foo",
                 ["DataSetWriterGroup"] = "Bar"
-            }).TelemetryTopic.Should().Be($"{options.Value.PublisherId}/Bar");
+            }).TelemetryTopic.Should().Be($"{options.Value.PublisherId}/messages/Bar");
         }
 
         [Fact]
@@ -170,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Runtime
             {
                 ["DataSetWriterName"] = "Foo",
                 ["DataSetWriterGroup"] = "Bar"
-            }).DataSetMetaDataTopic.Should().Be($"{options.Value.PublisherId}/Bar/$metadata");
+            }).DataSetMetaDataTopic.Should().Be($"{options.Value.PublisherId}/messages/Bar/$metadata");
         }
     }
 }

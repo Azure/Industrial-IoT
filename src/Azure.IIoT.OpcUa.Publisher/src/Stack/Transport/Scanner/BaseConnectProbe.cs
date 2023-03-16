@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
     /// implementation to interrogate the server.
     /// </summary>
     /// <returns></returns>
-    public abstract class BaseConnectProbe : IDisposable
+    internal abstract class BaseConnectProbe : IDisposable
     {
         /// <summary>
         /// Create connect probe

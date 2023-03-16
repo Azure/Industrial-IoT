@@ -6,16 +6,15 @@
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Models;
     using Autofac;
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
-    using Azure.IIoT.OpcUa.Models;
-    using Furly.Extensions.Hosting;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Container builder for data set writer jobs

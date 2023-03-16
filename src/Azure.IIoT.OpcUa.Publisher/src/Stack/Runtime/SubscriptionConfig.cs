@@ -31,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultMetaDataUpdateTime = "DefaultMetaDataUpdateTime";
         public const string DefaultDataChangeTrigger = "DefaulDataChangeTrigger";
         public const string FetchOpcNodeDisplayName = "FetchOpcNodeDisplayName";
-        public const string EnableMetricsKey = "EnableMetrics";
         public const string DefaultQueueSize = "DefaultQueueSize";
         public const string MinSubscriptionLifetimeKey = "MinSubscriptionLifetime";
         public const string MaxKeepAliveCountKey = "MaxKeepAliveCount";

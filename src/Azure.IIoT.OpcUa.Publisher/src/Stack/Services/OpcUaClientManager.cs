@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
@@ -26,14 +27,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Options;
+    using Furly;
 
     /// <summary>
     /// Client manager
     /// </summary>
-    public sealed class OpcUaClientManager : IClientHost, ISessionProvider<ConnectionModel>,
-        ISubscriptionManager, IEndpointDiscovery, IDisposable,
-        ICertificateServices<EndpointModel>, IConnectionServices<ConnectionModel>
+    public sealed class OpcUaClientManager : ISessionProvider<ConnectionModel>,
+        ISubscriptionManager, IEndpointDiscovery, IAwaitable<OpcUaClientManager>,
+        ICertificateServices<EndpointModel>, IConnectionServices<ConnectionModel>,
+        IDisposable
     {
         /// <summary>
         /// Create client manager
@@ -65,9 +67,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask StartAsync()
+        public IAwaiter<OpcUaClientManager> GetAwaiter()
         {
-            await _configuration.ConfigureAwait(false);
+            return _configuration.AsAwaiter(this);
         }
 
         /// <inheritdoc/>

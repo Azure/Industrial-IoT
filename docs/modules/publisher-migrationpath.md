@@ -1,8 +1,21 @@
 [Home](../../readme.md)
 
-# Application migration from OPC Publisher 2.5.x direct methods to 2.8.2 and higher direct methods
+# Migrate from OPC Publisher 2.8.x to 2.9 and higher
 
-This document provides more information regarding migrating from older versions of OPC Publisher (in standalone mode) to the latest version. 
+## API changes
+
+* OPC Publisher 2.9 removes "orchestrated mode". This means you must [migrate your Cosmos DB job definitions](#migrating-cosmos-db-job-definitions) using the migration tooling (COMING SOON)
+* OPC Twin capabilities are integrated in OPC Publisher 2.9. The following differences between 2.8.4 OPC Twin and OPC Publisher 2.9 exist:
+  * OPC Publisher 2.9 does not support activation and deactivation of Endpoint Twins, which allowed OPC Twin endpoints to be addressed with a IoT Hub device id. Instead all API's must be invoked with a `ConnectionModel` parameter (`connection`) and the original request model.
+  * The concept of supervisor (the OPC Twin module instance) and discoverer (the OPC Discovery module instance) are completely equivalent to the publisher concept in 2.9. The supervisor, discovery, and publisher REST APIs have been retained for backwards compatibility and return the same information which is the twin of the Publisher module.
+  * Activation and deactivation, and the endpoint connectivity concept have been removed.  The current activation and deactivation API can be used to connect and disconnect clients in the OPC Publisher that are not actively managing subscriptions.
+    * The GetSupervisorStatus and ResetSupervisor API has been removed without replacement.
+  * GetEndpointCertificate API now returns a `X509CertificateChainModel` instead of byte array in 2.8.
+* OPC Discovery capabiltiies are integrated into OPC Publisher 2.9.
+
+## Migrating Cosmos DB job definitions
+
+COMING SOON
 
 ## Configuration file (pn.json)
 
@@ -55,6 +68,8 @@ To learn more about how to use comman-line arguments to configure OPC Publisher,
 
 ## OPC Publisher 2.5.x Command Line Arguments supported in 2.8.2 or higher
 
+Any removed command line arguments will still silently work.  
+
 The following table describes the command line arguments, which were available in OPC Publisher 2.5.x and their compatibility in OPC Publisher 2.8.2 and above.
 
 | **Command Line Options**                |  **in 2.8.2 and above**  | **Alternative** |
@@ -64,18 +79,18 @@ The following table describes the command line arguments, which were available i
 | --s, --site=VALUE                       |  yes                     |                 |
 | --ic, --iotcentral                      |  no                      |                 |
 | --sw, --sessionconnectwait=VALUE        |  no                      |                 |
-| --mq, --monitoreditemqueuecapacity=VALUE|  no                      | use --om, --maxoutgressmessages=VALUE       |
+| --mq, --monitoreditemqueuecapacity=VALUE|  no                      | use --om, --maxoutgressmessages=VALUE |
 | --di, --diagnosticsinterval=VALUE       |  yes                     |                 |
 | --ns, --noshutdown=VALUE                |  no                      |                 |
 | --rf, --runforever                      |  no                      |                 |
-| --lf, --logfile=VALUE                   |  yes                     |                 |
-| --lt, --logflushtimespan=VALUE          |  yes                     |                 |
+| --lf, --logfile=VALUE                   |  no                      | IoT Edge support bundle or live logs |
+| --lt, --logflushtimespan=VALUE          |  no                      | IoT Edge support bundle or live logs |
 | --ll, --loglevel=VALUE                  |  yes                     |                 |
 | --ih, --iothubprotocol=VALUE            |  yes                     |                 |
 | --ms, --iothubmessagesize=VALUE         |  yes                     |                 |
 | --si, --iothubsendinterval=VALUE        |  yes                     |                 |
 | --dc, --deviceconnectionstring=VALUE    |  yes                     |                 |
-| --c, --connectionstring=VALUE           |  no                      | use --dc, --deviceconnectionstring=VALUE               |
+| --c, --connectionstring=VALUE           |  no                      | use --dc, --deviceconnectionstring=VALUE |
 | --hb, --heartbeatinterval=VALUE         |  yes                     |                 |
 | --sf, --skipfirstevent=VALUE            |  yes (2.9.0 or above)    | same as --skipfirst=VALUE |
 | --pn, --portnum=VALUE                   |  no                      |                 |
@@ -90,9 +105,9 @@ The following table describes the command line arguments, which were available i
 | --kt, --keepalivethreshold=VALUE        |  yes                     |                 |
 | --aa, --autoaccept                      |  yes                     |                 |
 | --tm, --trustmyself=VALUE               |  yes                     |                 |
-| --to, --trustowncert                    |  no                      | same as --tm, --trustmyself                |
+| --to, --trustowncert                    |  no                      | same as --tm, --trustmyself |
 | --fd, --fetchdisplayname=VALUE          |  yes                     |                 |
-| --fn, --fetchname                       |  no                      | same as --fd, --fetchdisplayname              |
+| --fn, --fetchname                       |  no                      | same as --fd, --fetchdisplayname |
 | --ss, --suppressedopcstatuscodes=VALUE  |  no                      |                 |
 | --at, --appcertstoretype=VALUE          |  yes                     |                 |
 | --ap, --appcertstorepath=VALUE          |  yes                     |                 |
@@ -131,7 +146,7 @@ OPC Publisher version 2.8.2 and above implements [IoT Hub Direct Methods](https:
 
 The direct method request payload of OPC Publisher 2.8.2 and above is backwards compatible with OPC Publisher 2.5.x direct methods. The payload schema allows also configuration of attributes introduced in `pn.json` in OPC Publisher 2.6.x and above (for example: DataSetWriterGroup, DataSetWriterId, QueueSize per node, ...)
 
-**Limitations:** Continuation points for GetConfiguredEndpoints and GetConfiguredNodesOnEndpoint aren't available in 2.8.2
+**Limitations:** Continuation points for GetConfiguredEndpoints and GetConfiguredNodesOnEndpoint aren't available in 2.8.2 or above. Instead a chunking protocol is used when the .net sdk packages are used.
 
 **Note:** The objects and primitives names in the direct method payload api model are camel case formatted in 2.8.2. This follows the guidelines of the rest of the api models through the IIoT Platform. Since the names in json payloads in 2.5.x are pascal case formed, we highly recommend enabling case-insensitive Json parsing in your direct methods based configuration tool. You can find details on json case-insensitive serialization here: [how to enable case-insensitive property name matching with System.Text.Json](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-character-casing), or here: [Newtonsoft Json Serialization Naming Strategy](https://www.newtonsoft.com/json/help/html/T_Newtonsoft_Json_Serialization_DefaultNamingStrategy.htm)
 

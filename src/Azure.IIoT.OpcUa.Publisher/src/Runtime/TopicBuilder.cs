@@ -28,6 +28,12 @@ namespace Azure.IIoT.OpcUa.Publisher
             => Format(nameof(MethodTopic), _options.Value.MethodTopicTemplate);
 
         /// <summary>
+        /// Events topic
+        /// </summary>
+        public string EventsTopic
+            => Format(nameof(EventsTopic), _options.Value.EventsTopicTemplate);
+
+        /// <summary>
         /// Telemetry topic
         /// </summary>
         public string TelemetryTopic

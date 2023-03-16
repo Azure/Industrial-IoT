@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -25,14 +26,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Options;
+    using Furly;
 
     /// <summary>
     /// Provides configuration services for publisher using either published nodes
     /// configuration update or api services.
     /// </summary>
     public sealed class PublisherConfigurationService : IConfigurationServices,
-        IHostProcess, IAsyncDisposable, IDisposable
+        IAwaitable<PublisherConfigurationService>, IAsyncDisposable, IDisposable
     {
         /// <summary>
         /// Create publisher configuration services
@@ -818,12 +819,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask StartAsync()
+        public IAwaiter<PublisherConfigurationService> GetAwaiter()
         {
-            if (_started != null)
-            {
-                await _started.Task.ConfigureAwait(false);
-            }
+            return (_started.Task ?? Task.CompletedTask).AsAwaiter(this);
         }
 
         /// <inheritdoc/>

@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public DiscoveryServicesClient(IPublisherRegistry publishers, IMethodClient client,
-            IJsonSerializer serializer, ILogger logger)
+            IJsonSerializer serializer, ILogger<DiscoveryServicesClient> logger)
         {
             _publishers = publishers ?? throw new ArgumentNullException(nameof(publishers));
             _client = client ?? throw new ArgumentNullException(nameof(client));

@@ -18,26 +18,17 @@ namespace Autofac
     public static class ContainerBuilderEx
     {
         /// <summary>
-        /// Register trace logger
+        /// Register diagnostics
         /// </summary>
         /// <param name="builder"></param>
-        /// <param name="configure"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <c>null</c>.</exception>
-        public static IModuleRegistrar AddDiagnostics(this ContainerBuilder builder,
-            Action<ILoggingBuilder> configure = null)
+        public static ContainerBuilder AddDiagnostics(this ContainerBuilder builder)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-            configure ??= _ => { };
-            builder.ConfigureServices(services => services.AddLogging(configure));
             builder.RegisterType<EmptyMetricsContext>()
                 .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));
             builder.RegisterType<HealthCheckRegistrar>()
                 .AsImplementedInterfaces().SingleInstance();
-            return builder.RegisterModule<LoggingModule>();
+            return builder;
         }
     }
 }

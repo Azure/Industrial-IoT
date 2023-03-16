@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients
     public class MsiAuthenticationClient : AppAuthenticationBase
     {
         /// <inheritdoc/>
-        public MsiAuthenticationClient(IClientAuthConfig config, ILogger logger) : base(logger)
+        public MsiAuthenticationClient(IClientAuthConfig config, ILogger<MsiAuthenticationClient> logger) : base(logger)
         {
             _config = config?.Providers?
                 .Where(c => c.Provider == AuthProvider.Msi)

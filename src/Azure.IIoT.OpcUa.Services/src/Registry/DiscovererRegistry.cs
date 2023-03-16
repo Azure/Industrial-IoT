@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry
         /// <param name="logger"></param>
         /// <param name="broker"></param>
         public DiscovererRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
-            ILogger logger, IDiscovererRegistryListener broker = null)
+            ILogger<DiscovererRegistry> logger, IDiscovererRegistryListener broker = null)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));

@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Autofac;
+    using Furly.Extensions.Mqtt;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using System;
@@ -25,16 +26,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Xunit.Abstractions;
 
     /// <summary>
+    /// Json message
+    /// </summary>
+    /// <param name="Topic"></param>
+    /// <param name="Message"></param>
+    /// <param name="ContentType"></param>
+    public readonly record struct JsonMessage(string Topic, JsonElement Message, string ContentType);
+
+    /// <summary>
     /// Base class for integration testing, it connects to the server, runs
     /// publisher and injects mocked IoTHub services.
     /// </summary>
-    public class PublisherIntegrationTestBase : ISdkConfig, IDisposable
+    public class PublisherIntegrationTestBase : IDisposable
     {
-        /// <summary>
-        /// Publisher address for api
-        /// </summary>
-        public string Target => _publisher.Target;
-
         /// <summary>
         /// Create fixture
         /// </summary>
@@ -78,14 +82,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="predicate"></param>
         /// <param name="messageType"></param>
         /// <param name="arguments"></param>
+        /// <param name="version"></param>
         /// <returns></returns>
         protected Task<(JsonMessage? Metadata, List<JsonMessage> Messages)> ProcessMessagesAndMetadataAsync(
             string publishedNodesFile, Func<JsonElement, JsonElement> predicate = null,
-            string messageType = null, string[] arguments = default)
+            string messageType = null, string[] arguments = default, MqttVersion? version = null)
         {
             // Collect messages from server with default settings
             return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1,
-                predicate, messageType, arguments);
+                predicate, messageType, arguments, version);
         }
 
         /// <summary>
@@ -116,12 +121,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="predicate"></param>
         /// <param name="messageType"></param>
         /// <param name="arguments"></param>
+        /// <param name="version"></param>
         /// <returns></returns>
         protected async Task<(JsonMessage? Metadata, List<JsonMessage> Messages)> ProcessMessagesAndMetadataAsync(
             string publishedNodesFile, TimeSpan messageCollectionTimeout, int messageCount,
-            Func<JsonElement, JsonElement> predicate = null, string messageType = null, string[] arguments = default)
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null, string[] arguments = default,
+            MqttVersion? version = null)
         {
-            StartPublisher(publishedNodesFile, arguments);
+            StartPublisher(publishedNodesFile, arguments, version);
             try
             {
                 return await WaitForMessagesAndMetadataAsync(messageCollectionTimeout,
@@ -251,7 +258,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// </summary>
         /// <param name="publishedNodesFile"></param>
         /// <param name="arguments"></param>
-        protected void StartPublisher(string publishedNodesFile = null, string[] arguments = default)
+        /// <param name="version"></param>
+        protected void StartPublisher(string publishedNodesFile = null, string[] arguments = default,
+            MqttVersion? version = null)
         {
             arguments ??= Array.Empty<string>();
             _publishedNodesFilePath = Path.GetTempFileName();
@@ -270,13 +279,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 }).ToArray();
 
             _publisher = new PublisherModule(null, null, null, null,
-                _testOutputHelper, arguments);
+                _testOutputHelper, arguments, version);
         }
 
         /// <summary>
         /// Get publisher api
         /// </summary>
-        protected IPublisherApi PublisherApi => _publisher?.HubContainer?.Resolve<IPublisherApi>();
+        protected IPublisherApi PublisherApi => _publisher?.ClientContainer?.Resolve<IPublisherApi>();
 
         /// <summary>
         /// Stop publisher

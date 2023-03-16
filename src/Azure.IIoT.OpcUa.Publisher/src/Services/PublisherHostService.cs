@@ -9,20 +9,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Models;
     using Autofac;
     using Furly.Exceptions;
-    using Furly.Extensions.Hosting;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
-    using System.Net;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Publisher host. Manages updates to the state of the publisher through

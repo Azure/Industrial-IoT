@@ -5,14 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Controller;
+    using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher;
-    using Furly.Tunnel.Router.Services;
     using Autofac;
-    using Microsoft.Extensions.Configuration;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Mqtt;
+    using Furly.Tunnel.Router.Services;
+    using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Container builder extensions
@@ -53,22 +53,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         }
 
         /// <summary>
-        /// Add transports
+        /// Add mqtt client
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
-        public static void AddTransports(this ContainerBuilder builder,
+        public static void AddMqttClient(this ContainerBuilder builder,
             IConfiguration configuration)
         {
             var mqttOptions = new MqttOptions();
             new MqttBrokerConfig(configuration).Configure(mqttOptions);
             if (mqttOptions.HostName != null)
             {
-                builder.AddMqttClient();
+              //  builder.AddMqttClient();
+                builder.RegisterType<Furly.Extensions.Mqtt.Clients.MqttClient>().AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<MqttBrokerConfig>()
                     .AsImplementedInterfaces();
             }
+        }
 
+        /// <summary>
+        /// Add IoT edge services
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddIoTEdgeServices(this ContainerBuilder builder,
+            IConfiguration configuration)
+        {
             // Validate edge configuration
             var iotEdgeOptions = new IoTEdgeClientOptions();
             new IoTEdgeClientConfig(configuration).Configure(iotEdgeOptions);

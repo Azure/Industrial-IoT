@@ -11,18 +11,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Services.Clients.Adapters;
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Autofac;
+    using Autofac.Extensions.DependencyInjection;
     using Furly.Azure;
     using Furly.Azure.IoT;
+    using Furly.Azure.IoT.Edge.Services;
     using Furly.Azure.IoT.Mock;
     using Furly.Azure.IoT.Mock.Services;
     using Furly.Azure.IoT.Models;
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Mqtt;
+    using Furly.Extensions.Mqtt.Clients;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Furly.Tunnel.Protocol;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -33,13 +41,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
-    using Microsoft.AspNetCore.Mvc.Testing;
-    using Autofac.Extensions.DependencyInjection;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Extensions.Hosting;
-    using Microsoft.AspNetCore.TestHost;
-    using Furly.Azure.IoT.Edge.Services;
-    using Furly.Extensions.Mqtt;
 
     /// <summary>
     /// Publisher telemetry
@@ -56,12 +57,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         IReadOnlyDictionary<string, string> Properties);
 
     /// <summary>
-    /// Harness for opc publisher module
+    /// Opc Publisher module fixture
     /// </summary>
-    public class PublisherModule : WebApplicationFactory<ModuleStartup>, ISdkConfig
+    public sealed class PublisherModule : WebApplicationFactory<ModuleStartup>, ISdkConfig
     {
         /// <summary>
-        /// Taret
+        /// Sdk target
         /// </summary>
         public string Target { get; }
 
@@ -78,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Hub container
         /// </summary>
-        public IContainer HubContainer { get; }
+        public IContainer ClientContainer { get; }
 
         /// <summary>
         /// Create fixture
@@ -89,11 +90,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="moduleId"></param>
         /// <param name="testOutputHelper"></param>
         /// <param name="arguments"></param>
+        /// <param name="version"></param>
         public PublisherModule(IMessageSink messageSink, IEnumerable<DeviceTwinModel> devices = null,
             string deviceId = null, string moduleId = null, ITestOutputHelper testOutputHelper = null,
-            string[] arguments = default)
+            string[] arguments = default, MqttVersion? version = null)
         {
-            HubContainer = CreateClientContainer(messageSink, testOutputHelper, devices);
+            ClientContainer = CreateClientContainer(messageSink, testOutputHelper, devices, version);
 
             // Create module identitity
             deviceId ??= Utils.GetHostName();
@@ -106,17 +108,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 ModuleId = moduleId
             };
 
-            var service = HubContainer.Resolve<IIoTHubTwinServices>();
-            var twin = service.CreateOrUpdateAsync(publisherModule).AsTask().Result;
-            var device = service.GetRegistrationAsync(twin.Id, twin.ModuleId).AsTask().Result;
+            var service = ClientContainer.Resolve<IIoTHubTwinServices>();
+            var twin = service.CreateOrUpdateAsync(publisherModule).AsTask().GetAwaiter().GetResult();
+            var device = service.GetRegistrationAsync(twin.Id, twin.ModuleId).AsTask().GetAwaiter().GetResult();
 
-            // Register with the telemetry handler to receive telemetry events
-            var register = HubContainer.Resolve<IEventRegistration<IIoTHubTelemetryHandler>>();
-            _telemetry = new IoTHubTelemetryHandler();
-            _handler = register.Register(_telemetry);
-
-            // Start publisher module with the created identity
-            Target = HubResource.Format(null, device.Id, device.ModuleId);
+            _useMqtt = version != null;
+            if (_useMqtt)
+            {
+                // Resolve the mqtt server to make sure it is running
+                _ = ClientContainer.Resolve<MqttServer>();
+            }
 
             ServerPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
                 Guid.NewGuid().ToByteArray().ToBase16String());
@@ -124,29 +125,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 Guid.NewGuid().ToByteArray().ToBase16String());
 
             // Create a virtual connection betwenn publisher module and hub
-            var hub = HubContainer.Resolve<IIoTHub>();
+            var hub = ClientContainer.Resolve<IIoTHub>();
             _connection = hub.Connect(device.Id, device.ModuleId);
 
             // Start module
-            var publisherCs = ConnectionString.CreateModuleConnectionString(
+            var edgeHubCs = ConnectionString.CreateModuleConnectionString(
                 "test.test.org", device.Id, device.ModuleId, device.PrimaryKey);
+            var mqttOptions = ClientContainer.Resolve<IOptions<MqttOptions>>();
+            var mqttCs = $"HostName={mqttOptions.Value.HostName};Port={mqttOptions.Value.Port};" +
+                $"UserName={mqttOptions.Value.UserName};Password={mqttOptions.Value.Password};" +
+                $"UseTls={mqttOptions.Value.UseTls}";
             arguments = arguments.Concat(
                 new[]
                 {
-                    $"--ec={publisherCs}",
+                    $"--ec={edgeHubCs}",
+                    $"--mqc={mqttCs}",
                     "--aa"
                 }).ToArray();
 
             var configBuilder = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
-                    { "EnableMetrics", "false" },
                     { "PkiRootPath", ClientPkiRootPath }
                 })
                 .AddInMemoryCollection(new PublisherCliOptions(arguments))
                 ;
+
             _config = configBuilder.Build();
             _ = Server; // Ensure server is created
+
+            // Register with the telemetry handler to receive telemetry events
+            if (!_useMqtt)
+            {
+                var register = ClientContainer.Resolve<IEventRegistration<IIoTHubTelemetryHandler>>();
+                _telemetry = new IoTHubTelemetryHandler();
+                _handler1 = register.Register(_telemetry);
+                Target = HubResource.Format(null, device.Id, device.ModuleId);
+            }
+            else
+            {
+                _consumer = new EventConsumer();
+                var register = ClientContainer.Resolve<IEventSubscriber>();
+                var options = Resolve<IOptions<PublisherOptions>>();
+
+                var topicBuilder = new TopicBuilder(options);
+                _handler2 = register.SubscribeAsync(topicBuilder.RootTopic + "/messages/#", _consumer)
+                    .AsTask().GetAwaiter().GetResult();
+                Target = topicBuilder.MethodTopic;
+            }
         }
 
         /// <inheritdoc/>
@@ -177,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         }
 
         /// <summary>
-        /// Resolve service
+        /// Resolve service from publisher module
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
@@ -191,26 +217,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public IAsyncEnumerable<PublisherTelemetry> ReadTelemetryAsync(CancellationToken ct)
         {
-            return _telemetry.Reader.ReadAllAsync(ct);
+            if (_telemetry != null)
+            {
+                return _telemetry.Reader.ReadAllAsync(ct);
+            }
+            else if (_consumer != null)
+            {
+                return _consumer.Reader.ReadAllAsync(ct);
+            }
+            else
+            {
+                throw new InvalidOperationException("No consumer configured.");
+            }
         }
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
             if (disposing)
             {
                 _connection.Close();
-                _handler.Dispose();
+                _handler1?.Dispose();
+                if (_handler2 != null)
+                {
+                    _handler2.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
 
                 if (Directory.Exists(ServerPkiRootPath))
                 {
                     Try.Op(() => Directory.Delete(ServerPkiRootPath, true));
                 }
-                HubContainer.Dispose();
+                ClientContainer.Dispose();
             }
-            base.Dispose(disposing);
         }
 
         /// <inheritdoc/>
@@ -220,15 +262,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             builder.AddPublisherServices();
             // Override client config
             builder.RegisterInstance(_config).AsImplementedInterfaces();
-            builder.RegisterType<TestClientServicesConfig>()
+            builder.RegisterType<TestClientConfig>()
                 .AsImplementedInterfaces();
 
-            // Register connectivity services
             builder.RegisterType<IoTEdgeIdentity>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterInstance(_connection.EventClient);
             builder.RegisterInstance(_connection.RpcServer);
             builder.RegisterInstance(_connection.Twin);
+
+            // Register transport services
+            if (_useMqtt)
+            {
+                // Dont just register if the broker is not running or
+                // otherwise the connect hangs during startup.
+                // TODO: Look into this.
+                builder.AddMqttClient(_config);
+            }
         }
 
         /// <summary>
@@ -240,8 +290,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="mqttVersion"></param>
         /// <returns></returns>
         private IContainer CreateClientContainer(IMessageSink messageSink = null,
-            ITestOutputHelper testOutputHelper = null,
-            IEnumerable<DeviceTwinModel> devices = null, MqttVersion? mqttVersion = null)
+            ITestOutputHelper testOutputHelper = null, IEnumerable<DeviceTwinModel> devices = null,
+            MqttVersion? mqttVersion = null)
         {
             var builder = new ContainerBuilder();
 
@@ -249,28 +299,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             builder.RegisterInstance(this)
                 .AsImplementedInterfaces().ExternallyOwned();
 
-            builder.AddDiagnostics(logging =>
+            builder.AddDiagnostics();
+            builder.ConfigureServices(services =>
             {
-                if (messageSink != null)
+                services.AddHttpClient();
+                services.AddLogging(logging =>
                 {
-                    // logging.AddXunit(messageSink); // TODO
-                }
-                if (testOutputHelper != null)
-                {
-                    logging.AddXunit(testOutputHelper);
-                }
-                else
-                {
-                    logging.AddConsole();
-                }
+                    if (messageSink != null)
+                    {
+                        // logging.AddXunit(messageSink); // TODO
+                    }
+                    if (testOutputHelper != null)
+                    {
+                        logging.AddXunit(testOutputHelper);
+                    }
+                    else
+                    {
+                        logging.AddConsole();
+                    }
+                });
             });
-            builder.ConfigureServices(services => services.AddHttpClient());
 
             builder.Configure<IoTHubServiceOptions>(option =>
             {
                 option.ConnectionString = ConnectionString.CreateServiceConnectionString(
                     "test.test.org", "iothubowner", Convert.ToBase64String(
                         Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
+            });
+
+            // Configure mqtt
+            builder.ConfigureMqtt(options =>
+            {
+                options.AllowUntrustedCertificates = true;
+                options.UseTls = false;
+                options.Version = mqttVersion ?? MqttVersion.v5;
             });
 
             if (devices != null)
@@ -287,12 +349,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             if (mqttVersion != null)
             {
                 // Override the iothub rpcclient with an mqtt server implementation
-                builder.AddMqttServer();
-                builder.Configure<MqttOptions>(options =>
+                builder.Register(ctx =>
                 {
-                    options.AllowUntrustedCertificates = true;
-                    options.Version = mqttVersion.Value;
-                });
+                    var options = ctx.Resolve<IOptions<MqttOptions>>();
+                    var logger = ctx.Resolve<ILogger<MqttServer>>();
+                    while (true)
+                    {
+                        try
+                        {
+                            var server = new MqttServer(options, logger);
+                            server.GetAwaiter().GetResult();
+                            return server;
+                        }
+                        catch (Exception ex)
+                        {
+                            options.Value.Port++;
+                            logger.LogError(ex,
+                                "Failed to start mqtt server. Trying next port {Port}",
+                                options.Value.Port);
+                        }
+                    }
+                }).AsSelf().AsImplementedInterfaces()
+                    .SingleInstance();
             }
 
             builder.RegisterType<ChunkMethodClient>()
@@ -342,10 +420,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             private readonly Channel<PublisherTelemetry> _channel;
         }
 
+        /// <summary>
+        /// Adapter for event consumer
+        /// </summary>
+        internal sealed class EventConsumer : IEventConsumer
+        {
+            public ChannelReader<PublisherTelemetry> Reader => _channel.Reader;
+
+            internal EventConsumer()
+            {
+                _channel = Channel.CreateUnbounded<PublisherTelemetry>();
+            }
+
+            public async Task HandleAsync(string topic, ReadOnlyMemory<byte> data,
+                string contentType, IReadOnlyDictionary<string, string> properties,
+                IEventClient responder = null, CancellationToken ct = default)
+            {
+                properties.TryGetValue("ContentEncoding", out var contentEncoding);
+                await _channel.Writer.WriteAsync(new PublisherTelemetry(
+                    null, null, topic, data, contentType, contentEncoding,
+                    properties), ct).ConfigureAwait(false);
+            }
+
+            private readonly Channel<PublisherTelemetry> _channel;
+        }
+
         private readonly IIoTHubConnection _connection;
         private readonly IConfiguration _config;
+        private readonly bool _useMqtt;
         private readonly IoTHubTelemetryHandler _telemetry;
-        private readonly IDisposable _handler;
+        private readonly IDisposable _handler1;
+        private readonly IAsyncDisposable _handler2;
+        private readonly EventConsumer _consumer;
     }
 
     public class ModuleStartup : Startup

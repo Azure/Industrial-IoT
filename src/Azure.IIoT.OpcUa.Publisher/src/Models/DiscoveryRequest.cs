@@ -5,18 +5,17 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using Azure.IIoT.OpcUa.Publisher.Discovery;
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport;
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models;
     using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Utils;
-    using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
     using System.Threading;
-    using Azure.IIoT.OpcUa.Publisher.Discovery;
 
     /// <summary>
     /// Discovery request wrapper

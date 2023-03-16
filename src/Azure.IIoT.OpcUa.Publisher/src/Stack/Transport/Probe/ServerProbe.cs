@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
     /// <summary>
     /// Opc ua secure channel probe factory
     /// </summary>
-    public class ServerProbe : IPortProbe
+    internal sealed class ServerProbe : IPortProbe
     {
         /// <summary>
         /// Operation timeout
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
         /// <summary>
         /// Async probe that sends a hello and validates the returned ack.
         /// </summary>
-        private class ServerHelloAsyncProbe : IAsyncProbe
+        private sealed class ServerHelloAsyncProbe : IAsyncProbe
         {
             /// <summary>
             /// Create opc ua server probe

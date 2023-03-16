@@ -193,8 +193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 publishedNodesFile, messageType: "ua-data",
-                arguments: new[] { "-c", "--mm=PubSub", "--me=Json" }
-            ).ConfigureAwait(false);
+                arguments: new[] { "-c", "--mm=PubSub", "--me=Json" }).ConfigureAwait(false);
 
             Assert.Single(result);
 
@@ -232,8 +231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 publishedNodesFile, TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
-                arguments: new[] { "-c", "--mm=PubSub", "--me=JsonReversible" }
-            ).ConfigureAwait(false);
+                arguments: new[] { "-c", "--mm=PubSub", "--me=JsonReversible" }).ConfigureAwait(false);
 
             var messages = result
                 .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())

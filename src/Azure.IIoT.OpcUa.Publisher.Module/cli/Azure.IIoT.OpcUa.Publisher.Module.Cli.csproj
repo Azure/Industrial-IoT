@@ -4,8 +4,8 @@
     <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="0.1.13" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.13" />
+    <PackageReference Include="Furly.Azure.IoT" Version="0.1.15" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.15" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory.csproj" />
