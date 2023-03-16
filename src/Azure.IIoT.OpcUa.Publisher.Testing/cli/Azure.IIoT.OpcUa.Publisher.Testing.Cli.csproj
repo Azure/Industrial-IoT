@@ -9,6 +9,6 @@
     <None Remove="pki\**" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Testing.csproj" />
+    <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.csproj" />
   </ItemGroup>
 </Project>

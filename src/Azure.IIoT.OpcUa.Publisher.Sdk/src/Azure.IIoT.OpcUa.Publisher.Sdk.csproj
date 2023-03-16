@@ -4,11 +4,11 @@
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Description>Azure Industrial IoT OPC Publisher API</Description>
+    <Description>Azure OPC Publisher Module Sdk</Description>
   </PropertyGroup>
   <ItemGroup>
-	  <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.15" />
-	  <PackageReference Include="Furly.Tunnel" Version="0.2.14" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.15" />
+    <PackageReference Include="Furly.Tunnel" Version="0.2.14" />
     <PackageReference Include="Furly.Azure.IoT" Version="0.1.15" />
     <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.15" />
   </ItemGroup>
@@ -16,6 +16,6 @@
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Shared\src\Azure.IIoT.OpcUa.Shared.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Models\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />
   </ItemGroup>
 </Project>

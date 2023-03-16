@@ -15,6 +15,6 @@
     <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.15" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Services.Sdk.csproj" />
+    <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk.csproj" />
   </ItemGroup>
 </Project>

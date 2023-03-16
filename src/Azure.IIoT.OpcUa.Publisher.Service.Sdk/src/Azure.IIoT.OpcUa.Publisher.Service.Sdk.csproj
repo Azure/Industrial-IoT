@@ -10,14 +10,14 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="7.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="7.0.4" />
-	  <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.15" />
-	  <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.15" />
-	  <PackageReference Include="Nito.Disposables" Version="2.4.0" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.15" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.15" />
+    <PackageReference Include="Nito.Disposables" Version="2.4.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Shared\src\Azure.IIoT.OpcUa.Shared.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Models\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />
   </ItemGroup>
 </Project>

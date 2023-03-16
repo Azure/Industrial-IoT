@@ -54,12 +54,7 @@
     <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.15" />
     <PackageReference Include="Furly.Extensions.Json" Version="0.4.15" />
     <PackageReference Include="xunit.abstractions" Version="2.0.3" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="xunit.assert" Version="2.4.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Servers\Common\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher\src\Azure.IIoT.OpcUa.Publisher.csproj" />

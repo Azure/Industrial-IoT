@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     /// <summary>
     /// Published nodes
     /// </summary>
-    public sealed class PublishedNodesJobConverter
+    public sealed class PublishedNodesConverter
     {
         /// <summary>
         /// Create converter
@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <param name="logger"></param>
         /// <param name="serializer"></param>
         /// <param name="cryptoProvider"></param>
-        public PublishedNodesJobConverter(ILogger<PublishedNodesJobConverter> logger,
+        public PublishedNodesConverter(ILogger<PublishedNodesConverter> logger,
             IJsonSerializer serializer, IIoTEdgeWorkloadApi cryptoProvider = null)
         {
             _serializer = serializer ??

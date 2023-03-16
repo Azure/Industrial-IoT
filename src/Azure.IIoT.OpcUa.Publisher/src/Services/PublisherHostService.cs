@@ -77,7 +77,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _completedTask = new TaskCompletionSource();
             _cts = new CancellationTokenSource();
             _changeFeed
-                = Channel.CreateUnbounded<(TaskCompletionSource, List<WriterGroupModel>)>();
+                = Channel.CreateUnbounded<(TaskCompletionSource, List<WriterGroupModel>)>(
+                    new UnboundedChannelOptions
+                    {
+                        SingleReader = true,
+                        SingleWriter = false
+                    });
             _processor = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }

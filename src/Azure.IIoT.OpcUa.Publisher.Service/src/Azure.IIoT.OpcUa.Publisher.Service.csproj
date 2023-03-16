@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Description>Azure Industrial IoT OPC UA services business logic</Description>
+    <Description>Azure Industrial IoT OPC UA service business logic</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Furly.Azure.IoT" Version="0.1.15" />

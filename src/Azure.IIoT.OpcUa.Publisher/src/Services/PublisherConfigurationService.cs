@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="publishedNodesProvider"></param>
         /// <param name="jsonSerializer"></param>
         /// <param name="diagnostics"></param>
-        public PublisherConfigurationService(PublishedNodesJobConverter publishedNodesJobConverter,
+        public PublisherConfigurationService(PublishedNodesConverter publishedNodesJobConverter,
             IOptions<PublisherOptions> configuration, IPublisherHost publisherHost,
             ILogger<PublisherConfigurationService> logger, IStorageProvider publishedNodesProvider,
             IJsonSerializer jsonSerializer, IDiagnosticCollector diagnostics = null)
@@ -64,7 +64,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 throw new ArgumentNullException(nameof(publisherHost));
             _diagnostics = diagnostics; // Optional
             _started = new TaskCompletionSource();
-            _fileChanges = Channel.CreateUnbounded<bool>();
+            _fileChanges = Channel.CreateUnbounded<bool>(new UnboundedChannelOptions
+            {
+                SingleReader = true,
+                SingleWriter = false
+            });
             _fileChangeProcessor = Task.Factory.StartNew(() => ProcessFileChangesAsync(),
                 default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
             _fileChanges.Writer.TryWrite(false); // Read from file
@@ -1089,7 +1093,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private readonly ILogger _logger;
         private readonly IOptions<PublisherOptions> _configuration;
-        private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
+        private readonly PublishedNodesConverter _publishedNodesJobConverter;
         private readonly IStorageProvider _publishedNodesProvider;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IDiagnosticCollector _diagnostics;

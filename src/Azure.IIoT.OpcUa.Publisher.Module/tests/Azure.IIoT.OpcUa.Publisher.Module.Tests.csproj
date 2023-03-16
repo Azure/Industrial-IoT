@@ -26,8 +26,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Sdk\src\Azure.IIoT.OpcUa.Publisher.Sdk.csproj" />
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Testing\src\Azure.IIoT.OpcUa.Testing.csproj" />
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Services\src\Azure.IIoT.OpcUa.Services.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Testing\src\Azure.IIoT.OpcUa.Publisher.Testing.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Service\src\Azure.IIoT.OpcUa.Publisher.Service.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="PublishedNodes\Deadband.json">

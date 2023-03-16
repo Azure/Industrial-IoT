@@ -20,7 +20,7 @@
     <None Include="wwwroot\css\drawer.css" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\Azure.IIoT.OpcUa.Services.Sdk\src\Azure.IIoT.OpcUa.Services.Sdk.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore\src\Microsoft.Azure.IIoT.AspNetCore.csproj" />

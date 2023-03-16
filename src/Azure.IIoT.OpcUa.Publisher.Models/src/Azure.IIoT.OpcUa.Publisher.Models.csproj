@@ -4,7 +4,7 @@
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Description>Azure Industrial IoT API models</Description>
+    <Description>Azure OPC Publisher Sdk shared models</Description>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>

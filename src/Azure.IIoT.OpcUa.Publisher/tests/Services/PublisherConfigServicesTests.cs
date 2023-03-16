@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
     {
         private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
+        private readonly PublishedNodesConverter _publishedNodesJobConverter;
         private readonly IOptions<PublisherOptions> _options;
         private readonly PublishedNodesProvider _publishedNodesProvider;
         private readonly Mock<IMessageSource> _triggerMock;
@@ -60,8 +60,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             _options.Value.MessagingProfile = MessagingProfile.Get(
                 MessagingMode.PubSub, MessageEncoding.Json);
 
-            _publishedNodesJobConverter = new PublishedNodesJobConverter(
-                _loggerFactory.CreateLogger<PublishedNodesJobConverter>(), _newtonSoftJsonSerializer);
+            _publishedNodesJobConverter = new PublishedNodesConverter(
+                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _newtonSoftJsonSerializer);
 
             // Note that each test is responsible for setting content of _tempFile;
             Utils.CopyContent("Publisher/empty_pn.json", _tempFile);

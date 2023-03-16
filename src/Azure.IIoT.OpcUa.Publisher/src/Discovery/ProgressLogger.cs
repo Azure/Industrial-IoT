@@ -13,17 +13,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Net;
 
     /// <summary>
-    /// Discovery progress _logger
+    /// Discovery progress logger
     /// </summary>
     public class ProgressLogger : IDiscoveryProgress
     {
         /// <summary>
         /// Create listener
         /// </summary>
-        /// <param name="_logger"></param>
-        internal ProgressLogger(ILogger _logger)
+        /// <param name="logger"></param>
+        internal ProgressLogger(ILogger logger)
         {
-            _logger = _logger ?? throw new ArgumentNullException(nameof(_logger));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>

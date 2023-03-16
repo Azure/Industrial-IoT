@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             builder.RegisterType<PublishedNodesProvider>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<PublishedNodesJobConverter>()
+            builder.RegisterType<PublishedNodesConverter>()
                 .SingleInstance();
             builder.RegisterType<PublisherConfigurationService>()
                 .AsImplementedInterfaces().SingleInstance();
