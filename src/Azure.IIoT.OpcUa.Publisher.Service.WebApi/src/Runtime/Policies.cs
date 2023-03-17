@@ -5,10 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Auth
 {
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using System;
-
     /// <summary>
     /// Defines publisher service api policies.
     /// </summary>

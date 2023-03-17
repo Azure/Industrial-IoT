@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using OpenTelemetry.Resources;
     using System;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
-    using Microsoft.AspNetCore.Authentication;
 
     /// <summary>
     /// Webservice startup

@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 {
-    using Azure.IIoT.OpcUa.Publisher.Module;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
     using Autofac;

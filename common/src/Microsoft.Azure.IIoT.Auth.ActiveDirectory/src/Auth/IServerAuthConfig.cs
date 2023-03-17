@@ -13,11 +13,6 @@ namespace Microsoft.Azure.IIoT.Auth
     public interface IServerAuthConfig
     {
         /// <summary>
-        /// Allow anonymous access
-        /// </summary>
-        bool AllowAnonymousAccess { get; }
-
-        /// <summary>
         /// Supported providers
         /// </summary>
         IEnumerable<IOAuthServerConfig> JwtBearerProviders { get; }

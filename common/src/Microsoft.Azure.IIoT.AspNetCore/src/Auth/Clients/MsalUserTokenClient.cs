@@ -133,41 +133,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<TokenResultModel> RedeemCodeForUserAsync(ClaimsPrincipal user,
-            string code, IEnumerable<string> scopes)
-        {
-            if (user == null)
-            {
-                return null;
-            }
-            var schemes = await _schemes.GetAllSchemesAsync().ConfigureAwait(false);
-            if (!schemes.Any(s => s.Name == Provider))
-            {
-                return null;
-            }
-            foreach (var config in _config.Query(Provider))
-            {
-                var decorator = CreateConfidentialClientApplication(user, config, CreateRedirectUrl());
-                try
-                {
-                    var result = await decorator.Client
-                         .AcquireTokenByAuthorizationCode(GetScopes(config, scopes), code)
-                         .ExecuteAsync().ConfigureAwait(false);
-                    if (result != null)
-                    {
-                        return result.ToTokenResult();
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Failed to get token for code with {Config}.",
-                         config.GetName());
-                }
-            }
-            return null;
-        }
-
-        /// <inheritdoc/>
         public async Task<TokenResultModel> GetUserTokenAsync(ClaimsPrincipal user,
             IEnumerable<string> scopes)
         {

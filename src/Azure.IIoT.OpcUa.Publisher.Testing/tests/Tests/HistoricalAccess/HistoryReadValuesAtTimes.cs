@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// <param name="services"></param>
         /// <param name="connection"></param>
         public HistoryReadValuesAtTimesTests(BaseServerFixture server,
-			Func<IHistoryServices<T>> services, T connection)
+            Func<IHistoryServices<T>> services, T connection)
         {
             _server = server;
             _services = services;

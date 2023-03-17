@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <param name="loggerFactory"></param>
         protected BaseServerFixture(
             Func<ILoggerFactory?, TimeService, IEnumerable<INodeManagerFactory>> nodesFactory,
-			ILoggerFactory? loggerFactory = null)
+            ILoggerFactory? loggerFactory = null)
         {
             Host = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));

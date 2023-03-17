@@ -30,9 +30,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Reflection;
 using Opc.Ua.Server;
-using System.Linq;
 
 namespace Opc.Ua.Sample
 {

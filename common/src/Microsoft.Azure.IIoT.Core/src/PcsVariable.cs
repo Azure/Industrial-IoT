@@ -17,21 +17,12 @@ namespace Microsoft.Azure.IIoT
         /// <summary> Iot hub connection string </summary>
         public const string PCS_IOTHUB_CONNSTRING =
             "PCS_IOTHUB_CONNSTRING";
-        /// <summary> Managed service identity application id </summary>
-        public const string PCS_MSI_APPID =
-            "PCS_MSI_APPID";
-        /// <summary> Managed service identity tenant </summary>
-        public const string PCS_MSI_TENANT =
-            "PCS_MSI_TENANT";
         /// <summary> Aad Auth tenant </summary>
         public const string PCS_AUTH_TENANT =
             "PCS_AUTH_TENANT";
         /// <summary> Aad Instance </summary>
         public const string PCS_AAD_INSTANCE =
             "PCS_AUTH_INSTANCE";
-        /// <summary> Aad Trusted Issuer </summary>
-        public const string PCS_AAD_ISSUER =
-            "PCS_AUTH_ISSUER";
         /// <summary> Aad valid audience or null if disabled </summary>
         public const string PCS_AAD_AUDIENCE =
             "PCS_AUTH_AUDIENCE";
@@ -44,9 +35,6 @@ namespace Microsoft.Azure.IIoT
         /// <summary> Built in Auth server disabled </summary>
         public const string PCS_AUTH_SERVICE_DISABLED =
             "PCS_AUTH_SERVICE_DISABLED";
-        /// <summary> Built in Auth server trusted issuer </summary>
-        public const string PCS_AUTH_SERVICE_ISSUER =
-            "PCS_AUTH_SERVICE_ISSUER";
         /// <summary> Built in Auth server service application id </summary>
         public const string PCS_AUTH_SERVICE_SERVICE_APPID =
             "PCS_AUTH_SERVICE_SERVICE_APPID";
@@ -62,9 +50,6 @@ namespace Microsoft.Azure.IIoT
         /// <summary> Client application id </summary>
         public const string PCS_AAD_PUBLIC_CLIENT_APPID =
             "PCS_AUTH_PUBLIC_CLIENT_APPID";
-        /// <summary> Auth required </summary>
-        public const string PCS_AUTH_REQUIRED =
-            "PCS_AUTH_REQUIRED";
         /// <summary> Service url </summary>
         public const string PCS_SERVICE_URL =
             "PCS_SERVICE_URL";

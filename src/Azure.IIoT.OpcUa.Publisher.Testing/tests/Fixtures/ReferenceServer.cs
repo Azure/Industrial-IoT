@@ -26,8 +26,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             yield return new Boiler.BoilerServer();
             yield return new Vehicles.VehiclesServer();
             yield return new Reference.ReferenceServer();
-            yield return new global::HistoricalEvents.HistoricalEventsServer(timeservice);
-            yield return new global::HistoricalAccess.HistoricalAccessServer(timeservice);
+            yield return new HistoricalEvents.HistoricalEventsServer(timeservice);
+            yield return new HistoricalAccess.HistoricalAccessServer(timeservice);
             yield return new Views.ViewsServer();
             yield return new DataAccess.DataAccessServer();
             yield return new Alarms.AlarmConditionServer(timeservice);

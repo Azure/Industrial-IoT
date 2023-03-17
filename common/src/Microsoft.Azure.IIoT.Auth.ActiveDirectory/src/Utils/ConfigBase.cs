@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Utils
 {
     using Microsoft.Extensions.Configuration;
-    using Furly.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -84,41 +83,6 @@ namespace Microsoft.Azure.IIoT.Utils
                 return false;
             }
             return defaultValue?.Invoke();
-        }
-
-        /// <summary>
-        /// Read int
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        protected int GetIntOrDefault(string key, Func<int> defaultValue = null)
-        {
-            var value = GetIntOrNull(key);
-            return value ?? defaultValue?.Invoke() ?? 0;
-        }
-
-        /// <summary>
-        /// Read int
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        protected int? GetIntOrNull(string key, Func<int?> defaultValue = null)
-        {
-            try
-            {
-                var value = GetStringOrDefault(key, null);
-                if (string.IsNullOrEmpty(value))
-                {
-                    return defaultValue?.Invoke();
-                }
-                return Convert.ToInt32(value, CultureInfo.InvariantCulture);
-            }
-            catch
-            {
-                return defaultValue?.Invoke();
-            }
         }
     }
 }

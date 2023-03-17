@@ -7,7 +7,6 @@ namespace Autofac
 {
     using Furly.Extensions.Logging;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using System.Diagnostics;
 
     /// <summary>
     /// Register console logger

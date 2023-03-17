@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>
     /// Event filter extensions

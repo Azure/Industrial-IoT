@@ -14,11 +14,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime
     /// </summary>
     public class AadServiceAuthConfig : ConfigBase, IOAuthServerConfig
     {
-        /// <summary>
-        /// Auth configuration
-        /// </summary>
-        private const string kAuth_TrustedIssuerKey = "Aad:TrustedIssuer";
-        private const string kAuth_AllowedClockSkewKey = "Aad:AllowedClockSkewSeconds";
         private const string kAuth_AudienceKey = "Aad:Audience";
         private const string kAuth_TenantIdKey = "Aad:TenantId";
         private const string kAuth_InstanceUrlKey = "Aad:InstanceUrl";
@@ -37,14 +32,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime
             () => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
             () => GetStringOrDefault("PCS_WEBUI_AUTH_AAD_TENANT",
                 () => "common"))).Trim();
-        /// <summary>Trusted issuer</summary>
-        public string TrustedIssuer => GetStringOrDefault(kAuth_TrustedIssuerKey,
-            () => GetStringOrDefault(PcsVariable.PCS_AAD_ISSUER,
-                () => "https://sts.windows.net/"))?.Trim();
-        /// <summary>Allowed clock skew</summary>
-        public TimeSpan AllowedClockSkew =>
-            TimeSpan.FromSeconds(GetIntOrDefault(kAuth_AllowedClockSkewKey,
-                () => 120));
         /// <summary>Valid audience</summary>
         public string Audience => GetStringOrDefault(kAuth_AudienceKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,

@@ -14,17 +14,6 @@ namespace System
     public static class StringEx
     {
         /// <summary>
-        /// Yet another case insensitve equals
-        /// </summary>
-        /// <param name="str"></param>
-        /// <param name="to"></param>
-        /// <returns></returns>
-        public static bool EqualsIgnoreCase(this string str, string to)
-        {
-            return StringComparer.OrdinalIgnoreCase.Equals(str, to);
-        }
-
-        /// <summary>
         /// Hashes the string
         /// </summary>
         /// <param name="str">string to hash</param>

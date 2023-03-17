@@ -35,22 +35,6 @@ namespace System.Linq
         }
 
         /// <summary>
-        /// Returns the contents of a dictionary as KeyValuePairs
-        /// </summary>
-        /// <typeparam name="TKey"></typeparam>
-        /// <typeparam name="TValue"></typeparam>
-        /// <param name="dictionary"></param>
-        /// <returns></returns>
-        public static IEnumerable<KeyValuePair<TKey, TValue>> ToKeyValuePairs<TKey, TValue>(
-            this IDictionary dictionary)
-        {
-            foreach (var key in dictionary.Keys)
-            {
-                yield return new KeyValuePair<TKey, TValue>((TKey)key, (TValue)dictionary[key]);
-            }
-        }
-
-        /// <summary>
         /// Creates a hash set from enumerable or null if enumerable is null.
         /// </summary>
         /// <typeparam name="T"></typeparam>

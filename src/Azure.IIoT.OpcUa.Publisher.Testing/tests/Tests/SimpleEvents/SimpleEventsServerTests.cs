@@ -5,13 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using FluentAssertions;
     using Azure.IIoT.OpcUa.Publisher;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using Xunit;
 
     /// <summary>
     /// Simple Events server node tests

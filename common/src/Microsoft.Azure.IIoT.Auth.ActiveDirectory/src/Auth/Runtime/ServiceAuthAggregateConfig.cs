@@ -16,15 +16,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime
     /// </summary>
     public class ServiceAuthAggregateConfig : ConfigBase, IServerAuthConfig
     {
-        /// <summary>
-        /// Auth configuration
-        /// </summary>
-        private const string kAuth_RequiredKey = "Auth:Required";
-
-        /// <inheritdoc/>
-        public bool AllowAnonymousAccess => !GetBoolOrDefault(kAuth_RequiredKey,
-            () => GetBoolOrDefault(PcsVariable.PCS_AUTH_REQUIRED,
-                () => true));
 
         /// <inheritdoc/>
         public IEnumerable<IOAuthServerConfig> JwtBearerProviders { get; }

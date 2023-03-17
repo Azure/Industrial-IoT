@@ -19,19 +19,5 @@ namespace Microsoft.Azure.IIoT.Auth
         /// for us.
         /// </summary>
         string Audience { get; }
-
-        /// <summary>
-        /// The token's iss parameter must match this string
-        /// to ensure the correct issuer. If the value is not
-        /// set, the issuer is validated against the instance
-        /// url and that it contains a tenant.
-        /// </summary>
-        string TrustedIssuer { get; }
-
-        /// <summary>
-        /// Optionally the tolerated clock skew allowed when
-        /// validating tokens expiration.
-        /// </summary>
-        TimeSpan AllowedClockSkew { get; }
     }
 }

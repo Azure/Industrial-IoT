@@ -21,17 +21,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth
         string Provider { get; }
 
         /// <summary>
-        /// Redeem token
-        /// </summary>
-        /// <param name="user"></param>
-        /// <param name="code"></param>
-        /// <param name="scopes"></param>
-        /// <returns></returns>
-        Task<TokenResultModel> RedeemCodeForUserAsync(
-            ClaimsPrincipal user, string code,
-            IEnumerable<string> scopes);
-
-        /// <summary>
         /// Checks whether we have a valid token for
         /// user in our cache
         /// </summary>

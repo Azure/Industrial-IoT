@@ -20,8 +20,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime
         /// Client configuration
         /// </summary>
         private const string kAuth_IsDisabledKey = "Auth:IsDisabled";
-        private const string kAuth_TrustedIssuerKey = "Auth:TrustedIssuer";
-        private const string kAuth_AllowedClockSkewKey = "Auth:AllowedClockSkewSeconds";
         private const string kAuth_AudienceKey = "Auth:Audience";
         private const string kAuth_AppIdKey = "Auth:AppId";
         private const string kAuth_AppSecretKey = "Auth:AppSecret";
@@ -49,15 +47,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime
             GetStringOrDefault(kAuth_InstanceUrlKey,
                 () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_URL,
                     () => GetDefaultUrl("9090", "auth")));
-        /// <summary>Trusted issuer</summary>
-        public string TrustedIssuer =>
-            GetStringOrDefault(kAuth_TrustedIssuerKey,
-                () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_ISSUER,
-                    () => null))?.Trim();
-        /// <summary>Allowed clock skew</summary>
-        public TimeSpan AllowedClockSkew =>
-            TimeSpan.FromSeconds(GetIntOrDefault(kAuth_AllowedClockSkewKey,
-                () => 120));
         /// <summary>Valid audience</summary>
         public string Audience =>
             GetStringOrDefault(kAuth_AudienceKey,
