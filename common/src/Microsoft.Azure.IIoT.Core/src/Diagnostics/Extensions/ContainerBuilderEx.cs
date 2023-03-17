@@ -7,6 +7,7 @@ namespace Autofac
 {
     using Furly.Extensions.Logging;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using System.Diagnostics;
 
     /// <summary>
     /// Register console logger
@@ -17,10 +18,9 @@ namespace Autofac
         /// Register diagnostics
         /// </summary>
         /// <param name="builder"></param>
-        /// <returns></returns>
         public static ContainerBuilder AddDiagnostics(this ContainerBuilder builder)
         {
-            builder.RegisterType<EmptyMetricsContext>()
+            builder.RegisterInstance(IMetricsContext.Empty)
                 .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));
             builder.RegisterType<HealthCheckRegistrar>()
                 .AsImplementedInterfaces().SingleInstance();

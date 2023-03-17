@@ -409,11 +409,11 @@ namespace Opc.Ua.Extensions
                 case 'b':
                     try
                     {
-                        return text.UrlDecode().DecodeAsBase64();
+                        return Convert.FromBase64String(text.UrlDecode());
                     }
                     catch
                     {
-                        return text.DecodeAsBase64();
+                        return Convert.FromBase64String(text);
                     }
                 case 'g':
                     if (!Guid.TryParse(text.UrlDecode(), out var guid))
@@ -468,7 +468,7 @@ namespace Opc.Ua.Extensions
                     if (Enum.IsDefined(typeof(BuiltInType), id))
                     {
                         name = Enum.GetName(typeof(BuiltInType), id);
-                        if (name.EqualsIgnoreCase(nameof(BuiltInType.Null)))
+                        if (StringComparer.OrdinalIgnoreCase.Equals(name, nameof(BuiltInType.Null)))
                         {
                             name = null;
                         }
@@ -478,12 +478,10 @@ namespace Opc.Ua.Extensions
                 {
                     return true;
                 }
-                if (TypeMaps.DataTypes.Value.TryGetBrowseName(uid, out name))
+                if (TypeMaps.DataTypes.Value.TryGetBrowseName(uid, out name) &&
+                    StringComparer.OrdinalIgnoreCase.Equals(name, nameof(BuiltInType.Null)))
                 {
-                    if (name.EqualsIgnoreCase(nameof(BuiltInType.Null)))
-                    {
-                        name = null;
-                    }
+                    name = null;
                 }
                 return !string.IsNullOrEmpty(name);
             }

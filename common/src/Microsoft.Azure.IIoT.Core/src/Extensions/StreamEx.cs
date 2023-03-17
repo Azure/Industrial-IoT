@@ -5,49 +5,13 @@
 
 namespace System.IO
 {
-    using System.IO.Compression;
     using System.Text;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Stream extensions
     /// </summary>
     public static class StreamEx
     {
-        /// <summary>
-        /// Zip string
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public static byte[] Zip(this Stream input)
-        {
-            using (var result = new MemoryStream())
-            {
-                using (var gs = new GZipStream(result, CompressionMode.Compress))
-                {
-                    input.CopyTo(gs);
-                }
-                return result.ToArray();
-            }
-        }
-
-        /// <summary>
-        /// Unzip byte array
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public static byte[] Unzip(this Stream input)
-        {
-            using (var output = new MemoryStream())
-            {
-                using (var gs = new GZipStream(input, CompressionMode.Decompress))
-                {
-                    gs.CopyTo(output);
-                }
-                return output.ToArray();
-            }
-        }
-
         /// <summary>
         /// Helper extension to convert an entire stream into a string...
         /// </summary>
@@ -93,42 +57,6 @@ namespace System.IO
             }
             catch (IOException) { }
             return new ArraySegment<byte>(body, 0, offset);
-        }
-
-        /// <summary>
-        /// Helper extension to convert an entire stream into readonly memory async.
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="bufferSize"></param>
-        /// <returns></returns>
-        public static async Task<ReadOnlyMemory<byte>> ReadAsMemoryAsync(this Stream stream,
-            int bufferSize = 1024)
-        {
-            // Try to read as much as possible
-            var body = new byte[bufferSize];
-            var offset = 0;
-            try
-            {
-                while (true)
-                {
-                    var read = await stream.ReadAsync(body.AsMemory(offset, body.Length - offset)).ConfigureAwait(false);
-                    if (read <= 0)
-                    {
-                        break;
-                    }
-
-                    offset += read;
-                    if (offset == body.Length)
-                    {
-                        // Grow
-                        var newbuf = new byte[body.Length * 2];
-                        Buffer.BlockCopy(body, 0, newbuf, 0, body.Length);
-                        body = newbuf;
-                    }
-                }
-            }
-            catch (IOException) { }
-            return body;
         }
     }
 }

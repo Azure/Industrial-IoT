@@ -30,25 +30,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Registry.Models
             var type = twin.Tags.GetValueOrDefault<string>(nameof(EntityRegistration.DeviceType), null);
             if (string.IsNullOrEmpty(type) && twin.Reported != null)
             {
-                type = twin.Reported.GetValueOrDefault(OpcUa.Constants.TwinPropertyTypeKey, (string)null);
+                type = twin.Reported.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string)null);
             }
             if (string.IsNullOrEmpty(type))
             {
-                type = twin.Tags.GetValueOrDefault(OpcUa.Constants.TwinPropertyTypeKey, (string)null);
+                type = twin.Tags.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string)null);
             }
-            if (Constants.EntityTypeGateway.EqualsIgnoreCase(type))
+            if (StringComparer.OrdinalIgnoreCase.Equals(Constants.EntityTypeGateway, type))
             {
                 return twin.ToGatewayRegistration();
             }
-            if (Constants.EntityTypeApplication.EqualsIgnoreCase(type))
+            if (StringComparer.OrdinalIgnoreCase.Equals(Constants.EntityTypeApplication, type))
             {
                 return twin.ToApplicationRegistration();
             }
-            if (Constants.EntityTypeEndpoint.EqualsIgnoreCase(type))
+            if (StringComparer.OrdinalIgnoreCase.Equals(Constants.EntityTypeEndpoint, type))
             {
                 return twin.ToEndpointRegistration(onlyServerState);
             }
-            if (Constants.EntityTypePublisher.EqualsIgnoreCase(type))
+            if (StringComparer.OrdinalIgnoreCase.Equals(Constants.EntityTypePublisher, type))
             {
                 return twin.ToPublisherRegistration(onlyServerState);
             }

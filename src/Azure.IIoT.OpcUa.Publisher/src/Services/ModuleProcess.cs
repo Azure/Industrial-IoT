@@ -24,9 +24,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <summary>
         /// Running in container
         /// </summary>
-        public static bool IsContainer
-            => Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
-                .EqualsIgnoreCase("true") ?? false;
+        public static bool IsContainer => StringComparer.OrdinalIgnoreCase.Equals(
+            Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")
+                ?? string.Empty, "true");
 
         /// <summary>
         /// Whether the module is running

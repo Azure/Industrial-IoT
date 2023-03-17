@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
     /// <summary>
     /// Test class to override Exit method
     /// </summary>
-    public class PublisherCliOptionsTest : PublisherCliOptions
+    public class PublisherCliOptionsTest : CommandLine
     {
         /// <summary>
         /// Exit code

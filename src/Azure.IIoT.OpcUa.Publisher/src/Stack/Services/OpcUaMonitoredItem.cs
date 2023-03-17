@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Monitored item
         /// </summary>
-        public BaseMonitoredItemModel Template { get; }
+        public BaseMonitoredItemModel Template { get; internal set; }
 
         /// <summary>
         /// Monitored item as data
@@ -117,11 +117,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="template"></param>
         /// <param name="logger"></param>
-        public OpcUaMonitoredItem(BaseMonitoredItemModel template, ILogger<OpcUaMonitoredItem> logger)
+        public OpcUaMonitoredItem(BaseMonitoredItemModel template,
+            ILogger<OpcUaMonitoredItem> logger)
         {
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
-            Template = template?.Clone() ??
+            Template = template ??
                 throw new ArgumentNullException(nameof(template));
         }
 
@@ -317,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         TimeSpan.FromSeconds(1)).TotalMilliseconds,
                     model.Template.SamplingInterval.GetValueOrDefault(
                         TimeSpan.FromSeconds(1)).TotalMilliseconds);
-                Template.SamplingInterval = model.Template.SamplingInterval;
+                Template = Template with { SamplingInterval = model.Template.SamplingInterval };
                 Item.SamplingInterval =
                     (int)Template.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
                 itemChange = true;
@@ -328,7 +329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogDebug("{Item}: Changing discard new mode from {Old} to {New}",
                     this, Template.DiscardNew ?? false,
                     model.Template.DiscardNew ?? false);
-                Template.DiscardNew = model.Template.DiscardNew;
+                Template = Template with { DiscardNew = model.Template.DiscardNew };
                 Item.DiscardOldest = !(Template.DiscardNew ?? false);
                 itemChange = true;
             }
@@ -337,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogDebug("{Item}: Changing queue size from {Old} to {New}",
                     this, Template.QueueSize,
                     model.Template.QueueSize);
-                Template.QueueSize = model.Template.QueueSize;
+                Template = Template with { QueueSize = model.Template.QueueSize };
                 Item.QueueSize = Template.QueueSize;
                 itemChange = true;
             }
@@ -347,13 +348,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogDebug("{Item}: Changing monitoring mode from {Old} to {New}",
                     this, Template.MonitoringMode ?? MonitoringMode.Reporting,
                     model.Template.MonitoringMode ?? MonitoringMode.Reporting);
-                Template.MonitoringMode = model.Template.MonitoringMode;
+                Template = Template with { MonitoringMode = model.Template.MonitoringMode };
                 _modeChange = Template.MonitoringMode ?? MonitoringMode.Reporting;
             }
 
             if (Template.DisplayName != model.Template.DisplayName)
             {
-                Template.DisplayName = model.Template.DisplayName;
+                Template = Template with { DisplayName = model.Template.DisplayName };
                 Item.DisplayName = Template.DisplayName;
                 metadataChange = true;
                 itemChange = true;
@@ -367,7 +368,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (DataTemplate.DataSetClassFieldId != model.DataTemplate.DataSetClassFieldId)
                 {
                     var previous = DataSetFieldId;
-                    DataTemplate.DataSetClassFieldId = model.DataTemplate.DataSetClassFieldId;
+                    Template = DataTemplate with { DataSetClassFieldId = model.DataTemplate.DataSetClassFieldId };
                     _logger.LogDebug("{Item}: Changing dataset class field id from {Old} to {New}",
                         this, previous, DataSetFieldId);
                     metadataChange = true;
@@ -376,7 +377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Update change filter
                 if (!model.DataTemplate.DataChangeFilter.IsSameAs(DataTemplate.DataChangeFilter))
                 {
-                    DataTemplate.DataChangeFilter = model.DataTemplate.DataChangeFilter;
+                    Template = DataTemplate with { DataChangeFilter = model.DataTemplate.DataChangeFilter };
                     _logger.LogDebug("{Item}: Changing data change filter.", this);
                     Item.Filter = DataTemplate.DataChangeFilter.ToStackModel();
                     itemChange = true;
@@ -385,7 +386,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Update AggregateFilter
                 else if (!model.DataTemplate.AggregateFilter.IsSameAs(DataTemplate.AggregateFilter))
                 {
-                    DataTemplate.AggregateFilter = model.DataTemplate.AggregateFilter;
+                    Template = DataTemplate with { AggregateFilter = model.DataTemplate.AggregateFilter };
                     _logger.LogDebug("{Item}: Changing aggregate change filter.", this);
                     Item.Filter = DataTemplate.AggregateFilter.ToStackModel(messageContext);
                     itemChange = true;
@@ -395,14 +396,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _logger.LogDebug("{Item}: Changing heartbeat from {Old} to {New}",
                         this, DataTemplate.HeartbeatInterval, model.DataTemplate.HeartbeatInterval);
-                    DataTemplate.HeartbeatInterval = model.DataTemplate.HeartbeatInterval;
+                    Template = DataTemplate with { HeartbeatInterval = model.DataTemplate.HeartbeatInterval };
 
                     itemChange = true; // TODO: Not really a change in the item
                 }
 
                 if (model.DataTemplate.SkipFirst != DataTemplate.SkipFirst)
                 {
-                    DataTemplate.SkipFirst = model.DataTemplate.SkipFirst;
+                    Template = DataTemplate with { SkipFirst = model.DataTemplate.SkipFirst };
 
                     if (model.TrySetSkipFirst(model.DataTemplate.SkipFirst))
                     {
@@ -423,8 +424,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (!model.EventTemplate.EventFilter.IsSameAs(EventTemplate.EventFilter) ||
                     !model.EventTemplate.ConditionHandling.IsSameAs(EventTemplate.ConditionHandling))
                 {
-                    EventTemplate.ConditionHandling = model.EventTemplate.ConditionHandling;
-                    EventTemplate.EventFilter = model.EventTemplate.EventFilter;
+                    Template = EventTemplate with
+                    {
+                        ConditionHandling = model.EventTemplate.ConditionHandling,
+                        EventFilter = model.EventTemplate.EventFilter
+                    };
                     _logger.LogDebug("{Item}: Changing event filter.", this);
 
                     metadataChange = true;

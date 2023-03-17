@@ -13,14 +13,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Mock.Services;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using System;
-    using System.Collections.Generic;
     using System.Text;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Startup class for tests
@@ -48,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                     "test.test.org", "iothubowner", Convert.ToBase64String(
                         Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString());
 
-            builder.RegisterType<EmptyMetricsContext>()
+            builder.RegisterInstance(IMetricsContext.Empty)
                 .AsImplementedInterfaces();
 
             base.ConfigureContainer(builder);
@@ -56,8 +52,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             // Re-add mock
             builder.RegisterType<IoTHubMock>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<TestAuthConfig>()
-                .AsImplementedInterfaces();
 
             // Add API
 
@@ -79,28 +73,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 
             builder.RegisterType<PublisherModule>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-        }
-
-        public class TestAuthConfig : IServerAuthConfig, ITokenProvider
-        {
-            public bool AllowAnonymousAccess => true;
-            public IEnumerable<IOAuthServerConfig> JwtBearerProviders { get; }
-
-            public Task<TokenResultModel> GetTokenForAsync(
-                string resource, IEnumerable<string> scopes = null)
-            {
-                return Task.FromResult<TokenResultModel>(null);
-            }
-
-            public Task InvalidateAsync(string resource)
-            {
-                return Task.CompletedTask;
-            }
-
-            public bool Supports(string resource)
-            {
-                return true;
-            }
         }
     }
 }

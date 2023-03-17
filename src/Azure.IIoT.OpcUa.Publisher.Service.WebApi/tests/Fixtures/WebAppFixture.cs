@@ -6,11 +6,14 @@
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 {
     using Autofac.Extensions.DependencyInjection;
+    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
+    using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using System.Net.Http;
+    using System.Net.Http.Headers;
 
     /// <inheritdoc/>
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory
@@ -31,6 +34,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                     .AddMvcCore()
                         .AddApplicationPart(typeof(Startup).Assembly)
                         .AddControllersAsServices())
+                .ConfigureTestServices(services => services.AddAuthentication("Test")
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                        "Test", _ => { }))
                 ;
             base.ConfigureWebHost(builder);
         }
@@ -45,7 +51,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         /// <inheritdoc/>
         public HttpClient CreateClient(string name)
         {
-            return CreateClient();
+            var client = CreateClient(new WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = false
+            });
+            client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Test");
+            return client;
         }
 
         /// <summary>

@@ -16,5 +16,20 @@ namespace Microsoft.Azure.IIoT.Diagnostics
         /// Tag list
         /// </summary>
         TagList TagList { get; }
+
+        /// <summary>
+        /// Null metrics context
+        /// </summary>
+        public static IMetricsContext Empty { get; }
+            = new EmptyContext();
+
+        /// <summary>
+        /// Empty context
+        /// </summary>
+        private sealed class EmptyContext : IMetricsContext
+        {
+            /// <inheritdoc/>
+            public TagList TagList { get; }
+        }
     }
 }

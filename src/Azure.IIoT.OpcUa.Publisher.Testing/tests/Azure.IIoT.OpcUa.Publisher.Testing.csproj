@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Description>Contains fixtures and tests executing against test servers</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.15" />
+    <PackageReference Include="Furly.Extensions.Json" Version="0.4.15" />
+    <PackageReference Include="FluentAssertions" Version="6.5.1" />
+    <PackageReference Include="Moq" Version="4.18.4" />
+    <PackageReference Include="xunit.assert" Version="2.4.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher\src\Azure.IIoT.OpcUa.Publisher.csproj" />
+    <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
+  </ItemGroup>
+</Project>

@@ -18,8 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using Furly.Tunnel.Protocol;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
     using Nito.AsyncEx;
-    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -64,7 +61,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddFromKeyVault(ConfigurationProviderPriority.Lowest)
                 .Build();
         }
@@ -85,17 +81,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 
             services.AddHttpsRedirect();
             services.AddHttpClient();
-
             services.AddIoTHubServices();
 
-            services.AddAuthentication()
-                .AddJwtBearerProvider(AuthProvider.AzureAD);
-
-            services.AddAuthorizationPolicies(
-                Policies.RoleMapping,
-                Policies.CanRead,
-                Policies.CanWrite,
-                Policies.CanPublish);
+            services.AddMicrosoftIdentityWebApiAuthentication();
+            services.AddAuthorizationBuilder()
+                .AddPolicy(Policies.CanRead,
+                    options => options.RequireAuthenticatedUser())
+                .AddPolicy(Policies.CanWrite,
+                    options => options.RequireAuthenticatedUser())
+                .AddPolicy(Policies.CanPublish,
+                    options => options.RequireAuthenticatedUser());
 
             // Add controllers as services so they'll be resolved.
             services.AddControllers()
@@ -104,8 +99,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 
             // Add signalr and optionally configure signalr service
             services.AddSignalR()
-                .AddJsonSerializer()
-                .AddMessagePackSerializer();
+                .AddNewtonsoftJson()
+                .AddMessagePack();
 
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
             // services.AddOpenTelemetry(ServiceInfo.Name);
@@ -126,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             app.UseRouting();
             app.UseCors();
 
-            app.UseJwtBearerAuthentication();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseHttpsRedirect();
 

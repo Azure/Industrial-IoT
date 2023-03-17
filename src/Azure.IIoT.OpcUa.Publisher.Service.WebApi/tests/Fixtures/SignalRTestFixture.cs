@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 {
     using Autofac.Extensions.DependencyInjection;
+    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT;
     using Microsoft.Extensions.Configuration;
@@ -47,10 +48,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                     })
                     .UseStartup<TestStartup>()
                     .UseKestrel(o => o.AddServerHeader = false))
-                .ConfigureServices(services => services
-                    .AddMvcCore()
-                        .AddApplicationPart(typeof(Startup).Assembly)
-                        .AddControllersAsServices())
+                .ConfigureServices(services =>
+                {
+                    services
+                        .AddMvcCore()
+                            .AddApplicationPart(typeof(Startup).Assembly)
+                            .AddControllersAsServices();
+                    services.AddAuthentication("Test")
+                        .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                            "Test", _ => { });
+                })
                 .Build();
             _server.Start();
         }

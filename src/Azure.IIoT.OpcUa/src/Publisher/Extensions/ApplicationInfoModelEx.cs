@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 return false;
             }
             return
-                that.ApplicationUri.EqualsIgnoreCase(model.ApplicationUri) &&
+                StringComparer.OrdinalIgnoreCase.Equals(that.ApplicationUri, model.ApplicationUri) &&
                 that.ApplicationType == model.ApplicationType;
         }
 
@@ -318,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 {
                     return false;
                 }
-                if (!x.ApplicationUri.EqualsIgnoreCase(y.ApplicationUri))
+                if (!StringComparer.OrdinalIgnoreCase.Equals(x.ApplicationUri, y.ApplicationUri))
                 {
                     return false;
                 }

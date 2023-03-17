@@ -54,7 +54,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Registry.Models
         /// <returns></returns>
         public static bool? IsConnected(this DeviceTwinModel twin)
         {
-            return twin.ConnectionState?.EqualsIgnoreCase("Connected");
+            if (twin.ConnectionState == null)
+            {
+                return null;
+            }
+            return StringComparer.OrdinalIgnoreCase.Equals(twin.ConnectionState, "Connected");
         }
 
         /// <summary>
@@ -64,7 +68,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Registry.Models
         /// <returns></returns>
         public static bool? IsDisabled(this DeviceTwinModel twin)
         {
-            return twin.Status?.EqualsIgnoreCase("disabled");
+            if (twin.Status == null)
+            {
+                return null;
+            }
+            return StringComparer.OrdinalIgnoreCase.Equals(twin.Status, "disabled");
         }
 
         /// <summary>

@@ -57,7 +57,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            return endpointId.Substring(3).IsBase16();
+            var str = endpointId.Substring(3);
+            if (str.Length % 2 != 0)
+            {
+                return false;
+            }
+            for (var i = 0; i < str.Length; i += 2)
+            {
+                var s = str.Substring(i, 2);
+                if (!byte.TryParse(s, System.Globalization.NumberStyles.HexNumber, null, out _))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>

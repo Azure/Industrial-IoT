@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Autofac;
     using Furly.Azure;
@@ -23,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
 
     /// <summary>
     /// Publisher module host process
@@ -48,10 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             var configuration = new ConfigurationBuilder()
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                // Above configuration providers will provide connection
-                // details for KeyVault configuration provider.
-                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
+                .AddFromKeyVault(ConfigurationProviderPriority.Lowest)
                 .Build();
             var cs = configuration.GetValue<string>(PcsVariable.PCS_IOTHUB_CONNSTRING, null);
             if (string.IsNullOrEmpty(cs))

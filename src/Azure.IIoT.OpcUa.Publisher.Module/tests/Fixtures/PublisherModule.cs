@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     { "PkiRootPath", ClientPkiRootPath }
                 })
-                .AddInMemoryCollection(new PublisherCliOptions(arguments))
+                .AddInMemoryCollection(new CommandLine(arguments))
                 ;
 
             _config = configBuilder.Build();

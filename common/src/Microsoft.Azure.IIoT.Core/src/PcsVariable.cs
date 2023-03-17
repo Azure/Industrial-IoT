@@ -17,48 +17,6 @@ namespace Microsoft.Azure.IIoT
         /// <summary> Iot hub connection string </summary>
         public const string PCS_IOTHUB_CONNSTRING =
             "PCS_IOTHUB_CONNSTRING";
-        /// <summary> Iot hub event hub endpoint </summary>
-        public const string PCS_IOTHUB_EVENTHUBENDPOINT =
-            "PCS_IOTHUB_EVENTHUBENDPOINT";
-        /// <summary> storage connection string </summary>
-        public const string PCS_STORAGE_CONNSTRING =
-            "PCS_STORAGE_CONNSTRING";
-        /// <summary> Blob Storage Container that holds encrypted keys </summary>
-        public const string PCS_STORAGE_CONTAINER_DATAPROTECTION =
-            "PCS_STORAGE_CONTAINER_DATAPROTECTION";
-        /// <summary> SignalR connection string </summary>
-        public const string PCS_SIGNALR_CONNSTRING =
-            "PCS_SIGNALR_CONNSTRING";
-        /// <summary> SignalR service mode </summary>
-        public const string PCS_SIGNALR_MODE =
-            "PCS_SIGNALR_MODE";
-        /// <summary> Secondary event hub connection string </summary>
-        public const string PCS_EVENTHUB_CONNSTRING =
-            "PCS_EVENTHUB_CONNSTRING";
-        /// <summary> Event hub name </summary>
-        public const string PCS_EVENTHUB_NAME =
-            "PCS_EVENTHUB_NAME";
-        /// <summary> Event hub consumer group telemetryux </summary>
-        public const string PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX =
-            "PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX";
-        /// <summary> Keyvault client application id </summary>
-        public const string PCS_KEYVAULT_APPID =
-            "PCS_KEYVAULT_APPID";
-        /// <summary> Keyvault client application secret </summary>
-        public const string PCS_KEYVAULT_SECRET =
-            "PCS_KEYVAULT_SECRET";
-        /// <summary> Keyvault url </summary>
-        public const string PCS_KEYVAULT_URL =
-            "PCS_KEYVAULT_URL";
-        /// <summary> Keyvault is hsm </summary>
-        public const string PCS_KEYVAULT_ISHSM =
-            "PCS_KEYVAULT_ISHSM";
-        /// <summary> Key (in KeyVault) to be used for encription of keys </summary>
-        public const string PCS_KEYVAULT_KEY_DATAPROTECTION =
-            "PCS_KEYVAULT_KEY_DATAPROTECTION";
-        /// <summary> Determines whether configuratoin should be loaded from KeyVault </summary>
-        public const string PCS_KEYVAULT_CONFIG_ENABLED =
-            "PCS_KEYVAULT_CONFIG_ENABLED";
         /// <summary> Managed service identity application id </summary>
         public const string PCS_MSI_APPID =
             "PCS_MSI_APPID";
@@ -104,9 +62,6 @@ namespace Microsoft.Azure.IIoT
         /// <summary> Client application id </summary>
         public const string PCS_AAD_PUBLIC_CLIENT_APPID =
             "PCS_AUTH_PUBLIC_CLIENT_APPID";
-        /// <summary> Whether to use role based access </summary>
-        public const string PCS_AUTH_ROLES =
-            "PCS_AUTH_ROLES";
         /// <summary> Auth required </summary>
         public const string PCS_AUTH_REQUIRED =
             "PCS_AUTH_REQUIRED";
@@ -119,15 +74,6 @@ namespace Microsoft.Azure.IIoT
         /// <summary> OPC publisher service endpoint url </summary>
         public const string PCS_PUBLISHER_SERVICE_URL =
             "PCS_PUBLISHER_SERVICE_URL";
-        /// <summary> Service URL path base for OPC publisher service </summary>
-        public const string PCS_PUBLISHER_SERVICE_PATH_BASE =
-            "PCS_PUBLISHER_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for frontend app </summary>
-        public const string PCS_FRONTEND_APP_SERVICE_PATH_BASE =
-            "PCS_FRONTEND_APP_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for events service </summary>
-        public const string PCS_EVENTS_SERVICE_PATH_BASE =
-            "PCS_EVENTS_SERVICE_PATH_BASE";
         /// <summary> URL path base for TSI query </summary>
         public const string PCS_TSI_URL =
             "PCS_TSI_URL";

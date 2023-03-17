@@ -1,0 +1,57 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
+{
+    using Microsoft.Extensions.Logging;
+    using Opc.Ua.Server;
+    using Opc.Ua.Test;
+    using System.Collections.Generic;
+
+    /// <summary>
+    /// Reference server fixture
+    /// </summary>
+    public class ReferenceServer : BaseServerFixture
+    {
+        /// <summary>
+        /// Sample server nodes
+        /// </summary>
+        public static IEnumerable<INodeManagerFactory> Reference(
+            ILoggerFactory factory, TimeService timeservice)
+        {
+            yield return new TestData.TestDataServer();
+            yield return new MemoryBuffer.MemoryBufferServer();
+            yield return new Boiler.BoilerServer();
+            yield return new Vehicles.VehiclesServer();
+            yield return new Reference.ReferenceServer();
+            yield return new global::HistoricalEvents.HistoricalEventsServer(timeservice);
+            yield return new global::HistoricalAccess.HistoricalAccessServer(timeservice);
+            yield return new Views.ViewsServer();
+            yield return new DataAccess.DataAccessServer();
+            yield return new Alarms.AlarmConditionServer(timeservice);
+            yield return new SimpleEvents.SimpleEventsServer();
+            yield return new Plc.PlcServer(timeservice,
+                factory.CreateLogger<Plc.PlcServer>());
+        }
+
+        /// <inheritdoc/>
+        public ReferenceServer()
+            : base(Reference)
+        {
+        }
+
+        /// <inheritdoc/>
+        private ReferenceServer(ILoggerFactory loggerFactory)
+            : base(Reference, loggerFactory)
+        {
+        }
+
+        /// <inheritdoc/>
+        public static ReferenceServer Create(ILoggerFactory loggerFactory)
+        {
+            return new ReferenceServer(loggerFactory);
+        }
+    }
+}

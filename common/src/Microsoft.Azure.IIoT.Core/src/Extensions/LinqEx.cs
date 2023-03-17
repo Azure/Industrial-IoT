@@ -14,6 +14,43 @@ namespace System.Linq
     public static class LinqEx2
     {
         /// <summary>
+        /// Merge enumerable b into set a.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static IReadOnlySet<T> MergeWith<T>(this IReadOnlySet<T> a, IEnumerable<T> b)
+        {
+            if (b?.Any() ?? false)
+            {
+                if (a == null)
+                {
+                    return b.ToHashSetSafe();
+                }
+
+                return a.Concat(b).ToHashSet();
+            }
+            return a;
+        }
+
+        /// <summary>
+        /// Returns the contents of a dictionary as KeyValuePairs
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="dictionary"></param>
+        /// <returns></returns>
+        public static IEnumerable<KeyValuePair<TKey, TValue>> ToKeyValuePairs<TKey, TValue>(
+            this IDictionary dictionary)
+        {
+            foreach (var key in dictionary.Keys)
+            {
+                yield return new KeyValuePair<TKey, TValue>((TKey)key, (TValue)dictionary[key]);
+            }
+        }
+
+        /// <summary>
         /// Creates a hash set from enumerable or null if enumerable is null.
         /// </summary>
         /// <typeparam name="T"></typeparam>

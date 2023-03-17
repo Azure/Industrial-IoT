@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.HistoricalAccess.Json
             var registry = _factory.Resolve<IEndpointManager>();
             var endpointId = registry.RegisterEndpointAsync(_server.GetConnection().Endpoint).Result;
             var serializer = _factory.Resolve<IJsonSerializer>();
-            return new HistoryReadValuesAtTimesTests<string>(() => // Create an adapter over the api
+            return new HistoryReadValuesAtTimesTests<string>(_server, () => // Create an adapter over the api
                 new HistoryWebApiAdapter(
                     new HistoryServiceClient(_factory,
                     new TestConfig(client.BaseAddress), serializer)), endpointId);

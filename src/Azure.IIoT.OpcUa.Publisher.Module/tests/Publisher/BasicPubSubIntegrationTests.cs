@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         internal const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private readonly ITestOutputHelper _output;
 
-        public BasicPubSubIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output)
+        public BasicPubSubIntegrationTests(ReferenceServer fixture, ITestOutputHelper output)
             : base(fixture, output)
         {
             _output = output;

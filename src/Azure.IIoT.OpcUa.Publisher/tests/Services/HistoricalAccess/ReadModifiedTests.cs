@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.HistoricalAccess.Tests
 
         private HistoryReadValuesModifiedTests<ConnectionModel> GetTests()
         {
-            return new HistoryReadValuesModifiedTests<ConnectionModel>(
+            return new HistoryReadValuesModifiedTests<ConnectionModel>(_server,
                 () => new HistoryServices<ConnectionModel>(
                     new NodeServices<ConnectionModel>(_server.Client,
                     _output.BuildLoggerFor<NodeServices<ConnectionModel>>())), _server.GetConnection());

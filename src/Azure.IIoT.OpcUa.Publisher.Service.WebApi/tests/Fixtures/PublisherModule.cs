@@ -96,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 {
                     { "PkiRootPath", ClientPkiRootPath }
                 })
-                .AddInMemoryCollection(new PublisherCliOptions(arguments))
+                .AddInMemoryCollection(new CommandLine(arguments))
                 ;
 
             _config = configBuilder.Build();

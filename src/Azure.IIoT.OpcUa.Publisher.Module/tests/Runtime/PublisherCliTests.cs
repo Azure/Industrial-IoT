@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         [InlineData("testValue", new string[] { "--deviceconnectionstring", "testValue" })]
         public void ValidOptionTest(string expected, string[] param)
         {
-            var result = new PublisherCliOptions(param);
+            var result = new CommandLine(param);
 
             result.Count
                 .Should()
@@ -66,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         [InlineData("True", new string[] { "--AutoAcceptUntrustedCertificates=True" })]
         public void ValidAutoAcceptUntrustedCertificatesOptionTest(string expected, string[] param)
         {
-            var result = new PublisherCliOptions(param);
+            var result = new CommandLine(param);
 
             result.Count
                 .Should()

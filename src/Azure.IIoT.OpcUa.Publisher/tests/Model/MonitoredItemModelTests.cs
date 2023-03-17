@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
 
     public class MonitoredItemModelTests
     {
-        private readonly DataMonitoredItemModel _dataModel = new()
+        private readonly BaseMonitoredItemModel _dataModel = new DataMonitoredItemModel
         {
             StartNodeId = "DataStartNodeId",
             AggregateFilter = new AggregateFilterModel()
@@ -48,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
             MonitoringMode = MonitoringMode.Sampling,
             RelativePath = new string[] { "DataRelativePath" }
         };
-        private readonly EventMonitoredItemModel _eventModel = new()
+        private readonly BaseMonitoredItemModel _eventModel = new EventMonitoredItemModel
         {
             StartNodeId = "EventStartNodeId",
             SamplingInterval = TimeSpan.FromMilliseconds(5000),
@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
         [Fact]
         public void CloneDataModelTest()
         {
-            var clone = _dataModel.Clone();
+            var clone = _dataModel with { };
 
             // Should be equal
             Assert.IsType<DataMonitoredItemModel>(clone);
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
         [Fact]
         public void CompareDataModelTestShouldSucceed()
         {
-            var clone = _dataModel.Clone();
+            var clone = _dataModel with { };
 
             // Should be equal
             Assert.IsType<DataMonitoredItemModel>(clone);
@@ -98,8 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
         [Fact]
         public void CompareDataModelTestShouldFail()
         {
-            var clone = _dataModel.Clone();
-            clone.QueueSize = 47000;
+            var clone = _dataModel with { QueueSize = 47000 };
 
             // Should not be equal
             Assert.IsType<DataMonitoredItemModel>(clone);
@@ -109,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
         [Fact]
         public void CloneEventModelTest()
         {
-            var clone = _eventModel.Clone();
+            var clone = _eventModel with { };
 
             // Should be equal
             Assert.IsType<EventMonitoredItemModel>(clone);
@@ -119,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
         [Fact]
         public void CompareEventModelTestShouldSucceed()
         {
-            var clone = _eventModel.Clone();
+            var clone = _eventModel with { };
 
             // Should be equal
             Assert.IsType<EventMonitoredItemModel>(clone);
@@ -129,8 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Model.Tests
         [Fact]
         public void CompareEventModelTestShouldFail()
         {
-            var clone = _eventModel.Clone();
-            clone.StartNodeId = "SomethingElse";
+            var clone = _eventModel with { StartNodeId = "SomethingElse" };
 
             // Should not be equal
             Assert.IsType<EventMonitoredItemModel>(clone);

@@ -11,26 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public static class AggregateFilterModelEx
     {
         /// <summary>
-        /// Clone
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static AggregateFilterModel Clone(this AggregateFilterModel model)
-        {
-            if (model == null)
-            {
-                return null;
-            }
-            return new AggregateFilterModel
-            {
-                AggregateTypeId = model.AggregateTypeId,
-                AggregateConfiguration = model.AggregateConfiguration.Clone(),
-                ProcessingInterval = model.ProcessingInterval,
-                StartTime = model.StartTime
-            };
-        }
-
-        /// <summary>
         /// Compare filters
         /// </summary>
         /// <param name="model"></param>

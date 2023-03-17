@@ -299,49 +299,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Registry.Models
                     tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.UpdateAuthorityId), null)
             };
         }
-#if ZOMBIE
-
-        /// <summary>
-        /// Clone
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <returns></returns>
-        public static ApplicationRegistration Clone(this ApplicationRegistration registration) {
-            if (registration == null) {
-                return null;
-            }
-            return new ApplicationRegistration {
-                DeviceId = registration.Id,
-                Type = registration.Type,
-                Etag = registration.Etag,
-                IsDisabled = registration.IsDisabled,
-                NotSeenSince = registration.NotSeenSince,
-                SiteId = registration.SiteId,
-                ApplicationName = registration.ApplicationName,
-                Locale = registration.Locale,
-                LocalizedNames = registration.LocalizedNames?
-                    .ToDictionary(k => k.Key, v => v.Value),
-                ApplicationUri = registration.ApplicationUri,
-                RecordId = registration.RecordId,
-                ProductUri = registration.ProductUri,
-                DiscovererId = registration.DiscovererId,
-                DiscoveryProfileUri = registration.DiscoveryProfileUri,
-                GatewayServerUri = registration.GatewayServerUri,
-                ApplicationType = registration.ApplicationType,
-                Capabilities = registration.Capabilities?
-                    .ToDictionary(k => k.Key, v => v.Value),
-                HostAddresses = registration.HostAddresses?
-                    .ToDictionary(k => k.Key, v => v.Value),
-                DiscoveryUrls = registration.DiscoveryUrls?
-                    .ToDictionary(k => k.Key, v => v.Value),
-                CreateTime = registration.CreateTime,
-                CreateAuthorityId = registration.CreateAuthorityId,
-                UpdateTime = registration.UpdateTime,
-                UpdateAuthorityId = registration.UpdateAuthorityId,
-                Connected = registration.Connected,
-            };
-        }
-#endif
 
         /// <summary>
         /// Decode tags and property into registration object

@@ -205,7 +205,6 @@ namespace Opc.Ua.Test
         /// </summary>
         /// <param name="expectedType"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
         public object GetRandom(BuiltInType expectedType)
         {
             switch (expectedType)
@@ -288,7 +287,6 @@ namespace Opc.Ua.Test
         /// <param name="length"></param>
         /// <param name="fixedLength"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
         public Array GetRandomArray(BuiltInType expectedType, int length,
             bool fixedLength)
         {
@@ -391,7 +389,6 @@ namespace Opc.Ua.Test
         /// <param name="length"></param>
         /// <param name="fixedLength"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public T[] GetRandomArray<T>(int length = 100, bool fixedLength = false)
         {
             if (length < 0)
@@ -413,7 +410,10 @@ namespace Opc.Ua.Test
                     {
                         obj = GetBoundaryValue(typeof(T));
                     }
-                    obj ??= GetRandom(typeof(T));
+                    if (obj == null)
+                    {
+                        obj = GetRandom(typeof(T));
+                    }
                 }
                 while (obj == null);
                 array[i] = (T)obj;
@@ -818,7 +818,7 @@ namespace Opc.Ua.Test
                                 {
                                     sortedDictionary.Add(text, list.ToArray());
                                 }
-                                text = text3.Substring(1);
+                                text = text3[1..];
                                 list = new List<string>();
                             }
                             else
@@ -899,8 +899,7 @@ namespace Opc.Ua.Test
             {
                 value = _tokenValues["en-US"];
             }
-            var num = 0;
-            num = (!isSymbol) ? (_random.NextInt32(MaxStringLength) + 1) : (_random.NextInt32(2) + 1);
+            var num = (!isSymbol) ? (_random.NextInt32(MaxStringLength) + 1) : (_random.NextInt32(2) + 1);
             var stringBuilder = new StringBuilder();
             while (stringBuilder.Length < num)
             {

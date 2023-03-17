@@ -18,6 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Resources;
     using System;
+    using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
+    using Microsoft.AspNetCore.Authentication;
 
     /// <summary>
     /// Webservice startup
@@ -46,7 +48,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .Build();
         }
 
@@ -58,13 +59,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(o => o.AddConsole().AddDebug());
+            services.AddHttpClient();
+
             services.AddRouting();
             services.AddHealthChecks();
 
-            services.AddHttpClient();
+            services.AddAuthorization();
+            services.AddAuthentication()
+                .UsingConfiguredApiKey()
+                ;
+
             services.AddOpenTelemetry()
-                .ConfigureResource(r => r.AddService(Constants.EntityTypePublisher,
-                    default, GetType().Assembly.GetReleaseVersion().ToString()))
+                .ConfigureResource(r => r
+                    .AddService(Constants.EntityTypePublisher,
+                        default, GetType().Assembly.GetReleaseVersion().ToString()))
                 .WithMetrics(builder => builder
                     .AddMeter(Diagnostics.Meter.Name)
                     .AddRuntimeInstrumentation()
@@ -94,6 +102,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             app.UseRouting();
 
             app.UseHttpsRedirect();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             app.UseSwagger();
             app.UseOpenTelemetryPrometheusScrapingEndpoint();
 

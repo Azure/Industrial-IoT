@@ -60,7 +60,6 @@ namespace Microsoft.Azure.IIoT.App
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 // Above configuration providers will provide connection
                 // details for KeyVault configuration provider.
                 .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
@@ -100,7 +99,6 @@ namespace Microsoft.Azure.IIoT.App
             app.UseRouting();
 
             app.UseAuthentication();
-            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
@@ -144,18 +142,15 @@ namespace Microsoft.Azure.IIoT.App
             services.AddAntiforgery(options => options.Cookie.SameSite = SameSiteMode.Strict);
 
             services.AddAuthentication(AuthProvider.AzureAD)
-                .AddOpenIdConnect(AuthProvider.AzureAD)
+                // .AddOpenIdConnect(AuthProvider.AzureAD)
                 //   .AddOpenIdConnect(AuthScheme.AuthService)
                 ;
 
-            services.AddAuthorizationPolicies();
             services.AddControllersWithViews();
 
             services.AddRazorPages();
             services.AddSignalR()
-                .AddJsonSerializer()
-                .AddMessagePackSerializer()
-                //   .AddAzureSignalRService(Config)
+                .AddJsonProtocol()
                 ;
 
             services.AddServerSideBlazor();
@@ -178,7 +173,6 @@ namespace Microsoft.Azure.IIoT.App
             builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces();
 
-            builder.AddDiagnostics();
             builder.AddMessagePackSerializer();
             builder.AddNewtonsoftJsonSerializer();
 

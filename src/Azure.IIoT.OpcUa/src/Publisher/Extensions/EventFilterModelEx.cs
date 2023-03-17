@@ -14,27 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public static class EventFilterModelEx
     {
         /// <summary>
-        /// Clone
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static EventFilterModel Clone(this EventFilterModel model)
-        {
-            if (model == null)
-            {
-                return null;
-            }
-            return new EventFilterModel
-            {
-                SelectClauses = model.SelectClauses?
-                    .Select(a => a.Clone())
-                    .ToList(),
-                WhereClause = model.WhereClause.Clone(),
-                TypeDefinitionId = model.TypeDefinitionId
-            };
-        }
-
-        /// <summary>
         /// Compare filters
         /// </summary>
         /// <param name="model"></param>

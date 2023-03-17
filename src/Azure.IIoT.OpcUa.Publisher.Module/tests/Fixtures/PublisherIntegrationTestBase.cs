@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// </summary>
         /// <param name="serverFixture"></param>
         /// <param name="testOutputHelper"></param>
-        public PublisherIntegrationTestBase(ReferenceServerFixture serverFixture,
+        public PublisherIntegrationTestBase(ReferenceServer serverFixture,
             ITestOutputHelper testOutputHelper)
         {
             _serverFixture = serverFixture;
@@ -318,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }
 
-        private readonly ReferenceServerFixture _serverFixture;
+        private readonly ReferenceServer _serverFixture;
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly HashSet<string> _messageIds = new();
         private PublisherModule _publisher;

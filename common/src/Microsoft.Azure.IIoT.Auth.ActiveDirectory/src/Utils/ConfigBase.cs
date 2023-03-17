@@ -87,45 +87,6 @@ namespace Microsoft.Azure.IIoT.Utils
         }
 
         /// <summary>
-        /// Get time span
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidConfigurationException"></exception>
-        protected TimeSpan GetDurationOrDefault(string key,
-            Func<TimeSpan> defaultValue = null)
-        {
-            var result = GetDurationOrNull(key);
-            if (result == null)
-            {
-                if (defaultValue != null)
-                {
-                    return defaultValue.Invoke();
-                }
-                throw new InvalidConfigurationException(
-                    $"Unable to load timespan value for '{key}' from configuration.");
-            }
-            return result.Value;
-        }
-
-        /// <summary>
-        /// Get time span
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        protected TimeSpan? GetDurationOrNull(string key,
-            Func<TimeSpan?> defaultValue = null)
-        {
-            if (!TimeSpan.TryParse(GetStringOrDefault(key), out var result))
-            {
-                return defaultValue?.Invoke();
-            }
-            return result;
-        }
-
-        /// <summary>
         /// Read int
         /// </summary>
         /// <param name="key"></param>

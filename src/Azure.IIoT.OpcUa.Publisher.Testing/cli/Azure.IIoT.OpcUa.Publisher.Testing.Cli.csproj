@@ -2,6 +2,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <Nullable>disable</Nullable>
    </PropertyGroup>
   <ItemGroup>
     <Compile Remove="pki\**" />
@@ -9,6 +11,6 @@
     <None Remove="pki\**" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.csproj" />
+    <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
   </ItemGroup>
 </Project>

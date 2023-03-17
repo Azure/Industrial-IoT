@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.Tests
             _message.Setup(c => c.AddProperty(It.IsAny<string>(), It.IsAny<string>()))
                 .Callback<string, string>((k, v) =>
                 {
-                    if (k == Constants.MessagePropertyRoutingKey)
+                    if (k == OpcUa.Constants.MessagePropertyRoutingKey)
                     {
                         routingInfo = v;
                     }

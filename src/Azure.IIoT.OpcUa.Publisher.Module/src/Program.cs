@@ -55,9 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", true)
                     .AddEnvironmentVariables()
-                    .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                     .AddFromDotEnvFile()
-                    .AddInMemoryCollection(new PublisherCliOptions(args)))
+                    .AddInMemoryCollection(new CommandLine(args)))
                 .ConfigureWebHostDefaults(builder => builder
                     .UseUrls("http://*:9702")
                     .UseStartup<Startup>()

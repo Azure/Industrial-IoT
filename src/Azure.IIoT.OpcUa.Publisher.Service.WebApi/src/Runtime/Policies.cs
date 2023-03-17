@@ -31,29 +31,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Auth
         /// </summary>
         public const string CanPublish =
             nameof(CanPublish);
-
-        /// <summary>
-        /// Get rights for policy
-        /// </summary>
-        /// <param name="policy"></param>
-        /// <returns></returns>
-        internal static Func<AuthorizationHandlerContext, bool> RoleMapping(string policy)
-        {
-            switch (policy)
-            {
-                case CanPublish:
-                    return context =>
-                        context.User.IsInRole(Roles.Admin) ||
-                        context.User.IsInRole(Roles.Sign) ||
-                        context.User.HasClaim(c => c.Type == Claims.Execute);
-                case CanWrite:
-                    return context =>
-                        context.User.IsInRole(Roles.Write) ||
-                        context.User.IsInRole(Roles.Admin) ||
-                        context.User.HasClaim(c => c.Type == Claims.Execute);
-                default:
-                    return null;
-            }
-        }
     }
 }

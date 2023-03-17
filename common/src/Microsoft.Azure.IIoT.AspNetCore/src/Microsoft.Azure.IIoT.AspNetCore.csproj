@@ -18,4 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Auth.ActiveDirectory\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Auth\Extensions\" />
+  </ItemGroup>
 </Project>

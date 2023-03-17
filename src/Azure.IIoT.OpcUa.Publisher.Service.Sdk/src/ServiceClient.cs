@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="useMsgPack"></param>
         public ServiceClient(bool useMsgPack = false) : this(new ConfigurationBuilder()
             .AddFromDotEnvFile()
-            .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+            .AddEnvironmentVariables()
             .Build(), useMsgPack)
         {
         }

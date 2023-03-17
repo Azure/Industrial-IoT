@@ -5,16 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 {
-    using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Logging;
     using Microsoft.Extensions.Logging;
-    using Opc.Ua;
+    using global::Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
 
     /// <summary>
     /// Test client for opc ua services
@@ -24,15 +23,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
         /// <summary>
         /// Test client entry point
         /// </summary>
-        /// <param name="args"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="ArgumentException"></exception>
         public static void Main(string[] args)
         {
-            if (args is null)
-            {
-                throw new ArgumentNullException(nameof(args));
-            }
             AppDomain.CurrentDomain.UnhandledException +=
                 (s, e) => Console.WriteLine("unhandled: " + e.ExceptionObject);
             var host = Utils.GetHostName();
@@ -114,20 +106,20 @@ Operations (Mutually exclusive):
                 Console.WriteLine(e);
                 return;
             }
+
+            Console.WriteLine("Press key to exit...");
+            Console.ReadKey();
         }
 
         /// <summary>
         /// Run server until exit
         /// </summary>
-        /// <param name="ports"></param>
         private static async Task RunServerAsync(IEnumerable<int> ports)
         {
-            var loggerFactory = Log.ConsoleFactory();
-            var logger = StackLogger.Create(loggerFactory.CreateLogger<StackLogger>());
+            var logger = Log.Console<ServerConsoleHost>();
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-            using (var server = new ServerConsoleHost(new ServerFactory(loggerFactory.CreateLogger<ServerFactory>()),
-                loggerFactory.CreateLogger<ServerConsoleHost>())
+            using (var server = new ServerConsoleHost(new TestServerFactory(Log.Console<TestServerFactory>()), logger)
             {
                 AutoAccept = true
             })
@@ -143,7 +135,7 @@ Operations (Mutually exclusive):
                 }
 #endif
                 await tcs.Task.ConfigureAwait(false);
-                logger.Logger.LogInformation("Exiting.");
+                logger.LogInformation("Exiting.");
             }
         }
     }

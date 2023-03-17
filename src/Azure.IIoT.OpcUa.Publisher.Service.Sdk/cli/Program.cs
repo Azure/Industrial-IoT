@@ -34,14 +34,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 .AddJsonFile("appsettings.json", true)
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                // Above configuration providers will provide connection
-                // details for KeyVault configuration provider.
                 .AddFromKeyVault(ConfigurationProviderPriority.Lowest, true)
                 .Build();
 
             using (var scope = new Program(config,
-                args.Any(arg => arg.EqualsIgnoreCase("--useMsgPack"))))
+                args.Any(arg => StringComparer.OrdinalIgnoreCase.Equals(arg, "--useMsgPack"))))
             {
                 scope.RunAsync(args).Wait();
             }

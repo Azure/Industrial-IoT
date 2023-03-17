@@ -38,9 +38,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <summary>
         /// Running in container
         /// </summary>
-        public static bool IsContainer
-            => Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
-                .EqualsIgnoreCase("true") ?? false;
+        public static bool IsContainer => StringComparer.OrdinalIgnoreCase.Equals(
+            Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")
+                ?? string.Empty, "true");
 
         /// <summary>
         /// Create services
@@ -559,7 +559,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                         }
 
                         // Check local host
-                        if (host.EqualsIgnoreCase("localhost") && IsContainer)
+                        if (StringComparer.OrdinalIgnoreCase.Equals(host, "localhost") && IsContainer)
                         {
                             // Also resolve docker internal since we are in a container
                             host = Environment.GetEnvironmentVariable(kIoTEdgeGatewayHostNameEnvVar);

@@ -5,6 +5,7 @@
 
 namespace System
 {
+    using System.Security.Cryptography;
     using System.Text;
 
     /// <summary>
@@ -24,63 +25,6 @@ namespace System
         }
 
         /// <summary>
-        /// Convert from base 64
-        /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        public static byte[] DecodeAsBase64(this string str)
-        {
-            if (str == null)
-            {
-                return null;
-            }
-            return Convert.FromBase64String(str);
-        }
-
-        /// <summary>
-        /// Check if base 16
-        /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        public static bool IsBase16(this string str)
-        {
-            try
-            {
-                DecodeAsBase16(str);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Convert from base 16
-        /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public static byte[] DecodeAsBase16(this string str)
-        {
-            if (str == null)
-            {
-                return null;
-            }
-            if (str.Length % 2 != 0)
-            {
-                throw new ArgumentException("Invalid length", nameof(str));
-            }
-            var bytes = new byte[str.Length / 2];
-            for (var i = 0; i < str.Length; i += 2)
-            {
-                var s = str.Substring(i, 2);
-                bytes[i / 2] = byte.Parse(s, Globalization.NumberStyles.HexNumber, null);
-            }
-            return bytes;
-        }
-
-        /// <summary>
         /// Hashes the string
         /// </summary>
         /// <param name="str">string to hash</param>
@@ -91,33 +35,20 @@ namespace System
         }
 
         /// <summary>
-        /// Removes all whitespace and replaces it with single space.
+        /// Hashes the string
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="bytestr">string to hash</param>
         /// <returns></returns>
-        public static string SingleSpacesNoLineBreak(this string value)
+        [Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5350:Do Not Use Weak Cryptographic Algorithms",
+            Justification = "SHA1 not used for crypto operation.")]
+        public static string ToSha1Hash(this byte[] bytestr)
         {
-            if (string.IsNullOrEmpty(value))
+            if (bytestr == null)
             {
-                return value;
+                return null;
             }
-            var builder = new StringBuilder();
-            var lastCharWasWs = false;
-            foreach (var c in value)
-            {
-                if (char.IsWhiteSpace(c))
-                {
-                    lastCharWasWs = true;
-                    continue;
-                }
-                if (lastCharWasWs)
-                {
-                    builder.Append(' ');
-                    lastCharWasWs = false;
-                }
-                builder.Append(c);
-            }
-            return builder.ToString();
+            var hash = SHA1.HashData(bytestr);
+            return hash.ToBase16String(false);
         }
     }
 }

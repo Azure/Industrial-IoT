@@ -28,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 Configuration = model.Configuration.Clone(),
                 Id = model.Id.Clone(),
                 MonitoredItems = model.MonitoredItems?
-                    .Select(n => n.Clone())
                     .ToList(),
                 ExtensionFields = model.ExtensionFields?
                     .ToDictionary(k => k.Key, v => v.Value)
