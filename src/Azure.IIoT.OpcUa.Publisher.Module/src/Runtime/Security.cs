@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
+    using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
@@ -47,22 +48,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <param name="encoder"></param>
             /// <param name="clock"></param>
             /// <param name="context"></param>
-            /// <param name="config"></param>
+            /// <param name="twin"></param>
             public ApiKeyHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
                 ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock,
-                IHttpContextAccessor context, IDictionary<string, string> config) :
+                IHttpContextAccessor context, IDictionary<string, VariantValue> twin) :
                 base(options, logger, encoder, clock)
             {
                 _context = context;
-                _config = config;
+                _twin = twin;
                 _logger = logger.CreateLogger<ApiKeyHandler>();
 
-                if (!_config.ContainsKey(ApiKeyKey))
+                if (!_twin.ContainsKey(ApiKeyKey))
                 {
                     _logger.LogInformation("Generating Api Key ...");
                     var apiKey = Guid.NewGuid().ToString();
                     _logger.LogDebug("New Api Key {Key} created.", apiKey);
-                    _config.Add(ApiKeyKey, apiKey);
+                    _twin.Add(ApiKeyKey, apiKey);
                 }
             }
 
@@ -79,14 +80,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     var authorization = request.Headers["Authorization"][0].Split(' ')[1];
                     var token = authorization.Trim();
-                    if (!_config.TryGetValue(ApiKeyKey, out var key) || key != token)
+                    if (!_twin.TryGetValue(ApiKeyKey, out var key) || key != token)
                     {
                         throw new UnauthorizedAccessException();
                     }
                     var claims = new[]
                     {
-                    new Claim(ClaimTypes.NameIdentifier, token)
-                };
+                        new Claim(ClaimTypes.NameIdentifier, token)
+                    };
 
                     var identity = new ClaimsIdentity(claims, Scheme.Name);
                     var principal = new ClaimsPrincipal(identity);
@@ -100,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
 
             private readonly IHttpContextAccessor _context;
-            private readonly IDictionary<string, string> _config;
+            private readonly IDictionary<string, VariantValue> _twin;
             private readonly ILogger<ApiKeyHandler> _logger;
         }
 
