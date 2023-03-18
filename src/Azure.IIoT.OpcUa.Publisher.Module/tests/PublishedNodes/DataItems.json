@@ -4,7 +4,7 @@
         "UseSecurity": false,
         "OpcNodes": [
             {
-                "Id": "ns=21;i=1259",
+                "Id": "ns=23;i=1259",
                 "OpcSamplingInterval": 2000,
                 "OpcPublishingInterval": 2000,
                 "DisplayName": "Output",

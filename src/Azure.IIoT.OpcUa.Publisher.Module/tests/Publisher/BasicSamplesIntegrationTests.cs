@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 
             // Assert
             var message = Assert.Single(messages);
-            Assert.Equal("ns=21;i=1259", message.Message.GetProperty("NodeId").GetString());
+            Assert.Equal("ns=23;i=1259", message.Message.GetProperty("NodeId").GetString());
             Assert.InRange(message.Message.GetProperty("Value").GetProperty("Value").GetDouble(),
                 double.MinValue, double.MaxValue);
         }
@@ -236,7 +236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 
                 var messages = await WaitForMessagesAsync().ConfigureAwait(false);
                 var message = Assert.Single(messages).Message;
-                Assert.Equal("ns=21;i=1259", message.GetProperty("NodeId").GetString());
+                Assert.Equal("ns=23;i=1259", message.GetProperty("NodeId").GetString());
                 Assert.InRange(message.GetProperty("Value").GetProperty("Value").GetDouble(),
                     double.MinValue, double.MaxValue);
 
@@ -388,7 +388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 
                 var messages = await WaitForMessagesAsync(GetDataFrame).ConfigureAwait(false);
                 var message = Assert.Single(messages).Message;
-                Assert.Equal("ns=21;i=1259", message.GetProperty("NodeId").GetString());
+                Assert.Equal("ns=23;i=1259", message.GetProperty("NodeId").GetString());
                 Assert.InRange(message.GetProperty("Value").GetProperty("Value").GetDouble(),
                     double.MinValue, double.MaxValue);
 
