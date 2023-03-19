@@ -11,22 +11,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Xunit;
+    using Autofac;
+    using Xunit.Abstractions;
 
-    [Collection(SignalRCollection.Name)]
-    public class RegistryServiceEventsTests
+    public class RegistryServiceEventsTests : IClassFixture<WebAppFixture>
     {
-        public RegistryServiceEventsTests(SignalRTestFixture factory)
+        public RegistryServiceEventsTests(WebAppFixture factory, ITestOutputHelper output)
         {
             _factory = factory;
+            _output = output;
         }
 
-        private readonly SignalRTestFixture _factory;
+        private readonly WebAppFixture _factory;
+        private readonly ITestOutputHelper _output;
 
         [Fact]
         public async Task TestPublishPublisherEventAndReceiveAsync()
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IPublisherRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new PublisherModel
             {
@@ -58,8 +62,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [InlineData(678)]
         public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total)
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IPublisherRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new PublisherModel
             {
@@ -91,8 +96,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [Fact]
         public async Task TestPublishDiscovererEventAndReceiveAsync()
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IDiscovererRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new DiscovererModel
             {
@@ -132,8 +138,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [InlineData(375)]
         public async Task TestPublishDiscovererEventAndReceiveMultipleAsync(int total)
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IDiscovererRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new DiscovererModel
             {
@@ -165,8 +172,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [Fact]
         public async Task TestPublishSupervisorEventAndReceiveAsync()
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<ISupervisorRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new SupervisorModel
             {
@@ -199,8 +207,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [InlineData(4634)]
         public async Task TestPublishSupervisorEventAndReceiveMultipleAsync(int total)
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<ISupervisorRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new SupervisorModel
             {
@@ -232,8 +241,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [Fact]
         public async Task TestPublishApplicationEventAndReceiveAsync()
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IApplicationRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new ApplicationInfoModel
             {
@@ -269,8 +279,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [InlineData(4634)]
         public async Task TestPublishApplicationEventAndReceiveMultipleAsync(int total)
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IApplicationRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new ApplicationInfoModel
             {
@@ -304,8 +315,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [Fact]
         public async Task TestPublishEndpointEventAndReceiveAsync()
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IEndpointRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new EndpointInfoModel
             {
@@ -340,8 +352,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [InlineData(46340)]
         public async Task TestPublishEndpointEventAndReceiveMultipleAsync(int total)
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IEndpointRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new EndpointInfoModel
             {
@@ -377,8 +390,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [Fact]
         public async Task TestPublishGatewayEventAndReceiveAsync()
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IGatewayRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new GatewayModel
             {
@@ -407,8 +421,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [InlineData(100)]
         public async Task TestPublishGatewayEventAndReceiveMultipleAsync(int total)
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IGatewayRegistryListener>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             var expected = new GatewayModel
             {
@@ -439,8 +454,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [Fact]
         public async Task TestPublishDiscoveryProgressWithDiscovererIdAndReceiveAsync()
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             const string discovererId = "TestDiscoverer1";
             var expected = new DiscoveryProgressModel
@@ -476,8 +492,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [Fact]
         public async Task TestPublishDiscoveryProgressWithRequestIdAndReceiveAsync()
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             const string requestId = "TestDiscoverer1";
             var expected = new DiscoveryProgressModel
@@ -524,8 +541,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [InlineData(678)]
         public async Task TestPublishDiscoveryProgressAndReceiveMultipleAsync(int total)
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
-            var client = _factory.Resolve<IRegistryServiceEvents>();
+            var client = scope.Resolve<IRegistryServiceEvents>();
 
             const string discovererId = "TestDiscoverer1";
             var expected = new DiscoveryProgressModel

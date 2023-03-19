@@ -14,23 +14,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using Autofac;
+    using Xunit.Abstractions;
 
-    [Collection(SignalRCollection.Name)]
-    public class PublisherServiceEventsTests
+    public class PublisherServiceEventsTests : IClassFixture<WebAppFixture>
     {
-        public PublisherServiceEventsTests(SignalRTestFixture factory)
+        public PublisherServiceEventsTests(WebAppFixture factory, ITestOutputHelper output)
         {
             _factory = factory;
+            _output = output;
         }
 
-        private readonly SignalRTestFixture _factory;
+        private readonly WebAppFixture _factory;
+        private readonly ITestOutputHelper _output;
 
         [Theory]
         [MemberData(nameof(GetScalarValues))]
         public async Task TestPublishTelemetryEventAndReceiveAsync(VariantValue v)
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
-            var client = _factory.Resolve<IPublisherServiceEvents>();
+            var client = scope.Resolve<IPublisherServiceEvents>();
 
             const string endpointId = "testid";
 
@@ -74,8 +78,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Api.SignalR
         [InlineData(262345)]
         public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total)
         {
+            var scope = _factory.CreateClientScope(_output);
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
-            var client = _factory.Resolve<IPublisherServiceEvents>();
+            var client = scope.Resolve<IPublisherServiceEvents>();
 
             const string endpointId = "testid";
             var expected = new MonitoredItemMessageModel

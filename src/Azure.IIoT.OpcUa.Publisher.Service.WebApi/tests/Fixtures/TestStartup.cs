@@ -64,7 +64,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(new AadApiClientConfig(null))
                 .AsImplementedInterfaces().SingleInstance();
-
             // ... as well as signalR client (needed for api)
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();

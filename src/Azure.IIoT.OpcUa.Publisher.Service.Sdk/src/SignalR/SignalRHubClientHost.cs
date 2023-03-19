@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
     using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -37,10 +38,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <param name="provider"></param>
         /// <param name="jsonSettings"></param>
         /// <param name="msgPack"></param>
+        /// <param name="messageHandler"></param>
         public SignalRHubClientHost(string endpointUrl, bool? useMessagePack,
             ILogger logger, ITokenProvider provider = null,
             INewtonsoftSerializerSettingsProvider jsonSettings = null,
-            IMessagePackFormatterResolverProvider msgPack = null)
+            IMessagePackFormatterResolverProvider msgPack = null,
+            HttpMessageHandler messageHandler = null)
         {
             if (string.IsNullOrEmpty(endpointUrl))
             {
@@ -48,6 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             }
             _jsonSettings = jsonSettings;
             _msgPack = msgPack;
+            _messageHandler = messageHandler;
             _endpointUri = new Uri(endpointUrl);
             _useMessagePack = (useMessagePack ?? false) && _msgPack != null;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -183,6 +187,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             var connection = builder
                 .WithUrl(_endpointUri, options =>
                 {
+                    if (_messageHandler != null)
+                    {
+                        options.HttpMessageHandlerFactory = _ => _messageHandler;
+                    }
                     if (_provider != null)
                     {
                         options.AccessTokenProvider = async () =>
@@ -240,6 +248,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly INewtonsoftSerializerSettingsProvider _jsonSettings;
         private readonly IMessagePackFormatterResolverProvider _msgPack;
+        private readonly HttpMessageHandler _messageHandler;
         private readonly Uri _endpointUri;
         private readonly bool _useMessagePack;
         private readonly ILogger _logger;
