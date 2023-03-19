@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -25,16 +26,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        /// <param name="provider"></param>
         /// <param name="jsonSettings"></param>
+        /// <param name="messageHandler"></param>
         public SignalRHubClient(ISignalRClientConfig config,
-            ILogger<SignalRHubClient> logger, ITokenProvider provider = null,
-            INewtonsoftSerializerSettingsProvider jsonSettings = null)
+            ILogger<SignalRHubClient> logger,
+            INewtonsoftSerializerSettingsProvider jsonSettings = null,
+            HttpMessageHandler messageHandler = null)
         {
             _jsonSettings = jsonSettings;
+            _messageHandler = messageHandler;
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _provider = provider;
             _clients = new Dictionary<string, SignalRClientRegistrar>();
             _lock = new SemaphoreSlim(1, 1);
         }
@@ -63,7 +65,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
                         _clients.Remove(lookup);
                     }
                     client = await SignalRClientRegistrar.CreateAsync(_config,
-                        endpointUrl, _logger, _provider, _jsonSettings).ConfigureAwait(false);
+                        endpointUrl, _logger, _jsonSettings, null,
+                        _messageHandler).ConfigureAwait(false);
                     _clients.Add(lookup, client);
                 }
                 return client;
@@ -136,14 +139,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             /// <param name="config"></param>
             /// <param name="endpointUrl"></param>
             /// <param name="logger"></param>
-            /// <param name="provider"></param>
             /// <param name="jsonSettings"></param>
+            /// <param name="msgPack"></param>
+            /// <param name="messageHandler"></param>
             /// <returns></returns>
             /// <exception cref="ArgumentNullException"></exception>
             internal static async Task<SignalRClientRegistrar> CreateAsync(
                 ISignalRClientConfig config, string endpointUrl, ILogger logger,
-                ITokenProvider provider,
-                INewtonsoftSerializerSettingsProvider jsonSettings = null)
+                INewtonsoftSerializerSettingsProvider jsonSettings,
+                IMessagePackFormatterResolverProvider msgPack,
+                HttpMessageHandler messageHandler)
             {
                 if (string.IsNullOrEmpty(endpointUrl))
                 {
@@ -153,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
                 var host = new SignalRHubClientHost(endpointUrl,
                     config.UseMessagePackProtocol,
                     logger, // TODO: should use logger factory here
-                    provider, jsonSettings);
+                    config.TokenProvider, jsonSettings, msgPack, messageHandler);
 
                 return new SignalRClientRegistrar(await host);
             }
@@ -189,11 +194,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         }
 
         private readonly INewtonsoftSerializerSettingsProvider _jsonSettings;
+        private readonly HttpMessageHandler _messageHandler;
         private readonly ISignalRClientConfig _config;
         private readonly Dictionary<string, SignalRClientRegistrar> _clients;
         private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;
-        private readonly ITokenProvider _provider;
         private bool _disposed;
     }
 }

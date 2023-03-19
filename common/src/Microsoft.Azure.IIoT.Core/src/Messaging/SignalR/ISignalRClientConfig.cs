@@ -5,6 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Messaging.SignalR
 {
+    using System;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Signalr client configuration
     /// </summary>
@@ -14,5 +17,10 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR
         /// Use message pack or json
         /// </summary>
         bool UseMessagePackProtocol { get; }
+
+        /// <summary>
+        /// Provider
+        /// </summary>
+        Func<Task<string>> TokenProvider { get; }
     }
 }

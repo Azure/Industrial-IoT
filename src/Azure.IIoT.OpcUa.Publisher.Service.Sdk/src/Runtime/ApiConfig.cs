@@ -9,8 +9,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using System;
     using System.Net;
     using System.Net.Sockets;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Complete api configuration
@@ -30,6 +32,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
         public string ServiceUrl => GetStringOrDefault(kServiceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_PUBLISHER_SERVICE_URL,
                 () => GetDefaultUrl("9045", "publisher")));
+
+        /// <inheritdoc/>
+        public Func<Task<string>> TokenProvider { get; set; }
 
         /// <inheritdoc/>
         public ApiConfig(IConfiguration configuration) :

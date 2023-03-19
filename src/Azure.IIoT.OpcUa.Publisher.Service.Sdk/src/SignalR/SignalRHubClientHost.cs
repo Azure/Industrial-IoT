@@ -40,10 +40,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <param name="msgPack"></param>
         /// <param name="messageHandler"></param>
         public SignalRHubClientHost(string endpointUrl, bool? useMessagePack,
-            ILogger logger, ITokenProvider provider = null,
-            INewtonsoftSerializerSettingsProvider jsonSettings = null,
-            IMessagePackFormatterResolverProvider msgPack = null,
-            HttpMessageHandler messageHandler = null)
+            ILogger logger, Func<Task<string>> provider,
+            INewtonsoftSerializerSettingsProvider jsonSettings,
+            IMessagePackFormatterResolverProvider msgPack,
+            HttpMessageHandler messageHandler)
         {
             if (string.IsNullOrEmpty(endpointUrl))
             {
@@ -193,15 +193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
                     }
                     if (_provider != null)
                     {
-                        options.AccessTokenProvider = async () =>
-                        {
-                            var token = await _provider.GetTokenForAsync(null).ConfigureAwait(false);
-                            if (token?.RawToken == null)
-                            {
-                                _logger.LogError("Failed to aquire token for hub calling without...");
-                            }
-                            return token?.RawToken;
-                        };
+                        options.AccessTokenProvider = _provider;
                     }
                 })
                 .Build();
@@ -252,7 +244,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         private readonly Uri _endpointUri;
         private readonly bool _useMessagePack;
         private readonly ILogger _logger;
-        private readonly ITokenProvider _provider;
+        private readonly Func<Task<string>> _provider;
         private readonly Task _started;
         private bool _isDisposed;
         private HubConnection _connection;
