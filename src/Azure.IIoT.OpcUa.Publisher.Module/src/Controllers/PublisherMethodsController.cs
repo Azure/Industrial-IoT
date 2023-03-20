@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Publisher direct  method controller
+    /// Publisher methods controller
     /// </summary>
     [Version("_V2")]
     [Version("_V1")]
@@ -41,67 +41,77 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <summary>
         /// Start publishing values from a node
         /// </summary>
-        /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("start")]
         public async Task<PublishStartResponseModel> PublishStartAsync(
-            ConnectionModel connection, PublishStartRequestModel request)
+            RequestEnvelope<PublishStartRequestModel> request)
         {
-            return await _configServices.PublishStartAsync(connection,
-                request).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            ArgumentNullException.ThrowIfNull(request.Request);
+            return await _configServices.PublishStartAsync(request.Connection, request.Request).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Stop publishing values from a node
         /// </summary>
-        /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("stop")]
         public async Task<PublishStopResponseModel> PublishStopAsync(
-            ConnectionModel connection, PublishStopRequestModel request)
+            RequestEnvelope<PublishStopRequestModel> request)
         {
-            return await _configServices.PublishStopAsync(connection,
-                request).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            ArgumentNullException.ThrowIfNull(request.Request);
+            return await _configServices.PublishStopAsync(request.Connection, request.Request).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Configure node values to publish and unpublish in bulk
         /// </summary>
-        /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("bulk")]
         public async Task<PublishBulkResponseModel> PublishBulkAsync(
-            ConnectionModel connection, PublishBulkRequestModel request)
+            RequestEnvelope<PublishBulkRequestModel> request)
         {
-            return await _configServices.PublishBulkAsync(connection,
-                request).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            ArgumentNullException.ThrowIfNull(request.Request);
+            return await _configServices.PublishBulkAsync(request.Connection, request.Request).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get all published nodes for a server endpoint.
         /// </summary>
-        /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("list")]
         public async Task<PublishedItemListResponseModel> PublishListAsync(
-            ConnectionModel connection, PublishedItemListRequestModel request)
+            RequestEnvelope<PublishedItemListRequestModel> request)
         {
-            return await _configServices.PublishListAsync(connection,
-                request).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            ArgumentNullException.ThrowIfNull(request.Request);
+            return await _configServices.PublishListAsync(request.Connection, request.Request).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Handler for PublishNodes direct method
         /// </summary>
         /// <param name="request"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("nodes")]
         public async Task<PublishedNodesResponseModel> PublishNodesAsync(
             PublishedNodesEntryModel request)
         {
+            ArgumentNullException.ThrowIfNull(request);
             await _configServices.PublishNodesAsync(request).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }
@@ -110,10 +120,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Handler for UnpublishNodes direct method
         /// </summary>
         /// <param name="request"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("nodes/unpublish")]
         public async Task<PublishedNodesResponseModel> UnpublishNodesAsync(
             PublishedNodesEntryModel request)
         {
+            ArgumentNullException.ThrowIfNull(request);
             await _configServices.UnpublishNodesAsync(request).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }
@@ -122,10 +134,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Handler for UnpublishAllNodes direct method
         /// </summary>
         /// <param name="request"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("nodes/unpublish/all")]
         public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
             PublishedNodesEntryModel request)
         {
+            ArgumentNullException.ThrowIfNull(request);
             await _configServices.UnpublishAllNodesAsync(request).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }
@@ -134,10 +148,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Handler for AddOrUpdateEndpoints direct method
         /// </summary>
         /// <param name="request"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("endpoints/addorupdate")]
         public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
             List<PublishedNodesEntryModel> request)
         {
+            ArgumentNullException.ThrowIfNull(request);
             var endpoints = request?.Select(e => e).ToList();
             await _configServices.AddOrUpdateEndpointsAsync(endpoints).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
@@ -160,10 +176,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Handler for GetConfiguredNodesOnEndpoint direct method
         /// </summary>
         /// <param name="request"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         [HttpPost("endpoints/list/nodes")]
         public async Task<GetConfiguredNodesOnEndpointResponseModel> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request)
         {
+            ArgumentNullException.ThrowIfNull(request);
             var response = await _configServices.GetConfiguredNodesOnEndpointAsync(
                 request).ConfigureAwait(false);
             return new GetConfiguredNodesOnEndpointResponseModel

@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Tests
+namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Transport;
     using System.Net.NetworkInformation;
     using Xunit;
 

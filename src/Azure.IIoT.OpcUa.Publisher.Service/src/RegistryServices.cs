@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.Registry;
     using Azure.IIoT.OpcUa.Publisher.Service.Services;
     using Autofac;
 

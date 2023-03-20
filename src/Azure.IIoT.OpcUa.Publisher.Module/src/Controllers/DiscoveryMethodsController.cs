@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Discovery method controller
+    /// Discovery methods controller
     /// </summary>
     [Version("_V1")]
     [Version("_V2")]
@@ -42,15 +42,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="endpoint"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="endpoint"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("findserver")]
         public async Task<ApplicationRegistrationModel> FindServerAsync(
             ServerEndpointQueryModel endpoint)
         {
-            if (endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
+            ArgumentNullException.ThrowIfNull(endpoint);
             return await _servers.FindServerAsync(endpoint).ConfigureAwait(false);
         }
 
@@ -64,10 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [HttpPost("register")]
         public async Task<bool> RegisterAsync(ServerRegistrationRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _discover.RegisterAsync(request).ConfigureAwait(false);
             return true;
         }
@@ -82,10 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [HttpPost]
         public async Task<bool> DiscoverAsync(DiscoveryRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _discover.DiscoverAsync(request).ConfigureAwait(false);
             return true;
         }
@@ -100,10 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [HttpPost("cancel")]
         public async Task<bool> CancelAsync(DiscoveryCancelRequestModel request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             await _discover.CancelAsync(request).ConfigureAwait(false);
             return true;
         }

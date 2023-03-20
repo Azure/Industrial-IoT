@@ -5,10 +5,10 @@
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using FluentAssertions;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using FluentAssertions;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;

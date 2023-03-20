@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Options;

@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
+    using Autofac;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Logging;

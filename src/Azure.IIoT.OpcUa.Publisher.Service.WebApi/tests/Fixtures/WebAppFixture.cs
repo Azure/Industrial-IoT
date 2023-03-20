@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
 {
+    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients;
+    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
-    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients;
     using Divergic.Logging.Xunit;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Hosting;

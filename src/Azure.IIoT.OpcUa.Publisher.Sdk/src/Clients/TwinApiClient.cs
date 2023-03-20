@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Furly.Tunnel;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Linq;
     using System.Threading;
@@ -40,11 +41,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// Create module client
         /// </summary>
         /// <param name="methodClient"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         /// <param name="serializer"></param>
-        public TwinApiClient(IMethodClient methodClient, ISdkConfig config = null,
+        public TwinApiClient(IMethodClient methodClient, IOptions<SdkOptions> options,
             IJsonSerializer serializer = null) :
-            this(methodClient, config?.Target, serializer)
+            this(methodClient, options?.Value.Target, serializer)
         {
         }
 

@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         [InlineData(false)]
         public async Task CanSendDataItemToTopicConfiguredWithMethod(bool useMqtt5)
         {
-            var testInput = GetEndpointsFromFile("./PublishedNodes/DataItems.json");
+            var testInput = GetEndpointsFromFile("./Resources/DataItems.json");
             StartPublisher(arguments: new string[] { "--mm=FullSamples" }, // Alternative to --fm=True
                 version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
@@ -79,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         [InlineData(false)]
         public async Task CanSendEventToTopicConfiguredWithMethod(bool useMqtt5)
         {
-            var testInput = GetEndpointsFromFile("./PublishedNodes/SimpleEvents.json");
+            var testInput = GetEndpointsFromFile("./Resources/SimpleEvents.json");
             StartPublisher(version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         [InlineData(false)]
         public async Task CanSendPendingConditionsToTopicConfiguredWithMethod(bool useMqtt5)
         {
-            var testInput = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
+            var testInput = GetEndpointsFromFile("./Resources/PendingAlarms.json");
             StartPublisher(version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
@@ -165,9 +165,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         [InlineData(false)]
         public async Task CanSendDataItemToTopicConfiguredWithMethod2(bool useMqtt5)
         {
-            var testInput1 = GetEndpointsFromFile("./PublishedNodes/DataItems.json");
-            var testInput2 = GetEndpointsFromFile("./PublishedNodes/SimpleEvents.json");
-            var testInput3 = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
+            var testInput1 = GetEndpointsFromFile("./Resources/DataItems.json");
+            var testInput2 = GetEndpointsFromFile("./Resources/SimpleEvents.json");
+            var testInput3 = GetEndpointsFromFile("./Resources/PendingAlarms.json");
             StartPublisher(version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
@@ -228,7 +228,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         [InlineData(false)]
         public async Task CanSendPendingConditionsToTopicConfiguredWithMethod2(bool useMqtt5)
         {
-            var testInput = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
+            var testInput = GetEndpointsFromFile("./Resources/PendingAlarms.json");
             StartPublisher(version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {

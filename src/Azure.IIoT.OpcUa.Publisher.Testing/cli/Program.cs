@@ -5,15 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Logging;
-    using Microsoft.Extensions.Logging;
     using global::Opc.Ua;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
 
     /// <summary>
     /// Test client for opc ua services

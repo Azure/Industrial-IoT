@@ -9,15 +9,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using Azure.IIoT.OpcUa.Publisher.Service;
     using Azure.IIoT.OpcUa.Publisher.Service.Clients;
     using Azure.IIoT.OpcUa.Publisher.Service.Events;
-    using Azure.IIoT.OpcUa.Publisher.Service.Registry;
+    using Azure.IIoT.OpcUa.Publisher.Service.Services;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
     using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Furly;
+    using Furly.Extensions.Logging;
     using Furly.Tunnel.Protocol;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -27,8 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Furly.Extensions.Logging;
 
     /// <summary>
     /// Webservice startup

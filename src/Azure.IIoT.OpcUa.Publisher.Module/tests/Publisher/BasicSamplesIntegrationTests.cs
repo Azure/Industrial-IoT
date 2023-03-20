@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync("./PublishedNodes/DataItems.json").ConfigureAwait(false);
+            var messages = await ProcessMessagesAsync("./Resources/DataItems.json").ConfigureAwait(false);
 
             // Assert
             var message = Assert.Single(messages);
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync("./PublishedNodes/Deadband.json",
+            var messages = await ProcessMessagesAsync("./Resources/Deadband.json",
                 TimeSpan.FromMinutes(2), 20, arguments: new[] { "--fm=True" }).ConfigureAwait(false);
 
             // Assert
@@ -105,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync("./PublishedNodes/SimpleEvents.json").ConfigureAwait(false);
+            var messages = await ProcessMessagesAsync("./Resources/SimpleEvents.json").ConfigureAwait(false);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -121,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync("./PublishedNodes/SimpleEvents.json",
+            var messages = await ProcessMessagesAsync("./Resources/SimpleEvents.json",
                 arguments: new string[] { "--fm=True" }).ConfigureAwait(false);
 
             // Assert
@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         }
 
         [Theory]
-        [InlineData("./PublishedNodes/SimpleEvents.json")]
+        [InlineData("./Resources/SimpleEvents.json")]
         public async Task CanEncodeWithReversibleEncodingSamplesTest(string publishedNodesFile)
         {
             // Arrange
@@ -205,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync("./PublishedNodes/PendingAlarms.json", GetAlarmCondition).ConfigureAwait(false);
+            var messages = await ProcessMessagesAsync("./Resources/PendingAlarms.json", GetAlarmCondition).ConfigureAwait(false);
 
             // Assert
             _output.WriteLine(messages.ToString());
@@ -224,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         [Fact]
         public async Task CanSendDataItemToIoTHubTestWithDeviceMethod()
         {
-            var testInput = GetEndpointsFromFile("./PublishedNodes/DataItems.json");
+            var testInput = GetEndpointsFromFile("./Resources/DataItems.json");
             StartPublisher(arguments: new string[] { "--mm=FullSamples" }); // Alternative to --fm=True
             try
             {
@@ -262,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         [Fact]
         public async Task CanSendEventToIoTHubTestWithDeviceMethod()
         {
-            var testInput = GetEndpointsFromFile("./PublishedNodes/SimpleEvents.json");
+            var testInput = GetEndpointsFromFile("./Resources/SimpleEvents.json");
             StartPublisher();
             try
             {
@@ -299,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         [Fact]
         public async Task CanSendPendingConditionsToIoTHubTestWithDeviceMethod()
         {
-            var testInput = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
+            var testInput = GetEndpointsFromFile("./Resources/PendingAlarms.json");
             StartPublisher();
             try
             {
@@ -344,9 +344,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         [Fact]
         public async Task CanSendDataItemToIoTHubTestWithDeviceMethod2()
         {
-            var testInput1 = GetEndpointsFromFile("./PublishedNodes/DataItems.json");
-            var testInput2 = GetEndpointsFromFile("./PublishedNodes/SimpleEvents.json");
-            var testInput3 = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
+            var testInput1 = GetEndpointsFromFile("./Resources/DataItems.json");
+            var testInput2 = GetEndpointsFromFile("./Resources/SimpleEvents.json");
+            var testInput3 = GetEndpointsFromFile("./Resources/PendingAlarms.json");
             StartPublisher();
             try
             {
@@ -405,7 +405,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
         [Fact]
         public async Task CanSendPendingConditionsToIoTHubTestWithDeviceMethod2()
         {
-            var testInput = GetEndpointsFromFile("./PublishedNodes/PendingAlarms.json");
+            var testInput = GetEndpointsFromFile("./Resources/PendingAlarms.json");
             StartPublisher();
             try
             {

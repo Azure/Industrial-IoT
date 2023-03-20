@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.Alarms.Json
 {
-    using Autofac;
-    using Azure.IIoT.OpcUa.Publisher.Service.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients;
+    using Azure.IIoT.OpcUa.Publisher.Service.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
+    using Autofac;
     using System;
     using System.Threading.Tasks;
     using Xunit;

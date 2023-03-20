@@ -706,7 +706,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_count",
                 () => new Measurement<int>(_clients.Count, metrics.TagList), "Clients",
-                "Monitored item count.");
+                "Number of connected clients.");
             _metrics = metrics;
         }
 

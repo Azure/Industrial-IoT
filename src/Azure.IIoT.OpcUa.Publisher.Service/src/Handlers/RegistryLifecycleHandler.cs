@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.Registry.Models;
+    using Azure.IIoT.OpcUa.Publisher.Service.Services.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Azure;

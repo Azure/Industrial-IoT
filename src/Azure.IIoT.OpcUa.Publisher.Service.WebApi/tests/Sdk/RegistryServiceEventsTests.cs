@@ -7,11 +7,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 {
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Autofac;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Xunit;
-    using Autofac;
     using Xunit.Abstractions;
 
     public sealed class RegistryServiceEventsTests : IClassFixture<WebAppFixture>

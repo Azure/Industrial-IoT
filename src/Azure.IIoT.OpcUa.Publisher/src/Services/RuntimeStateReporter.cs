@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Devices.Shared;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -54,6 +55,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     OpcUa.Constants.EntityTypePublisher;
                 _properties[OpcUa.Constants.TwinPropertyVersionKey] =
                     GetType().Assembly.GetReleaseVersion().ToString();
+
+                if (!_properties.ContainsKey(OpcUa.Constants.TwinPropertyApiKeyKey))
+                {
+                    _logger.LogInformation("Generating new Api Key ...");
+                    var apiKey = Guid.NewGuid().ToString();
+                    _logger.LogDebug("New Api Key {Key} created.", apiKey);
+                    _properties.Add(OpcUa.Constants.TwinPropertyApiKeyKey, apiKey);
+                }
             }
 
             if (_options.Value.EnableRuntimeStateReporting ?? false)

@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Service.Registry
+namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.Registry.Models;
+    using Azure.IIoT.OpcUa.Publisher.Service.Services.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Autofac;
     using Autofac.Extras.Moq;
@@ -22,6 +22,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Registry
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
+    using Azure.IIoT.OpcUa.Publisher.Service;
+    using Azure.IIoT.OpcUa.Publisher.Service.Services;
 
     public class SupervisorRegistryTests
     {

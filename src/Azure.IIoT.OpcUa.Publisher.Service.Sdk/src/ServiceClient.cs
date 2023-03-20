@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
+    using Autofac;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Configuration;
     using System;

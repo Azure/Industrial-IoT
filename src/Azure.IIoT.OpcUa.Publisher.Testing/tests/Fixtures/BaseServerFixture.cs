@@ -15,22 +15,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using Furly.Extensions.Logging;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Moq;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using Opc.Ua.Test;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
-    using Opc.Ua.Test;
-    using Moq;
     using System.Timers;
-    using System.Collections.Concurrent;
-    using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests

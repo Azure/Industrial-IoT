@@ -20,6 +20,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.15" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Module.csproj" />
@@ -30,25 +31,25 @@
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Service\src\Azure.IIoT.OpcUa.Publisher.Service.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="PublishedNodes\Deadband.json">
+    <None Update="Resources\Deadband.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="PublishedNodes\DataItems.json">
+    <None Update="Resources\DataItems.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="PublishedNodes\PendingAlarms.json">
+    <None Update="Resources\PendingAlarms.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="PublishedNodes\SimpleEvents.json">
+    <None Update="Resources\SimpleEvents.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Controller\DmApiPayloadTwoEndpoints.json">
+    <None Update="Resources\DmApiPayloadTwoEndpoints.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</None>
-	<None Update="Controller\DmApiPayloadCollection.json">
+    </None>
+    <None Update="Resources\DmApiPayloadCollection.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</None>
-    <None Update="Controller\empty_pn.json">
+    </None>
+    <None Update="Resources\empty_pn.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

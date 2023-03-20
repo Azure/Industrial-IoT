@@ -5,10 +5,10 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    using global::Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Routing;
     using Microsoft.AspNetCore.SignalR;
+    using global::Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR;
     using System.Linq;
     using System.Reflection;
 

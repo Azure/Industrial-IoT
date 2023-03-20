@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Implements node and publish services through command control against
@@ -41,11 +42,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// Create module client
         /// </summary>
         /// <param name="methodClient"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         /// <param name="serializer"></param>
         public DiscoveryApiClient(IMethodClient methodClient,
-            ISdkConfig config = null, IJsonSerializer serializer = null) :
-            this(methodClient, config?.Target, serializer)
+            IOptions<SdkOptions> options, IJsonSerializer serializer = null) :
+            this(methodClient, options?.Value.Target, serializer)
         {
         }
 

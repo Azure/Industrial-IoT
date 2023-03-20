@@ -41,6 +41,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
+    using System.Net.Http.Headers;
+    using System.Net.Http;
+    using Divergic.Logging.Xunit;
+    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients;
 
     /// <summary>
     /// Publisher telemetry
@@ -59,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// <summary>
     /// Opc Publisher module fixture
     /// </summary>
-    public sealed class PublisherModule : WebApplicationFactory<ModuleStartup>, ISdkConfig
+    public sealed class PublisherModule : WebApplicationFactory<ModuleStartup>, IHttpClientFactory
     {
         /// <summary>
         /// Sdk target
@@ -95,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             string deviceId = null, string moduleId = null, ITestOutputHelper testOutputHelper = null,
             string[] arguments = default, MqttVersion? version = null)
         {
-            ClientContainer = CreateClientContainer(messageSink, testOutputHelper, devices, version);
+            ClientContainer = CreateIoTHubSdkClientContainer(messageSink, testOutputHelper, devices, version);
 
             // Create module identitity
             deviceId ??= Utils.GetHostName();
@@ -188,6 +192,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 .UseContentRoot(".")
                 .UseStartup<ModuleStartup>()
                 .UseConfiguration(_config)
+                .ConfigureServices(services => services
+                    .AddMvcCore()
+                        .AddApplicationPart(typeof(Startup).Assembly)
+                        .AddControllersAsServices())
                 ;
             base.ConfigureWebHost(builder);
         }
@@ -200,6 +208,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 .ConfigureContainer<ContainerBuilder>(ConfigureContainer)
                 ;
             return base.CreateHost(builder);
+        }
+
+        /// <inheritdoc/>
+        public HttpClient CreateClient(string name)
+        {
+            var client = CreateClient(new WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = false
+            });
+
+            // Api key
+            var apiKey = _connection.Twin[Constants.TwinPropertyApiKeyKey].ConvertTo<string>();
+            client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("api-key", apiKey);
+            return client;
         }
 
         /// <summary>
@@ -282,6 +305,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         }
 
         /// <summary>
+        /// Create client container
+        /// </summary>
+        /// <param name="output"></param>
+        /// <param name="serializerType"></param>
+        /// <returns></returns>
+        public IContainer CreateClientScope(ITestOutputHelper output,
+            TestSerializerType serializerType)
+        {
+            var builder = new ContainerBuilder();
+
+            builder.ConfigureServices(services => services.AddLogging());
+            builder.AddOptions();
+            builder.RegisterInstance(LogFactory.Create(output))
+                .AsImplementedInterfaces();
+
+            // Add API
+            builder.Configure<SdkOptions>(options =>
+                options.Target = Server.BaseAddress.ToString());
+            builder.RegisterType<NodeServicesRestClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<HistoryServicesRestClient>()
+                .AsImplementedInterfaces();
+
+            switch (serializerType)
+            {
+                case TestSerializerType.NewtonsoftJson:
+                    builder.AddNewtonsoftJsonSerializer();
+                    break;
+                case TestSerializerType.Json:
+                    builder.AddDefaultJsonSerializer();
+                    break;
+                case TestSerializerType.MsgPack:
+                    builder.AddMessagePackSerializer();
+                    break;
+            }
+
+            // Register http client factory
+            builder.RegisterInstance(this)
+                .As<IHttpClientFactory>().ExternallyOwned(); // Do not dispose
+            return builder.Build();
+        }
+
+        /// <summary>
         /// Create hub container
         /// </summary>
         /// <param name="messageSink"></param>
@@ -289,16 +355,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="devices"></param>
         /// <param name="mqttVersion"></param>
         /// <returns></returns>
-        private IContainer CreateClientContainer(IMessageSink messageSink = null,
+        private IContainer CreateIoTHubSdkClientContainer(IMessageSink messageSink = null,
             ITestOutputHelper testOutputHelper = null, IEnumerable<DeviceTwinModel> devices = null,
             MqttVersion? mqttVersion = null)
         {
             var builder = new ContainerBuilder();
 
             builder.AddNewtonsoftJsonSerializer();
-            builder.RegisterInstance(this)
-                .AsImplementedInterfaces().ExternallyOwned();
-
+            builder.Configure<SdkOptions>(options => options.Target = Target);
             builder.ConfigureServices(services =>
             {
                 services.AddHttpClient();

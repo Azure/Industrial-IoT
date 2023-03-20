@@ -5,9 +5,9 @@
 
 namespace DeterministicAlarms.Tests
 {
-    using FluentAssertions;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using FluentAssertions;
     using System.Threading.Tasks;
 
     internal static class Extensions

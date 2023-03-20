@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
+    using System.Net.Http.Headers;
     using System.Security.Claims;
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
@@ -23,6 +24,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     internal static class Security
     {
         /// <summary>
+        /// Api key scheme
+        /// </summary>
+        public const string ApiKeyScheme = "ApiKey";
+
+        /// <summary>
         /// Use api key handler
         /// </summary>
         /// <param name="builder"></param>
@@ -30,8 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static AuthenticationBuilder UsingConfiguredApiKey(this AuthenticationBuilder builder)
         {
             builder.Services.AddHttpContextAccessor();
-            builder.Services.AddAuthentication(ApiKeyKey)
-                .AddScheme<AuthenticationSchemeOptions, ApiKeyHandler>(ApiKeyKey, null);
+            builder.Services.AddAuthentication(ApiKeyScheme)
+                .AddScheme<AuthenticationSchemeOptions, ApiKeyHandler>(ApiKeyScheme, null);
             return builder;
         }
 
@@ -56,37 +62,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 _context = context;
                 _twin = twin;
-                _logger = logger.CreateLogger<ApiKeyHandler>();
-
-                if (!_twin.ContainsKey(ApiKeyKey))
-                {
-                    _logger.LogInformation("Generating Api Key ...");
-                    var apiKey = Guid.NewGuid().ToString();
-                    _logger.LogDebug("New Api Key {Key} created.", apiKey);
-                    _twin.Add(ApiKeyKey, apiKey);
-                }
             }
 
             /// <inheritdoc/>
             protected override Task<AuthenticateResult> HandleAuthenticateAsync()
             {
-                var request = _context.HttpContext.Request;
-                if (!request.Headers.ContainsKey("Authorization"))
+                var authorization = _context.HttpContext.Request.Headers.Authorization;
+                if (authorization.Count == 0)
                 {
                     return Task.FromResult(AuthenticateResult.Fail(
                         "Missing Authorization header"));
                 }
                 try
                 {
-                    var authorization = request.Headers["Authorization"][0].Split(' ')[1];
-                    var token = authorization.Trim();
-                    if (!_twin.TryGetValue(ApiKeyKey, out var key) || key != token)
+                    var header = AuthenticationHeaderValue.Parse(authorization[0]);
+                    if (!_twin.TryGetValue(Constants.TwinPropertyApiKeyKey,
+                        out var key) || key != header.Parameter.Trim())
                     {
                         throw new UnauthorizedAccessException();
                     }
+
                     var claims = new[]
                     {
-                        new Claim(ClaimTypes.NameIdentifier, token)
+                        new Claim(ClaimTypes.NameIdentifier,
+                            Constants.TwinPropertyApiKeyKey)
                     };
 
                     var identity = new ClaimsIdentity(claims, Scheme.Name);
@@ -102,9 +101,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 
             private readonly IHttpContextAccessor _context;
             private readonly IDictionary<string, VariantValue> _twin;
-            private readonly ILogger<ApiKeyHandler> _logger;
         }
-
-        private const string ApiKeyKey = "ApiKey";
     }
 }

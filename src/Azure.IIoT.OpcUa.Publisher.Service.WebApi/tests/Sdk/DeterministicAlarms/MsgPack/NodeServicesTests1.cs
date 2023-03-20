@@ -5,17 +5,17 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.DeterministicAlarms.MsgPack
 {
-    using Autofac;
-    using Azure.IIoT.OpcUa.Publisher.Service.Sdk;
-    using Azure.IIoT.OpcUa.Publisher.Service;
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests;
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients;
+    using Azure.IIoT.OpcUa.Publisher.Service;
+    using Azure.IIoT.OpcUa.Publisher.Service.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
+    using Autofac;
+    using System;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using System;
 
     public sealed class NodeServicesTests1 : IClassFixture<WebAppFixture>, IClassFixture<DeterministicAlarmsServer1>, IDisposable
     {

@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Is reconnecting
         /// </summary>
-        internal bool IsConnected => _lastState == EndpointConnectivityState.Ready;
+        internal bool IsConnected => _session?.Connected ?? false;
 
         /// <summary>
         /// Whether the connect operation is in progress

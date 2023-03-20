@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients;
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR;
+    using Autofac;
     using Microsoft.Extensions.DependencyInjection;
     using System;
 

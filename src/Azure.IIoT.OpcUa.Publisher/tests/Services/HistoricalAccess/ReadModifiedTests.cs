@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.HistoricalAccess
 {
-    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
     using System.Threading.Tasks;
