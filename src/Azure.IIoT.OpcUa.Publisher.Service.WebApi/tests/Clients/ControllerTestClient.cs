@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Clients
+namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
 {
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Models;
@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Clients
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Implementation of twin service api with extra controller methods.
@@ -22,13 +23,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Clients
         /// Create test client
         /// </summary>
         /// <param name="httpClient"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         /// <param name="serializer"></param>
-        public ControllerTestClient(IHttpClientFactory httpClient, IServiceApiConfig config,
-            ISerializer serializer)
+        public ControllerTestClient(IHttpClientFactory httpClient,
+            IOptions<ServiceSdkOptions> options, ISerializer serializer)
         {
-            _serviceUri = (config?.ServiceUrl ??
-                throw new ArgumentNullException(nameof(config))).TrimEnd('/') + "/twin";
+            _serviceUri = (options?.Value.ServiceUrl ??
+                throw new ArgumentNullException(nameof(options))).TrimEnd('/') + "/twin";
             _httpClient = httpClient ??
                 throw new ArgumentNullException(nameof(httpClient));
             _serializer = serializer ??

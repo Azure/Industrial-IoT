@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Service.Events
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;
 
@@ -17,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
     public class GatewayEventPublisher<THub> : IGatewayRegistryListener
     {
         /// <inheritdoc/>
-        public GatewayEventPublisher(ICallbackInvokerT<THub> callback)
+        public GatewayEventPublisher(ICallbackInvoker<THub> callback)
         {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
@@ -69,6 +68,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
             return _callback.BroadcastAsync(
                 EventTargets.GatewayEventTarget, arguments);
         }
-        private readonly ICallbackInvoker _callback;
+        private readonly ICallbackInvoker<THub> _callback;
     }
 }

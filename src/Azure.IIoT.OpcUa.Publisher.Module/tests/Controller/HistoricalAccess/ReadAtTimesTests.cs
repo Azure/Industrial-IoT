@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.HistoricalAccess
         }
 
         [Fact]
-        public Task HistoryReadInt32ValuesAtTimesAtTimesTest2Async()
+        public Task HistoryReadInt32ValuesAtTimesTest2Async()
         {
             return GetTests().HistoryReadInt32ValuesAtTimesTest2Async();
         }

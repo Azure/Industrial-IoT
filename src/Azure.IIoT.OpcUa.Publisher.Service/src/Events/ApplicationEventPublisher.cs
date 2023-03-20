@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Service.Events
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;
 
@@ -17,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
     public class ApplicationEventPublisher<THub> : IApplicationRegistryListener
     {
         /// <inheritdoc/>
-        public ApplicationEventPublisher(ICallbackInvokerT<THub> callback)
+        public ApplicationEventPublisher(ICallbackInvoker<THub> callback)
         {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
@@ -86,6 +85,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
                 EventTargets.ApplicationEventTarget, arguments);
         }
 
-        private readonly ICallbackInvoker _callback;
+        private readonly ICallbackInvoker<THub> _callback;
     }
 }

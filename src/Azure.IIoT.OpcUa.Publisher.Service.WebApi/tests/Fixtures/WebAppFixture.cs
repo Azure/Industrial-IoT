@@ -3,26 +3,22 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
+namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
 {
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients;
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
-    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR;
+    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients;
     using Divergic.Logging.Xunit;
-    using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.AspNetCore.TestHost;
-    using Microsoft.Azure.IIoT;
-    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using System.Collections.Generic;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Threading.Tasks;
     using Xunit.Abstractions;
 
     /// <inheritdoc/>
@@ -83,9 +79,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         /// <summary>
         /// Create client container
         /// </summary>
+        /// <param name="output"></param>
+        /// <param name="serializerType"></param>
         /// <returns></returns>
         public IContainer CreateClientScope(ITestOutputHelper output,
-            bool useBinarySerializer = false)
+            TestSerializerType serializerType)
         {
             var builder = new ContainerBuilder();
 
@@ -94,45 +92,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             builder.RegisterInstance(LogFactory.Create(output))
                 .AsImplementedInterfaces();
 
+            // Add API
+            builder.RegisterType<ControllerTestClient>().AsSelf();
+            builder.AddServiceSdk(options =>
+                options.ServiceUrl = Server.BaseAddress.ToString(),
+                options =>
+                {
+                    options.TokenProvider = () => Task.FromResult("Test");
+                    options.HttpMessageHandler = _ => Server.CreateHandler();
+                });
+
+            switch (serializerType)
+            {
+                case TestSerializerType.NewtonsoftJson:
+                    builder.AddNewtonsoftJsonSerializer();
+                    break;
+                case TestSerializerType.Json:
+                    builder.AddDefaultJsonSerializer();
+                    break;
+                case TestSerializerType.MsgPack:
+                    builder.AddMessagePackSerializer();
+                    break;
+            }
+
             // Register http client factory
             builder.RegisterInstance(this)
-                .AsImplementedInterfaces();
-            if (!useBinarySerializer)
-            {
-                builder.RegisterInstance(Resolve<IJsonSerializer>())
-                    .As<ISerializer>();
-            }
-            else
-            {
-                builder.RegisterInstance(Resolve<IBinarySerializer>())
-                    .As<ISerializer>();
-            }
-
-            // ... as well as signalR client (needed for api)
-            builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterInstance(Server.CreateHandler())
-                .As<HttpMessageHandler>();
-
-            // Add API
-
-            // Register events api so we can resolve it for testing
-            builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<PublisherServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            var configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string>
-                {
-                    [PcsVariable.PCS_PUBLISHER_SERVICE_URL] = Server.BaseAddress.ToString()
-                })
-                .Build();
-            builder.RegisterInstance(configuration)
-                .AsImplementedInterfaces();
-            builder.RegisterType<ApiConfig>()
-                .AsImplementedInterfaces().SingleInstance();
-
+                .As<IHttpClientFactory>().ExternallyOwned(); // Do not dispose
             return builder.Build();
         }
     }

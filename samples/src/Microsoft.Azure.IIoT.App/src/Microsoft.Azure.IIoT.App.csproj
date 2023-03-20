@@ -23,11 +23,6 @@
     <ProjectReference Include="..\..\..\..\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore\src\Microsoft.Azure.IIoT.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory.csproj" />
-    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Remove="bundleconfig.json" />
     <Content Remove="container.json" />
     <None Include="container.json" />

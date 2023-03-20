@@ -5,11 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Auth;
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters;
+    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.IIoT.Messaging;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -26,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// Create controller for discovery services
         /// </summary>
         /// <param name="events"></param>
-        public EventsController(IGroupRegistrationT<DiscoverersHub> events)
+        public EventsController(IGroupRegistration<DiscoverersHub> events)
         {
             _events = events;
         }
@@ -104,6 +103,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             await _events.UnsubscribeAsync(discovererId, connectionId).ConfigureAwait(false);
         }
 
-        private readonly IGroupRegistrationT<DiscoverersHub> _events;
+        private readonly IGroupRegistration<DiscoverersHub> _events;
     }
 }

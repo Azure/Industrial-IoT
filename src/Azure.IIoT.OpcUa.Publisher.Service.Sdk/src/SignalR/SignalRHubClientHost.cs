@@ -10,13 +10,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
     using Furly.Extensions.Utils;
     using MessagePack.Resolvers;
     using Microsoft.AspNetCore.SignalR.Client;
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Linq;
-    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -33,29 +31,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// Create client
         /// </summary>
         /// <param name="endpointUrl"></param>
-        /// <param name="useMessagePack"></param>
+        /// <param name="options"></param>
         /// <param name="logger"></param>
-        /// <param name="provider"></param>
         /// <param name="jsonSettings"></param>
         /// <param name="msgPack"></param>
-        /// <param name="messageHandler"></param>
-        public SignalRHubClientHost(string endpointUrl, bool? useMessagePack,
-            ILogger logger, Func<Task<string>> provider,
+        public SignalRHubClientHost(string endpointUrl,
+            IOptions<SignalRClientOptions> options, ILogger logger,
             INewtonsoftSerializerSettingsProvider jsonSettings,
-            IMessagePackFormatterResolverProvider msgPack,
-            HttpMessageHandler messageHandler)
+            IMessagePackFormatterResolverProvider msgPack)
         {
             if (string.IsNullOrEmpty(endpointUrl))
             {
                 throw new ArgumentNullException(nameof(endpointUrl));
             }
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _jsonSettings = jsonSettings;
             _msgPack = msgPack;
-            _messageHandler = messageHandler;
             _endpointUri = new Uri(endpointUrl);
-            _useMessagePack = (useMessagePack ?? false) && _msgPack != null;
+
+            _useMessagePack = options.Value.UseMessagePackProtocol && _msgPack != null;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _provider = provider;
             _started = StartAsync();
         }
 
@@ -187,13 +182,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             var connection = builder
                 .WithUrl(_endpointUri, options =>
                 {
-                    if (_messageHandler != null)
+                    if (_options.Value.HttpMessageHandler != null)
                     {
-                        options.HttpMessageHandlerFactory = _ => _messageHandler;
+                        options.HttpMessageHandlerFactory = _options.Value.HttpMessageHandler;
                     }
-                    if (_provider != null)
+                    if (_options.Value.TokenProvider != null)
                     {
-                        options.AccessTokenProvider = _provider;
+                        options.AccessTokenProvider = _options.Value.TokenProvider;
                     }
                 })
                 .Build();
@@ -240,11 +235,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly INewtonsoftSerializerSettingsProvider _jsonSettings;
         private readonly IMessagePackFormatterResolverProvider _msgPack;
-        private readonly HttpMessageHandler _messageHandler;
         private readonly Uri _endpointUri;
         private readonly bool _useMessagePack;
+        private readonly IOptions<SignalRClientOptions> _options;
         private readonly ILogger _logger;
-        private readonly Func<Task<string>> _provider;
         private readonly Task _started;
         private bool _isDisposed;
         private HubConnection _connection;

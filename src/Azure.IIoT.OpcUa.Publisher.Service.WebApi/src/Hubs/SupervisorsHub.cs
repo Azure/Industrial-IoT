@@ -5,15 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Auth;
+    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.SignalR;
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
 
     /// <summary>
     /// Supervisors hub
     /// </summary>
-    [Route("events/v2/supervisors/events")]
+    [MapTo("events/v2/supervisors/events")]
     [Authorize(Policy = Policies.CanRead)]
     public class SupervisorsHub : Hub
     {

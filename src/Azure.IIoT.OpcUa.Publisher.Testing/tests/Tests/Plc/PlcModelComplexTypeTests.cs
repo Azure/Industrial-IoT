@@ -17,10 +17,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     /// <summary>
     /// Tests for the Plc model, which is a complex type.
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public sealed class PlcModelComplexTypeTests<T>
     {
         public PlcModelComplexTypeTests(BaseServerFixture server,
-            Func<INodeServices<T>> services, Func<Task<T>> connection)
+            Func<INodeServices<T>> services, T connection)
         {
             _server = server;
             _services = services;
@@ -30,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task PlcModelHeaterTestsAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
 
             await TurnHeaterOnAsync().ConfigureAwait(false);
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(1), 1000);
@@ -95,10 +95,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             async Task TurnHeaterOnAsync()
             {
-                var result = await services.MethodCallAsync(connection, new MethodCallRequestModel
+                var result = await services.MethodCallAsync(_connection, new MethodCallRequestModel
                 {
-                    ObjectId = Plc.Namespaces.PlcApplications + "#Methods",
-                    MethodId = Plc.Namespaces.PlcSimulation + "#HeaterOn"
+                    ObjectId = Plc.Namespaces.PlcApplications + "#s=Methods",
+                    MethodId = Plc.Namespaces.PlcSimulation + "#s=HeaterOn"
                 }).ConfigureAwait(false);
 
                 Assert.NotNull(result);
@@ -107,10 +107,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             async Task TurnHeaterOffAsync()
             {
-                var result = await services.MethodCallAsync(connection, new MethodCallRequestModel
+                var result = await services.MethodCallAsync(_connection, new MethodCallRequestModel
                 {
-                    ObjectId = Plc.Namespaces.PlcApplications + "#Methods",
-                    MethodId = Plc.Namespaces.PlcSimulation + "#HeaterOff"
+                    ObjectId = Plc.Namespaces.PlcApplications + "#s=Methods",
+                    MethodId = Plc.Namespaces.PlcSimulation + "#s=HeaterOff"
                 }).ConfigureAwait(false);
 
                 Assert.NotNull(result);
@@ -119,18 +119,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             async Task<PlcDataType?> GetPlcModelAsync()
             {
-                var value = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var value = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
                     NodeId = Plc.Namespaces.PlcSimulation + "#i=" + Variables.Plc1_PlcStatus
                 }).ConfigureAwait(false);
 
                 Assert.NotNull(value);
                 Assert.Null(value.ErrorInfo);
-                return value.Value?.ConvertTo<PlcDataType>();
+                Assert.NotNull(value.Value);
+                Assert.True(value.Value.TryGetProperty("Body", out var body));
+                return body.ConvertTo<PlcDataType>();
             }
         }
 
-        private readonly Func<Task<T>> _connection;
+        private readonly T _connection;
         private readonly BaseServerFixture _server;
         private readonly Func<INodeServices<T>> _services;
     }

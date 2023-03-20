@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Container builder extensions
@@ -25,6 +26,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="builder"></param>
         public static void AddPublisherCore(this ContainerBuilder builder)
         {
+            builder.RegisterInstance(IMetricsContext.Empty)
+                .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));
+
             builder.RegisterType<PublisherIdentity>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherConfig>()

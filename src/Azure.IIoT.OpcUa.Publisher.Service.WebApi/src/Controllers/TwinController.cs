@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Auth;
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.AspNetCore.OpenApi;

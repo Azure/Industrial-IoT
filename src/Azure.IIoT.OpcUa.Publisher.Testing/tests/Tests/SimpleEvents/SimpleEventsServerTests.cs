@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     /// <summary>
     /// Simple Events server node tests
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class SimpleEventsServerTests<T>
     {
         public SimpleEventsServerTests(Func<INodeServices<T>> services, T connection)

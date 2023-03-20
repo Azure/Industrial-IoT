@@ -8,11 +8,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
     /// <summary>
     /// Configuration for service api
     /// </summary>
-    public interface IServiceApiConfig
+    public sealed class ServiceSdkOptions
     {
         /// <summary>
         /// Web service url
         /// </summary>
-        string ServiceUrl { get; }
+        public string ServiceUrl { get; set; }
     }
 }

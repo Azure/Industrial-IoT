@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 {
     using Furly.Extensions.Configuration;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
-    using Microsoft.Azure.IIoT;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
@@ -51,28 +50,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 if (options.ClientId == null)
                 {
                     options.ClientId = GetStringOrDefault(kAuth_ClientIdKey,
-                        GetStringOrDefault(PcsVariable.PCS_AAD_SERVICE_APPID))?.Trim();
+                        GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_APPID))?.Trim();
                 }
                 if (options.ClientSecret == null)
                 {
                     options.ClientSecret = GetStringOrDefault(kAuth_ClientSecretKey,
-                        GetStringOrDefault(PcsVariable.PCS_AAD_SERVICE_SECRET))?.Trim();
+                        GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_SECRET))?.Trim();
                 }
                 if (options.Domain == null)
                 {
                     options.Instance = GetStringOrDefault(kAuth_DomainKey,
-                        GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE))?.Trim();
+                        GetStringOrDefault(EnvVars.PCS_AAD_AUDIENCE))?.Trim();
                 }
                 if (options.Instance == null)
                 {
                     options.Instance = GetStringOrDefault(kAuth_InstanceUrlKey,
-                        GetStringOrDefault(PcsVariable.PCS_AAD_INSTANCE,
+                        GetStringOrDefault(EnvVars.PCS_AAD_INSTANCE,
                             "https://login.microsoftonline.com")).Trim();
                 }
                 if (options.TenantId == null)
                 {
                     options.TenantId = GetStringOrDefault(kAuth_TenantIdKey,
-                        GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT))?.Trim();
+                        GetStringOrDefault(EnvVars.PCS_AUTH_TENANT))?.Trim();
                 }
             }
 

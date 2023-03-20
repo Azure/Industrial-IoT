@@ -8,11 +8,7 @@ namespace Microsoft.Azure.IIoT.App
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Validation;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
-    using Microsoft.Azure.IIoT.AspNetCore.Storage;
-    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Components.Authorization;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
@@ -25,7 +21,6 @@ namespace Microsoft.Azure.IIoT.App
     using Blazored.Modal;
     using Blazored.SessionStorage;
     using FluentValidation;
-    using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk;
     using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
     using System;
 
@@ -37,7 +32,7 @@ namespace Microsoft.Azure.IIoT.App
         /// <summary>
         /// Configuration - Initialized in constructor
         /// </summary>
-        public Config Config { get; }
+        public IConfiguration Configuration { get; }
 
         /// <summary>
         /// Service info - Initialized in constructor
@@ -54,27 +49,15 @@ namespace Microsoft.Azure.IIoT.App
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
-            this(env, new Config(new ConfigurationBuilder()
+        public Startup(IWebHostEnvironment env, IConfiguration configuration)
+        {
+            Environment = env ?? throw new ArgumentNullException(nameof(env));
+            Configuration = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
-                // Above configuration providers will provide connection
-                // details for KeyVault configuration provider.
-                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
-                .Build()))
-        {
-        }
-
-        /// <summary>
-        /// Create startup
-        /// </summary>
-        /// <param name="env"></param>
-        /// <param name="configuration"></param>
-        public Startup(IWebHostEnvironment env, Config configuration)
-        {
-            Environment = env ?? throw new ArgumentNullException(nameof(env));
-            Config = configuration ?? throw new ArgumentNullException(nameof(configuration));
+                .AddFromKeyVault(ConfigurationProviderPriority.Lowest)
+                .Build();
         }
 
         /// <summary>
@@ -140,7 +123,7 @@ namespace Microsoft.Azure.IIoT.App
 
             services.AddAntiforgery(options => options.Cookie.SameSite = SameSiteMode.Strict);
 
-            services.AddAuthentication(AuthProvider.AzureAD)
+            services.AddAuthentication()
                 // .AddOpenIdConnect(AuthProvider.AzureAD)
                 //   .AddOpenIdConnect(AuthScheme.AuthService)
                 ;
@@ -155,7 +138,7 @@ namespace Microsoft.Azure.IIoT.App
             services.AddServerSideBlazor();
             services.AddBlazoredSessionStorage();
             services.AddBlazoredModal();
-            services.AddScoped<AuthenticationStateProvider, BlazorAuthStateProvider>();
+            // services.AddScoped<AuthenticationStateProvider, BlazorAuthStateProvider>();
         }
 
         /// <summary>
@@ -167,25 +150,20 @@ namespace Microsoft.Azure.IIoT.App
             // Register configuration interfaces and logger
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
-            builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().AsSelf();
-            builder.RegisterInstance(Config.Configuration)
+            builder.RegisterInstance(Configuration)
                 .AsImplementedInterfaces();
 
+            // Register api
+            builder.AddServiceSdk();
             builder.AddMessagePackSerializer();
             builder.AddNewtonsoftJsonSerializer();
 
             // Use web app openid authentication
             // builder.RegisterModule<DefaultConfidentialClientAuthProviders>();
-            builder.RegisterModule<WebAppAuthentication>();
-            builder.RegisterType<AadApiWebConfig>()
-                .AsImplementedInterfaces();
-
-            builder.RegisterType<DistributedProtectedCache>()
-                .AsImplementedInterfaces();
-
-            // Register http client module (needed for api)...
-            builder.RegisterModule<ServiceSdk>();
+            //builder.RegisterModule<WebAppAuthentication>();
+            //
+            //builder.RegisterType<DistributedProtectedCache>()
+            //    .AsImplementedInterfaces();
 
             builder.RegisterType<Registry>()
                 .AsImplementedInterfaces().AsSelf();

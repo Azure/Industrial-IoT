@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Services.HistoricalAccess.Tests
+namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.HistoricalAccess
 {
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Models;
@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services.HistoricalAccess.Tests
         }
 
         [Fact]
-        public Task HistoryReadInt32ValuesAtTimesAtTimesTest2Async()
+        public Task HistoryReadInt32ValuesAtTimesTest2Async()
         {
             return GetTests().HistoryReadInt32ValuesAtTimesTest2Async();
         }

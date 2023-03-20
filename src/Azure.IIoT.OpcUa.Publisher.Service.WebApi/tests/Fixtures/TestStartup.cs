@@ -3,11 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
+namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients;
-    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
-    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR;
     using Autofac;
     using Furly.Azure;
     using Furly.Azure.IoT;
@@ -52,24 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             // Re-add mock
             builder.RegisterType<IoTHubMock>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // Add API
-
-            // Register events api so we can resolve it for testing
-            builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<PublisherServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<ApiConfig>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterInstance(new AadApiClientConfig(null))
-                .AsImplementedInterfaces().SingleInstance();
-            // ... as well as signalR client (needed for api)
-            builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-
-            // Add Module
-
+            // Add publisher module
             builder.RegisterType<PublisherModule>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
         }

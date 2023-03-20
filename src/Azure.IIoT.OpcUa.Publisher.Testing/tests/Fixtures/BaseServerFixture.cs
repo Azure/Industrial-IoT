@@ -30,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using Moq;
     using System.Timers;
     using System.Collections.Concurrent;
+    using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -176,13 +177,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         private static IContainer CreateContainer(ILoggerFactory loggerFactory)
         {
             var builder = new ContainerBuilder();
-            builder.AddLogging();
+            builder.ConfigureServices(services => services.AddLogging());
             builder.RegisterInstance(new ConfigurationBuilder().Build())
                 .AsImplementedInterfaces();
             builder.RegisterInstance(loggerFactory)
                 .AsImplementedInterfaces();
 
             builder.AddDefaultJsonSerializer();
+            // builder.AddNewtonsoftJsonSerializer();
             builder.RegisterType<TestClientConfig>()
                 .AsImplementedInterfaces();
 

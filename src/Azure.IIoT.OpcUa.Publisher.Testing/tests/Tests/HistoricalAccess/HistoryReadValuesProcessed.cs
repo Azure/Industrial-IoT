@@ -167,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            Assert.True(results.History.Count(h => h.Value != null) == 1, JsonSerializer.Serialize(results.History));
+            Assert.True(results.History.Count(h => !VariantValue.IsNullOrNullValue(h.Value)) == 1, JsonSerializer.Serialize(results.History));
             var arg = Assert.Single(results.History.Where(h => !VariantValue.IsNullOrNullValue(h.Value)));
             Assert.Null(arg.Status);
             Assert.True(arg.Value == 80, JsonSerializer.Serialize(arg));
@@ -315,7 +315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            Assert.True(history.Count(h => h.Value != null) == 1, JsonSerializer.Serialize(history));
+            Assert.True(history.Count(h => !VariantValue.IsNullOrNullValue(h.Value)) == 1, JsonSerializer.Serialize(history));
             var arg = Assert.Single(history.Where(h => !VariantValue.IsNullOrNullValue(h.Value)));
             Assert.Null(arg.Status);
             Assert.True(arg.Value == 80);

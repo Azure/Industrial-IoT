@@ -17,11 +17,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Xunit;
 
     /// <summary>
-    /// Tests for the variables defined in the simulator, such as fast-changing and trended nodes.
+    /// Tests for the variables defined in the simulator, such
+    /// as fast-changing and trended nodes.
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class SimulatorNodesTests<T>
     {
-        public SimulatorNodesTests(BaseServerFixture server, Func<INodeServices<T>> services, Func<Task<T>> connection)
+        public SimulatorNodesTests(BaseServerFixture server,
+            Func<INodeServices<T>> services, T connection)
         {
             _server = server;
             _services = services;
@@ -31,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task TelemetryStepUpTestAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
+
             // need to track the first value encountered b/c the measurement stream starts when
             // the server starts and it can take several seconds for our test to start
             uint? firstValue = null;
@@ -40,9 +43,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(100), 1);
 
-                var value = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var value = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#StepUp"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=StepUp"
                 }).ConfigureAwait(false);
                 if (firstValue == null)
                 {
@@ -64,13 +67,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task TelemetryFastNodeTestAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
+
             uint? lastValue = null;
             for (var i = 0; i < 10; i++)
             {
-                var value = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var value = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#FastUIntScalar1"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=FastUIntScalar1"
                 }).ConfigureAwait(false);
                 if (lastValue == null)
                 {
@@ -87,36 +90,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             lastValue++;
 
-            await services.MethodCallAsync(connection, new MethodCallRequestModel
+            await services.MethodCallAsync(_connection, new MethodCallRequestModel
             {
-                ObjectId = Plc.Namespaces.PlcApplications + "#Methods",
-                MethodId = Plc.Namespaces.PlcApplications + "#StopUpdateFastNodes"
+                ObjectId = Plc.Namespaces.PlcApplications + "#s=Methods",
+                MethodId = Plc.Namespaces.PlcApplications + "#s=StopUpdateFastNodes"
             }).ConfigureAwait(false);
 
-            var nextValue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            var nextValue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#FastUIntScalar1"
-            }).ConfigureAwait(false);
-            Assert.Equal(lastValue, (uint?)nextValue?.Value);
-
-            _server.FireTimersWithPeriod(TimeSpan.FromSeconds(1), 1);
-            nextValue = await services.ValueReadAsync(connection, new ValueReadRequestModel
-            {
-                NodeId = Plc.Namespaces.PlcApplications + "#FastUIntScalar1"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=FastUIntScalar1"
             }).ConfigureAwait(false);
             Assert.Equal(lastValue, (uint?)nextValue?.Value);
+
+            _server.FireTimersWithPeriod(TimeSpan.FromSeconds(1), 1);
+            nextValue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
+            {
+                NodeId = Plc.Namespaces.PlcApplications + "#s=FastUIntScalar1"
+            }).ConfigureAwait(false);
+            Assert.Equal(lastValue, (uint?)nextValue?.Value);
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(1), 1);
 
-            await services.MethodCallAsync(connection, new MethodCallRequestModel
+            await services.MethodCallAsync(_connection, new MethodCallRequestModel
             {
-                ObjectId = Plc.Namespaces.PlcApplications + "#Methods",
-                MethodId = Plc.Namespaces.PlcApplications + "#StartUpdateFastNodes"
+                ObjectId = Plc.Namespaces.PlcApplications + "#s=Methods",
+                MethodId = Plc.Namespaces.PlcApplications + "#s=StartUpdateFastNodes"
             }).ConfigureAwait(false);
             _server.FireTimersWithPeriod(TimeSpan.FromSeconds(1), 1);
 
-            nextValue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            nextValue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#FastUIntScalar1"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=FastUIntScalar1"
             }).ConfigureAwait(false);
             Assert.Equal(lastValue + 1, (uint?)nextValue?.Value);
         }
@@ -124,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task TelemetryContainsOutlierInDipDataAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
+
             const int outlierValue = -1000;
             var outlierCount = 0;
             var maxValue = 0d;
@@ -135,9 +138,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(100), 1);
 
-                var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#DipData"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=DipData"
                 }).ConfigureAwait(false);
 
                 var value = (double?)rawvalue?.Value;
@@ -163,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task TelemetryContainsOutlierInSpikeDataAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
+
             const int outlierValue = 1000;
             var outlierCount = 0;
             var maxValue = 0d;
@@ -174,9 +177,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(100), 1);
 
-                var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#SpikeData"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=SpikeData"
                 }).ConfigureAwait(false);
 
                 var value = (double?)rawvalue?.Value;
@@ -202,7 +205,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task RandomSignedInt32TelemetryChangesWithPeriodAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
 
             int? lastValue = null;
             var numberOfValueChanges = 0;
@@ -210,9 +212,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(100), 1);
 
-                var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#RandomSignedInt32"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=RandomSignedInt32"
                 }).ConfigureAwait(false);
                 var value = (int?)rawvalue?.Value;
                 if (i > 0 && value?.CompareTo(lastValue) != 0)
@@ -227,7 +229,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task RandomUnsignedInt32TelemetryChangesWithPeriodAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
 
             uint? lastValue = null;
             var numberOfValueChanges = 0;
@@ -235,9 +236,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(100), 1);
 
-                var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#RandomUnsignedInt32"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=RandomUnsignedInt32"
                 }).ConfigureAwait(false);
                 var value = (uint?)rawvalue?.Value;
                 if (i > 0 && value?.CompareTo(lastValue) != 0)
@@ -252,7 +253,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task AlternatingBooleanTelemetryChangesWithPeriodAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
 
             bool? lastValue = null;
             var numberOfValueChanges = 0;
@@ -260,9 +260,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(100), 50);
 
-                var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#AlternatingBoolean"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=AlternatingBoolean"
                 }).ConfigureAwait(false);
                 var value = (bool?)rawvalue.Value;
                 if (i > 0 && value?.CompareTo(lastValue) != 0)
@@ -277,7 +277,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NegativeTrendDataTelemetryChangesWithPeriodAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
 
             const uint periodInMilliseconds = 100u;
             const int invocations = 50;
@@ -294,9 +293,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(periodInMilliseconds), invocations);
 
-                var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#NegativeTrendData"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=NegativeTrendData"
                 }).ConfigureAwait(false);
                 var value = (double?)rawvalue?.Value;
                 if (i > 0 && value?.CompareTo(lastValue) != 0)
@@ -311,7 +310,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task PositiveTrendDataTelemetryChangesWithPeriodAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
 
             const uint periodInMilliseconds = 100u;
             const int invocations = 50;
@@ -326,9 +324,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(periodInMilliseconds), invocations);
 
-                var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#PositiveTrendData"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=PositiveTrendData"
                 }).ConfigureAwait(false);
                 var value = (double?)rawvalue?.Value;
                 if (i > 0 && value?.CompareTo(lastValue) != 0)
@@ -343,7 +341,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task SlowUIntScalar1TelemetryChangesWithPeriodAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
 
             uint? lastValue = null;
             var numberOfValueChanges = 0;
@@ -351,9 +348,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(10000), 1);
 
-                var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#SlowUIntScalar1"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=SlowUIntScalar1"
                 }).ConfigureAwait(false);
                 var value = (uint?)rawvalue?.Value;
                 if (i > 0 && value?.CompareTo(lastValue) != 0)
@@ -368,7 +365,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task FastUIntScalar1TelemetryChangesWithPeriodAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
 
             uint? lastValue = null;
             var numberOfValueChanges = 0;
@@ -376,9 +372,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(1000), 1);
 
-                var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#FastUIntScalar1"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=FastUIntScalar1"
                 }).ConfigureAwait(false);
                 var value = (uint?)rawvalue?.Value;
                 if (i > 0 && value?.CompareTo(lastValue) != 0)
@@ -393,7 +389,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task BadNodeHasAlternatingStatusCodeAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
 
             const uint periodInMilliseconds = 1000u;
             const int invocations = 1;
@@ -402,9 +397,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 .SelectAwait(async i =>
                 {
                     _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(periodInMilliseconds), invocations);
-                    var value = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                    var value = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                     {
-                        NodeId = Plc.Namespaces.PlcApplications + "#BadFastUIntScalar1"
+                        NodeId = Plc.Namespaces.PlcApplications + "#s=BadFastUIntScalar1"
                     }).ConfigureAwait(false);
                     return (value.ErrorInfo?.StatusCode ?? StatusCodes.Good, value.Value);
                 }).ToListAsync().ConfigureAwait(false);
@@ -435,26 +430,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task FastLimitNumberOfUpdatesStopsUpdatingAfterLimitAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
+
             const uint periodInMilliseconds = 1000u;
-            var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#FastUIntScalar1"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=FastUIntScalar1"
             }).ConfigureAwait(false);
             var value1 = (uint?)rawvalue?.Value;
 
             // Change the value of the NumberOfUpdates control variable to 6.
-            await services.ValueWriteAsync(connection, new ValueWriteRequestModel
+            await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#FastNumberOfUpdates",
+                NodeId = Plc.Namespaces.PlcApplications + "#s=FastNumberOfUpdates",
                 Value = 6
             }).ConfigureAwait(false);
 
             // Fire the timer 6 times, should increase the value each time.
             _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(periodInMilliseconds), 6);
-            rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#FastUIntScalar1"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=FastUIntScalar1"
             }).ConfigureAwait(false);
 
             var value2 = (uint?)rawvalue?.Value;
@@ -463,15 +458,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // NumberOfUpdates variable should now be 0. The Fast node value should not change anymore.
             for (var i = 0; i < 10; i++)
             {
-                rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#FastNumberOfUpdates"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=FastNumberOfUpdates"
                 }).ConfigureAwait(false);
                 ((int?)rawvalue?.Value).Should().Be(0);
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(periodInMilliseconds), 1);
-                rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#FastUIntScalar1"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=FastUIntScalar1"
                 }).ConfigureAwait(false);
 
                 var value3 = (uint?)rawvalue?.Value;
@@ -480,23 +475,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Change the value of the NumberOfUpdates control variable to -1.
             // The Fast node value should now increase indefinitely.
-            await services.ValueWriteAsync(connection, new ValueWriteRequestModel
+            await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#FastNumberOfUpdates",
+                NodeId = Plc.Namespaces.PlcApplications + "#s=FastNumberOfUpdates",
                 Value = kNoLimit
             }).ConfigureAwait(false);
 
             _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(periodInMilliseconds), 3);
-            rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#FastUIntScalar1"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=FastUIntScalar1"
             }).ConfigureAwait(false);
 
             var value4 = (uint?)rawvalue?.Value;
             value4.Should().Be(value1 + 6 + 3);
-            rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#FastNumberOfUpdates"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=FastNumberOfUpdates"
             }).ConfigureAwait(false);
             ((int?)rawvalue?.Value).Should().Be(kNoLimit,
                 "NumberOfUpdates node value should not change when it is {0}", kNoLimit);
@@ -505,26 +500,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task SlowLimitNumberOfUpdatesStopsUpdatingAfterLimitAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
+
             const uint periodInMilliseconds = 10000u;
-            var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#SlowUIntScalar1"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=SlowUIntScalar1"
             }).ConfigureAwait(false);
             var value1 = (uint?)rawvalue?.Value;
 
             // Change the value of the NumberOfUpdates control variable to 6.
-            await services.ValueWriteAsync(connection, new ValueWriteRequestModel
+            await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#SlowNumberOfUpdates",
+                NodeId = Plc.Namespaces.PlcApplications + "#s=SlowNumberOfUpdates",
                 Value = 6
             }).ConfigureAwait(false);
 
             // Fire the timer 6 times, should increase the value each time.
             _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(periodInMilliseconds), 6);
-            rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#SlowUIntScalar1"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=SlowUIntScalar1"
             }).ConfigureAwait(false);
 
             var value2 = (uint?)rawvalue?.Value;
@@ -533,15 +528,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // NumberOfUpdates variable should now be 0. The Fast node value should not change anymore.
             for (var i = 0; i < 10; i++)
             {
-                rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#SlowNumberOfUpdates"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=SlowNumberOfUpdates"
                 }).ConfigureAwait(false);
                 ((int?)rawvalue?.Value).Should().Be(0);
                 _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(periodInMilliseconds), 1);
-                rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+                rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
                 {
-                    NodeId = Plc.Namespaces.PlcApplications + "#SlowUIntScalar1"
+                    NodeId = Plc.Namespaces.PlcApplications + "#s=SlowUIntScalar1"
                 }).ConfigureAwait(false);
 
                 var value3 = (uint?)rawvalue?.Value;
@@ -550,23 +545,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Change the value of the NumberOfUpdates control variable to -1.
             // The Fast node value should now increase indefinitely.
-            await services.ValueWriteAsync(connection, new ValueWriteRequestModel
+            await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#SlowNumberOfUpdates",
+                NodeId = Plc.Namespaces.PlcApplications + "#s=SlowNumberOfUpdates",
                 Value = kNoLimit
             }).ConfigureAwait(false);
 
             _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(periodInMilliseconds), 3);
-            rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#SlowUIntScalar1"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=SlowUIntScalar1"
             }).ConfigureAwait(false);
 
             var value4 = (uint?)rawvalue?.Value;
             value4.Should().Be(value1 + 6 + 3);
-            rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#SlowNumberOfUpdates"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=SlowNumberOfUpdates"
             }).ConfigureAwait(false);
             ((int?)rawvalue?.Value).Should().Be(kNoLimit,
                 "NumberOfUpdates node value should not change when it is {0}", kNoLimit);
@@ -575,20 +570,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task PositiveTrendDataNodeHasValueWithTrendAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
+
             _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(100), 50 * kRampUpPeriods);
 
-            var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#PositiveTrendData"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=PositiveTrendData"
             }).ConfigureAwait(false);
 
             var firstValue = (double?)rawvalue?.Value;
             _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(100), 50);
 
-            rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#PositiveTrendData"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=PositiveTrendData"
             }).ConfigureAwait(false);
             var secondValue = (double?)rawvalue?.Value;
 
@@ -598,31 +593,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NegativeTrendDataNodeHasValueWithTrendAsync()
         {
             var services = _services();
-            var connection = await _connection().ConfigureAwait(false);
             _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(100), 50 * kRampUpPeriods);
 
-            var rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            var rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#NegativeTrendData"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=NegativeTrendData"
             }).ConfigureAwait(false);
 
             var firstValue = (double?)rawvalue?.Value;
             _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(100), 50);
 
-            rawvalue = await services.ValueReadAsync(connection, new ValueReadRequestModel
+            rawvalue = await services.ValueReadAsync(_connection, new ValueReadRequestModel
             {
-                NodeId = Plc.Namespaces.PlcApplications + "#NegativeTrendData"
+                NodeId = Plc.Namespaces.PlcApplications + "#s=NegativeTrendData"
             }).ConfigureAwait(false);
             var secondValue = (double?)rawvalue?.Value;
             secondValue.Should().BeLessThan(firstValue ?? 0.0);
         }
 
-        // Simulator does not update trended and boolean values in the first few cycles (a random number of cycles between 1 and 10)
+        /// <summary>
+        /// Simulator does not update trended and boolean values in the first few cycles
+        /// (a random number of cycles between 1 and 10)
+        /// </summary>
         private const int kRampUpPeriods = 10;
 
-        // Value set for NumberOfUpdates for the simulator to update value indefinitely.
+        /// <summary>
+        /// Value set for NumberOfUpdates for the simulator to update value indefinitely.
+        /// </summary>
         private const int kNoLimit = -1;
-        private readonly Func<Task<T>> _connection;
+        private readonly T _connection;
         private readonly BaseServerFixture _server;
         private readonly Func<INodeServices<T>> _services;
     }

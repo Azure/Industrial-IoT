@@ -34,9 +34,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     new[]
                     {
-                        "/[" + Namespaces.AlarmCondition + "#Green]",
-                        "/[" + Namespaces.AlarmCondition + "#East]",
-                        "/[" + Namespaces.AlarmCondition + "#Blue]"
+                        Namespaces.AlarmCondition + "#Green",
+                        Namespaces.AlarmCondition + "#East",
+                        Namespaces.AlarmCondition + "#Blue"
                     }
                 }
             }).ConfigureAwait(false);
@@ -59,10 +59,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     new[]
                     {
-                        "/[" + Namespaces.AlarmCondition + "#Green]",
-                        "/[" + Namespaces.AlarmCondition + "#East]",
-                        "/[" + Namespaces.AlarmCondition + "#Blue]",
-                        "/[" + Namespaces.AlarmCondition + "#SouthMotor]"
+                        Namespaces.AlarmCondition + "#Green",
+                        Namespaces.AlarmCondition + "#East",
+                        Namespaces.AlarmCondition + "#Blue",
+                        Namespaces.AlarmCondition + "#SouthMotor"
                     }
                 }
             }).ConfigureAwait(false);
@@ -84,10 +84,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     new[]
                     {
-                        "/[" + Namespaces.AlarmCondition + "#Yellow]",
-                        "/[" + Namespaces.AlarmCondition + "#West]",
-                        "/[" + Namespaces.AlarmCondition + "#Blue]",
-                        "/[" + Namespaces.AlarmCondition + "#EastTank]"
+                        Namespaces.AlarmCondition + "#Yellow",
+                        Namespaces.AlarmCondition + "#West",
+                        Namespaces.AlarmCondition + "#Blue",
+                        Namespaces.AlarmCondition + "#EastTank"
                     }
                 }
             }).ConfigureAwait(false);
@@ -98,7 +98,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(target.Target);
             Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank", target.Target.NodeId);
         }
-
 
 #if UNUSED
         public async Task CompileSimpleBaseEventQueryTestAsync()

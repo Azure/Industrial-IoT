@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Prometheus;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -48,9 +47,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="client"></param>
         /// <param name="events"></param>
         /// <param name="serializer"></param>
+        /// <param name="options"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="progress"></param>
-        /// <param name="options"></param>
         public NetworkDiscovery(IEndpointDiscovery client, IEventClient events,
             IJsonSerializer serializer, IOptions<PublisherOptions> options,
             ILoggerFactory loggerFactory, IDiscoveryProgress progress = null)
@@ -72,7 +71,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             _runner = Task.Run(() => ProcessDiscoveryRequestsAsync(_cts.Token));
             _timer = new Timer(_ => OnScanScheduling(), null,
                 TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan);
-
         }
 
         /// <inheritdoc/>
@@ -84,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <inheritdoc/>
         public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct)
         {
-            kDiscoverAsync.Inc();
+            //  kDiscoverAsync.Inc();
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
@@ -117,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <inheritdoc/>
         public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct)
         {
-            kCancelAsync.Inc();
+            // kCancelAsync.Inc();
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
@@ -442,7 +440,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             DiscoveryRequest request, Dictionary<IPEndPoint, Uri> discoveryUrls,
             List<string> locales)
         {
-            kDiscoverServersAsync.Inc();
+            //   kDiscoverServersAsync.Inc();
             var discovered = new List<ApplicationRegistrationModel>();
             var count = 0;
             _progress.OnServerDiscoveryStarted(request.Request, 1, count, discoveryUrls.Count);
@@ -781,12 +779,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly CancellationTokenSource _cts = new();
         private readonly DiscoveryRequest _request = new();
 
-        private const string kDiscoveryMetricsPrefix = "iiot_edge_discovery_";
-        private static readonly Counter kDiscoverAsync = Metrics
-    .CreateCounter(kDiscoveryMetricsPrefix + "discover", "call to discover");
-        private static readonly Counter kCancelAsync = Metrics
-    .CreateCounter(kDiscoveryMetricsPrefix + "cancel", "call to cancel");
-        private static readonly Counter kDiscoverServersAsync = Metrics
-    .CreateCounter(kDiscoveryMetricsPrefix + "discover_servers", "call to discoverServersAsync");
+        //       private const string kDiscoveryMetricsPrefix = "iiot_edge_discovery_";
+        //       private static readonly Counter kDiscoverAsync = Metrics
+        //   .CreateCounter(kDiscoveryMetricsPrefix + "discover", "call to discover");
+        //       private static readonly Counter kCancelAsync = Metrics
+        //   .CreateCounter(kDiscoveryMetricsPrefix + "cancel", "call to cancel");
+        //       private static readonly Counter kDiscoverServersAsync = Metrics
+        //   .CreateCounter(kDiscoveryMetricsPrefix + "discover_servers", "call to discoverServersAsync");
     }
 }

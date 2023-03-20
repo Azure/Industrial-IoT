@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Configuration;
+    using Furly.Extensions.Logging;
     using Furly.Extensions.Mqtt;
     using Furly.Tunnel.Router.Services;
     using Microsoft.Extensions.Configuration;
@@ -32,9 +33,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static void AddPublisherServices(this ContainerBuilder builder)
         {
             builder.AddNewtonsoftJsonSerializer();
-            builder.AddDiagnostics();
             builder.AddPublisherCore();
 
+            builder.RegisterType<HealthCheckRegistrar>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<CommandLine>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<Logging>()

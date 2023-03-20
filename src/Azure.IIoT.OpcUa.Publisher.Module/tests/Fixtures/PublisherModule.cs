@@ -299,7 +299,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             builder.RegisterInstance(this)
                 .AsImplementedInterfaces().ExternallyOwned();
 
-            builder.AddDiagnostics();
             builder.ConfigureServices(services =>
             {
                 services.AddHttpClient();

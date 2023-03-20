@@ -5,11 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Auth;
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters;
+    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.IIoT.Messaging;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -26,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// Create controller with service
         /// </summary>
         /// <param name="events"></param>
-        public TelemetryController(IGroupRegistrationT<PublishersHub> events)
+        public TelemetryController(IGroupRegistration<PublishersHub> events)
         {
             _events = events;
         }
@@ -65,6 +64,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             await _events.UnsubscribeAsync(endpointId, connectionId).ConfigureAwait(false);
         }
 
-        private readonly IGroupRegistrationT<PublishersHub> _events;
+        private readonly IGroupRegistration<PublishersHub> _events;
     }
 }

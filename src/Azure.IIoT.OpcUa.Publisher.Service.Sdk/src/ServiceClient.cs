@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
 {
     using Autofac;
+    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -97,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
             var builder = new ContainerBuilder();
             builder.RegisterInstance(configuration)
                 .AsImplementedInterfaces();
-            builder.RegisterModule<ServiceSdk>();
+            builder.AddServiceSdk();
             if (useMsgPack)
             {
                 builder.AddMessagePackSerializer();

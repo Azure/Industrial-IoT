@@ -6,9 +6,10 @@
 namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Extensions.Options;
     using Nito.Disposables;
     using System;
     using System.Net.Http;
@@ -25,11 +26,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="client"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         /// <param name="serializer"></param>
         public PublisherServiceEvents(IHttpClientFactory httpClient, ICallbackClient client,
-            IServiceApiConfig config, ISerializer serializer) :
-            this(httpClient, client, config?.ServiceUrl, serializer)
+            IOptions<ServiceSdkOptions> options, ISerializer serializer) :
+            this(httpClient, client, options?.Value.ServiceUrl, serializer)
         {
         }
 

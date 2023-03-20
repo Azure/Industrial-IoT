@@ -9,11 +9,10 @@
   <ItemGroup>
     <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.15" />
     <PackageReference Include="Furly.Tunnel" Version="0.2.14" />
-    <PackageReference Include="Furly.Azure.IoT" Version="0.1.15" />
-    <PackageReference Include="Furly.Extensions.Mqtt" Version="0.4.15" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
+    <PackageReference Include="Furly.Extensions" Version="0.4.15" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Models\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />

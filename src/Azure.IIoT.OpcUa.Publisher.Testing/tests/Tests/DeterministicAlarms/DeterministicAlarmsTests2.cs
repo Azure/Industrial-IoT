@@ -28,11 +28,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
             {
-                NodeId = Namespaces.DeterministicAlarmsInstance + "#VendingMachine1",
+                NodeId = Namespaces.DeterministicAlarmsInstance + "#s=VendingMachine1",
                 BrowsePaths = new[] {
                     new[]
                     {
-                        "/[" + Namespaces.DeterministicAlarmsInstance + "#VendingMachine1_DoorOpen]"
+                        Namespaces.DeterministicAlarmsInstance + "#VendingMachine1_DoorOpen"
                     }
                 }
             }).ConfigureAwait(false);

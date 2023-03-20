@@ -3,24 +3,31 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers.TestData.Json
+namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Controllers.TestData.Json
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.WebApi;
-    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Clients;
+    using Autofac;
+    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
-    using Furly.Extensions.Serializers;
+    using System;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class ReadScalarTests : IClassFixture<WebAppFixture>
+    public sealed class ReadScalarTests : IClassFixture<WebAppFixture>, IDisposable
     {
-        public ReadScalarTests(WebAppFixture factory, TestDataServer server)
+        public ReadScalarTests(WebAppFixture factory, TestDataServer server, ITestOutputHelper output)
         {
             _factory = factory;
             _server = server;
+            _client = factory.CreateClientScope(output, TestSerializerType.NewtonsoftJson);
+        }
+
+        public void Dispose()
+        {
+            _client.Dispose();
         }
 
         private ReadScalarValueTests<string> GetTests()
@@ -28,16 +35,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers.TestData.Json
             var client = _factory.CreateClient(); // Call to create server
             var registry = _factory.Resolve<IEndpointManager>();
             var endpointId = registry.RegisterEndpointAsync(_server.GetConnection().Endpoint).Result;
-            var serializer = _factory.Resolve<IJsonSerializer>();
             return new ReadScalarValueTests<string>(() => // Create an adapter over the api
-                new TwinWebApiAdapter(
-                    new ControllerTestClient(_factory,
-                    new TestConfig(client.BaseAddress), serializer)), endpointId,
+                new TwinWebApiAdapter(_client.Resolve<ControllerTestClient>()), endpointId,
                     (ep, n, s) => _server.Client.ReadValueAsync(_server.GetConnection(), n, s));
         }
 
         private readonly WebAppFixture _factory;
         private readonly TestDataServer _server;
+        private readonly IContainer _client;
 
         [Fact]
         public async Task NodeReadStaticScalarBooleanValueVariableTestAsync()

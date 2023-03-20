@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Linq;
     using System.Net.Http;
@@ -23,11 +24,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// Create service client
         /// </summary>
         /// <param name="httpClient"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         /// <param name="serializer"></param>
-        public TwinServiceClient(IHttpClientFactory httpClient, IServiceApiConfig config,
-            ISerializer serializer) :
-            this(httpClient, config?.ServiceUrl, serializer)
+        public TwinServiceClient(IHttpClientFactory httpClient,
+            IOptions<ServiceSdkOptions> options, ISerializer serializer) :
+            this(httpClient, options?.Value.ServiceUrl, serializer)
         {
         }
 

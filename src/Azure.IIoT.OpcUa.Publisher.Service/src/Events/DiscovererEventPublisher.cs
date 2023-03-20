@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Service.Events
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;
 
@@ -17,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
     public class DiscovererEventPublisher<THub> : IDiscovererRegistryListener
     {
         /// <inheritdoc/>
-        public DiscovererEventPublisher(ICallbackInvokerT<THub> callback)
+        public DiscovererEventPublisher(ICallbackInvoker<THub> callback)
         {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
@@ -70,6 +69,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
                 EventTargets.DiscovererEventTarget, arguments);
         }
 
-        private readonly ICallbackInvokerT<THub> _callback;
+        private readonly ICallbackInvoker<THub> _callback;
     }
 }

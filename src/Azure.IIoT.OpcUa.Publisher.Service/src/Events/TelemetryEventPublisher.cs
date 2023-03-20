@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Service;
     using Azure.IIoT.OpcUa.Publisher.Service.Subscriber;
-    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;
 
@@ -22,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients
         /// Create publisher
         /// </summary>
         /// <param name="callback"></param>
-        public TelemetryEventPublisher(ICallbackInvokerT<THub> callback)
+        public TelemetryEventPublisher(ICallbackInvoker<THub> callback)
         {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
@@ -70,6 +69,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients
             }
         }
 
-        private readonly ICallbackInvoker _callback;
+        private readonly ICallbackInvoker<THub> _callback;
     }
 }

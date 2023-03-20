@@ -29,11 +29,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
             {
-                NodeId = Namespaces.DeterministicAlarmsInstance + "#VendingMachine1",
+                NodeId = Namespaces.DeterministicAlarmsInstance + "#s=VendingMachine1",
                 BrowsePaths = new[] {
                     new[]
                     {
-                        "/[" + Namespaces.DeterministicAlarmsInstance + "#VendingMachine1_DoorOpen]"
+                        Namespaces.DeterministicAlarmsInstance + "#VendingMachine1_DoorOpen"
                     }
                 }
             }).ConfigureAwait(false);
@@ -52,11 +52,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
             {
-                NodeId = Namespaces.DeterministicAlarmsInstance + "#VendingMachine2",
+                NodeId = Namespaces.DeterministicAlarmsInstance + "#s=VendingMachine2",
                 BrowsePaths = new[] {
                     new[]
                     {
-                        "/[" + Namespaces.DeterministicAlarmsInstance + "#VendingMachine2_DoorOpen]"
+                        Namespaces.DeterministicAlarmsInstance + "#VendingMachine2_DoorOpen"
                     }
                 }
             }).ConfigureAwait(false);
@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=226", target.Target.NodeId);
+            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=236", target.Target.NodeId);
         }
 
         public async Task BrowseAreaPathVendingMachine1TemperatureHighTestAsync()
@@ -75,11 +75,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
             {
-                NodeId = Namespaces.DeterministicAlarmsInstance + "#VendingMachine1",
+                NodeId = Namespaces.DeterministicAlarmsInstance + "#s=VendingMachine1",
                 BrowsePaths = new[] {
                     new[]
                     {
-                        "/[" + Namespaces.DeterministicAlarmsInstance + "#VendingMachine1_TemperatureHigh]"
+                        Namespaces.DeterministicAlarmsInstance + "#VendingMachine1_TemperatureHigh"
                     }
                 }
             }).ConfigureAwait(false);
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=110", target.Target.NodeId);
+            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=115", target.Target.NodeId);
         }
 
         public async Task BrowseAreaPathVendingMachine2LightOffTestAsync()
@@ -98,11 +98,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
             {
-                NodeId = Namespaces.DeterministicAlarmsInstance + "#VendingMachine2",
+                NodeId = Namespaces.DeterministicAlarmsInstance + "#s=VendingMachine2",
                 BrowsePaths = new[] {
                     new[]
                     {
-                        "/[" + Namespaces.DeterministicAlarmsInstance + "#VendingMachine2_LightOff]"
+                        Namespaces.DeterministicAlarmsInstance + "#VendingMachine2_LightOff"
                     }
                 }
             }).ConfigureAwait(false);
@@ -111,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=335", target.Target.NodeId);
+            Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=350", target.Target.NodeId);
         }
 
 #if UNUSED

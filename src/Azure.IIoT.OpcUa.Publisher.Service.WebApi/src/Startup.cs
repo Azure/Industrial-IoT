@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Auth;
+    using Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR;
     using Azure.IIoT.OpcUa.Publisher.Service;
     using Azure.IIoT.OpcUa.Publisher.Service.Clients;
     using Azure.IIoT.OpcUa.Publisher.Service.Events;
@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using Furly.Tunnel.Protocol;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -28,6 +27,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Furly.Extensions.Logging;
 
     /// <summary>
     /// Webservice startup
@@ -156,7 +157,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 .AsImplementedInterfaces();
 
             // Add diagnostics
-            builder.AddDiagnostics();
+            builder.RegisterInstance(IMetricsContext.Empty)
+                .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));
+            builder.RegisterType<HealthCheckRegistrar>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Add serializers
             builder.AddMessagePackSerializer();

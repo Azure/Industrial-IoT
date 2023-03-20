@@ -29,6 +29,7 @@
     <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.15" />
     <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.15" />
     <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.15" />
+    <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Service\src\Azure.IIoT.OpcUa.Publisher.Service.csproj" />
