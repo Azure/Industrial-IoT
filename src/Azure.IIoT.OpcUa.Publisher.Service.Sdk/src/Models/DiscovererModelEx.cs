@@ -28,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
             discoverer.Connected = update.Connected;
             discoverer.Discovery = update.Discovery;
             discoverer.Id = update.Id;
-            discoverer.LogLevel = update.LogLevel;
             discoverer.OutOfSync = update.OutOfSync;
             discoverer.SiteId = update.SiteId;
             discoverer.RequestedMode = update.RequestedMode;

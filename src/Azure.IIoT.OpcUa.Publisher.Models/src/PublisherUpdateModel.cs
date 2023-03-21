@@ -21,10 +21,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? SiteId { get; set; }
 
         /// <summary>
-        /// Current log level
+        /// New api key
         /// </summary>
-        [DataMember(Name = "logLevel", Order = 2,
+        [DataMember(Name = "apiKey", Order = 3,
             EmitDefaultValue = false)]
-        public TraceLogLevel? LogLevel { get; set; }
+        public string? ApiKey { get; set; }
     }
 }

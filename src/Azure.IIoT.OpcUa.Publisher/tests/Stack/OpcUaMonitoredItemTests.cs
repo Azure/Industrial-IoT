@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 {
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Opc.Ua;
     using DeadbandType = OpcUa.Publisher.Models.DeadbandType;
     using MonitoringMode = OpcUa.Publisher.Models.MonitoringMode;

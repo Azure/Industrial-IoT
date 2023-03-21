@@ -30,21 +30,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Creates a new instance of the cli options based on existing configuration values.
         /// </summary>
-        /// <param name="config"></param>
-        /// <param name="logger"></param>
-        public CommandLine(IConfiguration config, ILogger logger)
+        public CommandLine()
         {
-            var configKeyNames = typeof(PublisherConfig)
-                .GetFields()
-                .Select(fi => fi.Name)
-                .ToList();
-            foreach (var item in config.GetChildren())
-            {
-                var keyName = configKeyNames
-                    .Find(n => string.Equals(n, item.Key, StringComparison.OrdinalIgnoreCase));
-                this[keyName ?? item.Key] = item.Value;
-            }
-            _logger = logger;
         }
 
         /// <summary>
@@ -53,8 +40,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <param name="args">The specified command line arguments.</param>
         public CommandLine(string[] args)
         {
-            _logger = Log.Console<CommandLine>();
-
             var showHelp = false;
             var unsupportedOptions = new List<string>();
             var legacyOptions = new List<string>();
@@ -377,24 +362,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
             catch (Exception e)
             {
-                Warning("Parse args exception: " + e.Message);
+                Warning("Parse args exception {0}.", e.Message);
                 ExitProcess(160);
                 return;
             }
 
-            if (_logger.IsEnabled(LogLevel.Debug))
+#if DEBUG
+            foreach (var key in Keys)
             {
-                foreach (var key in Keys)
-                {
-                    Debug("Parsed command line option: '{Key}'='{Value}'", key, this[key]);
-                }
+                Debug("Parsed command line option: '{0}'='{1}'", key, this[key]);
             }
+#endif
 
             if (unsupportedOptions.Count > 0)
             {
                 foreach (var option in unsupportedOptions)
                 {
-                    Warning("Option {Option} wrong or not supported, " +
+                    Warning("Option {0} wrong or not supported, " +
                         "please use -h option to get all the supported options.", option);
                 }
             }
@@ -403,7 +387,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 foreach (var option in legacyOptions)
                 {
-                    Warning("Legacy option {option} not supported, please use -h option to get all the supported options.", option);
+                    Warning("Legacy option {0} not supported, please use -h option to get all the supported options.", option);
                 }
             }
 
@@ -424,7 +408,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 catch
                 {
                     Warning("The specified combination of --mm, and --me is not (yet) supported. " +
-                        "Currently supported combinations are: {MessageProfiles}), " +
+                        "Currently supported combinations are: {0}), " +
                             "please use -h option to get all the supported options.",
                         MessagingProfile.Supported
                             .Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})")
@@ -465,7 +449,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             void SetStoreType(string s, string storeTypeKey, string optionName)
             {
                 if (s.Equals(CertificateStoreType.X509Store, StringComparison.OrdinalIgnoreCase) ||
-                            s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase))
+                    s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase))
                 {
                     this[storeTypeKey] = s;
                     return;
@@ -489,18 +473,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <param name="messageTemplate">Message template describing the event.</param>
         public virtual void Warning(string messageTemplate)
         {
-            _logger.LogWarning(messageTemplate);
+            Console.WriteLine(messageTemplate);
         }
 
         /// <summary>
         /// Write a log event with the Warning level.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T0"></typeparam>
         /// <param name="messageTemplate">Message template describing the event.</param>
-        /// <param name="propertyValue">Object positionally formatted into the message template.</param>
-        public virtual void Warning<T>(string messageTemplate, T propertyValue)
+        /// <param name="propertyValue0">Object positionally formatted into the message template.</param>
+        public virtual void Warning<T0>(string messageTemplate,
+            T0 propertyValue0)
         {
-            _logger.LogWarning(messageTemplate, propertyValue);
+            Console.WriteLine(string.Format(CultureInfo.CurrentCulture,
+                messageTemplate, propertyValue0));
         }
 
         /// <summary>
@@ -508,14 +494,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// </summary>
         /// <typeparam name="T0"></typeparam>
         /// <typeparam name="T1"></typeparam>
-        /// <param name="messageTemplate"></param>
-        /// <param name="propertyValue0"></param>
-        /// <param name="propertyValue1"></param>
-        public virtual void Debug<T0, T1>(string messageTemplate, T0 propertyValue0, T1 propertyValue1)
+        /// <param name="messageTemplate">Message template describing the event.</param>
+        /// <param name="propertyValue0">Object positionally formatted into the message template.</param>
+        /// <param name="propertyValue1">Object positionally formatted into the message template.</param>
+        public virtual void Debug<T0, T1>(string messageTemplate,
+            T0 propertyValue0, T1 propertyValue1)
         {
-            _logger.LogDebug(messageTemplate, propertyValue0, propertyValue1);
+            Console.WriteLine(string.Format(CultureInfo.CurrentCulture,
+                messageTemplate, propertyValue0, propertyValue1));
         }
-
-        private readonly ILogger _logger;
     }
 }

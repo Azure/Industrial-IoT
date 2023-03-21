@@ -57,13 +57,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public DiscoveryConfigModel? RequestedConfig { get; set; }
 
         /// <summary>
-        /// Current log level
-        /// </summary>
-        [DataMember(Name = "logLevel", Order = 6,
-            EmitDefaultValue = false)]
-        public TraceLogLevel? LogLevel { get; set; }
-
-        /// <summary>
         /// Whether the registration is out of sync between
         /// client (module) and server (service) (default: false).
         /// </summary>
@@ -84,5 +77,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "version", Order = 9,
             EmitDefaultValue = false)]
         public string? Version { get; set; }
+
+        /// <summary>
+        /// Current api key
+        /// </summary>
+        [DataMember(Name = "apiKey", Order = 10,
+            EmitDefaultValue = false)]
+        public string? ApiKey { get; set; }
     }
 }

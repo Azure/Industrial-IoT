@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
+    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
@@ -12,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
+    using Divergic.Logging.Xunit;
     using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Edge.Services;
@@ -36,15 +38,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Text;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
-    using System.Net.Http.Headers;
-    using System.Net.Http;
-    using Divergic.Logging.Xunit;
-    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients;
 
     /// <summary>
     /// Publisher telemetry

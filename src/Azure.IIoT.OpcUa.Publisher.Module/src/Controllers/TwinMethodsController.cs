@@ -11,8 +11,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Mvc;
     using System;
-    using System.Threading.Tasks;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Twin methods controller
@@ -49,295 +50,353 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Get the capabilities of the server
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="connection"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("capabilities")]
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
-            ConnectionModel connection)
+            ConnectionModel connection, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(connection);
-            return await _nodes.GetServerCapabilitiesAsync(connection).ConfigureAwait(false);
+            return await _nodes.GetServerCapabilitiesAsync(connection, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Browse
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("browse/first")]
         public async Task<BrowseFirstResponseModel> BrowseAsync(
-            RequestEnvelope<BrowseFirstRequestModel> request)
+            RequestEnvelope<BrowseFirstRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.BrowseFirstAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.BrowseFirstAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Browse next
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("browse/next")]
         public async Task<BrowseNextResponseModel> BrowseNextAsync(
-            RequestEnvelope<BrowseNextRequestModel> request)
+            RequestEnvelope<BrowseNextRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.BrowseNextAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.BrowseNextAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Browse next
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("browse")]
         public IAsyncEnumerable<BrowseStreamChunkModel> BrowseStreamAsync(
-            RequestEnvelope<BrowseStreamRequestModel> request)
+            RequestEnvelope<BrowseStreamRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return _nodes.BrowseAsync(request.Connection, request.Request);
+            return _nodes.BrowseAsync(request.Connection, request.Request, ct);
         }
 
         /// <summary>
         /// Browse by path
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("browse/path")]
         public async Task<BrowsePathResponseModel> BrowsePathAsync(
-            RequestEnvelope<BrowsePathRequestModel> request)
+            RequestEnvelope<BrowsePathRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.BrowsePathAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.BrowsePathAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Read value
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("read")]
         public async Task<ValueReadResponseModel> ValueReadAsync(
-            RequestEnvelope<ValueReadRequestModel> request)
+            RequestEnvelope<ValueReadRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.ValueReadAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.ValueReadAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Write value
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("write")]
         public async Task<ValueWriteResponseModel> ValueWriteAsync(
-            RequestEnvelope<ValueWriteRequestModel> request)
+            RequestEnvelope<ValueWriteRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.ValueWriteAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.ValueWriteAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get node metadata.
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("metadata")]
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(
-            RequestEnvelope<NodeMetadataRequestModel> request)
+            RequestEnvelope<NodeMetadataRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.GetMetadataAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.GetMetadataAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get method meta data
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("call/$metadata")]
         public async Task<MethodMetadataResponseModel> MethodMetadataAsync(
-            RequestEnvelope<MethodMetadataRequestModel> request)
+            RequestEnvelope<MethodMetadataRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.GetMethodMetadataAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.GetMethodMetadataAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Call method
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("call")]
         public async Task<MethodCallResponseModel> MethodCallAsync(
-            RequestEnvelope<MethodCallRequestModel> request)
+            RequestEnvelope<MethodCallRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.MethodCallAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.MethodCallAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Read attributes
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("read/attributes")]
         public async Task<ReadResponseModel> NodeReadAsync(
-            RequestEnvelope<ReadRequestModel> request)
+            RequestEnvelope<ReadRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.ReadAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.ReadAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Write attributes
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("write/attributes")]
         public async Task<WriteResponseModel> NodeWriteAsync(
-            RequestEnvelope<WriteRequestModel> request)
+            RequestEnvelope<WriteRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.WriteAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.WriteAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Read history
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("historyread/first")]
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
-            RequestEnvelope<HistoryReadRequestModel<VariantValue>> request)
+            RequestEnvelope<HistoryReadRequestModel<VariantValue>> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.HistoryReadAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.HistoryReadAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Read next history
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("historyread/next")]
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
-            RequestEnvelope<HistoryReadNextRequestModel> request)
+            RequestEnvelope<HistoryReadNextRequestModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.HistoryReadNextAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.HistoryReadNextAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Update history
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("historyupdate")]
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
-            RequestEnvelope<HistoryUpdateRequestModel<VariantValue>> request)
+            RequestEnvelope<HistoryUpdateRequestModel<VariantValue>> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.HistoryUpdateAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.HistoryUpdateAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get endpoint certificate
         /// </summary>
         /// <param name="endpoint"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="endpoint"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="endpoint"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("certificate")]
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
-            EndpointModel endpoint)
+            EndpointModel endpoint, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
-            return await _certificates.GetEndpointCertificateAsync(endpoint).ConfigureAwait(false);
+            return await _certificates.GetEndpointCertificateAsync(endpoint,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get the historian capabilities of the server
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="connection"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("history/capabilities")]
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            ConnectionModel connection)
+            ConnectionModel connection, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(connection);
-            return await _nodes.HistoryGetServerCapabilitiesAsync(connection).ConfigureAwait(false);
+            return await _nodes.HistoryGetServerCapabilitiesAsync(connection,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get the historian configuration
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("history/configuration")]
         public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
-            RequestEnvelope<HistoryConfigurationRequestModel> request)
+            RequestEnvelope<HistoryConfigurationRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.HistoryGetConfigurationAsync(request.Connection, request.Request).ConfigureAwait(false);
+            return await _nodes.HistoryGetConfigurationAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Activate connection
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="connection"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("connect")]
-        public async Task<bool> ConnectAsync(ConnectionModel connection)
+        public async Task<bool> ConnectAsync(ConnectionModel connection,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(connection);
-            await _endpoints.ConnectAsync(connection).ConfigureAwait(false);
+            await _endpoints.ConnectAsync(connection, ct: ct).ConfigureAwait(false);
             return true;
         }
 
@@ -345,13 +404,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Deactivate connection
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="connection"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("disconnect")]
-        public async Task<bool> DisconnectAsync(ConnectionModel connection)
+        public async Task<bool> DisconnectAsync(ConnectionModel connection,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(connection);
-            await _endpoints.DisconnectAsync(connection).ConfigureAwait(false);
+            await _endpoints.DisconnectAsync(connection, ct: ct).ConfigureAwait(false);
             return true;
         }
 

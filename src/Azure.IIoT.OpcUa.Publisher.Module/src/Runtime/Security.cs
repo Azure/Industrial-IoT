@@ -76,6 +76,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 try
                 {
                     var header = AuthenticationHeaderValue.Parse(authorization[0]);
+                    if (header.Scheme != ApiKeyScheme)
+                    {
+                        return Task.FromResult(AuthenticateResult.NoResult());
+                    }
                     if (!_twin.TryGetValue(Constants.TwinPropertyApiKeyKey,
                         out var key) || key != header.Parameter.Trim())
                     {
@@ -84,8 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 
                     var claims = new[]
                     {
-                        new Claim(ClaimTypes.NameIdentifier,
-                            Constants.TwinPropertyApiKeyKey)
+                        new Claim(ClaimTypes.NameIdentifier, ApiKeyScheme)
                     };
 
                     var identity = new ClaimsIdentity(claims, Scheme.Name);

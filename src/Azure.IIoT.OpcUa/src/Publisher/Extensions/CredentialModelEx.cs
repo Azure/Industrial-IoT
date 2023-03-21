@@ -5,50 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
-
     /// <summary>
     /// Credential model extensions
     /// </summary>
     public static class CredentialModelEx
     {
-        /// <summary>
-        /// Equality comparison
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="that"></param>
-        /// <returns></returns>
-        public static bool IsSameAs(this CredentialModel model,
-            CredentialModel that)
-        {
-            if (model == that)
-            {
-                return true;
-            }
-            if (model == null || that == null)
-            {
-                return false;
-            }
-            if ((that.Type ?? CredentialType.None) !=
-                    (model.Type ?? CredentialType.None))
-            {
-                return false;
-            }
-            if (that.Value.IsNull() || model.Value.IsNull())
-            {
-                if (that.Value.IsNull() && model.Value.IsNull())
-                {
-                    return true;
-                }
-                return false;
-            }
-            if (!VariantValue.DeepEquals(that.Value, model.Value))
-            {
-                return false;
-            }
-            return true;
-        }
-
         /// <summary>
         /// Get password
         /// </summary>

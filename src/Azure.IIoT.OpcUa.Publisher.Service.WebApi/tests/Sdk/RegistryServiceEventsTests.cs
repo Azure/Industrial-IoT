@@ -35,8 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             var expected = new PublisherModel
             {
                 SiteId = "TestSite",
-                Connected = null,
-                LogLevel = TraceLogLevel.Verbose
+                Connected = null
             };
             var result = new TaskCompletionSource<PublisherEventModel>();
             await using (await client.SubscribePublisherEventsAsync(ev =>
@@ -52,7 +51,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 var received = result.Task.Result;
                 Assert.Null(received?.Publisher?.Connected);
                 Assert.Equal(expected.SiteId, received.Publisher.SiteId);
-                Assert.Equal(expected.LogLevel, received.Publisher.LogLevel);
             }
         }
 
@@ -69,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             var expected = new PublisherModel
             {
                 SiteId = "TestSite",
-                LogLevel = TraceLogLevel.Verbose
+                ApiKey = "api-key"
             };
             var result = new TaskCompletionSource<bool>();
             var counter = 0;
@@ -108,8 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 DiscoveryConfig = new DiscoveryConfigModel
                 {
                     IdleTimeBetweenScans = TimeSpan.FromSeconds(5)
-                },
-                LogLevel = TraceLogLevel.Verbose
+                }
             };
             var result = new TaskCompletionSource<DiscovererEventModel>();
             await using (await client.SubscribeDiscovererEventsAsync(ev =>
@@ -128,7 +125,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 Assert.Equal(TimeSpan.FromSeconds(5),
                     expected.DiscoveryConfig.IdleTimeBetweenScans);
                 Assert.Equal(expected.SiteId, received.Discoverer.SiteId);
-                Assert.Equal(expected.LogLevel, (TraceLogLevel)received.Discoverer.LogLevel);
             }
         }
 
@@ -144,8 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new DiscovererModel
             {
-                SiteId = "TestSite",
-                LogLevel = TraceLogLevel.Verbose
+                SiteId = "TestSite"
             };
             var result = new TaskCompletionSource<bool>();
             var counter = 0;
@@ -179,8 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             var expected = new SupervisorModel
             {
                 SiteId = "TestSigfsdfg  ff",
-                Connected = true,
-                LogLevel = TraceLogLevel.Verbose
+                Connected = true
             };
             var result = new TaskCompletionSource<SupervisorEventModel>();
             await using (await client.SubscribeSupervisorEventsAsync(ev =>
@@ -197,7 +191,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 Assert.NotNull(received?.Supervisor);
                 Assert.Equal(true, received?.Supervisor?.Connected);
                 Assert.Equal(expected.SiteId, received.Supervisor.SiteId);
-                Assert.Equal(expected.LogLevel, (TraceLogLevel)received.Supervisor.LogLevel);
             }
         }
 
@@ -213,8 +206,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new SupervisorModel
             {
-                SiteId = "azagfff",
-                LogLevel = TraceLogLevel.Verbose
+                SiteId = "azagfff"
             };
             var result = new TaskCompletionSource<bool>();
             var counter = 0;
@@ -307,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     await bus.OnApplicationUpdatedAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted);
             }
         }

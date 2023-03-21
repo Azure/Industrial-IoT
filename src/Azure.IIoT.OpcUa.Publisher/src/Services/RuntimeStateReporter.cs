@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
+    using Microsoft.Azure.Devices.Shared;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -17,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Devices.Shared;
 
     /// <summary>
     /// This class manages reporting of runtime state.

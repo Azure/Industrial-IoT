@@ -28,37 +28,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 Description = model.Description
             };
         }
-
-        /// <summary>
-        /// Compare items
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="other"></param>
-        /// <returns></returns>
-        public static bool IsSameAs(this DataSetMetaDataModel model,
-            DataSetMetaDataModel other)
-        {
-            if (model == null && other == null)
-            {
-                return true;
-            }
-            if (model == null || other == null)
-            {
-                return false;
-            }
-            if (model.Name != other.Name)
-            {
-                return false;
-            }
-            if (model.DataSetClassId != other.DataSetClassId)
-            {
-                return false;
-            }
-            if (model.Description != other.Description)
-            {
-                return false;
-            }
-            return true;
-        }
     }
 }

@@ -29,13 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? SiteId { get; set; }
 
         /// <summary>
-        /// Current log level
-        /// </summary>
-        [DataMember(Name = "logLevel", Order = 2,
-            EmitDefaultValue = false)]
-        public TraceLogLevel? LogLevel { get; set; }
-
-        /// <summary>
         /// Whether the registration is out of sync between
         /// client (module) and server (service) (default: false).
         /// </summary>
@@ -56,5 +49,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "version", Order = 6,
             EmitDefaultValue = false)]
         public string? Version { get; set; }
+
+        /// <summary>
+        /// Current api key
+        /// </summary>
+        [DataMember(Name = "apiKey", Order = 7,
+            EmitDefaultValue = false)]
+        public string? ApiKey { get; set; }
     }
 }

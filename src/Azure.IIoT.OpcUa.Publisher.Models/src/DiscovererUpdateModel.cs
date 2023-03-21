@@ -33,12 +33,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "discoveryConfig", Order = 2,
             EmitDefaultValue = false)]
         public DiscoveryConfigModel? DiscoveryConfig { get; set; }
-
-        /// <summary>
-        /// Current log level
-        /// </summary>
-        [DataMember(Name = "logLevel", Order = 3,
-            EmitDefaultValue = false)]
-        public TraceLogLevel? LogLevel { get; set; }
     }
 }

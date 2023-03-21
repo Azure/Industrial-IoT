@@ -19,12 +19,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "siteId", Order = 0,
             EmitDefaultValue = false)]
         public string? SiteId { get; set; }
-
-        /// <summary>
-        /// Current log level
-        /// </summary>
-        [DataMember(Name = "logLevel", Order = 1,
-            EmitDefaultValue = false)]
-        public TraceLogLevel? LogLevel { get; set; }
     }
 }

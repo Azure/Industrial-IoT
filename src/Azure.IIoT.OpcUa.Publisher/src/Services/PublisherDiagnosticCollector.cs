@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics.Metrics;
+    using System.Globalization;
     using System.Text;
     using System.Threading;
 
@@ -163,86 +164,112 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
-        /// Diagnostics timer
+        /// Diagnostics timer to dump out all diagnostics
         /// </summary>
         /// <param name="state"></param>
         private void DiagnosticsOutputTimer_Elapsed(object state)
         {
             var now = DateTime.UtcNow;
             _meterListener.RecordObservableInstruments();
+
+            var builder = new StringBuilder();
             foreach (var (writerGroupId, info) in _diagnostics)
             {
-                LogDiagnosticInfo(writerGroupId, info, now - info.IngestionStart);
+                builder = Append(builder, writerGroupId, info, now - info.IngestionStart);
             }
-            void LogDiagnosticInfo(string writerGroupId, WriterGroupDiagnosticModel info, TimeSpan ingestionDuration)
+            Console.Out.WriteLine(builder.ToString());
+
+            StringBuilder Append(StringBuilder builder, string writerGroupId, WriterGroupDiagnosticModel info,
+                TimeSpan ingestionDuration)
             {
                 var totalSeconds = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
                 var valueChangesPerSec = info.IngressValueChanges / ingestionDuration.TotalSeconds;
                 var dataChangesPerSec = info.IngressDataChanges / ingestionDuration.TotalSeconds;
-                var dataChangesLastMin = info.IngressDataChangesInLastMinute;
+                var dataChangesLastMin = info.IngressDataChangesInLastMinute.ToString("D2", CultureInfo.CurrentCulture);
                 var valueChangesPerSecLastMin = info.IngressValueChangesInLastMinute / Math.Min(totalSeconds, 60d);
                 var dataChangesPerSecLastMin = info.IngressDataChangesInLastMinute / Math.Min(totalSeconds, 60d);
+                var version = GetType().Assembly.GetReleaseVersion().ToString();
 
-                var diagInfo = new StringBuilder();
-                diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host} (OPC Publisher {Version})");
-                diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
                 var dataChangesPerSecFormatted = info.IngressDataChanges > 0 && ingestionDuration.TotalSeconds > 0
-                    ? $"(All time ~{dataChangesPerSec:0.##}/s; {dataChangesLastMin.ToString("D2")} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
-                    : "";
-                diagInfo.AppendLine("  # Ingress DataChanges (from OPC)     : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
-                diagInfo.AppendLine("  # Ingress EventData (from OPC)       : {eventNotificationCount,14:n0}");
+        ? $"(All time ~{dataChangesPerSec:0.##}/s; {dataChangesLastMin} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
+                    : string.Empty;
                 var valueChangesPerSecFormatted = info.IngressValueChanges > 0 && ingestionDuration.TotalSeconds > 0
-                    ? $"(All time ~{valueChangesPerSec:0.##}/s; {dataChangesLastMin.ToString("D2")} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)"
-                    : "";
-                diagInfo.AppendLine("  # Ingress ValueChanges (from OPC)    : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
-                diagInfo.AppendLine("  # Ingress Events (from OPC)          : {eventCount,14:n0}");
-
-                diagInfo.AppendLine("  # Ingress BatchBlock buffer size     : {batchDataSetMessageBlockOutputCount,14:0}");
-                diagInfo.AppendLine("  # Encoding Block input/output size   : {encodingBlockInputCount,14:0} | {encodingBlockOutputCount:0}");
-                diagInfo.AppendLine("  # Encoder Notifications processed    : {notificationsProcessedCount,14:n0}");
-                diagInfo.AppendLine("  # Encoder Notifications dropped      : {notificationsDroppedCount,14:n0}");
-                diagInfo.AppendLine("  # Encoder IoT Messages processed     : {messagesProcessedCount,14:n0}");
-                diagInfo.AppendLine("  # Encoder avg Notifications/Message  : {notificationsPerMessage,14:0}");
-                diagInfo.AppendLine("  # Encoder worst Message split ratio  : {encoderMaxMessageSplitRatio,14:0.#}");
-                diagInfo.AppendLine("  # Encoder avg IoT Message body size  : {messageSizeAverage,14:n0}");
-                diagInfo.AppendLine("  # Encoder avg IoT Chunk (4 KB) usage : {chunkSizeAverage,14:0.#}");
-                diagInfo.AppendLine("  # Estimated IoT Chunks (4 KB) per day: {estimatedMsgChunksPerDay,14:n0}");
-                diagInfo.AppendLine("  # Outgress input buffer count        : {sinkBlockInputCount,14:n0}");
-                diagInfo.AppendLine("  # Outgress input buffer dropped      : {sinkBlockInputDroppedCount,14:n0}");
-
+        ? $"(All time ~{valueChangesPerSec:0.##}/s; {dataChangesLastMin} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)"
+                    : string.Empty;
                 var sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0 && ingestionDuration.TotalSeconds > 0
-                    ? $"({info.SentMessagesPerSec:0.##}/s)" : "";
-                diagInfo.AppendLine("  # Outgress IoT message count         : {messageSinkSentMessagesCount,14:n0} {sentMessagesPerSecFormatted}");
-                diagInfo.AppendLine("  # Connection retries                 : {connectionRetries,14:0}");
-                diagInfo.AppendLine("  # Opc endpoint connected?            : {isConnectionOk,14:0}");
-                diagInfo.AppendLine("  # Monitored Opc nodes succeeded count: {goodNodes,14:0}");
-                diagInfo.AppendLine("  # Monitored Opc nodes failed count   : {badNodes,14:0}");
+        ? $"({info.SentMessagesPerSec:0.##}/s)" : "";
 
-                _logger.LogInformation(diagInfo.ToString(),
-                    writerGroupId,
-                    GetType().Assembly.GetReleaseVersion().ToString(),
-                    ingestionDuration,
-                    info.IngressDataChanges, dataChangesPerSecFormatted,
-                    info.IngressEventNotifications,
-                    info.IngressValueChanges, valueChangesPerSecFormatted,
-                    info.IngressEvents,
-                    info.IngressBatchBlockBufferSize,
-                    info.EncodingBlockInputSize, info.EncodingBlockOutputSize,
-                    info.EncoderNotificationsProcessed,
-                    info.EncoderNotificationsDropped,
-                    info.EncoderIoTMessagesProcessed,
-                    info.EncoderAvgNotificationsMessage,
-                    info.EncoderMaxMessageSplitRatio,
-                    info.EncoderAvgIoTMessageBodySize,
-                    info.EncoderAvgIoTChunkUsage,
-                    info.EstimatedIoTChunksPerDay,
-                    info.OutgressInputBufferCount,
-                    info.OutgressInputBufferDropped,
-                    info.OutgressIoTMessageCount, sentMessagesPerSecFormatted,
-                    info.ConnectionRetries,
-                    info.OpcEndpointConnected,
-                    info.MonitoredOpcNodesSucceededCount,
-                    info.MonitoredOpcNodesFailedCount);
+                return builder.AppendLine()
+                    .Append("  DIAGNOSTICS INFORMATION for          : ")
+                        .Append(writerGroupId).Append(" (OPC Publisher ").Append(version)
+                        .AppendLine(")")
+                    .Append("  # Ingestion duration                 : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:dd\\:hh\\:mm\\:ss}", ingestionDuration)
+                        .AppendLine(" (dd:hh:mm:ss)")
+                    .Append("  # Ingress DataChanges (from OPC)     : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressDataChanges)
+                        .Append(' ').AppendLine(dataChangesPerSecFormatted)
+                    .Append("  # Ingress EventData (from OPC)       : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEventNotifications)
+                        .AppendLine()
+                    .Append("  # Ingress ValueChanges (from OPC)    : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressValueChanges).Append(' ')
+                        .AppendLine(valueChangesPerSecFormatted)
+                    .Append("  # Ingress Events (from OPC)          : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.IngressEvents)
+                        .AppendLine()
+                    .Append("  # Ingress BatchBlock buffer size     : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}",  info.IngressBatchBlockBufferSize)
+                        .AppendLine()
+                    .Append("  # Encoding Block input/output size   : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}",  info.EncodingBlockInputSize).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}",     info.EncodingBlockOutputSize).AppendLine()
+                    .Append("  # Encoder Notifications processed    : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderNotificationsProcessed)
+                        .AppendLine()
+                    .Append("  # Encoder Notifications dropped      : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderNotificationsDropped)
+                        .AppendLine()
+                    .Append("  # Encoder IoT Messages processed     : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderIoTMessagesProcessed)
+                        .AppendLine()
+                    .Append("  # Encoder avg Notifications/Message  : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}",  info.EncoderAvgNotificationsMessage)
+                        .AppendLine()
+                    .Append("  # Encoder worst Message split ratio  : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.#}",info.EncoderMaxMessageSplitRatio)
+                        .AppendLine()
+                    .Append("  # Encoder avg IoT Message body size  : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EncoderAvgIoTMessageBodySize)
+                        .AppendLine()
+                    .Append("  # Encoder avg IoT Chunk (4 KB) usage : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.#}",info.EncoderAvgIoTChunkUsage)
+                        .AppendLine()
+                    .Append("  # Estimated IoT Chunks (4 KB) per day: ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.EstimatedIoTChunksPerDay)
+                        .AppendLine()
+                    .Append("  # Outgress input buffer count        : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressInputBufferCount)
+                        .AppendLine()
+                    .Append("  # Outgress input buffer dropped      : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressInputBufferDropped)
+                        .AppendLine()
+                    .Append("  # Outgress IoT message count         : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.OutgressIoTMessageCount)
+                        .Append(' ').AppendLine(sentMessagesPerSecFormatted)
+                    .Append("  # Connection retries                 : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}",  info.ConnectionRetries)
+                        .AppendLine()
+                    .Append("  # Opc endpoint connected?            : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}",  info.OpcEndpointConnected)
+                        .AppendLine()
+                    .Append("  # Monitored Opc nodes succeeded count: ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}",  info.MonitoredOpcNodesSucceededCount)
+                        .AppendLine()
+                    .Append("  # Monitored Opc nodes failed count   : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}",  info.MonitoredOpcNodesFailedCount)
+                        .AppendLine()
+                    ;
             }
         }
 

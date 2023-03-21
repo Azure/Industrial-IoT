@@ -58,11 +58,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             }
 
             // Settings
-            if (update?.LogLevel != existing?.LogLevel)
+            if (update?.ApiKey!= existing?.ApiKey)
             {
-                desired.Add(nameof(PublisherRegistration.LogLevel),
-                    update?.LogLevel == null ?
-                    null : serializer.FromObject(update.LogLevel.ToString()));
+                desired.Add(OpcUa.Constants.TwinPropertyApiKeyKey, update?.ApiKey);
             }
 
             if (update?.SiteId != existing?.SiteId)
@@ -116,8 +114,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
 
                 // Properties
 
-                LogLevel =
-                    properties.GetValueOrDefault(nameof(PublisherRegistration.LogLevel), (TraceLogLevel?)null),
+                ApiKey =
+                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertyApiKeyKey, (string)null),
                 SiteId =
                     properties.GetValueOrDefault(OpcUa.Constants.TwinPropertySiteKey, (string)null),
                 Version =
@@ -175,10 +173,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                     // Not set by user, but by config, so fake user desiring it.
                     desired.SiteId = consolidated.SiteId;
                 }
-                if (desired.LogLevel == null && consolidated.LogLevel != null)
+                if (desired.ApiKey == null && consolidated.ApiKey != null)
                 {
                     // Not set by user, but reported, so set as desired
-                    desired.LogLevel = consolidated.LogLevel;
+                    desired.ApiKey = consolidated.ApiKey;
                 }
                 desired.Version = consolidated.Version;
             }
@@ -220,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 IsDisabled = disabled,
                 DeviceId = deviceId,
                 ModuleId = moduleId,
-                LogLevel = model.LogLevel,
+                ApiKey = model.ApiKey,
                 Connected = model.Connected ?? false,
                 Version = null,
                 SiteId = model.SiteId
@@ -252,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 IsDisabled = disabled,
                 DeviceId = deviceId,
                 ModuleId = moduleId,
-                LogLevel = model.LogLevel,
+                ApiKey = model.ApiKey,
                 Version = null,
                 Connected = model.Connected ?? false,
                 SiteId = model.SiteId
@@ -284,7 +282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 IsDisabled = disabled,
                 DeviceId = deviceId,
                 ModuleId = moduleId,
-                LogLevel = model.LogLevel,
+                ApiKey = model.ApiKey,
                 Connected = model.Connected ?? false,
                 Version = null,
                 SiteId = model.SiteId
@@ -295,8 +293,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Convert to service model
         /// </summary>
         /// <param name="registration"></param>
+        /// <param name="removeApiKey"></param>
         /// <returns></returns>
-        public static PublisherModel ToPublisherModel(this PublisherRegistration registration)
+        public static PublisherModel ToPublisherModel(this PublisherRegistration registration,
+            bool removeApiKey = false)
         {
             if (registration == null)
             {
@@ -306,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             {
                 Id = HubResource.Format(null, registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
-                LogLevel = registration.LogLevel,
+                ApiKey = removeApiKey ? string.Empty : registration.ApiKey,
                 Version = registration.Version,
                 Connected = registration.IsConnected() ? true : null,
                 OutOfSync = registration.IsConnected() && !registration._isInSync ? true : null
@@ -328,7 +328,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             {
                 Id = HubResource.Format(null, registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
-                LogLevel = registration.LogLevel,
+                ApiKey = registration.ApiKey,
                 Version = registration.Version,
                 Connected = registration.IsConnected() ? true : null,
                 OutOfSync = registration.IsConnected() && !registration._isInSync ? true : null
@@ -352,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 Id = HubResource.Format(null, registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
                 Version = registration.Version,
-                LogLevel = registration.LogLevel,
+                ApiKey = registration.ApiKey,
                 DiscoveryConfig = null,
                 RequestedMode = null,
                 RequestedConfig = null,
@@ -376,7 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             return
                 other != null &&
                 registration.SiteId == other.SiteId &&
-                registration.LogLevel == other.LogLevel;
+                registration.ApiKey == other.ApiKey;
         }
     }
 }

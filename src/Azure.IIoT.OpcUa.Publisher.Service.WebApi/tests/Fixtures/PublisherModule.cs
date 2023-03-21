@@ -70,7 +70,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
             var twin = service.CreateOrUpdateAsync(publisherModule).AsTask().GetAwaiter().GetResult();
             var device = service.GetRegistrationAsync(twin.Id, twin.ModuleId).AsTask().GetAwaiter().GetResult();
 
-
             ServerPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
                 Guid.NewGuid().ToByteArray().ToBase16String());
             ClientPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",

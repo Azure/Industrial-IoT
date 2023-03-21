@@ -10,10 +10,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.Alarms.Json
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
     using Autofac;
+    using System;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using System;
 
     public sealed class NodeServicesTests : IClassFixture<AlarmsServer>, IClassFixture<PublisherModuleFixture>, IDisposable
     {

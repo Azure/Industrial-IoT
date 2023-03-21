@@ -33,17 +33,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             Utils.SetLogger(Logger);
         }
-
-        /// <summary>
-        /// Helper to use when not using autofac di.
-        /// </summary>
-        /// <param name="logger"></param>
-        /// <returns></returns>
-        public static StackLogger Create(ILogger<StackLogger> logger)
-        {
-            var stackLogger = new StackLogger(logger);
-            stackLogger.Start();
-            return stackLogger;
-        }
     }
 }

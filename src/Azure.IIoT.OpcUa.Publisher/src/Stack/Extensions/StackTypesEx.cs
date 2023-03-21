@@ -98,54 +98,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="nodeClasses"></param>
         /// <returns></returns>
-        public static IReadOnlyList<NodeClass> ToServiceMask(this UaNodeClass nodeClasses)
-        {
-            if (nodeClasses == UaNodeClass.Unspecified)
-            {
-                return null;
-            }
-            var result = new List<NodeClass>();
-            var mask = (uint)nodeClasses;
-            if (0 != (mask & (uint)UaNodeClass.Object))
-            {
-                result.Add(NodeClass.Object);
-            }
-            if (0 != (mask & (uint)UaNodeClass.Variable))
-            {
-                result.Add(NodeClass.Variable);
-            }
-            if (0 != (mask & (uint)UaNodeClass.Method))
-            {
-                result.Add(NodeClass.Method);
-            }
-            if (0 != (mask & (uint)UaNodeClass.ObjectType))
-            {
-                result.Add(NodeClass.ObjectType);
-            }
-            if (0 != (mask & (uint)UaNodeClass.VariableType))
-            {
-                result.Add(NodeClass.VariableType);
-            }
-            if (0 != (mask & (uint)UaNodeClass.ReferenceType))
-            {
-                result.Add(NodeClass.ReferenceType);
-            }
-            if (0 != (mask & (uint)UaNodeClass.DataType))
-            {
-                result.Add(NodeClass.DataType);
-            }
-            if (0 != (mask & (uint)UaNodeClass.View))
-            {
-                result.Add(NodeClass.View);
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Convert mask to a list of node classes
-        /// </summary>
-        /// <param name="nodeClasses"></param>
-        /// <returns></returns>
         public static UaNodeClass ToStackMask(this IReadOnlyList<NodeClass> nodeClasses)
         {
             var mask = 0u;

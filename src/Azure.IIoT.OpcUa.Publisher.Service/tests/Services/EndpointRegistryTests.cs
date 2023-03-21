@@ -5,8 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.Services.Models;
+    using Azure.IIoT.OpcUa.Publisher.Service;
     using Azure.IIoT.OpcUa.Publisher.Service.Services;
+    using Azure.IIoT.OpcUa.Publisher.Service.Services.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Autofac;
     using Autofac.Extras.Moq;
@@ -22,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
-    using Azure.IIoT.OpcUa.Publisher.Service;
 
     public class EndpointRegistryTests
     {

@@ -27,7 +27,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DisableKeyFrames = "DisableKeyFrames";
         public const string DefaultKeyFrameCount = "DefaultKeyFrameCount";
         public const string DisableDataSetMetaData = "DisableDataSetMetaData";
-        public const string DefaultLifeTimeCount = "DefaultLifeTimeCount";
         public const string DefaultMetaDataUpdateTime = "DefaultMetaDataUpdateTime";
         public const string DefaultDataChangeTrigger = "DefaulDataChangeTrigger";
         public const string FetchOpcNodeDisplayName = "FetchOpcNodeDisplayName";

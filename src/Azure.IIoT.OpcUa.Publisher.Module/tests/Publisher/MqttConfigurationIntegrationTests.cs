@@ -277,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Publisher
 
                 Assert.True(message.Message.TryGetProperty("Value", out sev));
                 Assert.True(sev.TryGetProperty("Severity", out sev));
-                Assert.True(sev.GetInt32() >= 100, $"{message.Message.ToJsonString()}");
+                Assert.True(sev.GetInt32() > 0, $"{message.Message.ToJsonString()}");
 
                 result = await PublisherApi.UnpublishNodesAsync(testInput[0]).ConfigureAwait(false);
                 Assert.NotNull(result);

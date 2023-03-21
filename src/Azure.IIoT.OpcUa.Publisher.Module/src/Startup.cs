@@ -61,7 +61,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             services.AddHttpClient();
 
             services.AddRouting();
-            services.AddHealthChecks();
+            services.AddHealthChecks()
+                ;
 
             services.AddAuthorization();
             services.AddAuthentication()
@@ -100,7 +101,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         {
             app.UseRouting();
 
-            app.UseHttpsRedirect();
+            app.UseHsts();
+            app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();

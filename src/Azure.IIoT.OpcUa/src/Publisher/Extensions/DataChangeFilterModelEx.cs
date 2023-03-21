@@ -11,47 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public static class DataChangeFilterModelEx
     {
         /// <summary>
-        /// Clone
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static DataChangeFilterModel Clone(this DataChangeFilterModel model)
-        {
-            if (model == null)
-            {
-                return null;
-            }
-
-            // Validate deadband value and set a value that will work
-            var value = model.DeadbandValue;
-            if (value.HasValue)
-            {
-                if (model.DeadbandType == DeadbandType.Percent)
-                {
-                    if (value > 100.0)
-                    {
-                        value = 100.0;
-                    }
-                    else if (value < 0.0)
-                    {
-                        value = 0.0;
-                    }
-                }
-                else if (model.DeadbandType == null || value < 0.0)
-                {
-                    value = null;
-                }
-            }
-
-            return new DataChangeFilterModel
-            {
-                DataChangeTrigger = model.DataChangeTrigger,
-                DeadbandType = model.DeadbandType,
-                DeadbandValue = value
-            };
-        }
-
-        /// <summary>
         /// Compare filters
         /// </summary>
         /// <param name="model"></param>

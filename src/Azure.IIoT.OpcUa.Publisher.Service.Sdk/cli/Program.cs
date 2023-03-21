@@ -896,7 +896,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 new PublisherUpdateModel
                 {
                     SiteId = options.GetValueOrNull<string>("-s", "--siteId"),
-                    LogLevel = options.GetValueOrNull<TraceLogLevel>("-l", "--log-level")
+                    ApiKey = options.GetValueOrNull<string>("-a", "--api-key")
                 }).ConfigureAwait(false);
         }
 
@@ -1221,8 +1221,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 new SupervisorUpdateModel
                 {
                     SiteId = options.GetValueOrNull<string>("-s", "--siteId"),
-                    LogLevel = options.GetValueOrNull<TraceLogLevel>(
-                        "-l", "--log-level")
                 }).ConfigureAwait(false);
         }
 
@@ -1388,8 +1386,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 new DiscovererUpdateModel
                 {
                     SiteId = options.GetValueOrNull<string>("-s", "--siteId", null),
-                    LogLevel = options.GetValueOrNull<TraceLogLevel>(
-                        "-l", "--log-level", null),
                     Discovery = options.GetValueOrDefault(
                         config == null ? (DiscoveryMode?)null : DiscoveryMode.Fast,
                         "-d", "--discovery"),
@@ -2636,7 +2632,7 @@ Commands and Options
         with ...
         -i, --id        Id of publisher to retrieve (mandatory)
         -s, --siteId    Updated site of the publisher.
-        -l, --log-level Set publisher module logging level
+        -a, --api-key   Set publisher module api key for rest auth.
         -o, --orchestrator
                         Orchestrator url
         -w, --max-workers
@@ -2721,7 +2717,6 @@ Commands and Options
         with ...
         -i, --id        Id of supervisor to update (mandatory)
         -s, --siteId    Updated site of the supervisor.
-        -l, --log-level Set supervisor module logging level
 
      help, -h, -? --help
                  Prints out this help.
@@ -2778,7 +2773,6 @@ Commands and Options
         -i, --id        Id of discoverer to update (mandatory)
         -s, --siteId    Updated site of the discoverer.
         -d, --discovery Set discoverer discovery mode
-        -l, --log-level Set discoverer module logging level
         -p, --port-ranges
                         Port ranges to scan.
         -r, --address-ranges

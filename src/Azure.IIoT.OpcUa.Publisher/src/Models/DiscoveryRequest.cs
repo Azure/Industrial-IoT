@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using System.Net.Sockets;
     using System.Threading;
 
-
     /// <summary>
     /// Discovery request wrapper
     /// </summary>

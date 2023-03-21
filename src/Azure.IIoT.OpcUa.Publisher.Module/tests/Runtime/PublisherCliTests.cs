@@ -90,13 +90,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         [InlineData("tc|telemetryconfigfile", new string[] { "--telemetryconfigfile", "testValue" })]
         public void LegacyOptionTest(string cliOption, string[] param)
         {
-            var result = new PublisherCliOptionsTest(param);
+            var result = new CommandLineTest(param);
 
             result.Count.Should().Be(0);
 
             result.Warnings.Count.Should().Be(1);
             result.Warnings[0].Should().Be(
-                "Legacy option {option} not supported, please use -h option to get all the supported options."
+                "Legacy option {0} not supported, please use -h option to get all the supported options."
                 + "::" + cliOption
             );
         }
@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         [InlineData("unknown=testValue")]
         public void UnsupportedOptionTest(params string[] param)
         {
-            var result = new PublisherCliOptionsTest(param);
+            var result = new CommandLineTest(param);
 
             result.Count.Should().Be(0);
 
@@ -123,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             {
                 var warning = result.Warnings[i];
                 warning.Should().Be(
-                    "Option {Option} wrong or not supported, please use -h option to get all the supported options."
+                    "Option {0} wrong or not supported, please use -h option to get all the supported options."
                     + "::" + param[i]
                 );
             }
@@ -140,12 +140,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         [InlineData("--deviceconnectionstring")]
         public void MissingOptionParameterTest(params string[] param)
         {
-            var result = new PublisherCliOptionsTest(param);
+            var result = new CommandLineTest(param);
 
             result.ExitCode.Should().Be(160);
 
             result.Warnings.Count.Should().Be(1);
-            result.Warnings[0].Should().Be($"Parse args exception: Missing required value for option '{param[0]}'.");
+            result.Warnings[0].Should().Be($"Parse args exception {{0}}.::Missing required value for option '{param[0]}'.");
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         [InlineData(new object[] { new string[] { "--help" } })]
         public void HelpOptionParameterTest(string[] param)
         {
-            var result = new PublisherCliOptionsTest(param);
+            var result = new CommandLineTest(param);
 
             result.ExitCode
                 .Should()

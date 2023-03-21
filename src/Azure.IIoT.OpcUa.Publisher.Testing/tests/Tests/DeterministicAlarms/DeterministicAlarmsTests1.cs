@@ -49,7 +49,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
             {
                 NodeId = Namespaces.DeterministicAlarmsInstance + "#s=VendingMachine2",
@@ -72,7 +71,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
             {
                 NodeId = Namespaces.DeterministicAlarmsInstance + "#s=VendingMachine1",
@@ -94,7 +92,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task BrowseAreaPathVendingMachine2LightOffTestAsync()
         {
             var services = _services();
-
 
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
             {

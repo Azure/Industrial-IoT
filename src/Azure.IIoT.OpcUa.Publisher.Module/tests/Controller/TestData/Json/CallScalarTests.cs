@@ -10,10 +10,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.Json
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
     using Autofac;
+    using System;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using System;
 
     [Collection(WriteCollection.Name)]
     public sealed class CallScalarTests : IClassFixture<PublisherModuleFixture>, IDisposable

@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
-    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;

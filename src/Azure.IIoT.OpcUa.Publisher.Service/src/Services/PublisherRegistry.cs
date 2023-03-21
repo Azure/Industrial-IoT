@@ -99,25 +99,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                             null : request.SiteId;
                     }
 
-                    if (request.LogLevel != null)
+                    if (request.ApiKey != null)
                     {
-                        patched.LogLevel = request.LogLevel == TraceLogLevel.Information ?
-                            null : request.LogLevel;
+                        patched.ApiKey = string.IsNullOrEmpty(request.ApiKey) ?
+                            null : request.ApiKey;
                     }
 
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
                         patched.ToPublisherRegistration(), _serializer), false, ct).ConfigureAwait(false);
 
-                    // Send update to through broker
-                    registration = twin.ToEntityRegistration(true) as PublisherRegistration;
-                    await (_events?.OnPublisherUpdatedAsync(null, registration.ToPublisherModel())).ConfigureAwait(false);
+                    if (_events != null)
+                    {
+                        registration = twin.ToEntityRegistration(true) as PublisherRegistration;
+                        await _events.OnPublisherUpdatedAsync(null,
+                            registration.ToPublisherModel(true)).ConfigureAwait(false);
+                    }
                     return;
                 }
                 catch (ResourceOutOfDateException ex)
                 {
                     _logger.LogDebug(ex, "Retrying updating supervisor...");
-                    continue;
                 }
             }
         }
@@ -135,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
                     .Select(t => t.ToPublisherRegistration(onlyServerState))
-                    .Select(s => s.ToPublisherModel())
+                    .Select(s => s.ToPublisherModel(true))
                     .ToList()
             };
         }
@@ -175,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
                     .Select(t => t.ToPublisherRegistration(onlyServerState))
-                    .Select(s => s.ToPublisherModel())
+                    .Select(s => s.ToPublisherModel(true))
                     .ToList()
             };
         }

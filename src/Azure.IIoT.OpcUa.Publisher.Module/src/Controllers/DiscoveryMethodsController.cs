@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Mvc;
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -41,29 +42,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Find server with endpoint
         /// </summary>
         /// <param name="endpoint"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="endpoint"/>
         /// is <c>null</c>.</exception>
         [HttpPost("findserver")]
         public async Task<ApplicationRegistrationModel> FindServerAsync(
-            ServerEndpointQueryModel endpoint)
+            ServerEndpointQueryModel endpoint, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
-            return await _servers.FindServerAsync(endpoint).ConfigureAwait(false);
+            return await _servers.FindServerAsync(endpoint, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Start server registration
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("register")]
-        public async Task<bool> RegisterAsync(ServerRegistrationRequestModel request)
+        public async Task<bool> RegisterAsync(ServerRegistrationRequestModel request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
-            await _discover.RegisterAsync(request).ConfigureAwait(false);
+            await _discover.RegisterAsync(request, ct).ConfigureAwait(false);
             return true;
         }
 
@@ -71,14 +75,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Discover application
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost]
-        public async Task<bool> DiscoverAsync(DiscoveryRequestModel request)
+        public async Task<bool> DiscoverAsync(DiscoveryRequestModel request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
-            await _discover.DiscoverAsync(request).ConfigureAwait(false);
+            await _discover.DiscoverAsync(request, ct).ConfigureAwait(false);
             return true;
         }
 
@@ -86,14 +92,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Cancel discovery
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("cancel")]
-        public async Task<bool> CancelAsync(DiscoveryCancelRequestModel request)
+        public async Task<bool> CancelAsync(DiscoveryCancelRequestModel request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
-            await _discover.CancelAsync(request).ConfigureAwait(false);
+            await _discover.CancelAsync(request, ct).ConfigureAwait(false);
             return true;
         }
 

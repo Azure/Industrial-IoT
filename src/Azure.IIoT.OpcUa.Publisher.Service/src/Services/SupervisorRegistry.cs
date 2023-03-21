@@ -102,12 +102,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                             null : request.SiteId;
                     }
 
-                    if (request.LogLevel != null)
-                    {
-                        patched.LogLevel = request.LogLevel == TraceLogLevel.Information ?
-                            null : request.LogLevel;
-                    }
-
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
                         patched.ToPublisherRegistration(), _serializer), false, ct).ConfigureAwait(false);

@@ -10,9 +10,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.MsgPack
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
     using Autofac;
+    using System;
     using System.Threading.Tasks;
     using Xunit;
-    using System;
     using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]

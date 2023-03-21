@@ -11,10 +11,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Furly.Tunnel;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Implements node and publish services through command control against

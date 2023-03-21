@@ -8,10 +8,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Autofac;
     using Furly.Azure.IoT.Edge;
+    using Furly.Azure.IoT.Edge.Services;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Mqtt;
     using Furly.Tunnel.Router.Services;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Server.Kestrel.Core;
+    using Microsoft.AspNetCore.Server.Kestrel.Https;
+    using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -19,6 +24,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using System.Net;
+    using System.Security.Cryptography.X509Certificates;
     using System.Text.RegularExpressions;
 
     /// <summary>
@@ -101,6 +108,94 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
+        /// Configure kestrel setup
+        /// </summary>
+        internal sealed class Kestrel : ConfigureOptionBase<KestrelServerOptions>
+        {
+            /// <summary>
+            /// Configuration
+            /// </summary>
+            public const string EnableHttpKey = "EnableHttp";
+            public const string EnableHttpsKey = "EnableHttps";
+            public const string HttpPortKey = "HttpPort";
+            public const string HttpsPortKey = "HttpsPort";
+
+            public const int HttpPortDefault = 80;
+            public const int HttpsPortDefault = 443;
+
+            /// <summary>
+            /// Create kestrel configuration
+            /// </summary>
+            /// <param name="memoryCache"></param>
+            /// <param name="configuration"></param>
+            /// <param name="workload"></param>
+            public Kestrel(IMemoryCache memoryCache, IConfiguration configuration,
+                IoTEdgeWorkloadApi workload = null)
+                : base(configuration)
+            {
+                _memoryCache = memoryCache;
+                _workload = workload;
+            }
+
+            /// <inheritdoc/>
+            public override void Configure(string name, KestrelServerOptions options)
+            {
+                var supportHttp = GetBoolOrDefault(EnableHttpKey);
+                if (supportHttp)
+                {
+                    var port = GetIntOrDefault(HttpPortKey, HttpPortDefault);
+                    options.ListenAnyIP(port);
+                }
+                var supportHttps = GetBoolOrDefault(EnableHttpsKey);
+                if (supportHttps)
+                {
+                    var port = GetIntOrDefault(HttpsPortKey, HttpsPortDefault);
+                    options.Listen(IPAddress.Any, port, listenOptions =>
+                    {
+                        listenOptions.UseHttps(httpsOptions =>
+                        {
+                            httpsOptions.ServerCertificateSelector = (_, dnsName) =>
+                            {
+                                dnsName ??= "certificate";
+                                try
+                                {
+                                    // Try get or create new certificate
+                                    return GetCertificate(dnsName, httpsOptions);
+                                }
+                                catch
+                                {
+                                    // Invalidate
+                                    _memoryCache.Remove(dnsName);
+                                    return httpsOptions.ServerCertificate;
+                                }
+                            };
+                        });
+                    });
+
+                    X509Certificate2 GetCertificate(string dnsName, HttpsConnectionAdapterOptions httpsOptions)
+                    {
+                        return _memoryCache.GetOrCreate(dnsName, async cacheEntry =>
+                        {
+                            cacheEntry.AbsoluteExpirationRelativeToNow =
+                                TimeSpan.FromDays(30);
+                            var expiration = DateTime.UtcNow +
+                                cacheEntry.AbsoluteExpirationRelativeToNow.Value;
+                            var chain = await _workload.CreateServerCertificateAsync(
+                                dnsName, expiration, default).ConfigureAwait(false);
+                            // TODO: where should the chain go?
+                            httpsOptions.ServerCertificateChain =
+                                new X509Certificate2Collection(chain.Skip(1).ToArray());
+                            return chain[0];
+                        }).Result;
+                    }
+                }
+            }
+
+            private readonly IMemoryCache _memoryCache;
+            private readonly IoTEdgeWorkloadApi _workload;
+        }
+
+        /// <summary>
         /// Configure logger factory
         /// </summary>
         internal sealed class Logging : ConfigureOptionBase<LoggerFilterOptions>
@@ -109,7 +204,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// Configuration
             /// </summary>
             public const string LogLevelKey = "LogLevel";
-            public const LogLevel LogLevelDefault = LogLevel.Information;
 
             /// <inheritdoc/>
             public override void Configure(string name, LoggerFilterOptions options)
@@ -263,7 +357,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// </summary>
             public const string HubTransport = "Transport";
             public const string EdgeHubConnectionString = "EdgeHubConnectionString";
-            public const string BypassCertVerificationKey = "BypassCertVerification";
 
             /// <inheritdoc/>
             public override void Configure(string name, IoTEdgeClientOptions options)
@@ -322,10 +415,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 .Cast<Match>()
                 .Select(m => new string[] {
                     m.Result("$1"),
-                    valuePairString.Substring(
-                        m.Index + m.Value.Length,
-                        (m.NextMatch().Success ? m.NextMatch().Index : valuePairString.Length)
-                            - (m.Index + m.Value.Length))
+                    valuePairString[
+                        (m.Index + m.Value.Length)..(m.NextMatch().Success ? m.NextMatch().Index : valuePairString.Length)]
                 });
 
             if (!parts.Any() || parts.Any(p => p.Length != 2))

@@ -27,7 +27,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
             supervisor ??= new SupervisorModel();
             supervisor.Connected = update.Connected;
             supervisor.Id = update.Id;
-            supervisor.LogLevel = update.LogLevel;
             supervisor.OutOfSync = update.OutOfSync;
             supervisor.SiteId = update.SiteId;
             return supervisor;

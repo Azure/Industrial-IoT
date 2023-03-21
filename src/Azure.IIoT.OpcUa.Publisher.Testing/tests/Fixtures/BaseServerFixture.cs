@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <summary>
         /// Create fixture
         /// </summary>
-        /// <param name="nodes"></param>
+        /// <param name="nodesFactory"></param>
         /// <param name="loggerFactory"></param>
         protected BaseServerFixture(
             Func<ILoggerFactory?, TimeService, IEnumerable<INodeManagerFactory>> nodesFactory,
@@ -196,7 +196,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 .AsImplementedInterfaces().SingleInstance();
             return builder.Build();
         }
-
 
         /// <summary>
         /// Cause a subset of the mocked timers to fire a number of times,

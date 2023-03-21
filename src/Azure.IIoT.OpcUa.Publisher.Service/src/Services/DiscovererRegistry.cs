@@ -111,12 +111,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                             null : request.SiteId;
                     }
 
-                    if (request.LogLevel != null)
-                    {
-                        patched.LogLevel = request.LogLevel == TraceLogLevel.Information ?
-                            null : request.LogLevel;
-                    }
-
                     if (request.DiscoveryConfig != null)
                     {
                         _logger.LogWarning("Discovery configuration is no longer supported." +

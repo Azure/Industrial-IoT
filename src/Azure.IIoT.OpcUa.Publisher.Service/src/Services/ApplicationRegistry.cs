@@ -14,10 +14,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Diagnostics.Metrics;
 
     /// <summary>
     /// Application and endpoint registry services using the IoT Hub

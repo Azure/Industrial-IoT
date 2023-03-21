@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
     /// <summary>
     /// Test class to override Exit method
     /// </summary>
-    public class PublisherCliOptionsTest : CommandLine
+    public class CommandLineTest : CommandLine
     {
         /// <summary>
         /// Exit code
@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// </summary>
         public List<string> Warnings = new();
 
-        public PublisherCliOptionsTest(string[] args) : base(args)
+        public CommandLineTest(string[] args) : base(args)
         {
         }
 

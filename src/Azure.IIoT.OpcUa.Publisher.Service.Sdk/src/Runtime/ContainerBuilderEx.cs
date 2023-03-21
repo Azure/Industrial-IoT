@@ -54,6 +54,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
 
             return builder;
         }
-
     }
 }

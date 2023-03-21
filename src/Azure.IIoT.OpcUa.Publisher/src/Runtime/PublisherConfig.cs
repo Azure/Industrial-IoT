@@ -51,12 +51,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Variables in templates
         /// </summary>
         public const string PublisherIdVariableName = "PublisherId";
-        public const string SiteIdVariableName = "SiteId";
         public const string RootTopicVariableName = "RootTopic";
         public const string DataSetWriterGroupVariableName = "DataSetWriterGroup";
         public const string DataSetWriterNameVariableName = "DataSetWriterName";
         public const string DataSetClassIdVariableName = "DataSetClassId";
-        public const string TelemetryTopicVariableName = "TelemetryTopic";
+        //public const string TelemetryTopicVariableName = "TelemetryTopic";
+        //public const string SiteIdVariableName = "SiteId";
 
         /// <summary>
         /// Default values
@@ -74,7 +74,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const bool EnableRuntimeStateReportingDefault = false;
         public const bool UseStandardsCompliantEncodingDefault = false;
         public const bool EnableDataSetRoutingInfoDefault = false;
-        public const bool EnableDataSetWriterIdSubTopicDefault = false;
         public const MessageEncoding MessageEncodingDefault = MessageEncoding.Json;
         public const int MaxNodesPerDataSetDefault = 1000;
         public const int BatchSizeDefault = 100;

@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -26,10 +25,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         public string ModuleId { get; set; }
 
         /// <summary>
-        /// Current log level
+        /// Api key for the module
         /// </summary>
-        [DataMember]
-        public TraceLogLevel? LogLevel { get; set; }
+        public string ApiKey { get; set; }
 
         /// <summary>
         /// Create registration - for testing purposes
@@ -58,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             {
                 return false;
             }
-            if (LogLevel != registration.LogLevel)
+            if (ApiKey != registration.ApiKey)
             {
                 return false;
             }
@@ -80,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(ModuleId);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<TraceLogLevel?>.Default.GetHashCode(LogLevel);
+                EqualityComparer<string>.Default.GetHashCode(ApiKey);
             return hashCode;
         }
 

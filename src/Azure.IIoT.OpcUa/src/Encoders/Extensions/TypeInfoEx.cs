@@ -14,25 +14,6 @@ namespace Opc.Ua
     public static class TypeInfoEx
     {
         /// <summary>
-        /// Gets a default event filter.
-        /// </summary>
-        /// <returns></returns>
-        internal static EventFilter GetDefaultEventFilter()
-        {
-            var filter = new EventFilter();
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.EventId);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.EventType);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.SourceNode);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.SourceName);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.Time);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.ReceiveTime);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.LocalTime);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.Message);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.Severity);
-            return filter;
-        }
-
-        /// <summary>
         /// Returns default value for type
         /// </summary>
         /// <param name="typeInfo"></param>
