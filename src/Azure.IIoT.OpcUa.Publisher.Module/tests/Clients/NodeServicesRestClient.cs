@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/browse");
             return _httpClient.PostStreamAsync<BrowseStreamChunkModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct);
+                RequestBody(endpoint, request), _serializer, ct: ct);
         }
 
         /// <inheritdoc/>
@@ -72,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/browse/first");
             return await _httpClient.PostAsync<BrowseFirstResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/browse/next");
             return await _httpClient.PostAsync<BrowseNextResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -103,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/browse/path");
             return await _httpClient.PostAsync<BrowsePathResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/read/attributes");
             return await _httpClient.PostAsync<ReadResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -133,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/write/attributes");
             return await _httpClient.PostAsync<WriteResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -144,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/read");
             return await _httpClient.PostAsync<ValueReadResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -159,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/write");
             return await _httpClient.PostAsync<ValueWriteResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -170,7 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/call/$metadata");
             return await _httpClient.PostAsync<MethodMetadataResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -181,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/call");
             return await _httpClient.PostAsync<MethodCallResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -190,9 +190,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         {
             ArgumentNullException.ThrowIfNull(endpoint);
             ArgumentNullException.ThrowIfNull(request);
-            var uri = new Uri($"{_serviceUri}/v2/metadata/node");
+            var uri = new Uri($"{_serviceUri}/v2/metadata");
             return await _httpClient.PostAsync<NodeMetadataResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -227,7 +227,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/history/configuration");
             return await _httpClient.PostAsync<HistoryConfigurationResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -242,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/historyread/first");
             return await _httpClient.PostAsync<HistoryReadResponseModel<VariantValue>>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -257,7 +257,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
             var uri = new Uri($"{_serviceUri}v2/historyread/next");
             return await _httpClient.PostAsync<HistoryReadNextResponseModel<VariantValue>>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -272,7 +272,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/historyupdate");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Create envelope
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        private static RequestEnvelope<T> RequestBody<T>(ConnectionModel connection, T request)
+        {
+            return new RequestEnvelope<T> { Connection = connection, Request = request };
         }
 
         private readonly IHttpClientFactory _httpClient;

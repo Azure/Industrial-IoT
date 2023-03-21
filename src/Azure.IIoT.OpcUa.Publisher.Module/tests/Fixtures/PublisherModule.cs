@@ -193,7 +193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 .UseStartup<ModuleStartup>()
                 .UseConfiguration(_config)
                 .ConfigureServices(services => services
-                    .AddMvcCore()
+                    .AddMvc()
                         .AddApplicationPart(typeof(Startup).Assembly)
                         .AddControllersAsServices())
                 ;

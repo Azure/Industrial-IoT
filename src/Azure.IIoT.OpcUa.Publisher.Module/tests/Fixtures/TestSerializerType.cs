@@ -7,8 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
     public enum TestSerializerType
     {
-        NewtonsoftJson,
         Json,
         MsgPack,
+        NewtonsoftJson,
     }
 }

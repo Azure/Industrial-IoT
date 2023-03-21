@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.Json
         public ValueWriteScalarTests(TestDataServer server, PublisherModuleFixture module, ITestOutputHelper output)
         {
             _server = server;
-            _client = module.CreateRestClientContainer(output, TestSerializerType.NewtonsoftJson);
+            _client = module.CreateRestClientContainer(output, TestSerializerType.Json);
         }
 
         public void Dispose()

@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.DeterministicAlarms
         public NodeServicesTests2(DeterministicAlarmsServer2 server, PublisherModuleFixture module, ITestOutputHelper output)
         {
             _server = server;
-            _client = module.CreateRestClientContainer(output, TestSerializerType.NewtonsoftJson);
+            _client = module.CreateRestClientContainer(output, TestSerializerType.Json);
         }
 
         public void Dispose()

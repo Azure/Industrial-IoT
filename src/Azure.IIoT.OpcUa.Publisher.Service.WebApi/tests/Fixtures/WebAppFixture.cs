@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
                 .UseContentRoot(".")
                 .UseStartup<TestStartup>()
                 .ConfigureServices(services => services
-                    .AddMvcCore()
+                    .AddMvc()
                         .AddApplicationPart(typeof(Startup).Assembly)
                         .AddControllersAsServices())
                 .ConfigureTestServices(services => services.AddAuthentication("Test")

@@ -82,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 ;
 
             services.AddControllers()
-                .AddNewtonsoftSerializer()
+                .AddJsonSerializer()
                 .AddMessagePackSerializer()
                 ;
 

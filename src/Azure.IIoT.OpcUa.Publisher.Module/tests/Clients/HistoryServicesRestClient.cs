@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/read/first");
             return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/read/first/modified");
             return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/read/first/attimes");
             return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -97,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/read/first/processed");
             return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricValueModel[]>>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -112,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/history/values/read/next");
             return await _httpClient.PostAsync<HistoryReadNextResponseModel<HistoricValueModel[]>>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -124,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/events/read/first");
             return await _httpClient.PostAsync<HistoryReadResponseModel<HistoricEventModel[]>>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -139,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/history/events/read/next");
             return await _httpClient.PostAsync<HistoryReadNextResponseModel<HistoricEventModel[]>>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -150,7 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/replace");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -161,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/events/replace");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -172,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/insert");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -183,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/upsert");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -194,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/events/insert");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -205,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/events/upsert");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -216,7 +216,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/delete");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -227,7 +227,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/delete/attimes");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -238,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/delete/modified");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -249,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/events/delete");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct).ConfigureAwait(false);
+                RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAsync(ConnectionModel endpoint,
@@ -259,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/read");
             return _httpClient.PostStreamAsync<HistoricValueModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct);
+                RequestBody(endpoint, request), _serializer, ct: ct);
         }
 
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamModifiedValuesAsync(ConnectionModel endpoint,
@@ -269,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/read/modified");
             return _httpClient.PostStreamAsync<HistoricValueModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct);
+                RequestBody(endpoint, request), _serializer, ct: ct);
         }
 
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamValuesAtTimesAsync(ConnectionModel endpoint,
@@ -279,7 +279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/read/attimes");
             return _httpClient.PostStreamAsync<HistoricValueModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct);
+                RequestBody(endpoint, request), _serializer, ct: ct);
         }
 
         public IAsyncEnumerable<HistoricValueModel> HistoryStreamProcessedValuesAsync(ConnectionModel endpoint,
@@ -289,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/values/read/processed");
             return _httpClient.PostStreamAsync<HistoricValueModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct);
+                RequestBody(endpoint, request), _serializer, ct: ct);
         }
 
         public IAsyncEnumerable<HistoricEventModel> HistoryStreamEventsAsync(ConnectionModel endpoint,
@@ -299,7 +299,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request);
             var uri = new Uri($"{_serviceUri}/v2/history/events/read");
             return _httpClient.PostStreamAsync<HistoricEventModel>(uri,
-                new { connection = endpoint, request }, _serializer, ct: ct);
+                RequestBody(endpoint, request), _serializer, ct: ct);
+        }
+
+        /// <summary>
+        /// Create envelope
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        private static RequestEnvelope<T> RequestBody<T>(ConnectionModel connection, T request)
+        {
+            return new RequestEnvelope<T> { Connection = connection, Request = request };
         }
 
         private readonly IHttpClientFactory _httpClient;

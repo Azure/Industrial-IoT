@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.HistoricalAccess.Js
         public ReadValuesTests(HistoricalAccessServer server, PublisherModuleFixture module, ITestOutputHelper output)
         {
             _server = server;
-            _client = module.CreateRestClientContainer(output, TestSerializerType.NewtonsoftJson);
+            _client = module.CreateRestClientContainer(output, TestSerializerType.Json);
         }
 
         public void Dispose()
@@ -63,31 +63,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.HistoricalAccess.Js
             return GetTests().HistoryReadInt64ValuesTest4Async();
         }
 
-        [SkippableFact]
+        [Fact]
         public Task HistoryStreamInt64ValuesTest1Async()
         {
-            Skip.If(true, "Not yet supported");
             return GetTests().HistoryStreamInt64ValuesTest1Async();
         }
 
-        [SkippableFact]
+        [Fact]
         public Task HistoryStreamInt64ValuesTest2Async()
         {
-            Skip.If(true, "Not yet supported");
             return GetTests().HistoryStreamInt64ValuesTest2Async();
         }
 
-        [SkippableFact]
+        [Fact]
         public Task HistoryStreamInt64ValuesTest3Async()
         {
-            Skip.If(true, "Not yet supported");
             return GetTests().HistoryStreamInt64ValuesTest3Async();
         }
 
-        [SkippableFact]
+        [Fact]
         public Task HistoryStreamInt64ValuesTest4Async()
         {
-            Skip.If(true, "Not yet supported");
             return GetTests().HistoryStreamInt64ValuesTest4Async();
         }
     }

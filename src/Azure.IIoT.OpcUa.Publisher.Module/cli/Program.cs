@@ -275,7 +275,7 @@ Options:
             builder.AddIoTHubServiceClient();
             builder.Configure<IoTHubServiceOptions>(
                 options => options.ConnectionString = connectionString);
-            builder.AddNewtonsoftJsonSerializer();
+            builder.AddDefaultJsonSerializer();
             builder.AddLogging();
             using var container = builder.Build();
 

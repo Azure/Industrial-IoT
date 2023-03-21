@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.HistoricalAccess.Js
         public ReadAtTimesTests(HistoricalAccessServer server, PublisherModuleFixture module, ITestOutputHelper output)
         {
             _server = server;
-            _client = module.CreateRestClientContainer(output, TestSerializerType.NewtonsoftJson);
+            _client = module.CreateRestClientContainer(output, TestSerializerType.Json);
         }
 
         public void Dispose()
@@ -63,17 +63,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.HistoricalAccess.Js
             return GetTests().HistoryReadInt32ValuesAtTimesTest4Async();
         }
 
-        [SkippableFact]
+        [Fact]
         public Task HistoryStreamInt32ValuesAtTimesTest1Async()
         {
-            Skip.If(true, "Not yet supported");
             return GetTests().HistoryStreamInt32ValuesAtTimesTest1Async();
         }
 
-        [SkippableFact]
+        [Fact]
         public Task HistoryStreamInt32ValuesAtTimesTest2Async()
         {
-            Skip.If(true, "Not yet supported");
             return GetTests().HistoryStreamInt32ValuesAtTimesTest2Async();
         }
     }

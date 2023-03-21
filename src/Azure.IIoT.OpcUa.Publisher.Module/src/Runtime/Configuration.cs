@@ -32,7 +32,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <param name="builder"></param>
         public static void AddPublisherServices(this ContainerBuilder builder)
         {
+            builder.AddDefaultJsonSerializer();
             builder.AddNewtonsoftJsonSerializer();
+            builder.AddMessagePackSerializer();
             builder.AddPublisherCore();
 
             builder.RegisterType<HealthCheckRegistrar>()

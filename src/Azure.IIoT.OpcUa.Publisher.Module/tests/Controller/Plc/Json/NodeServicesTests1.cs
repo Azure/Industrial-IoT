@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.Plc.Json
         public NodeServicesTests1(PlcServer server, PublisherModuleFixture module, ITestOutputHelper output)
         {
             _server = server;
-            _client = module.CreateRestClientContainer(output, TestSerializerType.NewtonsoftJson);
+            _client = module.CreateRestClientContainer(output, TestSerializerType.Json);
         }
 
         public void Dispose()

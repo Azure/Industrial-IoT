@@ -13,6 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System;
     using System.Threading.Tasks;
     using Xunit;
+    using Furly.Extensions.Serializers.Newtonsoft;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Tests for the Plc model, which is a complex type.
@@ -128,7 +130,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(value.ErrorInfo);
                 Assert.NotNull(value.Value);
                 Assert.True(value.Value.TryGetProperty("Body", out var body));
-                return body.ConvertTo<PlcDataType>();
+
+                // TODO: workaround decoder shortfall.  Need to look into this.
+                ISerializer serializer = new NewtonsoftJsonSerializer();
+                return serializer.Deserialize<PlcDataType>(serializer.SerializeToMemory(body));
             }
         }
 
