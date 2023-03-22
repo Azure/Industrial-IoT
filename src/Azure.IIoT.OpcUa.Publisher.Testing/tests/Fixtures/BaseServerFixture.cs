@@ -101,8 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
             _container = CreateContainer(loggerFactory ?? Log.ConsoleFactory(LogLevel.Debug));
 
-            var now = DateTime.UtcNow;
-            Now = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, now.Kind);
+            Now = new DateTime(2023, 1, 1, 7, 15, 0, DateTimeKind.Utc);
             _timeService = CreateTimeServiceMock(Now);
             var port = NextPort();
             var logger = _container.Resolve<ILogger<BaseServerFixture>>();
