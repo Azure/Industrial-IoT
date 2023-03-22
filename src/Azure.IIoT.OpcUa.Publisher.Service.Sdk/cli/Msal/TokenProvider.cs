@@ -5,13 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Msal
 {
+    using Microsoft.Identity.Client;
+    using Microsoft.Identity.Client.Extensions.Msal;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Identity.Client;
-    using Microsoft.Identity.Client.Extensions.Msal;
 
     /// <summary>
     /// Msal token provider

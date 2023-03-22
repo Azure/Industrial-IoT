@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
 {
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Autofac;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Configuration;
@@ -15,10 +16,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Threading.Tasks;
-    using Autofac;
-    using System.Net.Sockets;
     using System.Net;
+    using System.Net.Sockets;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Api command line interface

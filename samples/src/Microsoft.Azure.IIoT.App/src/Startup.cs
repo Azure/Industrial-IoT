@@ -8,14 +8,18 @@ namespace Microsoft.Azure.IIoT.App
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Validation;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Configuration;
+    using Microsoft.Identity.Web;
+    using Microsoft.Identity.Web.UI;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Blazored.Modal;
@@ -24,10 +28,6 @@ namespace Microsoft.Azure.IIoT.App
     using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
     using System;
     using System.IdentityModel.Tokens.Jwt;
-    using Microsoft.Identity.Web;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc.Authorization;
-    using Microsoft.Identity.Web.UI;
 
     /// <summary>
     /// Webapp startup

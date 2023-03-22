@@ -6,10 +6,10 @@
 namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
 {
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk;
-    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
-    using Microsoft.Extensions.Configuration;
-    using Furly.Extensions.Configuration;
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Msal;
+    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
+    using Furly.Extensions.Configuration;
+    using Microsoft.Extensions.Configuration;
     using System;
     using System.Threading.Tasks;
 

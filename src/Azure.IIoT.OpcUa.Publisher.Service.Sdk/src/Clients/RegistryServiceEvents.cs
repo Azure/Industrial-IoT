@@ -12,11 +12,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
     using Microsoft.Extensions.Options;
     using Nito.Disposables;
     using System;
+    using System.Collections.Generic;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Net.Http.Headers;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Registry service event client
