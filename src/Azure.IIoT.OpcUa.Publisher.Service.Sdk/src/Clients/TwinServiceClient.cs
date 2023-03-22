@@ -10,8 +10,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -25,10 +27,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="options"></param>
-        /// <param name="serializer"></param>
+        /// <param name="serializers"></param>
         public TwinServiceClient(IHttpClientFactory httpClient,
-            IOptions<ServiceSdkOptions> options, ISerializer serializer) :
-            this(httpClient, options?.Value.ServiceUrl, serializer)
+            IOptions<ServiceSdkOptions> options, IEnumerable<ISerializer> serializers) :
+            this(httpClient, options?.Value.ServiceUrl, options?.Value.TokenProvider,
+                serializers.Resolve(options?.Value))
         {
         }
 
@@ -37,9 +40,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
+        /// <param name="authorization"></param>
         /// <param name="serializer"></param>
         public TwinServiceClient(IHttpClientFactory httpClient, string serviceUri,
-            ISerializer serializer = null)
+            Func<Task<string>> authorization, ISerializer serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
             {
@@ -49,6 +53,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             _serviceUri = serviceUri.TrimEnd('/');
             _serializer = serializer ?? new NewtonsoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _authorization = authorization;
+        }
+
+        /// <summary>
+        /// Create service client
+        /// </summary>
+        /// <param name="httpClient"></param>
+        /// <param name="serializer"></param>
+        public TwinServiceClient(HttpClient httpClient, ISerializer serializer = null) :
+            this(httpClient.ToHttpClientFactory(), httpClient.BaseAddress?.ToString(),
+                null, serializer)
+        {
         }
 
         /// <inheritdoc/>
@@ -61,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             try
             {
                 using var response = await _httpClient.GetAsync(httpRequest,
-                    ct).ConfigureAwait(false);
+                    authorization: _authorization, ct: ct).ConfigureAwait(false);
                 response.ValidateResponse();
                 return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             }
@@ -81,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/twin/v2/browse/{endpointId}");
             return await _httpClient.PostAsync<BrowseFirstResponseModel>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -102,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/twin/v2/browse/{endpointId}/next");
             return await _httpClient.PostAsync<BrowseNextResponseModel>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -124,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/twin/v2/browse/{endpointId}/path");
             return await _httpClient.PostAsync<BrowsePathResponseModel>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -145,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/twin/v2/read/{endpointId}/attributes");
             return await _httpClient.PostAsync<ReadResponseModel>(uri, request,
-                _serializer, ct: ct).ConfigureAwait(false);
+                _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -166,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/twin/v2/write/{endpointId}/attributes");
             return await _httpClient.PostAsync<WriteResponseModel>(uri, request,
-                _serializer, ct: ct).ConfigureAwait(false);
+                _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -183,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/twin/v2/read/{endpointId}");
             return await _httpClient.PostAsync<ValueReadResponseModel>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -204,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/twin/v2/write/{endpointId}");
             return await _httpClient.PostAsync<ValueWriteResponseModel>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -221,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/twin/v2/call/{endpointId}/metadata");
             return await _httpClient.PostAsync<MethodMetadataResponseModel>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -238,7 +254,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/twin/v2/call/{endpointId}");
             return await _httpClient.PostAsync<MethodCallResponseModel>
-                (uri, request, _serializer, ct: ct).ConfigureAwait(false);
+                (uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -255,7 +271,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/twin/v2/metadata/{endpointId}/node");
             return await _httpClient.PostAsync<NodeMetadataResponseModel>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -268,7 +284,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/twin/v2/capabilities/{endpointId}");
             return await _httpClient.GetAsync<ServerCapabilitiesModel>(uri,
-                _serializer, ct: ct).ConfigureAwait(false);
+                _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -281,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/history/v2/capabilities/{endpointId}");
             return await _httpClient.GetAsync<HistoryServerCapabilitiesModel>(uri,
-                _serializer, ct: ct).ConfigureAwait(false);
+                _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -302,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/history/v2/read/{endpointId}/configuration");
             return await _httpClient.PostAsync<HistoryConfigurationResponseModel>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -323,7 +339,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/history/v2/history/read/{endpointId}");
             return await _httpClient.PostAsync<HistoryReadResponseModel<VariantValue>>(
-                uri, request, _serializer, ct: ct).ConfigureAwait(false);
+                uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -344,7 +360,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/history/v2/history/read/{endpointId}/next");
             return await _httpClient.PostAsync<HistoryReadNextResponseModel<VariantValue>>(
-                uri, request, _serializer, ct: ct).ConfigureAwait(false);
+                uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -365,10 +381,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/history/v2/history/update/{endpointId}");
             return await _httpClient.PostAsync<HistoryUpdateResponseModel>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         private readonly IHttpClientFactory _httpClient;
+        private readonly Func<Task<string>> _authorization;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
     }

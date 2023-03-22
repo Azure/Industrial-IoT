@@ -15,6 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Net.Http.Headers;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Registry service event client
@@ -27,10 +29,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="client"></param>
         /// <param name="options"></param>
-        /// <param name="serializer"></param>
+        /// <param name="serializers"></param>
         public RegistryServiceEvents(IHttpClientFactory httpClient, ICallbackClient client,
-            IOptions<ServiceSdkOptions> options, ISerializer serializer) :
-            this(httpClient, client, options?.Value.ServiceUrl, serializer)
+            IOptions<ServiceSdkOptions> options, IEnumerable<ISerializer> serializers) :
+            this(httpClient, client, options?.Value.ServiceUrl, options?.Value.TokenProvider,
+                serializers.Resolve(options?.Value))
         {
         }
 
@@ -40,9 +43,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="client"></param>
         /// <param name="serviceUri"></param>
+        /// <param name="authorization"></param>
         /// <param name="serializer"></param>
         public RegistryServiceEvents(IHttpClientFactory httpClient, ICallbackClient client,
-            string serviceUri, ISerializer serializer = null)
+            string serviceUri, Func<Task<string>> authorization, ISerializer serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
             {
@@ -50,6 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                     "Please configure the Url of the events micro service.");
             }
             _client = client ?? throw new ArgumentNullException(nameof(client));
+            _authorization = authorization;
             _serviceUri = serviceUri.TrimEnd('/');
             _serializer = serializer ?? new NewtonsoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
@@ -227,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/events/v2/discovery/{discovererId}/events");
             await _httpClient.PutAsync(uri, connectionId, _serializer,
-                ct: ct).ConfigureAwait(false);
+                authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -244,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/events/v2/discovery/requests/{requestId}/events");
             await _httpClient.PutAsync(uri, connectionId, _serializer,
-                ct: ct).ConfigureAwait(false);
+                authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -260,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var uri = new Uri($"{_serviceUri}/events/v2/discovery/{discovererId}/events/{connectionId}");
-            await _httpClient.DeleteAsync(uri, ct: ct).ConfigureAwait(false);
+            await _httpClient.DeleteAsync(uri, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -276,12 +281,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var uri = new Uri($"{_serviceUri}/events/v2/discovery/requests/{requestId}/events/{connectionId}");
-            await _httpClient.DeleteAsync(uri, ct: ct).ConfigureAwait(false);
+            await _httpClient.DeleteAsync(uri, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         private readonly IHttpClientFactory _httpClient;
         private readonly string _serviceUri;
         private readonly ISerializer _serializer;
         private readonly ICallbackClient _client;
+        private readonly Func<Task<string>> _authorization;
     }
 }

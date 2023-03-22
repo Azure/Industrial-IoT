@@ -4,7 +4,7 @@
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
-
+#if FALSE
     [Controller]
     [AllowAnonymous]
     [Route("Account")]
@@ -35,4 +35,5 @@
             return SignOut(authProps, scheme + "Cookie", scheme);
         }
     }
+#endif
 }

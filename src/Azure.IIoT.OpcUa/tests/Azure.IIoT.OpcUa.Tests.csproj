@@ -15,7 +15,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-	  <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.17" />
+	  <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.19" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.csproj" />

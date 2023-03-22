@@ -15,6 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Net.Http.Headers;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Publisher service events
@@ -27,10 +29,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="client"></param>
         /// <param name="options"></param>
-        /// <param name="serializer"></param>
+        /// <param name="serializers"></param>
         public PublisherServiceEvents(IHttpClientFactory httpClient, ICallbackClient client,
-            IOptions<ServiceSdkOptions> options, ISerializer serializer) :
-            this(httpClient, client, options?.Value.ServiceUrl, serializer)
+            IOptions<ServiceSdkOptions> options, IEnumerable<ISerializer> serializers) :
+            this(httpClient, client, options?.Value.ServiceUrl, options?.Value.TokenProvider,
+                serializers.Resolve(options?.Value))
         {
         }
 
@@ -40,9 +43,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="httpClient"></param>
         /// <param name="client"></param>
         /// <param name="serviceUri"></param>
+        /// <param name="authorization"></param>
         /// <param name="serializer"></param>
         public PublisherServiceEvents(IHttpClientFactory httpClient, ICallbackClient client,
-            string serviceUri, ISerializer serializer = null)
+            string serviceUri, Func<Task<string>> authorization,
+            ISerializer serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
             {
@@ -50,6 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                     "Please configure the Url of the events micro service.");
             }
             _client = client ?? throw new ArgumentNullException(nameof(client));
+            _authorization = authorization;
             _serviceUri = serviceUri.TrimEnd('/');
             _serializer = serializer ?? new NewtonsoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
@@ -97,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/events/v2/telemetry/{endpointId}/samples");
             await _httpClient.PutAsync(uri, userId, _serializer,
-                ct: ct).ConfigureAwait(false);
+                authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -113,12 +119,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                 throw new ArgumentNullException(nameof(userId));
             }
             var uri = new Uri($"{_serviceUri}/events/v2/telemetry/{endpointId}/samples/{userId}");
-            await _httpClient.DeleteAsync(uri, ct: ct).ConfigureAwait(false);
+            await _httpClient.DeleteAsync(uri, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         private readonly IHttpClientFactory _httpClient;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
         private readonly ICallbackClient _client;
+        private readonly Func<Task<string>> _authorization;
     }
 }

@@ -29,6 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.HttpsPolicy;
+    using System;
 
     /// <summary>
     /// Webservice startup
@@ -80,7 +82,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
 
-            services.AddHttpsRedirect();
             services.AddHttpClient();
             services.AddIoTHubServices();
 
@@ -124,8 +125,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseHttpsRedirect();
-
             app.UseSwagger();
 
             app.UseEndpoints(endpoints =>

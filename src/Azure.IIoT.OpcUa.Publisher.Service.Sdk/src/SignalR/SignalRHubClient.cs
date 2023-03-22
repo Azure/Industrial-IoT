@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <param name="options"></param>
         /// <param name="logger"></param>
         /// <param name="jsonSettings"></param>
-        public SignalRHubClient(IOptions<SignalRClientOptions> options,
+        public SignalRHubClient(IOptions<ServiceSdkOptions> options,
             ILogger<SignalRHubClient> logger,
             INewtonsoftSerializerSettingsProvider jsonSettings = null)
         {
@@ -137,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             /// <returns></returns>
             /// <exception cref="ArgumentNullException"></exception>
             internal static async Task<SignalRClientRegistrar> CreateAsync(
-                IOptions<SignalRClientOptions> options, string endpointUrl, ILogger logger,
+                IOptions<ServiceSdkOptions> options, string endpointUrl, ILogger logger,
                 INewtonsoftSerializerSettingsProvider jsonSettings,
                 IMessagePackFormatterResolverProvider msgPack)
             {
@@ -184,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         }
 
         private readonly INewtonsoftSerializerSettingsProvider _jsonSettings;
-        private readonly IOptions<SignalRClientOptions> _options;
+        private readonly IOptions<ServiceSdkOptions> _options;
         private readonly Dictionary<string, SignalRClientRegistrar> _clients;
         private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;

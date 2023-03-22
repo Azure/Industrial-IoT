@@ -11,8 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using System;
-    using System.Net;
-    using System.Net.Sockets;
 
     /// <summary>
     /// Sdk configuration
@@ -24,21 +22,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configure"></param>
-        /// <param name="signalR"></param>
         /// <returns></returns>
         public static ContainerBuilder ConfigureServiceSdk(this ContainerBuilder builder,
-            Action<ServiceSdkOptions> configure = null,
-            Action<SignalRClientOptions> signalR = null)
+            Action<ServiceSdkOptions> configure = null)
         {
             builder.AddOptions();
             if (configure != null)
             {
                 builder.Configure(configure);
-            }
-
-            if (signalR != null)
-            {
-                builder.Configure(signalR);
             }
 
             builder.RegisterType<SdkConfig>()
@@ -62,8 +53,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
                 if (options.ServiceUrl == null)
                 {
                     options.ServiceUrl = GetStringOrDefault(kServiceUrlKey,
-                        GetStringOrDefault(EnvVars.PCS_PUBLISHER_SERVICE_URL,
-                        GetServiceUrl("9045", "publisher")));
+                        GetStringOrDefault(EnvVars.PCS_SERVICE_URL,
+                            "http://localhost:9045"));
                 }
             }
 
@@ -71,39 +62,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
             public SdkConfig(IConfiguration configuration) :
                 base(configuration)
             {
-            }
-
-            /// <summary>
-            /// Get endpoint url
-            /// </summary>
-            /// <param name="port"></param>
-            /// <param name="path"></param>
-            /// <returns></returns>
-            private string GetServiceUrl(string port, string path)
-            {
-                var cloudEndpoint = GetStringOrDefault(EnvVars.PCS_SERVICE_URL)?.Trim()?.TrimEnd('/');
-                if (string.IsNullOrEmpty(cloudEndpoint))
-                {
-                    // Test port is open
-                    if (!int.TryParse(port, out var nPort))
-                    {
-                        return $"http://localhost:9080/{path}";
-                    }
-                    using (var socket = new Socket(AddressFamily.InterNetwork,
-                        SocketType.Stream, ProtocolType.Unspecified))
-                    {
-                        try
-                        {
-                            socket.Connect(IPAddress.Loopback, nPort);
-                            return $"http://localhost:{port}";
-                        }
-                        catch
-                        {
-                            return $"http://localhost:9080/{path}";
-                        }
-                    }
-                }
-                return $"{cloudEndpoint}/{path}";
             }
         }
     }

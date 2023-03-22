@@ -95,12 +95,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
             // Add API
             builder.RegisterType<ControllerTestClient>().AsSelf();
             builder.AddServiceSdk(options =>
-                options.ServiceUrl = Server.BaseAddress.ToString(),
-                options =>
-                {
-                    options.TokenProvider = () => Task.FromResult("Test");
-                    options.HttpMessageHandler = _ => Server.CreateHandler();
-                });
+            {
+                options.ServiceUrl =
+                    Server.BaseAddress.ToString();
+                options.TokenProvider =
+                    () => Task.FromResult("Test");
+                options.HttpMessageHandler =
+                    _ => Server.CreateHandler();
+                options.UseMessagePackProtocol =
+                    serializerType == TestSerializerType.MsgPack;
+            });
 
             switch (serializerType)
             {

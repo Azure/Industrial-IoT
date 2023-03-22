@@ -54,11 +54,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <summary>
         /// Create client
         /// </summary>
-        /// <param name="useMsgPack"></param>
-        public ServiceClient(bool useMsgPack = false) : this(new ConfigurationBuilder()
-            .AddFromDotEnvFile()
-            .AddEnvironmentVariables()
-            .Build(), useMsgPack)
+        /// <param name="configure"></param>
+        public ServiceClient(Action<ServiceSdkOptions> configure = null)
+            : this(new ConfigurationBuilder()
+                .AddFromDotEnvFile()
+                .AddEnvironmentVariables()
+                .Build(), configure)
         {
         }
 
@@ -66,10 +67,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// Create service client
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="useMsgPack"></param>
-        public ServiceClient(IConfiguration configuration, bool useMsgPack = false)
+        /// <param name="configure"></param>
+        /// <param name="configureBuilder"></param>
+        public ServiceClient(IConfiguration configuration,
+            Action<ServiceSdkOptions> configure = null,
+            Action<ContainerBuilder> configureBuilder = null)
         {
-            var container = ConfigureContainer(configuration, useMsgPack);
+            var builder = new ContainerBuilder();
+            builder.RegisterInstance(configuration)
+                .AsImplementedInterfaces();
+            builder.AddServiceSdk(configure);
+            configureBuilder?.Invoke(builder);
+            var container = builder.Build();
+
             _scope = container.BeginLifetimeScope();
             Twin = _scope.Resolve<ITwinServiceApi>();
             Registry = _scope.Resolve<IRegistryServiceApi>();
@@ -84,26 +94,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         public void Dispose()
         {
             _scope.Dispose();
-        }
-
-        /// <summary>
-        /// Create container
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="useMsgPack"></param>
-        /// <returns></returns>
-        private static IContainer ConfigureContainer(IConfiguration configuration,
-            bool useMsgPack)
-        {
-            var builder = new ContainerBuilder();
-            builder.RegisterInstance(configuration)
-                .AsImplementedInterfaces();
-            builder.AddServiceSdk();
-            if (useMsgPack)
-            {
-                builder.AddMessagePackSerializer();
-            }
-            return builder.Build();
         }
 
         private readonly ILifetimeScope _scope;

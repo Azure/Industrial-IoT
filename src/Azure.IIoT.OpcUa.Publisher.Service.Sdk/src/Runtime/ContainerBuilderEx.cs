@@ -21,17 +21,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configure"></param>
-        /// <param name="signalR"></param>
         /// <returns></returns>
         public static ContainerBuilder AddServiceSdk(this ContainerBuilder builder,
-            Action<ServiceSdkOptions> configure = null, Action<SignalRClientOptions> signalR = null)
+            Action<ServiceSdkOptions> configure = null)
         {
-            builder.ConfigureServiceSdk(configure, signalR);
+            builder.ConfigureServiceSdk(configure);
+
+            builder.AddMessagePackSerializer();
             builder.AddNewtonsoftJsonSerializer();
 
             // Register a default http client ...
-            builder.ConfigureServices(
-                services => services.AddHttpClient());
+            builder.ConfigureServices(services => services.AddHttpClient());
+
             // Register twin and registry services clients
             builder.RegisterType<TwinServiceClient>()
                 .AsImplementedInterfaces();

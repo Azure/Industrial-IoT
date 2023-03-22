@@ -10,7 +10,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Collections.Generic;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -24,10 +26,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="options"></param>
-        /// <param name="serializer"></param>
+        /// <param name="serializers"></param>
         public PublisherServiceClient(IHttpClientFactory httpClient,
-            IOptions<ServiceSdkOptions> options, ISerializer serializer) :
-            this(httpClient, options?.Value.ServiceUrl, serializer)
+            IOptions<ServiceSdkOptions> options, IEnumerable<ISerializer> serializers) :
+            this(httpClient, options?.Value.ServiceUrl, options?.Value.TokenProvider,
+                serializers.Resolve(options?.Value))
         {
         }
 
@@ -36,9 +39,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
+        /// <param name="authorization"></param>
         /// <param name="serializer"></param>
         public PublisherServiceClient(IHttpClientFactory httpClient, string serviceUri,
-            ISerializer serializer)
+            Func<Task<string>> authorization, ISerializer serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
             {
@@ -48,6 +52,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             _serializer = serializer ?? new NewtonsoftJsonSerializer();
             _serviceUri = serviceUri.TrimEnd('/') + "/publisher";
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _authorization = authorization;
+        }
+
+        /// <summary>
+        /// Create service client
+        /// </summary>
+        /// <param name="httpClient"></param>
+        /// <param name="serializer"></param>
+        public PublisherServiceClient(HttpClient httpClient, ISerializer serializer = null) :
+            this(httpClient.ToHttpClientFactory(), httpClient.BaseAddress?.ToString(),
+                null, serializer)
+        {
         }
 
         /// <inheritdoc/>
@@ -60,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             try
             {
                 using var response = await _httpClient.GetAsync(httpRequest,
-                    ct).ConfigureAwait(false);
+                    authorization: _authorization, ct: ct).ConfigureAwait(false);
                 response.ValidateResponse();
                 return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             }
@@ -88,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}/start");
             return await _httpClient.PostAsync<PublishStartResponseModel>(
-                uri, request, _serializer, ct: ct).ConfigureAwait(false);
+                uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -105,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}/bulk");
             return await _httpClient.PostAsync<PublishBulkResponseModel>(
-                uri, request, _serializer, ct: ct).ConfigureAwait(false);
+                uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -118,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}");
             return await _httpClient.PostAsync<PublishedItemListResponseModel>(
-                uri, request, _serializer, ct: ct).ConfigureAwait(false);
+                uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -135,10 +151,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/publish/{endpointId}/stop");
             return await _httpClient.PostAsync<PublishStopResponseModel>(
-                uri, request, _serializer, ct: ct).ConfigureAwait(false);
+                uri, request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         private readonly IHttpClientFactory _httpClient;
+        private readonly Func<Task<string>> _authorization;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
     }

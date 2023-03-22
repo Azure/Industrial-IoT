@@ -16,11 +16,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using Autofac;
+    using System.Net.Sockets;
+    using System.Net;
 
     /// <summary>
     /// Api command line interface
     /// </summary>
-    public sealed class Program : IDisposable
+    public sealed partial class Program : IDisposable
     {
         /// <summary>
         /// Main entry point
@@ -35,10 +38,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
                 .AddFromKeyVault(ConfigurationProviderPriority.Lowest, true)
+                .AddCommandLine(args)
                 .Build();
 
-            using (var scope = new Program(config,
-                args.Any(arg => StringComparer.OrdinalIgnoreCase.Equals(arg, "--useMsgPack"))))
+            using (var scope = new Program(config))
             {
                 scope.RunAsync(args).Wait();
             }
@@ -49,9 +52,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="useMsgPack"></param>
-        public Program(IConfiguration configuration, bool useMsgPack)
+        public Program(IConfiguration configuration)
         {
-            _client = new ServiceClient(configuration, useMsgPack);
+            _client = new ServiceClient(configuration,
+                configureBuilder: builder => builder.RegisterType<Configuration>());
         }
 
         /// <inheritdoc/>
@@ -2805,7 +2809,6 @@ Commands and Options
 "
                 );
         }
-
         private readonly ServiceClient _client;
     }
 }

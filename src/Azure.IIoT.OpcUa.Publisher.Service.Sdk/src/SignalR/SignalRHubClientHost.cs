@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <param name="jsonSettings"></param>
         /// <param name="msgPack"></param>
         public SignalRHubClientHost(string endpointUrl,
-            IOptions<SignalRClientOptions> options, ILogger logger,
+            IOptions<ServiceSdkOptions> options, ILogger logger,
             INewtonsoftSerializerSettingsProvider jsonSettings,
             IMessagePackFormatterResolverProvider msgPack)
         {
@@ -237,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         private readonly IMessagePackFormatterResolverProvider _msgPack;
         private readonly Uri _endpointUri;
         private readonly bool _useMessagePack;
-        private readonly IOptions<SignalRClientOptions> _options;
+        private readonly IOptions<ServiceSdkOptions> _options;
         private readonly ILogger _logger;
         private readonly Task _started;
         private bool _isDisposed;
