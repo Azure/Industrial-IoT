@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
     using Microsoft.Identity.Web;
+    using System;
 
     /// <summary>
     /// Service auth configuration
@@ -55,13 +56,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 if (options.ClientSecret == null)
                 {
                     options.ClientSecret = GetStringOrDefault(kAuth_ClientSecretKey,
-                        GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_SECRET))?.Trim();
+                        GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_SECRET));
                 }
                 if (options.Domain == null)
                 {
-                    options.Instance = GetStringOrDefault(kAuth_DomainKey,
-                        GetStringOrDefault(EnvVars.PCS_AAD_AUDIENCE))?.Trim();
+                    options.Domain = GetStringOrDefault(kAuth_DomainKey);
+
                 }
+                if (options.Domain == null &&
+                    Uri.TryCreate(GetStringOrDefault(EnvVars.PCS_AAD_AUDIENCE),
+                        UriKind.Absolute, out var uri))
+                {
+                    options.Domain = $"{uri.Host.Split('.')[0]}.onmicrosoft.com";
+                }
+
                 if (options.Instance == null)
                 {
                     options.Instance = GetStringOrDefault(kAuth_InstanceUrlKey,

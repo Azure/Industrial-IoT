@@ -78,8 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .AddRuntimeInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation()
-                    .AddPrometheusExporter()
-                    .AddConsoleExporter())
+                    .AddPrometheusExporter())
                 ;
 
             services.AddControllers()

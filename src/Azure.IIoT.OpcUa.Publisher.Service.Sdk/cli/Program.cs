@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
     /// <summary>
     /// Api command line interface
     /// </summary>
-    public sealed partial class Program : IDisposable
+    public sealed class Program : IDisposable
     {
         /// <summary>
         /// Main entry point

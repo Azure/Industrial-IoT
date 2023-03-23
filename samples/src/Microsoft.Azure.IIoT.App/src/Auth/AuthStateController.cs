@@ -1,10 +1,11 @@
 ﻿namespace Microsoft.Azure.IIoT.App.Auth
 {
+#if FALSE
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
-#if FALSE
+
     [Controller]
     [AllowAnonymous]
     [Route("Account")]
