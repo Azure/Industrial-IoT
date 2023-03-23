@@ -81,8 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new MqttBroker(configuration).Configure(mqttOptions);
             if (mqttOptions.HostName != null)
             {
-                //  builder.AddMqttClient();
-                builder.RegisterType<Furly.Extensions.Mqtt.Clients.MqttClient>().AsImplementedInterfaces().SingleInstance();
+                builder.AddMqttClient();
                 builder.RegisterType<MqttBroker>()
                     .AsImplementedInterfaces();
             }
@@ -115,10 +114,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <summary>
             /// Configuration
             /// </summary>
-            public const string EnableHttpKey = "EnableHttp";
-            public const string EnableHttpsKey = "EnableHttps";
-            public const string HttpPortKey = "HttpPort";
-            public const string HttpsPortKey = "HttpsPort";
+            public const string EnableHttpServerKey = "EnableHttpServer";
+            public const string HttpServerPortKey = "HttpServerPort";
+            public const string AllowUnsecureHttpServerAccessKey = "AllowUnsecureHttpServerAccess";
+            public const string UnsecureHttpServerPortKey = "UnsecureHttpServerPort";
 
             public const int HttpPortDefault = 80;
             public const int HttpsPortDefault = 443;
@@ -140,17 +139,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string name, KestrelServerOptions options)
             {
-                var supportHttp = GetBoolOrDefault(EnableHttpKey);
-                if (supportHttp)
+                var supportHttp = GetBoolOrDefault(AllowUnsecureHttpServerAccessKey);
+                var httpPort = GetIntOrNull(UnsecureHttpServerPortKey);
+                if (supportHttp || httpPort != null)
                 {
-                    var port = GetIntOrDefault(HttpPortKey, HttpPortDefault);
-                    options.ListenAnyIP(port);
+                    options.ListenAnyIP(httpPort ?? HttpPortDefault);
                 }
-                var supportHttps = GetBoolOrDefault(EnableHttpsKey);
-                if (supportHttps)
+                var supportHttps = GetBoolOrDefault(EnableHttpServerKey);
+                var httpsPort = GetIntOrNull(HttpServerPortKey);
+                if (supportHttps || httpsPort != null)
                 {
-                    var port = GetIntOrDefault(HttpsPortKey, HttpsPortDefault);
-                    options.Listen(IPAddress.Any, port, listenOptions =>
+                    options.Listen(IPAddress.Any, httpsPort ?? HttpsPortDefault, listenOptions =>
                     {
                         listenOptions.UseHttps(httpsOptions =>
                         {

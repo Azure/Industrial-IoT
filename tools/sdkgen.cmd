@@ -44,11 +44,8 @@ if exist generated rmdir /s /q generated
 mkdir generated
 pushd generated
 
-call :generate_sdk_for_service twin
-call :generate_sdk_for_service publisher
-call :generate_sdk_for_service registry
-call :generate_sdk_for_service history
-call :generate_sdk_for_service events
+call :generate_sdk_for_service module
+call :generate_sdk_for_service service
 
 popd
 popd
