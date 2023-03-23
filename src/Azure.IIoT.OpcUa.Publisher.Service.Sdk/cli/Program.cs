@@ -55,7 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         public Program(IConfiguration configuration)
         {
             _client = new ServiceClient(configuration,
-                configureBuilder: builder => builder.RegisterType<Configuration>());
+                configureBuilder: builder => builder
+                    .RegisterType<Configuration>().AsImplementedInterfaces());
         }
 
         /// <inheritdoc/>
@@ -598,8 +599,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             {
                 TargetNodesOnly = options.IsProvidedOrNull("-t", "--targets"),
                 ReadVariableValues = readDuringBrowse,
-                MaxReferencesToReturn = options.GetValueOrNull<uint>("-x", "--maxrefs"),
-                Direction = options.GetValueOrNull<BrowseDirection>("-d", "--direction")
+                MaxReferencesToReturn = options.GetValueOrNull<uint?>("-x", "--maxrefs"),
+                Direction = options.GetValueOrNull<BrowseDirection?>("-d", "--direction")
             };
             var nodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
                 options.GetValueOrNull<string>("-n", "--nodeid")
@@ -847,7 +848,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 var result = await _client.Registry.ListPublishersAsync(
                     options.GetValueOrNull<string>("-C", "--continuation"),
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -874,7 +875,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             {
                 var result = await _client.Registry.QueryPublishersAsync(query,
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -1001,7 +1002,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             {
                 var result = await _client.Registry.ListGatewaysAsync(
                     options.GetValueOrNull<string>("-C", "--continuation"),
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -1026,7 +1027,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             else
             {
                 var result = await _client.Registry.QueryGatewaysAsync(query,
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -1153,7 +1154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 var result = await _client.Registry.ListSupervisorsAsync(
                     options.GetValueOrNull<string>("-C", "--continuation"),
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -1181,7 +1182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             {
                 var result = await _client.Registry.QuerySupervisorsAsync(query,
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -1224,7 +1225,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             await _client.Registry.UpdateSupervisorAsync(GetSupervisorId(options),
                 new SupervisorUpdateModel
                 {
-                    SiteId = options.GetValueOrNull<string>("-s", "--siteId"),
+                    SiteId = options.GetValueOrNull<string>("-s", "--siteId")
                 }).ConfigureAwait(false);
         }
 
@@ -1308,7 +1309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             {
                 var result = await _client.Registry.ListDiscoverersAsync(
                     options.GetValueOrNull<string>("-C", "--continuation"),
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -1322,7 +1323,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             var query = new DiscovererQueryModel
             {
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
-                Discovery = options.GetValueOrNull<DiscoveryMode>("-d", "--discovery"),
+                Discovery = options.GetValueOrNull<DiscoveryMode?>("-d", "--discovery"),
                 SiteId = options.GetValueOrNull<string>("-s", "--siteId")
             };
             if (options.IsSet("-A", "--all"))
@@ -1335,7 +1336,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             else
             {
                 var result = await _client.Registry.QueryDiscoverersAsync(query,
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -1510,7 +1511,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                     ApplicationUri = options.GetValueOrThrow<string>("-u", "--url"),
                     ApplicationName = options.GetValueOrNull<string>("-n", "--name"),
                     GatewayServerUri = options.GetValueOrNull<string>("-g", "--gwuri"),
-                    ApplicationType = options.GetValueOrNull<ApplicationType>("-t", "--type"),
+                    ApplicationType = options.GetValueOrNull<ApplicationType?>("-t", "--type"),
                     ProductUri = options.GetValueOrNull<string>("-p", "--product"),
                     DiscoveryProfileUri = options.GetValueOrNull<string>("-r", "--dpuri"),
                     DiscoveryUrls = string.IsNullOrEmpty(discoveryUrl) ? null :
@@ -1628,7 +1629,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 new DiscoveryRequestModel
                 {
                     Id = id,
-                    Discovery = options.GetValueOrNull<DiscoveryMode?>("-d", "--discovery") ?? DiscoveryMode.Fast,
+                    Discovery = options.GetValueOrDefault(DiscoveryMode.Fast, 
+                        "-d", "--discovery"),
                     Configuration = BuildDiscoveryConfig(options)
                 }).ConfigureAwait(false);
         }
@@ -1697,7 +1699,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             var query = new ApplicationRegistrationQueryModel
             {
                 ApplicationUri = options.GetValueOrNull<string>("-u", "--uri"),
-                ApplicationType = options.GetValueOrNull<ApplicationType>("-t", "--type"),
+                ApplicationType = options.GetValueOrNull<ApplicationType?>("-t", "--type"),
                 ApplicationName = options.GetValueOrNull<string>("-n", "--name"),
                 ProductUri = options.GetValueOrNull<string>("-p", "--product"),
                 GatewayServerUri = options.GetValueOrNull<string>("-g", "--gwuri"),
@@ -1746,7 +1748,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             {
                 var result = await _client.Registry.ListApplicationsAsync(
                     options.GetValueOrNull<string>("-C", "--continuation"),
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -1767,7 +1769,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             {
                 var result = await _client.Registry.ListSitesAsync(
                     options.GetValueOrNull<string>("-C", "--continuation"),
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -1784,7 +1786,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 ProductUri = options.GetValueOrNull<string>("-p", "--product"),
                 GatewayServerUri = options.GetValueOrNull<string>("-g", "--gwuri"),
                 DiscoveryProfileUri = options.GetValueOrNull<string>("-r", "--dpuri"),
-                ApplicationType = options.GetValueOrNull<ApplicationType>("-t", "--type"),
+                ApplicationType = options.GetValueOrNull<ApplicationType?>("-t", "--type"),
                 ApplicationName = options.GetValueOrNull<string>("-n", "--name"),
                 Locale = options.GetValueOrNull<string>("-l", "--locale"),
                 IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted"),
@@ -1799,7 +1801,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             else
             {
                 var result = await _client.Registry.QueryApplicationsAsync(query,
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -1978,7 +1980,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 var result = await _client.Registry.ListEndpointsAsync(
                     options.GetValueOrNull<string>("-C", "--continuation"),
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }
@@ -1992,10 +1994,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             var query = new EndpointRegistrationQueryModel
             {
                 Url = options.GetValueOrNull<string>("-u", "--uri"),
-                SecurityMode = options
-                    .GetValueOrNull<SecurityMode>("-m", "--mode"),
+                SecurityMode = options.GetValueOrNull<SecurityMode?>("-m", "--mode"),
                 SecurityPolicy = options.GetValueOrNull<string>("-l", "--policy"),
-                EndpointState = options.GetValueOrNull<EndpointConnectivityState>(
+                EndpointState = options.GetValueOrNull<EndpointConnectivityState?>(
                     "-s", "--state", null),
                 IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted"),
                 ApplicationId = options.GetValueOrNull<string>("-R", "--applicationId"),
@@ -2013,7 +2014,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             {
                 var result = await _client.Registry.QueryEndpointsAsync(query,
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrNull<int>("-P", "--page-size")).ConfigureAwait(false);
+                    options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
         }

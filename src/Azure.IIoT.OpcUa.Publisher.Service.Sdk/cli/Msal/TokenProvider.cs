@@ -66,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Msal
                             .WithUseEmbeddedWebView(useEmbaddedView)
                             .ExecuteAsync().ConfigureAwait(false);
             }
-            return result.AccessToken;
+            return $"Bearer {result.AccessToken}";
         }
 
         /// <summary>

@@ -306,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             {
                 Id = HubResource.Format(null, registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
-                ApiKey = removeApiKey ? string.Empty : registration.ApiKey,
+                ApiKey = removeApiKey ? null : registration.ApiKey,
                 Version = registration.Version,
                 Connected = registration.IsConnected() ? true : null,
                 OutOfSync = registration.IsConnected() && !registration._isInSync ? true : null

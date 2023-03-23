@@ -177,8 +177,6 @@ namespace Microsoft.Azure.IIoT.App
             // Register configuration interfaces and logger
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
-            builder.RegisterInstance(Configuration)
-                .AsImplementedInterfaces();
 
             // Register api
             builder.AddServiceSdk();
@@ -202,6 +200,8 @@ namespace Microsoft.Azure.IIoT.App
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<SecureData>()
                 .AsImplementedInterfaces().AsSelf();
+            builder.RegisterInstance(Configuration)
+                .AsImplementedInterfaces();
         }
     }
 }

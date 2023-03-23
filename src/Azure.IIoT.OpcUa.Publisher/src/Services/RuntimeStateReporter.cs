@@ -60,7 +60,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     _logger.LogInformation("Generating new Api Key ...");
                     var apiKey = Guid.NewGuid().ToString();
-                    _logger.LogDebug("New Api Key {Key} created.", apiKey);
                     _properties.Add(OpcUa.Constants.TwinPropertyApiKeyKey, apiKey);
                 }
             }

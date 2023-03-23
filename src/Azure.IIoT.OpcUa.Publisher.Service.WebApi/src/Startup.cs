@@ -75,7 +75,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddLogging(o => o.AddConsole().AddDebug());
+            services.AddLogging(o => o.AddConsole().AddDebug())
+                .Configure<LoggerFilterOptions>(o => o.MinLevel = LogLevel.Debug)
+                ;
 
             services.AddHeaderForwarding();
             services.AddCors();
@@ -86,6 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             services.AddIoTHubServices();
 
             services.AddMicrosoftIdentityWebApiAuthentication();
+            services.AddAuthorization();
             services.AddAuthorizationBuilder()
                 .AddPolicy(Policies.CanRead,
                     options => options.RequireAuthenticatedUser())
@@ -152,8 +155,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             // Register service info and configuration
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces();
-            builder.RegisterInstance(Configuration)
-                .AsImplementedInterfaces();
 
             // Add diagnostics
             builder.RegisterInstance(IMetricsContext.Empty)
@@ -214,6 +215,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DiscoveryProgressPublisher<DiscoverersHub>>()
                 .AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterInstance(Configuration)
+               .AsImplementedInterfaces();
         }
 
         internal sealed class AwaitableStartable : IHostedService

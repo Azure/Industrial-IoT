@@ -125,10 +125,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <param name="builder"></param>
         public virtual void ConfigureContainer(ContainerBuilder builder)
         {
-            // Register configuration interfaces
-            builder.RegisterInstance(Configuration)
-                .AsImplementedInterfaces();
-
             // Register publisher services
             builder.AddPublisherServices();
             builder.RegisterType<StackLogger>()
@@ -137,6 +133,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             // Register transport services
             builder.AddMqttClient(Configuration);
             builder.AddIoTEdgeServices(Configuration);
+
+            // Register configuration interfaces
+            builder.RegisterInstance(Configuration)
+                .AsImplementedInterfaces();
         }
     }
 }

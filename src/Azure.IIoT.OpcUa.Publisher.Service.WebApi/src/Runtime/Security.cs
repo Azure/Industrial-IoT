@@ -7,11 +7,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 {
     using Furly.Extensions.Configuration;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.Extensions.Azure;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Options;
     using Microsoft.Identity.Web;
     using System;
+    using System.Linq;
 
     /// <summary>
     /// Service auth configuration
@@ -27,8 +30,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         {
             services.AddTransient<IConfigureOptions<MicrosoftIdentityOptions>, MicrosoftIdentity>();
             services.AddTransient<IConfigureNamedOptions<MicrosoftIdentityOptions>, MicrosoftIdentity>();
+            services.AddTransient<IConfigureOptions<JwtBearerOptions>>(context =>
+            {
+                // Support 2.8 where the audience does not contain api://
+                var clientId = context.GetService<IOptions<MicrosoftIdentityOptions>>()?.Value.ClientId;
+                return new ConfigureNamedOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme,
+                    options => options.TokenValidationParameters.ValidAudiences =
+                        clientId == null ? Enumerable.Empty<string>() : clientId.YieldReturn());
+            });
             return services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddMicrosoftIdentityWebApi(_ => { }, _ => { });
+                .AddMicrosoftIdentityWebApi(_ => { }, _ => { },
+                    subscribeToJwtBearerMiddlewareDiagnosticsEvents: true)
+                ;
         }
 
         /// <summary>
@@ -51,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 if (options.ClientId == null)
                 {
                     options.ClientId = GetStringOrDefault(kAuth_ClientIdKey,
-                        GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_APPID))?.Trim();
+                        GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_APPID));
                 }
                 if (options.ClientSecret == null)
                 {
@@ -61,7 +74,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 if (options.Domain == null)
                 {
                     options.Domain = GetStringOrDefault(kAuth_DomainKey);
-
                 }
                 if (options.Domain == null &&
                     Uri.TryCreate(GetStringOrDefault(EnvVars.PCS_AAD_AUDIENCE),

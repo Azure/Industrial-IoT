@@ -74,10 +74,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
             Action<ContainerBuilder> configureBuilder = null)
         {
             var builder = new ContainerBuilder();
-            builder.RegisterInstance(configuration)
-                .AsImplementedInterfaces();
             builder.AddServiceSdk(configure);
             configureBuilder?.Invoke(builder);
+            builder.RegisterInstance(configuration)
+                .AsImplementedInterfaces();
             var container = builder.Build();
 
             _scope = container.BeginLifetimeScope();
