@@ -5,7 +5,6 @@
 
 namespace TestEventProcessor.BusinessLogic
 {
-    using System;
     using System.Threading.Tasks;
 
     /// <summary>

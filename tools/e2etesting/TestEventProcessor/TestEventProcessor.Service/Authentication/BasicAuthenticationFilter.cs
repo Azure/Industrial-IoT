@@ -27,7 +27,7 @@ namespace TestEventProcessor.Service.Authentication
                 var value = AuthenticationHeaderValue.Parse(context.HttpContext.Request.Headers["Authorization"]);
 
                 if (value.Scheme.Equals(AuthenticationSchemes.Basic.ToString(),
-                    StringComparison.InvariantCultureIgnoreCase))
+                    StringComparison.OrdinalIgnoreCase))
                 {
                     var credentials = Encoding.UTF8.GetString(Convert.FromBase64String(value.Parameter)).Split(':', 2);
 
@@ -43,12 +43,11 @@ namespace TestEventProcessor.Service.Authentication
 
                         if (string.IsNullOrWhiteSpace(desiredUsername) || string.IsNullOrWhiteSpace(desiredPassword))
                         {
-                            throw new Exception("'AuthUsername' and 'AuthPassword' need to be specified in configuration.");
+                            throw new ArgumentException("'AuthUsername' and 'AuthPassword' need to be specified in configuration.");
                         }
 
-                        if (username.Equals(desiredUsername,
-                                StringComparison.InvariantCultureIgnoreCase) &&
-                            password == desiredPassword )
+                        if (username.Equals(desiredUsername, StringComparison.OrdinalIgnoreCase) &&
+                            password == desiredPassword)
                         {
                             return;
                         }

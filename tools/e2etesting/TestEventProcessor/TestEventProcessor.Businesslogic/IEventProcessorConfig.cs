@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.Businesslogic {
+namespace TestEventProcessor.Businesslogic
+{
 
     /// <summary>
     /// Configuration for EventProcessorWrapper.
     /// </summary>
-    public interface IEventProcessorConfig {
+    public interface IEventProcessorConfig
+    {
         /// <summary>
         /// Gets or sets the connection string of the EventHub-Endpoint of the IoT Hub.
         /// </summary>

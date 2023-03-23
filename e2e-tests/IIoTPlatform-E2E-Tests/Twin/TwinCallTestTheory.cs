@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Twin {
+namespace IIoTPlatform_E2E_Tests.Twin
+{
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using Microsoft.CSharp.RuntimeBinder;
     using System;
@@ -14,17 +15,20 @@ namespace IIoTPlatform_E2E_Tests.Twin {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection(TwinTestCollection.CollectionName)]
     [Trait(TestConstants.TraitConstants.TwinModeTraitName, TestConstants.TraitConstants.DefaultTraitValue)]
-    public class TwinCallTestTheory {
+    public class TwinCallTestTheory
+    {
         private readonly TwinTestContext _context;
 
-        public TwinCallTestTheory(TwinTestContext context, ITestOutputHelper output) {
+        public TwinCallTestTheory(TwinTestContext context, ITestOutputHelper output)
+        {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
         }
 
         [Fact, PriorityOrder(1)]
-        public void GetMethodMetadata() {
-            var methodId = "i=13358"; // CreateFile
+        public void GetMethodMetadata()
+        {
+            const string methodId = "i=13358"; // CreateFile
             var methodMetadata = TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
 
             Assert.Equal(methodMetadata.objectId, "i=13354");
@@ -42,9 +46,9 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             Assert.Equal(methodMetadata.outputArguments[1].type.displayName, "UInt32");
         }
 
-
         [Fact, PriorityOrder(2)]
-        public void CallMethod() {
+        public void CallMethod()
+        {
             // CreateFile method - not implemented
             var methodId = "i=13358";
             var arguments = new List<object> {
@@ -72,11 +76,14 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             Assert.Null(GetErrorMessage(response));
         }
 
-        private string GetErrorMessage(dynamic content) {
-            try {
+        private string GetErrorMessage(dynamic content)
+        {
+            try
+            {
                 return content.errorInfo.errorMessage.ToString();
             }
-            catch (RuntimeBinderException) {
+            catch (RuntimeBinderException)
+            {
                 return null;
             }
         }

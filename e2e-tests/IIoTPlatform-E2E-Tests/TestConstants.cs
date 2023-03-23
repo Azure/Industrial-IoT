@@ -3,12 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests {
-
+namespace IIoTPlatform_E2E_Tests
+{
     /// <summary>
     /// Contains constants using for End 2 End testing
     /// </summary>
-    internal static class TestConstants {
+    internal static class TestConstants
+    {
         /// <summary>
         /// Character that need to be used when split value of "PLC_SIMULATION_URLS"
         /// </summary>
@@ -73,7 +74,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
         /// </summary>
-        internal static class APIRoutes {
+        internal static class APIRoutes
+        {
             /// <summary>
             /// Route to enable an OPC UA endpoint
             /// </summary>
@@ -148,7 +150,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Contains constants for all HTTP headers
         /// </summary>
-        internal static class HttpHeaderNames {
+        internal static class HttpHeaderNames
+        {
             /// <summary>
             /// Name of header used for authentication
             /// </summary>
@@ -158,7 +161,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Contains constants for OPC PLC
         /// </summary>
-        internal static class OpcSimulation {
+        internal static class OpcSimulation
+        {
             /// <summary>
             /// Default port of OPC UA Server endpoint of OPC PLC
             /// </summary>
@@ -174,7 +178,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Contains names of Environment variables available for tests
         /// </summary>
-        internal static class EnvironmentVariablesNames {
+        internal static class EnvironmentVariablesNames
+        {
             /// <summary>
             /// Base URL of Industrial IoT Platform
             /// </summary>
@@ -304,7 +309,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Constants related to xUnit traits
         /// </summary>
-        internal static class TraitConstants {
+        internal static class TraitConstants
+        {
             /// <summary>
             /// The trait name of the Publisher Mode
             /// </summary>
@@ -339,7 +345,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Constants related to state returned in result
         /// </summary>
-        internal static class StateConstants {
+        internal static class StateConstants
+        {
             /// <summary>
             /// Endpoint activation state activated and connected
             /// </summary>
@@ -364,7 +371,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Direct Method names
         /// </summary>
-        internal static class DirectMethodNames {
+        internal static class DirectMethodNames
+        {
             /// <summary>
             /// Publish Nodes
             /// </summary>

@@ -3,13 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Standalone {
+namespace IIoTPlatform_E2E_Tests.Standalone
+{
     using IIoTPlatform_E2E_Tests.Deploy;
-    using IIoTPlatform_E2E_Tests.TestModels;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.Serializers;
     using System.Net;
     using System.Collections.Generic;
     using System.Threading;
@@ -17,7 +14,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using TestExtensions;
     using Xunit;
     using Xunit.Abstractions;
-    using System.Linq;
+    using Azure.IIoT.OpcUa.Models;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -25,9 +23,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Direct Methods Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
-    public class A_PublishSingleNodeStandaloneDirectMethodTestTheory : DirectMethodTestBase {
-
-        public A_PublishSingleNodeStandaloneDirectMethodTestTheory(
+    public class APublishSingleNodeStandaloneDirectMethodTestTheory : DirectMethodTestBase
+    {
+        public APublishSingleNodeStandaloneDirectMethodTestTheory(
             ITestOutputHelper output,
             IIoTMultipleNodesTestContext context
         ) : base(output, context) { }
@@ -37,7 +35,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         [InlineData(MessagingMode.PubSub, false)]
         [InlineData(MessagingMode.Samples, true)]
         [InlineData(MessagingMode.PubSub, true)]
-        public async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode, bool incremental) {
+        public async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode, bool incremental)
+        {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
 
@@ -84,37 +83,40 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(
-                new MethodParameterModel {
+                new MethodParameterModel
+                {
                     Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
                 },
                 cts.Token
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(0, configuredEndpointsResponse.Endpoints.Count);
+            var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(responseGetConfiguredEndpoints.JsonPayload);
+            Assert.Empty(configuredEndpointsResponse.Endpoints);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).ConfigureAwait(false);
 
             var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token).ConfigureAwait(false);
-            var expectedModel = model.ToApiModel();
-            expectedModel.OpcNodes = new List<PublishedNodeApiModel>();
+            var expectedModel = model;
+            expectedModel.OpcNodes = new List<OpcNodeModel>();
 
             var initialOpcPublishingInterval = model.OpcNodes[0].OpcPublishingInterval;
 
-            for (var i = 0; i < 4; i++) {
-
+            for (var i = 0; i < 4; i++)
+            {
                 model.OpcNodes[0].Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt{i + 1}";
-                if (incremental) {
-                    model.OpcNodes[0].OpcPublishingInterval = (uint)(initialOpcPublishingInterval + i * 1000);
+                if (incremental)
+                {
+                    model.OpcNodes[0].OpcPublishingInterval = (int)(initialOpcPublishingInterval + i * 1000);
                     model.OpcNodes[0].OpcSamplingInterval = model.OpcNodes[0].OpcPublishingInterval / 2;
                 }
 
-                var request = model.ToApiModel();
+                var request = model;
 
-                expectedModel.OpcNodes.Add(new PublishedNodeApiModel {
+                expectedModel.OpcNodes.Add(new OpcNodeModel
+                {
                     Id = request.OpcNodes[0].Id,
                     DataSetFieldId = request.OpcNodes[0].DataSetFieldId,
                     DisplayName = request.OpcNodes[0].DisplayName,
@@ -123,12 +125,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                     OpcPublishingInterval = request.OpcNodes[0].OpcSamplingInterval,
                     OpcSamplingInterval = request.OpcNodes[0].OpcSamplingInterval,
                     QueueSize = request.OpcNodes[0].QueueSize,
-                    SkipFirst = request.OpcNodes[0].SkipFirst,
+                    SkipFirst = request.OpcNodes[0].SkipFirst
                 });
 
                 // Call Publish direct method
                 var response = await CallMethodAsync(
-                    new MethodParameterModel {
+                    new MethodParameterModel
+                    {
                         Name = TestConstants.DirectMethodNames.PublishNodes,
                         JsonPayload = _serializer.SerializeToString(request)
                     },
@@ -141,28 +144,30 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 await Task.Delay(TestConstants.AwaitInitInMilliseconds, cts.Token).ConfigureAwait(false);
 
                 // Create request for GetConfiguredNodesOnEndpoint method call
-                var nodesOnEndpoint = new PublishedNodesEntryModel {
+                var requestGetConfiguredNodesOnEndpoint = new PublishedNodesEntryModel
+                {
                     EndpointUrl = request.EndpointUrl,
                     UseSecurity = request.UseSecurity
                 };
-                var requestGetConfiguredNodesOnEndpoint = nodesOnEndpoint.ToApiModel();
 
                 // Call GetConfiguredEndpoints direct method
                 responseGetConfiguredEndpoints = await CallMethodAsync(
-                    new MethodParameterModel {
+                    new MethodParameterModel
+                    {
                         Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
                     },
                     cts.Token
                 ).ConfigureAwait(false);
 
                 Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-                configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
-                Assert.Equal(1, configuredEndpointsResponse.Endpoints.Count);
+                configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(responseGetConfiguredEndpoints.JsonPayload);
+                Assert.Single(configuredEndpointsResponse.Endpoints);
                 TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[0], request);
 
                 // Call GetConfiguredNodesOnEndpoint direct method
                 var responseGetConfiguredNodesOnEndpoint = await CallMethodAsync(
-                    new MethodParameterModel {
+                    new MethodParameterModel
+                    {
                         Name = TestConstants.DirectMethodNames.GetConfiguredNodesOnEndpoint,
                         JsonPayload = _serializer.SerializeToString(requestGetConfiguredNodesOnEndpoint)
                     },
@@ -170,22 +175,23 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 ).ConfigureAwait(false);
 
                 Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint.Status);
-                var jsonResponse = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseApiModel>(responseGetConfiguredNodesOnEndpoint.JsonPayload);
+                var jsonResponse = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseModel>(responseGetConfiguredNodesOnEndpoint.JsonPayload);
                 Assert.Equal(jsonResponse.OpcNodes.Count, i + 1);
                 Assert.Equal(jsonResponse.OpcNodes[i].Id, $"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt{i + 1}");
             }
 
             // Call GetDiagnosticInfo direct method
             var responseGetDiagnosticInfo = await CallMethodAsync(
-                new MethodParameterModel {
-                    Name = TestConstants.DirectMethodNames.GetDiagnosticInfo,
+                new MethodParameterModel
+                {
+                    Name = TestConstants.DirectMethodNames.GetDiagnosticInfo
                 },
                 cts.Token
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            var diagInfo = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(diagInfo.Count, 1);
+            var diagInfo = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Single(diagInfo);
 
             TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(expectedModel, diagInfo[0]);
 
@@ -204,9 +210,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             model.OpcNodes = null;
             // Call Unpublish direct method
             var responseUnpublish = await CallMethodAsync(
-                new MethodParameterModel {
+                new MethodParameterModel
+                {
                     Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
-                    JsonPayload = _serializer.SerializeToString(model.ToApiModel())
+                    JsonPayload = _serializer.SerializeToString(model)
                 },
                 cts.Token
             ).ConfigureAwait(false);
@@ -218,15 +225,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Call GetDiagnosticInfo direct method
             var responseGetDiagnosticInfoFinal = await CallMethodAsync(
-                new MethodParameterModel {
-                    Name = TestConstants.DirectMethodNames.GetDiagnosticInfo,
+                new MethodParameterModel
+                {
+                    Name = TestConstants.DirectMethodNames.GetDiagnosticInfo
                 },
                 cts.Token
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfoFinal.Status);
-            var diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfoFinal.JsonPayload);
-            Assert.Equal(diagInfoList.Count, 0);
+            var diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfoFinal.JsonPayload);
+            Assert.Empty(diagInfoList);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
@@ -242,7 +250,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact]
-        public async Task RestartAnnouncementTest() {
+        public async Task RestartAnnouncementTest()
+        {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, MessagingMode.PubSub);
 
@@ -255,12 +264,12 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.CleanPublishedNodesJsonFilesAsync(_context).ConfigureAwait(false);
 
             // Create base edge deployment.
-            var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
+            var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token).ConfigureAwait(false);
             Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
             _output.WriteLine("Created/Updated new edge base deployment.");
 
             // Create layered edge deployment.
-            var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
+            var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token).ConfigureAwait(false);
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module.");
 
@@ -282,7 +291,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).ConfigureAwait(false);
 
             // Restart OPC Publisher.
-            var moduleRestartResponse = await RestartModule(ioTHubPublisherDeployment.ModuleName, cts.Token)
+            var moduleRestartResponse = await RestartModuleAsync(ioTHubPublisherDeployment.ModuleName, cts.Token)
                 .ConfigureAwait(false);
             Assert.Equal((int)HttpStatusCode.OK, moduleRestartResponse.Status);
 

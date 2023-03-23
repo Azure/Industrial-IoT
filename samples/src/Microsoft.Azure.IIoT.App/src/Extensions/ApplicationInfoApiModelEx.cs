@@ -3,32 +3,37 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Extensions {
-    using Microsoft.Azure.IIoT.Api.Registry.Extensions;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+namespace Microsoft.Azure.IIoT.App.Extensions
+{
+    using global::Azure.IIoT.OpcUa.Publisher.Models;
+    using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk;
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
     /// Handle event
     /// </summary>
-    public static class ApplicationInfoApiModelEx {
-
+    public static class ApplicationInfoModelEx
+    {
         /// <summary>
         /// Update a list of applications from a received event
         /// </summary>
         /// <param name="results"></param>
         /// <param name="ev"></param>
-        public static void Update(this IList<ApplicationInfoApiModel> results,
-            ApplicationEventApiModel ev) {
+        public static void Update(this IList<ApplicationInfoModel> results,
+            ApplicationEventModel ev)
+        {
             var application = results.FirstOrDefault(e => e.ApplicationId == ev.Id);
             if (application == null &&
-                ev.EventType != ApplicationEventType.New) {
+                ev.EventType != ApplicationEventType.New)
+            {
                 return;
             }
-            switch (ev.EventType) {
+            switch (ev.EventType)
+            {
                 case ApplicationEventType.New:
-                    if (application == null) {
+                    if (application == null)
+                    {
                         // Add if not already in list
                         results.Add(ev.Application);
                     }

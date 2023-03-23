@@ -3,20 +3,22 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Twin {
+namespace IIoTPlatform_E2E_Tests.Twin
+{
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using Xunit;
 
-    public class TwinTestContext : IIoTPlatformTestContext {
-
+    public class TwinTestContext : IIoTPlatformTestContext
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="TwinTestContext"/> class.
         /// Used for preparation executed once before any tests of the collection are started.
         /// </summary>
-        public TwinTestContext() : base() {
+        public TwinTestContext() : base()
+        {
             PrepareTestEnvironment();
         }
 
@@ -24,8 +26,11 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         /// Disposes resources.
         /// Used for cleanup executed once after all tests of the collection were executed.
         /// </summary>
-        protected override void Dispose(bool disposing) {
-            if (!disposing) {
+        /// <param name="disposing"></param>
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposing)
+            {
                 return;
             }
 
@@ -34,7 +39,8 @@ namespace IIoTPlatform_E2E_Tests.Twin {
 
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            if (!string.IsNullOrWhiteSpace(OpcUaEndpointId)) {
+            if (!string.IsNullOrWhiteSpace(OpcUaEndpointId))
+            {
                 TestHelper.Registry.DeactivateEndpointAsync(this, OpcUaEndpointId).GetAwaiter().GetResult();
                 TestHelper.Registry.UnregisterServerAsync(this, OpcServerUrl, cts.Token).GetAwaiter().GetResult();
             }
@@ -42,12 +48,14 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             base.Dispose(true);
         }
 
-        private void PrepareTestEnvironment() {
+        private void PrepareTestEnvironment()
+        {
             RegisterOPCServerAndActivateEndpoint();
             CheckEndpointActivation();
         }
 
-        private void RegisterOPCServerAndActivateEndpoint() {
+        private void RegisterOPCServerAndActivateEndpoint()
+        {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // We will wait for microservices of IIoT platform to be healthy and modules to be deployed.
@@ -57,10 +65,11 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             var endpointUrl = TestHelper.GetSimulatedOpcServerUrls(this).First();
             TestHelper.Registry.RegisterServerAsync(this, endpointUrl, cts.Token).GetAwaiter().GetResult();
 
-            dynamic json = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, cts.Token, new HashSet<string> { endpointUrl }).GetAwaiter().GetResult();
+            dynamic json = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, new HashSet<string> { endpointUrl }, cts.Token).GetAwaiter().GetResult();
 
-            if (string.IsNullOrWhiteSpace(OpcUaEndpointId)) {
-                OpcUaEndpointId = TestHelper.Discovery.GetOpcUaEndpointId(this, endpointUrl, cts.Token).GetAwaiter().GetResult();
+            if (string.IsNullOrWhiteSpace(OpcUaEndpointId))
+            {
+                OpcUaEndpointId = TestHelper.Discovery.GetOpcUaEndpointIdAsync(this, endpointUrl, cts.Token).GetAwaiter().GetResult();
                 Assert.False(string.IsNullOrWhiteSpace(OpcUaEndpointId), "The endpoint id was not set");
             }
 
@@ -68,7 +77,8 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             TestHelper.Registry.ActivateEndpointAsync(this, OpcUaEndpointId, cts.Token).GetAwaiter().GetResult();
         }
 
-        private void CheckEndpointActivation() {
+        private void CheckEndpointActivation()
+        {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             var endpoints = TestHelper.Registry.GetEndpointsAsync(this, cts.Token).GetAwaiter().GetResult();

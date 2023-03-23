@@ -16,47 +16,6 @@
                 "description": "The name of the services endpoint. Leave empty for local development."
             }
         },
-        "branchName": {
-            "type": "string",
-            "defaultValue": "main",
-            "metadata": {
-                "description": "The branch from which to deploy deploy services and application.  Default to main."
-            }
-        },
-        "repoUrl": {
-            "type": "string",
-            "defaultValue": "https://github.com/Azure/Industrial-IoT",
-            "metadata": {
-                "description": "The repository url from which to deploy services and application.  Default is official repository."
-            }
-        },
-        "deployFromSource": {
-            "type": "bool",
-            "defaultValue": false,
-            "metadata": {
-                "description": "Whether to deploy app services from the repo source."
-            }
-        },
-        "gitHubPat": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Set to have github commits trigger continuous integration."
-            }
-        },
-        "templateUrl": {
-            "type": "string",
-            "defaultValue": "https://raw.githubusercontent.com/Azure/Industrial-IoT",
-            "metadata": {
-                "description": "The artifacts url from which to pull all linked templates.  Default is official repository."
-            }
-        },
-        "keyVaultName": {
-            "type": "string",
-            "metadata": {
-                "description": "A user created keyvault containing service and client configuration."
-            }
-        },
         "keyVaultUri": {
             "type": "string",
             "metadata": {
@@ -158,18 +117,12 @@
         }
     },
     "variables": {
-        "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]",
         "serviceSiteResourceName": "[if(empty(parameters('serviceSiteName')), concat('svc', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('serviceSiteName'))]",
         "serviceSiteResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceSiteResourceName'))]",
         "serviceContainerImageName": "[concat(if(empty(parameters('imagesNamespace')), '', concat(parameters('imagesNamespace'), '/')), 'iot/industrial-iot-services-all', ':', parameters('imagesTag'))]",
-        "serviceConfigurationResourceName": "platform.service.configuration",
-        "serviceConfigurationResourceId": "[resourceId('Microsoft.Resources/deployments', variables('serviceConfigurationResourceName'))]",
-        "servicePublishingConfigResource": "[concat('Microsoft.Web/sites/', variables('serviceSiteResourceName'), '/config/publishingcredentials')]",
         "appSiteResourceName": "[if(empty(parameters('siteName')), concat('app', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('siteName'))]",
         "appSiteResourceId": "[resourceId('Microsoft.Web/sites', variables('appSiteResourceName'))]",
-        "appContainerImageName": "[concat(if(empty(parameters('imagesNamespace')), '', concat(parameters('imagesNamespace'), '/')), 'iot/industrial-iot-frontend', ':', parameters('imagesTag'))]",
-        "appConfigurationResourceName": "platform.app.configuration",
-        "appPublishingConfigResource": "[concat('Microsoft.Web/sites/', variables('appSiteResourceName'), '/config/publishingcredentials')]"
+        "appContainerImageName": "[concat(if(empty(parameters('imagesNamespace')), '', concat(parameters('imagesNamespace'), '/')), 'iot/industrial-iot-frontend', ':', parameters('imagesTag'))]"
     },
     "resources": [
         {
@@ -186,15 +139,15 @@
             },
             "properties": {
                 "name": "[parameters('hostingPlanName')]",
-                "reserved": "[not(parameters('deployFromSource'))]"
+                "reserved": true
             },
             "dependsOn": [
             ]
         },
         {
-            "comments": "Deploy all in one services.",
+            "comments": "Deploy services wepapp.",
             "type": "Microsoft.Web/sites",
-            "kind": "[if(parameters('deployFromSource'), 'app', 'app,linux,container')]",
+            "kind": "app,linux,container",
             "name": "[variables('serviceSiteResourceName')]",
             "apiVersion": "2018-11-01",
             "location": "[resourceGroup().location]",
@@ -213,7 +166,7 @@
                 "httpsOnly": true,
                 "siteConfig": {
                     "numberOfWorkers": 1,
-                    "linuxFxVersion": "[if(not(parameters('deployFromSource')), concat('DOCKER|', parameters('dockerServer'), '/', variables('serviceContainerImageName')), '')]",
+                    "linuxFxVersion": "[concat('DOCKER|', parameters('dockerServer'), '/', variables('serviceContainerImageName'))]",
                     "managedPipelineMode": "Integrated",
                     "requestTracingEnabled": true,
                     "httpLoggingEnabled": true,
@@ -225,24 +178,16 @@
                     "webSocketsEnabled": true,
                     "appSettings": [
                         {
-                            "name": "PROJECT",
-                            "value": "[if(not(parameters('deployFromSource')), '', 'services/src/Microsoft.Azure.IIoT.Services.All/src/Microsoft.Azure.IIoT.Services.All.csproj')]"
-                        },
-                        {
                             "name": "DOCKER_REGISTRY_SERVER_URL",
-                            "value": "[if(parameters('deployFromSource'), '', concat('https://', parameters('dockerServer')))]"
+                            "value": "[concat('https://', parameters('dockerServer'))]"
                         },
                         {
                             "name": "DOCKER_REGISTRY_SERVER_USERNAME",
-                            "value": "[if(parameters('deployFromSource'), '', parameters('dockerUser'))]"
+                            "value": "[parameters('dockerUser')]"
                         },
                         {
                             "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
-                            "value": "[if(parameters('deployFromSource'), '', parameters('dockerPassword'))]"
-                        },
-                        {
-                            "name": "DOCKER_ENABLE_CI",
-                            "value": "[if(parameters('deployFromSource'), '', 'false')]"
+                            "value": "[parameters('dockerPassword')]"
                         },
                         {
                             "name": "WEBSITES_PORT",
@@ -283,38 +228,19 @@
                     "name": "appsettings",
                     "apiVersion": "2018-11-01",
                     "properties": {
-                        "PROJECT": "[if(not(parameters('deployFromSource')), '', 'services/src/Microsoft.Azure.IIoT.Services.All/src/Microsoft.Azure.IIoT.Services.All.csproj')]",
                         "PCS_SERVICE_URL": "[if(empty(parameters('serviceSiteName')), '', concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0]))]",
                         "PCS_KEYVAULT_URL": "[parameters('keyVaultUri')]",
                         "PCS_MSI_APPID": "[parameters('managedIdentityClientId')]",
                         "PCS_MSI_TENANT": "[parameters('managedIdentityTenantId')]",
                         "PCS_AUTH_TENANT": "[if(not(empty(parameters('authTenantId'))), parameters('authTenantId'), parameters('managedIdentityTenantId'))]",
-                        "DOCKER_ENABLE_CI": "[if(parameters('deployFromSource'), '', 'false')]",
-                        "DOCKER_REGISTRY_SERVER_URL": "[if(parameters('deployFromSource'), '', concat('https://', parameters('dockerServer')))]",
-                        "DOCKER_REGISTRY_SERVER_USERNAME": "[if(parameters('deployFromSource'), '', parameters('dockerUser'))]",
-                        "DOCKER_REGISTRY_SERVER_PASSWORD": "[if(parameters('deployFromSource'), '', parameters('dockerPassword'))]",
+                        "DOCKER_REGISTRY_SERVER_URL": "[concat('https://', parameters('dockerServer'))]",
+                        "DOCKER_REGISTRY_SERVER_USERNAME": "[parameters('dockerUser')]",
+                        "DOCKER_REGISTRY_SERVER_PASSWORD": "[parameters('dockerPassword')]",
                         "WEBSITES_PORT": "9080",
                         "PCS_IMAGES_TAG": "[parameters('imagesTag')]"
                     },
                     "dependsOn": [
                         "[variables('serviceSiteResourceId')]"
-                    ]
-                },
-                {
-                    "comments": "CI source control configuration.",
-                    "condition": "[and(not(empty(parameters('serviceSiteName'))), parameters('deployFromSource'))]",
-                    "type": "sourcecontrols",
-                    "name": "web",
-                    "apiVersion": "2018-11-01",
-                    "properties": {
-                        "repoUrl": "[parameters('repoUrl')]",
-                        "branch": "[parameters('branchName')]",
-                        "deploymentRollbackEnabled": false,
-                        "isManualIntegration": "[empty(parameters('gitHubPat'))]"
-                    },
-                    "dependsOn": [
-                        "[variables('serviceSiteResourceId')]",
-                        "appsettings"
                     ]
                 }
             ],
@@ -323,47 +249,10 @@
             ]
         },
         {
-            "comments": "Save service url as configuration.",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2019-08-01",
-            "name": "[variables('serviceConfigurationResourceName')]",
-            "condition": "[and(not(empty(parameters('keyVaultName'))), not(empty(parameters('serviceSiteName'))))]",
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[parameters('keyVaultName')]"
-                    },
-                    "configuration": {
-                        "value": [
-                            {
-                                "key": "PCS_SERVICE_NAME",
-                                "value": "[concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0])]"
-                            },
-                            {
-                                "key": "PCS_SERVICE_HOOK",
-                                "value": "[if(empty(parameters('serviceSiteName')), '', concat('https://$', list(variables('servicePublishingConfigResource'), '2016-08-01').properties.publishingUserName, ':', list(variables('servicePublishingConfigResource'), '2016-08-01').properties.publishingPassword, '@', replace(list(variables('servicePublishingConfigResource'), '2016-08-01').properties.scmUri, 'https://', ''), ''))]"
-                            }
-                        ]
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "contentVersion": "1.0.0.0",
-                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.configuration.json')]"
-                }
-            },
-            "dependsOn": [
-                "[variables('serviceSiteResourceId')]"
-            ]
-        },
-        {
             "comments": "Deploy application container.",
             "condition": "[not(empty(parameters('siteName')))]",
             "type": "Microsoft.Web/sites",
-            "kind": "[if(parameters('deployFromSource'), 'app', 'app,linux,container')]",
+            "kind": "app,linux,container",
             "name": "[variables('appSiteResourceName')]",
             "apiVersion": "2018-11-01",
             "location": "[resourceGroup().location]",
@@ -381,7 +270,7 @@
                 "httpsOnly": true,
                 "siteConfig": {
                     "numberOfWorkers": 1,
-                    "linuxFxVersion": "[if(not(parameters('deployFromSource')), concat('DOCKER|', parameters('dockerServer'), '/', variables('appContainerImageName')), '')]",
+                    "linuxFxVersion": "[concat('DOCKER|', parameters('dockerServer'), '/', variables('appContainerImageName'))]",
                     "managedPipelineMode": "Integrated",
                     "requestTracingEnabled": true,
                     "httpLoggingEnabled": true,
@@ -393,24 +282,16 @@
                     "webSocketsEnabled": true,
                     "appSettings": [
                         {
-                            "name": "PROJECT",
-                            "value": "[if(not(parameters('deployFromSource')), '', 'samples/src/Microsoft.Azure.IIoT.App/src/Microsoft.Azure.IIoT.App.csproj')]"
-                        },
-                        {
                             "name": "DOCKER_REGISTRY_SERVER_URL",
-                            "value": "[if(parameters('deployFromSource'), '', concat('https://', parameters('dockerServer')))]"
+                            "value": "[concat('https://', parameters('dockerServer'))]"
                         },
                         {
                             "name": "DOCKER_REGISTRY_SERVER_USERNAME",
-                            "value": "[if(parameters('deployFromSource'), '', parameters('dockerUser'))]"
+                            "value": "[parameters('dockerUser')]"
                         },
                         {
                             "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
-                            "value": "[if(parameters('deployFromSource'), '', parameters('dockerPassword'))]"
-                        },
-                        {
-                            "name": "DOCKER_ENABLE_CI",
-                            "value": "[if(parameters('deployFromSource'), '', 'false')]"
+                            "value": "[parameters('dockerPassword')]"
                         },
                         {
                             "name": "PCS_KEYVAULT_URL",
@@ -439,60 +320,9 @@
                     ]
                 }
             },
-            "resources": [
-                {
-                    "comments": "CI source control configuration.",
-                    "condition": "[and(not(empty(parameters('siteName'))), parameters('deployFromSource'))]",
-                    "type": "sourcecontrols",
-                    "name": "web",
-                    "apiVersion": "2018-11-01",
-                    "properties": {
-                        "repoUrl": "[parameters('repoUrl')]",
-                        "branch": "[parameters('branchName')]",
-                        "deploymentRollbackEnabled": false,
-                        "isManualIntegration": "[empty(parameters('gitHubPat'))]"
-                    },
-                    "dependsOn": [
-                        "[variables('appSiteResourceId')]"
-                    ]
-                }
-            ],
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]",
-                "[variables('serviceConfigurationResourceId')]"
-            ]
-        },
-        {
-            "comments": "Save app hook as configuration.",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2019-08-01",
-            "name": "[variables('appConfigurationResourceName')]",
-            "condition": "[and(not(empty(parameters('keyVaultName'))), not(empty(parameters('siteName'))))]",
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[parameters('keyVaultName')]"
-                    },
-                    "configuration": {
-                        "value": [
-                            {
-                                "key": "PCS_APP_HOOK",
-                                "value": "[if(empty(parameters('siteName')), '', concat('https://$', list(variables('appPublishingConfigResource'), '2016-08-01').properties.publishingUserName, ':', list(variables('appPublishingConfigResource'), '2016-08-01').properties.publishingPassword, '@', replace(list(variables('appPublishingConfigResource'), '2016-08-01').properties.scmUri, 'https://', ''), ''))]"
-                            }
-                        ]
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "contentVersion": "1.0.0.0",
-                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.configuration.json')]"
-                }
-            },
-            "dependsOn": [
-                "[variables('appSiteResourceId')]"
+                "[variables('serviceSiteResourceId')]"
             ]
         }
     ],

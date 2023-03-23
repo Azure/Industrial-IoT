@@ -3,15 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.TestEventProcessor {
-
+namespace IIoTPlatform_E2E_Tests.TestEventProcessor
+{
     using System;
     using System.Collections.ObjectModel;
 
     /// <summary>
     /// Represents the result of the Stop-Command of the TelemetryValidator.
     /// </summary>
-    public class StopResult {
+    public class StopResult
+    {
         /// <summary>
         /// The total number of value changes
         /// </summary>

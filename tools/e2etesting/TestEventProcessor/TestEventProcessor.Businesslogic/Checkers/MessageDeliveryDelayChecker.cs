@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers {
+namespace TestEventProcessor.BusinessLogic.Checkers
+{
     using Microsoft.Extensions.Logging;
     using System;
     using System.Globalization;
@@ -13,7 +14,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
     /// Class to check and report on delay between message source timestamp and time when it was received.
     /// Considerable deviations in this delay will also be reported.
     /// </summary>
-    class MessageDeliveryDelayChecker {
+    class MessageDeliveryDelayChecker : IDisposable
+    {
 
         /// <summary>
         /// Format to be used for Timestamps
@@ -34,8 +36,10 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         public MessageDeliveryDelayChecker(
             TimeSpan expectedMaximalDuration,
             ILogger logger
-        ) {
-            if (expectedMaximalDuration.Ticks < 0) {
+        )
+        {
+            if (expectedMaximalDuration.Ticks < 0)
+            {
                 throw new ArgumentException($"{nameof(expectedMaximalDuration)} cannot be negative");
             }
 
@@ -57,17 +61,20 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             string nodeId,
             DateTime sourceTimestamp,
             DateTime enqueuedimestamp
-        ) {
+        )
+        {
             // Do not process if _expectedMaximalDuration is set to zero.
-            if (_expectedMaximalDuration.Equals(TimeSpan.Zero)) {
+            if (_expectedMaximalDuration.Equals(TimeSpan.Zero))
+            {
                 return;
             }
 
             // Check the total duration from OPC UA Server until IoT Hub
             var messageDeliveryDuration = enqueuedimestamp - sourceTimestamp;
 
-            if (messageDeliveryDuration.TotalMilliseconds < 0) {
-                _logger.LogWarning("Total duration is negative number for {nodeId} node, " +
+            if (messageDeliveryDuration.TotalMilliseconds < 0)
+            {
+                _logger.LogWarning("Total duration is negative number for {NodeId} node, " +
                     "OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
                     nodeId,
                     sourceTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
@@ -75,8 +82,9 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                     messageDeliveryDuration);
             }
 
-            if (messageDeliveryDuration > _expectedMaximalDuration) {
-                _logger.LogInformation("Total duration exceeded limit for {nodeId} node, " +
+            if (messageDeliveryDuration > _expectedMaximalDuration)
+            {
+                _logger.LogInformation("Total duration exceeded limit for {NodeId} node, " +
                     "OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
                     nodeId,
                     sourceTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
@@ -85,13 +93,16 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             }
 
             _lock.Wait();
-            try {
+            try
+            {
                 // Check if we need to update _maxOpcDiffToNow
-                if (messageDeliveryDuration > _maxMessageDeliveryDuration) {
+                if (messageDeliveryDuration > _maxMessageDeliveryDuration)
+                {
                     _maxMessageDeliveryDuration = messageDeliveryDuration;
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
@@ -100,14 +111,22 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// Stop monitoring and return max observed delivery delay.
         /// </summary>
         /// <returns></returns>
-        public TimeSpan Stop() {
+        public TimeSpan Stop()
+        {
             _lock.Wait();
-            try {
+            try
+            {
                 return _maxMessageDeliveryDuration;
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
+        }
+
+        public void Dispose()
+        {
+            _lock.Dispose();
         }
     }
 }

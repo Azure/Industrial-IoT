@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers {
+namespace TestEventProcessor.BusinessLogic.Checkers
+{
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -13,7 +14,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
     /// Class to check and report on delay between message source timestamp and time when it was received.
     /// Considerable deviations in this delay will also be reported.
     /// </summary>
-    class MessageProcessingDelayChecker {
+    class MessageProcessingDelayChecker : IDisposable
+    {
 
         private readonly TimeSpan _threshold;
         private readonly ILogger _logger;
@@ -30,8 +32,10 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         public MessageProcessingDelayChecker(
             TimeSpan threshold,
             ILogger logger
-        ) {
-            if (threshold.Ticks < 0) {
+        )
+        {
+            if (threshold.Ticks < 0)
+            {
                 throw new ArgumentException($"{nameof(threshold)} cannot be negative");
             }
 
@@ -51,30 +55,36 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             string nodeId,
             DateTime sourceTimestamp,
             DateTime receivedTimestamp
-        ) {
+        )
+        {
             _lock.Wait();
-            try {
+            try
+            {
                 // Check and report if processing delay has changed considerably, meaning more that the threshold.
                 var newOpcDiffToNow = receivedTimestamp - sourceTimestamp;
-                if (!_lastOpcDiffToNow.ContainsKey(nodeId)) {
+                if (!_lastOpcDiffToNow.ContainsKey(nodeId))
+                {
                     _lastOpcDiffToNow.Add(nodeId, TimeSpan.Zero);
                 }
                 var diffDelta = newOpcDiffToNow - _lastOpcDiffToNow[nodeId];
 
-                if (diffDelta.Duration() > _threshold) {
+                if (diffDelta.Duration() > _threshold)
+                {
                     _logger.LogWarning("The difference between time of arrival to the telemetry processor " +
-                       "and Opc Source Timestamp for {nodeId} node has changed by {diff}",
+                       "and Opc Source Timestamp for {NodeId} node has changed by {Diff}",
                        nodeId, diffDelta);
                 }
 
                 _lastOpcDiffToNow[nodeId] = newOpcDiffToNow;
 
                 // Check if we need to update _maxOpcDiffToNow
-                if (newOpcDiffToNow > _maxOpcDiffToNow) {
+                if (newOpcDiffToNow > _maxOpcDiffToNow)
+                {
                     _maxOpcDiffToNow = newOpcDiffToNow;
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
@@ -83,14 +93,22 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// Stop monitoring and return max observed delay.
         /// </summary>
         /// <returns></returns>
-        public TimeSpan Stop() {
+        public TimeSpan Stop()
+        {
             _lock.Wait();
-            try {
+            try
+            {
                 return _maxOpcDiffToNow;
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
+        }
+
+        public void Dispose()
+        {
+            _lock.Dispose();
         }
     }
 }

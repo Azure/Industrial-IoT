@@ -6,9 +6,9 @@
 <AuthorizeView>
     <Authorized>
         Hello, @context.User.Identity.Name!
-        <a href="Account/AzureAD/LogOut">Log out</a>
+        <a href="MicrosoftIdentity/Account/SignOut">Log out</a>
     </Authorized>
     <NotAuthorized>
-        <a href="Account/AzureAD/LogIn">Log in</a>
+        <a href="MicrosoftIdentity/Account/SignIn">Log in</a>
     </NotAuthorized>
 </AuthorizeView>

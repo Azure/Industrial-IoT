@@ -10,8 +10,9 @@
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.Drawer
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
-@using Microsoft.Azure.IIoT.OpcUa.Api.Publisher
-@using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+@using global::Azure.IIoT.OpcUa.Publisher.Models;
+@using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients;
+@using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk;
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
@@ -19,7 +20,7 @@
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
-@implements IDisposable
+@implements IAsyncDisposable
 
 <h1>Assets</h1>
 

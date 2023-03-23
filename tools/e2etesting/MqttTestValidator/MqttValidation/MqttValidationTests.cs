@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace MqttValidation {
+namespace MqttValidation
+{
     using FluentAssertions;
     using NUnit.Framework;
     using System;
     using System.Net.Http;
     using System.Threading.Tasks;
 
-    public class MqttValidationTests {
+    public class MqttValidationTests
+    {
 
         private const string EndpointKey = "VERIFIER_ENDPOINT";
         private const string BrokerEndpointKey = "BROKER_ENDPOINT";
@@ -21,9 +23,11 @@ namespace MqttValidation {
         private swaggerClient? _swaggerClient;
 
         [SetUp]
-        public void Setup() {
+        public void Setup()
+        {
             string? endpoint = Environment.GetEnvironmentVariable(EndpointKey);
-            if (string.IsNullOrWhiteSpace(endpoint)) {
+            if (string.IsNullOrWhiteSpace(endpoint))
+            {
                 Assert.Ignore($"Environment variable '{EndpointKey}' not specified!");
 
             }
@@ -34,12 +38,15 @@ namespace MqttValidation {
         }
 
         [Test]
-        public async Task SimpleVerification() {
+        public async Task SimpleVerification()
+        {
             ArgumentNullException.ThrowIfNull(_swaggerClient);
 
-            void SetFromEnv(Action<string> setter, string key) {
+            void SetFromEnv(Action<string> setter, string key)
+            {
                 string? value = Environment.GetEnvironmentVariable(key);
-                if (!string.IsNullOrWhiteSpace(value)) {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
                     setter(value);
                 }
             }
@@ -51,19 +58,22 @@ namespace MqttValidation {
             SetFromEnv(v => request.MqttTopic = v, TopicKey);
             SetFromEnv(v => request.TimeToObserve = int.Parse(v), TimeToObserveKey);
 
-            MqttVerificationResponse verificationTask = await _swaggerClient.StartVerificationAsync(request);
+            MqttVerificationResponse verificationTask = await _swaggerClient.StartVerificationAsync(request).ConfigureAwait(false);
 
 
             MqttVerificationDetailedResponse result;
 
-            do {
-                result = await _swaggerClient.GetVerificationResultAsync(verificationTask.ValidationTaskId);
+            do
+            {
+                result = await _swaggerClient.GetVerificationResultAsync(verificationTask.ValidationTaskId).ConfigureAwait(false);
 
-                if (result.IsFinished) {
+                if (result.IsFinished)
+                {
                     break;
                 }
-                else {
-                    await Task.Delay(1000);
+                else
+                {
+                    await Task.Delay(1000).ConfigureAwait(false);
                 }
             } while (true);
 

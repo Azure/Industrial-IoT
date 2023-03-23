@@ -3,17 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Validation {
+namespace Microsoft.Azure.IIoT.App.Validation
+{
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.Net.Models;
     using FluentValidation;
     using System;
     using System.Collections.Generic;
 
-    public class DiscovererInfoValidator : AbstractValidator<DiscovererInfoRequested> {
+    public class DiscovererInfoValidator : AbstractValidator<DiscovererInfoRequested>
+    {
         private static readonly ValidationUtils utils = new();
 
-        public DiscovererInfoValidator() {
+        public DiscovererInfoValidator()
+        {
             RuleFor(p => p.RequestedAddressRangesToScan)
                 .Must(BeValidAddressRanges)
                 .WithMessage("Invalid input value for address ranges.");
@@ -47,23 +49,28 @@ namespace Microsoft.Azure.IIoT.App.Validation {
                 .WithMessage("Invalid input value for discovery url. Clear and insert a new value");
         }
 
-        private bool BeValidAddressRanges(string value) {
-            return utils.ShouldUseDefaultValue(value) || AddressRange.TryParse(value, out _);
+        private bool BeValidAddressRanges(string value)
+        {
+            return utils.ShouldUseDefaultValue(value) /*|| AddressRange.TryParse(value, out _)*/;
         }
 
-        private bool BeValidPortRanges(string value) {
-            return utils.ShouldUseDefaultValue(value) || PortRange.TryParse(value, out _);
+        private bool BeValidPortRanges(string value)
+        {
+            return utils.ShouldUseDefaultValue(value) /*|| PortRange.TryParse(value, out _)*/;
         }
 
-        private bool BeAPositiveInteger(string value) {
-            return utils.ShouldUseDefaultValue(value) || int.TryParse(value, out var res) && res > 0;
+        private bool BeAPositiveInteger(string value)
+        {
+            return utils.ShouldUseDefaultValue(value) || (int.TryParse(value, out var res) && res > 0);
         }
 
-        private bool BeAValidTimeFormat(string value) {
-            return utils.ShouldUseDefaultValue(value) || TimeSpan.TryParse(value, out var res) && res.TotalMilliseconds > 0;
+        private bool BeAValidTimeFormat(string value)
+        {
+            return utils.ShouldUseDefaultValue(value) || (TimeSpan.TryParse(value, out var res) && res.TotalMilliseconds > 0);
         }
 
-        private bool BeAValidDiscoveryUrl(List<string> value) {
+        private bool BeAValidDiscoveryUrl(List<string> value)
+        {
             return value == null || !(value.Contains(null) || value.Contains(string.Empty));
         }
     }

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.Deploy {
+namespace OpcPublisher_AE_E2E_Tests.Deploy
+{
     using System;
     using System.Collections.Generic;
     using Newtonsoft.Json;
@@ -12,13 +13,14 @@ namespace OpcPublisher_AE_E2E_Tests.Deploy {
     /// <summary>
     /// Default edge base deployment configuration
     /// </summary>
-    public sealed class IoTHubEdgeBaseDeployment : DeploymentConfiguration {
-
+    public sealed class IoTHubEdgeBaseDeployment : DeploymentConfiguration
+    {
         /// <summary>
         /// Create edge base deployer
         /// </summary>
         /// <param name="context"></param>
-        public IoTHubEdgeBaseDeployment(IIoTPlatformTestContext context) : base(context) {
+        public IoTHubEdgeBaseDeployment(IIoTPlatformTestContext context) : base(context)
+        {
         }
 
         /// <inheritdoc />
@@ -31,7 +33,8 @@ namespace OpcPublisher_AE_E2E_Tests.Deploy {
         protected override string TargetCondition => kTargetCondition;
 
         /// <inheritdoc />
-        protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
+        protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules()
+        {
             // We should always consume edgeAgent and edgeHub from mcr.microsoft.com.
             var server = TestConstants.MicrosoftContainerRegistry;
             var version = _context.IoTEdgeConfig.EdgeVersion;
@@ -54,7 +57,7 @@ namespace OpcPublisher_AE_E2E_Tests.Deploy {
                             ""edgeAgent"": {
                                 ""type"": ""docker"",
                                 ""settings"": {
-                                    ""image"": """ + server + "/azureiotedge-agent:" + version+ @""",
+                                    ""image"": """ + server + "/azureiotedge-agent:" + version + @""",
                                     ""createOptions"": ""{}""
                                 },
                                 ""env"": {
@@ -112,8 +115,10 @@ namespace OpcPublisher_AE_E2E_Tests.Deploy {
 
         private const string kDefaultSchemaVersion = "1.0";
         private const string kDeploymentName = "iiotedge";
-        // for E2E testing we use "unmanaged" for standalone testing
-        // base deployment need to be valid for both (managed and unmanaged)
+        /// <summary>
+        /// for E2E testing we use "unmanaged" for standalone testing
+        /// base deployment need to be valid for both (managed and unmanaged)
+        /// </summary>
         private const string kTargetCondition = "tags.__type__ = 'iiotedge'";
     }
 }

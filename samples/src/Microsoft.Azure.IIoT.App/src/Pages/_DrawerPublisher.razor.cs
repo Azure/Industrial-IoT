@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Pages {
-
-    public partial class _DrawerPublisher {
-
+namespace Microsoft.Azure.IIoT.App.Pages
+{
+    public partial class _DrawerPublisher
+    {
     }
 }

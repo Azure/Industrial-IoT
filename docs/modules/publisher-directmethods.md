@@ -47,7 +47,6 @@ The `_V1` direct methods use the payload schema as described below:
   "DataSetKeyFrameCount": "integer",
   "MetaDataUpdateTime": "integer",
   "MetaDataUpdateTimeTimespan": "string",
-  "MetaDataQueueName": "string",
   "OpcNodes":
   [
     {
@@ -101,7 +100,6 @@ Method call's request attributes are as follows:
 | `DataSetKeyFrameCount`              | No        | Integer         | `null`                      | The optional number of messages until a key frame is inserted. <br>Only valid if messaging mode supports key frames  |
 | `MetaDataUpdateTime`                | No        | Integer         | `null`                      | The optional interval at which meta data messages should be sent even if the meta data has not chnaged.<br>Only valid if messaging mode supports metadata or metadata is explicitly enabled. |
 | `MetaDataUpdateTimeTimespan`        | No        | String          | `null`                      | Same as `MetaDataUpdateTime` but expressed as duration string.<br>Takes precedence over the Integer value. |
-| `MetaDataQueueName`                 | No        | String          | `null`                      | The optional name of the queue or output the meta data messages should be sent to. |
 | `OpcNodes`                          | No        | List\<OpcNode\> | empty                       | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above. |
 
 _Note_: `OpcNodes` field is mandatory for `PublishNodes_V1`. It is optional for `UnpublishNodes_V1` and `AddOrUpdateEndpoints_V1`. And `OpcNodes` field shouldn't be specified for the rest of the direct methods.
@@ -143,7 +141,7 @@ Now let's dive into each direct method request and response payloads with exampl
 
 ### PublishNodes_V1
 
-PublishNodes enables a client to add a set of nodes to be published. A [`DataSetWriter`](publisher-directmethods.md#terminologies) groups nodes which results in seperate subscriptions being created (grouped further by the Publishing interval, if different ones are configured, but these have no bearing on the `DataSetWriter` identity). A `DataSetWriter`s identity is the combination of `DataSetWriterId`, `DataSetName`, `DataSetKeyFrameCount`, `DataSetClassId`, `MetaDataQueueName` and connection relevant information such as credentials, security mode, and endpoint Url. To update a `DataSetWriter` this information must match exactly.
+PublishNodes enables a client to add a set of nodes to be published. A [`DataSetWriter`](publisher-directmethods.md#terminologies) groups nodes which results in seperate subscriptions being created (grouped further by the Publishing interval, if different ones are configured, but these have no bearing on the `DataSetWriter` identity). A `DataSetWriter`s identity is the combination of `DataSetWriterId`, `DataSetName`, `DataSetKeyFrameCount`, `DataSetClassId`, and connection relevant information such as credentials, security mode, and endpoint Url. To update a `DataSetWriter` this information must match exactly.
 
 When a `DataSetWriter` already exists, the nodes are incrementally added to the same [`dataset`](publisher-directmethods.md#terminologies). When it doesn't already exist, a new `DataSetWriter` is created with the initial set of nodes contained in the request. When working with `DataSetWriterGroup`s it is important to note that all groups not part of the publish request are removed.  To incrementally update `DataSetWriterGroup`s of `DataSetWriter`s use [`AddOrUpdateEndpoints_v1`](#addorupdateendpoints_v1) API instead.
 

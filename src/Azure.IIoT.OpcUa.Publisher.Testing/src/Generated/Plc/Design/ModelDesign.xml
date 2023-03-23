@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<opc:ModelDesign
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:opc="http://opcfoundation.org/UA/ModelDesign.xsd"
+  xmlns:ua="http://opcfoundation.org/UA/"
+  xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"
+  xmlns="http://opcfoundation.org/UA/Plc"
+  TargetNamespace="http://opcfoundation.org/UA/Plc"
+>
+  <!--
+  This element defines the mappings between the URIs used to identify namespaces and the symbols used in code.
+  User defined design files can include other user defined design files.
+  The location of included design files is specified with the FilePath attribute (absolute or relative path without the .xml suffix).
+  -->
+  <opc:Namespaces>
+    <opc:Namespace Name="OpcUa" Prefix="Opc.Ua" XmlNamespace="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/</opc:Namespace>
+    <opc:Namespace Name="Plc" Prefix="PlcModel">http://opcfoundation.org/UA/Plc</opc:Namespace>
+  </opc:Namespaces>
+
+  <!--DataTypes -->
+  <opc:DataType SymbolicName="PlcDataType" BaseType="ua:Structure">
+    <opc:Description>Temperature in °C, pressure in Pa and heater state.</opc:Description>
+
+    <opc:Fields>
+      <opc:Field Name="Temperature" DataType="PlcTemperatureType"/>
+      <opc:Field Name="Pressure" DataType="ua:Int32"/>
+      <opc:Field Name="HeaterState" DataType="PlcHeaterStateType"/>
+    </opc:Fields>
+  </opc:DataType>
+
+  <opc:DataType SymbolicName="PlcTemperatureType" BaseType="ua:Structure">
+    <opc:Description>Temperature in °C next to the heater at the bottom, and away from the heater at the top.</opc:Description>
+
+    <opc:Fields>
+      <opc:Field Name="Top" DataType="ua:Int32"/>
+      <opc:Field Name="Bottom" DataType="ua:Int32"/>
+    </opc:Fields>
+  </opc:DataType>
+
+  <opc:DataType SymbolicName="PlcHeaterStateType" BaseType="ua:Enumeration">
+    <opc:Description>Heater working state.</opc:Description>
+
+    <opc:Fields>
+      <opc:Field Name="Off" Identifier="0"/>
+      <opc:Field Name="On" Identifier="1"/>
+    </opc:Fields>
+  </opc:DataType>
+
+  <opc:ObjectType SymbolicName="PlcType" BaseType="ua:BaseObjectType" SupportsEvents="true">
+    <opc:Children>
+      <opc:Variable SymbolicName="PlcStatus" DataType="PlcDataType">
+        <opc:DefaultValue>
+          <uax:ExtensionObject>
+            <uax:Body>
+              <PlcDataType>
+
+                <Temperature>
+                  <Top>20</Top>
+                  <Bottom>20</Bottom>
+                </Temperature>
+
+                <Pressure>100020</Pressure>
+
+                <HeaterState>On</HeaterState>
+
+              </PlcDataType>
+            </uax:Body>
+          </uax:ExtensionObject>
+        </opc:DefaultValue>
+      </opc:Variable>
+    </opc:Children>
+  </opc:ObjectType>
+
+  <!--
+  Declare an instance of a Plc.
+  Normally instances are created by program logic instead of being part of the model.
+  This is provided as an example of how to do it when there is a need for persistent instances.
+  -->
+  <opc:Object SymbolicName="Plc1" TypeDefinition="PlcType" SupportsEvents="true">
+    <opc:BrowseName>Plc #1</opc:BrowseName>
+
+    <opc:Description>A simple plc.</opc:Description>
+
+    <!-- Link the instance back to the ObjectsFolder -->
+    <opc:References>
+      <opc:Reference IsInverse="true">
+        <opc:ReferenceType>ua:Organizes</opc:ReferenceType>
+        <opc:TargetId>ua:ObjectsFolder</opc:TargetId>
+      </opc:Reference>
+    </opc:References>
+
+  </opc:Object>
+
+</opc:ModelDesign>

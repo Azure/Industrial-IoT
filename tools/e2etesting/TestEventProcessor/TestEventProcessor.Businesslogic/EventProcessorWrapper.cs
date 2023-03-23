@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.Businesslogic {
+namespace TestEventProcessor.Businesslogic
+{
 
     using Azure.Messaging.EventHubs;
     using Azure.Messaging.EventHubs.Consumer;
@@ -20,7 +21,8 @@ namespace TestEventProcessor.Businesslogic {
     /// <summary>
     /// Wrapper for EventProcessorClient class.
     /// </summary>
-    public class EventProcessorWrapper : IDisposable {
+    public sealed class EventProcessorWrapper : IDisposable
+    {
 
         private readonly ILogger _logger;
         private readonly IEventProcessorConfig _config;
@@ -33,22 +35,28 @@ namespace TestEventProcessor.Businesslogic {
 
         public EventProcessorWrapper(
             IEventProcessorConfig configuration,
-            ILogger logger) {
+            ILogger logger)
+        {
 
-            if (configuration == null) {
+            if (configuration == null)
+            {
                 throw new ArgumentNullException(nameof(configuration));
             }
-            if (string.IsNullOrWhiteSpace(configuration.IoTHubEventHubEndpointConnectionString)) {
-                throw new ArgumentNullException(nameof(configuration.IoTHubEventHubEndpointConnectionString));
+            if (string.IsNullOrWhiteSpace(configuration.IoTHubEventHubEndpointConnectionString))
+            {
+                throw new ArgumentException("Missing connection string", nameof(configuration));
             }
-            if (string.IsNullOrWhiteSpace(configuration.StorageConnectionString)) {
-                throw new ArgumentNullException(nameof(configuration.StorageConnectionString));
+            if (string.IsNullOrWhiteSpace(configuration.StorageConnectionString))
+            {
+                throw new ArgumentException("Missing connection string", nameof(configuration));
             }
-            if (string.IsNullOrWhiteSpace(configuration.BlobContainerName)) {
-                throw new ArgumentNullException(nameof(configuration.BlobContainerName));
+            if (string.IsNullOrWhiteSpace(configuration.BlobContainerName))
+            {
+                throw new ArgumentException("Missing blob container name", nameof(configuration));
             }
-            if (string.IsNullOrWhiteSpace(configuration.EventHubConsumerGroup)) {
-                throw new ArgumentNullException(nameof(configuration.EventHubConsumerGroup));
+            if (string.IsNullOrWhiteSpace(configuration.EventHubConsumerGroup))
+            {
+                throw new ArgumentException("Missing consumer groupo", nameof(configuration));
             }
 
             _config = configuration;
@@ -58,7 +66,8 @@ namespace TestEventProcessor.Businesslogic {
         /// <summary>
         /// Generate hash based on the configuration.
         /// </summary>
-        public static int GetHashCode(IEventProcessorConfig configuration) {
+        public static int GetHashCode(IEventProcessorConfig configuration)
+        {
             var hash = new HashCode();
             hash.Add(configuration.IoTHubEventHubEndpointConnectionString);
             hash.Add(configuration.StorageConnectionString);
@@ -68,15 +77,18 @@ namespace TestEventProcessor.Businesslogic {
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return GetHashCode(_config);
         }
 
         /// <summary>
         /// Initialize EventProcessorClient.
         /// </summary>
-        public async Task InitializeClient(CancellationToken ct) {
-            if (_client != null) {
+        public async Task InitializeClientAsync(CancellationToken ct)
+        {
+            if (_client != null)
+            {
                 return;
             }
 
@@ -116,17 +128,20 @@ namespace TestEventProcessor.Businesslogic {
         /// Start processing of events. If the method was called previously, then it will only
         /// re-enable processing.
         /// </summary>
-        public async Task StartProcessingAsync(CancellationToken ct) {
-            if (_client == null) {
+        public async Task StartProcessingAsync(CancellationToken ct)
+        {
+            if (_client == null)
+            {
                 throw new InvalidOperationException("EventProcessorWrapper has not been initialized.");
             }
 
-            if (!_client.IsRunning) {
+            if (!_client.IsRunning)
+            {
                 _logger.LogInformation("Starting monitoring of events...");
                 await _client.StartProcessingAsync(ct).ConfigureAwait(false);
             }
 
-            await WaitForPartitionInitialization(ct).ConfigureAwait(false);
+            await WaitForPartitionInitializationAsync(ct).ConfigureAwait(false);
 
             _logger.LogInformation("Enabling monitoring of events...");
         }
@@ -134,20 +149,24 @@ namespace TestEventProcessor.Businesslogic {
         /// <summary>
         /// Wait until we receive confirmation that monitoring of each partition has started.
         /// </summary>
-        private async Task WaitForPartitionInitialization(CancellationToken ct) {
+        private async Task WaitForPartitionInitializationAsync(CancellationToken ct)
+        {
             var sw = Stopwatch.StartNew();
 
             Task[] partitions;
             await _lockInitializedPartitions.WaitAsync(ct).ConfigureAwait(false);
-            try {
+            try
+            {
                 partitions = _initializedPartitions.Values.Select(v => v.Task).ToArray();
             }
-            finally {
+            finally
+            {
                 _lockInitializedPartitions.Release();
             }
             var waitOrTimeout = Task.Delay(TimeSpan.FromMinutes(5), ct);
-            var result = await Task.WhenAny(waitOrTimeout, Task.WhenAll(partitions));
-            if (result == waitOrTimeout) {
+            var result = await Task.WhenAny(waitOrTimeout, Task.WhenAll(partitions)).ConfigureAwait(false);
+            if (result == waitOrTimeout)
+            {
                 throw new OperationCanceledException("Cancelled waiting for partitions to initialize.");
             }
         }
@@ -155,15 +174,18 @@ namespace TestEventProcessor.Businesslogic {
         /// <summary>
         /// Event handler for monitoring partition closing events.
         /// </summary>
-        private async Task Client_PartitionClosingAsync(PartitionClosingEventArgs arg) {
+        private async Task Client_PartitionClosingAsync(PartitionClosingEventArgs arg)
+        {
             _logger.LogInformation("EventProcessorClient partition closing: {PartitionId}", arg.PartitionId);
 
             await _lockInitializedPartitions.WaitAsync().ConfigureAwait(false);
-            try {
-                _initializedPartitions[arg.PartitionId].TrySetException(new Exception("Partition closed"));
+            try
+            {
+                _initializedPartitions[arg.PartitionId].TrySetException(new InvalidOperationException("Partition closed"));
                 _initializedPartitions[arg.PartitionId] = new TaskCompletionSource<bool>();
             }
-            finally {
+            finally
+            {
                 _lockInitializedPartitions.Release();
             }
         }
@@ -171,17 +193,20 @@ namespace TestEventProcessor.Businesslogic {
         /// <summary>
         /// Event handler for monitoring partition initializing events.
         /// </summary>
-        private async Task Client_PartitionInitializingAsync(PartitionInitializingEventArgs arg) {
+        private async Task Client_PartitionInitializingAsync(PartitionInitializingEventArgs arg)
+        {
             _logger.LogInformation("EventProcessorClient partition initializing, start with latest position for " +
                 "partition {PartitionId}", arg.PartitionId);
 
             arg.DefaultStartingPosition = EventPosition.Latest;
 
             await _lockInitializedPartitions.WaitAsync().ConfigureAwait(false);
-            try {
+            try
+            {
                 _initializedPartitions[arg.PartitionId].TrySetResult(true);
             }
-            finally {
+            finally
+            {
                 _lockInitializedPartitions.Release();
             }
         }
@@ -189,8 +214,10 @@ namespace TestEventProcessor.Businesslogic {
         /// <summary>
         /// Event handler for processing IoT Hub messages.
         /// </summary>
-        private Task Client_ProcessEventAsync(ProcessEventArgs arg) {
-            if (ProcessEvent != null) {
+        private Task Client_ProcessEventAsync(ProcessEventArgs arg)
+        {
+            if (ProcessEvent != null)
+            {
                 ProcessEvent.Invoke(arg);
             }
             return Task.CompletedTask;
@@ -199,15 +226,18 @@ namespace TestEventProcessor.Businesslogic {
         /// <summary>
         /// Event handler that logs errors from EventProcessorClient.
         /// </summary>
-        private Task Client_ProcessErrorAsync(ProcessErrorEventArgs arg) {
+        private Task Client_ProcessErrorAsync(ProcessErrorEventArgs arg)
+        {
             _logger.LogError(arg.Exception, "EventProcessorClient issue reported, partition " +
                 "{PartitionId}, operation {Operation}", arg.PartitionId, arg.Operation);
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
-            if (_client != null) {
+        public void Dispose()
+        {
+            if (_client != null)
+            {
                 var tempClient = _client;
                 _client = null;
 

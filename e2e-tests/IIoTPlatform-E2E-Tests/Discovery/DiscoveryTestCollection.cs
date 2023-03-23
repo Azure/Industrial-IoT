@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Discovery {
+namespace IIoTPlatform_E2E_Tests.Discovery
+{
     using Xunit;
 
     [CollectionDefinition(CollectionName, DisableParallelization = true)]
-    public class DiscoveryTestCollection : ICollectionFixture<DiscoveryTestContext> {
+    public class DiscoveryTestCollection : ICollectionFixture<DiscoveryTestContext>
+    {
         // This class has no code, and is never created. Its purpose is simply
         // to be the place to apply [CollectionDefinition] and all the
         // ICollectionFixture<> interfaces.

@@ -1,0 +1,65 @@
+<xs:schema
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:ua="http://opcfoundation.org/UA/2008/02/Types.xsd"
+  xmlns:tns="http://opcfoundation.org/UA/Plc"
+  targetNamespace="http://opcfoundation.org/UA/Plc"
+  elementFormDefault="qualified"
+>
+  <xs:import namespace="http://opcfoundation.org/UA/2008/02/Types.xsd" />
+
+  <xs:complexType name="PlcDataType">
+    <xs:annotation>
+      <xs:documentation>Temperature in °C, pressure in Pa and heater state.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Temperature" type="tns:PlcTemperatureType" minOccurs="0" nillable="true" />
+      <xs:element name="Pressure" type="xs:int" minOccurs="0" />
+      <xs:element name="HeaterState" type="tns:PlcHeaterStateType" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PlcDataType" type="tns:PlcDataType" />
+
+  <xs:complexType name="ListOfPlcDataType">
+    <xs:sequence>
+      <xs:element name="PlcDataType" type="tns:PlcDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfPlcDataType" type="tns:ListOfPlcDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="PlcTemperatureType">
+    <xs:annotation>
+      <xs:documentation>Temperature in °C next to the heater at the bottom, and away from the heater at the top.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Top" type="xs:int" minOccurs="0" />
+      <xs:element name="Bottom" type="xs:int" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PlcTemperatureType" type="tns:PlcTemperatureType" />
+
+  <xs:complexType name="ListOfPlcTemperatureType">
+    <xs:sequence>
+      <xs:element name="PlcTemperatureType" type="tns:PlcTemperatureType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfPlcTemperatureType" type="tns:ListOfPlcTemperatureType" nillable="true"></xs:element>
+
+  <xs:simpleType  name="PlcHeaterStateType">
+    <xs:annotation>
+      <xs:documentation>Heater working state.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Off_0" />
+      <xs:enumeration value="On_1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="PlcHeaterStateType" type="tns:PlcHeaterStateType" />
+
+  <xs:complexType name="ListOfPlcHeaterStateType">
+    <xs:sequence>
+      <xs:element name="PlcHeaterStateType" type="tns:PlcHeaterStateType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfPlcHeaterStateType" type="tns:ListOfPlcHeaterStateType" nillable="true"></xs:element>
+
+</xs:schema>

@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.TestModels {
+namespace OpcPublisher_AE_E2E_Tests.TestModels
+{
     using System;
     using Newtonsoft.Json;
 
     /// <summary>Payload for conditions and alarms.</summary>
-    public class ConditionTypePayload : BaseEventTypePayload {
+    public class ConditionTypePayload : BaseEventTypePayload
+    {
         /// <summary>Gets or sets Condition Id.</summary>
         /// <example>"http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#i=1"</example>
         [JsonProperty("ConditionId")]

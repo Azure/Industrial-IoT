@@ -8,7 +8,6 @@ namespace TestEventProcessor.Service.Controllers
     using System;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Logging;
     using BusinessLogic;
     using Authentication;
     using Enums;
@@ -22,7 +21,6 @@ namespace TestEventProcessor.Service.Controllers
     [BasicAuthentication]
     public class RuntimeController : ControllerBase
     {
-        private readonly ILogger _logger;
         private readonly ITelemetryValidator _validator;
 
         /// <summary>
@@ -30,9 +28,8 @@ namespace TestEventProcessor.Service.Controllers
         /// </summary>
         /// <param name="logger">The logger to use to log messages.</param>
         /// <param name="validator">The validator to use to validate telemetry.</param>
-        public RuntimeController(ILogger<RuntimeController> logger, ITelemetryValidator validator)
+        public RuntimeController(ITelemetryValidator validator)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         }
 
@@ -43,17 +40,17 @@ namespace TestEventProcessor.Service.Controllers
         /// <param name="command">The command to process.</param>
         /// <returns>Result of the command.</returns>
         [HttpPut]
-        public async Task<IResult> Command(CommandModel command)
+        public async Task<IResult> CommandAsync(CommandModel command)
         {
             IResult result;
 
             switch (command.CommandType)
             {
                 case CommandEnum.Start:
-                    result = await _validator.StartAsync(command.Configuration);
+                    result = await _validator.StartAsync(command.Configuration).ConfigureAwait(false);
                     break;
                 case CommandEnum.Stop:
-                    result = await _validator.StopAsync();
+                    result = await _validator.StopAsync().ConfigureAwait(false);
                     break;
                 default: throw new NotImplementedException($"Unknown command: {command.CommandType}");
             }

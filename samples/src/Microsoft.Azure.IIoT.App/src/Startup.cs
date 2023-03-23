@@ -3,46 +3,41 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App {
+namespace Microsoft.Azure.IIoT.App
+{
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Validation;
-    using Microsoft.Azure.IIoT.Api.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Api.Runtime;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
-    using Microsoft.Azure.IIoT.AspNetCore.Storage;
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.SignalR;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Components.Authorization;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.Configuration;
+    using Microsoft.Identity.Web;
+    using Microsoft.Identity.Web.UI;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Blazored.Modal;
     using Blazored.SessionStorage;
     using FluentValidation;
-    using Serilog;
-    using Serilog.Events;
+    using global::Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
     using System;
+    using System.IdentityModel.Tokens.Jwt;
 
     /// <summary>
     /// Webapp startup
     /// </summary>
-    public class Startup {
-
+    public class Startup
+    {
         /// <summary>
         /// Configuration - Initialized in constructor
         /// </summary>
-        public Config Config { get; }
+        public IConfiguration Configuration { get; }
 
         /// <summary>
         /// Service info - Initialized in constructor
@@ -59,26 +54,15 @@ namespace Microsoft.Azure.IIoT.App {
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
-            this(env, new Config(new ConfigurationBuilder()
+        public Startup(IWebHostEnvironment env, IConfiguration configuration)
+        {
+            Environment = env ?? throw new ArgumentNullException(nameof(env));
+            Configuration = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                // Above configuration providers will provide connection
-                // details for KeyVault configuration provider.
-                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
-                .Build())) {
-        }
-
-        /// <summary>
-        /// Create startup
-        /// </summary>
-        /// <param name="env"></param>
-        /// <param name="configuration"></param>
-        public Startup(IWebHostEnvironment env, Config configuration) {
-            Environment = env ?? throw new ArgumentNullException(nameof(env));
-            Config = configuration ?? throw new ArgumentNullException(nameof(configuration));
+                .AddFromKeyVault(ConfigurationProviderPriority.Lowest)
+                .Build();
         }
 
         /// <summary>
@@ -86,15 +70,20 @@ namespace Microsoft.Azure.IIoT.App {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
-            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
+        {
             app.UsePathBase();
             app.UseHeaderForwarding();
             app.UseSession();
 
-            var isDevelopment = Environment.IsDevelopment();
-            _ = isDevelopment ? app.UseDeveloperExceptionPage() : app.UseExceptionHandler("/Error");
+            if (Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error");
+            }
 
             app.UseHttpsRedirect();
             app.UseStaticFiles();
@@ -103,7 +92,8 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => {
+            app.UseEndpoints(endpoints =>
+            {
                 endpoints.MapControllers();
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
@@ -111,6 +101,7 @@ namespace Microsoft.Azure.IIoT.App {
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
         }
 
@@ -121,105 +112,85 @@ namespace Microsoft.Azure.IIoT.App {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public void ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services)
+        {
+            // This is required to be instantiated before the OpenIdConnectOptions starts getting configured.
+            // By default, the claims mapping will map claim names in the old format to accommodate older SAML applications.
+            // 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role' instead of 'roles'
+            // This flag ensures that the ClaimsIdentity claims collection will be built from the claims in the token.
+            JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
-            // services.AddLogging(o => o.AddConsole().AddDebug());
+            services.AddLogging(o => o.AddConsole());
             services.AddHeaderForwarding();
 
-            services.AddSession(option => {
-                option.Cookie.IsEssential = true;
-            });
+            services.AddSession(option => option.Cookie.IsEssential = true);
 
             services.AddValidatorsFromAssemblyContaining<DiscovererInfoValidator>();
             services.AddValidatorsFromAssemblyContaining<ListNodeValidator>();
 
-            // Protect anything using keyvault and storage persisted keys
-            services.AddAzureDataProtection(Config.Configuration);
             services.AddDistributedMemoryCache();
 
-            services.Configure<CookiePolicyOptions>(options => {
+            services.Configure<CookiePolicyOptions>(options =>
+            {
                 // This lambda determines whether user consent for non-essential cookies
                 // is needed for a given request.
-                options.CheckConsentNeeded = context => true;
+                options.CheckConsentNeeded = _ => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddAntiforgery(options => {
-                options.Cookie.SameSite = SameSiteMode.Strict;
-            });
+            services.AddAntiforgery(
+                options => options.Cookie.SameSite = SameSiteMode.Strict);
 
-            services.AddAuthentication(AuthProvider.AzureAD)
-                .AddOpenIdConnect(AuthProvider.AzureAD)
-                //   .AddOpenIdConnect(AuthScheme.AuthService)
+            services.AddMsalAuthentication()
+                .AddInMemoryTokenCaches();
+
+            services.AddHttpContextAccessor();
+
+            services.AddControllersWithViews(options =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+                options.Filters.Add(new AuthorizeFilter(policy));
+            })
+                .AddMicrosoftIdentityUI()
                 ;
-
-            services.AddAuthorizationPolicies();
-            services.AddControllersWithViews();
 
             services.AddRazorPages();
             services.AddSignalR()
-                .AddJsonSerializer()
-                .AddMessagePackSerializer()
-                //   .AddAzureSignalRService(Config)
+                .AddJsonProtocol()
                 ;
 
-            services.AddServerSideBlazor();
+            services.AddServerSideBlazor()
+               .AddMicrosoftIdentityConsentHandler()
+               ;
             services.AddBlazoredSessionStorage();
             services.AddBlazoredModal();
-            services.AddScoped<AuthenticationStateProvider, BlazorAuthStateProvider>();
         }
 
         /// <summary>
         /// Configure dependency injection using autofac.
         /// </summary>
         /// <param name="builder"></param>
-        public void ConfigureContainer(ContainerBuilder builder) {
-
+        public void ConfigureContainer(ContainerBuilder builder)
+        {
             // Register configuration interfaces and logger
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
-            builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().AsSelf();
-            builder.RegisterInstance(Config.Configuration)
+            builder.RegisterInstance(Configuration)
                 .AsImplementedInterfaces();
 
-            // Register logger
-            builder.AddDiagnostics(Config, new LoggerConfiguration()
-                .MinimumLevel.Override("Microsoft.AspNetCore.Components", LogEventLevel.Information)
-                .MinimumLevel.Override("Microsoft.AspNetCore.SignalR", LogEventLevel.Information));
-
-            builder.RegisterModule<MessagePackModule>();
-            builder.RegisterModule<NewtonSoftJsonModule>();
+            // Register api
+            builder.AddServiceSdk();
+            builder.AddMessagePackSerializer();
+            builder.AddNewtonsoftJsonSerializer();
 
             // Use web app openid authentication
             // builder.RegisterModule<DefaultConfidentialClientAuthProviders>();
-            builder.RegisterModule<WebAppAuthentication>();
-            builder.RegisterType<AadApiWebConfig>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<AuthServiceApiWebConfig>()
-                .AsImplementedInterfaces();
-
-            builder.RegisterType<DistributedProtectedCache>()
-                .AsImplementedInterfaces();
-
-            // Register http client module (needed for api)...
-            builder.RegisterModule<HttpClientModule>();
-            builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces(); // Per request
-
-            // Register twin and registry services clients
-            builder.RegisterType<TwinServiceClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<PublisherServiceClient>()
-                .AsImplementedInterfaces();
-
-            // ... with client event callbacks
-            builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces().AsSelf();
-            builder.RegisterType<PublisherServiceEvents>()
-                .AsImplementedInterfaces().AsSelf();
+            //builder.RegisterModule<WebAppAuthentication>();
+            //
+            //builder.RegisterType<DistributedProtectedCache>()
+            //    .AsImplementedInterfaces();
 
             builder.RegisterType<Registry>()
                 .AsImplementedInterfaces().AsSelf();

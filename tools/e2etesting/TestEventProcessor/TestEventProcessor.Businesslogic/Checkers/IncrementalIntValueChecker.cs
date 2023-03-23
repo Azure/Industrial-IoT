@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers {
+namespace TestEventProcessor.BusinessLogic.Checkers
+{
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json.Linq;
     using System;
@@ -14,12 +15,13 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
     /// Checker to validate that values for nodeIds are incrementally increasing integers.
     /// It will return number of values that were either duplicates or indicate that dropped messages.
     /// </summary>
-    class IncrementalIntValueChecker {
+    class IncrementalIntValueChecker : IDisposable
+    {
 
         private readonly IDictionary<string, int> _latestValuePerNodeId;
         private readonly IDictionary<string, DateTime> _latestDateTimePerNodeId;
-        private uint _duplicateValues = 0;
-        private uint _droppedValues = 0;
+        private uint _duplicateValues;
+        private uint _droppedValues;
         private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;
 
@@ -29,7 +31,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <param name="logger"></param>
         public IncrementalIntValueChecker(
             ILogger logger
-        ) {
+        )
+        {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _latestValuePerNodeId = new Dictionary<string, int>();
@@ -46,43 +49,51 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             string nodeId,
             DateTime sourceTimestamp,
             JToken value
-        ) {
+        )
+        {
             int curValue;
 
-            try {
+            try
+            {
                 curValue = value.ToObject<int>();
             }
-            catch (Exception) {
-                _logger.LogError("Failed to extract int value from {value}", value);
+            catch (Exception)
+            {
+                _logger.LogError("Failed to extract int value from {Value}", value);
                 return;
             }
 
             _lock.Wait();
-            try {
-                if (!_latestValuePerNodeId.ContainsKey(nodeId)) {
+            try
+            {
+                if (!_latestValuePerNodeId.ContainsKey(nodeId))
+                {
                     // There is no previous value.
                     _latestValuePerNodeId.Add(nodeId, curValue);
                     _latestDateTimePerNodeId.Add(nodeId, sourceTimestamp);
                     return;
                 }
 
-                if (curValue == _latestValuePerNodeId[nodeId] + 1) {
+                if (curValue == _latestValuePerNodeId[nodeId] + 1)
+                {
                     _latestValuePerNodeId[nodeId] = curValue;
                     _latestDateTimePerNodeId[nodeId] = sourceTimestamp;
                     return;
                 }
 
-                if (curValue == _latestValuePerNodeId[nodeId]) {
+                if (curValue == _latestValuePerNodeId[nodeId])
+                {
                     _duplicateValues++;
-                    _logger.LogWarning("Duplicate value detected for {nodeId}: {value}, {prevTimestamp} -> {curTimestamp}",
+                    _logger.LogWarning("Duplicate value detected for {NodeId}: {Value}, {PrevTimestamp} -> {CurTimestamp}",
                         nodeId, curValue, _latestDateTimePerNodeId[nodeId], sourceTimestamp);
                     _latestDateTimePerNodeId[nodeId] = sourceTimestamp;
                 }
-                else {
+                else
+                {
                     _droppedValues++;
-                    _logger.LogWarning("Dropped value detected for {nodeId}, " +
-                        "previous value is {prevValue} at {prevTimestamp} " +
-                        "and current value is {curValue} at {curTimestamp}.",
+                    _logger.LogWarning("Dropped value detected for {NodeId}, " +
+                        "previous value is {PrevValue} at {PrevTimestamp} " +
+                        "and current value is {CurValue} at {CurTimestamp}.",
                         nodeId, _latestValuePerNodeId[nodeId], _latestDateTimePerNodeId[nodeId],
                         curValue, sourceTimestamp);
 
@@ -90,7 +101,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                     _latestDateTimePerNodeId[nodeId] = sourceTimestamp;
                 }
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
         }
@@ -99,19 +111,28 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// Stop processing and return number of detected duplicate or dropped messages.
         /// </summary>
         /// <returns></returns>
-        public IncrementalIntValueCheckerResult Stop() {
+        public IncrementalIntValueCheckerResult Stop()
+        {
             _lock.Wait();
-            try {
-                var result = new IncrementalIntValueCheckerResult() {
+            try
+            {
+                var result = new IncrementalIntValueCheckerResult()
+                {
                     DroppedValueCount = _droppedValues,
                     DuplicateValueCount = _duplicateValues,
                 };
 
                 return result;
             }
-            finally {
+            finally
+            {
                 _lock.Release();
             }
+        }
+
+        public void Dispose()
+        {
+            ((IDisposable)_lock).Dispose();
         }
     }
 }

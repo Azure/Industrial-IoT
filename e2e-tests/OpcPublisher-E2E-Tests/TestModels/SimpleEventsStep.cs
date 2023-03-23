@@ -3,9 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace OpcPublisher_AE_E2E_Tests.TestModels {
+namespace OpcPublisher_AE_E2E_Tests.TestModels
+{
     /// <summary>Simple event step.</summary>
-    public class SimpleEventsStep {
+    public class SimpleEventsStep
+    {
         /// <summary>Gets or sets the step name.</summary>
         /// <example>"Step 1"</example>
         public string Name { get; set; }

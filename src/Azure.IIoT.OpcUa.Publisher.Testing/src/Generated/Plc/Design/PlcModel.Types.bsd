@@ -1,0 +1,30 @@
+<opc:TypeDictionary
+  xmlns:opc="http://opcfoundation.org/BinarySchema/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ua="http://opcfoundation.org/UA/"
+  xmlns:tns="http://opcfoundation.org/UA/Plc"
+  DefaultByteOrder="LittleEndian"
+  TargetNamespace="http://opcfoundation.org/UA/Plc"
+>
+  <opc:Import Namespace="http://opcfoundation.org/UA/" Location="Opc.Ua.BinarySchema.bsd"/>
+
+  <opc:StructuredType Name="PlcDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>Temperature in °C, pressure in Pa and heater state.</opc:Documentation>
+    <opc:Field Name="Temperature" TypeName="tns:PlcTemperatureType" />
+    <opc:Field Name="Pressure" TypeName="opc:Int32" />
+    <opc:Field Name="HeaterState" TypeName="tns:PlcHeaterStateType" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="PlcTemperatureType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>Temperature in °C next to the heater at the bottom, and away from the heater at the top.</opc:Documentation>
+    <opc:Field Name="Top" TypeName="opc:Int32" />
+    <opc:Field Name="Bottom" TypeName="opc:Int32" />
+  </opc:StructuredType>
+
+  <opc:EnumeratedType Name="PlcHeaterStateType" LengthInBits="32">
+    <opc:Documentation>Heater working state.</opc:Documentation>
+    <opc:EnumeratedValue Name="Off" Value="0" />
+    <opc:EnumeratedValue Name="On" Value="1" />
+  </opc:EnumeratedType>
+
+</opc:TypeDictionary>

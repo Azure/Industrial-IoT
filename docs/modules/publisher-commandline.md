@@ -7,6 +7,7 @@ The following OPC Publisher configuration can be applied by Command Line Interfa
 CamcelCase options can also typically be provided using enviornment variables. When both environment variable and CLI argument are provided, the command line option will override the environment variable.
 
 ```text
+
 General
 -------
 
@@ -23,10 +24,12 @@ General
                                is accessible by the module, OPC Publisher will
                                start in standalone mode.
                                Default: `publishednodes.json`
-      --pfs, --publishfileschema, --PublishedNodesSchemaFile=VALUE
-                             The validation schema filename for publish file.
-                               Schema validation is disabled by default.
-                               Default: `not set` (disabled)
+      --id, --publisherid, --PublisherId=VALUE
+                             Sets the publisher id of the publisher.
+                               Default: `not set` which results in the IoT edge
+                               identity being used
+  -s, --site, --SiteId=VALUE Sets the site name of the publisher module.
+                               Default: `not set`
       --rs, --runtimestatereporting, --RuntimeStateReporting[=VALUE]
                              Enable that when publisher starts or restarts it
                                reports its runtime state using a restart
@@ -55,10 +58,13 @@ Messaging configuration
                                otherwise `Samples` for backwards compatibility.
       --me, --messageencoding, --MessageEncoding=VALUE
                              The message encoding for messages Allowed values:
-                                   `Uadp`
+                                   `Binary`
                                    `Json`
+                                   `Xml`
+                                   `IsReversible`
+                                   `Uadp`
                                    `JsonReversible`
-                                   `Gzip`
+                                   `IsGzipCompressed`
                                    `JsonGzip`
                                    `JsonReversibleGzip`
                                Default: `Json`.
@@ -121,67 +127,92 @@ Messaging configuration
                                selected supports sending metadata, `True`
                                otherwise.
 
-Transport settings
-------------------
+Routing configuration
+---------------------
 
-  -b, --mqc, --mqttclientconnectionstring, --MqttClientConnectionString=VALUE
-                             An mqtt client connection string to use. Use this
-                               option to connect OPC Publisher to a MQTT Broker
-                               or to an EdgeHub or IoT Hub MQTT endpoint.
-                               To connect to an MQTT broker use the format '
-                               HostName=<IPorDnsName>;Port=<Port>[;Username=<
-                               Username>;Password=<Password>;DeviceId=<
-                               IoTDeviceId>;Protocol=<v500 or v311>]'.
-                               To connect to IoT Hub or EdgeHub MQTT endpoint
-                               use a regular IoT Hub connection string.
-                               Ignored if `-c` option is used to set a
-                               connection string.
-                               Default: `not set` (disabled).
-                               For more information consult https://docs.
-                               microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-
-                               support#using-the-mqtt-protocol-directly-as-a-
-                               device) and https://learn.microsoft.com/en-us/
-                               azure/iot-hub/iot-hub-mqtt-support#for-azure-iot-
-                               tools) on how to retrieve the device connection
-                               string or generate a SharedAccessSignature for
-                               one.
-      --ttt, --telemetrytopictemplate, --TelemetryTopicTemplate=output_name
-                             A template that shall be used to build the topic
-                               for outgoing telemetry messages. If not
-                               specified IoT Hub and EdgeHub compatible topics
-                               will be used. The placeholder 'device_id' can be
-                               used to inject the device id and 'output_name'
-                               to inject routing info into the topic template.
-                               Default: `not set`.
-      --ri, --enableroutinginfo, --EnableRoutingInfo[=VALUE]
-                             Add routing information to telemetry messages. The
-                               name of the property is `$$RoutingInfo` and the
-                               value is the `DataSetWriterGroup` for that
-                               particular message.
-                               When the `DataSetWriterGroup` is not configured,
-                               the `$$RoutingInfo` property will not be added
-                               to the message even if this argument is set.
-                               Default: `False` (disabled).
-      --mqn, --metadataqueuename, --DefaultDataSetMetaDataQueueName[=VALUE]
-                             The output that metadata should be sent to.
-                               This will be a sub path of the configured
-                               telemetry topic or replacement of the output
-                               name token in the topic template, or in case of
-                               EdgeHub, the output name or appended sub path to
-                               existing configured output name.
+      --rtt, --roottopictemplate, --RootTopicTemplate[=PublisherId]
+                             The default root topic of OPC Publisher.
+                                 If not specified, the `PublisherId` template
+                               is the root topic.
+                               Currently only the template variables `SiteId`
+                               and `PublisherId` can be used as dynamic
+                               substituations in the template. If the template
+                               variable does not exist it is replaced with the `
+                               $default` string.
+                               Default: `PublisherId`.
+      --mtt, --methodtopictemplate, --MethodTopicTemplate=RootTopic
+                             The topic at which OPC Publisher's method handler
+                               is mounted. If not specified, the `RootTopic/
+                               methods` template will be used as root topic
+                               with the method names as sub topic.
+                               Only `RootTopic`, `SiteId`, and `PublisherId`
+                               can currently be used as replacement variables
+                               in the template.
+                               Default: `RootTopic/methods`.
+      --ttt, --telemetrytopictemplate, --TelemetryTopicTemplate[=DataSetWriterGroup]
+                             The default topic that all messages are sent to.
+                                 If not specified, the `RootTopic/
+                               DataSetWriterGroup` template will be used as
+                               root topic for all events sent by OPC Publisher.
+                               The template variables `RootTopic`, `SiteId`, `
+                               PublisherId`, `DataSetWriterName`, and `
+                               DataSetWriterGroup` can be used as dynamic parts
+                               in the template. If a template variable does not
+                               exist it is replaced with the `$default` string.
+                               Default: `RootTopic/DataSetWriterGroup`.
+      --mdt, --metadatatopictemplate, --DataSetMetaDataTopicTemplate[=TelemetryTopic]
+                             The topic that metadata should be sent to.
                                In case of MQTT the message will be sent as
                                RETAIN message with a TTL of either metadata
                                send interval or infinite if metadata send
                                interval is not configured.
                                Only valid if metadata is supported and/or
                                explicitely enabled.
-                               Default: `disabled` which means metadata is sent
-                               to the same output as regular messages. If
-                               specified without value, the default output is `$
-                               metadata`.
+                               The template variables `RootTopic`, `
+                               TelemetryTopic`, `PublisherId`, `
+                               DataSetWriterGroup`, and `DatasetWriterId` can
+                               be used as dynamic parts in the template.
+                               Default: `TelemetryTopic` which means metadata
+                               is sent to the same output as regular messages.
+                               If specified without value, the default output
+                               is `TelemetryTopic/$metadata`.
+      --ri, --enableroutinginfo, --EnableRoutingInfo[=VALUE]
+                             Add routing information to messages. The name of
+                               the property is `$$RoutingInfo` and the value is
+                               the `DataSetWriterGroup` for that particular
+                               message.
+                               When the `DataSetWriterGroup` is not configured,
+                               the `$$RoutingInfo` property will not be added
+                               to the message even if this argument is set.
+                               Default: `False`.
+
+Transport settings
+------------------
+
+      --om, --maxoutgressmessages, --MaxOutgressMessages=VALUE
+                             The maximum number of messages to buffer on the
+                               send path before messages are dropped.
+                               Default: `4096`
+  -b, --mqc, --mqttclientconnectionstring, --MqttClientConnectionString=VALUE
+                             An mqtt connection string to use. Use this option
+                               to connect OPC Publisher to a MQTT Broker
+                               endpoint.
+                               To connect to an MQTT broker use the format '
+                               HostName=<IPorDnsName>;Port=<Port>[;Username=<
+                               Username>;Password=<Password>;Protocol=<'v5'|'
+                               v311'>]'.
+                               Default: `not set`.
+      --ec, --edgehubconnectionstring, --dc, --deviceconnectionstring, --EdgeHubConnectionString=VALUE
+                             A edge hub or iot hub connection string to use if
+                               you run OPC Publisher outside of IoT Edge. The
+                               connection string can be obtained from the IoT
+                               Hub portal. It is not required to use this
+                               option if running inside IoT Edge.
+                               Default: `not set`.
       --ht, --ih, --iothubprotocol, --Transport=VALUE
                              Protocol to use for communication with EdgeHub.
                                Allowed values:
+                                   `None`
                                    `AmqpOverTcp`
                                    `AmqpOverWebsocket`
                                    `Amqp`
@@ -193,22 +224,6 @@ Transport settings
                                    `Any`
                                Default: `Mqtt` if device or edge hub connection
                                string is provided, ignored otherwise.
-      --ec, --edgehubconnectionstring, --dc, --deviceconnectionstring, --EdgeHubConnectionString=VALUE
-                             A edge hub or iot hub connection string to use if
-                               you run OPC Publisher outside of IoT Edge. The
-                               connection string can be obtained from the IoT
-                               Hub portal. Use this setting for testing only.
-                               Default: `not set`.
-      --BypassCertVerification=VALUE
-                             Enables bypass of certificate verification for
-                               upstream communication to edgeHub. This setting
-                               is for debugging purposes only and should not be
-                               used in production.
-                               Default: `False`
-      --om, --maxoutgressmessages, --MaxOutgressMessages=VALUE
-                             The maximum number of messages to buffer on the
-                               send path before messages are dropped.
-                               Default: `4096`
 
 Subscription settings
 ---------------------
@@ -233,11 +248,6 @@ Subscription settings
                                DefaultPublishingInterval` environment variable
                                in the form of a time span string formatted
                                string `[d.]hh:mm:ss[.fffffff]`.
-      --ki, --keepaliveinterval, --KeepAliveInterval=VALUE
-                             The interval in seconds the publisher is sending
-                               keep alive messages to the OPC servers on the
-                               endpoints it is connected to.
-                               Default: `10000` (10 seconds).
       --kt, --keepalivethreshold, --MaxKeepAliveCount=VALUE
                              Specify the number of keep alive packets a server
                                can miss, before the session is disconneced.
@@ -290,10 +300,19 @@ Subscription settings
                                DefaultHeartbeatInterval` environment variable
                                in the form of a time span string formatted
                                string `[d.]hh:mm:ss[.fffffff]`.
+      --slt, --MinSubscriptionLifetime=VALUE
+                             Minimum subscription lifetime in seconds as per
+                               OPC UA definition.
+                               Default: `not set`.
 
 OPC UA Client configuration
 ---------------------------
 
+      --ki, --keepaliveinterval, --KeepAliveInterval=VALUE
+                             The interval in seconds the publisher is sending
+                               keep alive messages to the OPC servers on the
+                               endpoints it is connected to.
+                               Default: `10000` (10 seconds).
       --aa, --acceptuntrusted, --AutoAcceptUntrustedCertificates[=VALUE]
                              The publisher accepts untrusted certificates
                                presented by a server it connects to.
@@ -312,10 +331,6 @@ OPC UA Client configuration
                                should remain open by the OPC server without any
                                activity (session timeout) to request from the
                                OPC server at session creation.
-                               Default: `not set`.
-      --slt, --MinSubscriptionLifetime=VALUE
-                             Minimum subscription lifetime in seconds as per
-                               OPC UA definition.
                                Default: `not set`.
       --otl, --opctokenlifetime, --SecurityTokenLifetime=VALUE
                              OPC UA Stack Transport Secure Channel - Security
@@ -435,28 +450,16 @@ Diagnostic options
                                DiagnosticsInterval` environment variable in the
                                form of a time span string formatted string `[d.]
                                hh:mm:ss[.fffffff]`".
-  -l, --lf, --logfile, --LogFileName=VALUE
-                             The filename of the logfile to write log output to.
-
-                               Default: `not set` (publisher logs to the
-                               console only).
-      --lt, --logflushtimespan, --LogFileFlushTimeSpan=VALUE
-                             The timespan in seconds when the logfile should be
-                               flushed to disk.
-                               Default: `not set`.
-      --ll, --loglevel=VALUE The loglevel to use. Allowed values:
-                                   `Verbose`
+      --ll, --loglevel, --LogLevel=VALUE
+                             The loglevel to use. Allowed values:
+                                   `Trace`
                                    `Debug`
                                    `Information`
                                    `Warning`
                                    `Error`
-                                   `Fatal`
+                                   `Critical`
+                                   `None`
                                Default: `Information`.
-      --em, --EnableMetrics=VALUE
-                             Enables exporting prometheus metrics on the
-                               default prometheus endpoint.
-                               Default: `True` (set to `False` to disable
-                               metrics exporting).
 ```
 
 Currently supported combinations of `--mm` snd `--me` can be found [here](./telemetry-messages-format.md).
