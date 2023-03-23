@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
     using System;
     using System.Collections.Generic;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -302,7 +301,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             }
             var uri = new Uri($"{_serviceUri}/v2/applications");
             return await _httpClient.PutAsync<ApplicationRegistrationResponseModel>(uri,
-                request, _serializer,  authorization: _authorization, ct: ct).ConfigureAwait(false);
+                request, _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>

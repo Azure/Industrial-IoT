@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.Devices.Shared;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;

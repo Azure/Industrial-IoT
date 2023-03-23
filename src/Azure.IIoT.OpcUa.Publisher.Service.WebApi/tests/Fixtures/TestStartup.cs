@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Mock.Services;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Text;

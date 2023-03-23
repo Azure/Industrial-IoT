@@ -38,7 +38,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 throw new ResourceNotFoundException("Could not find any endpoint");
             }
-            var registered = await _registry.AddDiscoveredApplicationAsync(application, ct).ConfigureAwait(false);
+            var registered = await _registry.AddDiscoveredApplicationAsync(application,
+                ct).ConfigureAwait(false);
             return registered.Endpoints.Single().Id;
         }
 

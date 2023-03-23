@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Furly.Extensions.Messaging;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics;

@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
-    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Container builder extensions

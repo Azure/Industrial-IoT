@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using Opc.Ua;

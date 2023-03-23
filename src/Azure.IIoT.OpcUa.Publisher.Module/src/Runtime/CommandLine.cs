@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Furly.Azure.IoT.Edge;
-    using Furly.Extensions.Logging;
     using Furly.Extensions.Mqtt;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;

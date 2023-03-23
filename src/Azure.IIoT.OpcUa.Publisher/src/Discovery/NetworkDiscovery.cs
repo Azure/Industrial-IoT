@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -27,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
-    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;

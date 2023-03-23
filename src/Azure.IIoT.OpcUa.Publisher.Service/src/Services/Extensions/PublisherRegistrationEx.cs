@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             }
 
             // Settings
-            if (update?.ApiKey!= existing?.ApiKey)
+            if (update?.ApiKey != existing?.ApiKey)
             {
                 desired.Add(OpcUa.Constants.TwinPropertyApiKeyKey, update?.ApiKey);
             }

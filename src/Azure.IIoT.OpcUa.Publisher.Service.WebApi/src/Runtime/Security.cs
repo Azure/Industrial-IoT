@@ -7,10 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 {
     using Furly.Extensions.Configuration;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
-    using Microsoft.Extensions.Azure;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Options;
     using Microsoft.Identity.Web;
     using System;

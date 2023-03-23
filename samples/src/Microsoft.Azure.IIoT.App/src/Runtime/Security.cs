@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.App.Runtime
 {
     using Microsoft.AspNetCore.Authentication.Cookies;
-    using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;

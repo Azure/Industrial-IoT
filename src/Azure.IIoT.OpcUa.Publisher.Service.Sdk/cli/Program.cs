@@ -16,8 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Net;
-    using System.Net.Sockets;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -1629,7 +1627,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 new DiscoveryRequestModel
                 {
                     Id = id,
-                    Discovery = options.GetValueOrDefault(DiscoveryMode.Fast, 
+                    Discovery = options.GetValueOrDefault(DiscoveryMode.Fast,
                         "-d", "--discovery"),
                     Configuration = BuildDiscoveryConfig(options)
                 }).ConfigureAwait(false);

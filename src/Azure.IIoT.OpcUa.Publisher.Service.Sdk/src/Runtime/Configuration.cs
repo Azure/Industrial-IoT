@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
 {
-    using Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR;
     using Autofac;
     using Furly.Extensions.Configuration;
     using Microsoft.Extensions.Configuration;

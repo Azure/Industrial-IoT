@@ -19,15 +19,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using Furly.Tunnel.Protocol;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.HttpsPolicy;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
     using Nito.AsyncEx;
-    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -83,9 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             services.AddCors();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
-
             services.AddHttpClient();
-            services.AddIoTHubServices();
 
             services.AddMicrosoftIdentityWebApiAuthentication();
             services.AddAuthorization();
