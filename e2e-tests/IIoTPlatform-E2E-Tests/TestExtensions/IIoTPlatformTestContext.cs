@@ -144,7 +144,6 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions
         {
             return new ConfigurationBuilder()
                 .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddFromDotEnvFile()
                 .Build();
         }
@@ -171,16 +170,16 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions
             () => "").Split(",");
 
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
-            () => { return string.Empty; });
+            () => string.Empty);
 
         string IIIoTPlatformConfig.AuthTenant => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
-            () => { return string.Empty; });
+            () => string.Empty);
 
         string IIIoTPlatformConfig.AuthClientId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID,
-            () => { return string.Empty; });
+            () => string.Empty);
 
         string IIIoTPlatformConfig.AuthClientSecret => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET,
-            () => { return string.Empty; });
+            () => string.Empty);
 
         string IIIoTPlatformConfig.ApplicationName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.ApplicationName,
             () => throw new ArgumentException("ApplicationName is not provided."));

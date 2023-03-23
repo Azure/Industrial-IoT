@@ -5,7 +5,7 @@
 
 namespace IIoTPlatform_E2E_Tests.Standalone
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using IIoTPlatform_E2E_Tests.Deploy;
     using System;
     using System.Linq;

@@ -5,7 +5,7 @@
 
 namespace IIoTPlatform_E2E_Tests.TestExtensions
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;

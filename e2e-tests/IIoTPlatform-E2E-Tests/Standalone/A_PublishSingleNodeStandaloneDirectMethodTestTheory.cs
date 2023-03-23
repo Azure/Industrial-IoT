@@ -6,7 +6,6 @@
 namespace IIoTPlatform_E2E_Tests.Standalone
 {
     using IIoTPlatform_E2E_Tests.Deploy;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using System.Net;
     using System.Collections.Generic;
     using System.Threading;
@@ -14,8 +13,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone
     using TestExtensions;
     using Xunit;
     using Xunit.Abstractions;
-    using Azure.IIoT.OpcUa.Models;
     using Furly.Extensions.Serializers;
+    using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node

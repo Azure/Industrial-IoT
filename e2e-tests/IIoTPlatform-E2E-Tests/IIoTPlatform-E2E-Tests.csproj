@@ -26,7 +26,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Azure.IIoT.OpcUa.Services.Sdk\src\Azure.IIoT.OpcUa.Services.Sdk.csproj" />
+    <ProjectReference Include="..\..\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk.csproj" />
     <ProjectReference Include="..\..\src\Azure.IIoT.OpcUa.Publisher.Sdk\src\Azure.IIoT.OpcUa.Publisher.Sdk.csproj" />
   </ItemGroup>
   <ItemGroup>

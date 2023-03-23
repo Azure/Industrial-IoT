@@ -8,7 +8,6 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone
     using OpcPublisher_AE_E2E_Tests.TestExtensions;
     using Azure.Messaging.EventHubs.Consumer;
     using Microsoft.Azure.Devices;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using System;
     using System.Net;
     using System.Threading;
@@ -19,7 +18,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone
     using Newtonsoft.Json.Linq;
     using FluentAssertions;
     using System.Collections.Generic;
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
 

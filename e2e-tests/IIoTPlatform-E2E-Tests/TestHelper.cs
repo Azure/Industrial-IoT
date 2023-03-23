@@ -7,7 +7,6 @@ namespace IIoTPlatform_E2E_Tests
 {
     using IIoTPlatform_E2E_Tests.TestEventProcessor;
     using Microsoft.Azure.Devices;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Renci.SshNet;
@@ -29,7 +28,14 @@ namespace IIoTPlatform_E2E_Tests
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+
+    public record class MethodResultModel(string JsonPayload, int Status);
+    public record class MethodParameterModel
+    {
+        public string Name { get; set; }
+        public string JsonPayload { get; set; }
+    }
 
     internal static partial class TestHelper
     {
@@ -908,11 +914,7 @@ namespace IIoTPlatform_E2E_Tests
                          serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
                          serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct)).ConfigureAwait(false);
                     context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
-                    return new MethodResultModel
-                    {
-                        JsonPayload = result.GetPayloadAsJson(),
-                        Status = result.Status
-                    };
+                    return new MethodResultModel(result.GetPayloadAsJson(), result.Status);
                 }
                 catch (Exception e)
                 {

@@ -9,7 +9,6 @@ namespace OpcPublisher_AE_E2E_Tests
     using Azure.Identity;
     using Azure.Messaging.EventHubs.Consumer;
     using Microsoft.Azure.Devices;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.Management.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
@@ -36,6 +35,13 @@ namespace OpcPublisher_AE_E2E_Tests
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+
+    public record class MethodResultModel(string JsonPayload, int Status);
+    public record class MethodParameterModel
+    {
+        public string Name { get; set; }
+        public string JsonPayload { get; set; }
+    }
 
     internal static class TestHelper
     {
@@ -722,9 +728,7 @@ namespace OpcPublisher_AE_E2E_Tests
         /// <param name="after">An optional action to execute when the last bypassed element is observed.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence starting at the first element in the linear series at which the number of distinct values has been observed.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="valueFunc"/> is null.</exception>
-#pragma warning disable AMNF0001 // Asynchronous method name is not ending with 'Async'
         private static IAsyncEnumerable<TSource> SkipUntilDistinctCountReached<TSource, TValue>(
-#pragma warning restore AMNF0001 // Asynchronous method name is not ending with 'Async'
             this IAsyncEnumerable<TSource> source,
             Func<TSource, TValue> valueFunc,
             int distinctCountToReach,
@@ -765,9 +769,7 @@ namespace OpcPublisher_AE_E2E_Tests
         /// <param name="duration">A time duration during which to return data.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-#pragma warning disable AMNF0001 // Asynchronous method name is not ending with 'Async'
         private static IAsyncEnumerable<TSource> ConsumeDuring<TSource>(
-#pragma warning restore AMNF0001 // Asynchronous method name is not ending with 'Async'
             this IAsyncEnumerable<TSource> source,
             IIoTPlatformTestContext context,
             Func<TSource, string> publisherIdFunc,
@@ -795,9 +797,7 @@ namespace OpcPublisher_AE_E2E_Tests
         /// <param name="duration">A time duration during which to return data.</param>
         /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-#pragma warning disable AMNF0001 // Asynchronous method name is not ending with 'Async'
         public static IAsyncEnumerable<EventData<TPayload>> ConsumeDuring<TPayload>(
-#pragma warning restore AMNF0001 // Asynchronous method name is not ending with 'Async'
             this IAsyncEnumerable<EventData<TPayload>> source,
             IIoTPlatformTestContext context,
             TimeSpan duration
@@ -890,11 +890,7 @@ namespace OpcPublisher_AE_E2E_Tests
                          serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
                          serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct)).ConfigureAwait(false);
                     context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
-                    return new MethodResultModel
-                    {
-                        JsonPayload = result.GetPayloadAsJson(),
-                        Status = result.Status
-                    };
+                    return new MethodResultModel(result.GetPayloadAsJson(), result.Status);
                 }
                 catch (Exception e)
                 {

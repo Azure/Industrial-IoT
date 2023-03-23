@@ -166,7 +166,6 @@ namespace OpcPublisher_AE_E2E_Tests.TestExtensions
         {
             return new ConfigurationBuilder()
                 .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddFromDotEnvFile()
                 .Build();
         }

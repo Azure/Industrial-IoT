@@ -5,10 +5,9 @@
 
 namespace IIoTPlatform_E2E_Tests.Standalone
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using IIoTPlatform_E2E_Tests.Deploy;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -121,7 +120,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone
                     new MethodParameterModel
                     {
                         Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
-                        JsonPayload = _serializer.SerializeToString(new List<Azure.IIoT.OpcUa.Models.PublishedNodesEntryModel> { request })
+                        JsonPayload = _serializer.SerializeToString(new List<PublishedNodesEntryModel> { request })
                     },
                     _cts.Token
                 ).ConfigureAwait(false);
@@ -163,7 +162,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone
             TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[0], request);
 
             // Create request for GetConfiguredNodesOnEndpoint method call
-            var nodesOnEndpoint = new Azure.IIoT.OpcUa.Models.PublishedNodesEntryModel();
+            var nodesOnEndpoint = new PublishedNodesEntryModel();
             nodesOnEndpoint.EndpointUrl = request.EndpointUrl;
             nodesOnEndpoint.UseSecurity = request.UseSecurity;
             var requestGetConfiguredNodesOnEndpoint = nodesOnEndpoint;
@@ -236,7 +235,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone
                     new MethodParameterModel
                     {
                         Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
-                        JsonPayload = _serializer.SerializeToString(new List<Azure.IIoT.OpcUa.Models.PublishedNodesEntryModel> { request })
+                        JsonPayload = _serializer.SerializeToString(new List<PublishedNodesEntryModel> { request })
                     },
                     _cts.Token
                 ).ConfigureAwait(false);

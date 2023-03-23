@@ -5,10 +5,9 @@
 
 namespace IIoTPlatform_E2E_Tests.Standalone
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using IIoTPlatform_E2E_Tests.Deploy;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;

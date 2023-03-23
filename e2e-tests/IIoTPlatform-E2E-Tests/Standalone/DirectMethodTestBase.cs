@@ -9,7 +9,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone
     using Furly.Extensions.Serializers.Newtonsoft;
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using Microsoft.Azure.Devices;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using System;
     using System.Collections.Generic;
     using System.Threading;

@@ -5,7 +5,7 @@
 
 namespace IIoTPlatform_E2E_Tests
 {
-    using Azure.IIoT.OpcUa.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Xunit;
 
     internal static partial class TestHelper
