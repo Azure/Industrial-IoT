@@ -124,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             app.UseCors();
 
             app.UseAuthentication();
-            // app.UseAuthorization();
+            app.UseAuthorization();
             app.UseSwagger();
 
             app.UseEndpoints(endpoints =>
