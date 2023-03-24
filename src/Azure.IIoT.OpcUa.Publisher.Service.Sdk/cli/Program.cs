@@ -186,6 +186,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                                 case "get":
                                     await GetEndpointAsync(options).ConfigureAwait(false);
                                     break;
+                                case "add":
+                                    await RegisterEndpointAsync(options).ConfigureAwait(false);
+                                    break;
                                 case "list":
                                     await ListEndpointsAsync(options).ConfigureAwait(false);
                                     break;
@@ -774,7 +777,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         /// <exception cref="ArgumentException"></exception>
         private string GetPublisherId(CliOptions options, bool shouldThrow = true)
         {
-            var id = options.GetValueOrDefault("-i", "--id", null);
+            var id = options.GetValueOrNull<string>("-i", "--id");
             if (_publisherId != null)
             {
                 if (id == null)
@@ -810,7 +813,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             }
             else
             {
-                var publisherId = options.GetValueOrDefault("-i", "--id", null);
+                var publisherId = options.GetValueOrNull<string>("-i", "--id");
                 if (string.IsNullOrEmpty(publisherId))
                 {
                     var result = await _client.Registry.ListAllPublishersAsync().ConfigureAwait(false);
@@ -930,7 +933,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         /// <exception cref="ArgumentException"></exception>
         private string GetGatewayId(CliOptions options, bool shouldThrow = true)
         {
-            var id = options.GetValueOrDefault("-i", "--id", null);
+            var id = options.GetValueOrNull<string>("-i", "--id");
             if (_gatewayId != null)
             {
                 if (id == null)
@@ -1080,7 +1083,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         /// <exception cref="ArgumentException"></exception>
         private string GetSupervisorId(CliOptions options, bool shouldThrow = true)
         {
-            var id = options.GetValueOrDefault("-i", "--id", null);
+            var id = options.GetValueOrNull<string>("-i", "--id");
             if (_supervisorId != null)
             {
                 if (id == null)
@@ -1116,7 +1119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             }
             else
             {
-                var supervisorId = options.GetValueOrDefault("-i", "--id", null);
+                var supervisorId = options.GetValueOrNull<string>("-i", "--id");
                 if (string.IsNullOrEmpty(supervisorId))
                 {
                     var result = await _client.Registry.ListAllSupervisorsAsync().ConfigureAwait(false);
@@ -1906,7 +1909,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         /// <exception cref="ArgumentException"></exception>
         private string GetEndpointId(CliOptions options, bool shouldThrow = true)
         {
-            var id = options.GetValueOrDefault("-i", "--id", null);
+            var id = options.GetValueOrNull<string>("-i", "--id");
             if (_endpointId != null)
             {
                 if (id == null)
@@ -1942,7 +1945,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             }
             else
             {
-                var endpointId = options.GetValueOrDefault("-i", "--id", null);
+                var endpointId = options.GetValueOrNull<string>("-i", "--id");
                 if (string.IsNullOrEmpty(endpointId))
                 {
                     var result = await _client.Registry.ListAllEndpointsAsync().ConfigureAwait(false);
@@ -2015,6 +2018,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                     options.GetValueOrNull<int?>("-P", "--page-size")).ConfigureAwait(false);
                 PrintResult(options, result);
             }
+        }
+
+        /// <summary>
+        /// Register endpoint directly
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private async Task RegisterEndpointAsync(CliOptions options)
+        {
+            var result = await _client.Registry.RegisterEndpointAsync(
+                new ServerEndpointQueryModel
+                {
+                    DiscoveryUrl = options.GetValueOrThrow<string>("-u", "--url"),
+                    Url = options.GetValueOrNull<string>("-e", "--endpoint-url"),
+                    SecurityMode = options.GetValueOrNull<SecurityMode?>("-m", "--mode"),
+                    SecurityPolicy = options.GetValueOrNull<string>("-l", "--policy"),
+                    Certificate = options.GetValueOrNull<string>("-c", "--certificate")
+                }).ConfigureAwait(false);
+
+            PrintResult(options, result);
         }
 
         /// <summary>
@@ -2428,6 +2451,15 @@ Commands and Options
         -i, --id        Endpoint id to select.
         -c, --clear     Clear current selection
         -s, --show      Show current selection
+
+     add         Register a new endpoint that matches a query
+        with ...
+        -u, --url       The discovery url to use (mandatory)
+        -e, --endpoint  The endpoint url to match against
+        -c, --certificate
+                        The certificate thumbprint to match
+        -m, --mode      The security mode to match
+        -l, --policy    The security policy to match
 
      monitor     Monitor changes to endpoints.
 

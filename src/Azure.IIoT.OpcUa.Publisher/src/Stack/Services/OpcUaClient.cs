@@ -326,6 +326,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 NumberOfConnectRetries = 0;
                 _lastState = EndpointConnectivityState.Disconnected;
                 _reconnectHandler?.Dispose();
+                _reconnectHandler = null;
+
                 subscriptions = _subscriptions.Values.ToList();
                 _subscriptions.Clear();
                 session = _session;
@@ -1276,17 +1278,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         if (_reconnectHandler == null)
                         {
-                            // Unset session under lock
-                            UnsetSession();
-
-                            NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
-
                             _logger.LogInformation(
                                 "KeepAlive status {Status} for session {Name}, reconnecting in {Period}ms.",
                                 e.Status, _sessionName, ReconnectPeriod);
+
                             _reconnectHandler = new SessionReconnectHandler(true);
-                            _reconnectHandler.BeginReconnect(_session,
+                            Debug.Assert(ReferenceEquals(session, _session));
+                            _reconnectHandler.BeginReconnect(session,
                                 ReconnectPeriod, Client_ReconnectComplete);
+
+                            // Unset session under lock
+                            UnsetSession();
+                            Debug.Assert(_session == null);
+                            NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
                         }
                         else
                         {

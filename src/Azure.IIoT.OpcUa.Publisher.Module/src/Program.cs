@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .AddFromDotEnvFile()
                     .AddInMemoryCollection(new CommandLine(args)))
                 .ConfigureWebHostDefaults(builder => builder
-                    .UseUrls("http://*:9702", "https://*:9703")
+                    //.UseUrls("http://*:9702", "https://*:9703")
                     .UseStartup<Startup>()
                     .UseKestrel(o => o.AddServerHeader = false))
                 ;

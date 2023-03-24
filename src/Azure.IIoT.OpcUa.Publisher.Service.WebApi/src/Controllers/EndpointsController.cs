@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Globalization;
 
     /// <summary>
     /// Activate, Deactivate and Query endpoint resources
@@ -109,8 +110,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
-                pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
-                    .FirstOrDefault());
+                pageSize = int.Parse(
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    CultureInfo.InvariantCulture);
             }
 
             // TODO: Redact username/token based on policy/permission
@@ -147,8 +149,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
-                pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
-                    .FirstOrDefault());
+                pageSize = int.Parse(
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    CultureInfo.InvariantCulture);
             }
             return await _endpoints.QueryEndpointsAsync(query,
                 onlyServerState ?? false, pageSize).ConfigureAwait(false);
@@ -183,8 +186,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
-                pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
-                    .FirstOrDefault());
+                pageSize = int.Parse(
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    CultureInfo.InvariantCulture);
             }
             return await _endpoints.QueryEndpointsAsync(query,
                 onlyServerState ?? false, pageSize).ConfigureAwait(false);

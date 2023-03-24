@@ -73,13 +73,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(o => o.AddConsole().AddDebug())
+#if DEBUG_LOG
                 .Configure<LoggerFilterOptions>(o => o.MinLevel = LogLevel.Debug)
+#endif
                 ;
 
             services.AddHeaderForwarding();
             services.AddCors();
             services.AddHealthChecks();
-            services.AddDistributedMemoryCache();
+            services.AddMemoryCache();
+            // services.AddDistributedMemoryCache();
             services.AddHttpClient();
 
             services.AddMicrosoftIdentityWebApiAuthentication();
@@ -165,6 +168,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             builder.AddIoTHubServices();
             builder.RegisterModule<RegistryServices>();
 
+            builder.ConfigureServices(
+                services => services.AddMemoryCache());
             builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherServicesClient>()

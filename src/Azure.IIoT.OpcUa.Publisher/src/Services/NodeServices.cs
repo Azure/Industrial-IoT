@@ -1668,7 +1668,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             System.Diagnostics.Debug.Assert(response != null);
                             var results = response.Validate(response.Results, r => r.StatusCode,
                                 response.DiagnosticInfos, browseDescriptions);
-                            if (results.Count > 0)
+                            if (results.ErrorInfo == null && results.Count > 0)
                             {
                                 children = results[0].Result.References.Count != 0;
                                 if (results[0].Result.ContinuationPoint != null)

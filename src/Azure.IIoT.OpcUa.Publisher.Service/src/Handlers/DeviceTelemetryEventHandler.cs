@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
 {
     using Furly.Azure.IoT;
+    using Furly.Extensions.Messaging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -16,13 +17,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     /// <summary>
     /// Default iot hub device event handler implementation
     /// </summary>
-    public sealed class DeviceTelemetryEventHandler : IIoTHubTelemetryHandler
+    public sealed class DeviceTelemetryEventHandler : IIoTHubTelemetryHandler, IDisposable
     {
         /// <summary>
         /// Create processor factory
         /// </summary>
+        /// <param name="events"></param>
         /// <param name="handlers"></param>
-        public DeviceTelemetryEventHandler(IEnumerable<IMessageHandler> handlers)
+        public DeviceTelemetryEventHandler(IEventRegistration<IIoTHubTelemetryHandler> events,
+            IEnumerable<IMessageHandler> handlers)
         {
             if (handlers == null)
             {
@@ -30,6 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             }
             _handlers = new ConcurrentDictionary<string, IMessageHandler>(
                 handlers.Select(h => KeyValuePair.Create(h.MessageSchema.ToUpperInvariant(), h)));
+            _registration = events.Register(this);
         }
 
         /// <inheritdoc/>
@@ -55,6 +59,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             }
         }
 
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            _registration.Dispose();
+        }
+
         private readonly ConcurrentDictionary<string, IMessageHandler> _handlers;
+        private readonly IDisposable _registration;
     }
 }

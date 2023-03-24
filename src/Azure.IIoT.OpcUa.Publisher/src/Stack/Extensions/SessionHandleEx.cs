@@ -972,8 +972,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         .GetValueOrDefault<ExtensionObject>(), out _),
                 InverseName =
                     lookup[Attributes.InverseName].Item1?
-                        .GetValueOrDefault<QualifiedName>()?
-                        .AsString(session.MessageContext),
+                        .GetValueOrDefault<LocalizedText>()?
+                        .ToString(),
                 Symmetric =
                     lookup[Attributes.Symmetric].Item1?
                         .GetValueOrDefault<bool?>(),

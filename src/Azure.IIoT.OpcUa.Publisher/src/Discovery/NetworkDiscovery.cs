@@ -80,7 +80,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <inheritdoc/>
         public Task RegisterAsync(ServerRegistrationRequestModel request, CancellationToken ct)
         {
-            throw new NotImplementedException();
+            return DiscoverAsync(new DiscoveryRequestModel
+            {
+                Id = request.Id,
+                Discovery = DiscoveryMode.Off,
+                Configuration = new DiscoveryConfigModel
+                {
+                    DiscoveryUrls = new List<string> { request.DiscoveryUrl }
+                }
+            }, ct);
         }
 
         /// <inheritdoc/>
