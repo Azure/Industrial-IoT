@@ -41,6 +41,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new instance.
         /// </summary>
+        /// <param name="uniquePath"></param>
+        /// <param name="folder"></param>
         public ArchiveFolder(string uniquePath, DirectoryInfo folder)
         {
             UniquePath = uniquePath;
@@ -62,8 +64,8 @@ namespace HistoricalAccess
             foreach (var directory in DirectoryInfo.GetDirectories())
             {
                 var buffer = new StringBuilder(UniquePath);
-                buffer.Append('/');
-                buffer.Append(directory.Name);
+                buffer.Append('/')
+                    .Append(directory.Name);
                 folders.Add(new ArchiveFolder(buffer.ToString(), directory));
             }
 
@@ -85,8 +87,8 @@ namespace HistoricalAccess
             foreach (var file in DirectoryInfo.GetFiles("*.csv"))
             {
                 var buffer = new StringBuilder(UniquePath);
-                buffer.Append('/');
-                buffer.Append(file.Name);
+                buffer.Append('/')
+                    .Append(file.Name);
                 items.Add(new ArchiveItem(buffer.ToString(), file));
             }
 

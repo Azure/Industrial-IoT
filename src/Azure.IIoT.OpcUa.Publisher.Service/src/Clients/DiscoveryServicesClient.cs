@@ -40,6 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         /// <inheritdoc/>
         public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct)
         {
+            using var activity = Diagnostics.Activity.StartActivity("CancelDiscovery");
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
                 var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
@@ -60,6 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public async Task<ApplicationRegistrationModel> FindServerAsync(ServerEndpointQueryModel query,
             CancellationToken ct)
         {
+            using var activity = Diagnostics.Activity.StartActivity("FindServer");
             var exceptions = new List<Exception>();
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
@@ -80,6 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         /// <inheritdoc/>
         public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct)
         {
+            using var activity = Diagnostics.Activity.StartActivity("Discover");
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
                 var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
@@ -98,6 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         /// <inheritdoc/>
         public async Task RegisterAsync(ServerRegistrationRequestModel request, CancellationToken ct)
         {
+            using var activity = Diagnostics.Activity.StartActivity("RegisterServer");
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
                 var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);

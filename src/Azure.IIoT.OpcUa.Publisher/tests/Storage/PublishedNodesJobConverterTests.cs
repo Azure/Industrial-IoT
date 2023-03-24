@@ -20,8 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     using Xunit;
 
     /// <summary>
-    /// Test
-    ///
     /// The referenced schema file across these test is a linked asset in the
     /// project file set to copy to the output build directory so that it can
     /// be easily referenced here.
@@ -29,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     public class PublishedNodesJobConverterTests
     {
         [Fact]
-        public void PnPlcEmptyTestAsync()
+        public void PnPlcEmptyTest()
         {
             const string pn = @"
 [

@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Globalization;
 
     /// <summary>
     /// Configure discovery
@@ -101,8 +102,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
-                pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
-                    .FirstOrDefault());
+                pageSize = int.Parse(
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    CultureInfo.InvariantCulture);
             }
             return await _discoverers.ListDiscoverersAsync(
                 continuationToken, pageSize).ConfigureAwait(false);
@@ -133,8 +135,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
-                pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
-                    .FirstOrDefault());
+                pageSize = int.Parse(
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    CultureInfo.InvariantCulture);
             }
             return await _discoverers.QueryDiscoverersAsync(
                 query, pageSize).ConfigureAwait(false);
@@ -165,8 +168,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
-                pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
-                    .FirstOrDefault());
+                pageSize = int.Parse(
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    CultureInfo.InvariantCulture);
             }
             return await _discoverers.QueryDiscoverersAsync(
                 query, pageSize).ConfigureAwait(false);

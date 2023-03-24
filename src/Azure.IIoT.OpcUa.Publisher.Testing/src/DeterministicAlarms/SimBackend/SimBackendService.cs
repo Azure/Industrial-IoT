@@ -47,7 +47,7 @@ namespace DeterministicAlarms.SimBackend
             {
                 simSourceNodeBackend = new SimSourceNodeBackend
                 {
-                    Name = name,
+                    Name = name
                 };
 
                 simSourceNodeBackend.OnAlarmChanged += alarmChangeCallback;

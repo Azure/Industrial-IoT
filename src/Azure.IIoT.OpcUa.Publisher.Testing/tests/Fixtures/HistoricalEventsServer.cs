@@ -18,6 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <summary>
         /// Sample server nodes
         /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="timeservice"></param>
         public static IEnumerable<INodeManagerFactory> HistoricalEvents(
             ILoggerFactory factory, TimeService timeservice)
         {

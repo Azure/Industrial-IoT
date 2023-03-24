@@ -217,11 +217,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             int? seconds,
             TimeSpan? defaultTimespan = null)
         {
-            return timespan.HasValue
-                ? timespan
-                : seconds.HasValue
+            return timespan ?? (seconds.HasValue
                     ? TimeSpan.FromSeconds(seconds.Value)
-                    : defaultTimespan;
+                    : defaultTimespan);
         }
 
         /// <summary>
@@ -236,11 +234,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             int? miliseconds,
             TimeSpan? defaultTimespan = null)
         {
-            return timespan.HasValue
-                ? timespan
-                : miliseconds.HasValue
+            return timespan ?? (miliseconds.HasValue
                     ? TimeSpan.FromMilliseconds(miliseconds.Value)
-                    : defaultTimespan;
+                    : defaultTimespan);
         }
 
         /// <summary>

@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Opc.Ua;
     using System;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Xml;
@@ -52,14 +53,20 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             MessageIsValid = 1,
             FieldTypeRawData = 2,
             FieldTypeDataValue = 4,
-            FieldTypeUsedBits = 6,
+            FieldTypeUsedBits = FieldTypeRawData | FieldTypeDataValue,
             DataSetMessageSequenceNumber = 8,
             Status = 16,
             ConfigurationVersionMajorVersion = 32,
             ConfigurationVersionMinorVersion = 64,
             DataSetFlags2 = 128,
 
-            DataSetFlags1UsedBits = 0xF9
+            DataSetFlags1UsedBits =
+                MessageIsValid |
+                DataSetMessageSequenceNumber |
+                Status |
+                ConfigurationVersionMajorVersion |
+                ConfigurationVersionMinorVersion |
+                DataSetFlags2
         }
 
         /// <summary>
@@ -71,13 +78,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             DataKeyFrame = 0,
             DataDeltaFrame = 1,
             Event = 2,
-            KeepAlive = 3,
+            KeepAlive = DataDeltaFrame | Event,
+            Reserved1 = 4,
+            MessageTypeBits = KeepAlive | Reserved1,
             Timestamp = 16,
             PicoSeconds = 32,
-            Reserved = 64,
-            ReservedForExtendedFlags = 128,
-
-            MessageTypeBits = 0x7
+            Reserved2 = 64,
+            ReservedForExtendedFlags = 128
         }
 
         /// <summary>
@@ -470,7 +477,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     for (var i = 0; i < dataSetFieldCount; i++)
                     {
                         var fieldMetaData = GetFieldMetadata(metadata, i);
-                        Payload.Add(fieldMetaData?.Name ?? i.ToString(),
+                        Payload.Add(fieldMetaData?.Name ?? i.ToString(CultureInfo.InvariantCulture),
                             new DataValue(binaryDecoder.ReadVariant(null)));
                     }
                     break;
@@ -478,7 +485,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     for (var i = 0; i < dataSetFieldCount; i++)
                     {
                         var fieldMetaData = GetFieldMetadata(metadata, i);
-                        Payload.Add(fieldMetaData?.Name ?? i.ToString(),
+                        Payload.Add(fieldMetaData?.Name ?? i.ToString(CultureInfo.InvariantCulture),
                             binaryDecoder.ReadDataValue(null));
                     }
                     break;
@@ -561,11 +568,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 switch (fieldType)
                 {
                     case 0:
-                        Payload.Add(fieldMetaData?.Name ?? fieldIndex.ToString(),
+                        Payload.Add(fieldMetaData?.Name ?? fieldIndex.ToString(CultureInfo.InvariantCulture),
                             new DataValue(binaryDecoder.ReadVariant(null)));
                         break;
                     case DataSetFlags1EncodingMask.FieldTypeDataValue:
-                        Payload.Add(fieldMetaData?.Name ?? fieldIndex.ToString(),
+                        Payload.Add(fieldMetaData?.Name ?? fieldIndex.ToString(CultureInfo.InvariantCulture),
                             binaryDecoder.ReadDataValue(null));
                         break;
                     case DataSetFlags1EncodingMask.FieldTypeRawData:
@@ -697,40 +704,56 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 switch (builtInType)
                 {
                     case BuiltInType.Boolean:
-                        binaryEncoder.WriteBoolean(null, Convert.ToBoolean(valueToEncode));
+                        binaryEncoder.WriteBoolean(null,
+                            Convert.ToBoolean(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.SByte:
-                        binaryEncoder.WriteSByte(null, Convert.ToSByte(valueToEncode));
+                        binaryEncoder.WriteSByte(null,
+                            Convert.ToSByte(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.Byte:
-                        binaryEncoder.WriteByte(null, Convert.ToByte(valueToEncode));
+                        binaryEncoder.WriteByte(null,
+                            Convert.ToByte(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.Int16:
-                        binaryEncoder.WriteInt16(null, Convert.ToInt16(valueToEncode));
+                        binaryEncoder.WriteInt16(null,
+                            Convert.ToInt16(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.UInt16:
-                        binaryEncoder.WriteUInt16(null, Convert.ToUInt16(valueToEncode));
+                        binaryEncoder.WriteUInt16(null,
+                            Convert.ToUInt16(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.Int32:
-                        binaryEncoder.WriteInt32(null, Convert.ToInt32(valueToEncode));
+                        binaryEncoder.WriteInt32(null,
+                            Convert.ToInt32(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.UInt32:
-                        binaryEncoder.WriteUInt32(null, Convert.ToUInt32(valueToEncode));
+                        binaryEncoder.WriteUInt32(null,
+                            Convert.ToUInt32(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.Int64:
-                        binaryEncoder.WriteInt64(null, Convert.ToInt64(valueToEncode));
+                        binaryEncoder.WriteInt64(null,
+                            Convert.ToInt64(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.UInt64:
-                        binaryEncoder.WriteUInt64(null, Convert.ToUInt64(valueToEncode));
+                        binaryEncoder.WriteUInt64(null,
+                            Convert.ToUInt64(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.Float:
-                        binaryEncoder.WriteFloat(null, Convert.ToSingle(valueToEncode));
+                        binaryEncoder.WriteFloat(null,
+                            Convert.ToSingle(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.Double:
-                        binaryEncoder.WriteDouble(null, Convert.ToDouble(valueToEncode));
+                        binaryEncoder.WriteDouble(null,
+                            Convert.ToDouble(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.DateTime:
-                        binaryEncoder.WriteDateTime(null, Convert.ToDateTime(valueToEncode));
+                        binaryEncoder.WriteDateTime(null,
+                            Convert.ToDateTime(valueToEncode, CultureInfo.InvariantCulture));
+                        break;
+                    case BuiltInType.Enumeration:
+                        binaryEncoder.WriteInt32(null,
+                            Convert.ToInt32(valueToEncode, CultureInfo.InvariantCulture));
                         break;
                     case BuiltInType.Guid:
                         binaryEncoder.WriteGuid(null, (Uuid)valueToEncode);
@@ -758,9 +781,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         break;
                     case BuiltInType.XmlElement:
                         binaryEncoder.WriteXmlElement(null, valueToEncode as XmlElement);
-                        break;
-                    case BuiltInType.Enumeration:
-                        binaryEncoder.WriteInt32(null, Convert.ToInt32(valueToEncode));
                         break;
                     case BuiltInType.ExtensionObject:
                         binaryEncoder.WriteExtensionObject(null, valueToEncode as ExtensionObject);
@@ -791,11 +811,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                             return ReadRawScalar(binaryDecoder, fieldMetaData.BuiltInType);
                         case ValueRanks.OneDimension:
                         case ValueRanks.TwoDimensions:
-                            return binaryDecoder.ReadArray(null, fieldMetaData.ValueRank, (BuiltInType)fieldMetaData.BuiltInType);
+                            return binaryDecoder.ReadArray(null, fieldMetaData.ValueRank,
+                                (BuiltInType)fieldMetaData.BuiltInType);
 
                         case ValueRanks.OneOrMoreDimensions:
                         case ValueRanks.Any:// Scalar or Array with any number of dimensions
                         case ValueRanks.ScalarOrOneDimension:
+                            // not implemented
+                            return StatusCodes.BadNotSupported;
                         default:
                             // not implemented
                             return StatusCodes.BadNotSupported;

@@ -17,62 +17,55 @@
         public IReadOnlyCollection<NodeWithIntervals> Nodes { get; private set; } = new List<NodeWithIntervals>();
 
         private uint NodeCount { get; } = 3;
-        private uint NodeRate { get; } = 1000; // ms.
+        /// <summary>
+        /// ms.
+        /// </summary>
+        private uint NodeRate { get; } = 1000;
         private NodeType NodeType { get; } = NodeType.UIntScalar;
         private string NodeMinValue { get; }
         private string NodeMaxValue { get; }
         private string NodeStepSize { get; } = "1";
-        private uint NodeSamplingInterval { get; } // ms.
+        /// <summary>
+        /// ms.
+        /// </summary>
+        private uint NodeSamplingInterval { get; }
         public ILogger Logger { get; set; }
 
         public void AddToAddressSpace(FolderState telemetryFolder, FolderState methodsFolder, PlcNodeManager plcNodeManager)
         {
             _plcNodeManager = plcNodeManager;
             _slowFastCommon = new SlowFastCommon(_plcNodeManager, TimeService, Logger);
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var folder = _plcNodeManager.CreateFolder(
                 telemetryFolder,
                 path: "Fast",
                 name: "Fast",
                 NamespaceType.PlcApplications);
-#pragma warning restore CA2000 // Dispose objects before losing scope
 
             // Used for methods to limit the number of updates to a fixed count.
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var simulatorFolder = _plcNodeManager.CreateFolder(
                 telemetryFolder.Parent, // Root.
                 path: "SimulatorConfiguration",
                 name: "SimulatorConfiguration",
                 NamespaceType.PlcApplications);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             AddNodes(folder, simulatorFolder);
             AddMethods(methodsFolder);
         }
 
         private void AddMethods(FolderState methodsFolder)
         {
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var stopUpdateMethod = _plcNodeManager.CreateMethod(
                 methodsFolder,
                 path: "StopUpdateFastNodes",
                 name: "StopUpdateFastNodes",
                 "Stop the increase of value of fast nodes",
                 NamespaceType.PlcApplications);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             SetStopUpdateFastNodesProperties(ref stopUpdateMethod);
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var startUpdateMethod = _plcNodeManager.CreateMethod(
                 methodsFolder,
                 path: "StartUpdateFastNodes",
                 name: "StartUpdateFastNodes",
                 "Start the increase of value of fast nodes",
                 NamespaceType.PlcApplications);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             SetStartUpdateFastNodesProperties(ref startUpdateMethod);
         }
 
@@ -116,7 +109,7 @@
                     NodeId = node.NodeId.Identifier.ToString(),
                     Namespace = Plc.Namespaces.PlcApplications,
                     PublishingInterval = NodeRate,
-                    SamplingInterval = NodeSamplingInterval,
+                    SamplingInterval = NodeSamplingInterval
                 });
             }
 
@@ -127,7 +120,7 @@
                     NodeId = node.NodeId.Identifier.ToString(),
                     Namespace = Plc.Namespaces.PlcApplications,
                     PublishingInterval = NodeRate,
-                    SamplingInterval = NodeSamplingInterval,
+                    SamplingInterval = NodeSamplingInterval
                 });
             }
 
@@ -147,6 +140,10 @@
         /// <summary>
         /// Method to stop updating the fast nodes.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="method"></param>
+        /// <param name="inputArguments"></param>
+        /// <param name="outputArguments"></param>
         private ServiceResult OnStopUpdateFastNodes(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             _updateNodes = false;
@@ -157,6 +154,10 @@
         /// <summary>
         /// Method to start updating the fast nodes.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="method"></param>
+        /// <param name="inputArguments"></param>
+        /// <param name="outputArguments"></param>
         private ServiceResult OnStartUpdateFastNodes(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             _updateNodes = true;

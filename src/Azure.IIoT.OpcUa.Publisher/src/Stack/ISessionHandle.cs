@@ -85,6 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// guarding the session. While holding the lock the session is
         /// not disposed or replaced.
         /// </summary>
+        /// <param name="session"></param>
         IDisposable GetSession(out ISession? session);
 
         /// <summary>

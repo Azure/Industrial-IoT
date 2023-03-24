@@ -305,7 +305,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 
             var options = applicationConfigurationBuilder
                 .AddSecurityConfiguration(
-                    securityOptions.ApplicationCertificate.SubjectName.Replace("localhost", hostname),
+                    securityOptions.ApplicationCertificate.SubjectName
+                        .Replace("localhost", hostname, StringComparison.InvariantCulture),
                     securityOptions.PkiRootPath)
                 .SetAutoAcceptUntrustedCertificates(securityOptions.AutoAcceptUntrustedCertificates.Value)
                 .SetRejectSHA1SignedCertificates(securityOptions.RejectSha1SignedCertificates.Value)

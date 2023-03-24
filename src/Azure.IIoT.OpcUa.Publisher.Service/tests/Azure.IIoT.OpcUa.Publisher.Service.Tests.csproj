@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>Azure.IIoT.OpcUa.Publisher.Service</RootNamespace>
-   </PropertyGroup>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Autofac.Extras.Moq" Version="6.1.0" />
     <PackageReference Include="AutoFixture" Version="4.18.0" />

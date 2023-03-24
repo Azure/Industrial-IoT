@@ -229,9 +229,9 @@ namespace Opc.Ua.Extensions
             var buffer = new StringBuilder();
             if (nsUri != null)
             {
-                buffer.Append(nsUri);
                 // Append node id as fragment
-                buffer.Append('#');
+                buffer.Append(nsUri)
+                    .Append('#');
             }
             switch (idType)
             {
@@ -283,9 +283,8 @@ namespace Opc.Ua.Extensions
             if (srvUri != null)
             {
                 // Pack server in front of identifier
-                buffer.Append("&srv=");
-                // srvUri = Uri.EscapeDataString(srvUri);
-                buffer.Append(srvUri);
+                buffer.Append("&srv=")
+                    .Append(srvUri);
             }
             return buffer.ToString();
         }

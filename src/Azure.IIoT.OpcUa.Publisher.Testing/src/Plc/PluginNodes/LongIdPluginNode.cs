@@ -19,15 +19,11 @@
         public void AddToAddressSpace(FolderState telemetryFolder, FolderState methodsFolder, PlcNodeManager plcNodeManager)
         {
             _plcNodeManager = plcNodeManager;
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var folder = _plcNodeManager.CreateFolder(
                 telemetryFolder,
                 path: "Special",
                 name: "Special",
                 NamespaceType.PlcApplications);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             AddNodes(folder);
         }
 
@@ -67,8 +63,8 @@
                 new NodeWithIntervals
                 {
                     NodeId = id.ToString(),
-                    Namespace = Plc.Namespaces.PlcApplications,
-                },
+                    Namespace = Plc.Namespaces.PlcApplications
+                }
             };
         }
 

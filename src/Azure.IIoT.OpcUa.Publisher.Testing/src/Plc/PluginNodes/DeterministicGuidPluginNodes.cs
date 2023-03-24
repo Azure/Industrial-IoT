@@ -16,21 +16,20 @@
         public ILogger Logger { get; set; }
 
         private static uint NodeCount { get; } = 1;
-        private uint NodeRate { get; } = 1000; // ms.
+        /// <summary>
+        /// ms.
+        /// </summary>
+        private uint NodeRate { get; } = 1000;
         private NodeType NodeType { get; } = NodeType.UIntScalar;
 
         public void AddToAddressSpace(FolderState telemetryFolder, FolderState methodsFolder, PlcNodeManager plcNodeManager)
         {
             _plcNodeManager = plcNodeManager;
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var folder = _plcNodeManager.CreateFolder(
                 telemetryFolder,
                 path: "Deterministic GUID",
                 name: "Deterministic GUID",
                 NamespaceType.PlcApplications);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             AddNodes(folder);
         }
 
@@ -80,7 +79,7 @@
                 nodes.Add(new NodeWithIntervals
                 {
                     NodeId = id,
-                    Namespace = Plc.Namespaces.PlcApplications,
+                    Namespace = Plc.Namespaces.PlcApplications
                 });
             }
 

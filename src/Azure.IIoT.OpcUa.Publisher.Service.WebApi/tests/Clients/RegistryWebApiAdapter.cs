@@ -35,10 +35,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<EndpointInfoModel> GetEndpointAsync(string id, bool onlyServerState,
+        public async Task<EndpointInfoModel> GetEndpointAsync(string endpointId, bool onlyServerState,
             CancellationToken ct)
         {
-            return await _client.GetEndpointAsync(id, onlyServerState, ct).ConfigureAwait(false);
+            return await _client.GetEndpointAsync(endpointId, onlyServerState, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -76,10 +76,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<SupervisorModel> GetSupervisorAsync(string id,
+        public async Task<SupervisorModel> GetSupervisorAsync(string supervisorId,
             bool onlyServerState, CancellationToken ct)
         {
-            return await _client.GetSupervisorAsync(id, onlyServerState, ct).ConfigureAwait(false);
+            return await _client.GetSupervisorAsync(supervisorId, onlyServerState, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -107,17 +107,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<PublisherModel> GetPublisherAsync(string id,
+        public async Task<PublisherModel> GetPublisherAsync(string publisherId,
             bool onlyServerState, CancellationToken ct)
         {
-            return await _client.GetPublisherAsync(id, onlyServerState, ct).ConfigureAwait(false);
+            return await _client.GetPublisherAsync(publisherId, onlyServerState, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task UpdatePublisherAsync(string id, PublisherUpdateModel request,
+        public async Task UpdatePublisherAsync(string publisherId, PublisherUpdateModel request,
             CancellationToken ct)
         {
-            await _client.UpdatePublisherAsync(id, request, ct).ConfigureAwait(false);
+            await _client.UpdatePublisherAsync(publisherId, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
 
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationModel> GetApplicationAsync(
-            string applicationId, bool filterInactiveTwins, CancellationToken ct)
+            string applicationId, bool filterInactiveEndpoints, CancellationToken ct)
         {
             return await _client.GetApplicationAsync(applicationId
                 /* TODO ,filterInactiveTwins */, ct).ConfigureAwait(false);

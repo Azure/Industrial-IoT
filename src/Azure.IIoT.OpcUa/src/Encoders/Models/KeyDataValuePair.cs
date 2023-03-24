@@ -97,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
     /// <summary>
     /// A collection of KeyDataValuePair objects.
     /// </summary>
-    public partial class KeyDataValuePairCollection : List<KeyDataValuePair>
+    public class KeyDataValuePairCollection : List<KeyDataValuePair>
     {
         /// <summary>
         /// Initializes the collection with default values.

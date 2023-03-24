@@ -47,6 +47,8 @@ namespace Reference
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="configuration"></param>
         public ReferenceNodeManager(IServerInternal server, ApplicationConfiguration configuration)
             : base(server, configuration, Namespaces.ReferenceApplications)
         {
@@ -57,6 +59,7 @@ namespace Reference
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
+        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && _simulationTimer != null)
@@ -70,6 +73,8 @@ namespace Reference
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="node"></param>
         public override NodeId New(ISystemContext context, NodeState node)
         {
             if (node is BaseInstanceState instance && instance.Parent != null)
@@ -134,6 +139,7 @@ namespace Reference
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
+        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -742,7 +748,7 @@ namespace Reference
                         {
                             RoleId = ObjectIds.WellKnownRole_Anonymous,
                             Permissions = (uint)(PermissionType.Browse |PermissionType.Read|PermissionType.ReadRolePermissions | PermissionType.Write)
-                        },
+                        }
                     };
                     variables.Add(rpAnonymous);
 
@@ -755,7 +761,7 @@ namespace Reference
                         {
                             RoleId = ObjectIds.WellKnownRole_AuthenticatedUser,
                             Permissions = (uint)(PermissionType.Browse |PermissionType.Read|PermissionType.ReadRolePermissions | PermissionType.Write)
-                        },
+                        }
                     };
                     variables.Add(rpAuthenticatedUser);
 
@@ -769,7 +775,7 @@ namespace Reference
                         {
                             RoleId = ObjectIds.WellKnownRole_SecurityAdmin,
                             Permissions = (uint)(PermissionType.Browse |PermissionType.Read|PermissionType.ReadRolePermissions | PermissionType.Write)
-                        },
+                        }
                     };
                     variables.Add(rpAdminUser);
 
@@ -1474,6 +1480,9 @@ namespace Reference
         /// <summary>
         /// Creates a new folder.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
         private FolderState CreateFolder(NodeState parent, string path, string name)
         {
             var folder = new FolderState(parent)
@@ -1497,6 +1506,10 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="peers"></param>
         private BaseDataVariableState CreateMeshVariable(NodeState parent, string path, string name, params NodeState[] peers)
         {
             var variable = CreateVariable(parent, path, name, BuiltInType.Double, ValueRanks.Scalar);
@@ -1518,6 +1531,11 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="dataType"></param>
+        /// <param name="valueRank"></param>
         private DataItemState CreateDataItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
         {
             var variable = new DataItemState(parent);
@@ -1571,6 +1589,11 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="dataType"></param>
+        /// <param name="valueRank"></param>
         private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
         {
             return CreateAnalogItemVariable(parent, path, name, dataType, valueRank, null);
@@ -1664,6 +1687,11 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="trueState"></param>
+        /// <param name="falseState"></param>
         private DataItemState CreateTwoStateDiscreteItemVariable(NodeState parent, string path, string name, string trueState, string falseState)
         {
             var variable = new TwoStateDiscreteState(parent)
@@ -1709,6 +1737,10 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="values"></param>
         private DataItemState CreateMultiStateDiscreteItemVariable(NodeState parent, string path, string name, params string[] values)
         {
             var variable = new MultiStateDiscreteState(parent)
@@ -1758,6 +1790,10 @@ namespace Reference
         /// <summary>
         /// Creates a new UInt32 variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="enumNames"></param>
         private DataItemState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, params string[] enumNames)
         {
             return CreateMultiStateValueDiscreteItemVariable(parent, path, name, null, enumNames);
@@ -1766,6 +1802,11 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="enumNames"></param>
         private DataItemState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, NodeId nodeId, params string[] enumNames)
         {
             var variable = new MultiStateValueDiscreteState(parent)
@@ -2013,6 +2054,11 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="dataType"></param>
+        /// <param name="valueRank"></param>
         private BaseDataVariableState CreateVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
         {
             return CreateVariable(parent, path, name, (uint)dataType, valueRank);
@@ -2021,6 +2067,11 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="dataType"></param>
+        /// <param name="valueRank"></param>
         private BaseDataVariableState CreateVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank)
         {
             var variable = new BaseDataVariableState(parent)
@@ -2081,6 +2132,11 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="dataType"></param>
+        /// <param name="valueRank"></param>
         private BaseDataVariableState CreateDynamicVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
         {
             return CreateDynamicVariable(parent, path, name, (uint)dataType, valueRank);
@@ -2089,6 +2145,11 @@ namespace Reference
         /// <summary>
         /// Creates a new variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="dataType"></param>
+        /// <param name="valueRank"></param>
         private BaseDataVariableState CreateDynamicVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank)
         {
             var variable = CreateVariable(parent, path, name, dataType, valueRank);
@@ -2120,6 +2181,10 @@ namespace Reference
         /// <summary>
         /// Creates a new view.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="externalReferences"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
         private ViewState CreateView(NodeState parent, IDictionary<NodeId, IList<IReference>> externalReferences, string path, string name)
         {
             var type = new ViewState
@@ -2154,6 +2219,9 @@ namespace Reference
         /// <summary>
         /// Creates a new method.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
         private MethodState CreateMethod(NodeState parent, string path, string name)
         {
             var method = new MethodState(parent)
@@ -2412,6 +2480,9 @@ namespace Reference
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="cache"></param>
         protected override NodeHandle GetManagerHandle(ServerSystemContext context,
             NodeId nodeId, IDictionary<NodeId, NodeState> cache)
         {
@@ -2440,6 +2511,9 @@ namespace Reference
         /// <summary>
         /// Verifies that the specified node exists.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="handle"></param>
+        /// <param name="cache"></param>
         protected override NodeState ValidateNode(
            ServerSystemContext context,
            NodeHandle handle,

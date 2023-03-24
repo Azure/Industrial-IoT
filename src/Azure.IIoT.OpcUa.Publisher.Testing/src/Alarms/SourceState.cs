@@ -43,6 +43,10 @@ namespace Alarms
         /// <summary>
         /// Initializes the area.
         /// </summary>
+        /// <param name="nodeManager"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="sourcePath"></param>
+        /// <param name="timeService"></param>
         public SourceState(
             CustomNodeManager2 nodeManager,
             NodeId nodeId,
@@ -157,6 +161,7 @@ namespace Alarms
         /// <summary>
         /// Called when the state of an alarm for the source has changed.
         /// </summary>
+        /// <param name="alarm"></param>
         private void OnAlarmChanged(UnderlyingSystemAlarm alarm)
         {
             lock (_nodeManager.Lock)
@@ -202,6 +207,7 @@ namespace Alarms
         /// <summary>
         /// Creates a new dialog condition
         /// </summary>
+        /// <param name="dialogName"></param>
         private DialogConditionState CreateDialog(string dialogName)
         {
             ISystemContext context = _nodeManager.SystemContext;
@@ -521,6 +527,9 @@ namespace Alarms
         /// <summary>
         /// Called when the alarm is enabled or disabled.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="condition"></param>
+        /// <param name="enabling"></param>
         private ServiceResult OnEnableDisableAlarm(
             ISystemContext context,
             ConditionState condition,
@@ -533,6 +542,10 @@ namespace Alarms
         /// <summary>
         /// Called when the alarm has a comment added.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="condition"></param>
+        /// <param name="eventId"></param>
+        /// <param name="comment"></param>
         private ServiceResult OnAddComment(
             ISystemContext context,
             ConditionState condition,
@@ -554,6 +567,10 @@ namespace Alarms
         /// <summary>
         /// Called when the alarm is acknowledged.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="condition"></param>
+        /// <param name="eventId"></param>
+        /// <param name="comment"></param>
         private ServiceResult OnAcknowledge(
             ISystemContext context,
             ConditionState condition,
@@ -575,6 +592,10 @@ namespace Alarms
         /// <summary>
         /// Called when the alarm is confirmed.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="condition"></param>
+        /// <param name="eventId"></param>
+        /// <param name="comment"></param>
         private ServiceResult OnConfirm(
             ISystemContext context,
             ConditionState condition,
@@ -596,6 +617,11 @@ namespace Alarms
         /// <summary>
         /// Called when the alarm is shelved.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="alarm"></param>
+        /// <param name="shelving"></param>
+        /// <param name="oneShot"></param>
+        /// <param name="shelvingTime"></param>
         private ServiceResult OnShelve(
             ISystemContext context,
             AlarmConditionState alarm,
@@ -615,6 +641,8 @@ namespace Alarms
         /// <summary>
         /// Called when the alarm is shelved.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="alarm"></param>
         private ServiceResult OnTimedUnshelve(
             ISystemContext context,
             AlarmConditionState alarm)
@@ -632,6 +660,9 @@ namespace Alarms
         /// <summary>
         /// Called when the dialog receives a response.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="dialog"></param>
+        /// <param name="selectedResponse"></param>
         private ServiceResult OnRespond(
             ISystemContext context,
             DialogConditionState dialog,
@@ -662,6 +693,7 @@ namespace Alarms
         /// <summary>
         /// Reports the changes to the alarm.
         /// </summary>
+        /// <param name="alarm"></param>
         private void ReportChanges(AlarmConditionState alarm)
         {
             // report changes to node attributes.
@@ -724,6 +756,7 @@ namespace Alarms
         /// <summary>
         /// Gets the user name associated with the context.
         /// </summary>
+        /// <param name="context"></param>
         private string GetUserName(ISystemContext context)
         {
             if (context.UserIdentity != null)

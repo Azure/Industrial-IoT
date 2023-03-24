@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.App.Models
     using global::Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
 
     public class DiscovererInfo
     {
@@ -131,23 +132,23 @@ namespace Microsoft.Azure.IIoT.App.Models
 
                 Patch.NetworkProbeTimeout = DiscovererModel.RequestedConfig.NetworkProbeTimeout =
                     string.IsNullOrWhiteSpace(input.RequestedNetworkProbeTimeout) ? TimeSpan.MinValue :
-                    TimeSpan.Parse(input.RequestedNetworkProbeTimeout);
+                    TimeSpan.Parse(input.RequestedNetworkProbeTimeout, CultureInfo.InvariantCulture);
 
                 Patch.MaxNetworkProbes = DiscovererModel.RequestedConfig.MaxNetworkProbes =
                     string.IsNullOrWhiteSpace(input.RequestedMaxNetworkProbes) ? -1 :
-                    int.Parse(input.RequestedMaxNetworkProbes);
+                    int.Parse(input.RequestedMaxNetworkProbes, CultureInfo.InvariantCulture);
 
                 Patch.PortProbeTimeout = DiscovererModel.RequestedConfig.PortProbeTimeout =
                     string.IsNullOrWhiteSpace(input.RequestedPortProbeTimeout) ? TimeSpan.MinValue :
-                    TimeSpan.Parse(input.RequestedPortProbeTimeout);
+                    TimeSpan.Parse(input.RequestedPortProbeTimeout, CultureInfo.InvariantCulture);
 
                 Patch.MaxPortProbes = DiscovererModel.RequestedConfig.MaxPortProbes =
                     string.IsNullOrWhiteSpace(input.RequestedMaxPortProbes) ? -1 :
-                    int.Parse(input.RequestedMaxPortProbes);
+                    int.Parse(input.RequestedMaxPortProbes, CultureInfo.InvariantCulture);
 
                 Patch.IdleTimeBetweenScans = DiscovererModel.RequestedConfig.IdleTimeBetweenScans =
                     string.IsNullOrWhiteSpace(input.RequestedIdleTimeBetweenScans) ? TimeSpan.MinValue :
-                    TimeSpan.Parse(input.RequestedIdleTimeBetweenScans);
+                    TimeSpan.Parse(input.RequestedIdleTimeBetweenScans, CultureInfo.InvariantCulture);
 
                 Patch.AddressRangesToScan = DiscovererModel.RequestedConfig.AddressRangesToScan =
                     string.IsNullOrWhiteSpace(input.RequestedAddressRangesToScan) ? string.Empty :

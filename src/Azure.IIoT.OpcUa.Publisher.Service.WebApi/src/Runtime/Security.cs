@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             });
             return services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddMicrosoftIdentityWebApi(_ => { }, _ => { },
-                    subscribeToJwtBearerMiddlewareDiagnosticsEvents: true)
+                    subscribeToJwtBearerMiddlewareDiagnosticsEvents: false)
                 ;
         }
 

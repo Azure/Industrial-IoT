@@ -19,15 +19,11 @@
         public void AddToAddressSpace(FolderState telemetryFolder, FolderState methodsFolder, PlcNodeManager plcNodeManager)
         {
             _plcNodeManager = plcNodeManager;
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var folder = _plcNodeManager.CreateFolder(
                 telemetryFolder,
                 path: "Basic",
                 name: "Basic",
                 NamespaceType.PlcApplications);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             AddNodes(folder);
             AddMethods(methodsFolder);
         }
@@ -107,44 +103,36 @@
                 new NodeWithIntervals
                 {
                     NodeId = "StepUp",
-                    Namespace = Plc.Namespaces.PlcApplications,
+                    Namespace = Plc.Namespaces.PlcApplications
                 },
                 new NodeWithIntervals
                 {
                     NodeId = "AlternatingBoolean",
-                    Namespace = Plc.Namespaces.PlcApplications,
+                    Namespace = Plc.Namespaces.PlcApplications
                 },
                 new NodeWithIntervals
                 {
                     NodeId = "RandomSignedInt32",
-                    Namespace = Plc.Namespaces.PlcApplications,
+                    Namespace = Plc.Namespaces.PlcApplications
                 },
                 new NodeWithIntervals
                 {
                     NodeId = "RandomUnsignedInt32",
-                    Namespace = Plc.Namespaces.PlcApplications,
-                },
+                    Namespace = Plc.Namespaces.PlcApplications
+                }
             };
         }
 
         private void AddMethods(FolderState parentFolder)
         {
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var resetStepUpMethod = _plcNodeManager.CreateMethod(parentFolder,
                 "ResetStepUp", "ResetStepUp", "Resets the StepUp counter to 0", NamespaceType.PlcApplications);
-#pragma warning restore CA2000 // Dispose objects before losing scope
             SetResetStepUpMethodProperties(ref resetStepUpMethod);
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var startStepUpMethod = _plcNodeManager.CreateMethod(parentFolder,
                 "StartStepUp", "StartStepUp", "Starts the StepUp counter", NamespaceType.PlcApplications);
-#pragma warning restore CA2000 // Dispose objects before losing scope
             SetStartStepUpMethodProperties(ref startStepUpMethod);
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var stopStepUpMethod = _plcNodeManager.CreateMethod(parentFolder,
                 "StopStepUp", "StopStepUp", "Stops the StepUp counter", NamespaceType.PlcApplications);
-#pragma warning restore CA2000 // Dispose objects before losing scope
             SetStopStepUpMethodProperties(ref stopStepUpMethod);
         }
 
@@ -166,6 +154,10 @@
         /// <summary>
         /// Method to reset the stepup value. Executes synchronously.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="method"></param>
+        /// <param name="inputArguments"></param>
+        /// <param name="outputArguments"></param>
         private ServiceResult OnResetStepUpCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             ResetStepUpData();
@@ -176,6 +168,10 @@
         /// <summary>
         /// Method to start the stepup value. Executes synchronously.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="method"></param>
+        /// <param name="inputArguments"></param>
+        /// <param name="outputArguments"></param>
         private ServiceResult OnStartStepUpCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             StartStepUp();
@@ -186,6 +182,10 @@
         /// <summary>
         /// Method to stop the stepup value. Executes synchronously.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="method"></param>
+        /// <param name="inputArguments"></param>
+        /// <param name="outputArguments"></param>
         private ServiceResult OnStopStepUpCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             StopStepUp();
@@ -197,6 +197,7 @@
         /// Updates simulation values. Called each SimulationCycleLength msec.
         /// Using SimulationCycleCount cycles per simulation phase.
         /// </summary>
+        /// <param name="value"></param>
         private uint StepUpGenerator(uint value)
         {
             // increase step up value
@@ -218,6 +219,7 @@
         /// Updates simulation values. Called each SimulationCycleLength msec.
         /// Using SimulationCycleCount cycles per simulation phase.
         /// </summary>
+        /// <param name="value"></param>
         private bool AlternatingBooleanGenerator(bool value)
         {
             // calculate next boolean value

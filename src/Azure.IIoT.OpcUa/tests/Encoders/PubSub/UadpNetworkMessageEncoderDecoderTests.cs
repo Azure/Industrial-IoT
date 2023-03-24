@@ -19,8 +19,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
     /// </summary>
     public class UadpNetworkMessageEncoderDecoderTests : IDataSetMetaDataResolver
     {
+        /// <summary>
+        /// All
+        /// </summary>
         public const UadpNetworkMessageContentMask NetworkMessageContentMaskDefault =
-            (UadpNetworkMessageContentMask)0x7ff; // All
+            (UadpNetworkMessageContentMask)0x7ff;
 
         public const UadpDataSetMessageContentMask DataSetMessageContentMaskDefault =
             UadpDataSetMessageContentMask.PicoSeconds |

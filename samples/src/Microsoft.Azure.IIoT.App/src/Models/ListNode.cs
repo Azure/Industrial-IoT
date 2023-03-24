@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.App.Models
     using global::Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
+
     public class ListNode
     {
         public string Id { get; set; }
@@ -40,13 +42,13 @@ namespace Microsoft.Azure.IIoT.App.Models
             try
             {
                 PublishedItem.PublishingInterval = string.IsNullOrWhiteSpace(input.RequestedPublishingInterval) ?
-                    TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(input.RequestedPublishingInterval));
+                    TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(input.RequestedPublishingInterval, CultureInfo.InvariantCulture));
 
                 PublishedItem.SamplingInterval = string.IsNullOrWhiteSpace(input.RequestedSamplingInterval) ?
-                    TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(input.RequestedSamplingInterval));
+                    TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(input.RequestedSamplingInterval, CultureInfo.InvariantCulture));
 
                 PublishedItem.HeartbeatInterval = string.IsNullOrWhiteSpace(input.RequestedHeartbeatInterval) ?
-                    TimeSpan.MinValue : TimeSpan.FromSeconds(Convert.ToDouble(input.RequestedHeartbeatInterval));
+                    TimeSpan.MinValue : TimeSpan.FromSeconds(Convert.ToDouble(input.RequestedHeartbeatInterval, CultureInfo.InvariantCulture));
 
                 return true;
             }

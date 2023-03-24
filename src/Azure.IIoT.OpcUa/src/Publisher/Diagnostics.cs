@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using System.Diagnostics;
     using System.Diagnostics.Metrics;
 
     /// <summary>
@@ -13,8 +14,23 @@ namespace Azure.IIoT.OpcUa.Publisher
     public static class Diagnostics
     {
         /// <summary>
+        /// Version
+        /// </summary>
+        public const string Version = "2.9";
+
+        /// <summary>
+        /// namespace
+        /// </summary>
+        public const string Namespace = "Azure.Industrial-IoT";
+
+        /// <summary>
         /// Metrics
         /// </summary>
-        public static readonly Meter Meter = new("Azure.Industrial-IoT", "2.9");
+        public static readonly Meter Meter = new(Namespace, Version);
+
+        /// <summary>
+        /// Tracing
+        /// </summary>
+        public static readonly ActivitySource Activity = new(Namespace, Version);
     }
 }

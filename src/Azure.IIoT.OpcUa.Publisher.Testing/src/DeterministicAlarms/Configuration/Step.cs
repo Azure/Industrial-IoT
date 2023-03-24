@@ -29,9 +29,7 @@
 
 namespace DeterministicAlarms.Configuration
 {
-#pragma warning disable CA1716 // Identifiers should not match keywords
     public class Step
-#pragma warning restore CA1716 // Identifiers should not match keywords
     {
         public @Event Event { get; set; }
 

@@ -7,6 +7,7 @@ namespace Opc.Ua
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Threading;
 
@@ -96,9 +97,11 @@ namespace Opc.Ua
                 case 0:
                     return "none";
                 case 1:
-                    return missingSequenceNumbers[0].ToString();
+                    return missingSequenceNumbers[0].ToString(CultureInfo.InvariantCulture);
                 default:
-                    return missingSequenceNumbers.Select(a => a.ToString()).Aggregate((a, b) => $"{a}, {b}");
+                    return missingSequenceNumbers
+                        .Select(a => a.ToString(CultureInfo.InvariantCulture))
+                        .Aggregate((a, b) => $"{a}, {b}");
             }
         }
 

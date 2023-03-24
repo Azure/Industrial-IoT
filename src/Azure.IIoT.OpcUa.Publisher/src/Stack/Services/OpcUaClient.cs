@@ -143,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public IDisposable GetSession(out ISession? session)
         {
-            var activity = new SessionActivity<IServiceResponse>(_lock.ReaderLock(),
+            var activity = new SessionActivity<IServiceResponse>(this, _lock.ReaderLock(),
                 "Raw Session access.", _session!);
             session = activity.Session;
             return activity;
@@ -1581,7 +1581,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var session = _session;
-                var activity = new SessionActivity<T>(readerLock, typeof(T).Name[0..^8],
+                var activity = new SessionActivity<T>(this, readerLock, typeof(T).Name[0..^8],
                     session!);
                 if (session == null)
                 {
@@ -1681,21 +1681,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public T? Error { get; set; }
 
             /// <inheritdoc/>
-            public SessionActivity(IDisposable readerLock, string activity, ISession session)
+            public SessionActivity(OpcUaClient opcUaClient,
+                IDisposable readerLock, string activity, ISession session)
             {
                 Session = session;
                 _lock = readerLock;
-                _activity = kActivity.StartActivity(activity);
+                _activity = Diagnostics.Activity.StartActivity(activity);
+
+                if (opcUaClient._logger.IsEnabled(LogLevel.Information))
+                {
+                    _logScope = new LogScope(activity, Stopwatch.StartNew(),
+                        opcUaClient._logger);
+                    _logScope.logger.LogDebug("Session activity {Activity} started...",
+                        _logScope.name);
+                }
             }
 
             /// <inheritdoc/>
             public void Dispose()
             {
-                _activity?.Dispose();
                 _lock.Dispose();
+                _activity?.Dispose();
+
+                if (_logScope != null)
+                {
+                    _logScope.logger.LogInformation(
+                        "Session activity {Activity} completed in {Elapsed}.",
+                        _logScope.name, _logScope.sw.Elapsed);
+                }
             }
 
+            private sealed record class LogScope(string name, Stopwatch sw, ILogger logger);
             private readonly Activity? _activity;
+            private readonly LogScope? _logScope;
             private readonly IDisposable _lock;
         }
 
@@ -1734,6 +1752,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private static readonly TypeTable kTypeTree = new(new NamespaceTable());
         private static readonly SystemContext kSystemContext = new();
         private static readonly ServiceMessageContext kMessageContext = new();
-        private static readonly ActivitySource kActivity = new(typeof(OpcUaClient).FullName!);
     }
 }

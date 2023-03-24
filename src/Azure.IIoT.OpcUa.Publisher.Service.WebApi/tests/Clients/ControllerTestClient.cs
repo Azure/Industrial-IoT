@@ -38,16 +38,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
 
         /// <inheritdoc/>
         public async Task<BrowseFirstResponseModel> NodeBrowseFirstAsync(string endpointId,
-            BrowseFirstRequestModel content, CancellationToken ct)
+            BrowseFirstRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var path = new UriBuilder($"{_serviceUri}/v2/browse/{endpointId}");
-            if (!string.IsNullOrEmpty(content.NodeId))
+            if (!string.IsNullOrEmpty(request.NodeId))
             {
-                path.Query = $"nodeId={content.NodeId.UrlEncode()}";
+                path.Query = $"nodeId={request.NodeId.UrlEncode()}";
             }
             return await _httpClient.GetAsync<BrowseFirstResponseModel>(
                 path.Uri, _serializer, ct: ct).ConfigureAwait(false);
@@ -55,23 +55,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
 
         /// <inheritdoc/>
         public async Task<BrowseNextResponseModel> NodeBrowseNextAsync(string endpointId,
-            BrowseNextRequestModel content, CancellationToken ct)
+            BrowseNextRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (content.ContinuationToken == null)
+            if (request.ContinuationToken == null)
             {
-                throw new ArgumentNullException(nameof(content.ContinuationToken));
+                throw new ArgumentException("Continuation missing", nameof(request));
             }
             var path = new UriBuilder($"{_serviceUri}/v2/browse/{endpointId}/next")
             {
-                Query = $"continuationToken={content.ContinuationToken}"
+                Query = $"continuationToken={request.ContinuationToken}"
             };
             return await _httpClient.GetAsync<BrowseNextResponseModel>(
                 path.Uri, _serializer, ct: ct).ConfigureAwait(false);
@@ -79,23 +79,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
 
         /// <inheritdoc/>
         public async Task<ValueReadResponseModel> NodeValueReadAsync(string endpointId,
-            ValueReadRequestModel content, CancellationToken ct)
+            ValueReadRequestModel request, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(endpointId))
             {
                 throw new ArgumentNullException(nameof(endpointId));
             }
-            if (content == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(content));
+                throw new ArgumentNullException(nameof(request));
             }
-            if (string.IsNullOrEmpty(content.NodeId))
+            if (string.IsNullOrEmpty(request.NodeId))
             {
-                throw new ArgumentNullException(nameof(content.NodeId));
+                throw new ArgumentException("Node id missing.", nameof(request));
             }
             var path = new UriBuilder($"{_serviceUri}/v2/read/{endpointId}")
             {
-                Query = $"nodeId={content.NodeId.UrlEncode()}"
+                Query = $"nodeId={request.NodeId.UrlEncode()}"
             };
             return await _httpClient.GetAsync<ValueReadResponseModel>(path.Uri,
                 _serializer, ct: ct).ConfigureAwait(false);
@@ -103,35 +103,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
 
         /// <inheritdoc/>
         public Task<ReadResponseModel> NodeReadAsync(string endpointId,
-            ReadRequestModel content, CancellationToken ct)
+            ReadRequestModel request, CancellationToken ct)
         {
             return Task.FromException<ReadResponseModel>(new NotImplementedException());
         }
 
         /// <inheritdoc/>
         public Task<WriteResponseModel> NodeWriteAsync(string endpointId,
-            WriteRequestModel content, CancellationToken ct)
+            WriteRequestModel request, CancellationToken ct)
         {
             return Task.FromException<WriteResponseModel>(new NotImplementedException());
         }
 
         /// <inheritdoc/>
         public Task<ValueWriteResponseModel> NodeValueWriteAsync(string endpointId,
-            ValueWriteRequestModel content, CancellationToken ct)
+            ValueWriteRequestModel request, CancellationToken ct)
         {
             return Task.FromException<ValueWriteResponseModel>(new NotImplementedException());
         }
 
         /// <inheritdoc/>
         public Task<MethodMetadataResponseModel> NodeMethodGetMetadataAsync(
-            string endpointId, MethodMetadataRequestModel content, CancellationToken ct)
+            string endpointId, MethodMetadataRequestModel request, CancellationToken ct)
         {
             return Task.FromException<MethodMetadataResponseModel>(new NotImplementedException());
         }
 
         /// <inheritdoc/>
         public Task<MethodCallResponseModel> NodeMethodCallAsync(
-            string endpointId, MethodCallRequestModel content, CancellationToken ct)
+            string endpointId, MethodCallRequestModel request, CancellationToken ct)
         {
             return Task.FromException<MethodCallResponseModel>(new NotImplementedException());
         }
@@ -144,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
 
         /// <inheritdoc/>
         public Task<BrowsePathResponseModel> NodeBrowsePathAsync(string endpointId,
-            BrowsePathRequestModel content, CancellationToken ct)
+            BrowsePathRequestModel request, CancellationToken ct)
         {
             return Task.FromException<BrowsePathResponseModel>(new NotImplementedException());
         }

@@ -67,6 +67,7 @@ namespace DataAccess
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -596,6 +597,7 @@ namespace DataAccess
         /// <summary>
         /// Simulates a block by updating the state of the tags belonging to the condition.
         /// </summary>
+        /// <param name="state"></param>
         private void DoSimulation(object state)
         {
             try

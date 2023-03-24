@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<X509CertificateChainModel> GetEndpointCertificateAsync(string endpoint,
             CancellationToken ct)
         {
-            return Execute(endpoint, ep =>
+            return Execute("GetEndpointCertificate", endpoint, ep =>
             {
                 var client = new DiscoveryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.GetEndpointCertificateAsync(ep.Endpoint, ct);
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task ConnectAsync(string endpoint, CredentialModel credential,
             CancellationToken ct)
         {
-            return Execute(endpoint, ep =>
+            return Execute("Connect", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.ConnectAsync(new ConnectionModel
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task DisconnectAsync(string endpoint, CredentialModel credential,
             CancellationToken ct)
         {
-            return Execute(endpoint, ep =>
+            return Execute("Disconnect", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.DisconnectAsync(new ConnectionModel
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("NodeBrowseFirst", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.NodeBrowseFirstAsync(new ConnectionModel
@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("NodeBrowseNext", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.NodeBrowseNextAsync(new ConnectionModel
@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("NodeBrowsePath", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.NodeBrowsePathAsync(new ConnectionModel
@@ -153,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("NodeValueRead", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.NodeValueReadAsync(new ConnectionModel
@@ -172,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("NodeValueWrite", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.NodeValueWriteAsync(new ConnectionModel
@@ -191,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("NodeMethodGetMetadata", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.NodeMethodGetMetadataAsync(new ConnectionModel
@@ -210,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("NodeMethodCall", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.NodeMethodCallAsync(new ConnectionModel
@@ -229,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("NodeRead", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.NodeReadAsync(new ConnectionModel
@@ -248,7 +248,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("NodeWrite", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.NodeWriteAsync(new ConnectionModel
@@ -263,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(string endpoint,
             CancellationToken ct)
         {
-            return Execute(endpoint, ep =>
+            return Execute("GetServerCapabilities", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.GetServerCapabilitiesAsync(new ConnectionModel
@@ -281,7 +281,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("GetMetadata", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.GetMetadataAsync(new ConnectionModel
@@ -296,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
             string endpoint, CancellationToken ct)
         {
-            return Execute(endpoint, ep =>
+            return Execute("HistoryGetServerCapabilities", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryGetServerCapabilitiesAsync(new ConnectionModel
@@ -314,7 +314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryGetConfiguration", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryGetConfigurationAsync(new ConnectionModel
@@ -333,7 +333,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryRead", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryReadAsync(new ConnectionModel
@@ -352,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryReadNext", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryReadNextAsync(new ConnectionModel
@@ -371,7 +371,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryUpdate", endpoint, ep =>
             {
                 var client = new TwinApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryUpdateAsync(new ConnectionModel
@@ -390,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("PublishStart", endpoint, ep =>
             {
                 var client = new PublisherApiClient(_client, ep.DiscovererId, _serializer);
                 return client.PublishStartAsync(new ConnectionModel
@@ -409,7 +409,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("PublishStop", endpoint, ep =>
             {
                 var client = new PublisherApiClient(_client, ep.DiscovererId, _serializer);
                 return client.PublishStopAsync(new ConnectionModel
@@ -428,7 +428,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("PublishBulk", endpoint, ep =>
             {
                 var client = new PublisherApiClient(_client, ep.DiscovererId, _serializer);
                 return client.PublishBulkAsync(new ConnectionModel
@@ -447,7 +447,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("PublishList", endpoint, ep =>
             {
                 var client = new PublisherApiClient(_client, ep.DiscovererId, _serializer);
                 return client.PublishListAsync(new ConnectionModel
@@ -466,7 +466,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryReplaceEvents", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryReplaceEventsAsync(new ConnectionModel
@@ -485,7 +485,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryInsertEvents", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryInsertEventsAsync(new ConnectionModel
@@ -504,7 +504,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryUpsertEvents", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryUpsertEventsAsync(new ConnectionModel
@@ -523,7 +523,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryDeleteEvents", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryDeleteEventsAsync(new ConnectionModel
@@ -543,7 +543,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryDeleteValuesAtTimes", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryDeleteValuesAtTimesAsync(new ConnectionModel
@@ -563,7 +563,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryDeleteModifiedValues", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryDeleteModifiedValuesAsync(new ConnectionModel
@@ -582,7 +582,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryDeleteValues", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryDeleteValuesAsync(new ConnectionModel
@@ -601,7 +601,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryReplaceValues", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryReplaceValuesAsync(new ConnectionModel
@@ -620,7 +620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryInsertValues", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryInsertValuesAsync(new ConnectionModel
@@ -639,7 +639,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryUpsertValues", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryUpsertValuesAsync(new ConnectionModel
@@ -659,7 +659,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryReadEvents", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryReadEventsAsync(new ConnectionModel
@@ -678,7 +678,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryReadEventsNext", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryReadEventsNextAsync(new ConnectionModel
@@ -698,7 +698,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryReadValues", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryReadValuesAsync(new ConnectionModel
@@ -718,7 +718,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryReadValuesAtTimes", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryReadValuesAtTimesAsync(new ConnectionModel
@@ -738,7 +738,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryReadProcessedValues", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryReadProcessedValuesAsync(new ConnectionModel
@@ -758,7 +758,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryReadModifiedValues", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryReadModifiedValuesAsync(new ConnectionModel
@@ -777,7 +777,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return Execute(endpoint, ep =>
+            return Execute("HistoryReadValuesNext", endpoint, ep =>
             {
                 var client = new HistoryApiClient(_client, ep.DiscovererId, _serializer);
                 return client.HistoryReadValuesNextAsync(new ConnectionModel
@@ -832,13 +832,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         /// Execute on endpoint
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="operation"></param>
         /// <param name="endpoint"></param>
         /// <param name="call"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<T> Execute<T>(string endpoint, Func<EndpointRegistrationModel, Task<T>> call,
-            CancellationToken ct)
+        private async Task<T> Execute<T>(string operation, string endpoint,
+            Func<EndpointRegistrationModel, Task<T>> call, CancellationToken ct)
         {
+            using var activity = Diagnostics.Activity.StartActivity(operation);
             var ep = await GetEndpointAsync(endpoint, ct).ConfigureAwait(false);
             try
             {
@@ -854,13 +856,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         /// <summary>
         /// Execute on endpoint
         /// </summary>
+        /// <param name="operation"></param>
         /// <param name="endpoint"></param>
         /// <param name="call"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task Execute(string endpoint, Func<EndpointRegistrationModel, Task> call,
-            CancellationToken ct)
+        private async Task Execute(string operation, string endpoint,
+            Func<EndpointRegistrationModel, Task> call, CancellationToken ct)
         {
+            using var activity = Diagnostics.Activity.StartActivity(operation);
             var ep = await GetEndpointAsync(endpoint, ct).ConfigureAwait(false);
             try
             {

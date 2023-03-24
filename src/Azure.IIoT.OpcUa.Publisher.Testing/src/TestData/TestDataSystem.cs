@@ -96,6 +96,7 @@ namespace TestData
         /// <summary>
         /// Creates an archive for the variable.
         /// </summary>
+        /// <param name="variable"></param>
         public void EnableHistoryArchiving(BaseVariableState variable)
         {
             if (variable == null)
@@ -112,6 +113,7 @@ namespace TestData
         /// <summary>
         /// Returns a new value for the variable.
         /// </summary>
+        /// <param name="variable"></param>
         public object ReadValue(BaseVariableState variable)
         {
             lock (_lock)

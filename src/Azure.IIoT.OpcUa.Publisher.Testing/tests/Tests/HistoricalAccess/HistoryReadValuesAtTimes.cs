@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// <summary>
         /// Create history services tests
         /// </summary>
+        /// <param name="server"></param>
         /// <param name="services"></param>
         /// <param name="connection"></param>
         public HistoryReadValuesAtTimesTests(BaseServerFixture server,

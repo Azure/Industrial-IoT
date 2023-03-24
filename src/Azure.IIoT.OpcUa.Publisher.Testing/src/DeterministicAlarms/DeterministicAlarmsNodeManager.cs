@@ -57,6 +57,11 @@ namespace DeterministicAlarms
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="configuration"></param>
+        /// <param name="timeService"></param>
+        /// <param name="configurationJson"></param>
+        /// <param name="logger"></param>
         public DeterministicAlarmsNodeManager(IServerInternal server,
             ApplicationConfiguration configuration, TimeService timeService,
             string configurationJson, ILogger logger) : base(server, configuration)
@@ -90,6 +95,7 @@ namespace DeterministicAlarms
         /// Verifies the script configuration file
         /// </summary>
         /// <param name="scriptConfiguration"></param>
+        /// <exception cref="ScriptException"></exception>
         private void VerifyScriptConfiguration(AlarmsConfiguration scriptConfiguration)
         {
             _scriptAlarmToSources = new Dictionary<string, string>();
@@ -108,10 +114,8 @@ namespace DeterministicAlarms
                         {
                             throw new ScriptException($"AlarmId: {alarm.Id} already exist");
                         }
-                        else
-                        {
-                            _scriptAlarmToSources[alarm.Id] = source.Name;
-                        }
+
+                        _scriptAlarmToSources[alarm.Id] = source.Name;
                     }
                 }
             }
@@ -252,6 +256,15 @@ namespace DeterministicAlarms
         /// <summary>
         /// Creates a new set of monitored items for a set of variables.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="subscriptionId"></param>
+        /// <param name="publishingInterval"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="itemsToCreate"></param>
+        /// <param name="errors"></param>
+        /// <param name="filterErrors"></param>
+        /// <param name="monitoredItems"></param>
+        /// <param name="globalIdCounter"></param>
         /// <remarks>
         /// This method only handles data change subscriptions. Event subscriptions are created by the SDK.
         /// </remarks>
@@ -364,6 +377,9 @@ namespace DeterministicAlarms
         /// <summary>
         /// Verifies that the specified node exists.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="handle"></param>
+        /// <param name="cache"></param>
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
@@ -386,6 +402,10 @@ namespace DeterministicAlarms
         /// <summary>
         /// Subscribes or unsubscribes to events produced by all event sources.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="subscriptionId"></param>
+        /// <param name="monitoredItem"></param>
+        /// <param name="unsubscribe"></param>
         /// <remarks>
         /// This method is called when a event subscription is created or deleted. The node
         /// manager must start/stop reporting events for all objects that it manages.
@@ -491,6 +511,7 @@ namespace DeterministicAlarms
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
+        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -540,6 +561,8 @@ namespace DeterministicAlarms
         /// <summary>
         /// Tells the node manager to refresh any conditions associated with the specified monitored items.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="monitoredItems"></param>
         /// <remarks>
         /// This method is called when the condition refresh method is called for a subscription.
         /// The node manager must create a refresh event for each condition monitored by the subscription.
@@ -672,6 +695,7 @@ namespace DeterministicAlarms
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
+        /// <param name="context"></param>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
             var predefinedNodes = new NodeStateCollection();

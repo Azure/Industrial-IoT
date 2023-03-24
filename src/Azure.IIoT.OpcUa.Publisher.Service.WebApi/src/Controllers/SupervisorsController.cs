@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Globalization;
 
     /// <summary>
     /// Read, Update and Query publisher resources
@@ -110,8 +111,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
-                pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
-                    .FirstOrDefault());
+                pageSize = int.Parse(
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    CultureInfo.InvariantCulture);
             }
             return await _supervisors.ListSupervisorsAsync(
                 continuationToken, onlyServerState ?? false, pageSize).ConfigureAwait(false);
@@ -146,8 +148,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
-                pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
-                    .FirstOrDefault());
+                pageSize = int.Parse(
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    CultureInfo.InvariantCulture);
             }
 
             // TODO: Filter results based on RBAC
@@ -185,8 +188,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
-                pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
-                    .FirstOrDefault());
+                pageSize = int.Parse(
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    CultureInfo.InvariantCulture);
             }
 
             // TODO: Filter results based on RBAC

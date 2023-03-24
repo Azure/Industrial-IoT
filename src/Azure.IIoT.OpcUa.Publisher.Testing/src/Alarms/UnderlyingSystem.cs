@@ -43,6 +43,7 @@ namespace Alarms
         /// <summary>
         /// Initializes a new instance of the <see cref="UnderlyingSystem"/> class.
         /// </summary>
+        /// <param name="timeService"></param>
         public UnderlyingSystem(TimeService timeService)
         {
             _sources = new Dictionary<string, UnderlyingSystemSource>();
@@ -69,6 +70,7 @@ namespace Alarms
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -192,6 +194,7 @@ namespace Alarms
         /// <summary>
         /// Simulates a source by updating the state of the alarms belonging to the condition.
         /// </summary>
+        /// <param name="state"></param>
         private void DoSimulation(object state)
         {
             try

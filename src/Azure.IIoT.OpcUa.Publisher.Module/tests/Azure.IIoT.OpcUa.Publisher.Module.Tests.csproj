@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>Azure.IIoT.OpcUa.Publisher.Module</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Json.More.Net" Version="1.7.0" />

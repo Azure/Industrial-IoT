@@ -46,6 +46,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="configuration"></param>
+        /// <param name="timeService"></param>
         public HistoricalAccessServerNodeManager(IServerInternal server, ApplicationConfiguration configuration, TimeService timeService)
         :
             base(server, configuration, Namespaces.HistoricalAccess)
@@ -72,6 +75,7 @@ namespace HistoricalAccess
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
+        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -111,6 +115,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
+        /// <param name="externalReferences"></param>
         public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
         {
             lock (Server.DiagnosticsLock)
@@ -144,6 +149,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates items from embedded resources.
         /// </summary>
+        /// <param name="root"></param>
+        /// <param name="folderName"></param>
         private void CreateFolderFromResources(NodeState root, string folderName)
         {
             var dataFolder = new FolderState(root)
@@ -193,6 +200,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="cache"></param>
         protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
         {
             lock (Lock)
@@ -248,6 +258,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Verifies that the specified node exists.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="handle"></param>
+        /// <param name="cache"></param>
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,
@@ -317,6 +330,12 @@ namespace HistoricalAccess
         /// <summary>
         /// Validates the nodes and reads the values from the underlying source.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodesToRead"></param>
+        /// <param name="values"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToValidate"></param>
+        /// <param name="cache"></param>
         protected override void Read(
             ServerSystemContext context,
             IList<ReadValueId> nodesToRead,
@@ -431,6 +450,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Called after creating a MonitoredItem.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="handle"></param>
+        /// <param name="monitoredItem"></param>
         protected override void OnMonitoredItemCreated(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
         {
             lock (Lock)
@@ -565,6 +587,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Called after deleting a MonitoredItem.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="handle"></param>
+        /// <param name="monitoredItem"></param>
         protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
         {
             lock (Lock)
@@ -603,6 +628,14 @@ namespace HistoricalAccess
         /// <summary>
         /// Reads the raw data for an item.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="details"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="nodesToRead"></param>
+        /// <param name="results"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryReadRawModified(
             ServerSystemContext context,
             ReadRawModifiedDetails details,
@@ -712,6 +745,14 @@ namespace HistoricalAccess
         /// <summary>
         /// Reads the processed data for an item.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="details"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="nodesToRead"></param>
+        /// <param name="results"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryReadProcessed(
             ServerSystemContext context,
             ReadProcessedDetails details,
@@ -812,6 +853,14 @@ namespace HistoricalAccess
         /// <summary>
         /// Reads the data at the specified time for an item.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="details"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="nodesToRead"></param>
+        /// <param name="results"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryReadAtTime(
             ServerSystemContext context,
             ReadAtTimeDetails details,
@@ -904,6 +953,12 @@ namespace HistoricalAccess
         /// <summary>
         /// Updates the data history for one or more nodes.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodesToUpdate"></param>
+        /// <param name="results"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryUpdateData(
             ServerSystemContext context,
             IList<UpdateDataDetails> nodesToUpdate,
@@ -962,6 +1017,12 @@ namespace HistoricalAccess
         /// <summary>
         /// Updates the data history for one or more nodes.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodesToUpdate"></param>
+        /// <param name="results"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryUpdateStructureData(
             ServerSystemContext context,
             IList<UpdateStructureDataDetails> nodesToUpdate,
@@ -1030,6 +1091,12 @@ namespace HistoricalAccess
         /// <summary>
         /// Deletes the data history for one or more nodes.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodesToUpdate"></param>
+        /// <param name="results"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryDeleteRawModified(
             ServerSystemContext context,
             IList<DeleteRawModifiedDetails> nodesToUpdate,
@@ -1076,6 +1143,12 @@ namespace HistoricalAccess
         /// <summary>
         /// Deletes the data history for one or more nodes.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodesToUpdate"></param>
+        /// <param name="results"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryDeleteAtTime(
             ServerSystemContext context,
             IList<DeleteAtTimeDetails> nodesToUpdate,
@@ -1128,6 +1201,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads the archive item state from the underlying source.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="handle"></param>
         private ArchiveItemState Reload(ServerSystemContext context, NodeHandle handle)
         {
             var item = handle.Node as ArchiveItemState;
@@ -1148,6 +1223,11 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new history request.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="details"></param>
+        /// <param name="handle"></param>
+        /// <param name="nodeToRead"></param>
+        /// <exception cref="ServiceResultException"></exception>
         private HistoryReadRequest CreateHistoryReadRequest(
             ServerSystemContext context,
             ReadRawModifiedDetails details,
@@ -1338,6 +1418,12 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new history request.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="details"></param>
+        /// <param name="handle"></param>
+        /// <param name="nodeToRead"></param>
+        /// <param name="aggregateId"></param>
+        /// <exception cref="ServiceResultException"></exception>
         private HistoryReadRequest CreateHistoryReadRequest(
             ServerSystemContext context,
             ReadProcessedDetails details,
@@ -1426,6 +1512,11 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new history request.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="details"></param>
+        /// <param name="handle"></param>
+        /// <param name="nodeToRead"></param>
+        /// <exception cref="ServiceResultException"></exception>
         private static HistoryReadRequest CreateHistoryReadRequest(
             ServerSystemContext context,
             ReadAtTimeDetails details,
@@ -1534,6 +1625,13 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts and queues any processed values.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="calculator"></param>
+        /// <param name="indexRange"></param>
+        /// <param name="dataEncoding"></param>
+        /// <param name="applyIndexRangeOrEncoding"></param>
+        /// <param name="returnPartial"></param>
+        /// <param name="values"></param>
         private void QueueProcessedValues(
             ServerSystemContext context,
             IAggregateCalculator calculator,
@@ -1573,6 +1671,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new history request.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodeToRead"></param>
+        /// <param name="row"></param>
+        /// <param name="applyIndexRangeOrEncoding"></param>
         private DataValue RowToDataValue(
             ServerSystemContext context,
             HistoryReadValueId nodeToRead,
@@ -1616,6 +1718,11 @@ namespace HistoricalAccess
         /// <summary>
         /// Releases the history continuation point.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodesToRead"></param>
+        /// <param name="errors"></param>
+        /// <param name="nodesToProcess"></param>
+        /// <param name="cache"></param>
         protected override void HistoryReleaseContinuationPoints(
             ServerSystemContext context,
             IList<HistoryReadValueId> nodesToRead,
@@ -1645,6 +1752,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads a history continuation point.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="continuationPoint"></param>
         private static HistoryReadRequest LoadContinuationPoint(
             ServerSystemContext context,
             byte[] continuationPoint)
@@ -1668,6 +1777,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Saves a history continuation point.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="request"></param>
         private static byte[] SaveContinuationPoint(
             ServerSystemContext context,
             HistoryReadRequest request)
@@ -1688,6 +1799,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Runs the simulation.
         /// </summary>
+        /// <param name="state"></param>
         private void DoSimulation(object state)
         {
             try

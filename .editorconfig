@@ -463,6 +463,9 @@ dotnet_diagnostic.RCS1244.severity = suggestion
 # xUnit1033: Test classes decorated with 'Xunit.IClassFixture<TFixture>' or 'Xunit.ICollectionFixture<TFixture>' should add a constructor argument of type TFixture
 dotnet_diagnostic.xUnit1033.severity = silent
 
+# CA1716: Identifiers should not match keywords
+dotnet_diagnostic.CA1716.severity = none
+
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion

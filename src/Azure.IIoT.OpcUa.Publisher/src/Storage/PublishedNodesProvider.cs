@@ -19,16 +19,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     public sealed class PublishedNodesProvider : IStorageProvider, IDisposable
     {
         /// <inheritdoc/>
-        public event FileSystemEventHandler Deleted;
+        public event EventHandler<FileSystemEventArgs> Deleted;
 
         /// <inheritdoc/>
-        public event FileSystemEventHandler Created;
+        public event EventHandler<FileSystemEventArgs> Created;
 
         /// <inheritdoc/>
-        public event FileSystemEventHandler Changed;
+        public event EventHandler<FileSystemEventArgs> Changed;
 
         /// <inheritdoc/>
-        public event RenamedEventHandler Renamed;
+        public event EventHandler<RenamedEventArgs> Renamed;
 
         /// <inheritdoc/>
         public bool EnableRaisingEvents

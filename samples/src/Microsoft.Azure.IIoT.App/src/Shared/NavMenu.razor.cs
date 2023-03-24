@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.App.Shared
     using Microsoft.AspNetCore.Components.Routing;
     using System.Threading.Tasks;
 
-    public partial class NavMenu
+    public sealed partial class NavMenu
     {
         private bool _collapseNavMenu = true;
 

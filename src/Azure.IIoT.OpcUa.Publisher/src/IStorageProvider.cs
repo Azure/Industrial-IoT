@@ -16,22 +16,22 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Occurs when published nodes file is deleted.
         /// </summary>
-        event FileSystemEventHandler Deleted;
+        event EventHandler<FileSystemEventArgs> Deleted;
 
         /// <summary>
         /// Occurs when published nodes file is created.
         /// </summary>
-        event FileSystemEventHandler Created;
+        event EventHandler<FileSystemEventArgs> Created;
 
         /// <summary>
         /// Occurs when published nodes file is changed.
         /// </summary>
-        event FileSystemEventHandler Changed;
+        event EventHandler<FileSystemEventArgs> Changed;
 
         /// <summary>
         /// Occurs when published nodes file is renamed.
         /// </summary>
-        event RenamedEventHandler Renamed;
+        event EventHandler<RenamedEventArgs> Renamed;
 
         /// <summary>
         /// Gets or sets a value indicating whether triggering of events is enabled.

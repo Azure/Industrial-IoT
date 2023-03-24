@@ -24,12 +24,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var dimensions = new List<int>();
             type = JTokenType.Undefined;
-            while (true)
+            while (array != null && array.Count != 0)
             {
-                if (array == null || array.Count == 0)
-                {
-                    break;
-                }
                 dimensions.Add(array.Count);
                 type = array[0].Type;
                 array = array[0] as JArray;

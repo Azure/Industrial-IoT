@@ -52,8 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create Job host
         /// </summary>
         /// <param name="factory"></param>
-        /// <param name="logger"></param>
         /// <param name="options"></param>
+        /// <param name="logger"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public PublisherHostService(IWriterGroupScopeFactory factory,
             IOptions<PublisherOptions> options, ILogger<PublisherHostService> logger)

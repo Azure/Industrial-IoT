@@ -32,16 +32,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
             if (dataSetWriter.DataSet == null)
             {
-                throw new ArgumentNullException(nameof(dataSetWriter.DataSet));
+                throw new ArgumentException("DataSet missing,", nameof(dataSetWriter));
             }
             if (dataSetWriter.DataSet.DataSetSource == null)
             {
-                throw new ArgumentNullException(nameof(dataSetWriter.DataSet.DataSetSource));
+                throw new ArgumentException("DataSet source missing,", nameof(dataSetWriter));
             }
             var monitoredItems = dataSetWriter.DataSet.DataSetSource.ToMonitoredItems(configuration);
             if (monitoredItems.Count == 0)
             {
-                throw new ArgumentException(nameof(dataSetWriter.DataSet.DataSetSource));
+                throw new ArgumentException("DataSet source empty.", nameof(dataSetWriter));
             }
             return new SubscriptionModel
             {
@@ -59,6 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="dataSetWriter"></param>
         /// <param name="writerGroupId"></param>
         /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public static SubscriptionIdentifier ToSubscriptionId(this DataSetWriterModel dataSetWriter,
             string writerGroupId = null)
         {
@@ -68,12 +69,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
             if (dataSetWriter.DataSetWriterName == null)
             {
-                throw new ArgumentNullException(nameof(dataSetWriter.DataSetWriterName));
+                throw new ArgumentException("DataSetWriterName missing.", nameof(dataSetWriter));
             }
             if (dataSetWriter.DataSet.DataSetSource.Connection == null)
             {
-                throw new ArgumentNullException(
-                    nameof(dataSetWriter.DataSet.DataSetSource.Connection));
+                throw new ArgumentException("Connection missing from data source", nameof(dataSetWriter));
             }
 
             var connection = dataSetWriter.DataSet.DataSetSource.Connection;

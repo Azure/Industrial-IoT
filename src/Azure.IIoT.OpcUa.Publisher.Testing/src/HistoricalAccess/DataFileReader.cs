@@ -98,6 +98,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads the item configuaration.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="item"></param>
         public bool LoadConfiguration(ISystemContext context, ArchiveItem item)
 #pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore IDE0079 // Remove unnecessary suppression
@@ -230,6 +232,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates new data.
         /// </summary>
+        /// <param name="item"></param>
         public void CreateData(ArchiveItem item)
         {
             // get the data set to use.
@@ -292,6 +295,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads the history for the item.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="item"></param>
         public void LoadHistoryData(ISystemContext context, ArchiveItem item)
         {
             // use the beginning of the current hour for the baseline.
@@ -318,6 +323,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads the history data from a stream.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="baseline"></param>
+        /// <param name="reader"></param>
         private DataSet LoadData(ISystemContext context, DateTime baseline, StreamReader reader)
         {
             var dataset = CreateDataSet();
@@ -520,6 +528,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts the next comma seperated field from the line.
         /// </summary>
+        /// <param name="line"></param>
         private string ExtractField(ref string line)
         {
             var field = line;
@@ -544,6 +553,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts an integer value from the line.
         /// </summary>
+        /// <param name="line"></param>
+        /// <param name="value"></param>
         private bool ExtractField(ref string line, out string value)
         {
             value = string.Empty;
@@ -561,6 +572,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts an integer value from the line.
         /// </summary>
+        /// <param name="lineCount"></param>
+        /// <param name="line"></param>
+        /// <param name="value"></param>
         private bool ExtractField(int lineCount, ref string line, out int value)
         {
             value = 0;
@@ -587,6 +601,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts a StatusCode value from the line.
         /// </summary>
+        /// <param name="lineCount"></param>
+        /// <param name="line"></param>
+        /// <param name="value"></param>
         private bool ExtractField(int lineCount, ref string line, out StatusCode value)
         {
             value = 0;
@@ -619,6 +636,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts a BuiltInType value from the line.
         /// </summary>
+        /// <param name="lineCount"></param>
+        /// <param name="line"></param>
+        /// <param name="value"></param>
         private bool ExtractField(int lineCount, ref string line, out BuiltInType value)
         {
             value = BuiltInType.String;
@@ -645,6 +665,11 @@ namespace HistoricalAccess
         /// <summary>
         /// Extracts a BuiltInType value from the line.
         /// </summary>
+        /// <param name="lineCount"></param>
+        /// <param name="line"></param>
+        /// <param name="context"></param>
+        /// <param name="valueType"></param>
+        /// <param name="value"></param>
         private static bool ExtractField(int lineCount, ref string line,
             IServiceMessageContext context, BuiltInType valueType, out Variant value)
         {

@@ -48,8 +48,8 @@ namespace DeterministicAlarms.Configuration
                     PropertyNameCaseInsensitive = true,
                     Converters =
                     {
-                        new JsonStringEnumConverter(),
-                    },
+                        new JsonStringEnumConverter()
+                    }
                 });
         }
     }

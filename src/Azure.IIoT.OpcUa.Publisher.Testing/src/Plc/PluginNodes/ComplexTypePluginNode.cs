@@ -65,26 +65,19 @@
             _plcNodeManager.AddPredefinedNode(_node);
 
             // Create heater on/off methods.
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var heaterOnMethod = _plcNodeManager.CreateMethod(
                 methodsFolder,
                 path: "HeaterOn",
                 name: "HeaterOn",
                 "Turn the heater on",
                 NamespaceType.PlcSimulation);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             SetHeaterOnMethodProperties(ref heaterOnMethod);
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var heaterOffMethod = _plcNodeManager.CreateMethod(
                 methodsFolder,
                 path: "HeaterOff",
                 name: "HeaterOff",
                 "Turn the heater off",
                 NamespaceType.PlcSimulation);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             SetHeaterOffMethodProperties(ref heaterOffMethod);
 
             Nodes = new List<NodeWithIntervals>
@@ -92,14 +85,15 @@
                 new NodeWithIntervals
                 {
                     NodeId = "Plc",
-                    Namespace = Plc.Namespaces.PlcSimulation,
-                },
+                    Namespace = Plc.Namespaces.PlcSimulation
+                }
             };
         }
 
         /// <summary>
         /// Loads a node set from a file or resource and adds them to the set of predefined nodes.
         /// </summary>
+        /// <param name="context"></param>
         private NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
             var type = GetType().GetTypeInfo();
@@ -115,7 +109,7 @@
         {
             var newValue = new PlcDataType
             {
-                HeaterState = _node.PlcStatus.Value.HeaterState,
+                HeaterState = _node.PlcStatus.Value.HeaterState
             };
 
             var currentTemperatureBottom = _node.PlcStatus.Value.Temperature.Bottom;
@@ -158,6 +152,10 @@
         /// <summary>
         /// Method to turn the heater on. Executes synchronously.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="method"></param>
+        /// <param name="inputArguments"></param>
+        /// <param name="outputArguments"></param>
         private ServiceResult OnHeaterOnCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             _node.PlcStatus.Value.HeaterState = PlcHeaterStateType.On;
@@ -168,6 +166,10 @@
         /// <summary>
         /// Method to turn the heater off. Executes synchronously.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="method"></param>
+        /// <param name="inputArguments"></param>
+        /// <param name="outputArguments"></param>
         private ServiceResult OnHeaterOffCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
         {
             _node.PlcStatus.Value.HeaterState = PlcHeaterStateType.Off;

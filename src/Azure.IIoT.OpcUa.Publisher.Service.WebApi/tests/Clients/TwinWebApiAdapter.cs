@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
         }
 
         /// <inheritdoc/>
-        public IAsyncEnumerable<BrowseStreamChunkModel> BrowseAsync(string endpointId,
+        public IAsyncEnumerable<BrowseStreamChunkModel> BrowseAsync(string endpoint,
             BrowseStreamRequestModel request, CancellationToken ct)
         {
             // TODO

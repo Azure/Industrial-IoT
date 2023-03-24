@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// <summary>
         /// Create history services tests
         /// </summary>
+        /// <param name="server"></param>
         /// <param name="services"></param>
         /// <param name="connection"></param>
         public HistoryReadValuesTests(BaseServerFixture server,
@@ -220,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Details = new ReadValuesDetailsModel
                     {
                         StartTime = _server.Now - TimeSpan.FromDays(600),
-                        EndTime = _server.Now + TimeSpan.FromDays(1),
+                        EndTime = _server.Now + TimeSpan.FromDays(1)
                     }
                 }).ConfigureAwait(false);
 
@@ -567,7 +568,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Details = new ReadValuesDetailsModel
                     {
                         StartTime = _server.Now - TimeSpan.FromDays(600),
-                        EndTime = _server.Now + TimeSpan.FromDays(1),
+                        EndTime = _server.Now + TimeSpan.FromDays(1)
                     }
                 }).ToListAsync().ConfigureAwait(false);
 

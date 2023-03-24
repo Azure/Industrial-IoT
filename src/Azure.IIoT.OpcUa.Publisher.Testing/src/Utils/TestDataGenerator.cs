@@ -205,6 +205,7 @@ namespace Opc.Ua.Test
         /// </summary>
         /// <param name="expectedType"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public object GetRandom(BuiltInType expectedType)
         {
             switch (expectedType)
@@ -287,6 +288,7 @@ namespace Opc.Ua.Test
         /// <param name="length"></param>
         /// <param name="fixedLength"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public Array GetRandomArray(BuiltInType expectedType, int length,
             bool fixedLength)
         {
@@ -389,6 +391,7 @@ namespace Opc.Ua.Test
         /// <param name="length"></param>
         /// <param name="fixedLength"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public T[] GetRandomArray<T>(int length = 100, bool fixedLength = false)
         {
             if (length < 0)

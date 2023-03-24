@@ -50,6 +50,7 @@ namespace TestData
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -65,6 +66,8 @@ namespace TestData
         /// <summary>
         /// Creates a new record in the archive.
         /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="dataType"></param>
         public void CreateRecord(NodeId nodeId, BuiltInType dataType)
         {
             lock (_lock)
@@ -119,6 +122,7 @@ namespace TestData
         /// <summary>
         /// Periodically adds new values into the archive.
         /// </summary>
+        /// <param name="state"></param>
         private void OnUpdate(object state)
         {
             try

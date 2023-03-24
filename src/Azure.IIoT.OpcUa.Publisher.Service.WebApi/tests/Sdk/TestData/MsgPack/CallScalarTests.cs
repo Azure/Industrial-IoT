@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.TestData.Binary
     using Xunit.Abstractions;
 
     [Collection(WriteCollection.Name)]
-    public class CallScalarTests : IClassFixture<WebAppFixture>, IDisposable
+    public sealed class CallScalarTests : IClassFixture<WebAppFixture>, IDisposable
     {
         public CallScalarTests(WebAppFixture factory, TestDataServer server, ITestOutputHelper output)
         {

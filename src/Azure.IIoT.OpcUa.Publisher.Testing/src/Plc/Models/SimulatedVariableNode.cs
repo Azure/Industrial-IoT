@@ -34,6 +34,8 @@
         /// Start periodic update.
         /// The update Func gets the current value as input and should return the updated value.
         /// </summary>
+        /// <param name="update"></param>
+        /// <param name="periodMs"></param>
         public void Start(Func<T, T> update, int periodMs)
         {
             _timer = _timeService.NewTimer((s, o) => Value = update(Value), (uint)periodMs);

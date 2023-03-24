@@ -64,6 +64,8 @@ namespace Plc
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="node"></param>
         public override NodeId New(ISystemContext context, NodeState node)
         {
             if (node is BaseInstanceState instance && instance.Parent != null)
@@ -80,6 +82,7 @@ namespace Plc
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
+        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -131,6 +134,10 @@ namespace Plc
         /// <summary>
         /// Creates a new folder.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="namespaceType"></param>
         public FolderState CreateFolder(NodeState parent, string path, string name, NamespaceType namespaceType)
         {
             var existingFolder = parent?.FindChildBySymbolicName(SystemContext, name);
@@ -162,21 +169,31 @@ namespace Plc
         /// <summary>
         /// Creates a new extended variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="dataType"></param>
+        /// <param name="valueRank"></param>
+        /// <param name="accessLevel"></param>
+        /// <param name="description"></param>
+        /// <param name="namespaceType"></param>
+        /// <param name="randomize"></param>
+        /// <param name="stepSizeValue"></param>
+        /// <param name="minTypeValue"></param>
+        /// <param name="maxTypeValue"></param>
+        /// <param name="defaultValue"></param>
         public BaseDataVariableState CreateBaseVariable(NodeState parent, dynamic path,
             string name, NodeId dataType, int valueRank, byte accessLevel, string description,
             NamespaceType namespaceType, bool randomize, object stepSizeValue,
             object minTypeValue, object maxTypeValue, object defaultValue = null)
         {
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var baseDataVariableState = new BaseDataVariableStateExtended(parent, randomize,
                 stepSizeValue, minTypeValue, maxTypeValue)
             {
                 SymbolicName = name,
                 ReferenceTypeId = ReferenceTypes.Organizes,
-                TypeDefinitionId = VariableTypeIds.BaseDataVariableType,
+                TypeDefinitionId = VariableTypeIds.BaseDataVariableType
             };
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             return CreateBaseVariable(baseDataVariableState, parent, path, name, dataType,
                 valueRank, accessLevel, description, namespaceType, defaultValue);
         }
@@ -184,19 +201,25 @@ namespace Plc
         /// <summary>
         /// Creates a new variable.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="dataType"></param>
+        /// <param name="valueRank"></param>
+        /// <param name="accessLevel"></param>
+        /// <param name="description"></param>
+        /// <param name="namespaceType"></param>
+        /// <param name="defaultValue"></param>
         public BaseDataVariableState CreateBaseVariable(NodeState parent, dynamic path,
             string name, NodeId dataType, int valueRank, byte accessLevel, string description,
             NamespaceType namespaceType, object defaultValue = null)
         {
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var baseDataVariableState = new BaseDataVariableState(parent)
             {
                 SymbolicName = name,
                 ReferenceTypeId = ReferenceTypes.Organizes,
-                TypeDefinitionId = VariableTypeIds.BaseDataVariableType,
+                TypeDefinitionId = VariableTypeIds.BaseDataVariableType
             };
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             return CreateBaseVariable(baseDataVariableState, parent, path, name, dataType,
                 valueRank, accessLevel, description, namespaceType, defaultValue);
         }
@@ -204,6 +227,11 @@ namespace Plc
         /// <summary>
         /// Creates a new method.
         /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="description"></param>
+        /// <param name="namespaceType"></param>
         public MethodState CreateMethod(NodeState parent, string path, string name,
             string description, NamespaceType namespaceType)
         {
@@ -220,7 +248,7 @@ namespace Plc
                 UserWriteMask = AttributeWriteMask.None,
                 Executable = true,
                 UserExecutable = true,
-                Description = new LocalizedText(description),
+                Description = new LocalizedText(description)
             };
 
             parent?.AddChild(method);
@@ -276,6 +304,7 @@ namespace Plc
         /// <summary>
         /// Loads a predefined node set by using the specified handler.
         /// </summary>
+        /// <param name="loadPredefinedNodeshandler"></param>
         public void LoadPredefinedNodes(Func<ISystemContext, NodeStateCollection> loadPredefinedNodeshandler)
         {
             _loadPredefinedNodeshandler = loadPredefinedNodeshandler;
@@ -286,6 +315,7 @@ namespace Plc
         /// <summary>
         /// Adds a predefined node set.
         /// </summary>
+        /// <param name="node"></param>
         public void AddPredefinedNode(NodeState node)
         {
             base.AddPredefinedNode(SystemContext, node);

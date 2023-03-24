@@ -36,8 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create trigger from writer group
         /// </summary>
         /// <param name="writerGroup"></param>
-        /// <param name="subscriptionManager"></param>
         /// <param name="options"></param>
+        /// <param name="subscriptionManager"></param>
         /// <param name="subscriptionConfig"></param>
         /// <param name="metrics"></param>
         /// <param name="logger"></param>
@@ -205,7 +205,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     [PublisherConfig.DataSetClassIdVariableName] =
                         dataSetWriter.DataSet.DataSetMetaData.DataSetClassId.ToString(),
                     [PublisherConfig.DataSetWriterGroupVariableName] =
-                        outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId,
+                        outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId
+
                     // ...
                 });
                 _topic = builder.TelemetryTopic;
@@ -586,7 +587,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         SequenceNumber = sequenceNumber,
                         WriterGroup = _outer._writerGroup,
                         Topic = _topic,
-                        MetaDataTopic = _metadataTopic,
+                        MetaDataTopic = _metadataTopic
                     };
                 }
             }
@@ -596,8 +597,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private Timer _metadataTimer;
             private uint _keyFrameCount;
             private volatile uint _frameCount;
-            private string _topic;
-            private string _metadataTopic;
+            private readonly string _topic;
+            private readonly string _metadataTopic;
             private SubscriptionModel _subscriptionInfo;
             private DataSetWriterModel _dataSetWriter;
             private uint _dataSetSequenceNumber;

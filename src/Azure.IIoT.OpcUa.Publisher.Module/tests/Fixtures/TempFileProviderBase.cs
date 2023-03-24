@@ -34,6 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils
             {
                 // Nothign to do.
             }
+            GC.SuppressFinalize(this);
         }
     }
 }

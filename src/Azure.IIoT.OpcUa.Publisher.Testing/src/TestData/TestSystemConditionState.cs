@@ -36,6 +36,8 @@ namespace TestData
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="node"></param>
         protected override void OnAfterCreate(ISystemContext context, NodeState node)
         {
             base.OnAfterCreate(context, node);
@@ -46,6 +48,9 @@ namespace TestData
         /// <summary>
         /// Reads the value for the MonitoredNodeCount.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="node"></param>
+        /// <param name="value"></param>
         protected virtual ServiceResult OnReadMonitoredNodeCount(
             ISystemContext context,
             NodeState node,

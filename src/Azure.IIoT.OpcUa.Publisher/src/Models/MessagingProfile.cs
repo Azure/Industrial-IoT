@@ -8,12 +8,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Text;
 
     /// <summary>
     /// Messaging profiles supported by OPC Publisher
     /// </summary>
-    public class MessagingProfile
+    public sealed class MessagingProfile
     {
         /// <summary>
         /// Messaging mode
@@ -150,31 +151,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <inheritdoc/>
         public override string ToString()
         {
-            var builder = new StringBuilder("| ");
-            builder.Append(MessagingMode);
-            builder.Append(" | ");
-            builder.Append(MessageEncoding);
-            builder.Append(" | ");
-            builder.Append(NetworkMessageContentMask);
-            builder.Append("<br>(");
-            builder.AppendFormat("0x{0:X}", StackTypesEx.ToStackType(
-                NetworkMessageContentMask, MessageEncoding));
-            builder.Append(") | ");
-            builder.Append(DataSetMessageContentMask);
-            builder.Append("<br>(");
-            builder.AppendFormat("0x{0:X}", StackTypesEx.ToStackType(
-                DataSetMessageContentMask, DataSetFieldContentMask, MessageEncoding));
-            builder.Append(") | ");
-            builder.Append(DataSetFieldContentMask);
-            builder.Append("<br>(");
-            builder.AppendFormat("0x{0:X}", (uint)StackTypesEx.ToStackType(
-                DataSetFieldContentMask));
-            builder.Append(") | ");
-            builder.Append(SupportsMetadata ? "X" : " ");
-            builder.Append(" | ");
-            builder.Append(SupportsKeyFrames ? "X" : " ");
-            builder.AppendLine(" |");
-            return builder.ToString();
+            return new StringBuilder("| ")
+                .Append(MessagingMode)
+                .Append(" | ")
+                .Append(MessageEncoding)
+                .Append(" | ")
+                .Append(NetworkMessageContentMask)
+                .Append("<br>(")
+                .AppendFormat(CultureInfo.InvariantCulture, "0x{0:X}", StackTypesEx.ToStackType(
+                    NetworkMessageContentMask, MessageEncoding))
+                .Append(") | ")
+                .Append(DataSetMessageContentMask)
+                .Append("<br>(")
+                .AppendFormat(CultureInfo.InvariantCulture, "0x{0:X}", StackTypesEx.ToStackType(
+                    DataSetMessageContentMask, DataSetFieldContentMask, MessageEncoding))
+                .Append(") | ")
+                .Append(DataSetFieldContentMask)
+                .Append("<br>(")
+                .AppendFormat(CultureInfo.InvariantCulture, "0x{0:X}", (uint)StackTypesEx.ToStackType(
+                    DataSetFieldContentMask))
+                .Append(") | ")
+                .Append(SupportsMetadata ? "X" : " ")
+                .Append(" | ")
+                .Append(SupportsKeyFrames ? "X" : " ")
+                .AppendLine(" |")
+                .ToString();
         }
 
         static MessagingProfile()
@@ -322,7 +323,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
         }
 
-        // From published nodes jobs converter
+        /// <summary>
+        /// From published nodes jobs converter
+        /// </summary>
+        /// <param name="fullFeaturedMessage"></param>
+        /// <returns></returns>
         private static DataSetFieldContentMask BuildDataSetFieldContentMask(
             bool fullFeaturedMessage)
         {

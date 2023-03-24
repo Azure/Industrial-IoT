@@ -30,9 +30,8 @@
 namespace DeterministicAlarms.Configuration
 {
     using Opc.Ua;
-#pragma warning disable CA1716 // Identifiers should not match keywords
+
     public class Event
-#pragma warning restore CA1716 // Identifiers should not match keywords
     {
         public string AlarmId { get; set; }
 

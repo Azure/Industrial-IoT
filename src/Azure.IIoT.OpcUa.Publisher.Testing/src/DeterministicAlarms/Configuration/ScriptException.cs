@@ -31,12 +31,9 @@ namespace DeterministicAlarms.Configuration
 {
     using System;
 
-#pragma warning disable CA1032 // Implement standard exception constructors
     public class ScriptException : Exception
-#pragma warning restore CA1032 // Implement standard exception constructors
     {
-#nullable enable
-        public ScriptException(string? message) : base(message)
+        public ScriptException(string message) : base(message)
         {
         }
     }

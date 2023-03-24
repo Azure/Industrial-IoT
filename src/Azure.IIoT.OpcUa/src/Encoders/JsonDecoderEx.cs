@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// <summary>
     /// Reads objects from reader or string
     /// </summary>
-    public class JsonDecoderEx : IDecoder, IDisposable
+    public sealed class JsonDecoderEx : IDecoder, IDisposable
     {
         /// <inheritdoc/>
         public EncodingType EncodingType => EncodingType.Json;
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             Context = context ?? new ServiceMessageContext();
             _reader = !useJsonLoader ? reader : new JsonLoader(
-                reader ?? throw new ArgumentException(nameof(reader)));
+                reader ?? throw new ArgumentNullException(nameof(reader)));
         }
 
         /// <inheritdoc/>
@@ -86,81 +86,81 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public bool ReadBoolean(string? property)
+        public bool ReadBoolean(string? fieldName)
         {
-            return TryGetToken(property, out var value) && (bool)value;
+            return TryGetToken(fieldName, out var value) && (bool)value;
         }
 
         /// <inheritdoc/>
-        public sbyte ReadSByte(string? property)
+        public sbyte ReadSByte(string? fieldName)
         {
-            return ReadValue<sbyte>(property);
+            return ReadValue<sbyte>(fieldName);
         }
 
         /// <inheritdoc/>
-        public byte ReadByte(string? property)
+        public byte ReadByte(string? fieldName)
         {
-            return ReadValue<byte>(property);
+            return ReadValue<byte>(fieldName);
         }
 
         /// <inheritdoc/>
-        public short ReadInt16(string? property)
+        public short ReadInt16(string? fieldName)
         {
-            return ReadValue<short>(property);
+            return ReadValue<short>(fieldName);
         }
 
         /// <inheritdoc/>
-        public ushort ReadUInt16(string? property)
+        public ushort ReadUInt16(string? fieldName)
         {
-            return ReadValue<ushort>(property);
+            return ReadValue<ushort>(fieldName);
         }
 
         /// <inheritdoc/>
-        public int ReadInt32(string? property)
+        public int ReadInt32(string? fieldName)
         {
-            return ReadValue<int>(property);
+            return ReadValue<int>(fieldName);
         }
 
         /// <inheritdoc/>
-        public uint ReadUInt32(string? property)
+        public uint ReadUInt32(string? fieldName)
         {
-            return ReadValue<uint>(property);
+            return ReadValue<uint>(fieldName);
         }
 
         /// <inheritdoc/>
-        public long ReadInt64(string? property)
+        public long ReadInt64(string? fieldName)
         {
-            return ReadValue<long>(property);
+            return ReadValue<long>(fieldName);
         }
 
         /// <inheritdoc/>
-        public ulong ReadUInt64(string? property)
+        public ulong ReadUInt64(string? fieldName)
         {
-            return ReadValue<ulong>(property);
+            return ReadValue<ulong>(fieldName);
         }
 
         /// <inheritdoc/>
-        public float ReadFloat(string? property)
+        public float ReadFloat(string? fieldName)
         {
-            return ReadValue<float>(property);
+            return ReadValue<float>(fieldName);
         }
 
         /// <inheritdoc/>
-        public double ReadDouble(string? property)
+        public double ReadDouble(string? fieldName)
         {
-            return ReadValue<double>(property);
+            return ReadValue<double>(fieldName);
         }
 
         /// <inheritdoc/>
-        public byte[]? ReadByteString(string? property)
+        public byte[]? ReadByteString(string? fieldName)
         {
-            return ReadValue<byte[]>(property);
+            return ReadValue<byte[]>(fieldName);
         }
 
         /// <inheritdoc/>
-        public string? ReadString(string? property)
+        public string? ReadString(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return null;
             }
@@ -172,9 +172,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Uuid ReadGuid(string? property)
+        public Uuid ReadGuid(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return Uuid.Empty;
             }
@@ -200,9 +200,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public DateTime ReadDateTime(string? property)
+        public DateTime ReadDateTime(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return DateTime.MinValue;
             }
@@ -221,9 +221,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public XmlElement? ReadXmlElement(string? property)
+        public XmlElement? ReadXmlElement(string? fieldName)
         {
-            var bytes = ReadByteString(property);
+            var bytes = ReadByteString(fieldName);
             if (bytes?.Length > 0)
             {
                 var document = new XmlDocument
@@ -234,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
 
             // Fallback
-            if (TryGetToken(property, out var token))
+            if (TryGetToken(fieldName, out var token))
             {
                 return token.ToObject<XmlElement>();
             }
@@ -242,9 +242,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public NodeId? ReadNodeId(string? property)
+        public NodeId? ReadNodeId(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return null;
             }
@@ -313,9 +313,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public ExpandedNodeId? ReadExpandedNodeId(string? property)
+        public ExpandedNodeId? ReadExpandedNodeId(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return null;
             }
@@ -403,9 +403,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public StatusCode ReadStatusCode(string? property)
+        public StatusCode ReadStatusCode(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return 0;
             }
@@ -418,13 +418,13 @@ namespace Azure.IIoT.OpcUa.Encoders
                 _stack.Pop();
                 return code;
             }
-            return ReadValue<uint>(property);
+            return ReadValue<uint>(fieldName);
         }
 
         /// <inheritdoc/>
-        public DiagnosticInfo? ReadDiagnosticInfo(string? property)
+        public DiagnosticInfo? ReadDiagnosticInfo(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return null;
             }
@@ -455,9 +455,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public QualifiedName? ReadQualifiedName(string? property)
+        public QualifiedName? ReadQualifiedName(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return null;
             }
@@ -515,9 +515,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public LocalizedText? ReadLocalizedText(string? property)
+        public LocalizedText? ReadLocalizedText(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return null;
             }
@@ -541,9 +541,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Variant ReadVariant(string? property)
+        public Variant ReadVariant(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return Variant.Null;
             }
@@ -555,9 +555,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public DataValue? ReadDataValue(string? property)
+        public DataValue? ReadDataValue(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return null;
             }
@@ -596,9 +596,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public ExtensionObject? ReadExtensionObject(string? property)
+        public ExtensionObject? ReadExtensionObject(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return null;
             }
@@ -618,14 +618,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public IEncodeable? ReadEncodeable(string? property, Type systemType,
+        public IEncodeable? ReadEncodeable(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
             if (systemType == null)
             {
                 throw new ArgumentNullException(nameof(systemType));
             }
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return null;
             }
@@ -644,7 +644,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Enum? ReadEnumerated(string? property, Type enumType)
+        public Enum? ReadEnumerated(string? fieldName, Type enumType)
         {
             if (enumType == null)
             {
@@ -654,7 +654,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 throw new ArgumentException("Not an enum type", nameof(enumType));
             }
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return (Enum)Enum.ToObject(enumType, 0); // or null?
             }
@@ -681,65 +681,65 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Array? ReadArray(string? property, int valueRank, BuiltInType builtInType,
-            Type? systemType, ExpandedNodeId? nodeId)
+        public Array? ReadArray(string? fieldName, int valueRank, BuiltInType builtInType,
+            Type? systemType, ExpandedNodeId? encodeableTypeId)
         {
             if (valueRank == ValueRanks.OneDimension)
             {
                 switch (builtInType)
                 {
                     case BuiltInType.Boolean:
-                        return ReadBooleanArray(property).ToArray();
+                        return ReadBooleanArray(fieldName).ToArray();
                     case BuiltInType.SByte:
-                        return ReadSByteArray(property).ToArray();
+                        return ReadSByteArray(fieldName).ToArray();
                     case BuiltInType.Byte:
-                        return ReadByteArray(property).ToArray();
+                        return ReadByteArray(fieldName).ToArray();
                     case BuiltInType.Int16:
-                        return ReadInt16Array(property).ToArray();
+                        return ReadInt16Array(fieldName).ToArray();
                     case BuiltInType.UInt16:
-                        return ReadUInt16Array(property).ToArray();
+                        return ReadUInt16Array(fieldName).ToArray();
                     case BuiltInType.Int32:
-                        return ReadInt32Array(property).ToArray();
+                        return ReadInt32Array(fieldName).ToArray();
                     case BuiltInType.UInt32:
-                        return ReadUInt32Array(property).ToArray();
+                        return ReadUInt32Array(fieldName).ToArray();
                     case BuiltInType.Int64:
-                        return ReadInt64Array(property).ToArray();
+                        return ReadInt64Array(fieldName).ToArray();
                     case BuiltInType.UInt64:
-                        return ReadUInt64Array(property).ToArray();
+                        return ReadUInt64Array(fieldName).ToArray();
                     case BuiltInType.Float:
-                        return ReadFloatArray(property).ToArray();
+                        return ReadFloatArray(fieldName).ToArray();
                     case BuiltInType.Double:
-                        return ReadDoubleArray(property).ToArray();
+                        return ReadDoubleArray(fieldName).ToArray();
                     case BuiltInType.String:
-                        return ReadStringArray(property).ToArray();
+                        return ReadStringArray(fieldName).ToArray();
                     case BuiltInType.DateTime:
-                        return ReadDateTimeArray(property).ToArray();
+                        return ReadDateTimeArray(fieldName).ToArray();
                     case BuiltInType.Guid:
-                        return ReadGuidArray(property).ToArray();
+                        return ReadGuidArray(fieldName).ToArray();
                     case BuiltInType.ByteString:
-                        return ReadByteStringArray(property).ToArray();
+                        return ReadByteStringArray(fieldName).ToArray();
                     case BuiltInType.XmlElement:
-                        return ReadXmlElementArray(property).ToArray();
+                        return ReadXmlElementArray(fieldName).ToArray();
                     case BuiltInType.NodeId:
-                        return ReadNodeIdArray(property).ToArray();
+                        return ReadNodeIdArray(fieldName).ToArray();
                     case BuiltInType.ExpandedNodeId:
-                        return ReadExpandedNodeIdArray(property).ToArray();
+                        return ReadExpandedNodeIdArray(fieldName).ToArray();
                     case BuiltInType.StatusCode:
-                        return ReadStatusCodeArray(property).ToArray();
+                        return ReadStatusCodeArray(fieldName).ToArray();
                     case BuiltInType.QualifiedName:
-                        return ReadQualifiedNameArray(property).ToArray();
+                        return ReadQualifiedNameArray(fieldName).ToArray();
                     case BuiltInType.LocalizedText:
-                        return ReadLocalizedTextArray(property).ToArray();
+                        return ReadLocalizedTextArray(fieldName).ToArray();
                     case BuiltInType.DataValue:
-                        return ReadDataValueArray(property).ToArray();
+                        return ReadDataValueArray(fieldName).ToArray();
                     case BuiltInType.Enumeration:
-                        return ReadInt32Array(property).ToArray();
+                        return ReadInt32Array(fieldName).ToArray();
                     case BuiltInType.Variant:
-                        return ReadVariantArray(property).ToArray();
+                        return ReadVariantArray(fieldName).ToArray();
                     case BuiltInType.ExtensionObject:
-                        return ReadExtensionObjectArray(property).ToArray();
+                        return ReadExtensionObjectArray(fieldName).ToArray();
                     case BuiltInType.DiagnosticInfo:
-                        return ReadDiagnosticInfoArray(property).ToArray();
+                        return ReadDiagnosticInfoArray(fieldName).ToArray();
                     default:
                         throw new ServiceResultException(StatusCodes.BadDecodingError,
                             $"Cannot decode unknown type in Array object with BuiltInType: {builtInType}.");
@@ -747,13 +747,13 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             else if (valueRank > ValueRanks.OneDimension)
             {
-                if (!ReadArrayField(property, out var array))
+                if (!ReadArrayField(fieldName, out var array))
                 {
                     return null;
                 }
                 var elements = new List<object>();
                 var dimensions = new List<int>();
-                ReadMatrixPart(property, array, builtInType, ref elements, ref dimensions, 0);
+                ReadMatrixPart(fieldName, array, builtInType, ref elements, ref dimensions, 0);
 
                 switch (builtInType)
                 {
@@ -815,63 +815,63 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public BooleanCollection ReadBooleanArray(string? property)
+        public BooleanCollection ReadBooleanArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadBoolean(null));
+            return ReadArray(fieldName, () => ReadBoolean(null));
         }
 
         /// <inheritdoc/>
-        public Int16Collection ReadInt16Array(string? property)
+        public Int16Collection ReadInt16Array(string? fieldName)
         {
-            return ReadArray(property, () => ReadInt16(null));
+            return ReadArray(fieldName, () => ReadInt16(null));
         }
 
         /// <inheritdoc/>
-        public UInt16Collection ReadUInt16Array(string? property)
+        public UInt16Collection ReadUInt16Array(string? fieldName)
         {
-            return ReadArray(property, () => ReadUInt16(null));
+            return ReadArray(fieldName, () => ReadUInt16(null));
         }
 
         /// <inheritdoc/>
-        public Int32Collection ReadInt32Array(string? property)
+        public Int32Collection ReadInt32Array(string? fieldName)
         {
-            return ReadArray(property, () => ReadInt32(null));
+            return ReadArray(fieldName, () => ReadInt32(null));
         }
 
         /// <inheritdoc/>
-        public UInt32Collection ReadUInt32Array(string? property)
+        public UInt32Collection ReadUInt32Array(string? fieldName)
         {
-            return ReadArray(property, () => ReadUInt32(null));
+            return ReadArray(fieldName, () => ReadUInt32(null));
         }
 
         /// <inheritdoc/>
-        public Int64Collection ReadInt64Array(string? property)
+        public Int64Collection ReadInt64Array(string? fieldName)
         {
-            return ReadArray(property, () => ReadInt64(null));
+            return ReadArray(fieldName, () => ReadInt64(null));
         }
 
         /// <inheritdoc/>
-        public UInt64Collection ReadUInt64Array(string? property)
+        public UInt64Collection ReadUInt64Array(string? fieldName)
         {
-            return ReadArray(property, () => ReadUInt64(null));
+            return ReadArray(fieldName, () => ReadUInt64(null));
         }
 
         /// <inheritdoc/>
-        public FloatCollection ReadFloatArray(string? property)
+        public FloatCollection ReadFloatArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadFloat(null));
+            return ReadArray(fieldName, () => ReadFloat(null));
         }
 
         /// <inheritdoc/>
-        public DoubleCollection ReadDoubleArray(string? property)
+        public DoubleCollection ReadDoubleArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadDouble(null));
+            return ReadArray(fieldName, () => ReadDouble(null));
         }
 
         /// <inheritdoc/>
-        public StringCollection ReadStringArray(string? property)
+        public StringCollection ReadStringArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadString(null));
+            return ReadArray(fieldName, () => ReadString(null));
         }
 
         /// <inheritdoc/>
@@ -881,75 +881,75 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public DateTimeCollection ReadDateTimeArray(string? property)
+        public DateTimeCollection ReadDateTimeArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadDateTime(null));
+            return ReadArray(fieldName, () => ReadDateTime(null));
         }
 
         /// <inheritdoc/>
-        public UuidCollection ReadGuidArray(string? property)
+        public UuidCollection ReadGuidArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadGuid(null));
+            return ReadArray(fieldName, () => ReadGuid(null));
         }
 
         /// <inheritdoc/>
-        public ByteStringCollection ReadByteStringArray(string? property)
+        public ByteStringCollection ReadByteStringArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadByteString(null));
+            return ReadArray(fieldName, () => ReadByteString(null));
         }
 
         /// <inheritdoc/>
-        public XmlElementCollection ReadXmlElementArray(string? property)
+        public XmlElementCollection ReadXmlElementArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadXmlElement(null));
+            return ReadArray(fieldName, () => ReadXmlElement(null));
         }
 
         /// <inheritdoc/>
-        public NodeIdCollection ReadNodeIdArray(string? property)
+        public NodeIdCollection ReadNodeIdArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadNodeId(null));
+            return ReadArray(fieldName, () => ReadNodeId(null));
         }
 
         /// <inheritdoc/>
-        public ExpandedNodeIdCollection ReadExpandedNodeIdArray(string? property)
+        public ExpandedNodeIdCollection ReadExpandedNodeIdArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadExpandedNodeId(null));
+            return ReadArray(fieldName, () => ReadExpandedNodeId(null));
         }
 
         /// <inheritdoc/>
-        public StatusCodeCollection ReadStatusCodeArray(string? property)
+        public StatusCodeCollection ReadStatusCodeArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadStatusCode(null));
+            return ReadArray(fieldName, () => ReadStatusCode(null));
         }
 
         /// <inheritdoc/>
-        public DiagnosticInfoCollection ReadDiagnosticInfoArray(string? property)
+        public DiagnosticInfoCollection ReadDiagnosticInfoArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadDiagnosticInfo(null));
+            return ReadArray(fieldName, () => ReadDiagnosticInfo(null));
         }
 
         /// <inheritdoc/>
-        public QualifiedNameCollection ReadQualifiedNameArray(string? property)
+        public QualifiedNameCollection ReadQualifiedNameArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadQualifiedName(null));
+            return ReadArray(fieldName, () => ReadQualifiedName(null));
         }
 
         /// <inheritdoc/>
-        public LocalizedTextCollection ReadLocalizedTextArray(string? property)
+        public LocalizedTextCollection ReadLocalizedTextArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadLocalizedText(null));
+            return ReadArray(fieldName, () => ReadLocalizedText(null));
         }
 
         /// <inheritdoc/>
-        public VariantCollection ReadVariantArray(string? property)
+        public VariantCollection ReadVariantArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadVariant(null));
+            return ReadArray(fieldName, () => ReadVariant(null));
         }
 
         /// <inheritdoc/>
-        public DataValueCollection ReadDataValueArray(string? property)
+        public DataValueCollection ReadDataValueArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadDataValue(null));
+            return ReadArray(fieldName, () => ReadDataValue(null));
         }
 
         /// <inheritdoc/>
@@ -998,15 +998,15 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public ExtensionObjectCollection ReadExtensionObjectArray(string? property)
+        public ExtensionObjectCollection ReadExtensionObjectArray(string? fieldName)
         {
-            return ReadArray(property, () => ReadExtensionObject(null));
+            return ReadArray(fieldName, () => ReadExtensionObject(null));
         }
 
         /// <inheritdoc/>
-        public ByteCollection ReadByteArray(string? property)
+        public ByteCollection ReadByteArray(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return new ByteCollection();
             }
@@ -1031,9 +1031,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public SByteCollection ReadSByteArray(string? property)
+        public SByteCollection ReadSByteArray(string? fieldName)
         {
-            if (!TryGetToken(property, out var token))
+            if (!TryGetToken(fieldName, out var token))
             {
                 return new SByteCollection();
             }
@@ -1059,10 +1059,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Array ReadEncodeableArray(string? property, Type systemType,
+        public Array ReadEncodeableArray(string? fieldName, Type systemType,
             ExpandedNodeId? encodeableTypeId = null)
         {
-            var values = ReadArray(property, () => ReadEncodeable(
+            var values = ReadArray(fieldName, () => ReadEncodeable(
                 null, systemType, encodeableTypeId))?
                 .ToList();
             if (values == null)
@@ -1075,9 +1075,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public Array? ReadEnumeratedArray(string? property, Type enumType)
+        public Array? ReadEnumeratedArray(string? fieldName, Type enumType)
         {
-            var values = ReadArray(property, () => ReadEnumerated(null, enumType))?
+            var values = ReadArray(fieldName, () => ReadEnumerated(null, enumType))?
                 .ToList();
             if (values == null)
             {
@@ -1346,7 +1346,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                         }
                         try
                         {
-                            return new Variant(((JObject)token).ToObject<XmlElement>());
+                            return new Variant(token.ToObject<XmlElement>());
                         }
                         catch
                         {
@@ -1398,8 +1398,6 @@ namespace Azure.IIoT.OpcUa.Encoders
                         builtInType = BuiltInType.ByteString;
                         break;
                     case JTokenType.Date:
-                        builtInType = BuiltInType.DateTime;
-                        break;
                     case JTokenType.TimeSpan:
                         builtInType = BuiltInType.DateTime;
                         break;
@@ -2059,13 +2057,11 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             if (top is JObject o)
             {
-                if (!o.TryGetValue(property, out token))
-                {
-                    if (!o.TryGetValue(property,
+                if (!o.TryGetValue(property, out token) &&
+                    !o.TryGetValue(property,
                         StringComparison.InvariantCultureIgnoreCase, out token))
-                    {
-                        return false;
-                    }
+                {
+                    return false;
                 }
                 switch (token.Type)
                 {

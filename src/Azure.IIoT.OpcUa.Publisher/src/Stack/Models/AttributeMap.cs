@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
 
     /// <summary>
     /// Represents validity and default value map for attributes
@@ -36,11 +37,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 case Attributes.Value:
                     return BuiltInType.Variant;
                 case Attributes.DisplayName:
-                    return BuiltInType.LocalizedText;
                 case Attributes.Description:
                     return BuiltInType.LocalizedText;
                 case Attributes.WriteMask:
-                    return BuiltInType.UInt32;
                 case Attributes.UserWriteMask:
                     return BuiltInType.UInt32;
                 case Attributes.NodeId:
@@ -50,7 +49,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 case Attributes.BrowseName:
                     return BuiltInType.QualifiedName;
                 case Attributes.IsAbstract:
-                    return BuiltInType.Boolean;
                 case Attributes.Symmetric:
                     return BuiltInType.Boolean;
                 case Attributes.InverseName:
@@ -64,15 +62,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 case Attributes.ValueRank:
                     return BuiltInType.Int32;
                 case Attributes.AccessLevel:
-                    return BuiltInType.Byte;
                 case Attributes.UserAccessLevel:
                     return BuiltInType.Byte;
                 case Attributes.MinimumSamplingInterval:
                     return BuiltInType.Double;
                 case Attributes.Historizing:
-                    return BuiltInType.Boolean;
                 case Attributes.Executable:
-                    return BuiltInType.Boolean;
                 case Attributes.UserExecutable:
                     return BuiltInType.Boolean;
                 case Attributes.ArrayDimensions:
@@ -84,7 +79,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 case Attributes.AccessRestrictions:
                     return BuiltInType.UInt16;
                 case Attributes.RolePermissions:
-                    return BuiltInType.ExtensionObject;
                 case Attributes.UserRolePermissions:
                     return BuiltInType.ExtensionObject;
                 default:
@@ -106,8 +100,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             {
                 return value;
             }
-            System.Diagnostics.Debug.Assert(false, "Unknown attribute");
-            return attributeId.ToString();
+            System.Diagnostics.Debug.Fail("Unknown attribute");
+            return attributeId.ToString(CultureInfo.InvariantCulture);
         }
 
         /// <summary>

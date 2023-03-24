@@ -44,6 +44,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new instance of a item.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="item"></param>
+        /// <param name="namespaceIndex"></param>
+        /// <param name="timeService"></param>
         public ArchiveItemState(ISystemContext context, ArchiveItem item, ushort namespaceIndex, TimeService timeService)
         :
             base(null)
@@ -108,6 +112,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads the configuration.
         /// </summary>
+        /// <param name="context"></param>
         public void LoadConfiguration(SystemContext context)
         {
             var reader = new DataFileReader(_timeService);
@@ -133,6 +138,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Loads the data.
         /// </summary>
+        /// <param name="context"></param>
         public void ReloadFromSource(SystemContext context)
         {
             LoadConfiguration(context);
@@ -172,6 +178,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a new sample.
         /// </summary>
+        /// <param name="context"></param>
         public IList<DataValue> NewSamples(SystemContext context)
         {
             System.Diagnostics.Contracts.Contract.Assume(context is not null);
@@ -208,6 +215,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Updates the history.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="value"></param>
+        /// <param name="performUpdateType"></param>
         public uint UpdateHistory(SystemContext context, DataValue value, PerformUpdateType performUpdateType)
         {
             var replaced = false;
@@ -326,6 +336,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Updates the history.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="annotation"></param>
+        /// <param name="value"></param>
+        /// <param name="performUpdateType"></param>
         public uint UpdateAnnotations(SystemContext context, Annotation annotation, DataValue value, PerformUpdateType performUpdateType)
         {
             System.Diagnostics.Contracts.Contract.Assume(context is not null);
@@ -404,6 +418,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Deletes a value from the history.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="sourceTimestamp"></param>
         public uint DeleteHistory(SystemContext context, DateTime sourceTimestamp)
         {
             var deleted = false;
@@ -446,6 +462,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Deletes a value from the history.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
+        /// <param name="isModified"></param>
         public uint DeleteHistory(SystemContext context, DateTime startTime, DateTime endTime, bool isModified)
         {
             // ensure time goes up.
@@ -512,6 +532,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Creates a modification info record.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="updateType"></param>
         private ModificationInfo GetModificationInfo(SystemContext context, HistoryUpdateType updateType)
         {
             var info = new ModificationInfo
@@ -531,6 +553,9 @@ namespace HistoricalAccess
         /// <summary>
         /// Reads the history for the specified time range.
         /// </summary>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
+        /// <param name="isModified"></param>
         public DataView ReadHistory(DateTime startTime, DateTime endTime, bool isModified)
         {
             return ReadHistory(startTime, endTime, isModified, null);
@@ -539,6 +564,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Reads the history for the specified time range.
         /// </summary>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
+        /// <param name="isModified"></param>
+        /// <param name="browseName"></param>
         public DataView ReadHistory(DateTime startTime, DateTime endTime, bool isModified, QualifiedName browseName)
         {
             if (startTime != DateTime.MinValue && endTime != DateTime.MaxValue)
@@ -562,6 +591,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Finds the value at or before the timestamp.
         /// </summary>
+        /// <param name="view"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="ignoreBad"></param>
+        /// <param name="dataIgnored"></param>
         public int FindValueAtOrBefore(DataView view, DateTime timestamp, bool ignoreBad, out bool dataIgnored)
         {
             dataIgnored = false;
@@ -646,6 +679,10 @@ namespace HistoricalAccess
         /// <summary>
         /// Returns the next value after the current position.
         /// </summary>
+        /// <param name="view"></param>
+        /// <param name="position"></param>
+        /// <param name="ignoreBad"></param>
+        /// <param name="dataIgnored"></param>
         public int FindValueAfter(DataView view, int position, bool ignoreBad, out bool dataIgnored)
         {
             dataIgnored = false;
@@ -701,6 +738,8 @@ namespace HistoricalAccess
         /// <summary>
         /// Constructs a node identifier for a item object.
         /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="namespaceIndex"></param>
         public static NodeId ConstructId(string filePath, ushort namespaceIndex)
         {
             var parsedNodeId = new ParsedNodeId

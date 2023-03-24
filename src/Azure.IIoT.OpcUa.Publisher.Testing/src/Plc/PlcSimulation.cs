@@ -8,7 +8,10 @@ namespace Plc
     public class PlcSimulation
     {
         public static uint EventInstanceCount { get; set; } = 1;
-        public static uint EventInstanceRate { get; set; } = 1000; // ms.
+        /// <summary>
+        /// ms.
+        /// </summary>
+        public static uint EventInstanceRate { get; set; } = 1000;
 
         /// <summary>
         /// Simulation data.
@@ -19,6 +22,8 @@ namespace Plc
         /// <summary>
         /// Ctor for simulation server.
         /// </summary>
+        /// <param name="plcNodeManager"></param>
+        /// <param name="timeService"></param>
         public PlcSimulation(PlcNodeManager plcNodeManager, TimeService timeService)
         {
             _plcNodeManager = plcNodeManager;
@@ -74,9 +79,7 @@ namespace Plc
 
             for (uint i = 0; i < EventInstanceCount; i++)
             {
-#pragma warning disable CA2000 // Dispose objects before losing scope
                 var e = new BaseEventState(null);
-#pragma warning restore CA2000 // Dispose objects before losing scope
                 var info = new TranslationInfo(
                     "EventInstanceCycleEventKey",
                     "en-us",
@@ -106,8 +109,14 @@ namespace Plc
             timer.Enabled = false;
         }
 
-        private const int kSimulationCycleCountDefault = 50;          // in cycles
-        private const int kSimulationCycleLengthDefault = 100;        // in msec
+        /// <summary>
+        /// in cycles
+        /// </summary>
+        private const int kSimulationCycleCountDefault = 50;
+        /// <summary>
+        /// in msec
+        /// </summary>
+        private const int kSimulationCycleLengthDefault = 100;
         private readonly PlcNodeManager _plcNodeManager;
         private readonly TimeService _timeService;
         private ITimer _eventInstanceGenerator;

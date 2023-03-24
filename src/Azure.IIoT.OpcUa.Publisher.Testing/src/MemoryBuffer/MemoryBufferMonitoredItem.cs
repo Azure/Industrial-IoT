@@ -40,6 +40,24 @@ namespace MemoryBuffer
         /// <summary>
         /// Initializes the object with its node type.
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="nodeManager"></param>
+        /// <param name="mangerHandle"></param>
+        /// <param name="offset"></param>
+        /// <param name="subscriptionId"></param>
+        /// <param name="id"></param>
+        /// <param name="itemToMonitor"></param>
+        /// <param name="diagnosticsMasks"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="monitoringMode"></param>
+        /// <param name="clientHandle"></param>
+        /// <param name="originalFilter"></param>
+        /// <param name="filterToUse"></param>
+        /// <param name="range"></param>
+        /// <param name="samplingInterval"></param>
+        /// <param name="queueSize"></param>
+        /// <param name="discardOldest"></param>
+        /// <param name="minimumSamplingInterval"></param>
         public MemoryBufferMonitoredItem(
             IServerInternal server,
             INodeManager nodeManager,
@@ -85,6 +103,10 @@ namespace MemoryBuffer
         /// <summary>
         /// Modifies the monitored item parameters,
         /// </summary>
+        /// <param name="diagnosticsMasks"></param>
+        /// <param name="timestampsToReturn"></param>
+        /// <param name="clientHandle"></param>
+        /// <param name="samplingInterval"></param>
         public ServiceResult Modify(
             DiagnosticsMasks diagnosticsMasks,
             TimestampsToReturn timestampsToReturn,

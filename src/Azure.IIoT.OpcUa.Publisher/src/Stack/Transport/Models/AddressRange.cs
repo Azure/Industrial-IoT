@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
     using System.Linq;
     using System.Net;
     using System.Text;
@@ -269,7 +270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
                             new IPv4Address(IPAddress.Parse(x[0])),
                             new IPv4Address(IPAddress.Parse(x[1])), nic).ToString());
                     }
-                    var suffix = int.Parse(x[1]);
+                    var suffix = int.Parse(x[1], CultureInfo.InvariantCulture);
                     if (suffix == 0 || suffix > 32)
                     {
                         throw new FormatException("Bad suffix value");
@@ -355,7 +356,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
                         if (top.Overlaps(range))
                         {
                             var nic = (top.Nic + range.Nic)
-                                .Replace("localhost", "").Replace(kNullNicName, "");
+                                .Replace("localhost", "", StringComparison.InvariantCulture)
+                                .Replace(kNullNicName, "", StringComparison.InvariantCulture);
                             var union = new AddressRange(
                                 top.Low < range.Low ? top.Low : range.Low,
                                 top.High > range.High ? top.High : range.High, nic);
@@ -406,14 +408,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
                     sb.Append(';');
                 }
                 first = false;
-                sb.Append(ip);
-                sb.Append('/');
-                sb.Append(subnetSize);
+                sb.Append(ip).Append('/').Append(subnetSize);
                 if (Nic != kNullNicName)
                 {
-                    sb.Append(" [");
-                    sb.Append(Nic);
-                    sb.Append(']');
+                    sb.Append(" [").Append(Nic).Append(']');
                 }
                 start += 1L << (32 - subnetSize);
             }

@@ -23,6 +23,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
         /// <summary>
         /// Test client entry point
         /// </summary>
+        /// <param name="args"></param>
+        /// <exception cref="ArgumentException"></exception>
         public static void Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException +=
@@ -114,6 +116,7 @@ Operations (Mutually exclusive):
         /// <summary>
         /// Run server until exit
         /// </summary>
+        /// <param name="ports"></param>
         private static async Task RunServerAsync(IEnumerable<int> ports)
         {
             var logger = Log.Console<ServerConsoleHost>();

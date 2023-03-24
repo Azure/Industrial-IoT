@@ -41,9 +41,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                             Name = "Double",
                             TagCount = 100,
                             DataType = "Double"
-                        },
+                        }
                     }
-                },
+                }
+
                 /// ...
             };
                 return new XmlElementCollection(

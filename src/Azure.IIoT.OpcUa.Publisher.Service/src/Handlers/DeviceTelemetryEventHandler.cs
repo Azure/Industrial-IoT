@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
 {
+    using Furly;
     using Furly.Azure.IoT;
     using Furly.Extensions.Messaging;
     using System;
@@ -17,7 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     /// <summary>
     /// Default iot hub device event handler implementation
     /// </summary>
-    public sealed class DeviceTelemetryEventHandler : IIoTHubTelemetryHandler, IDisposable
+    public sealed class DeviceTelemetryEventHandler : IIoTHubTelemetryHandler,
+        IAwaitable<DeviceTelemetryEventHandler>, IDisposable
     {
         /// <summary>
         /// Create processor factory
@@ -34,6 +36,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             _handlers = new ConcurrentDictionary<string, IMessageHandler>(
                 handlers.Select(h => KeyValuePair.Create(h.MessageSchema.ToUpperInvariant(), h)));
             _registration = events.Register(this);
+        }
+
+        /// <inheritdoc/>
+        public IAwaiter<DeviceTelemetryEventHandler> GetAwaiter()
+        {
+            return Task.CompletedTask.AsAwaiter(this);
         }
 
         /// <inheritdoc/>

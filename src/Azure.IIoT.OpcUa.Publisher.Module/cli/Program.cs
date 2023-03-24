@@ -320,7 +320,7 @@ Options:
         /// <summary>
         /// Wraps server and disposes after use
         /// </summary>
-        private class ServerWrapper : IDisposable
+        private sealed class ServerWrapper : IDisposable
         {
             public string EndpointUrl { get; }
 

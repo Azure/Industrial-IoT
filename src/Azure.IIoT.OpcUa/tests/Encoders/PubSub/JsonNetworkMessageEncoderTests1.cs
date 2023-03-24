@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using Xunit;
 
     public class JsonNetworkMessageEncoderTests1
@@ -426,14 +427,20 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
                         DataSetWriterId = 100,
                         SequenceNumber = 29766,
                         MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 672338910, MinorVersion = 672341762 },
-                        Timestamp = DateTime.Parse("2021-09-27T18:45:19.555Z"),
+                        Timestamp = DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture),
                         Status = 1073741824,
                         MessageType = MessageType.KeyFrame,
                         DataSetWriterName = "Writer100",
                         Payload = new DataSet(fieldMask) {
-    ["Temperature"] = new DataValue(25, StatusCodes.Good, DateTime.Parse("2021-09-27T18:45:19.555Z"), DateTime.Parse("2021-09-27T18:45:19.555Z")),
-    ["Pressure"] = new DataValue(1013, StatusCodes.Good, DateTime.Parse("2021-09-27T18:45:19.555Z"), DateTime.Parse("2021-09-27T18:45:19.555Z")),
-    ["Humidiy"] = new DataValue(42, StatusCodes.Uncertain, DateTime.Parse("2021-09-27T18:45:19.555Z"), DateTime.Parse("2021-09-27T18:45:19.555Z"))
+    ["Temperature"] = new DataValue(25, StatusCodes.Good,
+        DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture),
+        DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture)),
+    ["Pressure"] = new DataValue(1013, StatusCodes.Good,
+        DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture),
+        DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture)),
+    ["Humidiy"] = new DataValue(42, StatusCodes.Uncertain,
+        DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture),
+        DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture))
                         }
                     }
                 }

@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-     <RootNamespace>Azure.IIoT.OpcUa.Publisher.Models</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoFixture" Version="4.18.0" />
@@ -16,9 +15,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Furly.Extensions.Json" Version="0.4.19" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.19" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.19" />
+    <PackageReference Include="Furly.Extensions.Json" Version="0.4.20" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.20" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.20" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />

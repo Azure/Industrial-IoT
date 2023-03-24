@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.App.Runtime
     /// </summary>
     internal static class EnvVars
     {
-#pragma warning disable CA1707 // Identifiers should not contain underscores
         /// <summary> Aad Auth tenant </summary>
         public const string PCS_AUTH_TENANT =
             "PCS_AUTH_TENANT";
@@ -29,6 +28,5 @@ namespace Microsoft.Azure.IIoT.App.Runtime
         /// <summary> Client application secret </summary>
         public const string PCS_AAD_CONFIDENTIAL_CLIENT_SECRET =
             "PCS_AUTH_CLIENT_SECRET";
-#pragma warning restore CA1707 // Identifiers should not contain underscores
     }
 }

@@ -18,6 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <summary>
         /// Alarm server nodes
         /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="timeservice"></param>
         public static IEnumerable<INodeManagerFactory> Alarms(
             ILoggerFactory factory, TimeService timeservice)
         {

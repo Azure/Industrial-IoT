@@ -19,15 +19,11 @@
         public void AddToAddressSpace(FolderState telemetryFolder, FolderState methodsFolder, PlcNodeManager plcNodeManager)
         {
             _plcNodeManager = plcNodeManager;
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var folder = _plcNodeManager.CreateFolder(
                 telemetryFolder,
                 path: "Anomaly",
                 name: "Anomaly",
                 NamespaceType.PlcApplications);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             AddNodes(folder);
         }
 
@@ -65,8 +61,8 @@
                 new NodeWithIntervals
                 {
                     NodeId = "SpikeData",
-                    Namespace = Plc.Namespaces.PlcApplications,
-                },
+                    Namespace = Plc.Namespaces.PlcApplications
+                }
             };
         }
 
@@ -74,6 +70,7 @@
         /// Generates a sine wave with spikes at a random cycle in the phase.
         /// Called each SimulationCycleLength msec.
         /// </summary>
+        /// <param name="value"></param>
         private double SpikeGenerator(double value)
         {
             // calculate next value

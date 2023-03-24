@@ -43,6 +43,8 @@ namespace Vehicles
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
+        /// <param name="server"></param>
+        /// <param name="configuration"></param>
         public VehiclesNodeManager(IServerInternal server, ApplicationConfiguration configuration)
         :
             base(server, configuration)
@@ -63,6 +65,7 @@ namespace Vehicles
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
+        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -75,6 +78,8 @@ namespace Vehicles
         /// <summary>
         /// Creates the NodeId for the specified node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="node"></param>
         public override NodeId New(ISystemContext context, NodeState node)
         {
             // generate a numeric node id if the node has a parent and no node id assigned.
@@ -90,6 +95,7 @@ namespace Vehicles
         /// <summary>
         /// Does any initialization required before the address space can be used.
         /// </summary>
+        /// <param name="externalReferences"></param>
         /// <remarks>
         /// The externalReferences is an out parameter that allows the node manager to link to nodes
         /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
@@ -123,6 +129,10 @@ namespace Vehicles
         /// <summary>
         /// Loads the schema from an embedded resource.
         /// </summary>
+        /// <param name="resourcePath"></param>
+        /// <param name="assembly"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="resourcePath"/> is <c>null</c>.</exception>
+        /// <exception cref="ServiceResultException"></exception>
         public byte[] LoadSchemaFromResource(string resourcePath, Assembly assembly)
         {
             if (resourcePath == null)
@@ -150,6 +160,7 @@ namespace Vehicles
         /// <summary>
         /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
         /// </summary>
+        /// <param name="context"></param>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
             var type = GetType().GetTypeInfo();
@@ -177,6 +188,9 @@ namespace Vehicles
         /// <summary>
         /// Returns a unique handle for the node.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="cache"></param>
         protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
         {
             lock (Lock)
@@ -216,6 +230,9 @@ namespace Vehicles
         /// <summary>
         /// Verifies that the specified node exists.
         /// </summary>
+        /// <param name="context"></param>
+        /// <param name="handle"></param>
+        /// <param name="cache"></param>
         protected override NodeState ValidateNode(
             ServerSystemContext context,
             NodeHandle handle,

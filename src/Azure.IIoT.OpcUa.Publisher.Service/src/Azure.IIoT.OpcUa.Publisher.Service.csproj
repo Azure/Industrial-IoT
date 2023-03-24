@@ -5,7 +5,7 @@
     <Description>Azure Industrial IoT OPC UA service business logic</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="0.1.21" />
+    <PackageReference Include="Furly.Azure.IoT" Version="0.1.22" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="7.0.0" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
