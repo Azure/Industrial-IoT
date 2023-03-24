@@ -563,11 +563,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _currentlyMonitored = currentlyMonitored
                         = nowMonitored.ToImmutableDictionary(m => m.Item.ClientHandle, m => m);
 
-                    var map = currentlyMonitored.Values.ToDictionary(k => k.Template.StartNodeId, v => v);
-                    foreach (var item in currentlyMonitored.Values) {
-                        if (item.Template.TriggerId != null &&
-                            map.TryGetValue(item.Template.TriggerId, out var trigger)) {
-                            trigger?.AddTriggerLink(item.ServerId.GetValueOrDefault());
+                    var areTriggersUsed = currentlyMonitored.Values.Any(v => v.Template.TriggerId != null);
+                    if (areTriggersUsed) {
+                        var map = currentlyMonitored.Values
+                            .GroupBy(v => v.Template.StartNodeId)
+                            .ToDictionary(g => g.Key, g => g.First());
+
+                        foreach (var item in currentlyMonitored.Values) {
+                            if (item.Template.TriggerId != null &&
+                                map.TryGetValue(item.Template.TriggerId, out var trigger)) {
+                                trigger?.AddTriggerLink(item.ServerId.GetValueOrDefault());
+                            }
                         }
                     }
 
@@ -575,8 +581,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     foreach (var item in currentlyMonitored.Values) {
                         if (item.GetTriggeringLinks(out var added, out var removed)) {
                             var response = await rawSubscription.Session.SetTriggeringAsync(
-                                null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
-                                new UInt32Collection(added), new UInt32Collection(removed), CancellationToken.None)
+                                    null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
+                                    new UInt32Collection(added), new UInt32Collection(removed), CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
