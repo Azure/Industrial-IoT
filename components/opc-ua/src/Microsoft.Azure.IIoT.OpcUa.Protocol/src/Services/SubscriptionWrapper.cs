@@ -411,9 +411,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var noErrorFound = true;
                 var count = 0;
                 var codec = _outer._codec.Create(rawSubscription.Session.MessageContext);
-                if (monitoredItems == null || !monitoredItems.Any()) {
+                var monitoredItemsList = monitoredItems.ToList();
+                if (!monitoredItemsList.Any()) {
                     // cleanup entire subscription
-                    var toCleanupList = currentState.Select(t => t.Item);
+                    var toCleanupList = currentState.Select(t => t.Item).ToList();
                     if (toCleanupList.Any()) {
                         // Remove monitored items not in desired state
                         _logger.Verbose("Remove monitored items in subscription "
@@ -436,8 +437,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _currentlyMonitored = ImmutableDictionary<uint, MonitoredItemWrapper>.Empty;
 
                     // TODO: Set metadata to empty here
-                    rawSubscription.ApplyChanges();
-                    rawSubscription.SetPublishingMode(false);
+                    await rawSubscription.ApplyChangesAsync();
+                    await rawSubscription.SetPublishingModeAsync(false);
                     if (rawSubscription.MonitoredItemCount != 0) {
                         _logger.Warning("Failed to remove {count} monitored items from subscription "
                             + "'{subscription}'/'{sessionId}'",
@@ -449,14 +450,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 // Synchronize the desired items with the state of the raw subscription
-                var desiredState = monitoredItems
+                var desiredState = monitoredItemsList
                     .Select(m => new MonitoredItemWrapper(m, _logger))
                     .ToHashSetSafe();
 
                 var metadataChanged = false;
                 var applyChanges = false;
 
-                var toRemoveList = currentState.Except(desiredState).Select(t => t.Item);
+                var toRemoveList = currentState.Except(desiredState).Select(t => t.Item).ToList();
                 if (toRemoveList.Any()) {
                     count = 0;
                     // Remove monitored items not in desired state
@@ -477,7 +478,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 // todo re-associate detached handles!?
-                var toRemoveDetached = rawSubscription.MonitoredItems.Where(m => m.Status == null);
+                var toRemoveDetached = rawSubscription.MonitoredItems.Where(m => m.Status == null).ToList();
                 if (toRemoveDetached.Any()) {
                     rawSubscription.RemoveItems(toRemoveDetached);
                     _logger.Information("Removed {count} detached monitored items from subscription "
@@ -488,7 +489,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 var nowMonitored = new List<MonitoredItemWrapper>();
-                var toAddList = desiredState.Except(currentState);
+                var toAddList = desiredState.Except(currentState).ToList();
                 if (toAddList.Any()) {
                     count = 0;
                     // Add new monitored items not in current state
@@ -559,7 +560,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var currentlyMonitored = _currentlyMonitored;
                 if (applyChanges) {
 
-                    rawSubscription.ApplyChanges();
+                    await rawSubscription.ApplyChangesAsync();
                     _currentlyMonitored = currentlyMonitored
                         = nowMonitored.ToImmutableDictionary(m => m.Item.ClientHandle, m => m);
 
@@ -628,7 +629,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
                     if (applyChanges) {
-                        rawSubscription.ApplyChanges();
+                        await rawSubscription.ApplyChangesAsync();
                     }
                 }
 
@@ -673,7 +674,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 if (activate && currentlyMonitored.Count > 0) {
                     // Change monitoring mode of all valid items if needed
-                    var validItems = currentlyMonitored.Values.Where(v => v.Item.Created);
+                    var validItems = currentlyMonitored.Values.Where(v => v.Item.Created).ToList();
                     foreach (var change in validItems.GroupBy(i => i.GetMonitoringModeChange())) {
                         if (change.Key == null) {
                             continue;
@@ -687,10 +688,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             Connection.CreateConnectionId());
 
                         var itemsToChange = changeList.Select(t => t.Item).ToList();
-                        var results = rawSubscription.SetMonitoringMode(change.Key.Value, itemsToChange);
+                        var results = await rawSubscription.SetMonitoringModeAsync(change.Key.Value, itemsToChange);
                         if (results != null) {
                             var erroneousResultsCount = results
-                                .Count(r => (r == null) ? false : StatusCode.IsNotGood(r.StatusCode));
+                                .Count(r => (r != null) && StatusCode.IsNotGood(r.StatusCode));
 
                             // Check the number of erroneous results and log.
                             if (erroneousResultsCount > 0) {
@@ -700,7 +701,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                     Name,
                                     Connection.CreateConnectionId());
 
-                                for (int i = 0; i < results.Count && i < itemsToChange.Count; ++i) {
+                                for (var i = 0; i < results.Count && i < itemsToChange.Count; ++i) {
                                     if (StatusCode.IsNotGood(results[i].StatusCode)) {
                                         _logger.Warning("Set monitoring for item '{item}' in subscription "
                                             + "'{subscription}'/'{sessionId}' failed with '{status}'.",
@@ -715,11 +716,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 noErrorFound = false;
                             }
                         }
-                        if (change.Where(x => x.EventTemplate != null).Any()) {
+                        if (change.Any(x => x.EventTemplate != null)) {
                             _logger.Information("Now issuing ConditionRefresh for item {item} on subscription " +
                                 "{subscription}", change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
                             try {
-                                rawSubscription.ConditionRefresh();
+                                await rawSubscription.ConditionRefreshAsync();
                             }
                             catch (ServiceResultException e) {
                                 _logger.Information("ConditionRefresh for item {item} on subscription " +
@@ -742,7 +743,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
                     foreach (var item in validItems) {
-                        if (item.Item.SamplingInterval != item.Item.Status.SamplingInterval ||
+                        if (Math.Abs(item.Item.SamplingInterval - item.Item.Status.SamplingInterval) > 1e-10 ||
                             item.Item.QueueSize != item.Item.Status.QueueSize) {
 
                             var diagInfo = new StringBuilder();
