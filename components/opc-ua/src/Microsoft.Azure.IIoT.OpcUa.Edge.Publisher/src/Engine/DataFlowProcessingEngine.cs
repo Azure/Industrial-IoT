@@ -203,7 +203,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             {
                 return;
             }
-            var info = GetDiagnosticInfo();
+
             var totalSeconds = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
             double valueChangesPerSec = info.IngressValueChanges / info.IngestionDuration.TotalSeconds;
             double dataChangesPerSec = info.IngressDataChanges / info.IngestionDuration.TotalSeconds;
