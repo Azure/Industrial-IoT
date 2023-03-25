@@ -698,9 +698,7 @@ namespace DeterministicAlarms
         /// <param name="context"></param>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
-            var predefinedNodes = new NodeStateCollection();
-
-            return predefinedNodes;
+            return new NodeStateCollection();
         }
     }
 }

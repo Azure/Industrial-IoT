@@ -283,8 +283,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         {
             // Register publisher services
             builder.AddPublisherServices();
-            // Override client config
-            builder.RegisterInstance(_config).AsImplementedInterfaces();
             builder.RegisterType<TestClientConfig>()
                 .AsImplementedInterfaces();
 
@@ -302,6 +300,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 // TODO: Look into this.
                 builder.AddMqttClient(_config);
             }
+            // Override client config
+            builder.RegisterInstance(_config).AsImplementedInterfaces();
         }
 
         /// <summary>
