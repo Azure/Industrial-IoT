@@ -486,34 +486,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             foreach (var selectClause in eventFilter.SelectClauses) {
                 if (!internalSelectClauses.Any(x => x == selectClause)) {
                     sb.Clear();
-                    for (var i = 0; i < selectClause.BrowsePath?.Count; i++) {
-                        if (i == 0) {
-                            if (selectClause.BrowsePath[i].NamespaceIndex != 0) {
-                                if (selectClause.BrowsePath[i].NamespaceIndex < nodeCache.NamespaceUris.Count) {
-                                    sb.Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
-                                    sb.Append('#');
-                                }
-                                else {
-                                    sb.Append($"{selectClause.BrowsePath[i].NamespaceIndex}:");
+
+                    var definedSelectClause = EventTemplate.EventFilter.SelectClauses?.ElementAtOrDefault(eventFilter.SelectClauses.IndexOf(selectClause));
+                    if (!string.IsNullOrEmpty(definedSelectClause?.DisplayName)) {
+                        sb.Append(definedSelectClause.DisplayName);
+                    }
+                    else {
+                        for (var i = 0; i < selectClause.BrowsePath?.Count; i++) {
+                            if (i == 0) {
+                                if (selectClause.BrowsePath[i].NamespaceIndex != 0) {
+                                    if (selectClause.BrowsePath[i].NamespaceIndex < nodeCache.NamespaceUris.Count) {
+                                        sb.Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
+                                        sb.Append('#');
+                                    }
+                                    else {
+                                        sb.Append($"{selectClause.BrowsePath[i].NamespaceIndex}:");
+                                    }
                                 }
                             }
+                            else {
+                                sb.Append('/');
+                            }
+
+                            sb.Append(selectClause.BrowsePath[i].Name);
                         }
-                        else {
-                            sb.Append('/');
+
+                        if (sb.Length == 0) {
+                            if (selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                                selectClause.AttributeId == Attributes.NodeId) {
+                                sb.Append("ConditionId");
+                            }
                         }
-                        sb.Append(selectClause.BrowsePath[i].Name);
                     }
 
-                    if (sb.Length == 0) {
-                        if (selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
-                            selectClause.AttributeId == Attributes.NodeId) {
-                            sb.Append("ConditionId");
-                        }
-                    }
                     Fields.Add((sb.ToString(), Guid.NewGuid()));
                 }
                 else {
-                    // if a field's nameis empty, it's not written to the output
+                    // if a field's name is empty, it's not written to the output
                     Fields.Add((null, Guid.Empty));
                 }
             }
