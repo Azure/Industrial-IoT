@@ -2,6 +2,38 @@
 # Run compliance tooling
 #
 jobs:
+- job: codeql
+  displayName: Code QL
+  pool:
+    vmImage: 'windows-2022'
+    demands:
+    - msbuild
+  - checkout: self
+    clean: true
+    persistCredentials: true
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      packageType: sdk
+      version: 7.0.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: PowerShell@2
+    displayName: Versioning
+    inputs:
+      targetType: filePath
+      filePath: ./tools/scripts/set-version.ps1
+  - task: DotNetCoreCLI@2
+    displayName: Build Release
+    inputs:
+      command: build 
+      projects: 'Industrial-IoT-No-Samples.sln'
+      arguments: '--configuration Release'
+  - task: Semmle@1
+    displayName: 'Run'
+    inputs:
+      sourceCodeDirectory: '$(Build.SourcesDirectory)'
+    continueOnError: true
 - job: sdl
   displayName: SDL Tasks
   pool:
@@ -70,12 +102,8 @@ jobs:
     displayName: 'BinSkim'
     inputs:
       InputType: Basic
-      AnalyzeTarget: '*.IIoT.*.dll;*.IIoT.*.exe'
-    continueOnError: true
-  - task: Semmle@1
-    displayName: 'Run CodeQL'
-    inputs:
-      sourceCodeDirectory: '$(Build.SourcesDirectory)'
+      TargetPattern: guardianGlob
+      AnalyzeTargetGlob: '$(Build.ArtifactStagingDirectory)\**.dll;$(Build.ArtifactStagingDirectory)\**.exe;'
     continueOnError: true
   - task: PoliCheck@2
     displayName: PoliCheck
