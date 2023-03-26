@@ -60,24 +60,24 @@ jobs:
       outputformat: 'text'
       outputfile: thirdpartynotices.txt
     continueOnError: true
-  - task: BinSkim@3
+  - task: Armory@2
+    displayName: 'Run ARMory'
+    inputs:
+      toolVersion: Latest
+      targetDirectory: '$(Build.SourcesDirectory)'
+    continueOnError: true
+  - task: BinSkim@4
     displayName: 'BinSkim'
     inputs:
       InputType: Basic
       AnalyzeTarget: '*.IIoT.*.dll;*.IIoT.*.exe'
     continueOnError: true
-  - task: AutoApplicability@1
-    displayName: 'Auto Applicability'
+  - task: Semmle@1
+    displayName: 'Run CodeQL'
     inputs:
-      ExternalRelease: true
-      InternalRelease: true
-      IsService: true
+      sourceCodeDirectory: '$(Build.SourcesDirectory)'
     continueOnError: true
-  - task: VulnerabilityAssessment@0
-    displayName: 'Run Vulnerability Assessment'
-    continueOnError: true
-    condition: succeededOrFailed()
-  - task: PoliCheck@1
+  - task: PoliCheck@2
     displayName: PoliCheck
     inputs:
       targetType: F
@@ -85,7 +85,7 @@ jobs:
       uploadToSOM: true
       workspaceid: f26cefbe-7e7b-436a-8aad-ded8bb5d03e1
     continueOnError: true
-  - task: SdtReport@1
+  - task: SdtReport@2
     displayName: 'Create Security Analysis Report'
     inputs:
       BinSkim: true
@@ -94,7 +94,7 @@ jobs:
       RoslynAnalyzers: true
     continueOnError: true
     condition: succeededOrFailed()
-  - task: PostAnalysis@1
+  - task: PostAnalysis@2
     displayName: 'Post Analysis'
     inputs:
       BinSkim: true
@@ -104,7 +104,7 @@ jobs:
   - script: |
       if not "%BUILD_SOURCEBRANCHNAME%" == "main" echo ##vso[task.setvariable variable=MY_BRANCH;]develop
           if "%BUILD_SOURCEBRANCHNAME%" == "main" echo ##vso[task.setvariable variable=MY_BRANCH;]main
-  - task: TSAUpload@1
+  - task: TSAUpload@2
     displayName: 'Upload to Stamp'
     inputs:
       tsaVersion: TsaV2
@@ -116,15 +116,9 @@ jobs:
       projectNameMSAZURE: One
       areaPath: 'One\IoT\Platform and Devices\IoT Devices\Industrial\Community'
       iterationPath: 'One\Custom\IoT\Industrial\Backlog'
-      uploadAPIScan: false
       uploadBinSkim: true
       uploadCredScan: true
-      uploadFortifySCA: false
-      uploadFxCop: false
-      uploadModernCop: false
       uploadPoliCheck: false
-      uploadPREfast: false
       uploadRoslyn: true
-      uploadTSLint: false
       uploadAsync: true
     continueOnError: true

@@ -16,9 +16,7 @@ Components of the Azure Industrial IoT platform require several App Registration
 * providing identity for back-end microservices to run
 * defining authentication methods and details for client applications
 
-Both of our deployment methods (`deploy.ps1` script and the `Microsoft.Azure.IIoT.Deployment` application) create
-those App Registrations for you by default. But they both require user to have `Administrator` role in the AAD
-for deployment to succeed. In cases when the user does not have the `Administrator` role, the process of
+The `deploy.ps1` script creates those App Registrations for you by default. But they both require user to have `Administrator` role in the AAD for deployment to succeed. In cases when the user does not have the `Administrator` role, the process of
 deployment can be separated into 2 distinct states:
 
 * creation and setup of the App Registrations in AAD tenant
