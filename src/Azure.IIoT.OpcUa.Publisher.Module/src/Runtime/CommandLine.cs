@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"http|httpserver:|{Configuration.Kestrel.EnableHttpServerKey}:",
                     "Specify this to enable the OPC Publisher REST api.\n.Default: `disabled`.\n",
                     (bool? b) => this[Configuration.Kestrel.EnableHttpServerKey] = b?.ToString() ?? "True" },
-                { $"p|httpserverport=|{Configuration.Kestrel.HttpServerPortKey}:",
+                { $"p|httpserverport=|{Configuration.Kestrel.HttpServerPortKey}=",
                     $"The port on which the REST api of OPC Publisher is is listening. Implicitly enables the http server and REST api capabilities.\nDefault: `not set` if https is not enabled, otherwise `{Configuration.Kestrel.HttpsPortDefault}` if no value is provided.\n",
                     p => this[Configuration.Kestrel.HttpServerPortKey] = p },
                     { $"unsecurehttp:|{Configuration.Kestrel.UnsecureHttpServerPortKey}:",

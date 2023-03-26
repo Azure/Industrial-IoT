@@ -7,9 +7,9 @@
     <Description>Azure OPC Publisher Module Sdk</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.19" />
-    <PackageReference Include="Furly.Tunnel" Version="0.2.16" />
-    <PackageReference Include="Furly.Extensions" Version="0.4.19" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.20" />
+    <PackageReference Include="Furly.Tunnel" Version="0.2.17" />
+    <PackageReference Include="Furly.Extensions" Version="0.4.20" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />

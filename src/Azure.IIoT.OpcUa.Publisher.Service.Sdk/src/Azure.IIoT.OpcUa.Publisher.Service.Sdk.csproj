@@ -10,10 +10,10 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="7.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="7.0.4" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.19" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.19" />
-    <PackageReference Include="Furly.Extensions.Autofac" Version="0.4.19" />
-    <PackageReference Include="Furly.Extensions" Version="0.4.19" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="0.4.20" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.20" />
+    <PackageReference Include="Furly.Extensions.Autofac" Version="0.4.20" />
+    <PackageReference Include="Furly.Extensions" Version="0.4.20" />
     <PackageReference Include="Nito.Disposables" Version="2.4.0" />
   </ItemGroup>
   <ItemGroup>
