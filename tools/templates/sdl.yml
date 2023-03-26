@@ -8,6 +8,11 @@ jobs:
     vmImage: 'windows-2022'
     demands:
     - msbuild
+  variables:
+    runCodesignValidationInjection: false
+    DOTNET_CLI_TELEMETRY_OPTOUT: true
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  steps:
   - checkout: self
     clean: true
     persistCredentials: true
