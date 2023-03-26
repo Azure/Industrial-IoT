@@ -29,7 +29,7 @@ jobs:
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/set-version.ps1
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@3
     displayName: 'Credential Scanner'
     inputs:
       toolMajorVersion: V2
