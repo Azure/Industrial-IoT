@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 await bus.HandleSampleAsync(expected).ConfigureAwait(false);
                 await Task.WhenAny(result.Task, Task.Delay(30000)).ConfigureAwait(false);
 
-                Assert.True(result.Task.IsCompleted, "Timed out");
+                Assert.True(result.Task.IsCompleted, $"Timed out with value: {v.ToJson()}");
                 var received = result.Task.Result;
 
                 Assert.Equal(expected.DisplayName, received.DisplayName);

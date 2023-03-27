@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
@@ -19,10 +18,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Convert raw buffer to certificate chain
         /// </summary>
         /// <param name="rawCertificates"></param>
-        /// <param name="validate"></param>
         /// <returns></returns>
         public static X509CertificateChainModel ToCertificateChain(
-            this byte[] rawCertificates, bool validate = true)
+            this byte[] rawCertificates)
         {
             if (rawCertificates == null)
             {
@@ -45,7 +43,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 }
                 return new X509CertificateChainModel
                 {
-                    Status = validate ? certificates.Validate() : null,
                     Chain = certificates
                         .ConvertAll(c => c.ToServiceModel())
                 };
@@ -65,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             try
             {
-                var chain = rawCertificates.ToCertificateChain(false)?.Chain;
+                var chain = rawCertificates.ToCertificateChain()?.Chain;
                 if (chain?.Count > 0)
                 {
                     return chain[chain.Count -1]?.Thumbprint;
@@ -76,36 +73,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 // Fall back to sha1 which was the previous thumprint algorithm
                 return rawCertificates.ToSha1Hash();
-            }
-        }
-
-        /// <summary>
-        /// Validate certificate chain
-        /// </summary>
-        /// <param name="chain"></param>
-        /// <returns></returns>
-        public static List<X509ChainStatus> Validate(this IEnumerable<X509Certificate2> chain)
-        {
-            using (var validator = new X509Chain(false))
-            {
-                validator.ChainPolicy.RevocationFlag =
-                    X509RevocationFlag.EntireChain;
-                validator.ChainPolicy.RevocationMode =
-                    X509RevocationMode.NoCheck;
-                validator.ChainPolicy.ExtraStore.AddRange(
-                     new X509Certificate2Collection(chain.SkipLast(1).ToArray()));
-                validator.Build(chain.Last());
-                var result = new List<X509ChainStatus>();
-                foreach (var item in validator.ChainElements)
-                {
-                    var state = X509ChainStatusFlags.NoError;
-                    foreach (var status in item.ChainElementStatus)
-                    {
-                        state |= status.Status;
-                    }
-                    result.Add(state.ToServiceModel());
-                }
-                return result;
             }
         }
     }

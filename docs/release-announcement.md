@@ -11,14 +11,25 @@ Preview releases are only supported through GitHub issues.  This particular rele
 ### Changes in this release
 
 - New Namespaces for all projects and simplified code structure. There are now 2 SDK projects, one for the OPC Publisher module, and another for the WebAPI service. 
-- [OPC Discovery] has been included into the OPC Publisher module, the container name must be updated to refer to OPC Publisher. 
-- [OPC Discovery] A new synchronous FindServer API has been added to allow discovery by discovery url through a single API call.
-- [OPC Twin] has been included into the OPC Publisher module, the container name must be updated to refer to OPC Publisher. 
-- [OPC Twin] we removed the Activate and Deactivate calls. 
+- Ability to run platform (modules, services) "standalone" on the edge #464
+  - [OPC Discovery] has been included into the OPC Publisher module, the container name must be updated to refer to OPC Publisher. 
+  - [OPC Discovery] A new synchronous FindServer API has been added to allow discovery by discovery url through a single API call.
+  - [OPC Twin] has been included into the OPC Publisher module, the container name must be updated to refer to OPC Publisher. 
+  - [OPC Twin] we removed the Activate and Deactivate calls. 
+  - [OPC Twin] OPC TWIN Method call #996
+  - Support for opc-twin module api direct method calls with input arguments (not requiring OPC Twin micro services) #1512
+- [OPC Publisher] Several bug fixes on top of preview 1 (#1964)
+- [OPC Publisher] Enabling using DisplayNames defined for the event fields in pn.json as keys in the payload of dataset messages (#1963)
+- [OPC Publisher] DatasetMessage SequenceNumber is not being incremented in 2.9.0 (preview) (#1961)
+- [OPC Publisher] Request opc server's nodes information #1960
+- [OPC Publisher] dotnet publish docker container for OPC Publisher #1949
+- [OPC Publisher] Metrics output and log output showing number of sessions currently active (related to #1923)
+- [OPC Publisher] Added new stack which addressess #1937
 - [All micro services] Have been combined into a single WebAPI with the same resource paths as the 2.8 AKS deployment and all-in-one service. 
 - [OPC Registry service] Supervisor, Discoverer entities have been removed, but the API has been layered on top of the publisher entity for backwards compatibiltiy. Do not use these API's anymore. 
 - [OPC Registry service] A new RegisterEndpoint API has been added that calls the new sync FindServer API and adds the result into the registry in one call.
 - [Telemetry processor] The telemetry and onboarding processors have been integrated into the WebAPI, but only forwards to SignalR. The secondary event hub has been removed. If you need to post process telemetry you must read telemetry data directly from IoT Hub.
+- Document the diagnostics output and troubleshooting guide #1952
 
 ## Azure Industrial IoT OPC Publisher Community Preview 1 Release 2.9.0
 
