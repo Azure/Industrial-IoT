@@ -197,24 +197,6 @@ In this mode the OPC Publisher module runs a configurable number of workers (whi
 
 OPC Publisher Module checks on a regular basis if there is a `publishednodes.json` file in its application directory. If there is one, the file is parsed and the OPC Publisher Module creates a new OPC UA subscription for each OPC UA server endpoint specified in the file and starts monitoring for data changes from this OPC UA server. Additionally, we support json schema validation of `publishednodes.json` file if a schema file is available to the OPC Publisher. Default location for schema file is `schemas/publishednodesschema.json` in its application directory. Default location of schema file can be changed via cli options [here](../modules/publisher-commandline.md), if a schema file is not found by OPC Publisher, a warning message is logged and module continues to load.
 
-##### Overview of how Orchestrated Mode Works
-
-1. During module startup, the OPC Publisher module also registers itself with the Orchestrator microservice so the orchestrator knows which publishing jobs it can possibly assign to it.
-
-2. The user sends a publishing request to the OPC Publisher microservice.
-
-3. The OPC Publisher microservice contacts the Orchestrator microservice who will create a new publishing job or modify an existing one if there already is one for that OPC UA server endpoint.
-
-4. The Orchestrator microservice does not leverage the IoT Hub device identity for the OPC UA server endpoint but instead creates a new IoT Hub device for the publishing job, so in theory we could have multiple publishing jobs per OPC UA server endpoint. However, to maintain backward compatibility with the V1 Publisher REST API, there can only be 1 job per OPC UA server endpoint right now.
-
-5. A job can contain several `DataSetWriters`. A `DataSetWriter` must have a distinct publishing interval (e.g., "publish this data every second"). Therefore, if you want to publish a set of OPC UA data items ("nodes") at different publishing intervals, the orchestrator will create multiple `DataSetWriters`.
-
-   > Implementation detail: Right now, the OPC Publisher creates a separate subscription per `DataSetWriter`.
-
-   <img src="media/image3.png" style="width:6.2493in;height:3.33403in" />
-
-6. OPC Publisher Module checks on a regular basis if there is a publishing job waiting for it from the Orchestrator microservice. If there is one, the job is assigned to the OPC Publisher Module and the OPC Publisher Module creates a new OPC UA subscription to the associated OPC UA server endpoint and starts monitoring for data changes from this OPC UA server.
-
 ### OPC UA stack
 
 The OPC UA .NET Standard reference stack of the OPC Foundation (contributed by Microsoft) is used for OPC UA secure communications by the Industrial IoT platform. Modules and services consume the NuGet package redistributable licensed by the OPC Foundation. The open source for the reference implementation is provided by the OPC Foundation on GitHub in [this public repository](https://github.com/OPCFoundation/UA-.NETStandard).

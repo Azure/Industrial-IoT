@@ -396,6 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 options.AllowUntrustedCertificates = true;
                 options.UseTls = false;
                 options.Version = mqttVersion ?? MqttVersion.v5;
+                options.Port = Interlocked.Increment(ref _mqttPort);
             });
 
             if (devices != null)
@@ -412,28 +413,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             if (mqttVersion != null)
             {
                 // Override the iothub rpcclient with an mqtt server implementation
-                builder.Register(ctx =>
-                {
-                    var options = ctx.Resolve<IOptions<MqttOptions>>();
-                    var logger = ctx.Resolve<ILogger<MqttServer>>();
-                    while (true)
-                    {
-                        try
-                        {
-                            var server = new MqttServer(options, logger);
-                            server.GetAwaiter().GetResult();
-                            return server;
-                        }
-                        catch (Exception ex)
-                        {
-                            options.Value.Port++;
-                            logger.LogError(ex,
-                                "Failed to start mqtt server. Trying next port {Port}",
-                                options.Value.Port);
-                        }
-                    }
-                }).AsSelf().AsImplementedInterfaces()
-                    .SingleInstance();
+                builder.AddMqttServer();
             }
 
             builder.RegisterType<ChunkMethodClient>()
@@ -508,6 +488,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             private readonly Channel<PublisherTelemetry> _channel;
         }
 
+        private static int _mqttPort = 48882;
         private readonly IIoTHubConnection _connection;
         private readonly IConfiguration _config;
         private readonly bool _useMqtt;

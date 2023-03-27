@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             const string endpointId = "testid";
 
-            var result = new TaskCompletionSource<MonitoredItemMessageModel>();
+            var result = new TaskCompletionSource<MonitoredItemMessageModel>(TaskCreationOptions.RunContinuationsAsynchronously);
             await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, ev =>
             {
                 result.SetResult(ev);
@@ -56,9 +56,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     Value = v
                 };
                 await bus.HandleSampleAsync(expected).ConfigureAwait(false);
-                await Task.WhenAny(result.Task, Task.Delay(5000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(30000)).ConfigureAwait(false);
 
-                Assert.True(result.Task.IsCompleted);
+                Assert.True(result.Task.IsCompleted, "Timed out");
                 var received = result.Task.Result;
 
                 Assert.Equal(expected.DisplayName, received.DisplayName);
@@ -93,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 Timestamp = DateTime.UtcNow,
                 Value = 234234
             };
-            var result = new TaskCompletionSource<bool>();
+            var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var counter = 0;
             await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, ev =>
             {

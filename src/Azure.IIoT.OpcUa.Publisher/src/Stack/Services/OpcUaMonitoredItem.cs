@@ -534,29 +534,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (!internalSelectClauses.Any(x => x == selectClause))
                 {
                     sb.Clear();
-                    for (var i = 0; i < selectClause.BrowsePath?.Count; i++)
+                    var definedSelectClause = EventTemplate.EventFilter.SelectClauses?
+                        .ElementAtOrDefault(eventFilter.SelectClauses.IndexOf(selectClause));
+                    if (!string.IsNullOrEmpty(definedSelectClause?.DisplayName))
                     {
-                        if (i == 0)
+                        sb.Append(definedSelectClause.DisplayName);
+                    }
+                    else
+                    {
+                        for (var i = 0; i < selectClause.BrowsePath?.Count; i++)
                         {
-                            if (selectClause.BrowsePath[i].NamespaceIndex != 0)
+                            if (i == 0)
                             {
-                                if (selectClause.BrowsePath[i].NamespaceIndex < nodeCache.NamespaceUris.Count)
+                                if (selectClause.BrowsePath[i].NamespaceIndex != 0)
                                 {
-                                    sb
-                                        .Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex))
-                                        .Append('#');
-                                }
-                                else
-                                {
-                                    sb.Append(selectClause.BrowsePath[i].NamespaceIndex).Append(':');
+                                    if (selectClause.BrowsePath[i].NamespaceIndex < nodeCache.NamespaceUris.Count)
+                                    {
+                                        sb
+                                            .Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex))
+                                            .Append('#');
+                                    }
+                                    else
+                                    {
+                                        sb.Append(selectClause.BrowsePath[i].NamespaceIndex).Append(':');
+                                    }
                                 }
                             }
+                            else
+                            {
+                                sb.Append('/');
+                            }
+                            sb.Append(selectClause.BrowsePath[i].Name);
                         }
-                        else
-                        {
-                            sb.Append('/');
-                        }
-                        sb.Append(selectClause.BrowsePath[i].Name);
                     }
 
                     if (sb.Length == 0 && selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&

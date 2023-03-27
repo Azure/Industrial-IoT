@@ -30,7 +30,7 @@ if ([string]::IsNullOrEmpty($script:ImageTag))
 {
     try 
     {
-        & dotnet @("tool", "install", "--tool-path", "./tools", "--framework", "net6.0", "nbgv") 2>&1 
+        & dotnet @("tool", "install", "--tool-path", "./tools", "--framework", "net7.0", "nbgv") 2>&1 
     }
     catch  {}
     try

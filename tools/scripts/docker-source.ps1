@@ -120,21 +120,21 @@ if ($projFile) {
     $platforms = @{
         "linux/arm" = @{
             runtimeId = "linux-musl-arm"
-            image = "mcr.microsoft.com/dotnet/runtime-deps:6.0-alpine"
+            image = "mcr.microsoft.com/dotnet/runtime-deps:7.0-alpine"
             platformTag = "linux-arm32v7"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/arm64" = @{
             runtimeId = "linux-musl-arm64"
-            image = "mcr.microsoft.com/dotnet/runtime-deps:6.0-alpine"
+            image = "mcr.microsoft.com/dotnet/runtime-deps:7.0-alpine"
             platformTag = "linux-arm64v8"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/amd64" = @{
             runtimeId = "linux-musl-x64"
-            image = "mcr.microsoft.com/dotnet/runtime-deps:6.0-alpine"
+            image = "mcr.microsoft.com/dotnet/runtime-deps:7.0-alpine"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
