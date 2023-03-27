@@ -276,9 +276,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", monitoredItemWrapper.Fields[1].Name);
         }
 
-        [Fact(Skip = "This test relied on relaxed validation. Now this will throw as ns=2 cannot be resolved.")]
+        [Fact]
         public void UseDefaultFieldNameWhenNamespaceTableIsEmpty()
         {
+            var messageContext = new ServiceMessageContext();
+            messageContext.NamespaceUris.Append("http://test");
+            messageContext.NamespaceUris.Append("http://opcfoundation.org/Quickstarts/SimpleEvents");
             var template = new EventMonitoredItemModel
             {
                 EventFilter = new EventFilterModel
@@ -309,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 }
             };
 
-            var monitoredItemWrapper = GetMonitoredItem(template);
+            var monitoredItemWrapper = GetMonitoredItem(template, messageContext);
 
             Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.Fields.Count);
             Assert.Equal("2:CycleId", monitoredItemWrapper.Fields[0].Name);

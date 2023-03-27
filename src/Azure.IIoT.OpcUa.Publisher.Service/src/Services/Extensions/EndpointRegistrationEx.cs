@@ -232,11 +232,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 // Properties
 
                 Type =
-                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertyTypeKey, (string)null),
+                    properties.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string)null),
                 State =
                     properties.GetValueOrDefault(nameof(EndpointRegistration.State), EndpointConnectivityState.Disconnected),
                 SiteId =
-                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertySiteKey,
+                    properties.GetValueOrDefault(Constants.TwinPropertySiteKey,
                         tags.GetValueOrDefault(nameof(EndpointRegistration.SiteId), (string)null)),
                 EndpointUrl =
                     properties.GetValueOrDefault(nameof(EndpointRegistration.EndpointUrl), (string)null),

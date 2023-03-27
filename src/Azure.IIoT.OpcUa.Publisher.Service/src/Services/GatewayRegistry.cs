@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             string continuation, int? pageSize, CancellationToken ct)
         {
             const string query = "SELECT * FROM devices WHERE " +
-                $"tags.{OpcUa.Constants.TwinPropertyTypeKey} = '{Constants.EntityTypeGateway}' " +
+                $"tags.{Constants.TwinPropertyTypeKey} = '{Constants.EntityTypeGateway}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
             return new GatewayListModel
@@ -156,13 +156,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             GatewayQueryModel query, int? pageSize, CancellationToken ct)
         {
             var sql = "SELECT * FROM devices WHERE " +
-                $"tags.{OpcUa.Constants.TwinPropertyTypeKey} = '{Constants.EntityTypeGateway}' ";
+                $"tags.{Constants.TwinPropertyTypeKey} = '{Constants.EntityTypeGateway}' ";
 
             if (query?.SiteId != null)
             {
                 // If site id provided, include it in search
                 sql +=
-$"AND (tags.{OpcUa.Constants.TwinPropertySiteKey} = '{query.SiteId}' OR deviceId = '{query.SiteId}') ";
+$"AND (tags.{Constants.TwinPropertySiteKey} = '{query.SiteId}' OR deviceId = '{query.SiteId}') ";
             }
             if (query?.Connected != null)
             {

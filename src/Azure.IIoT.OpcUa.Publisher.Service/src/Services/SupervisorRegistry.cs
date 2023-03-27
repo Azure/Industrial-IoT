@@ -124,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             string continuation, bool onlyServerState, int? pageSize, CancellationToken ct)
         {
             const string query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{OpcUa.Constants.TwinPropertyTypeKey} = '{Constants.EntityTypePublisher}' " +
+                $"properties.reported.{Constants.TwinPropertyTypeKey} = '{Constants.EntityTypePublisher}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct).ConfigureAwait(false);
             return new SupervisorListModel
@@ -142,13 +142,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             SupervisorQueryModel query, bool onlyServerState, int? pageSize, CancellationToken ct)
         {
             var sql = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{OpcUa.Constants.TwinPropertyTypeKey} = '{Constants.EntityTypePublisher}'";
+                $"properties.reported.{Constants.TwinPropertyTypeKey} = '{Constants.EntityTypePublisher}'";
 
             if (query?.SiteId != null)
             {
                 // If site id provided, include it in search
-                sql += $"AND (properties.reported.{OpcUa.Constants.TwinPropertySiteKey} = " +
-                    $"'{query.SiteId}' OR properties.desired.{OpcUa.Constants.TwinPropertySiteKey} = " +
+                sql += $"AND (properties.reported.{Constants.TwinPropertySiteKey} = " +
+                    $"'{query.SiteId}' OR properties.desired.{Constants.TwinPropertySiteKey} = " +
                     $"'{query.SiteId}' OR deviceId = '{query.SiteId}') ";
             }
 

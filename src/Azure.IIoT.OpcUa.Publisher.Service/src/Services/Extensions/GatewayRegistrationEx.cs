@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
 
             if (update?.SiteId != existing?.SiteId)
             {
-                tags.Add(OpcUa.Constants.TwinPropertySiteKey, update?.SiteId);
+                tags.Add(Constants.TwinPropertySiteKey, update?.SiteId);
             }
 
             tags.Add(nameof(GatewayRegistration.DeviceType), update?.DeviceType);
@@ -96,9 +96,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 NotSeenSince =
                     tags.GetValueOrDefault(nameof(GatewayRegistration.NotSeenSince), (DateTime?)null),
                 Type =
-                    tags.GetValueOrDefault(OpcUa.Constants.TwinPropertyTypeKey, (string)null),
+                    tags.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string)null),
                 SiteId =
-                    tags.GetValueOrDefault(OpcUa.Constants.TwinPropertySiteKey, (string)null)
+                    tags.GetValueOrDefault(Constants.TwinPropertySiteKey, (string)null)
 
                 // Properties
             };

@@ -170,17 +170,14 @@ namespace DataAccess
                     };
                 }
 
-                if (nodeId.IdType != IdType.String)
+                if (nodeId.IdType != IdType.String && PredefinedNodes.TryGetValue(nodeId, out var node))
                 {
-                    if (PredefinedNodes.TryGetValue(nodeId, out var node))
+                    return new NodeHandle
                     {
-                        return new NodeHandle
-                        {
-                            NodeId = nodeId,
-                            Node = node,
-                            Validated = true
-                        };
-                    }
+                        NodeId = nodeId,
+                        Node = node,
+                        Validated = true
+                    };
                 }
 
                 // parse the identifier.
@@ -360,13 +357,10 @@ namespace DataAccess
         /// <param name="monitoredItem">The monitored item.</param>
         protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
         {
-            if (handle.Node.GetHierarchyRoot() is BlockState block)
+            if (handle.Node.GetHierarchyRoot() is BlockState block && !block.StopMonitoring(context))
             {
-                if (!block.StopMonitoring(context))
-                {
-                    // can remove the block since all monitored items for the block are gone.
-                    _blocks.Remove(block.NodeId);
-                }
+                // can remove the block since all monitored items for the block are gone.
+                _blocks.Remove(block.NodeId);
             }
         }
 

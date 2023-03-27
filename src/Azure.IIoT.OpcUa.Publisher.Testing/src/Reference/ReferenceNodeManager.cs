@@ -77,12 +77,10 @@ namespace Reference
         /// <param name="node"></param>
         public override NodeId New(ISystemContext context, NodeState node)
         {
-            if (node is BaseInstanceState instance && instance.Parent != null)
+            if (node is BaseInstanceState instance &&
+                instance.Parent?.NodeId.Identifier is string id)
             {
-                if (instance.Parent.NodeId.Identifier is string id)
-                {
-                    return new NodeId(id + "_" + instance.SymbolicName, instance.Parent.NodeId.NamespaceIndex);
-                }
+                return new NodeId(id + "_" + instance.SymbolicName, instance.Parent.NodeId.NamespaceIndex);
             }
 
             return node.NodeId;
@@ -204,12 +202,11 @@ namespace Reference
                     var decimalVariable = CreateVariable(staticFolder, scalarStatic + "Decimal", "Decimal", DataTypeIds.DecimalDataType, ValueRanks.Scalar);
                     // Set an arbitrary precision decimal value.
                     var largeInteger = BigInteger.Parse("1234567890123546789012345678901234567890123456789012345", CultureInfo.InvariantCulture);
-                    var decimalValue = new DecimalDataType
+                    decimalVariable.Value = new DecimalDataType
                     {
                         Scale = 100,
                         Value = largeInteger.ToByteArray()
                     };
-                    decimalVariable.Value = decimalValue;
                     variables.Add(decimalVariable);
 
                     // Scalar_Static_Arrays

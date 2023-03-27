@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        private class DummyDialog : IApplicationMessageDlg
+        private sealed class DummyDialog : IApplicationMessageDlg
         {
             /// <inheritdoc/>
             public override void Message(string text, bool ask) { }

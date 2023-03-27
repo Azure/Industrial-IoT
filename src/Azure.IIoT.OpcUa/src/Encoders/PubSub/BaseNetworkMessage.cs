@@ -31,17 +31,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public List<BaseDataSetMessage> Messages { get; set; } = new List<BaseDataSetMessage>();
 
         /// <inheritdoc/>
-        public override bool Equals(object value)
+        public override bool Equals(object obj)
         {
-            if (ReferenceEquals(this, value))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
-            if (!(value is BaseNetworkMessage wrapper))
+            if (!(obj is BaseNetworkMessage wrapper))
             {
                 return false;
             }
-            if (!base.Equals(value))
+            if (!base.Equals(obj))
             {
                 return false;
             }

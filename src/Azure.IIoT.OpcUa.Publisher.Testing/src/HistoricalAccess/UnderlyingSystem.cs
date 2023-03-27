@@ -59,10 +59,10 @@ namespace HistoricalAccess
         /// <param name="rootId"></param>
         public ArchiveFolderState GetFolderState(string rootId)
         {
-            var path = new StringBuilder();
-            path.Append(_configuration.ArchiveRoot);
-            path.Append('/');
-            path.Append(rootId);
+            var path = new StringBuilder()
+                .Append(_configuration.ArchiveRoot)
+                .Append('/')
+                .Append(rootId);
 
             var folder = new ArchiveFolder(rootId, new DirectoryInfo(path.ToString()));
             return new ArchiveFolderState(folder, _namespaceIndex);
@@ -80,10 +80,10 @@ namespace HistoricalAccess
                 return null;
             }
 
-            var path = new StringBuilder();
-            path.Append(_configuration.ArchiveRoot);
-            path.Append('/');
-            path.Append(parsedNodeId.RootId);
+            var path = new StringBuilder()
+                .Append(_configuration.ArchiveRoot)
+                .Append('/')
+                .Append(parsedNodeId.RootId);
 
             var item = new ArchiveItem(parsedNodeId.RootId, new FileInfo(path.ToString()));
 

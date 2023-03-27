@@ -204,12 +204,9 @@ namespace Vehicles
                 NodeState node = null;
 
                 // check cache (the cache is used because the same node id can appear many times in a single request).
-                if (cache != null)
+                if (cache != null && cache.TryGetValue(nodeId, out node))
                 {
-                    if (cache.TryGetValue(nodeId, out node))
-                    {
-                        return new NodeHandle(nodeId, node);
-                    }
+                    return new NodeHandle(nodeId, node);
                 }
 
                 // look up predefined node.

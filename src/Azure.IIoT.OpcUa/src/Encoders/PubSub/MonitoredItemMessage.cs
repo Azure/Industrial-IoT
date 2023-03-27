@@ -48,17 +48,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public IEnumerable<KeyValuePair<string, string>> ExtensionFields { get; set; }
 
         /// <inheritdoc/>
-        public override bool Equals(object value)
+        public override bool Equals(object obj)
         {
-            if (ReferenceEquals(this, value))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
-            if (!(value is MonitoredItemMessage wrapper))
+            if (!(obj is MonitoredItemMessage wrapper))
             {
                 return false;
             }
-            if (!base.Equals(value))
+            if (!base.Equals(obj))
             {
                 return false;
             }

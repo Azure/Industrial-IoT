@@ -388,7 +388,7 @@ namespace TestData
         /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.TestDataObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.TestDataObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if (!OPCUA_EXCLUDE_InitializationStrings)
@@ -479,7 +479,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_simulationActive, value))
+                if (!ReferenceEquals(m_simulationActive, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -495,7 +495,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_generateValuesMethod, value))
+                if (!ReferenceEquals(m_generateValuesMethod, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -511,7 +511,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_cycleComplete, value))
+                if (!ReferenceEquals(m_cycleComplete, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -571,20 +571,17 @@ namespace TestData
 
             switch (browseName.Name)
             {
-                case TestData.BrowseNames.SimulationActive:
+                case BrowseNames.SimulationActive:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && SimulationActive == null)
                         {
-                            if (SimulationActive == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    SimulationActive = new PropertyState<bool>(this);
-                                }
-                                else
-                                {
-                                    SimulationActive = (PropertyState<bool>)replacement;
-                                }
+                                SimulationActive = new PropertyState<bool>(this);
+                            }
+                            else
+                            {
+                                SimulationActive = (PropertyState<bool>)replacement;
                             }
                         }
 
@@ -592,20 +589,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.GenerateValues:
+                case BrowseNames.GenerateValues:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && GenerateValues == null)
                         {
-                            if (GenerateValues == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    GenerateValues = new GenerateValuesMethodState(this);
-                                }
-                                else
-                                {
-                                    GenerateValues = (GenerateValuesMethodState)replacement;
-                                }
+                                GenerateValues = new GenerateValuesMethodState(this);
+                            }
+                            else
+                            {
+                                GenerateValues = (GenerateValuesMethodState)replacement;
                             }
                         }
 
@@ -613,20 +607,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.CycleComplete:
+                case BrowseNames.CycleComplete:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && CycleComplete == null)
                         {
-                            if (CycleComplete == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    CycleComplete = new AcknowledgeableConditionState(this);
-                                }
-                                else
-                                {
-                                    CycleComplete = (AcknowledgeableConditionState)replacement;
-                                }
+                                CycleComplete = new AcknowledgeableConditionState(this);
+                            }
+                            else
+                            {
+                                CycleComplete = (AcknowledgeableConditionState)replacement;
                             }
                         }
 
@@ -1269,7 +1260,7 @@ namespace TestData
         /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.ScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.ScalarValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if (!OPCUA_EXCLUDE_InitializationStrings)
@@ -1384,7 +1375,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_booleanValue, value))
+                if (!ReferenceEquals(m_booleanValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1400,7 +1391,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
+                if (!ReferenceEquals(m_sByteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1416,7 +1407,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_byteValue, value))
+                if (!ReferenceEquals(m_byteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1432,7 +1423,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int16Value, value))
+                if (!ReferenceEquals(m_int16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1448,7 +1439,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
+                if (!ReferenceEquals(m_uInt16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1464,7 +1455,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int32Value, value))
+                if (!ReferenceEquals(m_int32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1480,7 +1471,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
+                if (!ReferenceEquals(m_uInt32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1496,7 +1487,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int64Value, value))
+                if (!ReferenceEquals(m_int64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1512,7 +1503,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
+                if (!ReferenceEquals(m_uInt64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1528,7 +1519,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_floatValue, value))
+                if (!ReferenceEquals(m_floatValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1544,7 +1535,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
+                if (!ReferenceEquals(m_doubleValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1560,7 +1551,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_stringValue, value))
+                if (!ReferenceEquals(m_stringValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1576,7 +1567,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value))
+                if (!ReferenceEquals(m_dateTimeValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1592,7 +1583,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_guidValue, value))
+                if (!ReferenceEquals(m_guidValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1608,7 +1599,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_byteStringValue, value))
+                if (!ReferenceEquals(m_byteStringValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1624,7 +1615,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value))
+                if (!ReferenceEquals(m_xmlElementValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1640,7 +1631,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value))
+                if (!ReferenceEquals(m_nodeIdValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1656,7 +1647,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value))
+                if (!ReferenceEquals(m_expandedNodeIdValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1672,7 +1663,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value))
+                if (!ReferenceEquals(m_qualifiedNameValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1688,7 +1679,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value))
+                if (!ReferenceEquals(m_localizedTextValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1704,7 +1695,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value))
+                if (!ReferenceEquals(m_statusCodeValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1720,7 +1711,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_variantValue, value))
+                if (!ReferenceEquals(m_variantValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1736,7 +1727,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_enumerationValue, value))
+                if (!ReferenceEquals(m_enumerationValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1752,7 +1743,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_structureValue, value))
+                if (!ReferenceEquals(m_structureValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1768,7 +1759,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_numberValue, value))
+                if (!ReferenceEquals(m_numberValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1784,7 +1775,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_integerValue, value))
+                if (!ReferenceEquals(m_integerValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1800,7 +1791,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value))
+                if (!ReferenceEquals(m_uIntegerValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -1980,20 +1971,17 @@ namespace TestData
 
             switch (browseName.Name)
             {
-                case TestData.BrowseNames.BooleanValue:
+                case BrowseNames.BooleanValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && BooleanValue == null)
                         {
-                            if (BooleanValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    BooleanValue = new BaseDataVariableState<bool>(this);
-                                }
-                                else
-                                {
-                                    BooleanValue = (BaseDataVariableState<bool>)replacement;
-                                }
+                                BooleanValue = new BaseDataVariableState<bool>(this);
+                            }
+                            else
+                            {
+                                BooleanValue = (BaseDataVariableState<bool>)replacement;
                             }
                         }
 
@@ -2001,20 +1989,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.SByteValue:
+                case BrowseNames.SByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && SByteValue == null)
                         {
-                            if (SByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    SByteValue = new BaseDataVariableState<sbyte>(this);
-                                }
-                                else
-                                {
-                                    SByteValue = (BaseDataVariableState<sbyte>)replacement;
-                                }
+                                SByteValue = new BaseDataVariableState<sbyte>(this);
+                            }
+                            else
+                            {
+                                SByteValue = (BaseDataVariableState<sbyte>)replacement;
                             }
                         }
 
@@ -2022,20 +2007,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue:
+                case BrowseNames.ByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ByteValue == null)
                         {
-                            if (ByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ByteValue = new BaseDataVariableState<byte>(this);
-                                }
-                                else
-                                {
-                                    ByteValue = (BaseDataVariableState<byte>)replacement;
-                                }
+                                ByteValue = new BaseDataVariableState<byte>(this);
+                            }
+                            else
+                            {
+                                ByteValue = (BaseDataVariableState<byte>)replacement;
                             }
                         }
 
@@ -2043,20 +2025,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value:
+                case BrowseNames.Int16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int16Value == null)
                         {
-                            if (Int16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int16Value = new BaseDataVariableState<short>(this);
-                                }
-                                else
-                                {
-                                    Int16Value = (BaseDataVariableState<short>)replacement;
-                                }
+                                Int16Value = new BaseDataVariableState<short>(this);
+                            }
+                            else
+                            {
+                                Int16Value = (BaseDataVariableState<short>)replacement;
                             }
                         }
 
@@ -2064,20 +2043,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value:
+                case BrowseNames.UInt16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt16Value == null)
                         {
-                            if (UInt16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt16Value = new BaseDataVariableState<ushort>(this);
-                                }
-                                else
-                                {
-                                    UInt16Value = (BaseDataVariableState<ushort>)replacement;
-                                }
+                                UInt16Value = new BaseDataVariableState<ushort>(this);
+                            }
+                            else
+                            {
+                                UInt16Value = (BaseDataVariableState<ushort>)replacement;
                             }
                         }
 
@@ -2085,20 +2061,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value:
+                case BrowseNames.Int32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int32Value == null)
                         {
-                            if (Int32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int32Value = new BaseDataVariableState<int>(this);
-                                }
-                                else
-                                {
-                                    Int32Value = (BaseDataVariableState<int>)replacement;
-                                }
+                                Int32Value = new BaseDataVariableState<int>(this);
+                            }
+                            else
+                            {
+                                Int32Value = (BaseDataVariableState<int>)replacement;
                             }
                         }
 
@@ -2106,20 +2079,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value:
+                case BrowseNames.UInt32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt32Value == null)
                         {
-                            if (UInt32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt32Value = new BaseDataVariableState<uint>(this);
-                                }
-                                else
-                                {
-                                    UInt32Value = (BaseDataVariableState<uint>)replacement;
-                                }
+                                UInt32Value = new BaseDataVariableState<uint>(this);
+                            }
+                            else
+                            {
+                                UInt32Value = (BaseDataVariableState<uint>)replacement;
                             }
                         }
 
@@ -2127,20 +2097,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value:
+                case BrowseNames.Int64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int64Value == null)
                         {
-                            if (Int64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int64Value = new BaseDataVariableState<long>(this);
-                                }
-                                else
-                                {
-                                    Int64Value = (BaseDataVariableState<long>)replacement;
-                                }
+                                Int64Value = new BaseDataVariableState<long>(this);
+                            }
+                            else
+                            {
+                                Int64Value = (BaseDataVariableState<long>)replacement;
                             }
                         }
 
@@ -2148,20 +2115,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value:
+                case BrowseNames.UInt64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt64Value == null)
                         {
-                            if (UInt64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt64Value = new BaseDataVariableState<ulong>(this);
-                                }
-                                else
-                                {
-                                    UInt64Value = (BaseDataVariableState<ulong>)replacement;
-                                }
+                                UInt64Value = new BaseDataVariableState<ulong>(this);
+                            }
+                            else
+                            {
+                                UInt64Value = (BaseDataVariableState<ulong>)replacement;
                             }
                         }
 
@@ -2169,20 +2133,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue:
+                case BrowseNames.FloatValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && FloatValue == null)
                         {
-                            if (FloatValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    FloatValue = new BaseDataVariableState<float>(this);
-                                }
-                                else
-                                {
-                                    FloatValue = (BaseDataVariableState<float>)replacement;
-                                }
+                                FloatValue = new BaseDataVariableState<float>(this);
+                            }
+                            else
+                            {
+                                FloatValue = (BaseDataVariableState<float>)replacement;
                             }
                         }
 
@@ -2190,20 +2151,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue:
+                case BrowseNames.DoubleValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && DoubleValue == null)
                         {
-                            if (DoubleValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    DoubleValue = new BaseDataVariableState<double>(this);
-                                }
-                                else
-                                {
-                                    DoubleValue = (BaseDataVariableState<double>)replacement;
-                                }
+                                DoubleValue = new BaseDataVariableState<double>(this);
+                            }
+                            else
+                            {
+                                DoubleValue = (BaseDataVariableState<double>)replacement;
                             }
                         }
 
@@ -2211,20 +2169,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.StringValue:
+                case BrowseNames.StringValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && StringValue == null)
                         {
-                            if (StringValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    StringValue = new BaseDataVariableState<string>(this);
-                                }
-                                else
-                                {
-                                    StringValue = (BaseDataVariableState<string>)replacement;
-                                }
+                                StringValue = new BaseDataVariableState<string>(this);
+                            }
+                            else
+                            {
+                                StringValue = (BaseDataVariableState<string>)replacement;
                             }
                         }
 
@@ -2232,20 +2187,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.DateTimeValue:
+                case BrowseNames.DateTimeValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && DateTimeValue == null)
                         {
-                            if (DateTimeValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    DateTimeValue = new BaseDataVariableState<DateTime>(this);
-                                }
-                                else
-                                {
-                                    DateTimeValue = (BaseDataVariableState<DateTime>)replacement;
-                                }
+                                DateTimeValue = new BaseDataVariableState<DateTime>(this);
+                            }
+                            else
+                            {
+                                DateTimeValue = (BaseDataVariableState<DateTime>)replacement;
                             }
                         }
 
@@ -2253,20 +2205,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.GuidValue:
+                case BrowseNames.GuidValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && GuidValue == null)
                         {
-                            if (GuidValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    GuidValue = new BaseDataVariableState<Guid>(this);
-                                }
-                                else
-                                {
-                                    GuidValue = (BaseDataVariableState<Guid>)replacement;
-                                }
+                                GuidValue = new BaseDataVariableState<Guid>(this);
+                            }
+                            else
+                            {
+                                GuidValue = (BaseDataVariableState<Guid>)replacement;
                             }
                         }
 
@@ -2274,20 +2223,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ByteStringValue:
+                case BrowseNames.ByteStringValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ByteStringValue == null)
                         {
-                            if (ByteStringValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ByteStringValue = new BaseDataVariableState<byte[]>(this);
-                                }
-                                else
-                                {
-                                    ByteStringValue = (BaseDataVariableState<byte[]>)replacement;
-                                }
+                                ByteStringValue = new BaseDataVariableState<byte[]>(this);
+                            }
+                            else
+                            {
+                                ByteStringValue = (BaseDataVariableState<byte[]>)replacement;
                             }
                         }
 
@@ -2295,20 +2241,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.XmlElementValue:
+                case BrowseNames.XmlElementValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && XmlElementValue == null)
                         {
-                            if (XmlElementValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    XmlElementValue = new BaseDataVariableState<XmlElement>(this);
-                                }
-                                else
-                                {
-                                    XmlElementValue = (BaseDataVariableState<XmlElement>)replacement;
-                                }
+                                XmlElementValue = new BaseDataVariableState<XmlElement>(this);
+                            }
+                            else
+                            {
+                                XmlElementValue = (BaseDataVariableState<XmlElement>)replacement;
                             }
                         }
 
@@ -2316,20 +2259,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.NodeIdValue:
+                case BrowseNames.NodeIdValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && NodeIdValue == null)
                         {
-                            if (NodeIdValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    NodeIdValue = new BaseDataVariableState<NodeId>(this);
-                                }
-                                else
-                                {
-                                    NodeIdValue = (BaseDataVariableState<NodeId>)replacement;
-                                }
+                                NodeIdValue = new BaseDataVariableState<NodeId>(this);
+                            }
+                            else
+                            {
+                                NodeIdValue = (BaseDataVariableState<NodeId>)replacement;
                             }
                         }
 
@@ -2337,20 +2277,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ExpandedNodeIdValue:
+                case BrowseNames.ExpandedNodeIdValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ExpandedNodeIdValue == null)
                         {
-                            if (ExpandedNodeIdValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId>(this);
-                                }
-                                else
-                                {
-                                    ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId>)replacement;
-                                }
+                                ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId>(this);
+                            }
+                            else
+                            {
+                                ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId>)replacement;
                             }
                         }
 
@@ -2358,20 +2295,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.QualifiedNameValue:
+                case BrowseNames.QualifiedNameValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && QualifiedNameValue == null)
                         {
-                            if (QualifiedNameValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    QualifiedNameValue = new BaseDataVariableState<QualifiedName>(this);
-                                }
-                                else
-                                {
-                                    QualifiedNameValue = (BaseDataVariableState<QualifiedName>)replacement;
-                                }
+                                QualifiedNameValue = new BaseDataVariableState<QualifiedName>(this);
+                            }
+                            else
+                            {
+                                QualifiedNameValue = (BaseDataVariableState<QualifiedName>)replacement;
                             }
                         }
 
@@ -2379,20 +2313,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.LocalizedTextValue:
+                case BrowseNames.LocalizedTextValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && LocalizedTextValue == null)
                         {
-                            if (LocalizedTextValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    LocalizedTextValue = new BaseDataVariableState<LocalizedText>(this);
-                                }
-                                else
-                                {
-                                    LocalizedTextValue = (BaseDataVariableState<LocalizedText>)replacement;
-                                }
+                                LocalizedTextValue = new BaseDataVariableState<LocalizedText>(this);
+                            }
+                            else
+                            {
+                                LocalizedTextValue = (BaseDataVariableState<LocalizedText>)replacement;
                             }
                         }
 
@@ -2400,20 +2331,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.StatusCodeValue:
+                case BrowseNames.StatusCodeValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && StatusCodeValue == null)
                         {
-                            if (StatusCodeValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    StatusCodeValue = new BaseDataVariableState<StatusCode>(this);
-                                }
-                                else
-                                {
-                                    StatusCodeValue = (BaseDataVariableState<StatusCode>)replacement;
-                                }
+                                StatusCodeValue = new BaseDataVariableState<StatusCode>(this);
+                            }
+                            else
+                            {
+                                StatusCodeValue = (BaseDataVariableState<StatusCode>)replacement;
                             }
                         }
 
@@ -2421,20 +2349,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.VariantValue:
+                case BrowseNames.VariantValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && VariantValue == null)
                         {
-                            if (VariantValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    VariantValue = new BaseDataVariableState(this);
-                                }
-                                else
-                                {
-                                    VariantValue = (BaseDataVariableState)replacement;
-                                }
+                                VariantValue = new BaseDataVariableState(this);
+                            }
+                            else
+                            {
+                                VariantValue = (BaseDataVariableState)replacement;
                             }
                         }
 
@@ -2442,20 +2367,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.EnumerationValue:
+                case BrowseNames.EnumerationValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && EnumerationValue == null)
                         {
-                            if (EnumerationValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    EnumerationValue = new BaseDataVariableState<int>(this);
-                                }
-                                else
-                                {
-                                    EnumerationValue = (BaseDataVariableState<int>)replacement;
-                                }
+                                EnumerationValue = new BaseDataVariableState<int>(this);
+                            }
+                            else
+                            {
+                                EnumerationValue = (BaseDataVariableState<int>)replacement;
                             }
                         }
 
@@ -2463,20 +2385,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.StructureValue:
+                case BrowseNames.StructureValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && StructureValue == null)
                         {
-                            if (StructureValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    StructureValue = new BaseDataVariableState<ExtensionObject>(this);
-                                }
-                                else
-                                {
-                                    StructureValue = (BaseDataVariableState<ExtensionObject>)replacement;
-                                }
+                                StructureValue = new BaseDataVariableState<ExtensionObject>(this);
+                            }
+                            else
+                            {
+                                StructureValue = (BaseDataVariableState<ExtensionObject>)replacement;
                             }
                         }
 
@@ -2484,20 +2403,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.NumberValue:
+                case BrowseNames.NumberValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && NumberValue == null)
                         {
-                            if (NumberValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    NumberValue = new BaseDataVariableState(this);
-                                }
-                                else
-                                {
-                                    NumberValue = (BaseDataVariableState)replacement;
-                                }
+                                NumberValue = new BaseDataVariableState(this);
+                            }
+                            else
+                            {
+                                NumberValue = (BaseDataVariableState)replacement;
                             }
                         }
 
@@ -2505,20 +2421,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.IntegerValue:
+                case BrowseNames.IntegerValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && IntegerValue == null)
                         {
-                            if (IntegerValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    IntegerValue = new BaseDataVariableState(this);
-                                }
-                                else
-                                {
-                                    IntegerValue = (BaseDataVariableState)replacement;
-                                }
+                                IntegerValue = new BaseDataVariableState(this);
+                            }
+                            else
+                            {
+                                IntegerValue = (BaseDataVariableState)replacement;
                             }
                         }
 
@@ -2526,20 +2439,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UIntegerValue:
+                case BrowseNames.UIntegerValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UIntegerValue == null)
                         {
-                            if (UIntegerValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UIntegerValue = new BaseDataVariableState(this);
-                                }
-                                else
-                                {
-                                    UIntegerValue = (BaseDataVariableState)replacement;
-                                }
+                                UIntegerValue = new BaseDataVariableState(this);
+                            }
+                            else
+                            {
+                                UIntegerValue = (BaseDataVariableState)replacement;
                             }
                         }
 
@@ -2614,7 +2524,7 @@ namespace TestData
         /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.AnalogScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.AnalogScalarValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if (!OPCUA_EXCLUDE_InitializationStrings)
@@ -2728,7 +2638,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
+                if (!ReferenceEquals(m_sByteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2744,7 +2654,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_byteValue, value))
+                if (!ReferenceEquals(m_byteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2760,7 +2670,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int16Value, value))
+                if (!ReferenceEquals(m_int16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2776,7 +2686,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
+                if (!ReferenceEquals(m_uInt16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2792,7 +2702,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int32Value, value))
+                if (!ReferenceEquals(m_int32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2808,7 +2718,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
+                if (!ReferenceEquals(m_uInt32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2824,7 +2734,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int64Value, value))
+                if (!ReferenceEquals(m_int64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2840,7 +2750,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
+                if (!ReferenceEquals(m_uInt64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2856,7 +2766,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_floatValue, value))
+                if (!ReferenceEquals(m_floatValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2872,7 +2782,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
+                if (!ReferenceEquals(m_doubleValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2888,7 +2798,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_numberValue, value))
+                if (!ReferenceEquals(m_numberValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2904,7 +2814,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_integerValue, value))
+                if (!ReferenceEquals(m_integerValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -2920,7 +2830,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value))
+                if (!ReferenceEquals(m_uIntegerValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -3030,20 +2940,17 @@ namespace TestData
 
             switch (browseName.Name)
             {
-                case TestData.BrowseNames.SByteValue:
+                case BrowseNames.SByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && SByteValue == null)
                         {
-                            if (SByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    SByteValue = new AnalogItemState<sbyte>(this);
-                                }
-                                else
-                                {
-                                    SByteValue = (AnalogItemState<sbyte>)replacement;
-                                }
+                                SByteValue = new AnalogItemState<sbyte>(this);
+                            }
+                            else
+                            {
+                                SByteValue = (AnalogItemState<sbyte>)replacement;
                             }
                         }
 
@@ -3051,20 +2958,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue:
+                case BrowseNames.ByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ByteValue == null)
                         {
-                            if (ByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ByteValue = new AnalogItemState<byte>(this);
-                                }
-                                else
-                                {
-                                    ByteValue = (AnalogItemState<byte>)replacement;
-                                }
+                                ByteValue = new AnalogItemState<byte>(this);
+                            }
+                            else
+                            {
+                                ByteValue = (AnalogItemState<byte>)replacement;
                             }
                         }
 
@@ -3072,20 +2976,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value:
+                case BrowseNames.Int16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int16Value == null)
                         {
-                            if (Int16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int16Value = new AnalogItemState<short>(this);
-                                }
-                                else
-                                {
-                                    Int16Value = (AnalogItemState<short>)replacement;
-                                }
+                                Int16Value = new AnalogItemState<short>(this);
+                            }
+                            else
+                            {
+                                Int16Value = (AnalogItemState<short>)replacement;
                             }
                         }
 
@@ -3093,20 +2994,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value:
+                case BrowseNames.UInt16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt16Value == null)
                         {
-                            if (UInt16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt16Value = new AnalogItemState<ushort>(this);
-                                }
-                                else
-                                {
-                                    UInt16Value = (AnalogItemState<ushort>)replacement;
-                                }
+                                UInt16Value = new AnalogItemState<ushort>(this);
+                            }
+                            else
+                            {
+                                UInt16Value = (AnalogItemState<ushort>)replacement;
                             }
                         }
 
@@ -3114,20 +3012,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value:
+                case BrowseNames.Int32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int32Value == null)
                         {
-                            if (Int32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int32Value = new AnalogItemState<int>(this);
-                                }
-                                else
-                                {
-                                    Int32Value = (AnalogItemState<int>)replacement;
-                                }
+                                Int32Value = new AnalogItemState<int>(this);
+                            }
+                            else
+                            {
+                                Int32Value = (AnalogItemState<int>)replacement;
                             }
                         }
 
@@ -3135,20 +3030,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value:
+                case BrowseNames.UInt32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt32Value == null)
                         {
-                            if (UInt32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt32Value = new AnalogItemState<uint>(this);
-                                }
-                                else
-                                {
-                                    UInt32Value = (AnalogItemState<uint>)replacement;
-                                }
+                                UInt32Value = new AnalogItemState<uint>(this);
+                            }
+                            else
+                            {
+                                UInt32Value = (AnalogItemState<uint>)replacement;
                             }
                         }
 
@@ -3156,20 +3048,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value:
+                case BrowseNames.Int64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int64Value == null)
                         {
-                            if (Int64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int64Value = new AnalogItemState<long>(this);
-                                }
-                                else
-                                {
-                                    Int64Value = (AnalogItemState<long>)replacement;
-                                }
+                                Int64Value = new AnalogItemState<long>(this);
+                            }
+                            else
+                            {
+                                Int64Value = (AnalogItemState<long>)replacement;
                             }
                         }
 
@@ -3177,20 +3066,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value:
+                case BrowseNames.UInt64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt64Value == null)
                         {
-                            if (UInt64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt64Value = new AnalogItemState<ulong>(this);
-                                }
-                                else
-                                {
-                                    UInt64Value = (AnalogItemState<ulong>)replacement;
-                                }
+                                UInt64Value = new AnalogItemState<ulong>(this);
+                            }
+                            else
+                            {
+                                UInt64Value = (AnalogItemState<ulong>)replacement;
                             }
                         }
 
@@ -3198,20 +3084,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue:
+                case BrowseNames.FloatValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && FloatValue == null)
                         {
-                            if (FloatValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    FloatValue = new AnalogItemState<float>(this);
-                                }
-                                else
-                                {
-                                    FloatValue = (AnalogItemState<float>)replacement;
-                                }
+                                FloatValue = new AnalogItemState<float>(this);
+                            }
+                            else
+                            {
+                                FloatValue = (AnalogItemState<float>)replacement;
                             }
                         }
 
@@ -3219,20 +3102,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue:
+                case BrowseNames.DoubleValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && DoubleValue == null)
                         {
-                            if (DoubleValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    DoubleValue = new AnalogItemState<double>(this);
-                                }
-                                else
-                                {
-                                    DoubleValue = (AnalogItemState<double>)replacement;
-                                }
+                                DoubleValue = new AnalogItemState<double>(this);
+                            }
+                            else
+                            {
+                                DoubleValue = (AnalogItemState<double>)replacement;
                             }
                         }
 
@@ -3240,20 +3120,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.NumberValue:
+                case BrowseNames.NumberValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && NumberValue == null)
                         {
-                            if (NumberValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    NumberValue = new AnalogItemState(this);
-                                }
-                                else
-                                {
-                                    NumberValue = (AnalogItemState)replacement;
-                                }
+                                NumberValue = new AnalogItemState(this);
+                            }
+                            else
+                            {
+                                NumberValue = (AnalogItemState)replacement;
                             }
                         }
 
@@ -3261,20 +3138,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.IntegerValue:
+                case BrowseNames.IntegerValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && IntegerValue == null)
                         {
-                            if (IntegerValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    IntegerValue = new AnalogItemState(this);
-                                }
-                                else
-                                {
-                                    IntegerValue = (AnalogItemState)replacement;
-                                }
+                                IntegerValue = new AnalogItemState(this);
+                            }
+                            else
+                            {
+                                IntegerValue = (AnalogItemState)replacement;
                             }
                         }
 
@@ -3282,20 +3156,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UIntegerValue:
+                case BrowseNames.UIntegerValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UIntegerValue == null)
                         {
-                            if (UIntegerValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UIntegerValue = new AnalogItemState(this);
-                                }
-                                else
-                                {
-                                    UIntegerValue = (AnalogItemState)replacement;
-                                }
+                                UIntegerValue = new AnalogItemState(this);
+                            }
+                            else
+                            {
+                                UIntegerValue = (AnalogItemState)replacement;
                             }
                         }
 
@@ -3952,7 +3823,7 @@ namespace TestData
         /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.ArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.ArrayValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if (!OPCUA_EXCLUDE_InitializationStrings)
@@ -4071,7 +3942,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_booleanValue, value))
+                if (!ReferenceEquals(m_booleanValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4087,7 +3958,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
+                if (!ReferenceEquals(m_sByteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4103,7 +3974,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_byteValue, value))
+                if (!ReferenceEquals(m_byteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4119,7 +3990,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int16Value, value))
+                if (!ReferenceEquals(m_int16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4135,7 +4006,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
+                if (!ReferenceEquals(m_uInt16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4151,7 +4022,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int32Value, value))
+                if (!ReferenceEquals(m_int32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4167,7 +4038,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
+                if (!ReferenceEquals(m_uInt32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4183,7 +4054,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int64Value, value))
+                if (!ReferenceEquals(m_int64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4199,7 +4070,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
+                if (!ReferenceEquals(m_uInt64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4215,7 +4086,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_floatValue, value))
+                if (!ReferenceEquals(m_floatValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4231,7 +4102,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
+                if (!ReferenceEquals(m_doubleValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4247,7 +4118,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_stringValue, value))
+                if (!ReferenceEquals(m_stringValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4263,7 +4134,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value))
+                if (!ReferenceEquals(m_dateTimeValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4279,7 +4150,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_guidValue, value))
+                if (!ReferenceEquals(m_guidValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4295,7 +4166,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_byteStringValue, value))
+                if (!ReferenceEquals(m_byteStringValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4311,7 +4182,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value))
+                if (!ReferenceEquals(m_xmlElementValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4327,7 +4198,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value))
+                if (!ReferenceEquals(m_nodeIdValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4343,7 +4214,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value))
+                if (!ReferenceEquals(m_expandedNodeIdValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4359,7 +4230,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value))
+                if (!ReferenceEquals(m_qualifiedNameValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4375,7 +4246,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value))
+                if (!ReferenceEquals(m_localizedTextValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4391,7 +4262,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value))
+                if (!ReferenceEquals(m_statusCodeValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4407,7 +4278,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_variantValue, value))
+                if (!ReferenceEquals(m_variantValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4423,7 +4294,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_enumerationValue, value))
+                if (!ReferenceEquals(m_enumerationValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4439,7 +4310,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_structureValue, value))
+                if (!ReferenceEquals(m_structureValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4455,7 +4326,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_numberValue, value))
+                if (!ReferenceEquals(m_numberValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4471,7 +4342,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_integerValue, value))
+                if (!ReferenceEquals(m_integerValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4487,7 +4358,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value))
+                if (!ReferenceEquals(m_uIntegerValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -4667,20 +4538,17 @@ namespace TestData
 
             switch (browseName.Name)
             {
-                case TestData.BrowseNames.BooleanValue:
+                case BrowseNames.BooleanValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && BooleanValue == null)
                         {
-                            if (BooleanValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    BooleanValue = new BaseDataVariableState<bool[]>(this);
-                                }
-                                else
-                                {
-                                    BooleanValue = (BaseDataVariableState<bool[]>)replacement;
-                                }
+                                BooleanValue = new BaseDataVariableState<bool[]>(this);
+                            }
+                            else
+                            {
+                                BooleanValue = (BaseDataVariableState<bool[]>)replacement;
                             }
                         }
 
@@ -4688,20 +4556,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.SByteValue:
+                case BrowseNames.SByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && SByteValue == null)
                         {
-                            if (SByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    SByteValue = new BaseDataVariableState<sbyte[]>(this);
-                                }
-                                else
-                                {
-                                    SByteValue = (BaseDataVariableState<sbyte[]>)replacement;
-                                }
+                                SByteValue = new BaseDataVariableState<sbyte[]>(this);
+                            }
+                            else
+                            {
+                                SByteValue = (BaseDataVariableState<sbyte[]>)replacement;
                             }
                         }
 
@@ -4709,20 +4574,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue:
+                case BrowseNames.ByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ByteValue == null)
                         {
-                            if (ByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ByteValue = new BaseDataVariableState<byte[]>(this);
-                                }
-                                else
-                                {
-                                    ByteValue = (BaseDataVariableState<byte[]>)replacement;
-                                }
+                                ByteValue = new BaseDataVariableState<byte[]>(this);
+                            }
+                            else
+                            {
+                                ByteValue = (BaseDataVariableState<byte[]>)replacement;
                             }
                         }
 
@@ -4730,20 +4592,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value:
+                case BrowseNames.Int16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int16Value == null)
                         {
-                            if (Int16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int16Value = new BaseDataVariableState<short[]>(this);
-                                }
-                                else
-                                {
-                                    Int16Value = (BaseDataVariableState<short[]>)replacement;
-                                }
+                                Int16Value = new BaseDataVariableState<short[]>(this);
+                            }
+                            else
+                            {
+                                Int16Value = (BaseDataVariableState<short[]>)replacement;
                             }
                         }
 
@@ -4751,20 +4610,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value:
+                case BrowseNames.UInt16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt16Value == null)
                         {
-                            if (UInt16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt16Value = new BaseDataVariableState<ushort[]>(this);
-                                }
-                                else
-                                {
-                                    UInt16Value = (BaseDataVariableState<ushort[]>)replacement;
-                                }
+                                UInt16Value = new BaseDataVariableState<ushort[]>(this);
+                            }
+                            else
+                            {
+                                UInt16Value = (BaseDataVariableState<ushort[]>)replacement;
                             }
                         }
 
@@ -4772,20 +4628,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value:
+                case BrowseNames.Int32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int32Value == null)
                         {
-                            if (Int32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int32Value = new BaseDataVariableState<int[]>(this);
-                                }
-                                else
-                                {
-                                    Int32Value = (BaseDataVariableState<int[]>)replacement;
-                                }
+                                Int32Value = new BaseDataVariableState<int[]>(this);
+                            }
+                            else
+                            {
+                                Int32Value = (BaseDataVariableState<int[]>)replacement;
                             }
                         }
 
@@ -4793,20 +4646,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value:
+                case BrowseNames.UInt32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt32Value == null)
                         {
-                            if (UInt32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt32Value = new BaseDataVariableState<uint[]>(this);
-                                }
-                                else
-                                {
-                                    UInt32Value = (BaseDataVariableState<uint[]>)replacement;
-                                }
+                                UInt32Value = new BaseDataVariableState<uint[]>(this);
+                            }
+                            else
+                            {
+                                UInt32Value = (BaseDataVariableState<uint[]>)replacement;
                             }
                         }
 
@@ -4814,20 +4664,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value:
+                case BrowseNames.Int64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int64Value == null)
                         {
-                            if (Int64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int64Value = new BaseDataVariableState<long[]>(this);
-                                }
-                                else
-                                {
-                                    Int64Value = (BaseDataVariableState<long[]>)replacement;
-                                }
+                                Int64Value = new BaseDataVariableState<long[]>(this);
+                            }
+                            else
+                            {
+                                Int64Value = (BaseDataVariableState<long[]>)replacement;
                             }
                         }
 
@@ -4835,20 +4682,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value:
+                case BrowseNames.UInt64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt64Value == null)
                         {
-                            if (UInt64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt64Value = new BaseDataVariableState<ulong[]>(this);
-                                }
-                                else
-                                {
-                                    UInt64Value = (BaseDataVariableState<ulong[]>)replacement;
-                                }
+                                UInt64Value = new BaseDataVariableState<ulong[]>(this);
+                            }
+                            else
+                            {
+                                UInt64Value = (BaseDataVariableState<ulong[]>)replacement;
                             }
                         }
 
@@ -4856,20 +4700,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue:
+                case BrowseNames.FloatValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && FloatValue == null)
                         {
-                            if (FloatValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    FloatValue = new BaseDataVariableState<float[]>(this);
-                                }
-                                else
-                                {
-                                    FloatValue = (BaseDataVariableState<float[]>)replacement;
-                                }
+                                FloatValue = new BaseDataVariableState<float[]>(this);
+                            }
+                            else
+                            {
+                                FloatValue = (BaseDataVariableState<float[]>)replacement;
                             }
                         }
 
@@ -4877,20 +4718,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue:
+                case BrowseNames.DoubleValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && DoubleValue == null)
                         {
-                            if (DoubleValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    DoubleValue = new BaseDataVariableState<double[]>(this);
-                                }
-                                else
-                                {
-                                    DoubleValue = (BaseDataVariableState<double[]>)replacement;
-                                }
+                                DoubleValue = new BaseDataVariableState<double[]>(this);
+                            }
+                            else
+                            {
+                                DoubleValue = (BaseDataVariableState<double[]>)replacement;
                             }
                         }
 
@@ -4898,20 +4736,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.StringValue:
+                case BrowseNames.StringValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && StringValue == null)
                         {
-                            if (StringValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    StringValue = new BaseDataVariableState<string[]>(this);
-                                }
-                                else
-                                {
-                                    StringValue = (BaseDataVariableState<string[]>)replacement;
-                                }
+                                StringValue = new BaseDataVariableState<string[]>(this);
+                            }
+                            else
+                            {
+                                StringValue = (BaseDataVariableState<string[]>)replacement;
                             }
                         }
 
@@ -4919,20 +4754,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.DateTimeValue:
+                case BrowseNames.DateTimeValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && DateTimeValue == null)
                         {
-                            if (DateTimeValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    DateTimeValue = new BaseDataVariableState<DateTime[]>(this);
-                                }
-                                else
-                                {
-                                    DateTimeValue = (BaseDataVariableState<DateTime[]>)replacement;
-                                }
+                                DateTimeValue = new BaseDataVariableState<DateTime[]>(this);
+                            }
+                            else
+                            {
+                                DateTimeValue = (BaseDataVariableState<DateTime[]>)replacement;
                             }
                         }
 
@@ -4940,20 +4772,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.GuidValue:
+                case BrowseNames.GuidValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && GuidValue == null)
                         {
-                            if (GuidValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    GuidValue = new BaseDataVariableState<Guid[]>(this);
-                                }
-                                else
-                                {
-                                    GuidValue = (BaseDataVariableState<Guid[]>)replacement;
-                                }
+                                GuidValue = new BaseDataVariableState<Guid[]>(this);
+                            }
+                            else
+                            {
+                                GuidValue = (BaseDataVariableState<Guid[]>)replacement;
                             }
                         }
 
@@ -4961,20 +4790,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ByteStringValue:
+                case BrowseNames.ByteStringValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ByteStringValue == null)
                         {
-                            if (ByteStringValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ByteStringValue = new BaseDataVariableState<byte[][]>(this);
-                                }
-                                else
-                                {
-                                    ByteStringValue = (BaseDataVariableState<byte[][]>)replacement;
-                                }
+                                ByteStringValue = new BaseDataVariableState<byte[][]>(this);
+                            }
+                            else
+                            {
+                                ByteStringValue = (BaseDataVariableState<byte[][]>)replacement;
                             }
                         }
 
@@ -4982,20 +4808,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.XmlElementValue:
+                case BrowseNames.XmlElementValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && XmlElementValue == null)
                         {
-                            if (XmlElementValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    XmlElementValue = new BaseDataVariableState<XmlElement[]>(this);
-                                }
-                                else
-                                {
-                                    XmlElementValue = (BaseDataVariableState<XmlElement[]>)replacement;
-                                }
+                                XmlElementValue = new BaseDataVariableState<XmlElement[]>(this);
+                            }
+                            else
+                            {
+                                XmlElementValue = (BaseDataVariableState<XmlElement[]>)replacement;
                             }
                         }
 
@@ -5003,20 +4826,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.NodeIdValue:
+                case BrowseNames.NodeIdValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && NodeIdValue == null)
                         {
-                            if (NodeIdValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    NodeIdValue = new BaseDataVariableState<NodeId[]>(this);
-                                }
-                                else
-                                {
-                                    NodeIdValue = (BaseDataVariableState<NodeId[]>)replacement;
-                                }
+                                NodeIdValue = new BaseDataVariableState<NodeId[]>(this);
+                            }
+                            else
+                            {
+                                NodeIdValue = (BaseDataVariableState<NodeId[]>)replacement;
                             }
                         }
 
@@ -5024,20 +4844,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ExpandedNodeIdValue:
+                case BrowseNames.ExpandedNodeIdValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ExpandedNodeIdValue == null)
                         {
-                            if (ExpandedNodeIdValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId[]>(this);
-                                }
-                                else
-                                {
-                                    ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId[]>)replacement;
-                                }
+                                ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId[]>(this);
+                            }
+                            else
+                            {
+                                ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId[]>)replacement;
                             }
                         }
 
@@ -5045,20 +4862,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.QualifiedNameValue:
+                case BrowseNames.QualifiedNameValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && QualifiedNameValue == null)
                         {
-                            if (QualifiedNameValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    QualifiedNameValue = new BaseDataVariableState<QualifiedName[]>(this);
-                                }
-                                else
-                                {
-                                    QualifiedNameValue = (BaseDataVariableState<QualifiedName[]>)replacement;
-                                }
+                                QualifiedNameValue = new BaseDataVariableState<QualifiedName[]>(this);
+                            }
+                            else
+                            {
+                                QualifiedNameValue = (BaseDataVariableState<QualifiedName[]>)replacement;
                             }
                         }
 
@@ -5066,20 +4880,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.LocalizedTextValue:
+                case BrowseNames.LocalizedTextValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && LocalizedTextValue == null)
                         {
-                            if (LocalizedTextValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    LocalizedTextValue = new BaseDataVariableState<LocalizedText[]>(this);
-                                }
-                                else
-                                {
-                                    LocalizedTextValue = (BaseDataVariableState<LocalizedText[]>)replacement;
-                                }
+                                LocalizedTextValue = new BaseDataVariableState<LocalizedText[]>(this);
+                            }
+                            else
+                            {
+                                LocalizedTextValue = (BaseDataVariableState<LocalizedText[]>)replacement;
                             }
                         }
 
@@ -5087,20 +4898,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.StatusCodeValue:
+                case BrowseNames.StatusCodeValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && StatusCodeValue == null)
                         {
-                            if (StatusCodeValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    StatusCodeValue = new BaseDataVariableState<StatusCode[]>(this);
-                                }
-                                else
-                                {
-                                    StatusCodeValue = (BaseDataVariableState<StatusCode[]>)replacement;
-                                }
+                                StatusCodeValue = new BaseDataVariableState<StatusCode[]>(this);
+                            }
+                            else
+                            {
+                                StatusCodeValue = (BaseDataVariableState<StatusCode[]>)replacement;
                             }
                         }
 
@@ -5108,20 +4916,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.VariantValue:
+                case BrowseNames.VariantValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && VariantValue == null)
                         {
-                            if (VariantValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    VariantValue = new BaseDataVariableState<object[]>(this);
-                                }
-                                else
-                                {
-                                    VariantValue = (BaseDataVariableState<object[]>)replacement;
-                                }
+                                VariantValue = new BaseDataVariableState<object[]>(this);
+                            }
+                            else
+                            {
+                                VariantValue = (BaseDataVariableState<object[]>)replacement;
                             }
                         }
 
@@ -5129,20 +4934,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.EnumerationValue:
+                case BrowseNames.EnumerationValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && EnumerationValue == null)
                         {
-                            if (EnumerationValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    EnumerationValue = new BaseDataVariableState<int[]>(this);
-                                }
-                                else
-                                {
-                                    EnumerationValue = (BaseDataVariableState<int[]>)replacement;
-                                }
+                                EnumerationValue = new BaseDataVariableState<int[]>(this);
+                            }
+                            else
+                            {
+                                EnumerationValue = (BaseDataVariableState<int[]>)replacement;
                             }
                         }
 
@@ -5150,20 +4952,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.StructureValue:
+                case BrowseNames.StructureValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && StructureValue == null)
                         {
-                            if (StructureValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    StructureValue = new BaseDataVariableState<ExtensionObject[]>(this);
-                                }
-                                else
-                                {
-                                    StructureValue = (BaseDataVariableState<ExtensionObject[]>)replacement;
-                                }
+                                StructureValue = new BaseDataVariableState<ExtensionObject[]>(this);
+                            }
+                            else
+                            {
+                                StructureValue = (BaseDataVariableState<ExtensionObject[]>)replacement;
                             }
                         }
 
@@ -5171,20 +4970,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.NumberValue:
+                case BrowseNames.NumberValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && NumberValue == null)
                         {
-                            if (NumberValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    NumberValue = new BaseDataVariableState<object[]>(this);
-                                }
-                                else
-                                {
-                                    NumberValue = (BaseDataVariableState<object[]>)replacement;
-                                }
+                                NumberValue = new BaseDataVariableState<object[]>(this);
+                            }
+                            else
+                            {
+                                NumberValue = (BaseDataVariableState<object[]>)replacement;
                             }
                         }
 
@@ -5192,20 +4988,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.IntegerValue:
+                case BrowseNames.IntegerValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && IntegerValue == null)
                         {
-                            if (IntegerValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    IntegerValue = new BaseDataVariableState<object[]>(this);
-                                }
-                                else
-                                {
-                                    IntegerValue = (BaseDataVariableState<object[]>)replacement;
-                                }
+                                IntegerValue = new BaseDataVariableState<object[]>(this);
+                            }
+                            else
+                            {
+                                IntegerValue = (BaseDataVariableState<object[]>)replacement;
                             }
                         }
 
@@ -5213,20 +5006,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UIntegerValue:
+                case BrowseNames.UIntegerValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UIntegerValue == null)
                         {
-                            if (UIntegerValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UIntegerValue = new BaseDataVariableState<object[]>(this);
-                                }
-                                else
-                                {
-                                    UIntegerValue = (BaseDataVariableState<object[]>)replacement;
-                                }
+                                UIntegerValue = new BaseDataVariableState<object[]>(this);
+                            }
+                            else
+                            {
+                                UIntegerValue = (BaseDataVariableState<object[]>)replacement;
                             }
                         }
 
@@ -5301,7 +5091,7 @@ namespace TestData
         /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.AnalogArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.AnalogArrayValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if (!OPCUA_EXCLUDE_InitializationStrings)
@@ -5416,7 +5206,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
+                if (!ReferenceEquals(m_sByteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5432,7 +5222,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_byteValue, value))
+                if (!ReferenceEquals(m_byteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5448,7 +5238,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int16Value, value))
+                if (!ReferenceEquals(m_int16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5464,7 +5254,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
+                if (!ReferenceEquals(m_uInt16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5480,7 +5270,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int32Value, value))
+                if (!ReferenceEquals(m_int32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5496,7 +5286,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
+                if (!ReferenceEquals(m_uInt32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5512,7 +5302,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int64Value, value))
+                if (!ReferenceEquals(m_int64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5528,7 +5318,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
+                if (!ReferenceEquals(m_uInt64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5544,7 +5334,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_floatValue, value))
+                if (!ReferenceEquals(m_floatValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5560,7 +5350,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
+                if (!ReferenceEquals(m_doubleValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5576,7 +5366,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_numberValue, value))
+                if (!ReferenceEquals(m_numberValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5592,7 +5382,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_integerValue, value))
+                if (!ReferenceEquals(m_integerValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5608,7 +5398,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uIntegerValue, value))
+                if (!ReferenceEquals(m_uIntegerValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -5718,20 +5508,17 @@ namespace TestData
 
             switch (browseName.Name)
             {
-                case TestData.BrowseNames.SByteValue:
+                case BrowseNames.SByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && SByteValue == null)
                         {
-                            if (SByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    SByteValue = new AnalogItemState<sbyte[]>(this);
-                                }
-                                else
-                                {
-                                    SByteValue = (AnalogItemState<sbyte[]>)replacement;
-                                }
+                                SByteValue = new AnalogItemState<sbyte[]>(this);
+                            }
+                            else
+                            {
+                                SByteValue = (AnalogItemState<sbyte[]>)replacement;
                             }
                         }
 
@@ -5739,20 +5526,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue:
+                case BrowseNames.ByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ByteValue == null)
                         {
-                            if (ByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ByteValue = new AnalogItemState<byte[]>(this);
-                                }
-                                else
-                                {
-                                    ByteValue = (AnalogItemState<byte[]>)replacement;
-                                }
+                                ByteValue = new AnalogItemState<byte[]>(this);
+                            }
+                            else
+                            {
+                                ByteValue = (AnalogItemState<byte[]>)replacement;
                             }
                         }
 
@@ -5760,20 +5544,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value:
+                case BrowseNames.Int16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int16Value == null)
                         {
-                            if (Int16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int16Value = new AnalogItemState<short[]>(this);
-                                }
-                                else
-                                {
-                                    Int16Value = (AnalogItemState<short[]>)replacement;
-                                }
+                                Int16Value = new AnalogItemState<short[]>(this);
+                            }
+                            else
+                            {
+                                Int16Value = (AnalogItemState<short[]>)replacement;
                             }
                         }
 
@@ -5781,20 +5562,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value:
+                case BrowseNames.UInt16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt16Value == null)
                         {
-                            if (UInt16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt16Value = new AnalogItemState<ushort[]>(this);
-                                }
-                                else
-                                {
-                                    UInt16Value = (AnalogItemState<ushort[]>)replacement;
-                                }
+                                UInt16Value = new AnalogItemState<ushort[]>(this);
+                            }
+                            else
+                            {
+                                UInt16Value = (AnalogItemState<ushort[]>)replacement;
                             }
                         }
 
@@ -5802,20 +5580,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value:
+                case BrowseNames.Int32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int32Value == null)
                         {
-                            if (Int32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int32Value = new AnalogItemState<int[]>(this);
-                                }
-                                else
-                                {
-                                    Int32Value = (AnalogItemState<int[]>)replacement;
-                                }
+                                Int32Value = new AnalogItemState<int[]>(this);
+                            }
+                            else
+                            {
+                                Int32Value = (AnalogItemState<int[]>)replacement;
                             }
                         }
 
@@ -5823,20 +5598,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value:
+                case BrowseNames.UInt32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt32Value == null)
                         {
-                            if (UInt32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt32Value = new AnalogItemState<uint[]>(this);
-                                }
-                                else
-                                {
-                                    UInt32Value = (AnalogItemState<uint[]>)replacement;
-                                }
+                                UInt32Value = new AnalogItemState<uint[]>(this);
+                            }
+                            else
+                            {
+                                UInt32Value = (AnalogItemState<uint[]>)replacement;
                             }
                         }
 
@@ -5844,20 +5616,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value:
+                case BrowseNames.Int64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int64Value == null)
                         {
-                            if (Int64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int64Value = new AnalogItemState<long[]>(this);
-                                }
-                                else
-                                {
-                                    Int64Value = (AnalogItemState<long[]>)replacement;
-                                }
+                                Int64Value = new AnalogItemState<long[]>(this);
+                            }
+                            else
+                            {
+                                Int64Value = (AnalogItemState<long[]>)replacement;
                             }
                         }
 
@@ -5865,20 +5634,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value:
+                case BrowseNames.UInt64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt64Value == null)
                         {
-                            if (UInt64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt64Value = new AnalogItemState<ulong[]>(this);
-                                }
-                                else
-                                {
-                                    UInt64Value = (AnalogItemState<ulong[]>)replacement;
-                                }
+                                UInt64Value = new AnalogItemState<ulong[]>(this);
+                            }
+                            else
+                            {
+                                UInt64Value = (AnalogItemState<ulong[]>)replacement;
                             }
                         }
 
@@ -5886,20 +5652,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue:
+                case BrowseNames.FloatValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && FloatValue == null)
                         {
-                            if (FloatValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    FloatValue = new AnalogItemState<float[]>(this);
-                                }
-                                else
-                                {
-                                    FloatValue = (AnalogItemState<float[]>)replacement;
-                                }
+                                FloatValue = new AnalogItemState<float[]>(this);
+                            }
+                            else
+                            {
+                                FloatValue = (AnalogItemState<float[]>)replacement;
                             }
                         }
 
@@ -5907,20 +5670,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue:
+                case BrowseNames.DoubleValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && DoubleValue == null)
                         {
-                            if (DoubleValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    DoubleValue = new AnalogItemState<double[]>(this);
-                                }
-                                else
-                                {
-                                    DoubleValue = (AnalogItemState<double[]>)replacement;
-                                }
+                                DoubleValue = new AnalogItemState<double[]>(this);
+                            }
+                            else
+                            {
+                                DoubleValue = (AnalogItemState<double[]>)replacement;
                             }
                         }
 
@@ -5928,20 +5688,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.NumberValue:
+                case BrowseNames.NumberValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && NumberValue == null)
                         {
-                            if (NumberValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    NumberValue = new AnalogItemState<object[]>(this);
-                                }
-                                else
-                                {
-                                    NumberValue = (AnalogItemState<object[]>)replacement;
-                                }
+                                NumberValue = new AnalogItemState<object[]>(this);
+                            }
+                            else
+                            {
+                                NumberValue = (AnalogItemState<object[]>)replacement;
                             }
                         }
 
@@ -5949,20 +5706,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.IntegerValue:
+                case BrowseNames.IntegerValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && IntegerValue == null)
                         {
-                            if (IntegerValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    IntegerValue = new AnalogItemState<object[]>(this);
-                                }
-                                else
-                                {
-                                    IntegerValue = (AnalogItemState<object[]>)replacement;
-                                }
+                                IntegerValue = new AnalogItemState<object[]>(this);
+                            }
+                            else
+                            {
+                                IntegerValue = (AnalogItemState<object[]>)replacement;
                             }
                         }
 
@@ -5970,20 +5724,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UIntegerValue:
+                case BrowseNames.UIntegerValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UIntegerValue == null)
                         {
-                            if (UIntegerValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UIntegerValue = new AnalogItemState<object[]>(this);
-                                }
-                                else
-                                {
-                                    UIntegerValue = (AnalogItemState<object[]>)replacement;
-                                }
+                                UIntegerValue = new AnalogItemState<object[]>(this);
+                            }
+                            else
+                            {
+                                UIntegerValue = (AnalogItemState<object[]>)replacement;
                             }
                         }
 
@@ -6044,7 +5795,7 @@ namespace TestData
         /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.UserScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.UserScalarValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if (!OPCUA_EXCLUDE_InitializationStrings)
@@ -6155,7 +5906,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_booleanValue, value))
+                if (!ReferenceEquals(m_booleanValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6171,7 +5922,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
+                if (!ReferenceEquals(m_sByteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6187,7 +5938,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_byteValue, value))
+                if (!ReferenceEquals(m_byteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6203,7 +5954,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int16Value, value))
+                if (!ReferenceEquals(m_int16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6219,7 +5970,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
+                if (!ReferenceEquals(m_uInt16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6235,7 +5986,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int32Value, value))
+                if (!ReferenceEquals(m_int32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6251,7 +6002,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
+                if (!ReferenceEquals(m_uInt32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6267,7 +6018,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int64Value, value))
+                if (!ReferenceEquals(m_int64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6283,7 +6034,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
+                if (!ReferenceEquals(m_uInt64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6299,7 +6050,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_floatValue, value))
+                if (!ReferenceEquals(m_floatValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6315,7 +6066,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
+                if (!ReferenceEquals(m_doubleValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6331,7 +6082,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_stringValue, value))
+                if (!ReferenceEquals(m_stringValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6347,7 +6098,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value))
+                if (!ReferenceEquals(m_dateTimeValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6363,7 +6114,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_guidValue, value))
+                if (!ReferenceEquals(m_guidValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6379,7 +6130,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_byteStringValue, value))
+                if (!ReferenceEquals(m_byteStringValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6395,7 +6146,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value))
+                if (!ReferenceEquals(m_xmlElementValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6411,7 +6162,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value))
+                if (!ReferenceEquals(m_nodeIdValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6427,7 +6178,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value))
+                if (!ReferenceEquals(m_expandedNodeIdValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6443,7 +6194,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value))
+                if (!ReferenceEquals(m_qualifiedNameValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6459,7 +6210,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value))
+                if (!ReferenceEquals(m_localizedTextValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6475,7 +6226,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value))
+                if (!ReferenceEquals(m_statusCodeValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6491,7 +6242,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_variantValue, value))
+                if (!ReferenceEquals(m_variantValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -6646,20 +6397,17 @@ namespace TestData
 
             switch (browseName.Name)
             {
-                case TestData.BrowseNames.BooleanValue:
+                case BrowseNames.BooleanValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && BooleanValue == null)
                         {
-                            if (BooleanValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    BooleanValue = new BaseDataVariableState<bool>(this);
-                                }
-                                else
-                                {
-                                    BooleanValue = (BaseDataVariableState<bool>)replacement;
-                                }
+                                BooleanValue = new BaseDataVariableState<bool>(this);
+                            }
+                            else
+                            {
+                                BooleanValue = (BaseDataVariableState<bool>)replacement;
                             }
                         }
 
@@ -6667,20 +6415,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.SByteValue:
+                case BrowseNames.SByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && SByteValue == null)
                         {
-                            if (SByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    SByteValue = new BaseDataVariableState<sbyte>(this);
-                                }
-                                else
-                                {
-                                    SByteValue = (BaseDataVariableState<sbyte>)replacement;
-                                }
+                                SByteValue = new BaseDataVariableState<sbyte>(this);
+                            }
+                            else
+                            {
+                                SByteValue = (BaseDataVariableState<sbyte>)replacement;
                             }
                         }
 
@@ -6688,20 +6433,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue:
+                case BrowseNames.ByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ByteValue == null)
                         {
-                            if (ByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ByteValue = new BaseDataVariableState<byte>(this);
-                                }
-                                else
-                                {
-                                    ByteValue = (BaseDataVariableState<byte>)replacement;
-                                }
+                                ByteValue = new BaseDataVariableState<byte>(this);
+                            }
+                            else
+                            {
+                                ByteValue = (BaseDataVariableState<byte>)replacement;
                             }
                         }
 
@@ -6709,20 +6451,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value:
+                case BrowseNames.Int16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int16Value == null)
                         {
-                            if (Int16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int16Value = new BaseDataVariableState<short>(this);
-                                }
-                                else
-                                {
-                                    Int16Value = (BaseDataVariableState<short>)replacement;
-                                }
+                                Int16Value = new BaseDataVariableState<short>(this);
+                            }
+                            else
+                            {
+                                Int16Value = (BaseDataVariableState<short>)replacement;
                             }
                         }
 
@@ -6730,20 +6469,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value:
+                case BrowseNames.UInt16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt16Value == null)
                         {
-                            if (UInt16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt16Value = new BaseDataVariableState<ushort>(this);
-                                }
-                                else
-                                {
-                                    UInt16Value = (BaseDataVariableState<ushort>)replacement;
-                                }
+                                UInt16Value = new BaseDataVariableState<ushort>(this);
+                            }
+                            else
+                            {
+                                UInt16Value = (BaseDataVariableState<ushort>)replacement;
                             }
                         }
 
@@ -6751,20 +6487,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value:
+                case BrowseNames.Int32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int32Value == null)
                         {
-                            if (Int32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int32Value = new BaseDataVariableState<int>(this);
-                                }
-                                else
-                                {
-                                    Int32Value = (BaseDataVariableState<int>)replacement;
-                                }
+                                Int32Value = new BaseDataVariableState<int>(this);
+                            }
+                            else
+                            {
+                                Int32Value = (BaseDataVariableState<int>)replacement;
                             }
                         }
 
@@ -6772,20 +6505,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value:
+                case BrowseNames.UInt32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt32Value == null)
                         {
-                            if (UInt32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt32Value = new BaseDataVariableState<uint>(this);
-                                }
-                                else
-                                {
-                                    UInt32Value = (BaseDataVariableState<uint>)replacement;
-                                }
+                                UInt32Value = new BaseDataVariableState<uint>(this);
+                            }
+                            else
+                            {
+                                UInt32Value = (BaseDataVariableState<uint>)replacement;
                             }
                         }
 
@@ -6793,20 +6523,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value:
+                case BrowseNames.Int64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int64Value == null)
                         {
-                            if (Int64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int64Value = new BaseDataVariableState<long>(this);
-                                }
-                                else
-                                {
-                                    Int64Value = (BaseDataVariableState<long>)replacement;
-                                }
+                                Int64Value = new BaseDataVariableState<long>(this);
+                            }
+                            else
+                            {
+                                Int64Value = (BaseDataVariableState<long>)replacement;
                             }
                         }
 
@@ -6814,20 +6541,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value:
+                case BrowseNames.UInt64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt64Value == null)
                         {
-                            if (UInt64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt64Value = new BaseDataVariableState<ulong>(this);
-                                }
-                                else
-                                {
-                                    UInt64Value = (BaseDataVariableState<ulong>)replacement;
-                                }
+                                UInt64Value = new BaseDataVariableState<ulong>(this);
+                            }
+                            else
+                            {
+                                UInt64Value = (BaseDataVariableState<ulong>)replacement;
                             }
                         }
 
@@ -6835,20 +6559,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue:
+                case BrowseNames.FloatValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && FloatValue == null)
                         {
-                            if (FloatValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    FloatValue = new BaseDataVariableState<float>(this);
-                                }
-                                else
-                                {
-                                    FloatValue = (BaseDataVariableState<float>)replacement;
-                                }
+                                FloatValue = new BaseDataVariableState<float>(this);
+                            }
+                            else
+                            {
+                                FloatValue = (BaseDataVariableState<float>)replacement;
                             }
                         }
 
@@ -6856,20 +6577,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue:
+                case BrowseNames.DoubleValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && DoubleValue == null)
                         {
-                            if (DoubleValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    DoubleValue = new BaseDataVariableState<double>(this);
-                                }
-                                else
-                                {
-                                    DoubleValue = (BaseDataVariableState<double>)replacement;
-                                }
+                                DoubleValue = new BaseDataVariableState<double>(this);
+                            }
+                            else
+                            {
+                                DoubleValue = (BaseDataVariableState<double>)replacement;
                             }
                         }
 
@@ -6877,20 +6595,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.StringValue:
+                case BrowseNames.StringValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && StringValue == null)
                         {
-                            if (StringValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    StringValue = new BaseDataVariableState<string>(this);
-                                }
-                                else
-                                {
-                                    StringValue = (BaseDataVariableState<string>)replacement;
-                                }
+                                StringValue = new BaseDataVariableState<string>(this);
+                            }
+                            else
+                            {
+                                StringValue = (BaseDataVariableState<string>)replacement;
                             }
                         }
 
@@ -6898,20 +6613,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.DateTimeValue:
+                case BrowseNames.DateTimeValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && DateTimeValue == null)
                         {
-                            if (DateTimeValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    DateTimeValue = new BaseDataVariableState<DateTime>(this);
-                                }
-                                else
-                                {
-                                    DateTimeValue = (BaseDataVariableState<DateTime>)replacement;
-                                }
+                                DateTimeValue = new BaseDataVariableState<DateTime>(this);
+                            }
+                            else
+                            {
+                                DateTimeValue = (BaseDataVariableState<DateTime>)replacement;
                             }
                         }
 
@@ -6919,20 +6631,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.GuidValue:
+                case BrowseNames.GuidValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && GuidValue == null)
                         {
-                            if (GuidValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    GuidValue = new BaseDataVariableState<Guid>(this);
-                                }
-                                else
-                                {
-                                    GuidValue = (BaseDataVariableState<Guid>)replacement;
-                                }
+                                GuidValue = new BaseDataVariableState<Guid>(this);
+                            }
+                            else
+                            {
+                                GuidValue = (BaseDataVariableState<Guid>)replacement;
                             }
                         }
 
@@ -6940,20 +6649,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ByteStringValue:
+                case BrowseNames.ByteStringValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ByteStringValue == null)
                         {
-                            if (ByteStringValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ByteStringValue = new BaseDataVariableState<byte[]>(this);
-                                }
-                                else
-                                {
-                                    ByteStringValue = (BaseDataVariableState<byte[]>)replacement;
-                                }
+                                ByteStringValue = new BaseDataVariableState<byte[]>(this);
+                            }
+                            else
+                            {
+                                ByteStringValue = (BaseDataVariableState<byte[]>)replacement;
                             }
                         }
 
@@ -6961,20 +6667,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.XmlElementValue:
+                case BrowseNames.XmlElementValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && XmlElementValue == null)
                         {
-                            if (XmlElementValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    XmlElementValue = new BaseDataVariableState<XmlElement>(this);
-                                }
-                                else
-                                {
-                                    XmlElementValue = (BaseDataVariableState<XmlElement>)replacement;
-                                }
+                                XmlElementValue = new BaseDataVariableState<XmlElement>(this);
+                            }
+                            else
+                            {
+                                XmlElementValue = (BaseDataVariableState<XmlElement>)replacement;
                             }
                         }
 
@@ -6982,20 +6685,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.NodeIdValue:
+                case BrowseNames.NodeIdValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && NodeIdValue == null)
                         {
-                            if (NodeIdValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    NodeIdValue = new BaseDataVariableState<NodeId>(this);
-                                }
-                                else
-                                {
-                                    NodeIdValue = (BaseDataVariableState<NodeId>)replacement;
-                                }
+                                NodeIdValue = new BaseDataVariableState<NodeId>(this);
+                            }
+                            else
+                            {
+                                NodeIdValue = (BaseDataVariableState<NodeId>)replacement;
                             }
                         }
 
@@ -7003,20 +6703,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ExpandedNodeIdValue:
+                case BrowseNames.ExpandedNodeIdValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ExpandedNodeIdValue == null)
                         {
-                            if (ExpandedNodeIdValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId>(this);
-                                }
-                                else
-                                {
-                                    ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId>)replacement;
-                                }
+                                ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId>(this);
+                            }
+                            else
+                            {
+                                ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId>)replacement;
                             }
                         }
 
@@ -7024,20 +6721,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.QualifiedNameValue:
+                case BrowseNames.QualifiedNameValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && QualifiedNameValue == null)
                         {
-                            if (QualifiedNameValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    QualifiedNameValue = new BaseDataVariableState<QualifiedName>(this);
-                                }
-                                else
-                                {
-                                    QualifiedNameValue = (BaseDataVariableState<QualifiedName>)replacement;
-                                }
+                                QualifiedNameValue = new BaseDataVariableState<QualifiedName>(this);
+                            }
+                            else
+                            {
+                                QualifiedNameValue = (BaseDataVariableState<QualifiedName>)replacement;
                             }
                         }
 
@@ -7045,20 +6739,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.LocalizedTextValue:
+                case BrowseNames.LocalizedTextValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && LocalizedTextValue == null)
                         {
-                            if (LocalizedTextValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    LocalizedTextValue = new BaseDataVariableState<LocalizedText>(this);
-                                }
-                                else
-                                {
-                                    LocalizedTextValue = (BaseDataVariableState<LocalizedText>)replacement;
-                                }
+                                LocalizedTextValue = new BaseDataVariableState<LocalizedText>(this);
+                            }
+                            else
+                            {
+                                LocalizedTextValue = (BaseDataVariableState<LocalizedText>)replacement;
                             }
                         }
 
@@ -7066,20 +6757,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.StatusCodeValue:
+                case BrowseNames.StatusCodeValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && StatusCodeValue == null)
                         {
-                            if (StatusCodeValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    StatusCodeValue = new BaseDataVariableState<StatusCode>(this);
-                                }
-                                else
-                                {
-                                    StatusCodeValue = (BaseDataVariableState<StatusCode>)replacement;
-                                }
+                                StatusCodeValue = new BaseDataVariableState<StatusCode>(this);
+                            }
+                            else
+                            {
+                                StatusCodeValue = (BaseDataVariableState<StatusCode>)replacement;
                             }
                         }
 
@@ -7087,20 +6775,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.VariantValue:
+                case BrowseNames.VariantValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && VariantValue == null)
                         {
-                            if (VariantValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    VariantValue = new BaseDataVariableState(this);
-                                }
-                                else
-                                {
-                                    VariantValue = (BaseDataVariableState)replacement;
-                                }
+                                VariantValue = new BaseDataVariableState(this);
+                            }
+                            else
+                            {
+                                VariantValue = (BaseDataVariableState)replacement;
                             }
                         }
 
@@ -7627,7 +7312,7 @@ namespace TestData
         /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.UserArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.UserArrayValueObjectType, Namespaces.TestData, namespaceUris);
         }
 
 #if (!OPCUA_EXCLUDE_InitializationStrings)
@@ -7741,7 +7426,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_booleanValue, value))
+                if (!ReferenceEquals(m_booleanValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7757,7 +7442,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_sByteValue, value))
+                if (!ReferenceEquals(m_sByteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7773,7 +7458,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_byteValue, value))
+                if (!ReferenceEquals(m_byteValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7789,7 +7474,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int16Value, value))
+                if (!ReferenceEquals(m_int16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7805,7 +7490,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt16Value, value))
+                if (!ReferenceEquals(m_uInt16Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7821,7 +7506,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int32Value, value))
+                if (!ReferenceEquals(m_int32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7837,7 +7522,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt32Value, value))
+                if (!ReferenceEquals(m_uInt32Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7853,7 +7538,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_int64Value, value))
+                if (!ReferenceEquals(m_int64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7869,7 +7554,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_uInt64Value, value))
+                if (!ReferenceEquals(m_uInt64Value, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7885,7 +7570,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_floatValue, value))
+                if (!ReferenceEquals(m_floatValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7901,7 +7586,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_doubleValue, value))
+                if (!ReferenceEquals(m_doubleValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7917,7 +7602,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_stringValue, value))
+                if (!ReferenceEquals(m_stringValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7933,7 +7618,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_dateTimeValue, value))
+                if (!ReferenceEquals(m_dateTimeValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7949,7 +7634,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_guidValue, value))
+                if (!ReferenceEquals(m_guidValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7965,7 +7650,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_byteStringValue, value))
+                if (!ReferenceEquals(m_byteStringValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7981,7 +7666,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_xmlElementValue, value))
+                if (!ReferenceEquals(m_xmlElementValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -7997,7 +7682,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_nodeIdValue, value))
+                if (!ReferenceEquals(m_nodeIdValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -8013,7 +7698,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_expandedNodeIdValue, value))
+                if (!ReferenceEquals(m_expandedNodeIdValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -8029,7 +7714,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_qualifiedNameValue, value))
+                if (!ReferenceEquals(m_qualifiedNameValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -8045,7 +7730,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_localizedTextValue, value))
+                if (!ReferenceEquals(m_localizedTextValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -8061,7 +7746,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_statusCodeValue, value))
+                if (!ReferenceEquals(m_statusCodeValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -8077,7 +7762,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_variantValue, value))
+                if (!ReferenceEquals(m_variantValue, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -8232,20 +7917,17 @@ namespace TestData
 
             switch (browseName.Name)
             {
-                case TestData.BrowseNames.BooleanValue:
+                case BrowseNames.BooleanValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && BooleanValue == null)
                         {
-                            if (BooleanValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    BooleanValue = new BaseDataVariableState<bool[]>(this);
-                                }
-                                else
-                                {
-                                    BooleanValue = (BaseDataVariableState<bool[]>)replacement;
-                                }
+                                BooleanValue = new BaseDataVariableState<bool[]>(this);
+                            }
+                            else
+                            {
+                                BooleanValue = (BaseDataVariableState<bool[]>)replacement;
                             }
                         }
 
@@ -8253,20 +7935,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.SByteValue:
+                case BrowseNames.SByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && SByteValue == null)
                         {
-                            if (SByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    SByteValue = new BaseDataVariableState<sbyte[]>(this);
-                                }
-                                else
-                                {
-                                    SByteValue = (BaseDataVariableState<sbyte[]>)replacement;
-                                }
+                                SByteValue = new BaseDataVariableState<sbyte[]>(this);
+                            }
+                            else
+                            {
+                                SByteValue = (BaseDataVariableState<sbyte[]>)replacement;
                             }
                         }
 
@@ -8274,20 +7953,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ByteValue:
+                case BrowseNames.ByteValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ByteValue == null)
                         {
-                            if (ByteValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ByteValue = new BaseDataVariableState<byte[]>(this);
-                                }
-                                else
-                                {
-                                    ByteValue = (BaseDataVariableState<byte[]>)replacement;
-                                }
+                                ByteValue = new BaseDataVariableState<byte[]>(this);
+                            }
+                            else
+                            {
+                                ByteValue = (BaseDataVariableState<byte[]>)replacement;
                             }
                         }
 
@@ -8295,20 +7971,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int16Value:
+                case BrowseNames.Int16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int16Value == null)
                         {
-                            if (Int16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int16Value = new BaseDataVariableState<short[]>(this);
-                                }
-                                else
-                                {
-                                    Int16Value = (BaseDataVariableState<short[]>)replacement;
-                                }
+                                Int16Value = new BaseDataVariableState<short[]>(this);
+                            }
+                            else
+                            {
+                                Int16Value = (BaseDataVariableState<short[]>)replacement;
                             }
                         }
 
@@ -8316,20 +7989,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt16Value:
+                case BrowseNames.UInt16Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt16Value == null)
                         {
-                            if (UInt16Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt16Value = new BaseDataVariableState<ushort[]>(this);
-                                }
-                                else
-                                {
-                                    UInt16Value = (BaseDataVariableState<ushort[]>)replacement;
-                                }
+                                UInt16Value = new BaseDataVariableState<ushort[]>(this);
+                            }
+                            else
+                            {
+                                UInt16Value = (BaseDataVariableState<ushort[]>)replacement;
                             }
                         }
 
@@ -8337,20 +8007,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int32Value:
+                case BrowseNames.Int32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int32Value == null)
                         {
-                            if (Int32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int32Value = new BaseDataVariableState<int[]>(this);
-                                }
-                                else
-                                {
-                                    Int32Value = (BaseDataVariableState<int[]>)replacement;
-                                }
+                                Int32Value = new BaseDataVariableState<int[]>(this);
+                            }
+                            else
+                            {
+                                Int32Value = (BaseDataVariableState<int[]>)replacement;
                             }
                         }
 
@@ -8358,20 +8025,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt32Value:
+                case BrowseNames.UInt32Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt32Value == null)
                         {
-                            if (UInt32Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt32Value = new BaseDataVariableState<uint[]>(this);
-                                }
-                                else
-                                {
-                                    UInt32Value = (BaseDataVariableState<uint[]>)replacement;
-                                }
+                                UInt32Value = new BaseDataVariableState<uint[]>(this);
+                            }
+                            else
+                            {
+                                UInt32Value = (BaseDataVariableState<uint[]>)replacement;
                             }
                         }
 
@@ -8379,20 +8043,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.Int64Value:
+                case BrowseNames.Int64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Int64Value == null)
                         {
-                            if (Int64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Int64Value = new BaseDataVariableState<long[]>(this);
-                                }
-                                else
-                                {
-                                    Int64Value = (BaseDataVariableState<long[]>)replacement;
-                                }
+                                Int64Value = new BaseDataVariableState<long[]>(this);
+                            }
+                            else
+                            {
+                                Int64Value = (BaseDataVariableState<long[]>)replacement;
                             }
                         }
 
@@ -8400,20 +8061,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UInt64Value:
+                case BrowseNames.UInt64Value:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UInt64Value == null)
                         {
-                            if (UInt64Value == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UInt64Value = new BaseDataVariableState<ulong[]>(this);
-                                }
-                                else
-                                {
-                                    UInt64Value = (BaseDataVariableState<ulong[]>)replacement;
-                                }
+                                UInt64Value = new BaseDataVariableState<ulong[]>(this);
+                            }
+                            else
+                            {
+                                UInt64Value = (BaseDataVariableState<ulong[]>)replacement;
                             }
                         }
 
@@ -8421,20 +8079,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.FloatValue:
+                case BrowseNames.FloatValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && FloatValue == null)
                         {
-                            if (FloatValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    FloatValue = new BaseDataVariableState<float[]>(this);
-                                }
-                                else
-                                {
-                                    FloatValue = (BaseDataVariableState<float[]>)replacement;
-                                }
+                                FloatValue = new BaseDataVariableState<float[]>(this);
+                            }
+                            else
+                            {
+                                FloatValue = (BaseDataVariableState<float[]>)replacement;
                             }
                         }
 
@@ -8442,20 +8097,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.DoubleValue:
+                case BrowseNames.DoubleValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && DoubleValue == null)
                         {
-                            if (DoubleValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    DoubleValue = new BaseDataVariableState<double[]>(this);
-                                }
-                                else
-                                {
-                                    DoubleValue = (BaseDataVariableState<double[]>)replacement;
-                                }
+                                DoubleValue = new BaseDataVariableState<double[]>(this);
+                            }
+                            else
+                            {
+                                DoubleValue = (BaseDataVariableState<double[]>)replacement;
                             }
                         }
 
@@ -8463,20 +8115,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.StringValue:
+                case BrowseNames.StringValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && StringValue == null)
                         {
-                            if (StringValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    StringValue = new BaseDataVariableState<string[]>(this);
-                                }
-                                else
-                                {
-                                    StringValue = (BaseDataVariableState<string[]>)replacement;
-                                }
+                                StringValue = new BaseDataVariableState<string[]>(this);
+                            }
+                            else
+                            {
+                                StringValue = (BaseDataVariableState<string[]>)replacement;
                             }
                         }
 
@@ -8484,20 +8133,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.DateTimeValue:
+                case BrowseNames.DateTimeValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && DateTimeValue == null)
                         {
-                            if (DateTimeValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    DateTimeValue = new BaseDataVariableState<DateTime[]>(this);
-                                }
-                                else
-                                {
-                                    DateTimeValue = (BaseDataVariableState<DateTime[]>)replacement;
-                                }
+                                DateTimeValue = new BaseDataVariableState<DateTime[]>(this);
+                            }
+                            else
+                            {
+                                DateTimeValue = (BaseDataVariableState<DateTime[]>)replacement;
                             }
                         }
 
@@ -8505,20 +8151,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.GuidValue:
+                case BrowseNames.GuidValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && GuidValue == null)
                         {
-                            if (GuidValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    GuidValue = new BaseDataVariableState<Guid[]>(this);
-                                }
-                                else
-                                {
-                                    GuidValue = (BaseDataVariableState<Guid[]>)replacement;
-                                }
+                                GuidValue = new BaseDataVariableState<Guid[]>(this);
+                            }
+                            else
+                            {
+                                GuidValue = (BaseDataVariableState<Guid[]>)replacement;
                             }
                         }
 
@@ -8526,20 +8169,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ByteStringValue:
+                case BrowseNames.ByteStringValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ByteStringValue == null)
                         {
-                            if (ByteStringValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ByteStringValue = new BaseDataVariableState<byte[][]>(this);
-                                }
-                                else
-                                {
-                                    ByteStringValue = (BaseDataVariableState<byte[][]>)replacement;
-                                }
+                                ByteStringValue = new BaseDataVariableState<byte[][]>(this);
+                            }
+                            else
+                            {
+                                ByteStringValue = (BaseDataVariableState<byte[][]>)replacement;
                             }
                         }
 
@@ -8547,20 +8187,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.XmlElementValue:
+                case BrowseNames.XmlElementValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && XmlElementValue == null)
                         {
-                            if (XmlElementValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    XmlElementValue = new BaseDataVariableState<XmlElement[]>(this);
-                                }
-                                else
-                                {
-                                    XmlElementValue = (BaseDataVariableState<XmlElement[]>)replacement;
-                                }
+                                XmlElementValue = new BaseDataVariableState<XmlElement[]>(this);
+                            }
+                            else
+                            {
+                                XmlElementValue = (BaseDataVariableState<XmlElement[]>)replacement;
                             }
                         }
 
@@ -8568,20 +8205,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.NodeIdValue:
+                case BrowseNames.NodeIdValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && NodeIdValue == null)
                         {
-                            if (NodeIdValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    NodeIdValue = new BaseDataVariableState<NodeId[]>(this);
-                                }
-                                else
-                                {
-                                    NodeIdValue = (BaseDataVariableState<NodeId[]>)replacement;
-                                }
+                                NodeIdValue = new BaseDataVariableState<NodeId[]>(this);
+                            }
+                            else
+                            {
+                                NodeIdValue = (BaseDataVariableState<NodeId[]>)replacement;
                             }
                         }
 
@@ -8589,20 +8223,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ExpandedNodeIdValue:
+                case BrowseNames.ExpandedNodeIdValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ExpandedNodeIdValue == null)
                         {
-                            if (ExpandedNodeIdValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId[]>(this);
-                                }
-                                else
-                                {
-                                    ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId[]>)replacement;
-                                }
+                                ExpandedNodeIdValue = new BaseDataVariableState<ExpandedNodeId[]>(this);
+                            }
+                            else
+                            {
+                                ExpandedNodeIdValue = (BaseDataVariableState<ExpandedNodeId[]>)replacement;
                             }
                         }
 
@@ -8610,20 +8241,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.QualifiedNameValue:
+                case BrowseNames.QualifiedNameValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && QualifiedNameValue == null)
                         {
-                            if (QualifiedNameValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    QualifiedNameValue = new BaseDataVariableState<QualifiedName[]>(this);
-                                }
-                                else
-                                {
-                                    QualifiedNameValue = (BaseDataVariableState<QualifiedName[]>)replacement;
-                                }
+                                QualifiedNameValue = new BaseDataVariableState<QualifiedName[]>(this);
+                            }
+                            else
+                            {
+                                QualifiedNameValue = (BaseDataVariableState<QualifiedName[]>)replacement;
                             }
                         }
 
@@ -8631,20 +8259,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.LocalizedTextValue:
+                case BrowseNames.LocalizedTextValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && LocalizedTextValue == null)
                         {
-                            if (LocalizedTextValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    LocalizedTextValue = new BaseDataVariableState<LocalizedText[]>(this);
-                                }
-                                else
-                                {
-                                    LocalizedTextValue = (BaseDataVariableState<LocalizedText[]>)replacement;
-                                }
+                                LocalizedTextValue = new BaseDataVariableState<LocalizedText[]>(this);
+                            }
+                            else
+                            {
+                                LocalizedTextValue = (BaseDataVariableState<LocalizedText[]>)replacement;
                             }
                         }
 
@@ -8652,20 +8277,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.StatusCodeValue:
+                case BrowseNames.StatusCodeValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && StatusCodeValue == null)
                         {
-                            if (StatusCodeValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    StatusCodeValue = new BaseDataVariableState<StatusCode[]>(this);
-                                }
-                                else
-                                {
-                                    StatusCodeValue = (BaseDataVariableState<StatusCode[]>)replacement;
-                                }
+                                StatusCodeValue = new BaseDataVariableState<StatusCode[]>(this);
+                            }
+                            else
+                            {
+                                StatusCodeValue = (BaseDataVariableState<StatusCode[]>)replacement;
                             }
                         }
 
@@ -8673,20 +8295,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.VariantValue:
+                case BrowseNames.VariantValue:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && VariantValue == null)
                         {
-                            if (VariantValue == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    VariantValue = new BaseDataVariableState<object[]>(this);
-                                }
-                                else
-                                {
-                                    VariantValue = (BaseDataVariableState<object[]>)replacement;
-                                }
+                                VariantValue = new BaseDataVariableState<object[]>(this);
+                            }
+                            else
+                            {
+                                VariantValue = (BaseDataVariableState<object[]>)replacement;
                             }
                         }
 
@@ -9217,7 +8836,7 @@ namespace TestData
         /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.MethodTestType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.MethodTestType, Namespaces.TestData, namespaceUris);
         }
 
 #if (!OPCUA_EXCLUDE_InitializationStrings)
@@ -9414,7 +9033,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_scalarMethod1Method, value))
+                if (!ReferenceEquals(m_scalarMethod1Method, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -9430,7 +9049,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_scalarMethod2Method, value))
+                if (!ReferenceEquals(m_scalarMethod2Method, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -9446,7 +9065,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_scalarMethod3Method, value))
+                if (!ReferenceEquals(m_scalarMethod3Method, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -9462,7 +9081,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_arrayMethod1Method, value))
+                if (!ReferenceEquals(m_arrayMethod1Method, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -9478,7 +9097,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_arrayMethod2Method, value))
+                if (!ReferenceEquals(m_arrayMethod2Method, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -9494,7 +9113,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_arrayMethod3Method, value))
+                if (!ReferenceEquals(m_arrayMethod3Method, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -9510,7 +9129,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_userScalarMethod1Method, value))
+                if (!ReferenceEquals(m_userScalarMethod1Method, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -9526,7 +9145,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_userScalarMethod2Method, value))
+                if (!ReferenceEquals(m_userScalarMethod2Method, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -9542,7 +9161,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_userArrayMethod1Method, value))
+                if (!ReferenceEquals(m_userArrayMethod1Method, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -9558,7 +9177,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_userArrayMethod2Method, value))
+                if (!ReferenceEquals(m_userArrayMethod2Method, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -9653,20 +9272,17 @@ namespace TestData
 
             switch (browseName.Name)
             {
-                case TestData.BrowseNames.ScalarMethod1:
+                case BrowseNames.ScalarMethod1:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ScalarMethod1 == null)
                         {
-                            if (ScalarMethod1 == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ScalarMethod1 = new ScalarValue1MethodState(this);
-                                }
-                                else
-                                {
-                                    ScalarMethod1 = (ScalarValue1MethodState)replacement;
-                                }
+                                ScalarMethod1 = new ScalarValue1MethodState(this);
+                            }
+                            else
+                            {
+                                ScalarMethod1 = (ScalarValue1MethodState)replacement;
                             }
                         }
 
@@ -9674,20 +9290,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ScalarMethod2:
+                case BrowseNames.ScalarMethod2:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ScalarMethod2 == null)
                         {
-                            if (ScalarMethod2 == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ScalarMethod2 = new ScalarValue2MethodState(this);
-                                }
-                                else
-                                {
-                                    ScalarMethod2 = (ScalarValue2MethodState)replacement;
-                                }
+                                ScalarMethod2 = new ScalarValue2MethodState(this);
+                            }
+                            else
+                            {
+                                ScalarMethod2 = (ScalarValue2MethodState)replacement;
                             }
                         }
 
@@ -9695,20 +9308,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ScalarMethod3:
+                case BrowseNames.ScalarMethod3:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ScalarMethod3 == null)
                         {
-                            if (ScalarMethod3 == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ScalarMethod3 = new ScalarValue3MethodState(this);
-                                }
-                                else
-                                {
-                                    ScalarMethod3 = (ScalarValue3MethodState)replacement;
-                                }
+                                ScalarMethod3 = new ScalarValue3MethodState(this);
+                            }
+                            else
+                            {
+                                ScalarMethod3 = (ScalarValue3MethodState)replacement;
                             }
                         }
 
@@ -9716,20 +9326,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ArrayMethod1:
+                case BrowseNames.ArrayMethod1:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ArrayMethod1 == null)
                         {
-                            if (ArrayMethod1 == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ArrayMethod1 = new ArrayValue1MethodState(this);
-                                }
-                                else
-                                {
-                                    ArrayMethod1 = (ArrayValue1MethodState)replacement;
-                                }
+                                ArrayMethod1 = new ArrayValue1MethodState(this);
+                            }
+                            else
+                            {
+                                ArrayMethod1 = (ArrayValue1MethodState)replacement;
                             }
                         }
 
@@ -9737,20 +9344,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ArrayMethod2:
+                case BrowseNames.ArrayMethod2:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ArrayMethod2 == null)
                         {
-                            if (ArrayMethod2 == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ArrayMethod2 = new ArrayValue2MethodState(this);
-                                }
-                                else
-                                {
-                                    ArrayMethod2 = (ArrayValue2MethodState)replacement;
-                                }
+                                ArrayMethod2 = new ArrayValue2MethodState(this);
+                            }
+                            else
+                            {
+                                ArrayMethod2 = (ArrayValue2MethodState)replacement;
                             }
                         }
 
@@ -9758,20 +9362,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.ArrayMethod3:
+                case BrowseNames.ArrayMethod3:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ArrayMethod3 == null)
                         {
-                            if (ArrayMethod3 == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ArrayMethod3 = new ArrayValue3MethodState(this);
-                                }
-                                else
-                                {
-                                    ArrayMethod3 = (ArrayValue3MethodState)replacement;
-                                }
+                                ArrayMethod3 = new ArrayValue3MethodState(this);
+                            }
+                            else
+                            {
+                                ArrayMethod3 = (ArrayValue3MethodState)replacement;
                             }
                         }
 
@@ -9779,20 +9380,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UserScalarMethod1:
+                case BrowseNames.UserScalarMethod1:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UserScalarMethod1 == null)
                         {
-                            if (UserScalarMethod1 == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UserScalarMethod1 = new UserScalarValue1MethodState(this);
-                                }
-                                else
-                                {
-                                    UserScalarMethod1 = (UserScalarValue1MethodState)replacement;
-                                }
+                                UserScalarMethod1 = new UserScalarValue1MethodState(this);
+                            }
+                            else
+                            {
+                                UserScalarMethod1 = (UserScalarValue1MethodState)replacement;
                             }
                         }
 
@@ -9800,20 +9398,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UserScalarMethod2:
+                case BrowseNames.UserScalarMethod2:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UserScalarMethod2 == null)
                         {
-                            if (UserScalarMethod2 == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UserScalarMethod2 = new UserScalarValue2MethodState(this);
-                                }
-                                else
-                                {
-                                    UserScalarMethod2 = (UserScalarValue2MethodState)replacement;
-                                }
+                                UserScalarMethod2 = new UserScalarValue2MethodState(this);
+                            }
+                            else
+                            {
+                                UserScalarMethod2 = (UserScalarValue2MethodState)replacement;
                             }
                         }
 
@@ -9821,20 +9416,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UserArrayMethod1:
+                case BrowseNames.UserArrayMethod1:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UserArrayMethod1 == null)
                         {
-                            if (UserArrayMethod1 == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UserArrayMethod1 = new UserArrayValue1MethodState(this);
-                                }
-                                else
-                                {
-                                    UserArrayMethod1 = (UserArrayValue1MethodState)replacement;
-                                }
+                                UserArrayMethod1 = new UserArrayValue1MethodState(this);
+                            }
+                            else
+                            {
+                                UserArrayMethod1 = (UserArrayValue1MethodState)replacement;
                             }
                         }
 
@@ -9842,20 +9434,17 @@ namespace TestData
                         break;
                     }
 
-                case TestData.BrowseNames.UserArrayMethod2:
+                case BrowseNames.UserArrayMethod2:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UserArrayMethod2 == null)
                         {
-                            if (UserArrayMethod2 == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UserArrayMethod2 = new UserArrayValue2MethodState(this);
-                                }
-                                else
-                                {
-                                    UserArrayMethod2 = (UserArrayValue2MethodState)replacement;
-                                }
+                                UserArrayMethod2 = new UserArrayValue2MethodState(this);
+                            }
+                            else
+                            {
+                                UserArrayMethod2 = (UserArrayValue2MethodState)replacement;
                             }
                         }
 
@@ -9913,7 +9502,7 @@ namespace TestData
         /// <param name="namespaceUris"></param>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
-            return Opc.Ua.NodeId.Create(TestData.ObjectTypes.TestSystemConditionType, TestData.Namespaces.TestData, namespaceUris);
+            return NodeId.Create(ObjectTypes.TestSystemConditionType, Namespaces.TestData, namespaceUris);
         }
 
 #if (!OPCUA_EXCLUDE_InitializationStrings)
@@ -9991,7 +9580,7 @@ namespace TestData
 
             set
             {
-                if (!Object.ReferenceEquals(m_monitoredNodeCount, value))
+                if (!ReferenceEquals(m_monitoredNodeCount, value))
                 {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
@@ -10041,20 +9630,17 @@ namespace TestData
 
             switch (browseName.Name)
             {
-                case TestData.BrowseNames.MonitoredNodeCount:
+                case BrowseNames.MonitoredNodeCount:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && MonitoredNodeCount == null)
                         {
-                            if (MonitoredNodeCount == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    MonitoredNodeCount = new PropertyState<int>(this);
-                                }
-                                else
-                                {
-                                    MonitoredNodeCount = (PropertyState<int>)replacement;
-                                }
+                                MonitoredNodeCount = new PropertyState<int>(this);
+                            }
+                            else
+                            {
+                                MonitoredNodeCount = (PropertyState<int>)replacement;
                             }
                         }
 

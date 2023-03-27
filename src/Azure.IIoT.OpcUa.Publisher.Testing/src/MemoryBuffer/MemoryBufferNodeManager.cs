@@ -70,17 +70,14 @@ namespace MemoryBuffer
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            if (disposing)
+            if (disposing && _buffers != null)
             {
-                if (_buffers != null)
+                foreach (var buffer in _buffers.Values)
                 {
-                    foreach (var buffer in _buffers.Values)
-                    {
-                        buffer.Dispose();
-                    }
-                    _buffers.Clear();
-                    _buffers = null;
+                    buffer.Dispose();
                 }
+                _buffers.Clear();
+                _buffers = null;
             }
         }
 

@@ -547,7 +547,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 // TODO: Set metadata to empty here
                 await rawSubscription.ApplyChangesAsync().ConfigureAwait(false);
-                rawSubscription.SetPublishingMode(false);
+                await rawSubscription.SetPublishingModeAsync(false).ConfigureAwait(false);
                 if (rawSubscription.MonitoredItemCount != 0)
                 {
                     _logger.LogWarning("Failed to remove {Count} monitored items from subscription "

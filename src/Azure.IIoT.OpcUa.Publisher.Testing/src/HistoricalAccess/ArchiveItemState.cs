@@ -361,12 +361,9 @@ namespace HistoricalAccess
 
                 replaced = current.UserName == annotation.UserName;
 
-                if (performUpdateType == PerformUpdateType.Insert)
+                if (performUpdateType == PerformUpdateType.Insert && replaced)
                 {
-                    if (replaced)
-                    {
-                        return StatusCodes.BadEntryExists;
-                    }
+                    return StatusCodes.BadEntryExists;
                 }
 
                 if (replaced)

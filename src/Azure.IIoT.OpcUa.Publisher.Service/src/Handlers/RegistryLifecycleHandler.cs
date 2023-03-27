@@ -84,13 +84,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             }
             twin.ModuleId ??= moduleId;
             twin.Id ??= deviceId;
-            var type = twin.Tags?.GetValueOrDefault<string>(OpcUa.Constants.TwinPropertyTypeKey, null);
+            var type = twin.Tags?.GetValueOrDefault<string>(Constants.TwinPropertyTypeKey, null);
             if (string.IsNullOrEmpty(type))
             {
                 try
                 {
                     twin = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
-                    type = twin.Tags?.GetValueOrDefault<string>(OpcUa.Constants.TwinPropertyTypeKey, null);
+                    type = twin.Tags?.GetValueOrDefault<string>(Constants.TwinPropertyTypeKey, null);
                 }
                 catch (Exception ex)
                 {
@@ -156,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         /// <returns></returns>
         private async Task HandleCreateAsync(DeviceTwinModel twin, DateTime timestamp)
         {
-            var type = twin.Tags?.GetValueOrDefault<string>(OpcUa.Constants.TwinPropertyTypeKey, null);
+            var type = twin.Tags?.GetValueOrDefault<string>(Constants.TwinPropertyTypeKey, null);
             var ctx = new OperationContextModel
             {
                 Time = timestamp

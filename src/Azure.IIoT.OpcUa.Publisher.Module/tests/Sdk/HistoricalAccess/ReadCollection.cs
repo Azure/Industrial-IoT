@@ -11,6 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.HistoricalAccess
     [CollectionDefinition(Name)]
     public class ReadCollection : ICollectionFixture<HistoricalAccessServer>
     {
-        public const string Name = "HistoricalAccessServerReadModule";
+        public const string Name = "HistoricalAccessServerReadModuleSdk";
     }
 }

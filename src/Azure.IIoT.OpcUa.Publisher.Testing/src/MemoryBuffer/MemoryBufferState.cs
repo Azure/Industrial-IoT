@@ -84,13 +84,10 @@ namespace MemoryBuffer
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && _scanTimer != null)
             {
-                if (_scanTimer != null)
-                {
-                    _scanTimer.Dispose();
-                    _scanTimer = null;
-                }
+                _scanTimer.Dispose();
+                _scanTimer = null;
             }
             base.Dispose(disposing);
         }
@@ -376,12 +373,9 @@ namespace MemoryBuffer
 
                 for (var ii = 0; ii < bytes.Length; ii++)
                 {
-                    if (!changed)
+                    if (!changed && _buffer[offset + ii] != bytes[ii])
                     {
-                        if (_buffer[offset + ii] != bytes[ii])
-                        {
-                            changed = true;
-                        }
+                        changed = true;
                     }
 
                     _buffer[offset + ii] = bytes[ii];

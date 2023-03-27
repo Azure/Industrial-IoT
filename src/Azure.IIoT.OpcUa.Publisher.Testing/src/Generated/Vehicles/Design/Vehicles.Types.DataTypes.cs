@@ -73,7 +73,7 @@ namespace Vehicles.Types
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         [DataMember(Name = "Make", IsRequired = false, Order = 1)]
         public string Make
         {
@@ -81,7 +81,7 @@ namespace Vehicles.Types
             set { m_make = value; }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         [DataMember(Name = "Model", IsRequired = false, Order = 2)]
         public string Model
         {
@@ -303,7 +303,7 @@ namespace Vehicles.Types
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         [DataMember(Name = "NoOfPassengers", IsRequired = false, Order = 1)]
         public uint NoOfPassengers
         {
@@ -525,7 +525,7 @@ namespace Vehicles.Types
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         [DataMember(Name = "CargoCapacity", IsRequired = false, Order = 1)]
         public uint CargoCapacity
         {

@@ -60,12 +60,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             // Settings
             if (update?.ApiKey != existing?.ApiKey)
             {
-                desired.Add(OpcUa.Constants.TwinPropertyApiKeyKey, update?.ApiKey);
+                desired.Add(Constants.TwinPropertyApiKeyKey, update?.ApiKey);
             }
 
             if (update?.SiteId != existing?.SiteId)
             {
-                desired.Add(OpcUa.Constants.TwinPropertySiteKey, update?.SiteId);
+                desired.Add(Constants.TwinPropertySiteKey, update?.SiteId);
             }
 
             tags.Add(nameof(PublisherRegistration.DeviceType), update?.DeviceType);
@@ -115,13 +115,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 // Properties
 
                 ApiKey =
-                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertyApiKeyKey, (string)null),
+                    properties.GetValueOrDefault(Constants.TwinPropertyApiKeyKey, (string)null),
                 SiteId =
-                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertySiteKey, (string)null),
+                    properties.GetValueOrDefault(Constants.TwinPropertySiteKey, (string)null),
                 Version =
-                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertyVersionKey, (string)null),
+                    properties.GetValueOrDefault(Constants.TwinPropertyVersionKey, (string)null),
                 Type =
-                    properties.GetValueOrDefault(OpcUa.Constants.TwinPropertyTypeKey, (string)null)
+                    properties.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string)null)
             };
         }
 

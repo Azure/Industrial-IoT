@@ -76,13 +76,10 @@ namespace HistoricalEvents
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && _simulationTimer != null)
             {
-                if (_simulationTimer != null)
-                {
-                    Utils.SilentDispose(_simulationTimer);
-                    _simulationTimer = null;
-                }
+                Utils.SilentDispose(_simulationTimer);
+                _simulationTimer = null;
             }
             base.Dispose(disposing);
         }
@@ -224,17 +221,14 @@ namespace HistoricalEvents
                 }
 
                 // check for predefined nodes.
-                if (PredefinedNodes != null)
+                if (PredefinedNodes != null && PredefinedNodes.TryGetValue(nodeId, out var node))
                 {
-                    if (PredefinedNodes.TryGetValue(nodeId, out var node))
+                    return new NodeHandle
                     {
-                        return new NodeHandle
-                        {
-                            NodeId = nodeId,
-                            Validated = true,
-                            Node = node
-                        };
-                    }
+                        NodeId = nodeId,
+                        Validated = true,
+                        Node = node
+                    };
                 }
 
                 return null;
@@ -569,22 +563,16 @@ namespace HistoricalEvents
                 foreach (DataRowView row in view)
                 {
                     // check if reached max results.
-                    if (sizeLimited)
+                    if (sizeLimited && events.Count >= details.NumValuesPerNode)
                     {
-                        if (events.Count >= details.NumValuesPerNode)
-                        {
-                            break;
-                        }
+                        break;
                     }
 
                     var e = _generator.GetReport(context, NamespaceIndex, ii, row.Row);
 
-                    if (details.Filter.WhereClause?.Elements.Count > 0)
+                    if (details.Filter.WhereClause?.Elements.Count > 0 && !details.Filter.WhereClause.Evaluate(filterContext, e))
                     {
-                        if (!details.Filter.WhereClause.Evaluate(filterContext, e))
-                        {
-                            continue;
-                        }
+                        continue;
                     }
 
                     var inserted = false;
@@ -621,7 +609,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Stores a read history request.
         /// </summary>
-        private class HistoryReadRequest
+        private sealed class HistoryReadRequest
         {
             public byte[] ContinuationPoint { get; set; }
             public LinkedList<BaseEventState> Events { get; set; }

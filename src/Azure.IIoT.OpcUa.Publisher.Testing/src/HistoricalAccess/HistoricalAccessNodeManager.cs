@@ -78,13 +78,10 @@ namespace HistoricalAccess
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && _simulationTimer != null)
             {
-                if (_simulationTimer != null)
-                {
-                    _simulationTimer.Dispose();
-                    _simulationTimer = null;
-                }
+                _simulationTimer.Dispose();
+                _simulationTimer = null;
             }
             base.Dispose(disposing);
         }
@@ -459,26 +456,23 @@ namespace HistoricalAccess
             {
                 var root = handle.Node.GetHierarchyRoot();
 
-                if (root != null)
+                if (root != null && root is ArchiveItemState item)
                 {
-                    if (root is ArchiveItemState item)
+                    if (_monitoredItems == null)
                     {
-                        if (_monitoredItems == null)
-                        {
-                            _monitoredItems = new Dictionary<string, ArchiveItemState>();
-                        }
+                        _monitoredItems = new Dictionary<string, ArchiveItemState>();
+                    }
 
-                        if (!_monitoredItems.ContainsKey(item.ArchiveItem.UniquePath))
-                        {
-                            _monitoredItems.Add(item.ArchiveItem.UniquePath, item);
-                        }
+                    if (!_monitoredItems.ContainsKey(item.ArchiveItem.UniquePath))
+                    {
+                        _monitoredItems.Add(item.ArchiveItem.UniquePath, item);
+                    }
 
-                        item.SubscribeCount++;
+                    item.SubscribeCount++;
 
-                        if (_simulationTimer == null)
-                        {
-                            _simulationTimer = new Timer(DoSimulation, null, 500, 500);
-                        }
+                    if (_simulationTimer == null)
+                    {
+                        _simulationTimer = new Timer(DoSimulation, null, 500, 500);
                     }
                 }
             }
@@ -596,30 +590,20 @@ namespace HistoricalAccess
             {
                 var root = handle.Node.GetHierarchyRoot();
 
-                if (root != null)
+                if (root != null && root is ArchiveItemState item &&
+                    _monitoredItems.TryGetValue(item.ArchiveItem.UniquePath, out var item2))
                 {
-                    if (root is ArchiveItemState item)
+                    item2.SubscribeCount--;
+
+                    if (item2.SubscribeCount == 0)
                     {
-                        var item2 = root as ArchiveItemState;
+                        _monitoredItems.Remove(item.ArchiveItem.UniquePath);
+                    }
 
-                        if (_monitoredItems.TryGetValue(item.ArchiveItem.UniquePath, out item2))
-                        {
-                            item2.SubscribeCount--;
-
-                            if (item2.SubscribeCount == 0)
-                            {
-                                _monitoredItems.Remove(item.ArchiveItem.UniquePath);
-                            }
-
-                            if (_monitoredItems.Count == 0)
-                            {
-                                if (_simulationTimer != null)
-                                {
-                                    _simulationTimer.Dispose();
-                                    _simulationTimer = null;
-                                }
-                            }
-                        }
+                    if (_monitoredItems.Count == 0 && _simulationTimer != null)
+                    {
+                        _simulationTimer.Dispose();
+                        _simulationTimer = null;
                     }
                 }
             }
@@ -1207,12 +1191,9 @@ namespace HistoricalAccess
         {
             var item = handle.Node as ArchiveItemState;
 
-            if (item == null)
+            if (item == null && handle.Node is BaseInstanceState property)
             {
-                if (handle.Node is BaseInstanceState property)
-                {
-                    item = property.Parent as ArchiveItemState;
-                }
+                item = property.Parent as ArchiveItemState;
             }
 
             item?.ReloadFromSource(context);
@@ -1298,12 +1279,9 @@ namespace HistoricalAccess
                     }
 
                     // check if absolute max values specified.
-                    if (sizeLimited)
+                    if (sizeLimited && details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count)
                     {
-                        if (details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count)
-                        {
-                            break;
-                        }
+                        break;
                     }
 
                     // check for end bound.
@@ -1341,12 +1319,9 @@ namespace HistoricalAccess
                         }
 
                         // check if absolute max values specified.
-                        if (sizeLimited)
+                        if (sizeLimited && details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count)
                         {
-                            if (details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count)
-                            {
-                                break;
-                            }
+                            break;
                         }
                     }
 
@@ -1385,12 +1360,9 @@ namespace HistoricalAccess
                 }
 
                 // check if absolute max values specified.
-                if (sizeLimited)
+                if (sizeLimited && details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count)
                 {
-                    if (details.NumValuesPerNode > 0 && details.NumValuesPerNode < values.Count)
-                    {
-                        break;
-                    }
+                    break;
                 }
 
                 // add end bound.
@@ -1706,7 +1678,7 @@ namespace HistoricalAccess
         /// <summary>
         /// Stores a read history request.
         /// </summary>
-        private class HistoryReadRequest
+        private sealed class HistoryReadRequest
         {
             public byte[] ContinuationPoint { get; set; }
             public LinkedList<DataValue> Values { get; set; }

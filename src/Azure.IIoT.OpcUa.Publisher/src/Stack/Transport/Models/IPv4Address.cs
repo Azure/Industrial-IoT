@@ -106,12 +106,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
         public static IPv4Address operator --(IPv4Address value) => value - 1;
 
         /// <inheritdoc/>
-        public static bool operator ==(IPv4Address addr1, IPv4Address addr2) =>
-            EqualityComparer<IPv4Address>.Default.Equals(addr1, addr2);
+        public static bool operator ==(IPv4Address left, IPv4Address right) =>
+            EqualityComparer<IPv4Address>.Default.Equals(left, right);
 
         /// <inheritdoc/>
-        public static bool operator !=(IPv4Address addr1, IPv4Address addr2) =>
-            !(addr1 == addr2);
+        public static bool operator !=(IPv4Address left, IPv4Address right) =>
+            !(left == right);
+
+        /// <inheritdoc/>
+        public static bool operator <(IPv4Address left, IPAddress right) =>
+            left.CompareTo(right) < 0;
+        /// <inheritdoc/>
+        public static bool operator <=(IPv4Address left, IPAddress right) =>
+            left.CompareTo(right) <= 0;
+        /// <inheritdoc/>
+        public static bool operator >(IPv4Address left, IPAddress right) =>
+            left.CompareTo(right) > 0;
+        /// <inheritdoc/>
+        public static bool operator >=(IPv4Address left, IPAddress right) =>
+            left.CompareTo(right) >= 0;
+        /// <inheritdoc/>
+        public static bool operator <(IPv4Address left, IPv4Address right) =>
+            left.CompareTo(right) < 0;
+        /// <inheritdoc/>
+        public static bool operator <=(IPv4Address left, IPv4Address right) =>
+            left.CompareTo(right) <= 0;
+        /// <inheritdoc/>
+        public static bool operator >(IPv4Address left, IPv4Address right) =>
+            left.CompareTo(right) > 0;
+        /// <inheritdoc/>
+        public static bool operator >=(IPv4Address left, IPv4Address right) =>
+            left.CompareTo(right) >= 0;
 
         /// <inheritdoc/>
         public override int GetHashCode()

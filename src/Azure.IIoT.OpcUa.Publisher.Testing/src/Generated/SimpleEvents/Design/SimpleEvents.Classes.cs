@@ -103,7 +103,7 @@ namespace SimpleEvents
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<string> CycleId
         {
             get
@@ -122,7 +122,7 @@ namespace SimpleEvents
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<CycleStepDataType> CurrentStep
         {
             get
@@ -314,7 +314,7 @@ namespace SimpleEvents
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<CycleStepDataType[]> Steps
         {
             get
@@ -479,7 +479,7 @@ namespace SimpleEvents
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<StatusCode> Error
         {
             get

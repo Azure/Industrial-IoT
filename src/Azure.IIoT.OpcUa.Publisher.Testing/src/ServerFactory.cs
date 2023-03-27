@@ -111,15 +111,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
 
         /// <inheritdoc/>
         public ApplicationConfiguration CreateServer(IEnumerable<int> ports,
-            string applicationName, out ServerBase server,
+            string pkiRootPath, out ServerBase server,
             Action<ServerConfiguration> configure)
         {
             server = new Server(LogStatus, _nodes, _logger);
-            return Server.CreateServerConfiguration(ports, applicationName);
+            return Server.CreateServerConfiguration(ports, pkiRootPath);
         }
 
         /// <inheritdoc/>
-        private class Server : StandardServer
+        private sealed class Server : StandardServer
         {
             /// <summary>
             /// Create server
@@ -167,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 {
                     pkiRootPath = "pki";
                 }
-                var configuration = new ApplicationConfiguration
+                return new ApplicationConfiguration
                 {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
@@ -301,7 +301,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         TraceMasks = 1
                     }
                 };
-                return configuration;
             }
 
             /// <inheritdoc/>
@@ -421,22 +420,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             {
                 lock (session.DiagnosticsLock)
                 {
-                    var item = string.Format("{0,9}:{1,20}:", reason,
-                        session.SessionDiagnostics.SessionName);
                     if (lastContact)
                     {
-                        item += string.Format("Last Event:{0:HH:mm:ss}",
-                            session.SessionDiagnostics.ClientLastContactTime.ToLocalTime());
+                        _logger.LogInformation("{Reason,9}:{SessionName,20}:Last Event:{LastEvent:HH:mm:ss}",
+                            reason, session.SessionDiagnostics.SessionName, lastContact);
                     }
                     else
                     {
-                        if (session.Identity != null)
-                        {
-                            item += string.Format(":{0,20}", session.Identity.DisplayName);
-                        }
-                        item += string.Format(":{0}", session.Id);
+                        _logger.LogInformation("{Reason,9}:{SessionName,20}:{DisplayName,20}:{SessionId}",
+                            reason, session.SessionDiagnostics.SessionName,
+                            session.Identity.DisplayName ?? "session",
+                            session.Id);
                     }
-                    _logger.LogInformation(item);
                 }
             }
             /// <summary>

@@ -189,7 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.JsonGzip);
-            messages[10].MessageType = Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.Metadata; // Emit metadata
+            messages[10].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
             messages[10].MetaData = new DataSetMetaDataType
             {
                 Name = "test",
@@ -217,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.JsonGzip);
-            messages[0].MessageType = Azure.IIoT.OpcUa.Encoders.PubSub.MessageType.KeepAlive;
+            messages[0].MessageType = Encoders.PubSub.MessageType.KeepAlive;
             messages[0].Notifications.Clear();
 
             var encoder = GetEncoder();

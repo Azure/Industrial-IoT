@@ -50,9 +50,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             Reserved = 0,
             PublisherEndpoints = 1,
             DataSetMetaData = 2,
-            DataSetWriterConfiguration = 3,
+            DataSetWriterConfiguration =
+                PublisherEndpoints | DataSetMetaData,
             PubSubConnectionsConfiguration = 4,
-            ApplicationInformation = 5
+            ApplicationInformation =
+                PublisherEndpoints | PubSubConnectionsConfiguration
         }
 
         /// <summary>
@@ -75,9 +77,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             Reserved = 0,
             PublisherServerEndpoints = 1,
             DataSetMetaData = 2,
-            DataSetWriterConfiguration = 3,
+            DataSetWriterConfiguration =
+                PublisherServerEndpoints | DataSetMetaData,
             WriterGroupConfiguration = 4,
-            PubSubConnectionsConfiguration = 5
+            PubSubConnectionsConfiguration =
+                PublisherServerEndpoints | WriterGroupConfiguration
         }
 
         /// <inheritdoc/>
@@ -139,21 +143,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        protected override bool TryReadNetworkMessageHeader(BinaryDecoder decoder, bool isFirstChunk)
+        protected override bool TryReadNetworkMessageHeader(BinaryDecoder binaryDecoder,
+            bool isFirstChunk)
         {
             if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryProbe) != 0)
             {
                 // Read probetype
-                DiscoveryType = decoder.ReadByte(null);
-                DataSetWriterIds = decoder.ReadUInt16Array(null).ToArray();
+                DiscoveryType = binaryDecoder.ReadByte(null);
+                DataSetWriterIds = binaryDecoder.ReadUInt16Array(null).ToArray();
                 IsProbe = true;
                 return true;
             }
             if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryAnnouncement) != 0)
             {
                 // Read announcement type
-                DiscoveryType = decoder.ReadByte(null);
-                _sequenceNumber = decoder.ReadUInt16(null);
+                DiscoveryType = binaryDecoder.ReadByte(null);
+                _sequenceNumber = binaryDecoder.ReadUInt16(null);
                 IsProbe = false;
                 return true;
             }
@@ -280,17 +285,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object value)
+        public override bool Equals(object obj)
         {
-            if (ReferenceEquals(this, value))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
-            if (!(value is UadpDiscoveryMessage wrapper))
+            if (!(obj is UadpDiscoveryMessage wrapper))
             {
                 return false;
             }
-            if (!base.Equals(value))
+            if (!base.Equals(obj))
             {
                 return false;
             }

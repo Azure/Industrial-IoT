@@ -272,11 +272,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                     var t = r.ToDeviceTwin(_serializer);
                     var reported = new Dictionary<string, VariantValue>
                     {
-                        [OpcUa.Constants.TwinPropertyTypeKey] = "Twin"
+                        [Constants.TwinPropertyTypeKey] = "Twin"
                     };
                     if (a.Registration.SiteId != null)
                     {
-                        reported.Add(OpcUa.Constants.TwinPropertySiteKey, a.Registration.SiteId);
+                        reported.Add(Constants.TwinPropertySiteKey, a.Registration.SiteId);
                     }
                     t.Reported = reported;
                     t.ConnectionState = "Disconnected";

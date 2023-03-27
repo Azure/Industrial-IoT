@@ -37,31 +37,19 @@ namespace TestData
     /// <summary>
     /// A class that provides access to archived data.
     /// </summary>
-    internal class HistoryArchive : IDisposable
+    internal sealed class HistoryArchive : IDisposable
     {
         /// <summary>
         /// Frees any unmanaged resources.
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-        }
-
-        /// <summary>
-        /// An overrideable version of the Dispose.
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
+            if (_updateTimer != null)
             {
-                if (_updateTimer != null)
-                {
-                    _updateTimer.Dispose();
-                    _updateTimer = null;
-                }
+                _updateTimer.Dispose();
+                _updateTimer = null;
             }
-        }
+    }
 
         /// <summary>
         /// Creates a new record in the archive.

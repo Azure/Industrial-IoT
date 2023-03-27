@@ -11,6 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
     [CollectionDefinition(Name)]
     public class WriteCollection : ICollectionFixture<TestDataServer>
     {
-        public const string Name = "TestDataServerWriteModule";
+        public const string Name = "TestDataServerWriteModuleMqtt";
     }
 }

@@ -110,7 +110,7 @@ namespace HistoricalEvents
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<string> NameWell
         {
             get
@@ -129,7 +129,7 @@ namespace HistoricalEvents
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<string> UidWell
         {
             get
@@ -148,7 +148,7 @@ namespace HistoricalEvents
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<DateTime> TestDate
         {
             get
@@ -167,7 +167,7 @@ namespace HistoricalEvents
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<string> TestReason
         {
             get
@@ -425,7 +425,7 @@ namespace HistoricalEvents
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public AnalogItemState<double> FluidLevel
         {
             get
@@ -444,7 +444,7 @@ namespace HistoricalEvents
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<string> TestedBy
         {
             get
@@ -647,7 +647,7 @@ namespace HistoricalEvents
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public AnalogItemState<double> TestDuration
         {
             get
@@ -666,7 +666,7 @@ namespace HistoricalEvents
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<string> InjectedFluid
         {
             get

@@ -2,7 +2,7 @@
  * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
- * 
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -11,7 +11,7 @@
  * copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -267,7 +267,7 @@ namespace Opc.Ua.Sample
 
                 _samplingInterval = samplingInterval;
 
-                // calculate the next sampling interval.                
+                // calculate the next sampling interval.
                 var newSamplingInterval = (long)(_samplingInterval * TimeSpan.TicksPerMillisecond);
 
                 if (_samplingInterval > 0)
@@ -540,18 +540,16 @@ namespace Opc.Ua.Sample
             lock (_lock)
             {
                 // check if value has changed.
-                if (!AlwaysReportUpdates && !ignoreFilters)
+                if (!AlwaysReportUpdates && !ignoreFilters &&
+                    !MonitoredItem.ValueChanged(value, error, _lastValue, _lastError, DataChangeFilter, _range))
                 {
-                    if (!MonitoredItem.ValueChanged(value, error, _lastValue, _lastError, DataChangeFilter, _range))
-                    {
-                        return;
-                    }
+                    return;
                 }
 
                 // make a shallow copy of the value.
                 if (value != null)
                 {
-                    var copy = new DataValue
+                    value = new DataValue
                     {
                         WrappedValue = value.WrappedValue,
                         StatusCode = value.StatusCode,
@@ -560,8 +558,6 @@ namespace Opc.Ua.Sample
                         ServerTimestamp = value.ServerTimestamp,
                         ServerPicoseconds = value.ServerPicoseconds
                     };
-
-                    value = copy;
 
                     // ensure the data value matches the error status code.
                     if (error != null && error.StatusCode.Code != 0)
@@ -814,12 +810,9 @@ namespace Opc.Ua.Sample
             // update diagnostic info.
             DiagnosticInfo diagnosticInfo = null;
 
-            if (_lastError != null)
+            if (_lastError != null && (_diagnosticsMasks & DiagnosticsMasks.OperationAll) != 0)
             {
-                if ((_diagnosticsMasks & DiagnosticsMasks.OperationAll) != 0)
-                {
-                    diagnosticInfo = ServerUtils.CreateDiagnosticInfo(_source.Server, context, _lastError);
-                }
+                diagnosticInfo = ServerUtils.CreateDiagnosticInfo(_source.Server, context, _lastError);
             }
 
             diagnostics.Enqueue(diagnosticInfo);

@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
             }
         }
 
-        private bool _autoAccept;
+        private readonly bool _autoAccept;
         private readonly string _path;
     }
 }

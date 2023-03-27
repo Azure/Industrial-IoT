@@ -65,8 +65,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             try
             {
-                return rawCertificates.ToCertificateChain(false)?.Chain
-                    .LastOrDefault()?.Thumbprint;
+                var chain = rawCertificates.ToCertificateChain(false)?.Chain;
+                if (chain?.Count > 0)
+                {
+                    return chain[chain.Count -1]?.Thumbprint;
+                }
+                return null;
             }
             catch
             {

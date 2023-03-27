@@ -42,33 +42,30 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         [DataMember(Name = "Value", IsRequired = true, Order = 2)]
         public DataValue Value { get; set; }
 
-        /// <summary cref="IEncodeable.TypeId" />
+        /// <inheritdoc/>
         public virtual ExpandedNodeId TypeId { get; }
 
-        /// <summary cref="IEncodeable.BinaryEncodingId" />
+        /// <inheritdoc/>
         public virtual ExpandedNodeId BinaryEncodingId { get; }
 
-        /// <summary cref="IEncodeable.XmlEncodingId" />
+        /// <inheritdoc/>
         public virtual ExpandedNodeId XmlEncodingId { get; }
 
-        /// <param name="encoder"></param>
-        /// <summary cref="IEncodeable.Encode(IEncoder)" />
+        /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder)
         {
             encoder.WriteString("Key", Key);
             encoder.WriteDataValue(Key, Value);
         }
 
-        /// <param name="decoder"></param>
-        /// <summary cref="IEncodeable.Decode(IDecoder)" />
+        /// <inheritdoc/>
         public virtual void Decode(IDecoder decoder)
         {
             Key = decoder.ReadString("Key");
             Value = decoder.ReadDataValue(Key);
         }
 
-        /// <param name="encodeable"></param>
-        /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
+        /// <inheritdoc/>
         public virtual bool IsEqual(IEncodeable encodeable)
         {
             if (ReferenceEquals(this, encodeable))
@@ -84,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             return true;
         }
 
-        /// <summary cref="object.MemberwiseClone" />
+        /// <inheritdoc/>
         public new object MemberwiseClone()
         {
             var clone = (KeyDataValuePair)base.MemberwiseClone();
@@ -141,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             return null;
         }
 
-        /// <summary cref="object.MemberwiseClone" />
+        /// <inheritdoc/>
         public new object MemberwiseClone()
         {
             var clone = new KeyDataValuePairCollection(Count);

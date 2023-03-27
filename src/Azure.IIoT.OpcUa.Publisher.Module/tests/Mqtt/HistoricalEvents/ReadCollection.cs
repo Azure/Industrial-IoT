@@ -11,6 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.HistoricalEvents
     [CollectionDefinition(Name)]
     public class ReadCollection : ICollectionFixture<HistoricalEventsServer>
     {
-        public const string Name = "HistoricalEventsServerReadModule";
+        public const string Name = "HistoricalEventsServerReadModuleMqtt";
     }
 }

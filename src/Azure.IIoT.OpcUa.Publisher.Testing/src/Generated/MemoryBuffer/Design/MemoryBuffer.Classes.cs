@@ -246,7 +246,7 @@ namespace MemoryBuffer
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<uint> StartAddress
         {
             get => m_startAddress;
@@ -262,7 +262,7 @@ namespace MemoryBuffer
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<uint> SizeInBytes
         {
             get => m_sizeInBytes;
@@ -326,18 +326,15 @@ namespace MemoryBuffer
             {
                 case BrowseNames.StartAddress:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && StartAddress == null)
                         {
-                            if (StartAddress == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    StartAddress = new PropertyState<uint>(this);
-                                }
-                                else
-                                {
-                                    StartAddress = (PropertyState<uint>)replacement;
-                                }
+                                StartAddress = new PropertyState<uint>(this);
+                            }
+                            else
+                            {
+                                StartAddress = (PropertyState<uint>)replacement;
                             }
                         }
 
@@ -347,18 +344,15 @@ namespace MemoryBuffer
 
                 case BrowseNames.SizeInBytes:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && SizeInBytes == null)
                         {
-                            if (SizeInBytes == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    SizeInBytes = new PropertyState<uint>(this);
-                                }
-                                else
-                                {
-                                    SizeInBytes = (PropertyState<uint>)replacement;
-                                }
+                                SizeInBytes = new PropertyState<uint>(this);
+                            }
+                            else
+                            {
+                                SizeInBytes = (PropertyState<uint>)replacement;
                             }
                         }
 

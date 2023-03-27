@@ -55,13 +55,10 @@ namespace Boiler
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && _simulationTimer != null)
             {
-                if (_simulationTimer != null)
-                {
-                    _simulationTimer.Dispose();
-                    _simulationTimer = null;
-                }
+                _simulationTimer.Dispose();
+                _simulationTimer = null;
             }
             base.Dispose(disposing);
         }

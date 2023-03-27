@@ -26,17 +26,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public string DataSetWriterName { get; set; }
 
         /// <inheritdoc/>
-        public override bool Equals(object value)
+        public override bool Equals(object obj)
         {
-            if (ReferenceEquals(this, value))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
-            if (!(value is JsonDataSetMessage wrapper))
+            if (!(obj is JsonDataSetMessage wrapper))
             {
                 return false;
             }
-            if (!base.Equals(value))
+            if (!base.Equals(obj))
             {
                 return false;
             }

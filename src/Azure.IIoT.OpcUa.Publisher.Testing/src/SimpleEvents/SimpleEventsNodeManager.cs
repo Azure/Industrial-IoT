@@ -68,13 +68,10 @@ namespace SimpleEvents
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && _simulationTimer != null)
             {
-                if (_simulationTimer != null)
-                {
-                    Utils.SilentDispose(_simulationTimer);
-                    _simulationTimer = null;
-                }
+                Utils.SilentDispose(_simulationTimer);
+                _simulationTimer = null;
             }
             base.Dispose(disposing);
         }
@@ -151,17 +148,14 @@ namespace SimpleEvents
                 }
 
                 // check for predefined nodes.
-                if (PredefinedNodes != null)
+                if (PredefinedNodes != null && PredefinedNodes.TryGetValue(nodeId, out var node))
                 {
-                    if (PredefinedNodes.TryGetValue(nodeId, out var node))
+                    return new NodeHandle
                     {
-                        return new NodeHandle
-                        {
-                            NodeId = nodeId,
-                            Validated = true,
-                            Node = node
-                        };
-                    }
+                        NodeId = nodeId,
+                        Validated = true,
+                        Node = node
+                    };
                 }
 
                 return null;

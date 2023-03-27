@@ -199,67 +199,67 @@ namespace Microsoft.Azure.IIoT.App.Pages
             switch (ev.EventType)
             {
                 case DiscoveryProgressType.Pending:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Total} waiting..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Total} waiting..." + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.Started:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: Started." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Started." + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.NetworkScanStarted:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: Scanning network..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Scanning network..." + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.NetworkScanResult:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found - NEW: {ev.Result}..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found - NEW: {ev.Result}..." + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.NetworkScanProgress:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found" + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.NetworkScanFinished:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found - complete!" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found - complete!" + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.PortScanStarted:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: Scanning ports..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Scanning ports..." + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.PortScanResult:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found - NEW: {ev.Result}" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found - NEW: {ev.Result}" + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.PortScanProgress:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found" + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.PortScanFinished:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found - complete!" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found - complete!" + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.ServerDiscoveryStarted:
-                    EventResult += "==========================================" + System.Environment.NewLine;
-                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: Finding servers..." + System.Environment.NewLine;
+                    EventResult += "==========================================" + Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: Finding servers..." + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryStarted:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found - find endpoints on {ev.RequestDetails["url"]}..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found - find endpoints on {ev.RequestDetails["url"]}..." + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryFinished:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found - {ev.Result} endpoints found on {ev.RequestDetails["url"]}..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found - {ev.Result} endpoints found on {ev.RequestDetails["url"]}..." + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.ServerDiscoveryFinished:
-                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found." + Environment.NewLine;
                     break;
                 case DiscoveryProgressType.Cancelled:
-                    EventResult += "==========================================" + System.Environment.NewLine;
-                    EventResult += $"[{ts}] {ev.DiscovererId}: Cancelled." + System.Environment.NewLine;
+                    EventResult += "==========================================" + Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Cancelled." + Environment.NewLine;
                     if (DiscovererData != null)
                     {
                         DiscovererData.IsSearching = false;
                     }
                     break;
                 case DiscoveryProgressType.Error:
-                    EventResult += "==========================================" + System.Environment.NewLine;
-                    EventResult += $"[{ts}] {ev.DiscovererId}: Failure." + System.Environment.NewLine;
+                    EventResult += "==========================================" + Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Failure." + Environment.NewLine;
                     if (DiscovererData != null)
                     {
                         DiscovererData.IsSearching = false;
                     }
                     break;
                 case DiscoveryProgressType.Finished:
-                    EventResult += "==========================================" + System.Environment.NewLine;
-                    EventResult += $"[{ts}] {ev.DiscovererId}: Completed." + System.Environment.NewLine;
+                    EventResult += "==========================================" + Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Completed." + Environment.NewLine;
                     if (DiscovererData != null)
                     {
                         DiscovererData.IsSearching = false;

@@ -43,9 +43,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         }
 
         /// <inheritdoc/>
-        public override void Warning<T>(string messageTemplate, T propertyValue)
+        public override void Warning<T>(string messageTemplate, T propertyValue0)
         {
-            Warnings.Add(messageTemplate + "::" + propertyValue.ToString());
+            Warnings.Add(messageTemplate + "::" + propertyValue0.ToString());
         }
     }
 }

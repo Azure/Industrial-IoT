@@ -549,12 +549,9 @@ namespace Opc.Ua.Sample
         /// <param name="type"></param>
         protected void AddTypesToTypeTree(BaseTypeState type)
         {
-            if (!NodeId.IsNull(type.SuperTypeId))
+            if (!NodeId.IsNull(type.SuperTypeId) && !Server.TypeTree.IsKnown(type.SuperTypeId))
             {
-                if (!Server.TypeTree.IsKnown(type.SuperTypeId))
-                {
-                    AddTypesToTypeTree(type.SuperTypeId);
-                }
+                AddTypesToTypeTree(type.SuperTypeId);
             }
 
             if (type.NodeClass != NodeClass.ReferenceType)
@@ -601,12 +598,9 @@ namespace Opc.Ua.Sample
                 return null;
             }
 
-            if (expectedType != null)
+            if (expectedType?.IsInstanceOfType(node) == false)
             {
-                if (!expectedType.IsInstanceOfType(node))
-                {
-                    return null;
-                }
+                return null;
             }
 
             return node;
@@ -732,12 +726,9 @@ namespace Opc.Ua.Sample
                 if (deleteBidirectional)
                 {
                     // check if the target is also managed by the node manager.
-                    if (!targetId.IsAbsolute)
+                    if (!targetId.IsAbsolute && GetManagerHandle(SystemContext, (NodeId)targetId, null) is NodeState target)
                     {
-                        if (GetManagerHandle(SystemContext, (NodeId)targetId, null) is NodeState target)
-                        {
-                            target.RemoveReference(referenceTypeId, !isInverse, source.NodeId);
-                        }
+                        target.RemoveReference(referenceTypeId, !isInverse, source.NodeId);
                     }
                 }
 
@@ -981,12 +972,9 @@ namespace Opc.Ua.Sample
             {
                 var targetId = (NodeId)reference.TargetId;
 
-                if (IsNodeIdInNamespace(targetId))
+                if (IsNodeIdInNamespace(targetId) && !PredefinedNodes.TryGetValue(targetId, out target))
                 {
-                    if (!PredefinedNodes.TryGetValue(targetId, out target))
-                    {
-                        target = null;
-                    }
+                    target = null;
                 }
             }
 
@@ -2605,13 +2593,10 @@ namespace Opc.Ua.Sample
                 }
             }
 
-            if (_sampledItems.Count == 0)
+            if (_sampledItems.Count == 0 && _samplingTimer != null)
             {
-                if (_samplingTimer != null)
-                {
-                    _samplingTimer.Dispose();
-                    _samplingTimer = null;
-                }
+                _samplingTimer.Dispose();
+                _samplingTimer = null;
             }
         }
 

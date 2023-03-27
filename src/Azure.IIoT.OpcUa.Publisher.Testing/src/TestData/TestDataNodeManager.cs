@@ -356,12 +356,9 @@ namespace TestData
             }
 
             // check for variables that need to be scanned.
-            if (monitoredItem.AttributeId == Attributes.Value)
+            if (monitoredItem.AttributeId == Attributes.Value && source.Parent is TestDataObjectState test && test.SimulationActive.Value)
             {
-                if (source.Parent is TestDataObjectState test && test.SimulationActive.Value)
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;
@@ -378,15 +375,12 @@ namespace TestData
             NodeHandle handle,
             MonitoredItem monitoredItem)
         {
-            if (SystemScanRequired(handle.MonitoredNode, monitoredItem))
+            if (SystemScanRequired(handle.MonitoredNode, monitoredItem) && monitoredItem.MonitoringMode != MonitoringMode.Disabled)
             {
-                if (monitoredItem.MonitoringMode != MonitoringMode.Disabled)
-                {
-                    _system.StartMonitoringValue(
-                        monitoredItem.Id,
-                        monitoredItem.SamplingInterval,
-                        handle.Node as BaseVariableState);
-                }
+                _system.StartMonitoringValue(
+                    monitoredItem.Id,
+                    monitoredItem.SamplingInterval,
+                    handle.Node as BaseVariableState);
             }
         }
 
@@ -401,14 +395,11 @@ namespace TestData
             NodeHandle handle,
             MonitoredItem monitoredItem)
         {
-            if (SystemScanRequired(handle.MonitoredNode, monitoredItem))
+            if (SystemScanRequired(handle.MonitoredNode, monitoredItem) && monitoredItem.MonitoringMode != MonitoringMode.Disabled)
             {
-                if (monitoredItem.MonitoringMode != MonitoringMode.Disabled)
-                {
-                    var source = handle.Node as BaseVariableState;
-                    _system.StopMonitoringValue(monitoredItem.Id);
-                    _system.StartMonitoringValue(monitoredItem.Id, monitoredItem.SamplingInterval, source);
-                }
+                var source = handle.Node as BaseVariableState;
+                _system.StopMonitoringValue(monitoredItem.Id);
+                _system.StartMonitoringValue(monitoredItem.Id, monitoredItem.SamplingInterval, source);
             }
         }
 

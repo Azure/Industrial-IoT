@@ -1,8 +1,28 @@
 # Release announcement
 
-## Azure Industrial IoT OPC Publisher Community Preview Release 2.9.0
+## Azure Industrial IoT OPC Publisher Community Preview 2 Release 2.9.0
 
-We are pleased to announce the **preview** release of version 2.9.0 of OPC Publisher. This release contains several requested features and fixes issues discovered.
+We are pleased to announce the second **preview** release of version 2.9.0 of OPC Publisher. This release marks a large change for the Industrial IoT components and features. We have combined all edge functionality into the OPC Publisher edge module which now boasts not just MQTT and IoT Hub direct method access, but a full HTTP REST endpoint that can be used to configure its functionality. The cloud components also have been combined into a single Web API, which we recommend to deploy into Azure App Service for reduced cost and simplified operations.
+
+### IMPORTANT - PLEASE READ
+
+Preview releases are only supported through GitHub issues.  This particular release due to the number of changes included might have backward compatibility breaks that have not yet been documented. Please file issues and we will try to address them ahead of GA release.
+
+### Changes in this release
+
+- New Namespaces for all projects and simplified code structure. There are now 2 SDK projects, one for the OPC Publisher module, and another for the WebAPI service. 
+- [OPC Discovery] has been included into the OPC Publisher module, the container name must be updated to refer to OPC Publisher. 
+- [OPC Discovery] A new synchronous FindServer API has been added to allow discovery by discovery url through a single API call.
+- [OPC Twin] has been included into the OPC Publisher module, the container name must be updated to refer to OPC Publisher. 
+- [OPC Twin] we removed the Activate and Deactivate calls. 
+- [All micro services] Have been combined into a single WebAPI with the same resource paths as the 2.8 AKS deployment and all-in-one service. 
+- [OPC Registry service] Supervisor, Discoverer entities have been removed, but the API has been layered on top of the publisher entity for backwards compatibiltiy. Do not use these API's anymore. 
+- [OPC Registry service] A new RegisterEndpoint API has been added that calls the new sync FindServer API and adds the result into the registry in one call.
+- [Telemetry processor] The telemetry and onboarding processors have been integrated into the WebAPI, but only forwards to SignalR. The secondary event hub has been removed. If you need to post process telemetry you must read telemetry data directly from IoT Hub.
+
+## Azure Industrial IoT OPC Publisher Community Preview 1 Release 2.9.0
+
+We are pleased to announce the first **preview** release of version 2.9.0 of OPC Publisher. This release contains several requested features and fixes issues discovered.
 
 ### IMPORTANT - PLEASE READ
 

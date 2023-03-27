@@ -189,16 +189,13 @@ namespace PerfTest
                 }
 
                 // enumerate tags.
-                if (_stage == Stage.Tags)
+                if (_stage == Stage.Tags && IsRequired(ReferenceTypeIds.Organizes, false))
                 {
-                    if (IsRequired(ReferenceTypeIds.Organizes, false))
-                    {
-                        reference = NextChild();
+                    reference = NextChild();
 
-                        if (reference != null)
-                        {
-                            return reference;
-                        }
+                    if (reference != null)
+                    {
+                        return reference;
                     }
                 }
 

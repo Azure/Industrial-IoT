@@ -45,11 +45,11 @@ namespace Vehicles.Instances
     [DataContract(Namespace = Vehicles.Instances.Namespaces.VehiclesInstances)]
     public enum ParkingLotType
     {
-        /// <summary></summary>
+        /// <inheritdoc/>
         [EnumMember(Value = "Open_1")]
         Open = 1,
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         [EnumMember(Value = "Covered_2")]
         Covered = 2,
     }
@@ -180,7 +180,7 @@ namespace Vehicles.Instances
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         [DataMember(Name = "NoOfGears", IsRequired = false, Order = 1)]
         public uint NoOfGears
         {
@@ -188,7 +188,7 @@ namespace Vehicles.Instances
             set { m_noOfGears = value; }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         [DataMember(Name = "ManufacterName", IsRequired = false, Order = 2)]
         public QualifiedName ManufacterName
         {

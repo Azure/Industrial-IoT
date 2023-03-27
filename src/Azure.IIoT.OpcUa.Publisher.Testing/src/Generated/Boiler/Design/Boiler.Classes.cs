@@ -103,7 +103,7 @@ namespace Boiler
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<double> Measurement
         {
             get
@@ -122,7 +122,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<double> SetPoint
         {
             get
@@ -141,7 +141,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<double> ControlOut
         {
             get
@@ -213,18 +213,15 @@ namespace Boiler
             {
                 case BrowseNames.Measurement:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Measurement == null)
                         {
-                            if (Measurement == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Measurement = new PropertyState<double>(this);
-                                }
-                                else
-                                {
-                                    Measurement = (PropertyState<double>)replacement;
-                                }
+                                Measurement = new PropertyState<double>(this);
+                            }
+                            else
+                            {
+                                Measurement = (PropertyState<double>)replacement;
                             }
                         }
 
@@ -234,18 +231,15 @@ namespace Boiler
 
                 case BrowseNames.SetPoint:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && SetPoint == null)
                         {
-                            if (SetPoint == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    SetPoint = new PropertyState<double>(this);
-                                }
-                                else
-                                {
-                                    SetPoint = (PropertyState<double>)replacement;
-                                }
+                                SetPoint = new PropertyState<double>(this);
+                            }
+                            else
+                            {
+                                SetPoint = (PropertyState<double>)replacement;
                             }
                         }
 
@@ -255,18 +249,15 @@ namespace Boiler
 
                 case BrowseNames.ControlOut:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && ControlOut == null)
                         {
-                            if (ControlOut == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    ControlOut = new PropertyState<double>(this);
-                                }
-                                else
-                                {
-                                    ControlOut = (PropertyState<double>)replacement;
-                                }
+                                ControlOut = new PropertyState<double>(this);
+                            }
+                            else
+                            {
+                                ControlOut = (PropertyState<double>)replacement;
                             }
                         }
 
@@ -351,7 +342,7 @@ namespace Boiler
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public AnalogItemState<double> Output
         {
             get
@@ -508,7 +499,7 @@ namespace Boiler
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public AnalogItemState<double> Input
         {
             get
@@ -668,7 +659,7 @@ namespace Boiler
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<double> Input1
         {
             get
@@ -687,7 +678,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<double> Input2
         {
             get
@@ -706,7 +697,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<double> Input3
         {
             get
@@ -725,7 +716,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<double> ControlOut
         {
             get
@@ -744,7 +735,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<LocalizedText> DescriptionX
         {
             get
@@ -1407,7 +1398,7 @@ namespace Boiler
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<uint> UpdateRate
         {
             get
@@ -1426,7 +1417,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public MethodState Start
         {
             get
@@ -1445,7 +1436,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public MethodState Suspend
         {
             get
@@ -1464,7 +1455,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public MethodState Resume
         {
             get
@@ -1483,7 +1474,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public MethodState Halt
         {
             get
@@ -1502,7 +1493,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public MethodState Reset
         {
             get
@@ -1589,18 +1580,15 @@ namespace Boiler
             {
                 case BrowseNames.UpdateRate:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && UpdateRate == null)
                         {
-                            if (UpdateRate == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    UpdateRate = new PropertyState<uint>(this);
-                                }
-                                else
-                                {
-                                    UpdateRate = (PropertyState<uint>)replacement;
-                                }
+                                UpdateRate = new PropertyState<uint>(this);
+                            }
+                            else
+                            {
+                                UpdateRate = (PropertyState<uint>)replacement;
                             }
                         }
 
@@ -1610,18 +1598,15 @@ namespace Boiler
 
                 case BrowseNames.Start:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Start == null)
                         {
-                            if (Start == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Start = new MethodState(this);
-                                }
-                                else
-                                {
-                                    Start = (MethodState)replacement;
-                                }
+                                Start = new MethodState(this);
+                            }
+                            else
+                            {
+                                Start = (MethodState)replacement;
                             }
                         }
 
@@ -1631,18 +1616,15 @@ namespace Boiler
 
                 case BrowseNames.Suspend:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Suspend == null)
                         {
-                            if (Suspend == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Suspend = new MethodState(this);
-                                }
-                                else
-                                {
-                                    Suspend = (MethodState)replacement;
-                                }
+                                Suspend = new MethodState(this);
+                            }
+                            else
+                            {
+                                Suspend = (MethodState)replacement;
                             }
                         }
 
@@ -1652,18 +1634,15 @@ namespace Boiler
 
                 case BrowseNames.Resume:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Resume == null)
                         {
-                            if (Resume == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Resume = new MethodState(this);
-                                }
-                                else
-                                {
-                                    Resume = (MethodState)replacement;
-                                }
+                                Resume = new MethodState(this);
+                            }
+                            else
+                            {
+                                Resume = (MethodState)replacement;
                             }
                         }
 
@@ -1673,18 +1652,15 @@ namespace Boiler
 
                 case BrowseNames.Halt:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Halt == null)
                         {
-                            if (Halt == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Halt = new MethodState(this);
-                                }
-                                else
-                                {
-                                    Halt = (MethodState)replacement;
-                                }
+                                Halt = new MethodState(this);
+                            }
+                            else
+                            {
+                                Halt = (MethodState)replacement;
                             }
                         }
 
@@ -1694,18 +1670,15 @@ namespace Boiler
 
                 case BrowseNames.Reset:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Reset == null)
                         {
-                            if (Reset == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Reset = new MethodState(this);
-                                }
-                                else
-                                {
-                                    Reset = (MethodState)replacement;
-                                }
+                                Reset = new MethodState(this);
+                            }
+                            else
+                            {
+                                Reset = (MethodState)replacement;
                             }
                         }
 
@@ -1797,7 +1770,7 @@ namespace Boiler
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public FlowTransmitterState FlowTransmitter1
         {
             get
@@ -1816,7 +1789,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public ValveState Valve
         {
             get
@@ -2001,7 +1974,7 @@ namespace Boiler
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public LevelIndicatorState LevelIndicator
         {
             get
@@ -2159,7 +2132,7 @@ namespace Boiler
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public FlowTransmitterState FlowTransmitter2
         {
             get
@@ -2373,7 +2346,7 @@ namespace Boiler
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public BoilerInputPipeState InputPipe
         {
             get
@@ -2392,7 +2365,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public BoilerDrumState Drum
         {
             get
@@ -2411,7 +2384,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public BoilerOutputPipeState OutputPipe
         {
             get
@@ -2430,7 +2403,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public FlowControllerState FlowController
         {
             get
@@ -2449,7 +2422,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public LevelControllerState LevelController
         {
             get
@@ -2468,7 +2441,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public CustomControllerState CustomController
         {
             get
@@ -2487,7 +2460,7 @@ namespace Boiler
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public BoilerStateMachineState Simulation
         {
             get
@@ -2579,18 +2552,15 @@ namespace Boiler
             {
                 case BrowseNames.InputPipe:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && InputPipe == null)
                         {
-                            if (InputPipe == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    InputPipe = new BoilerInputPipeState(this);
-                                }
-                                else
-                                {
-                                    InputPipe = (BoilerInputPipeState)replacement;
-                                }
+                                InputPipe = new BoilerInputPipeState(this);
+                            }
+                            else
+                            {
+                                InputPipe = (BoilerInputPipeState)replacement;
                             }
                         }
 
@@ -2600,18 +2570,15 @@ namespace Boiler
 
                 case BrowseNames.Drum:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Drum == null)
                         {
-                            if (Drum == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Drum = new BoilerDrumState(this);
-                                }
-                                else
-                                {
-                                    Drum = (BoilerDrumState)replacement;
-                                }
+                                Drum = new BoilerDrumState(this);
+                            }
+                            else
+                            {
+                                Drum = (BoilerDrumState)replacement;
                             }
                         }
 
@@ -2621,18 +2588,15 @@ namespace Boiler
 
                 case BrowseNames.OutputPipe:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && OutputPipe == null)
                         {
-                            if (OutputPipe == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    OutputPipe = new BoilerOutputPipeState(this);
-                                }
-                                else
-                                {
-                                    OutputPipe = (BoilerOutputPipeState)replacement;
-                                }
+                                OutputPipe = new BoilerOutputPipeState(this);
+                            }
+                            else
+                            {
+                                OutputPipe = (BoilerOutputPipeState)replacement;
                             }
                         }
 
@@ -2642,18 +2606,15 @@ namespace Boiler
 
                 case BrowseNames.FlowController:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && FlowController == null)
                         {
-                            if (FlowController == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    FlowController = new FlowControllerState(this);
-                                }
-                                else
-                                {
-                                    FlowController = (FlowControllerState)replacement;
-                                }
+                                FlowController = new FlowControllerState(this);
+                            }
+                            else
+                            {
+                                FlowController = (FlowControllerState)replacement;
                             }
                         }
 
@@ -2663,18 +2624,15 @@ namespace Boiler
 
                 case BrowseNames.LevelController:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && LevelController == null)
                         {
-                            if (LevelController == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    LevelController = new LevelControllerState(this);
-                                }
-                                else
-                                {
-                                    LevelController = (LevelControllerState)replacement;
-                                }
+                                LevelController = new LevelControllerState(this);
+                            }
+                            else
+                            {
+                                LevelController = (LevelControllerState)replacement;
                             }
                         }
 
@@ -2684,18 +2642,15 @@ namespace Boiler
 
                 case BrowseNames.CustomController:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && CustomController == null)
                         {
-                            if (CustomController == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    CustomController = new CustomControllerState(this);
-                                }
-                                else
-                                {
-                                    CustomController = (CustomControllerState)replacement;
-                                }
+                                CustomController = new CustomControllerState(this);
+                            }
+                            else
+                            {
+                                CustomController = (CustomControllerState)replacement;
                             }
                         }
 
@@ -2705,18 +2660,15 @@ namespace Boiler
 
                 case BrowseNames.Simulation:
                     {
-                        if (createOrReplace)
+                        if (createOrReplace && Simulation == null)
                         {
-                            if (Simulation == null)
+                            if (replacement == null)
                             {
-                                if (replacement == null)
-                                {
-                                    Simulation = new BoilerStateMachineState(this);
-                                }
-                                else
-                                {
-                                    Simulation = (BoilerStateMachineState)replacement;
-                                }
+                                Simulation = new BoilerStateMachineState(this);
+                            }
+                            else
+                            {
+                                Simulation = (BoilerStateMachineState)replacement;
                             }
                         }
 

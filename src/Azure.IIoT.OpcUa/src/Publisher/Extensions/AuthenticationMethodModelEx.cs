@@ -62,12 +62,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.Configuration != null && that.Configuration != null)
+            if (model.Configuration != null && that.Configuration != null &&
+                !VariantValue.DeepEquals(model.Configuration, that.Configuration))
             {
-                if (!VariantValue.DeepEquals(model.Configuration, that.Configuration))
-                {
-                    return false;
-                }
+                return false;
             }
             return
                 model.Id == that.Id &&

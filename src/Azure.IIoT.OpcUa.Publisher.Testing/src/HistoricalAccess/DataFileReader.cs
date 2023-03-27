@@ -686,12 +686,12 @@ namespace HistoricalAccess
                 return true;
             }
 
-            var builder = new StringBuilder();
-            builder.AppendFormat(CultureInfo.InvariantCulture, "<Value xmlns=\"{0}\">", Opc.Ua.Namespaces.OpcUaXsd);
-            builder.AppendFormat(CultureInfo.InvariantCulture, "<{0}>", valueType);
-            builder.Append(line);
-            builder.AppendFormat(CultureInfo.InvariantCulture, "</{0}>", valueType);
-            builder.Append("</Value>");
+            var builder = new StringBuilder()
+                .AppendFormat(CultureInfo.InvariantCulture, "<Value xmlns=\"{0}\">", Opc.Ua.Namespaces.OpcUaXsd)
+                .AppendFormat(CultureInfo.InvariantCulture, "<{0}>", valueType)
+                .Append(line)
+                .AppendFormat(CultureInfo.InvariantCulture, "</{0}>", valueType)
+                .Append("</Value>");
 
             var document = new XmlDocument
             {

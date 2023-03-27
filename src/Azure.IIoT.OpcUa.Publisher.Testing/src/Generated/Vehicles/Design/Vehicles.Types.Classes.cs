@@ -105,7 +105,7 @@ namespace Vehicles.Types
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<VehicleType> PrimaryVehicle
         {
             get
@@ -124,7 +124,7 @@ namespace Vehicles.Types
             }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         public PropertyState<VehicleType[]> OwnedVehicles
         {
             get

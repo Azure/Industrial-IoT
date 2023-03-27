@@ -103,7 +103,7 @@ namespace Opc.Ua.Test
         /// or methods from the <see cref="Timer"/> class into the
         /// <see cref="ITimer"/> interface.
         /// </summary>
-        private class TimerAdapter : Timer, ITimer
+        private sealed class TimerAdapter : Timer, ITimer
         {
         }
     }

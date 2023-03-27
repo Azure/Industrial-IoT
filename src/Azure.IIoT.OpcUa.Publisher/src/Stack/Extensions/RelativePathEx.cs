@@ -161,13 +161,11 @@ namespace Opc.Ua.Extensions
                 // TODO: Deescape &<, &>, &/, &., &:, &&
                 index = to + 1;
                 pathElement.ReferenceTypeId = reference.ToNodeId(context);
-                if (NodeId.IsNull(pathElement.ReferenceTypeId))
-                {
-                    if (TypeMaps.ReferenceTypes.Value.TryGetIdentifier(reference,
+                if (NodeId.IsNull(pathElement.ReferenceTypeId) &&
+                    TypeMaps.ReferenceTypes.Value.TryGetIdentifier(reference,
                         out var id))
-                    {
-                        pathElement.ReferenceTypeId = id;
-                    }
+                {
+                    pathElement.ReferenceTypeId = id;
                 }
             }
             var target = element[index..];

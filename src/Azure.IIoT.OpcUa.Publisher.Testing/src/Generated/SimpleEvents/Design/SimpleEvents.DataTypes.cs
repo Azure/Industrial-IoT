@@ -73,7 +73,7 @@ namespace SimpleEvents
         #endregion
 
         #region Public Properties
-        /// <summary></summary>
+        /// <inheritdoc/>
         [DataMember(Name = "Name", IsRequired = false, Order = 1)]
         public string Name
         {
@@ -81,7 +81,7 @@ namespace SimpleEvents
             set { m_name = value; }
         }
 
-        /// <summary></summary>
+        /// <inheritdoc/>
         [DataMember(Name = "Duration", IsRequired = false, Order = 2)]
         public double Duration
         {

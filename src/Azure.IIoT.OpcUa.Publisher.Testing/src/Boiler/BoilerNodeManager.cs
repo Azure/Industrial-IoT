@@ -67,16 +67,13 @@ namespace Boiler
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && _boilers != null)
             {
-                if (_boilers != null)
+                foreach (var boiler in _boilers)
                 {
-                    foreach (var boiler in _boilers)
-                    {
-                        boiler.Dispose();
-                    }
-                    _boilers = null;
+                    boiler.Dispose();
                 }
+                _boilers = null;
             }
             base.Dispose(disposing);
         }

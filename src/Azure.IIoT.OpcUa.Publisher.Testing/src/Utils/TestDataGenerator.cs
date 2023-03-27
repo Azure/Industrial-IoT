@@ -924,7 +924,7 @@ namespace Opc.Ua.Test
         /// <summary>
         /// Boundary value holder
         /// </summary>
-        private class BoundaryValues
+        private sealed class BoundaryValues
         {
             public Type SystemType { get; set; }
 

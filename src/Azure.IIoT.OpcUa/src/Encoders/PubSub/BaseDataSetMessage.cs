@@ -60,13 +60,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public DataSet Payload { get; set; } = new DataSet();
 
         /// <inheritdoc/>
-        public override bool Equals(object value)
+        public override bool Equals(object obj)
         {
-            if (ReferenceEquals(this, value))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
-            if (!(value is BaseDataSetMessage wrapper))
+            if (!(obj is BaseDataSetMessage wrapper))
             {
                 return false;
             }

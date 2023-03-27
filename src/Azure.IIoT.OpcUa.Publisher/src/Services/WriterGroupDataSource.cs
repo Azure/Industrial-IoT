@@ -576,10 +576,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 WriterGroupMessageContext CreateMessageContext(ref uint sequenceNumber)
                 {
-                    while (sequenceNumber == 0)
+                    do
                     {
                         unchecked { sequenceNumber++; }
                     }
+                    while (sequenceNumber == 0);
                     return new WriterGroupMessageContext
                     {
                         PublisherId = _outer._options.Value.PublisherId,

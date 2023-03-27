@@ -181,13 +181,10 @@ namespace HistoricalEvents
                 {
                     var index = kWellNames[ii].LastIndexOf('/');
 
-                    if (index >= 0)
+                    if (index >= 0 && kWellNames[ii][..index] == areaName)
                     {
-                        if (kWellNames[ii][..index] == areaName)
-                        {
-                            well.Name = kWellNames[ii][(index + 1)..];
-                            wells.Add(well);
-                        }
+                        well.Name = kWellNames[ii][(index + 1)..];
+                        wells.Add(well);
                     }
                 }
             }
@@ -232,15 +229,14 @@ namespace HistoricalEvents
         /// <param name="eventId"></param>
         public bool DeleteEvent(string eventId)
         {
-            var filter = new StringBuilder();
-
-            filter.Append('(');
-            filter.Append(Opc.Ua.BrowseNames.EventId);
-            filter.Append('=');
-            filter.Append('\'');
-            filter.Append(eventId);
-            filter.Append('\'');
-            filter.Append(')');
+            var filter = new StringBuilder()
+                .Append('(')
+                .Append(Opc.Ua.BrowseNames.EventId)
+                .Append('=')
+                .Append('\'')
+                .Append(eventId)
+                .Append('\'')
+                .Append(')');
 
             lock (_dataset)
             {
@@ -268,15 +264,14 @@ namespace HistoricalEvents
         /// <param name="endTime"></param>
         public DataView ReadHistoryForWellId(ReportType reportType, string uidWell, DateTime startTime, DateTime endTime)
         {
-            var filter = new StringBuilder();
-
-            filter.Append('(');
-            filter.Append(BrowseNames.UidWell);
-            filter.Append('=');
-            filter.Append('\'');
-            filter.Append(uidWell);
-            filter.Append('\'');
-            filter.Append(')');
+            var filter = new StringBuilder()
+                .Append('(')
+                .Append(BrowseNames.UidWell)
+                .Append('=')
+                .Append('\'')
+                .Append(uidWell)
+                .Append('\'')
+                .Append(')');
 
             return ReadHistory(reportType, filter, startTime, endTime);
         }
@@ -294,14 +289,15 @@ namespace HistoricalEvents
 
             if (!string.IsNullOrEmpty(areaName))
             {
-                filter.Append('(');
-                filter.Append(BrowseNames.NameWell);
-                filter.Append(" LIKE ");
-                filter.Append('\'');
-                filter.Append(areaName);
-                filter.Append('*');
-                filter.Append('\'');
-                filter.Append(')');
+                filter
+                    .Append('(')
+                    .Append(BrowseNames.NameWell)
+                    .Append(" LIKE ")
+                    .Append('\'')
+                    .Append(areaName)
+                    .Append('*')
+                    .Append('\'')
+                    .Append(')');
             }
 
             return ReadHistory(reportType, filter, startTime, endTime);
@@ -332,13 +328,14 @@ namespace HistoricalEvents
                     filter.Append(" AND ");
                 }
 
-                filter.Append('(');
-                filter.Append(Opc.Ua.BrowseNames.Time);
-                filter.Append(">=");
-                filter.Append('#');
-                filter.Append(earlyTime);
-                filter.Append('#');
-                filter.Append(')');
+                filter
+                    .Append('(')
+                    .Append(Opc.Ua.BrowseNames.Time)
+                    .Append(">=")
+                    .Append('#')
+                    .Append(earlyTime)
+                    .Append('#')
+                    .Append(')');
             }
 
             if (lateTime != DateTime.MinValue)
@@ -348,13 +345,14 @@ namespace HistoricalEvents
                     filter.Append(" AND ");
                 }
 
-                filter.Append('(');
-                filter.Append(Opc.Ua.BrowseNames.Time);
-                filter.Append('<');
-                filter.Append('#');
-                filter.Append(lateTime);
-                filter.Append('#');
-                filter.Append(')');
+                filter
+                    .Append('(')
+                    .Append(Opc.Ua.BrowseNames.Time)
+                    .Append('<')
+                    .Append('#')
+                    .Append(lateTime)
+                    .Append('#')
+                    .Append(')');
             }
 
             lock (_dataset)

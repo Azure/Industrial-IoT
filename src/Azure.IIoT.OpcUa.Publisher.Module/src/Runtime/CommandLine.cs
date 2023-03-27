@@ -117,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 
                 { $"kfc|keyframecount=|{SubscriptionConfig.DefaultKeyFrameCount}=",
                     "The default number of delta messages to send until a key frame message is sent. If 0, no key frame messages are sent, if 1, every message will be a key frame. \nDefault: `0`.\n",
-                    (int i) => this[SubscriptionConfig.DefaultKeyFrameCount] = i.ToString() },
+                    (int i) => this[SubscriptionConfig.DefaultKeyFrameCount] = i.ToString(CultureInfo.CurrentCulture) },
                 { $"msi|metadatasendinterval=|{SubscriptionConfig.DefaultMetaDataUpdateTime}=",
                     "Default value in milliseconds for the metadata send interval which determines in which interval metadata is sent.\nEven when disabled, metadata is still sent when the metadata version changes unless `--mm=*Samples` is set in which case this setting is ignored. Only valid for network message encodings. \nDefault: `0` which means periodic sending of metadata is disabled.\n",
                     (int i) => this[SubscriptionConfig.DefaultMetaDataUpdateTime] = TimeSpan.FromMilliseconds(i).ToString() },
