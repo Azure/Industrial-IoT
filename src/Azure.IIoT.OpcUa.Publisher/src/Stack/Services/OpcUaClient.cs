@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
     public sealed class OpcUaClient : IAsyncDisposable, ISessionHandle,
-        IMetricsContext, ISessionServices
+        ISessionServices
     {
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityState>? OnConnectionStateChange;
@@ -54,9 +54,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public ISystemContext SystemContext
             => _session?.SystemContext ?? kSystemContext;
-
-        /// <inheritdoc/>
-        public TagList TagList { get; }
 
         /// <summary>
         /// The session keepalive interval to be used in ms.
@@ -133,11 +130,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             Codec = CreateCodec();
-            TagList = new TagList(metrics.TagList.ToArray().AsSpan()) {
-                { "EndpointUrl", _connection.Endpoint.Url },
-                { "SecurityMode", _connection.Endpoint.SecurityMode }
-            };
-            InitializeMetrics();
+
+            InitializeMetrics(metrics ?? throw new ArgumentNullException(nameof(metrics)));
         }
 
         /// <inheritdoc/>
@@ -1720,13 +1714,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Create observable metrics
         /// </summary>
-        private void InitializeMetrics()
+        /// <param name="metrics"></param>
+        private void InitializeMetrics(IMetricsContext metrics)
         {
             Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
-                () => new Measurement<long>(NumberOfConnectRetries, TagList), "Connection attempts",
+                () => new Measurement<long>(NumberOfConnectRetries, metrics.TagList), "Connection attempts",
                 "OPC UA connect retries.");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
-                () => new Measurement<int>(IsConnected ? 1 : 0, TagList), "",
+                () => new Measurement<int>(IsConnected ? 1 : 0, metrics.TagList), "",
                 "OPC UA connection success flag.");
         }
 

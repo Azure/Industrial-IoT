@@ -22,6 +22,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Globalization;
+    using System.IO;
 
     /// <summary>
     /// Publisher module host process
@@ -55,6 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 cs = configuration.GetValue<string>("_HUB_CS", null);
             }
             var instances = 1;
+            string publishProfile = null;
             var unknownArgs = new List<string>();
             try
             {
@@ -93,6 +96,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         case "--with-server":
                             withServer = true;
                             break;
+                        case "-p":
+                        case "--publish-profile":
+                            i++;
+                            if (i < args.Length)
+                            {
+                                publishProfile = args[i];
+                                break;
+                            }
+                            throw new ArgumentException(
+                                "Missing argument for --connection-string");
                         case "-v":
                         case "--verbose":
                             verbose = true;
@@ -161,7 +174,7 @@ Options:
                 }
                 else
                 {
-                    tasks.Add(WithServerAsync(cs, loggerFactory, deviceId, moduleId, args, verbose));
+                    tasks.Add(WithServerAsync(cs, loggerFactory, deviceId, moduleId, args, verbose, publishProfile));
                 }
                 Task.WaitAll(tasks.ToArray());
             }
@@ -236,15 +249,36 @@ Options:
         /// <param name="moduleId"></param>
         /// <param name="args"></param>
         /// <param name="verbose"></param>
+        /// <param name="publishProfile"></param>
         private static async Task WithServerAsync(string connectionString, ILoggerFactory loggerFactory,
-            string deviceId, string moduleId, string[] args, bool verbose = false)
+            string deviceId, string moduleId, string[] args, bool verbose = false, string publishProfile = null)
         {
             var logger = loggerFactory.CreateLogger<Program>();
             try
             {
                 using (var cts = new CancellationTokenSource())
                 using (var server = new ServerWrapper(loggerFactory))
-                { // Start test server
+                {
+                    if (publishProfile != null)
+                    {
+                        var publishedNodesFile = $"./Profiles/{publishProfile}.json";
+                        if (File.Exists(publishedNodesFile))
+                        {
+                            var publishedNodesFilePath = Path.GetTempFileName();
+
+                            File.WriteAllText(publishedNodesFilePath,
+                                File.ReadAllText(publishedNodesFile).Replace("{{Port}}",
+                                server.Port.ToString(CultureInfo.InvariantCulture),
+                                StringComparison.Ordinal));
+
+                            args = args.Concat(new[]
+                            {
+                                $"--pf={publishedNodesFilePath}"
+                            }).ToArray();
+                        }
+                    }
+
+                    // Start test server
                     // Start publisher module
                     var host = Task.Run(() => HostAsync(connectionString, loggerFactory, deviceId,
                         moduleId, args, verbose, false), cts.Token);
@@ -322,7 +356,7 @@ Options:
         /// </summary>
         private sealed class ServerWrapper : IDisposable
         {
-            public string EndpointUrl { get; }
+            public int Port { get; } = 51257;
 
             /// <summary>
             /// Create wrapper
@@ -331,9 +365,7 @@ Options:
             public ServerWrapper(ILoggerFactory logger)
             {
                 _cts = new CancellationTokenSource();
-                _server = RunSampleServerAsync(logger, _cts.Token);
-                EndpointUrl = "opc.tcp://" + Utils.GetHostName() +
-                    ":51210/UA/SampleServer";
+                _server = RunSampleServerAsync(logger, Port, _cts.Token);
             }
 
             /// <inheritdoc/>
@@ -349,8 +381,10 @@ Options:
             /// </summary>
             /// <param name="logger"></param>
             /// <param name="loggerFactory"></param>
+            /// <param name="port"></param>
             /// <param name="ct"></param>
-            private static async Task RunSampleServerAsync(ILoggerFactory loggerFactory, CancellationToken ct)
+            private static async Task RunSampleServerAsync(ILoggerFactory loggerFactory,
+                int port, CancellationToken ct)
             {
                 var tcs = new TaskCompletionSource<bool>();
                 ct.Register(() => tcs.TrySetResult(true));
@@ -365,7 +399,7 @@ Options:
                 {
                     var logger = loggerFactory.CreateLogger<ServerWrapper>();
                     logger.LogInformation("Starting server.");
-                    await server.StartAsync(new List<int> { 51210 }).ConfigureAwait(false);
+                    await server.StartAsync(new List<int> { port }).ConfigureAwait(false);
                     logger.LogInformation("Server started.");
                     await tcs.Task.ConfigureAwait(false);
                     logger.LogInformation("Server exited.");

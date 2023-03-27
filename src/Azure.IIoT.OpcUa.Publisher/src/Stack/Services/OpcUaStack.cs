@@ -10,9 +10,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
 
     /// <summary>
-    /// Injectable service that registers logger with stack
+    /// Injectable service that registers a logger with stack
     /// </summary>
-    public class StackLogger : IStartable
+    public class OpcUaStack : IStartable
     {
         /// <summary>
         /// Wrapped logger
@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create stack logger
         /// </summary>
         /// <param name="logger"></param>
-        public StackLogger(ILogger<StackLogger> logger)
+        public OpcUaStack(ILogger<OpcUaStack> logger)
         {
             Logger = logger;
         }

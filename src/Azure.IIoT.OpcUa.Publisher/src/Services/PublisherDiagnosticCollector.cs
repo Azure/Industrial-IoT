@@ -146,7 +146,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 for (var index = 0; index < tags.Length; index++)
                 {
-                    if (tags[index].Key == Constants.WriterGroupIdTag)
+                    if (tags[index].Key == Constants.WriterGroupIdTag &&
+                        tags[index].Value != null)
                     {
                         _diagnostics.AddOrUpdate((string)tags[index].Value,
                             writerGroupId => Update(new WriterGroupDiagnosticModel()),
@@ -182,12 +183,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             StringBuilder Append(StringBuilder builder, string writerGroupId, WriterGroupDiagnosticModel info,
                 TimeSpan ingestionDuration)
             {
-                var totalSeconds = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
                 var valueChangesPerSec = info.IngressValueChanges / ingestionDuration.TotalSeconds;
                 var dataChangesPerSec = info.IngressDataChanges / ingestionDuration.TotalSeconds;
                 var dataChangesLastMin = info.IngressDataChangesInLastMinute.ToString("D2", CultureInfo.CurrentCulture);
-                var valueChangesPerSecLastMin = info.IngressValueChangesInLastMinute / Math.Min(totalSeconds, 60d);
-                var dataChangesPerSecLastMin = info.IngressDataChangesInLastMinute / Math.Min(totalSeconds, 60d);
+                var valueChangesPerSecLastMin = info.IngressValueChangesInLastMinute /
+                    Math.Min(ingestionDuration.TotalSeconds, 60d);
+                var dataChangesPerSecLastMin = info.IngressDataChangesInLastMinute /
+                    Math.Min(ingestionDuration.TotalSeconds, 60d);
                 var version = GetType().Assembly.GetReleaseVersion().ToString();
 
                 var dataChangesPerSecFormatted = info.IngressDataChanges > 0 && ingestionDuration.TotalSeconds > 0
@@ -277,7 +279,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly MeterListener _meterListener;
         private readonly ILogger _logger;
         private readonly TimeSpan _diagnosticInterval;
-        private readonly DateTime _diagnosticStart = DateTime.UtcNow;
         private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _diagnostics = new();
 
         // TODO: Split this per measurement type to avoid boxing

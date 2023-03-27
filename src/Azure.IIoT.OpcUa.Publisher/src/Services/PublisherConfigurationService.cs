@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="jsonSerializer"></param>
         /// <param name="diagnostics"></param>
         public PublisherConfigurationService(PublishedNodesConverter publishedNodesJobConverter,
-            IOptions<PublisherOptions> configuration, IPublisherHost publisherHost,
+            IOptions<PublisherOptions> configuration, IPublisher publisherHost,
             ILogger<PublisherConfigurationService> logger, IStorageProvider publishedNodesProvider,
             IJsonSerializer jsonSerializer, IDiagnosticCollector diagnostics = null)
         {
@@ -1096,7 +1096,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IStorageProvider _publishedNodesProvider;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IDiagnosticCollector _diagnostics;
-        private readonly IPublisherHost _publisherHost;
+        private readonly IPublisher _publisherHost;
         private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;
         private TaskCompletionSource _started;

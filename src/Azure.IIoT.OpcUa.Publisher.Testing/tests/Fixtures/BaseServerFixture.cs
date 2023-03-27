@@ -187,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             builder.RegisterType<TestClientConfig>()
                 .AsImplementedInterfaces();
 
-            builder.RegisterType<StackLogger>()
+            builder.RegisterType<OpcUaStack>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
             builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance().AsSelf();

@@ -102,9 +102,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 new Views.ViewsServer(),
                 new DataAccess.DataAccessServer(),
                 new Alarms.AlarmConditionServer(new TimeService()),
-                new PerfTest.PerfTestServer(),
                 new SimpleEvents.SimpleEventsServer(),
                 new Plc.PlcServer(new TimeService(), logger)
+                // new PerfTest.PerfTestServer(),
             })
         {
         }

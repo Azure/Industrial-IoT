@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         private readonly IOptions<PublisherOptions> _options;
         private readonly PublishedNodesProvider _publishedNodesProvider;
         private readonly Mock<IMessageSource> _triggerMock;
-        private readonly IPublisherHost _publisher;
+        private readonly IPublisher _publisher;
 
         /// <summary>
         /// Constructor that initializes common resources used by tests.
@@ -76,8 +76,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             factoryMock
                 .Setup(factory => factory.Create(It.IsAny<WriterGroupModel>()))
                 .Returns(lifetime.Object);
-            _publisher = new PublisherHostService(factoryMock.Object, _options,
-                _loggerFactory.CreateLogger<PublisherHostService>());
+            _publisher = new PublisherService(factoryMock.Object, _options,
+                _loggerFactory.CreateLogger<PublisherService>());
         }
 
         /// <summary>

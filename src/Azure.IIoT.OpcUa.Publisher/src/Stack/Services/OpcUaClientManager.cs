@@ -73,11 +73,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<ISubscription> CreateSubscriptionAsync(SubscriptionModel subscription,
-            CancellationToken ct)
+            IMetricsContext metrics, CancellationToken ct)
         {
-            var client = FindClient(subscription.Id.Connection);
             return OpcUaSubscription.CreateAsync(this, _options, subscription, _loggerFactory,
-                client ?? _metrics, ct);
+                new OpcUaClientTagList(subscription.Id.Connection, metrics ?? _metrics), ct);
         }
 
         /// <inheritdoc/>
@@ -92,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // try to get an existing session
                 if (!_clients.TryGetValue(id, out var client))
                 {
-                    client = CreateClient(id, metrics ?? _metrics);
+                    client = CreateClient(id, new OpcUaClientTagList(connection, metrics ?? _metrics));
                     _clients.AddOrUpdate(id, client);
                     _logger.LogInformation(
                         "New session {Name} added, current number of sessions is {Count}.",

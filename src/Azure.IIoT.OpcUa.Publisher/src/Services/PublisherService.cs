@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// supports aggregation of diagnostics and single sink console output of
     /// the diagnostics data.
     /// </summary>
-    public sealed class PublisherHostService : IPublisherHost, IDisposable,
+    public sealed class PublisherService : IPublisher, IDisposable,
         IMetricsContext
     {
         /// <inheritdoc/>
@@ -55,8 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="options"></param>
         /// <param name="logger"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public PublisherHostService(IWriterGroupScopeFactory factory,
-            IOptions<PublisherOptions> options, ILogger<PublisherHostService> logger)
+        public PublisherService(IWriterGroupScopeFactory factory,
+            IOptions<PublisherOptions> options, ILogger<PublisherService> logger)
         {
             PublisherId = options?.Value.PublisherId ??
                 throw new ArgumentNullException(nameof(options));
@@ -112,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 _cts.Cancel();
                 _changeFeed.Writer.TryComplete();
-                _processor.Wait();
+                _processor.GetAwaiter().GetResult();
             }
             catch { }
             finally
@@ -142,6 +142,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 catch (ObjectDisposedException)
                 {
                     task.TrySetCanceled(ct);
+                }
+            }
+
+            // Disposing - stop all jobs befoire exiting
+            foreach (var job in _currentJobs.Values)
+            {
+                try
+                {
+                    await job.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    _logger.LogError(ex, "Failed to stop job.");
                 }
             }
         }
@@ -263,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="outer"></param>
             /// <param name="version"></param>
             /// <param name="writerGroup"></param>
-            private JobContext(PublisherHostService outer, int version,
+            private JobContext(PublisherService outer, int version,
                 WriterGroupModel writerGroup)
             {
                 _outer = outer;
@@ -282,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="writerGroup"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            public static async ValueTask<JobContext> CreateAsync(PublisherHostService outer,
+            public static async ValueTask<JobContext> CreateAsync(PublisherService outer,
                 int version, WriterGroupModel writerGroup, CancellationToken ct)
             {
                 var job = new JobContext(outer, version, writerGroup);
@@ -346,7 +359,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             private readonly IWriterGroupScope _scope;
-            private readonly PublisherHostService _outer;
+            private readonly PublisherService _outer;
         }
 
         private readonly IWriterGroupScopeFactory _factory;

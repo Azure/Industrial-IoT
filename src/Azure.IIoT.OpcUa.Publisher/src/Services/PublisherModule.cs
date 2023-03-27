@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Module
+namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Autofac;
     using Furly;
+    using Furly.Azure.IoT.Edge;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using System;
@@ -19,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     /// <summary>
     /// Publisher module hosted service
     /// </summary>
-    public class ModuleProcess : IHostedService
+    public class PublisherModule : IHostedService, IIoTEdgeClientState
     {
         /// <summary>
         /// Running in container
@@ -39,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <param name="scope"></param>
         /// <param name="logger"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public ModuleProcess(ILifetimeScope scope, ILogger<ModuleProcess> logger)
+        public PublisherModule(ILifetimeScope scope, ILogger<PublisherModule> logger)
         {
             _scope = scope ?? throw new ArgumentNullException(nameof(scope));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -87,6 +88,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         }
 
         /// <inheritdoc/>
+        public void OnClosed(int counter, string deviceId, string moduleId, string reason)
+        {
+            _logger.LogInformation("{Counter}: Module {ModuleId} closed due to {Reason}.",
+                counter, moduleId ?? deviceId, reason);
+        }
+
+        /// <inheritdoc/>
+        public void OnConnected(int counter, string deviceId, string moduleId, string reason)
+        {
+            _logger.LogInformation("{Counter}: Module {ModuleId} reconnected due to {Reason}.",
+                counter, moduleId ?? deviceId, reason);
+        }
+
+        /// <inheritdoc/>
+        public void OnDisconnected(int counter, string deviceId, string moduleId, string reason)
+        {
+            _logger.LogInformation("{Counter}: Module {ModuleId} disconnected due to {Reason}...",
+                counter, moduleId ?? deviceId, reason);
+        }
+
+        /// <inheritdoc/>
+        public void OnOpened(string deviceId, string moduleId)
+        {
+            _logger.LogInformation("0: Module {ModuleId} opened.",
+                moduleId ?? deviceId);
+        }
+
+        /// <inheritdoc/>
         public Task StopAsync(CancellationToken cancellationToken)
         {
             // Shut down gracefully.
@@ -106,6 +135,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 
         private readonly TaskCompletionSource<bool> _exit;
         private readonly ILifetimeScope _scope;
-        private readonly ILogger<ModuleProcess> _logger;
+        private readonly ILogger<PublisherModule> _logger;
     }
 }

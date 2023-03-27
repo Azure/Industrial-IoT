@@ -32,6 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherConfig>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<PublisherModule>()
+                .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<PublishedNodesProvider>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -39,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 .SingleInstance();
             builder.RegisterType<PublisherConfigurationService>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<PublisherHostService>()
+            builder.RegisterType<PublisherService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherDiagnosticCollector>()
                 .AsImplementedInterfaces().SingleInstance();

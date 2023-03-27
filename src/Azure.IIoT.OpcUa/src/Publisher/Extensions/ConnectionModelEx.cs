@@ -62,6 +62,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 EqualityComparer<VariantValue>.Default.GetHashCode(model.User?.Value);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(model.Diagnostics?.AuditId);
+            hashCode = (hashCode * -1521134295) +
+                EqualityComparer<string>.Default.GetHashCode(model.Group);
             return hashCode;
         }
 

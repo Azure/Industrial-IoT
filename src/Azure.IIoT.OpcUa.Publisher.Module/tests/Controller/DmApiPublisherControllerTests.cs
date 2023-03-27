@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         private readonly IOptions<PublisherOptions> _options;
         private readonly PublishedNodesProvider _publishedNodesProvider;
         private readonly Mock<IMessageSource> _triggerMock;
-        private readonly IPublisherHost _publisher;
+        private readonly IPublisher _publisher;
         private readonly Mock<IDiagnosticCollector> _diagnostic;
 
         /// <summary>
@@ -75,8 +75,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             factoryMock
                 .Setup(factory => factory.Create(It.IsAny<WriterGroupModel>()))
                 .Returns(lifetime.Object);
-            _publisher = new PublisherHostService(factoryMock.Object, _options,
-                _loggerFactory.CreateLogger<PublisherHostService>());
+            _publisher = new PublisherService(factoryMock.Object, _options,
+                _loggerFactory.CreateLogger<PublisherService>());
             _diagnostic = new Mock<IDiagnosticCollector>();
             var mockDiag = new WriterGroupDiagnosticModel();
             _diagnostic.Setup(m => m.TryGetDiagnosticsForWriterGroup(It.IsAny<string>(), out mockDiag)).Returns(true);

@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Publisher
     /// </summary>
-    public interface IPublisherHost
+    public interface IPublisher
     {
         /// <summary>
         /// Current version number of the configuration

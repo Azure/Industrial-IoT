@@ -1,0 +1,26 @@
+﻿[
+    {
+        "EndpointUrl": "opc.tcp://localhost:{{Port}}/UA/SampleServer",
+        "UseSecurity": false,
+        "OpcNodes": [
+            {
+                "Id": "http://test.org/UA/Data/#i=11224",
+                "OpcSamplingInterval": 1000,
+                "OpcPublishingInterval": 1000,
+                "QueueSize": 10,
+                "DeadbandType": "Absolute",
+                "DeadbandValue": 5.0,
+                "DisplayName": "DoubleValues"
+            },
+            {
+                "Id": "http://test.org/UA/Data/#i=11206",
+                "OpcSamplingInterval": 1000,
+                "OpcPublishingInterval": 1000,
+                "QueueSize": 10,
+                "DeadbandType": "Percent",
+                "DeadbandValue": 5.0,
+                "DisplayName": "Int64Values"
+            }
+        ]
+    }
+]

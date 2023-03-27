@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 throw new ArgumentNullException(nameof(subscriptionManager));
             _subscriptionConfig = subscriptionConfig ??
                 throw new ArgumentNullException(nameof(subscriptionConfig));
-
+            _metrics = metrics;
             _subscriptions = new Dictionary<SubscriptionIdentifier, DataSetWriterSubscription>();
         }
 
@@ -172,8 +172,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Helper to manage subscriptions
         /// </summary>
-        private sealed class DataSetWriterSubscription : IAsyncDisposable
+        private sealed class DataSetWriterSubscription : IMetricsContext, IAsyncDisposable
         {
+            /// <inheritdoc/>
+            public TagList TagList { get; }
+
             /// <summary>
             /// Subscription id
             /// </summary>
@@ -211,6 +214,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 });
                 _topic = builder.TelemetryTopic;
                 _metadataTopic = builder.DataSetMetaDataTopic;
+
+                TagList = new TagList(outer._metrics.TagList.ToArray().AsSpan())
+                {
+                    { "dataSetWriterName", dataSetWriter.DataSetWriterName }
+                };
             }
 
             /// <summary>
@@ -296,7 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // management realm
                 //
                 Subscription = await _outer._subscriptionManager.CreateSubscriptionAsync(
-                    _subscriptionInfo, ct).ConfigureAwait(false);
+                    _subscriptionInfo, this, ct).ConfigureAwait(false);
 
                 InitializeKeyframeTrigger();
                 InitializeMetaDataTrigger();
@@ -777,6 +785,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Dictionary<SubscriptionIdentifier, DataSetWriterSubscription> _subscriptions;
         private readonly ISubscriptionManager _subscriptionManager;
         private readonly IOptions<SubscriptionOptions> _subscriptionConfig;
+        private readonly IMetricsContext _metrics;
         private WriterGroupModel _writerGroup;
         private readonly IOptions<PublisherOptions> _options;
         private readonly SemaphoreSlim _lock = new(1, 1);

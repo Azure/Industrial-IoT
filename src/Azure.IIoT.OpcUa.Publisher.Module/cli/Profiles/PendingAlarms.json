@@ -1,0 +1,19 @@
+﻿[
+    {
+        "EndpointUrl": "opc.tcp://localhost:{{Port}}/UA/SampleServer",
+        "UseSecurity": false,
+        "OpcNodes": [
+            {
+                "DisplayName": "PendingAlarms",
+                "Id": "i=2253",
+                "EventFilter": {
+                    "TypeDefinitionId": "i=2041"
+                },
+                "ConditionHandling": {
+                    "UpdateInterval": 10,
+                    "SnapshotInterval": 20
+                }
+            }
+        ]
+    }
+]

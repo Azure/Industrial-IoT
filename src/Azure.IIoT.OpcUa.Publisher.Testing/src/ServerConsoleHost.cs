@@ -108,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public void Dispose()
         {
-            StopAsync().Wait();
+            StopAsync().GetAwaiter().GetResult();
             _lock.Dispose();
         }
 

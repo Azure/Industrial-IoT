@@ -374,13 +374,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 return;
             }
 
-#if DEBUG
-            foreach (var key in Keys)
-            {
-                Debug("Parsed command line option: '{0}'='{1}'", key, this[key]);
-            }
-#endif
-
             if (unsupportedOptions.Count > 0)
             {
                 foreach (var option in unsupportedOptions)

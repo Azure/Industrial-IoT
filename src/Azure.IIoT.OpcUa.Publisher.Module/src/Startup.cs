@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Builder;
@@ -57,7 +58,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddLogging(o => o.AddConsole().AddDebug());
+            services.AddLogging(options => options
+                .AddSimpleConsole(options => options.SingleLine = true)
+                .AddDebug())
+                ;
+
             services.AddHttpClient();
 
             services.AddRouting();
@@ -87,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 ;
 
             services.AddSwagger(Constants.EntityTypePublisher, string.Empty);
-            services.AddHostedService<ModuleProcess>();
+            services.AddHostedService<PublisherModule>();
         }
 
         /// <summary>
@@ -127,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         {
             // Register publisher services
             builder.AddPublisherServices();
-            builder.RegisterType<StackLogger>()
+            builder.RegisterType<OpcUaStack>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
 
             // Register transport services
