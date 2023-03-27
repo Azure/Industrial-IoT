@@ -256,7 +256,6 @@ Options:
             var logger = loggerFactory.CreateLogger<Program>();
             try
             {
-                using (var cts = new CancellationTokenSource())
                 using (var server = new ServerWrapper(loggerFactory))
                 {
                     if (publishProfile != null)
@@ -280,16 +279,10 @@ Options:
 
                     // Start test server
                     // Start publisher module
-                    var host = Task.Run(() => HostAsync(connectionString, loggerFactory, deviceId,
-                        moduleId, args, verbose, false), cts.Token);
+                    await HostAsync(connectionString, loggerFactory, deviceId, moduleId,
+                        args, verbose, false).ConfigureAwait(false);
 
-                    Console.WriteLine("Press key to cancel...");
-                    Console.ReadKey();
-
-                    logger.LogInformation("Server exiting - tear down publisher...");
-                    cts.Cancel();
-
-                    await host.ConfigureAwait(false);
+                    logger.LogInformation("Server exiting...");
                 }
             }
             catch (OperationCanceledException) { }
