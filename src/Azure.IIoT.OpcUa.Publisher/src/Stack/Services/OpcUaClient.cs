@@ -58,17 +58,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// The session keepalive interval to be used in ms.
         /// </summary>
-        public int KeepAliveInterval { get; set; } = 5000;
+        public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
-        /// The reconnect period to be used in ms.
+        /// The reconnect periodic retry delay to use in ms.
         /// </summary>
-        public int ReconnectPeriod { get; set; } = 1000;
+        public TimeSpan? ReconnectPeriod { get; set; }
 
         /// <summary>
         /// The session lifetime.
         /// </summary>
-        public uint SessionLifeTime { get; set; } = 30 * 1000;
+        public TimeSpan? SessionTimeout { get; set; }
 
         /// <summary>
         /// The file to use for log output.
@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Check if session is active
         /// </summary>
         public bool IsActive => HasSubscriptions ||
-            _lastActivity + TimeSpan.FromSeconds(SessionLifeTime) > DateTime.UtcNow;
+            _lastActivity + (SessionTimeout ?? TimeSpan.FromSeconds(30)) > DateTime.UtcNow;
 
         /// <summary>
         /// Create client
@@ -444,9 +444,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "en-US",
                         CultureInfo.CurrentCulture.Name
                     }.ToList();
+
+                    var sessionTimeout = SessionTimeout ?? TimeSpan.FromSeconds(30);
                     var session = await Session.Create(_configuration, endpoint,
-                        false, false, _sessionName, SessionLifeTime, userIdentity,
-                        preferredLocales).ConfigureAwait(false);
+                        false, false, _sessionName, (uint)sessionTimeout.TotalMilliseconds,
+                        userIdentity, preferredLocales).ConfigureAwait(false);
 
                     // Assign the created session
                     SetSession(session);
@@ -1260,11 +1262,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // start reconnect sequence on communication error.
                 if (ServiceResult.IsBad(e.Status))
                 {
-                    if (ReconnectPeriod <= 0)
+                    if (ReconnectPeriod == null || ReconnectPeriod <= TimeSpan.Zero)
                     {
                         _logger.LogWarning(
                             "KeepAlive status {Status} for session {Name}, but reconnect is disabled.",
                             e.Status, _sessionName);
+
+                        UnsetSession();
+                        _needsConnecting = true;
                         return;
                     }
 
@@ -1279,10 +1284,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             _reconnectHandler = new SessionReconnectHandler(true);
                             Debug.Assert(ReferenceEquals(session, _session));
                             _reconnectHandler.BeginReconnect(session,
-                                ReconnectPeriod, Client_ReconnectComplete);
+                                (int)ReconnectPeriod.Value.TotalMilliseconds, Client_ReconnectComplete);
 
-                            // Unset session under lock
-                            UnsetSession();
+                            // Unset session under lock - do not dispose the session while reconnecting.
+                            UnsetSession(true);
                             Debug.Assert(_session == null);
                             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
                         }
@@ -1368,7 +1373,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // override keep alive interval
             Codec = CreateCodec(session.MessageContext);
             _session = session;
-            _session.KeepAliveInterval = KeepAliveInterval;
+            Debug.Assert(_session.OperationTimeout != 0);
+            _session.KeepAliveInterval =
+                (int)(KeepAliveInterval ?? TimeSpan.FromSeconds(5)).TotalMilliseconds;
             _complexTypeSystem = LoadComplexTypeSystemAsync();
 
             // set up keep alive callback.

@@ -75,6 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public ValueTask<ISubscription> CreateSubscriptionAsync(SubscriptionModel subscription,
             IMetricsContext metrics, CancellationToken ct)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             return OpcUaSubscription.CreateAsync(this, _options, subscription, _loggerFactory,
                 new OpcUaClientTagList(subscription.Id.Connection, metrics ?? _metrics), ct);
         }
@@ -83,6 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask<ISessionHandle> GetOrCreateSessionAsync(ConnectionModel connection,
             IMetricsContext metrics, CancellationToken ct)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             // Find session and if not exists create
             var id = new ConnectionIdentifier(connection);
             await _lock.WaitAsync(ct).ConfigureAwait(false);
@@ -119,6 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public Task ConnectAsync(ConnectionModel endpoint, CredentialModel credential,
             CancellationToken ct)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             return Task.CompletedTask;
         }
 
@@ -126,6 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async Task DisconnectAsync(ConnectionModel endpoint, CredentialModel credential,
             CancellationToken ct)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -155,12 +159,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public ISessionHandle GetSessionHandle(ConnectionModel connection)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             return FindClient(connection);
         }
 
         /// <inheritdoc/>
         public ISessionHandle GetSessionHandle(ISession session)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             if (session?.Handle is not OpcUaClient client)
             {
                 throw new ResourceInvalidStateException("Session does not belong to this object.");
@@ -171,6 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task AddTrustedPeerAsync(byte[] certificate)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             var configuration = await _configuration.ConfigureAwait(false);
             var chain = Utils.ParseCertificateChainBlob(certificate)?
                 .Cast<X509Certificate2>()
@@ -212,6 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task RemoveTrustedPeerAsync(byte[] certificate)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             var configuration = await _configuration.ConfigureAwait(false);
             var chain = Utils.ParseCertificateChainBlob(certificate)?
                 .Cast<X509Certificate2>()
@@ -489,7 +497,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return new OpcUaClient(_configuration.Result, id, _serializer, logger, metrics)
             {
                 KeepAliveInterval = _options.Value.KeepAliveInterval,
-                SessionLifeTime = _options.Value.DefaultSessionTimeout
+                SessionTimeout = _options.Value.DefaultSessionTimeout,
+                ReconnectPeriod = _options.Value.ReconnectRetryDelay
             };
         }
 

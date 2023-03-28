@@ -58,6 +58,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
             var instances = 1;
             string publishProfile = null;
+            TimeSpan? disconnectInterval = null;
+            TimeSpan? reconnectDelay = null;
             var unknownArgs = new List<string>();
             try
             {
@@ -96,6 +98,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         case "--with-server":
                             withServer = true;
                             break;
+                        case "-d":
+                        case "--disconnect-interval-sec":
+                            i++;
+                            if (i < args.Length)
+                            {
+                                disconnectInterval = TimeSpan.FromSeconds(
+                                    int.Parse(args[i], CultureInfo.InvariantCulture));
+                                break;
+                            }
+                            throw new ArgumentException(
+                                "Missing argument for --disconnect-interval-sec");
+                        case "-r":
+                        case "--reconnect-delay-sec":
+                            i++;
+                            if (i < args.Length)
+                            {
+                                reconnectDelay = TimeSpan.FromSeconds(
+                                    int.Parse(args[i], CultureInfo.InvariantCulture));
+                                break;
+                            }
+                            throw new ArgumentException(
+                                "Missing argument for --reconnect-delay-sec");
                         case "-p":
                         case "--publish-profile":
                             i++;
@@ -105,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                                 break;
                             }
                             throw new ArgumentException(
-                                "Missing argument for --connection-string");
+                                "Missing argument for --publish-profile");
                         case "-v":
                         case "--verbose":
                             verbose = true;
@@ -174,7 +198,8 @@ Options:
                 }
                 else
                 {
-                    tasks.Add(WithServerAsync(cs, loggerFactory, deviceId, moduleId, args, verbose, publishProfile));
+                    tasks.Add(WithServerAsync(cs, loggerFactory, deviceId, moduleId, args, verbose,
+                        publishProfile, disconnectInterval, reconnectDelay));
                 }
                 Task.WaitAll(tasks.ToArray());
             }
@@ -250,13 +275,16 @@ Options:
         /// <param name="args"></param>
         /// <param name="verbose"></param>
         /// <param name="publishProfile"></param>
+        /// <param name="disconnectInterval"></param>
+        /// <param name="reconnectDelay"></param>
         private static async Task WithServerAsync(string connectionString, ILoggerFactory loggerFactory,
-            string deviceId, string moduleId, string[] args, bool verbose = false, string publishProfile = null)
+            string deviceId, string moduleId, string[] args, bool verbose = false, string publishProfile = null,
+            TimeSpan? disconnectInterval = null, TimeSpan? reconnectDelay = null)
         {
             var logger = loggerFactory.CreateLogger<Program>();
             try
             {
-                using (var server = new ServerWrapper(loggerFactory))
+                using (var server = new ServerWrapper(loggerFactory, disconnectInterval, reconnectDelay))
                 {
                     if (publishProfile != null)
                     {
@@ -355,10 +383,14 @@ Options:
             /// Create wrapper
             /// </summary>
             /// <param name="logger"></param>
-            public ServerWrapper(ILoggerFactory logger)
+            /// <param name="disconnectInterval"></param>
+            /// <param name="reconnectDelay"></param>
+            public ServerWrapper(ILoggerFactory logger, TimeSpan? disconnectInterval,
+                TimeSpan? reconnectDelay)
             {
                 _cts = new CancellationTokenSource();
-                _server = RunSampleServerAsync(logger, Port, _cts.Token);
+                _server = RunSampleServerAsync(logger, Port,
+                    disconnectInterval, reconnectDelay, _cts.Token);
             }
 
             /// <inheritdoc/>
@@ -372,31 +404,48 @@ Options:
             /// <summary>
             /// Run server until cancelled
             /// </summary>
-            /// <param name="logger"></param>
             /// <param name="loggerFactory"></param>
             /// <param name="port"></param>
+            /// <param name="disconnectInterval"></param>
+            /// <param name="reconnectDelay"></param>
             /// <param name="ct"></param>
             private static async Task RunSampleServerAsync(ILoggerFactory loggerFactory,
-                int port, CancellationToken ct)
+                int port, TimeSpan? disconnectInterval, TimeSpan? reconnectDelay, CancellationToken ct)
             {
-                var tcs = new TaskCompletionSource<bool>();
-                ct.Register(() => tcs.TrySetResult(true));
-                using (var server = new ServerConsoleHost(
-                    new ServerFactory(loggerFactory.CreateLogger<ServerFactory>())
+                var disconnectTimeout = disconnectInterval ?? Timeout.InfiniteTimeSpan;
+                var reconnectTimeout = reconnectDelay ?? TimeSpan.FromSeconds(5);
+                var logger = loggerFactory.CreateLogger<ServerWrapper>();
+                while (!ct.IsCancellationRequested)
+                {
+                    try
                     {
-                        LogStatus = false
-                    }, loggerFactory.CreateLogger<ServerConsoleHost>())
-                {
-                    AutoAccept = true
-                })
-                {
-                    var logger = loggerFactory.CreateLogger<ServerWrapper>();
-                    logger.LogInformation("Starting server.");
-                    await server.StartAsync(new List<int> { port }).ConfigureAwait(false);
-                    logger.LogInformation("Server started.");
-                    await tcs.Task.ConfigureAwait(false);
-                    logger.LogInformation("Server exited.");
+                        using (var server = new ServerConsoleHost(
+                            new ServerFactory(loggerFactory.CreateLogger<ServerFactory>())
+                            {
+                                LogStatus = false
+                            }, loggerFactory.CreateLogger<ServerConsoleHost>())
+                        {
+                            AutoAccept = true
+                        })
+                        {
+                            logger.LogInformation("(Re-)Starting server...");
+                            await server.StartAsync(new List<int> { port }).ConfigureAwait(false);
+                            logger.LogInformation("Server (re-)started.");
+                            await Task.Delay(disconnectTimeout, ct).ConfigureAwait(false);
+                            logger.LogInformation("Stopping server...");
+                        }
+
+                        logger.LogInformation("Server stopped.");
+                        logger.LogInformation("Restarting server in {Delay}...", reconnectTimeout);
+                        await Task.Delay(reconnectTimeout, ct).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) { }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Server ran into exception.");
+                    }
                 }
+                logger.LogInformation("Server exited.");
             }
 
             private readonly CancellationTokenSource _cts;

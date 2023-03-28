@@ -92,7 +92,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 ;
 
             services.AddSwagger(Constants.EntityTypePublisher, string.Empty);
-            services.AddHostedService<PublisherModule>();
         }
 
         /// <summary>

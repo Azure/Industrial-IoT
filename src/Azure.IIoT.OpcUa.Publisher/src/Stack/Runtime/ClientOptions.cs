@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using System;
+
     /// <summary>
     /// Opc ua client options
     /// </summary>
@@ -28,12 +30,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Default session timeout in milliseconds.
         /// </summary>
-        public uint DefaultSessionTimeout { get; set; }
+        public TimeSpan? DefaultSessionTimeout { get; set; }
 
         /// <summary>
         /// Keep alive interval in milliseconds.
         /// </summary>
-        public int KeepAliveInterval { get; set; }
+        public TimeSpan? KeepAliveInterval { get; set; }
+
+        /// <summary>
+        /// How long in milliseconds to wait until
+        /// reconnecting is attempted.
+        /// </summary>
+        public TimeSpan? ReconnectRetryDelay { get; set; }
 
         /// <summary>
         /// Transport quota

@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
     using Furly.Extensions.Configuration;
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;
+    using System;
     using System.Globalization;
     using System.IO;
 
@@ -48,6 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string MaxByteStringLengthKey = "MaxByteStringLength";
         public const string MaxStringLengthKey = "MaxStringLength";
         public const string OperationTimeoutKey = "OperationTimeout";
+        public const string ReconnectRetryDelayKey = "ReconnectRetryDelay";
 
         /// <summary>
         /// Default values for transport quotas.
@@ -66,6 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int OperationTimeoutDefault = 120 * 1000;
         public const int DefaultSessionTimeoutDefaultSec = 60;
         public const int KeepAliveIntervalDefaultSec = 10;
+        public const int ReconnectRetryDelayDefaultSec = 5;
         public const int MinimumCertificateKeySizeDefault = 1024;
         public const bool AutoAcceptUntrustedCertificatesDefault = false;
         public const bool RejectSha1SignedCertificatesDefault = false;
@@ -95,16 +98,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     ProductUriDefault);
             }
 
-            if (options.DefaultSessionTimeout == 0)
+            if (options.DefaultSessionTimeout == null)
             {
-                options.DefaultSessionTimeout = (uint)GetIntOrDefault(DefaultSessionTimeoutKey,
-                    DefaultSessionTimeoutDefaultSec) * 1000;
+                var sessionTimeout = GetIntOrDefault(DefaultSessionTimeoutKey,
+                    DefaultSessionTimeoutDefaultSec);
+                if (sessionTimeout > 0)
+                {
+                    options.DefaultSessionTimeout = TimeSpan.FromSeconds(sessionTimeout);
+                }
             }
 
-            if (options.KeepAliveInterval == 0)
+            if (options.KeepAliveInterval == null)
             {
-                options.KeepAliveInterval = GetIntOrDefault(KeepAliveIntervalKey,
-                    KeepAliveIntervalDefaultSec) * 1000;
+                var keepAliveInterval = GetIntOrDefault(KeepAliveIntervalKey,
+                    KeepAliveIntervalDefaultSec);
+                if (keepAliveInterval > 0)
+                {
+                    options.KeepAliveInterval = TimeSpan.FromSeconds(keepAliveInterval);
+                }
+            }
+
+            if (options.ReconnectRetryDelay == null)
+            {
+                var reconnectRetryDelay = GetIntOrDefault(ReconnectRetryDelayKey,
+                    ReconnectRetryDelayDefaultSec);
+                if (reconnectRetryDelay > 0)
+                {
+                    options.ReconnectRetryDelay = TimeSpan.FromSeconds(reconnectRetryDelay);
+                }
             }
 
             if (options.Security.MinimumCertificateKeySize == 0)

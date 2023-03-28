@@ -275,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask CloseAsync()
         {
             await _lock.WaitAsync().ConfigureAwait(false);
-            ISessionHandle handle;
+            ISessionHandle handle = null;
             try
             {
                 if (_closed)
@@ -297,9 +297,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Unregister subscription from session
                 handle.UnregisterSubscription(this);
             }
+            catch (ObjectDisposedException) { } // _session manager already disposed
             finally
             {
                 _lock.Release();
+            }
+
+            if (handle == null)
+            {
+                // Session already closed.
+                return;
             }
 
             // Get raw subscription from underlying session and close that one too
@@ -1160,7 +1167,12 @@ Actual (revised) state/desired state:
                         var monitoredItem = subscription.FindItemByClientHandle(eventNotification.ClientHandle);
                         var sequenceNumber = eventNotification.Message.SequenceNumber;
 
-                        if (i == 0 && !SequenceNumber.Validate(sequenceNumber, ref _lastSequenceNumber,
+                        if (sequenceNumber == 1)
+                        {
+                            // Do not log when the sequence number is 1 after reconnect
+                            _lastSequenceNumber = 1;
+                        }
+                        else if (i == 0 && !SequenceNumber.Validate(sequenceNumber, ref _lastSequenceNumber,
                             out missingSequenceNumbers, out var dropped))
                         {
                             _logger.LogWarning("Event for monitored item {ClientHandle} subscription " +
@@ -1298,7 +1310,12 @@ Actual (revised) state/desired state:
                         message.Timestamp = item.Message.PublishTime;
 
                         // All notifications have the same message and thus sequence number
-                        if (i == 0 && !SequenceNumber.Validate(sequenceNumber, ref _lastSequenceNumber,
+                        if (sequenceNumber == 1)
+                        {
+                            // Do not log when the sequence number is 1 after reconnect
+                            _lastSequenceNumber = 1;
+                        }
+                        else if (i == 0 && !SequenceNumber.Validate(sequenceNumber, ref _lastSequenceNumber,
                             out missingSequenceNumbers, out var dropped))
                         {
                             _logger.LogWarning("DataChange for monitored item {ClientHandle} subscription " +

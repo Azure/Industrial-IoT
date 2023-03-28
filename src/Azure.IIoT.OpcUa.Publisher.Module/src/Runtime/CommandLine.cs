@@ -235,6 +235,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ct|createsessiontimeout=|{ClientConfig.DefaultSessionTimeoutKey}=",
                     "Maximum amount of time in seconds that a session should remain open by the OPC server without any activity (session timeout) to request from the OPC server at session creation.\nDefault: `not set`.\n",
                     (uint u) => this[ClientConfig.DefaultSessionTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"rd|reconnectdelay=|{ClientConfig.ReconnectRetryDelayKey}=",
+                    $"Amount of time in seconds to wait between client reconnecting to the server to reastablish connectivity.\nSet to 0 to disable reconnect handling and instead recreate the session when required.\nDefault: `{ClientConfig.ReconnectRetryDelayDefaultSec}` ({ClientConfig.ReconnectRetryDelayDefaultSec} seconds).\n",
+                    (uint u) => this[ClientConfig.ReconnectRetryDelayKey] = u.ToString(CultureInfo.CurrentCulture) },
 
                 { $"otl|opctokenlifetime=|{ClientConfig.SecurityTokenLifetimeKey}=",
                     "OPC UA Stack Transport Secure Channel - Security token lifetime in milliseconds.\nDefault: `3600000` (1h).\n",

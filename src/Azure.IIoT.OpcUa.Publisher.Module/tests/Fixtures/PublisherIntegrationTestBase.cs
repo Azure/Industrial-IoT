@@ -186,37 +186,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             JsonMessage? metadata = null;
             using var cts = new CancellationTokenSource(messageCollectionTimeout);
-            await foreach (var evt in _publisher.ReadTelemetryAsync(cts.Token))
+            try
             {
-                if (evt.Properties.TryGetValue(Constants.MessagePropertySchemaKey, out var schematype) &&
-                    schematype != MessageSchemaTypes.NetworkMessageJson &&
-                    schematype != MessageSchemaTypes.MonitoredItemMessageJson &&
-                    schematype != MessageSchemaTypes.NetworkMessageUadp)
+                await foreach (var evt in _publisher.ReadTelemetryAsync(cts.Token))
                 {
-                    continue;
-                }
-                var json = Encoding.UTF8.GetString(evt.Data.ToArray());
-                var document = JsonDocument.Parse(json);
-                json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
-                var element = document.RootElement;
-                if (element.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var item in element.EnumerateArray())
+                    if (evt.Properties.TryGetValue(Constants.MessagePropertySchemaKey, out var schematype) &&
+                        schematype != MessageSchemaTypes.NetworkMessageJson &&
+                        schematype != MessageSchemaTypes.MonitoredItemMessageJson &&
+                        schematype != MessageSchemaTypes.NetworkMessageUadp)
                     {
-                        Add(messages, item, ref metadata, predicate, messageType, _messageIds,
+                        continue;
+                    }
+                    var json = Encoding.UTF8.GetString(evt.Data.ToArray());
+                    var document = JsonDocument.Parse(json);
+                    json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
+                    var element = document.RootElement;
+                    if (element.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var item in element.EnumerateArray())
+                        {
+                            Add(messages, item, ref metadata, predicate, messageType, _messageIds,
+                                evt.Topic, evt.ContentType);
+                        }
+                    }
+                    else if (element.ValueKind == JsonValueKind.Object)
+                    {
+                        Add(messages, element, ref metadata, predicate, messageType, _messageIds,
                             evt.Topic, evt.ContentType);
                     }
-                }
-                else if (element.ValueKind == JsonValueKind.Object)
-                {
-                    Add(messages, element, ref metadata, predicate, messageType, _messageIds,
-                        evt.Topic, evt.ContentType);
-                }
-                if (messages.Count >= messageCount)
-                {
-                    break;
+                    if (messages.Count >= messageCount)
+                    {
+                        break;
+                    }
                 }
             }
+            catch (OperationCanceledException) { }
             return (metadata, messages.Take(messageCount).ToList());
 
             static void Add(List<JsonMessage> messages, JsonElement item, ref JsonMessage? metadata,
