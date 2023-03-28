@@ -54,7 +54,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
                 .UseStartup<TestStartup>()
                 .ConfigureServices(services =>
                 {
-                    services.AddSingleton(_loggerFactory);
+                    if (_loggerFactory != null)
+                    {
+                        services.AddSingleton(_loggerFactory);
+                    }
                     services.AddMvc()
                         .AddApplicationPart(typeof(Startup).Assembly)
                         .AddControllersAsServices();

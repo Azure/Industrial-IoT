@@ -22,6 +22,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     public static class Program
     {
         /// <summary>
+        /// Log logo
+        /// </summary>
+        private static void LogLogo()
+        {
+            Console.WriteLine($@"
+ ██████╗ ██████╗  ██████╗    ██████╗ ██╗   ██╗██████╗ ██╗     ██╗███████╗██╗  ██╗███████╗██████╗
+██╔═══██╗██╔══██╗██╔════╝    ██╔══██╗██║   ██║██╔══██╗██║     ██║██╔════╝██║  ██║██╔════╝██╔══██╗
+██║   ██║██████╔╝██║         ██████╔╝██║   ██║██████╔╝██║     ██║███████╗███████║█████╗  ██████╔╝
+██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
+╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
+ ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+                                                                         {ThisAssembly.AssemblyInformationalVersion}
+");
+        }
+
+        /// <summary>
         /// Main entry point
         /// </summary>
         /// <param name="args"></param>
@@ -39,6 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 Console.WriteLine("Debugger attached.");
             }
 #endif
+            LogLogo();
+
             CreateHostBuilder(args).Build().Run();
         }
 
