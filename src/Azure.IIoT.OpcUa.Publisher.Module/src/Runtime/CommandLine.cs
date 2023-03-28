@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 // show help
                 { "h|help",
                     "Show help and exit.\n",
-                    b => showHelp = true },
+                    _ => showHelp = true },
 
                 // Publisher configuration options
                 { $"f|pf|publishfile=|{PublisherConfig.PublishedNodesFileKey}=",

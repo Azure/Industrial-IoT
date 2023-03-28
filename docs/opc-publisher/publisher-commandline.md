@@ -8,6 +8,14 @@ CamcelCase options can also typically be provided using enviornment variables. W
 
 ```text
 
+ ██████╗ ██████╗  ██████╗    ██████╗ ██╗   ██╗██████╗ ██╗     ██╗███████╗██╗  ██╗███████╗██████╗
+██╔═══██╗██╔══██╗██╔════╝    ██╔══██╗██║   ██║██╔══██╗██║     ██║██╔════╝██║  ██║██╔════╝██╔══██╗
+██║   ██║██████╔╝██║         ██████╔╝██║   ██║██████╔╝██║     ██║███████╗███████║█████╗  ██████╔╝
+██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
+╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
+ ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+                                                                         2.9.0
+
 General
 -------
 
@@ -47,7 +55,8 @@ Messaging configuration
                                interoperability.
                                Default: `False`
       --mm, --messagingmode, --MessagingMode=VALUE
-                             The messaging mode for messages Allowed values:
+                             The messaging mode for messages
+                               Allowed values:
                                    `PubSub`
                                    `Samples`
                                    `FullNetworkMessages`
@@ -57,7 +66,8 @@ Messaging configuration
                                Default: `PubSub` if `-c` is specified,
                                otherwise `Samples` for backwards compatibility.
       --me, --messageencoding, --MessageEncoding=VALUE
-                             The message encoding for messages Allowed values:
+                             The message encoding for messages
+                               Allowed values:
                                    `Binary`
                                    `Json`
                                    `Xml`
@@ -71,9 +81,9 @@ Messaging configuration
       --bi, --batchtriggerinterval, --BatchTriggerInterval=VALUE
                              The network message publishing interval in
                                milliseconds. Determines the publishing period
-                               at which point messages are emitted. When `--bs`
-                               is 1 and `--bi` is set to 0 batching is disabled.
-
+                               at which point messages are emitted.
+                               When `--bs` is 1 and `--bi` is set to 0 batching
+                               is disabled.
                                Default: `10000` (10 seconds).
                                Alternatively can be set using `
                                BatchTriggerInterval` environment variable in
@@ -126,73 +136,14 @@ Messaging configuration
                                Default: `False` if the messaging profile
                                selected supports sending metadata, `True`
                                otherwise.
-
-Routing configuration
----------------------
-
-      --rtt, --roottopictemplate, --RootTopicTemplate[=PublisherId]
-                             The default root topic of OPC Publisher.
-                                 If not specified, the `PublisherId` template
-                               is the root topic.
-                               Currently only the template variables `SiteId`
-                               and `PublisherId` can be used as dynamic
-                               substituations in the template. If the template
-                               variable does not exist it is replaced with the `
-                               $default` string.
-                               Default: `PublisherId`.
-      --mtt, --methodtopictemplate, --MethodTopicTemplate=RootTopic
-                             The topic at which OPC Publisher's method handler
-                               is mounted. If not specified, the `RootTopic/
-                               methods` template will be used as root topic
-                               with the method names as sub topic.
-                               Only `RootTopic`, `SiteId`, and `PublisherId`
-                               can currently be used as replacement variables
-                               in the template.
-                               Default: `RootTopic/methods`.
-      --ttt, --telemetrytopictemplate, --TelemetryTopicTemplate[=DataSetWriterGroup]
-                             The default topic that all messages are sent to.
-                                 If not specified, the `RootTopic/
-                               DataSetWriterGroup` template will be used as
-                               root topic for all events sent by OPC Publisher.
-                               The template variables `RootTopic`, `SiteId`, `
-                               PublisherId`, `DataSetWriterName`, and `
-                               DataSetWriterGroup` can be used as dynamic parts
-                               in the template. If a template variable does not
-                               exist it is replaced with the `$default` string.
-                               Default: `RootTopic/DataSetWriterGroup`.
-      --mdt, --metadatatopictemplate, --DataSetMetaDataTopicTemplate[=TelemetryTopic]
-                             The topic that metadata should be sent to.
-                               In case of MQTT the message will be sent as
-                               RETAIN message with a TTL of either metadata
-                               send interval or infinite if metadata send
-                               interval is not configured.
-                               Only valid if metadata is supported and/or
-                               explicitely enabled.
-                               The template variables `RootTopic`, `
-                               TelemetryTopic`, `PublisherId`, `
-                               DataSetWriterGroup`, and `DatasetWriterId` can
-                               be used as dynamic parts in the template.
-                               Default: `TelemetryTopic` which means metadata
-                               is sent to the same output as regular messages.
-                               If specified without value, the default output
-                               is `TelemetryTopic/$metadata`.
-      --ri, --enableroutinginfo, --EnableRoutingInfo[=VALUE]
-                             Add routing information to messages. The name of
-                               the property is `$$RoutingInfo` and the value is
-                               the `DataSetWriterGroup` for that particular
-                               message.
-                               When the `DataSetWriterGroup` is not configured,
-                               the `$$RoutingInfo` property will not be added
-                               to the message even if this argument is set.
-                               Default: `False`.
-
-Transport settings
-------------------
-
       --om, --maxoutgressmessages, --MaxOutgressMessages=VALUE
                              The maximum number of messages to buffer on the
                                send path before messages are dropped.
                                Default: `4096`
+
+Transport settings
+------------------
+
   -b, --mqc, --mqttclientconnectionstring, --MqttClientConnectionString=VALUE
                              An mqtt connection string to use. Use this option
                                to connect OPC Publisher to a MQTT Broker
@@ -224,6 +175,103 @@ Transport settings
                                    `Any`
                                Default: `Mqtt` if device or edge hub connection
                                string is provided, ignored otherwise.
+      --http, --httpserver, --EnableHttpServer[=VALUE]
+                             Specify this to enable the OPC Publisher REST api.
+                               .Default: `disabled`.
+  -p, --httpserverport, --HttpServerPort=VALUE
+                             The port on which the REST api of OPC Publisher is
+                               is listening. Implicitly enables the http server
+                               and REST api capabilities.
+                               Default: `not set` if https is not enabled,
+                               otherwise `443` if no value is provided.
+
+Routing configuration
+---------------------
+
+      --rtt, --roottopictemplate, --RootTopicTemplate[=VALUE]
+                             The default root topic of OPC Publisher.
+                               If not specified, the `{PublisherId}` template
+                               is the root topic.
+                               Currently only the template variables
+                                   `{SiteId}` and
+                                   `{PublisherId}`
+                               can be used as dynamic substituations in the
+                               template. If the template variable does not
+                               exist it is replaced with the `$default` string.
+                               Default: `{PublisherId}`.
+      --mtt, --methodtopictemplate, --MethodTopicTemplate=VALUE
+                             The topic at which OPC Publisher's method handler
+                               is mounted.
+                               If not specified, the `{RootTopic}/methods`
+                               template will be used as root topic with the
+                               method names as sub topic.
+                               Only
+                                   `{RootTopic}`
+                                   `{SiteId}` and
+                                   `{PublisherId}`
+                               can currently be used as replacement variables
+                               in the template.
+                               Default: `{RootTopic}/methods`.
+      --ttt, --telemetrytopictemplate, --TelemetryTopicTemplate[=VALUE]
+                             The default topic that all messages are sent to.
+                               If not specified, the `{RootTopic}/messages/{
+                               DataSetWriterGroup}` template will be used as
+                               root topic for all events sent by OPC Publisher.
+                               The template variables
+                                   `{RootTopic}`
+                                   `{SiteId}`
+                                   `{PublisherId}`
+                                   `{DataSetClassId}`
+                                   `{DataSetWriterName}` and
+                                   `{DataSetWriterGroup}`
+                                can be used as dynamic parts in the template.
+                               If a template variable does not exist the name
+                               of the variable is emitted.
+                               Default: `{RootTopic}/messages/{
+                               DataSetWriterGroup}`.
+      --ett, --eventstopictemplate, --EventsTopicTemplate=VALUE
+                             The topic into which OPC Publisher publishes any
+                               events that are not telemetry messages such as
+                               discovery or runtime events.
+                               If not specified, the `{RootTopic}/events`
+                               template will be used.
+                               Only
+                                   `{RootTopic}`
+                                   `{SiteId}` and
+                                   `{PublisherId}`
+                               can currently be used as replacement variables
+                               in the template.
+                               Default: `{RootTopic}/events`.
+      --mdt, --metadatatopictemplate, --DataSetMetaDataTopicTemplate[=VALUE]
+                             The topic that metadata should be sent to.
+                               In case of MQTT the message will be sent as
+                               RETAIN message with a TTL of either metadata
+                               send interval or infinite if metadata send
+                               interval is not configured.
+                               Only valid if metadata is supported and/or
+                               explicitely enabled.
+                               The template variables
+                                   `{RootTopic}`
+                                   `{SiteId}`
+                                   `{TelemetryTopic}`
+                                   `{PublisherId}`
+                                   `{DataSetClassId}`
+                                   `{DataSetWriterName}` and
+                                   `{DatasetWriterGroup}`
+                               can be used as dynamic parts in the template.
+                               Default: `{TelemetryTopic}` which means metadata
+                               is sent to the same output as regular messages.
+                               If specified without value, the default output
+                               is `{TelemetryTopic}/$metadata`.
+      --ri, --enableroutinginfo, --EnableRoutingInfo[=VALUE]
+                             Add routing information to messages. The name of
+                               the property is `$$RoutingInfo` and the value is
+                               the `DataSetWriterGroup` for that particular
+                               message.
+                               When the `DataSetWriterGroup` is not configured,
+                               the `$$RoutingInfo` property will not be added
+                               to the message even if this argument is set.
+                               Default: `False`.
 
 Subscription settings
 ---------------------
@@ -332,6 +380,13 @@ OPC UA Client configuration
                                activity (session timeout) to request from the
                                OPC server at session creation.
                                Default: `not set`.
+      --rd, --reconnectdelay, --ReconnectRetryDelay=VALUE
+                             Amount of time in seconds to wait between client
+                               reconnecting to the server to reastablish
+                               connectivity.
+                               Set to 0 to disable reconnect handling and
+                               instead recreate the session when required.
+                               Default: `5` (5 seconds).
       --otl, --opctokenlifetime, --SecurityTokenLifetime=VALUE
                              OPC UA Stack Transport Secure Channel - Security
                                token lifetime in milliseconds.
@@ -371,8 +426,9 @@ OPC UA Client configuration
                                presented to the server.
                                Default: `not set`.
       --rejectsha1, --RejectSha1SignedCertificates=VALUE
-                             The publisher rejects deprecated SHA1 certificates.
-
+                             If set OPC Publisher will reject SHA1 certificates
+                               which have been officially deprecated and are
+                               unsafe to use.
                                Note: It is recommended to always set this value
                                to `True` if the connected OPC UA servers does
                                not use Sha1 signed certificates.
@@ -399,39 +455,40 @@ OPC UA Client configuration
       --pki, --pkirootpath, --PkiRootPath=VALUE
                              PKI certificate store root path.
                                Default: `pki`.
-      --ap, --appcertstorepath, --ApplicationCertificateStorePath=PkiRootPath
+      --ap, --appcertstorepath, --ApplicationCertificateStorePath=VALUE
                              The path where the own application cert should be
                                stored.
-                               Default: $"PkiRootPath/own".
+                               Default: $"{PkiRootPath}/own".
       --apt, --at, --appcertstoretype, --ApplicationCertificateStoreType=VALUE
-                             The own application cert store type. Allowed
-                               values:
+                             The own application cert store type.
+                               Allowed values:
                                    `Directory`
                                    `X509Store`
                                Default: `Directory`.
-      --tp, --trustedcertstorepath, --TrustedPeerCertificatesPath=PkiRootPath
+      --tp, --trustedcertstorepath, --TrustedPeerCertificatesPath=VALUE
                              The path of the trusted cert store.
-                               Default: $"PkiRootPath/trusted".
+                               Default: $"{PkiRootPath}/trusted".
       --tpt, --TrustedPeerCertificatesType=VALUE
-                             Trusted peer certificate store type. Allowed
-                               values:
+                             Trusted peer certificate store type.
+                               Allowed values:
                                    `Directory`
                                    `X509Store`
                                Default: `Directory`.
-      --rp, --rejectedcertstorepath, --RejectedCertificateStorePath=PkiRootPath
+      --rp, --rejectedcertstorepath, --RejectedCertificateStorePath=VALUE
                              The path of the rejected cert store.
-                               Default: $"PkiRootPath/rejected".
+                               Default: $"{PkiRootPath}/rejected".
       --rpt, --RejectedCertificateStoreType=VALUE
-                             Rejected certificate store type. Allowed values:
+                             Rejected certificate store type.
+                               Allowed values:
                                    `Directory`
                                    `X509Store`
                                Default: `Directory`.
-      --ip, --issuercertstorepath, --TrustedIssuerCertificatesPath=PkiRootPath
+      --ip, --issuercertstorepath, --TrustedIssuerCertificatesPath=VALUE
                              The path of the trusted issuer cert store.
-                               Default: $"PkiRootPath/issuers".
-      --tit, --TrustedIssuerCertificatesType=VALUE
-                             Trusted issuer certificate store types. Allowed
-                               values:
+                               Default: $"{PkiRootPath}/issuers".
+      --ipt, --TrustedIssuerCertificatesType=VALUE
+                             Trusted issuer certificate store types.
+                               Allowed values:
                                    `Directory`
                                    `X509Store`
                                Default: `Directory`.
@@ -451,7 +508,8 @@ Diagnostic options
                                form of a time span string formatted string `[d.]
                                hh:mm:ss[.fffffff]`".
       --ll, --loglevel, --LogLevel=VALUE
-                             The loglevel to use. Allowed values:
+                             The loglevel to use.
+                               Allowed values:
                                    `Trace`
                                    `Debug`
                                    `Information`
