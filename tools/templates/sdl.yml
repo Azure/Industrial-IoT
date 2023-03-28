@@ -104,12 +104,11 @@ jobs:
 #      toolVersion: Latest
 #      targetDirectory: '$(Build.SourcesDirectory)'
 #    continueOnError: true
-  - task: BinSkim@4
+  - task: BinSkim@3
     displayName: 'BinSkim'
     inputs:
       InputType: Basic
-      TargetPattern: guardianGlob
-      AnalyzeTargetGlob: '$(Build.ArtifactStagingDirectory)\**.dll;$(Build.ArtifactStagingDirectory)\**.exe;'
+      AnalyzeTarget: '*.IIoT.*.dll;*.IIoT.*.exe'
     continueOnError: true
   - task: PoliCheck@2
     displayName: PoliCheck
@@ -122,24 +121,25 @@ jobs:
   - task: SdtReport@2
     displayName: 'Create Security Analysis Report'
     inputs:
-      BinSkim: true
-      CredScan: true
-      PoliCheck: false
-      RoslynAnalyzers: true
+      GdnExportAllTools: false
+      GdnExportGdnToolBinSkim: true
+      GdnExportGdnToolCredScan: true
+      GdnExportGdnToolPoliCheck: false
+      GdnExportGdnToolRoslynAnalyzers: true
     condition: succeededOrFailed()
   - task: PostAnalysis@2
     displayName: 'Post Analysis'
     inputs:
-      BinSkim: true
-      PoliCheck: true
-      CredScan: false
-      RoslynAnalyzers: true
-    continueOnError: true
+      GdnBreakAllTools: false
+      GdnBreakGdnToolBinSkim: true
+      GdnBreakGdnToolPoliCheck: false
+      GdnBreakGdnToolCredScan: true
+      GdnBreakGdnToolRoslynAnalyzers: true
     condition: succeededOrFailed()
   - script: |
       if not "%BUILD_SOURCEBRANCHNAME%" == "main" echo ##vso[task.setvariable variable=MY_BRANCH;]develop
           if "%BUILD_SOURCEBRANCHNAME%" == "main" echo ##vso[task.setvariable variable=MY_BRANCH;]main
-  - task: TSAUpload@2
+  - task: TSAUpload@1
     displayName: 'Upload to Stamp'
     inputs:
       tsaVersion: TsaV2

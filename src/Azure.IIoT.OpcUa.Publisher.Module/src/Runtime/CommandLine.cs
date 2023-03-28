@@ -306,9 +306,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ip|issuercertstorepath=|{ClientConfig.TrustedIssuerCertificatesPathKey}=",
                     "The path of the trusted issuer cert store.\nDefault: $\"{{PkiRootPath}}/issuers\".\n",
                     s => this[ClientConfig.TrustedIssuerCertificatesPathKey] = s },
-                { $"tit|{ClientConfig.TrustedIssuerCertificatesTypeKey}=",
+                { $"ipt|{ClientConfig.TrustedIssuerCertificatesTypeKey}=",
                     $"Trusted issuer certificate store types.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
-                    s => SetStoreType(s, ClientConfig.TrustedIssuerCertificatesTypeKey, "tit") },
+                    s => SetStoreType(s, ClientConfig.TrustedIssuerCertificatesTypeKey, "ipt") },
 
                 "",
                 "Diagnostic options",
