@@ -97,7 +97,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (messages.Count == 1) {
                     await _client.SendEventAsync(messages[0]);
                 }
-                await _client.SendEventBatchAsync(messages);
+                else {
+                    await _client.SendEventBatchAsync(messages);
+                }
             }
             finally {
                 foreach (var hubMessage in messages) {
