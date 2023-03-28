@@ -4,9 +4,9 @@
     <Description>Contains fixtures and tests executing against test servers</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.20" />
-    <PackageReference Include="Furly.Extensions.Json" Version="0.4.20" />
-    <PackageReference Include="Furly.Extensions.Autofac" Version="0.4.20" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.4.21" />
+    <PackageReference Include="Furly.Extensions.Json" Version="0.4.21" />
+    <PackageReference Include="Furly.Extensions.Autofac" Version="0.4.21" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
     <PackageReference Include="FluentAssertions" Version="6.10.0" />
