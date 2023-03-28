@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
 
-        [RetryFact(1)]
+        [RetryFact]
         public async Task TestPublishPublisherEventAndReceiveAsync()
         {
             using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory(1)]
+        [RetryTheory]
         [InlineData(10)]
         [InlineData(100)]
         [InlineData(678)]
@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact(1)]
+        [RetryFact]
         public async Task TestPublishDiscovererEventAndReceiveAsync()
         {
             using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
@@ -136,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory(1)]
+        [RetryTheory]
         [InlineData(10)]
         [InlineData(55)]
         [InlineData(375)]
@@ -172,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact(1)]
+        [RetryFact]
         public async Task TestPublishSupervisorEventAndReceiveAsync()
         {
             using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
@@ -202,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory(1)]
+        [RetryTheory]
         [InlineData(10)]
         [InlineData(100)]
         [InlineData(4634)]
@@ -238,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact(1)]
+        [RetryFact]
         public async Task TestPublishApplicationEventAndReceiveAsync()
         {
             using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
@@ -273,7 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory(1)]
+        [RetryTheory]
         [InlineData(10)]
         [InlineData(100)]
         [InlineData(4634)]
@@ -312,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact(1)]
+        [RetryFact]
         public async Task TestPublishEndpointEventAndReceiveAsync()
         {
             using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
@@ -346,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory(1)]
+        [RetryTheory]
         [InlineData(10)]
         [InlineData(100)]
         [InlineData(7384)]
@@ -387,7 +387,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact(1)]
+        [RetryFact]
         public async Task TestPublishGatewayEventAndReceiveAsync()
         {
             using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
@@ -416,7 +416,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory(1)]
+        [RetryTheory]
         [InlineData(10)]
         [InlineData(100)]
         public async Task TestPublishGatewayEventAndReceiveMultipleAsync(int total)
@@ -451,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact(1)]
+        [RetryFact]
         public async Task TestPublishDiscoveryProgressWithDiscovererIdAndReceiveAsync()
         {
             using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
@@ -489,7 +489,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact(1)]
+        [RetryFact]
         public async Task TestPublishDiscoveryProgressWithRequestIdAndReceiveAsync()
         {
             using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
@@ -535,7 +535,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory(1)]
+        [RetryTheory]
         [InlineData(10)]
         [InlineData(100)]
         [InlineData(678)]

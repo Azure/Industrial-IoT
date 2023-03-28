@@ -832,12 +832,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
+                _fileChanges.Writer.TryComplete();
                 if (_started != null)
                 {
-                    _fileChanges.Writer.TryComplete();
                     await _fileChangeProcessor.ConfigureAwait(false);
                 }
             }
+            catch (ObjectDisposedException) { }
+            catch (OperationCanceledException) { }
             finally
             {
                 _started = null;
@@ -849,6 +851,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
+                _fileChanges.Writer.TryComplete();
                 DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
             finally
@@ -1006,7 +1009,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             retryCount = 0;
                             _started.TrySetResult();
                         }
-                        catch (Exception ex)
+                        catch (Exception ex) when (ex is not ObjectDisposedException)
                         {
                             _logger.LogError(ex,
                                 "Error during publisher {Action}. Retrying...",

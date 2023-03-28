@@ -89,12 +89,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public bool TryUpdate(IEnumerable<WriterGroupModel> jobs)
         {
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
             return _changeFeed.Writer.TryWrite((_completedTask, jobs.ToList()));
         }
 
         /// <inheritdoc/>
         public Task UpdateAsync(IEnumerable<WriterGroupModel> jobs)
         {
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
             var tcs = new TaskCompletionSource(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             if (_changeFeed.Writer.TryWrite((tcs, jobs.ToList())))
@@ -108,6 +110,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public void Dispose()
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+            _isDisposed = true;
             try
             {
                 _cts.Cancel();
@@ -362,6 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly PublisherService _outer;
         }
 
+        private bool _isDisposed;
         private readonly IWriterGroupScopeFactory _factory;
         private readonly ILogger _logger;
         private readonly Task _processor;
