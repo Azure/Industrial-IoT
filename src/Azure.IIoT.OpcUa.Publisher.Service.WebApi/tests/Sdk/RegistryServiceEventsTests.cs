@@ -13,12 +13,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using Divergic.Logging.Xunit;
 
     public sealed class RegistryServiceEventsTests : IDisposable
     {
         public RegistryServiceEventsTests(ITestOutputHelper output)
         {
-            _factory = new WebAppFixture();
+            _factory = WebAppFixture.Create(LogFactory.Create(output));
             _output = output;
         }
 

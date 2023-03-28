@@ -20,10 +20,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
+    using Microsoft.Extensions.Logging;
 
     /// <inheritdoc/>
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory
     {
+        public WebAppFixture()
+        {
+            _loggerFactory = null;
+        }
+
+        private WebAppFixture(ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+        }
+
+        public static WebAppFixture Create(ILoggerFactory loggerFactory)
+        {
+            return new WebAppFixture(loggerFactory);
+        }
+
         /// <inheritdoc/>
         protected override IHostBuilder CreateHostBuilder()
         {
@@ -36,14 +52,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
             builder
                 .UseContentRoot(".")
                 .UseStartup<TestStartup>()
-                .ConfigureServices(services => services
-                    .AddMvc()
+                .ConfigureServices(services =>
+                {
+                    services.AddSingleton(_loggerFactory);
+                    services.AddMvc()
                         .AddApplicationPart(typeof(Startup).Assembly)
-                        .AddControllersAsServices())
+                        .AddControllersAsServices();
+                })
                 .ConfigureTestServices(services => services.AddAuthentication("Test")
                     .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
                         "Test", _ => { }))
                 ;
+
             base.ConfigureWebHost(builder);
         }
 
@@ -124,5 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
                 .As<IHttpClientFactory>().ExternallyOwned(); // Do not dispose
             return builder.Build();
         }
+
+        private readonly ILoggerFactory _loggerFactory;
     }
 }
