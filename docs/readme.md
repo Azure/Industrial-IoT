@@ -12,5 +12,5 @@ The [OPC Publisher API](./opc-publisher/readme.md) and the optional [Industrial 
 
 * [Deploy the platform components and Edge Gateway](deploy/readme.md) 
 * [Run through the tutorials](tutorials/readme.md)
-* Learn more about [OPC Publisher](./opc-publisher/readme.md) and the optional [web api](./web-api/readme.md)
+* Learn more about [OPC Publisher](./opc-publisher/readme.md) and the optional [web service](./web-api/readme.md)
 * Read the [Operations Manual](manual/readme.md)

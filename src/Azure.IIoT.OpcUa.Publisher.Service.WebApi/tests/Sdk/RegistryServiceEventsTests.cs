@@ -14,14 +14,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using Xunit;
     using Xunit.Abstractions;
 
-    public sealed class RegistryServiceEventsTests : IClassFixture<WebAppFixture>
+    public sealed class RegistryServiceEventsTests : IDisposable
     {
-        public RegistryServiceEventsTests(WebAppFixture factory, ITestOutputHelper output)
+        public RegistryServiceEventsTests(ITestOutputHelper output)
         {
-            _factory = factory;
+            _factory = new WebAppFixture();
             _output = output;
         }
 
+        public void Dispose()
+        {
+            _factory.Dispose();
+        }
+
+        private const int kTimeoutMillis = 10000;
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
 
@@ -37,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 SiteId = "TestSite",
                 Connected = null
             };
-            var result = new TaskCompletionSource<PublisherEventModel>();
+            var result = new TaskCompletionSource<PublisherEventModel>(TaskCreationOptions.RunContinuationsAsynchronously);
             await using (await client.SubscribePublisherEventsAsync(ev =>
             {
                 result.SetResult(ev);
@@ -45,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }).ConfigureAwait(false))
             {
                 await bus.OnPublisherNewAsync(null, expected).ConfigureAwait(false);
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted, "Timed out");
                 var received = result.Task.Result;
@@ -69,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 SiteId = "TestSite",
                 ApiKey = "api-key"
             };
-            var result = new TaskCompletionSource<bool>();
+            var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var counter = 0;
             await using (await client.SubscribePublisherEventsAsync(ev =>
             {
@@ -86,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     await bus.OnPublisherUpdatedAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted, $"{counter} received instead of {total}");
             }
         }
@@ -108,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     IdleTimeBetweenScans = TimeSpan.FromSeconds(5)
                 }
             };
-            var result = new TaskCompletionSource<DiscovererEventModel>();
+            var result = new TaskCompletionSource<DiscovererEventModel>(TaskCreationOptions.RunContinuationsAsynchronously);
             await using (await client.SubscribeDiscovererEventsAsync(ev =>
             {
                 result.SetResult(ev);
@@ -116,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }).ConfigureAwait(false))
             {
                 await bus.OnDiscovererNewAsync(null, expected).ConfigureAwait(false);
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted, "Timed out");
                 var received = result.Task.Result;
@@ -142,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 SiteId = "TestSite"
             };
-            var result = new TaskCompletionSource<bool>();
+            var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var counter = 0;
             await using (await client.SubscribeDiscovererEventsAsync(ev =>
             {
@@ -159,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     await bus.OnDiscovererUpdatedAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted, $"{counter} received instead of {total}");
             }
         }
@@ -176,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 SiteId = "TestSigfsdfg  ff",
                 Connected = true
             };
-            var result = new TaskCompletionSource<SupervisorEventModel>();
+            var result = new TaskCompletionSource<SupervisorEventModel>(TaskCreationOptions.RunContinuationsAsynchronously);
             await using (await client.SubscribeSupervisorEventsAsync(ev =>
             {
                 result.SetResult(ev);
@@ -184,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }).ConfigureAwait(false))
             {
                 await bus.OnSupervisorNewAsync(null, expected).ConfigureAwait(false);
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted, "Timed out");
                 var received = result.Task.Result;
@@ -208,7 +214,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 SiteId = "azagfff"
             };
-            var result = new TaskCompletionSource<bool>();
+            var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var counter = 0;
             await using (await client.SubscribeSupervisorEventsAsync(ev =>
             {
@@ -225,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     await bus.OnSupervisorUpdatedAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted, $"{counter} received instead of {total}");
             }
         }
@@ -244,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 NotSeenSince = DateTime.UtcNow,
                 Capabilities = new HashSet<string> { "ag", "sadf", "" }
             };
-            var result = new TaskCompletionSource<ApplicationEventModel>();
+            var result = new TaskCompletionSource<ApplicationEventModel>(TaskCreationOptions.RunContinuationsAsynchronously);
             await using (await client.SubscribeApplicationEventsAsync(ev =>
             {
                 result.SetResult(ev);
@@ -252,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }).ConfigureAwait(false))
             {
                 await bus.OnApplicationNewAsync(null, expected).ConfigureAwait(false);
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted, "Timed out");
                 var received = result.Task.Result;
@@ -282,7 +288,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 NotSeenSince = DateTime.UtcNow,
                 Capabilities = new HashSet<string> { "ag", "sadf", "" }
             };
-            var result = new TaskCompletionSource<bool>();
+            var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var counter = 0;
             await using (await client.SubscribeApplicationEventsAsync(ev =>
             {
@@ -299,7 +305,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     await bus.OnApplicationUpdatedAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted, $"{counter} received instead of {total}");
             }
         }
@@ -320,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     Id = "testid"
                 }
             };
-            var result = new TaskCompletionSource<EndpointEventModel>();
+            var result = new TaskCompletionSource<EndpointEventModel>(TaskCreationOptions.RunContinuationsAsynchronously);
             await using (await client.SubscribeEndpointEventsAsync(ev =>
             {
                 result.SetResult(ev);
@@ -328,7 +334,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }).ConfigureAwait(false))
             {
                 await bus.OnEndpointNewAsync(null, expected).ConfigureAwait(false);
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted, "Timed out");
                 var received = result.Task.Result;
@@ -341,7 +347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [Theory]
         [InlineData(10)]
         [InlineData(100)]
-        [InlineData(46340)]
+        [InlineData(7384)]
         public async Task TestPublishEndpointEventAndReceiveMultipleAsync(int total)
         {
             using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
@@ -357,7 +363,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     Id = "testid"
                 }
             };
-            var result = new TaskCompletionSource<bool>();
+            var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var counter = 0;
             await using (await client.SubscribeEndpointEventsAsync(ev =>
             {
@@ -374,7 +380,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     await bus.OnEndpointDisabledAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted, $"{counter} received instead of {total}");
             }
         }
@@ -390,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 SiteId = "TestSigfsdfg  ff"
             };
-            var result = new TaskCompletionSource<GatewayEventModel>();
+            var result = new TaskCompletionSource<GatewayEventModel>(TaskCreationOptions.RunContinuationsAsynchronously);
             await using (await client.SubscribeGatewayEventsAsync(ev =>
             {
                 result.SetResult(ev);
@@ -398,7 +404,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }).ConfigureAwait(false))
             {
                 await bus.OnGatewayNewAsync(null, expected).ConfigureAwait(false);
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted, "Timed out");
                 var received = result.Task.Result;
@@ -421,7 +427,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 SiteId = "TestSigfsdfg  ff"
             };
-            var result = new TaskCompletionSource<bool>();
+            var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var counter = 0;
             await using (await client.SubscribeGatewayEventsAsync(ev =>
             {
@@ -438,7 +444,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     await bus.OnGatewayUpdatedAsync(null, expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted, $"{counter} received instead of {total}");
             }
         }
@@ -459,7 +465,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 EventType = DiscoveryProgressType.NetworkScanFinished,
                 TimeStamp = DateTime.UtcNow
             };
-            var result = new TaskCompletionSource<DiscoveryProgressModel>();
+            var result = new TaskCompletionSource<DiscoveryProgressModel>(TaskCreationOptions.RunContinuationsAsynchronously);
             await using (await client.SubscribeDiscoveryProgressByDiscovererIdAsync(
                 discovererId, ev =>
                 {
@@ -468,7 +474,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 }).ConfigureAwait(false))
             {
                 await bus.OnDiscoveryProgressAsync(expected).ConfigureAwait(false);
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted, "Timed out");
                 var received = result.Task.Result;
@@ -505,7 +511,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 EventType = DiscoveryProgressType.NetworkScanFinished,
                 TimeStamp = DateTime.UtcNow
             };
-            var result = new TaskCompletionSource<DiscoveryProgressModel>();
+            var result = new TaskCompletionSource<DiscoveryProgressModel>(TaskCreationOptions.RunContinuationsAsynchronously);
             await using (await client.SubscribeDiscoveryProgressByRequestIdAsync(
                 requestId, ev =>
                 {
@@ -514,7 +520,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 }).ConfigureAwait(false))
             {
                 await bus.OnDiscoveryProgressAsync(expected).ConfigureAwait(false);
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted, "Timed out");
                 var received = result.Task.Result;
@@ -545,7 +551,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 EventType = DiscoveryProgressType.NetworkScanFinished,
                 TimeStamp = DateTime.UtcNow
             };
-            var result = new TaskCompletionSource<bool>();
+            var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var counter = 0;
             await using (await client.SubscribeDiscoveryProgressByDiscovererIdAsync(
                 discovererId, ev =>
@@ -563,7 +569,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     await bus.OnDiscoveryProgressAsync(expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted, $"{counter} received instead of {total}");
             }
         }

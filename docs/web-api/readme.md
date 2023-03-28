@@ -2,46 +2,23 @@
 
 [Home](../readme.md)
 
-The OPC Publisher Web API provides APIs to configure the OPC Publisher module. It configures the OPC Publisher and manages job that an OPC Publisher module can receive to publish data.
+The OPC Publisher Web API service is an optional component included in this repo and provides cloud side APIs to configure and operate the OPC Publisher module.
 
 ## APIs
 
-The Publisher API provides functionality to start the publishing of values of an endpoint. This endpoint also handles the creation of new jobs.
-There is also the possibility to bulk publish nodes (i.e. to publish multiple nodes at once).
+The optional Web service exposes API with enabling the following functionality: 
 
-## Configuration
+* Start the publishing of values of an endpoint (a.k.a Publish services)
+* Access the OPC UA services exposed by OPC Publisher (a.k.a [Twin](#twin) services)
+* Discover OPC UA servers and endpoints (a.k.a [Discovery](#discovery) services) 
+* Manage the discovered entities (a.k.a [Registry](#registry) services)
+* Receive updates through SignalR subscriptions (a.k.a [Event](#events) services)
 
-| Configuration Parameter                                                                  | Modality | Default Value                                          | Description                                                                                                                                                                                                  |
-|------------------------------------------------------------------------------------------|----------|--------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **CORS Configuration**                                                                   |          |                                                        |                                                                                                                                                                                                              |
-| `Cors:Whitelist`<br>`PCS_CORS_WHITELIST`                                                 | optional | (empty)                                                | When a CORS Whitelist is set, [CORS](https://fetch.spec.whatwg.org/#http-cors-protocol) will be enabled. Otherwise, CORS will be disabled.                                                                   |
-| **Service Authentication Configuration**                                                 |          |                                                        |                                                                                                                                                                                                              |
-| `Auth:Required`<br>`PCS_AUTH_REQUIRED`                                                   | optional | `true`                                                 | Whether authentication should be added to APIs and OpenAPI UI.                                                                                                                                               |
-| **OpenApi Configuration**                                                                |          |                                                        |                                                                                                                                                                                                              |
-| `OpenApi:Enabled`<br>`PCS_OPENAPI_ENABLED`                                               | optional | `true` if `OpenApi:AppId` is set,<br>`false` otherwise | Whether OpenApi should be enabled.                                                                                                                                                                           |
-| `OpenApi:UseV2`<br>`PCS_OPENAPI_USE_V2`<br>`PCS_SWAGGER_V2`                              | optional | `true`                                                 | Create v2 open api json.                                                                                                                                                                                     |
-| `OpenApi:AppId`<br>`PCS_OPENAPI_APPID`<br>`PCS_AAD_CONFIDENTIAL_CLIENT_APPID`            | optional | (empty)                                                | The Application id for the OpenAPI UI client.                                                                                                                                                                |
-| `OpenApi:AppSecret`<br>`PCS_OPENAPI_APP_SECRET`<br>`PCS_AAD_CONFIDENTIAL_CLIENT_SECRET`  | optional | (empty)                                                | Application Secret                                                                                                                                                                                           |
-| `OpenApi:AuthorizationUrl`                                                               | optional | (empty)                                                | Authorization URL                                                                                                                                                                                            |
-| `OpenApi:ServerHost`<br>`PCS_OPENAPI_SERVER_HOST`                                        | optional | (empty)                                                | Server host for OpenAPI.                                                                                                                                                                                     |
-| **Forwarded Headers Configuration**                                                      |          |                                                        |                                                                                                                                                                                                              |
-| `AspNetCore:ForwardedHeaders:Enabled`<br>`ASPNETCORE_FORWARDEDHEADERS_ENABLED`           | optional | `false`                                                | Determines whether processing of forwarded headers should be enabled or not.                                                                                                                                 |
-| `AspNetCore:ForwardedHeaders:ForwardLimit`<br>`ASPNETCORE_FORWARDEDHEADERS_FORWARDLIMIT` | optional | `0`                                                    | Determines limit on number of entries in the forwarded headers.                                                                                                                                              |
-| **Web Host Configuration**                                                               |          |                                                        |                                                                                                                                                                                                              |
-| `Auth:HttpsRedirectPort`<br>`PCS_AUTH_HTTPSREDIRECTPORT`                                 | optional | `0`                                                    | `null` value allows http. Should always be set to the https port except for local development. JWT tokens are not encrypted and if not sent over HTTPS will allow an attacker to get the same authorization. |
-| `Host:ServicePathBase`<br>`PCS_SERVICE_PATH_BASE`<br>`PCS_PUBLISHER_SERVICE_PATH_BASE`   | optional | (empty)                                                | Determines URL path base that service should be running on.                                                                                                                                                  |
-| **IoT Hub Configuration**                                                                |          |                                                        |                                                                                                                                                                                                              |
-| `IoTHubConnectionString`<br>`PCS_IOTHUB_CONNSTRING`<br>`_HUB_CS`                         | required | `null`                                                 | IoT hub connection string                                                                                                                                                                                    |
-| **Container Registry Configuration**                                                     |          |                                                        |                                                                                                                                                                                                              |
-| `Docker:Server`<br>`PCS_DOCKER_SERVER`                                                   | optional | `mcr.microsoft.com`                                    | URL of the server                                                                                                                                                                                            |
-| `Docker:User`<br>`PCS_DOCKER_USER`                                                       | optional | `null`                                                 | Username                                                                                                                                                                                                     |
-| `Docker:Password`<br>`PCS_DOCKER_PASSWORD`                                               | optional | `null`                                                 | Password                                                                                                                                                                                                     |
-| `Docker:ImagesNamespace`<br>`PCS_IMAGES_NAMESPACE`                                       | optional | (empty)                                                | The namespace of the images                                                                                                                                                                                  |
-| `Docker:ImagesTag`<br>`PCS_IMAGES_TAG`                                                   | optional | (current microservice version)                         | The tag of the images                                                                                                                                                                                        |
+The Web service has [dependencies](#dependencies) and operational [capabilities](#operations). A sample of using the API is provided in the form of the [Engineering Tool](#engineering-tool).
 
 ## Registry
 
-The role of the Registry Microservice is to manage entities and identities in IoT Hub. These include:
+The role of the Registry component is to enable managenment of entities and identities in IoT Hub. These include:
 
 * **Applications**. In OPC parlance, an "Application" can be a server or a client or both. It is also a grouping mechanism for Endpoints, i.e. Applications have Endpoints. An Application contains all server provided information, such as Discovery URLs, Application and Product URIs.
 
@@ -49,19 +26,12 @@ The role of the Registry Microservice is to manage entities and identities in Io
 
 * **Gateways.** The gateway is an IoT Edge runtime that hosts discovery modules, OPC Twin and OPC publisher modules, all of which have their IoT Edge Module identities managed in the registry as well:
 
-  * **Discoverers**. The discoverer identity is the Discovery modules's identity. A discoverer provides discovery, such as OPC UA and network scanning services.
-  * **Supervisors**. The supervisor identity is a OPC Twin module's identity. A supervisor manages "activated" endpoint identities.
-  * **Publishers**. The publisher identity is the OPC Publisher module's identity. A publisher is the host of multiple publish job workers.
+* **Publishers**. The publisher identity is the OPC Publisher module's identity. A publisher is the host of multiple publish job workers.
 
-You can update, read as well as **query** all of these identities' models in the Registry.
+> NOTE: In 2.9 the previous concepts of "Supervisor" and "Discoverer" have been subsumed by the "Publisher" concept.
 
-The following diagram shows the registry service in relationship to the other components.
-
-![architecture](./media/architecture.png)
-
-### Create and Delete Items in the registry
-
-You can also Create and Delete Application identities ("resources").  There are 2 ways applications are created:
+You can Read as well as **query** all of these identities' models in the Registry. 
+You can also create and delete Application identities ("resources").  There are 2 ways applications can be created:
 
 * By **POST**ing of an Application Model. In this case the application will not have endpoints associated. This is useful to register client applications or reflect servers registered in another system.
 
@@ -71,55 +41,17 @@ You can also Create and Delete Application identities ("resources").  There are 
   * a continuous (persistent) discovery job (configured in the discoverer identity twin), or
   * when registering applications via their OPC UA discovery Url.
 
-A **DELETE** of an application will deactivate and delete all associated endpoints.
+* By calling the **RegisterEndpoint** API to register an endpoint. If successful this will also add the application descriptor of the endpoint to the registry.
 
-### Update Entities
+A **DELETE** of an application will delete all associated endpoints. 
 
-The discoverer module's information comes in the form of a DiscovererModel document.  For example, the DiscovererModel contains the configuration for "recurring" discovery mode (i.e. constantly monitor and find added and removed servers on the network).  You can update the discovery mode using this mechanism API.
-
-To update an item, you must send a HTTP `PATCH` request containing the item's model (e.g. a `DiscovererModel`).
+To update items where supported, you must send a HTTP `PATCH` request containing the item's model (e.g. a `PublisherModel`).
 
 Values in the model that are set to *null* are not updated.  However, missing values in the incoming payload are de-serialized as *null*.  This means, to remove a value, you must explicitly set the value in the model to its *default*, e.g. an empty string, or 0, etc.
 
-### Activate and Deactivate Endpoints
+## Discovery
 
-After initial registration in the Registry (and thus Azure IoT Hub) server endpoint twins are by default deactivated.
-
-An operator must inspect an endpoint certificate and actively activate endpoints using the provided Activation API before they can be used.
-
-The Registry Microservice provides REST APIs to activate and deactivate endpoints.  Once activated you can interact with endpoint identities using the OPC Twin REST API.
-
-## OPC UA client services
-
-The following diagram shows the twin service in relationship to the other components.
-
-![architecture](../media/architecture.png)
-
-OPC Twin Microservice in cloud exposes a [REST API](../api/twin/readme.md) to call the following [OPC UA](../opcua.md) services on activated endpoints in an OPC Twin edge module.
-
-### Supported OPC UA Services
-
-* **Read** and **Write** a “Value” on a Variable node
-* **Call** a “Method Node”
-* **Read** and **Write** Node “Attributes
-* **History Read** and **Update** service calls to interact with Historians
-* **Batching** of any of the above calls.
-* **Browse** first / next (with and without reading the browsed target nodes)
-* Get **meta data** of methods (to display input arguments to a user)
-
-## Events
-
-The SignalR event service forwards ...
-
-* Registry update events (from ServiceBus Topics)
-* Discovery Progress (from ServiceBus Topics)
-* telemetry samples from the secondary Telemetry EventHub
-
-over SignalR to clients and thus provides a reactive UX experience.
-
-The secondary Telemetry EventHub receives processed and decoded edge telemetry messages from the OPC Publisher module (PubSub).  This is the same EventHub that Azure Time Series Insights (TSI) can connect to for historian query capability.
-
-The Onboarding processor service is used to process discovery events from the OPC Discovery module resulting from a discovery scan.  The onboarding service is an event processor host that consumes messages from the `onboarding` constumer group and creates a IoT Hub Device Twins for each server and server endpoint using the IoT Hub Device Twin Registry.  
+The discovery component provides access to the OPC Publisher discovery API. The discovery API enables active scanning of networks for OPC UA servers as well as calling the local discovery services of OPC UA. Results of discovery process are sent to IoT Hub and processed by the Web service. The Web service creates a IoT Hub Device Twins for each server and server endpoint using the IoT Hub Device Twin Registry.  
 
 This involves the following tasks:
 
@@ -130,7 +62,35 @@ This involves the following tasks:
 
 Applications and their endpoints that have not been found for a while can be purged using the [REST API](../api/readme.md).
 
-## Health checks
+## Twin
+
+OPC Twin component of the Web API provides a [REST API](../api/twin/readme.md) to call the following [OPC UA](../opcua.md) services using endpoint identifiers in the registry:
+
+* **Read** and **Write** a “Value” on a Variable node
+* **Call** a “Method Node”
+* **Read** and **Write** Node “Attributes
+* **History Read** and **Update** service calls to interact with Historians
+* **Batching** of any of the above calls.
+* **Browse** first / next (with and without reading the browsed target nodes)
+* Get **meta data** of methods (to display input arguments to a user)
+
+Before invoking any services you must inspect the endpoint certificate using the registry API. 
+
+> NOTE: After deleting of an endpoint in the registry access through the twin component is still possible for a while due to connection information caching. 
+
+## Events
+
+The SignalR event component of the Web Service forwards ...
+
+* Registry update events
+* Discovery Progress
+* telemetry samples
+
+over SignalR to subscribed clients and thus provides a reactive UX experience.
+
+## Operations
+
+### Health checks
 
 The OPC Publisher exposes port `8045` as a health check endpoint. The health checks include a liveness and a readiness probe, you can read more about them [here](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/).
 

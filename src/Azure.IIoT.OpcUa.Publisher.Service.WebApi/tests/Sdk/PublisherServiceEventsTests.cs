@@ -17,14 +17,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using Xunit;
     using Xunit.Abstractions;
 
-    public sealed class PublisherServiceEventsTests : IClassFixture<WebAppFixture>
+    public sealed class PublisherServiceEventsTests : IDisposable
     {
-        public PublisherServiceEventsTests(WebAppFixture factory, ITestOutputHelper output)
+        public PublisherServiceEventsTests(ITestOutputHelper output)
         {
-            _factory = factory;
+            _factory = new WebAppFixture();
             _output = output;
         }
 
+        public void Dispose()
+        {
+            _factory.Dispose();
+        }
+
+        private const int kTimeoutMillis = 10000;
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
 
@@ -56,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     Value = v
                 };
                 await bus.HandleSampleAsync(expected).ConfigureAwait(false);
-                await Task.WhenAny(result.Task, Task.Delay(30000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
                 Assert.True(result.Task.IsCompleted, $"Timed out with value: {v.ToJson()}");
                 var received = result.Task.Result;
@@ -110,7 +116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     await bus.HandleSampleAsync(expected).ConfigureAwait(false);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(10000)).ConfigureAwait(false);
+                await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
                 Assert.True(result.Task.IsCompleted, $"{counter} received instead of {total}");
             }
         }
