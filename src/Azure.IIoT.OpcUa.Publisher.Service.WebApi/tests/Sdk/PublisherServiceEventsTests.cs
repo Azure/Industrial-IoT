@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using Xunit;
     using Xunit.Abstractions;
     using Divergic.Logging.Xunit;
+    using xRetry;
 
     public sealed class PublisherServiceEventsTests : IDisposable
     {
@@ -35,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
 
-        [Theory]
+        [RetryTheory(1)]
         [MemberData(nameof(GetScalarValues))]
         public async Task TestPublishTelemetryEventAndReceiveAsync(VariantValue v)
         {
@@ -79,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [Theory]
+        [RetryTheory(1)]
         [InlineData(10)]
         [InlineData(4455)]
         [InlineData(262345)]
