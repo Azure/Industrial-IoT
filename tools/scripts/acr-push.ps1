@@ -1,26 +1,18 @@
 <#
  .SYNOPSIS
-    Build and push containers to Azure container registry
+    Push multi arch containers to Azure container registry
 
  .DESCRIPTION
     The script requires az to be installed and already logged on to a 
-    tenant.  This means it should be run in a azcliv2 task in the
+    tenant. This means it should be run in a azcliv2 task in the
     azure pipeline or "az login" must have been performed already.
 
  .PARAMETER Registry
     The name of the registry
  .PARAMETER Subscription
     The subscription to use - otherwise uses default
-
- .PARAMETER Os
-    Operating system to build for. Defaults to Linux
- .PARAMETER Arch
-    Architecture to build. Defaults to x64
  .PARAMETER ImageNamespace
     The namespace to use for the image inside the registry.
-
- .PARAMETER NoBuid
-    Whether to build before publishing.
  .PARAMETER Debug
     Whether to build Release or Debug - default to Release.  
 #>
@@ -28,10 +20,7 @@
 Param(
     [string] $Registry = $null,
     [string] $Subscription = $null,
-    [string] $Os = "linux",
-    [string] $Arch = "x64",
     [string] $ImageNamespace = $null,
-    [switch] $NoBuild,
     [switch] $Debug
 )
 
@@ -73,22 +62,11 @@ $user = $credentials.username
 $password = $credentials.passwords[0].value
 Write-Debug "Using User name $($user) and passsword ****"
 
-$argumentList = @(
-    "acr", "login",
-    "--name", $Registry,
-    "--username", $user,
-    "--password", $password
-)
-# log into acr to push
-(& az $argumentList) | Out-Host
-
-Write-Host "Build and push images..."
+Write-Host "Build and push manifest lists..."
 # Build the docker images and push them to acr
-& (Join-Path $PSScriptRoot "build.ps1") -Registry "$($Registry).azurecr.io" `
-    -Debug:$script:Debug -NoBuild:$script:NoBuild `
-    -ImageNamespace $script:ImageNamespace -Os $script:Os -Arch $script:Arch `
+& (Join-Path $PSScriptRoot "manifest.ps1") -Registry "$($Registry).azurecr.io" `
+    -Debug:$script:Debug -User $user -Pw $password `
+    -ImageNamespace $script:ImageNamespace `
     -Push
 
-# Logout
-docker logout "$($Registry).azurecr.io"
-Write-Host "Images pushed."
+Write-Host "Manifests pushed."

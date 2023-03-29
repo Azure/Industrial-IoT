@@ -4,16 +4,18 @@
     <TargetFramework>net7.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ServerGarbageCollection>true</ServerGarbageCollection>
-    <RootNamespace>Azure.IIoT.OpcUa.Publisher.Module</RootNamespace>
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
   </PropertyGroup>
   <PropertyGroup>
     <PublishProfile>DefaultContainer</PublishProfile>
     <ContainerImageName>iotedge/opc-publisher</ContainerImageName>
-    <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
-    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0-alpine-amd64</ContainerBaseImage>
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0-alpine</ContainerBaseImage>
   </PropertyGroup>
   <ItemGroup>
-    <ContainerPort Include="9702" Type="tcp" />
+    <ContainerPort Include="80" Type="tcp" />
+    <ContainerPort Include="443" Type="tcp" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectCapability Include="AzureIoTEdgeModule" />
   </ItemGroup>
   <ItemGroup>

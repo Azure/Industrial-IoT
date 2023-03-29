@@ -4,12 +4,12 @@
     <TargetFramework>net7.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ServerGarbageCollection>true</ServerGarbageCollection>
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
   </PropertyGroup>
   <PropertyGroup>
     <PublishProfile>DefaultContainer</PublishProfile>
     <ContainerImageName>iot/opc-publisher-service</ContainerImageName>
-    <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
-    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0-alpine-amd64</ContainerBaseImage>
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0-alpine</ContainerBaseImage>
   </PropertyGroup>
   <ItemGroup>
     <ContainerPort Include="9045" Type="tcp" />

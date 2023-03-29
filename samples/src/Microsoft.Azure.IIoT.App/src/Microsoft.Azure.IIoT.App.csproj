@@ -1,7 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
   </PropertyGroup>
+  <PropertyGroup>
+    <PublishProfile>DefaultContainer</PublishProfile>
+    <ContainerImageName>iot/industrial-iot-frontend</ContainerImageName>
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0-alpine</ContainerBaseImage>
+  </PropertyGroup>
+  <ItemGroup>
+    <ContainerPort Include="80" Type="tcp" />
+    <ContainerPort Include="443" Type="tcp" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.21" />
     <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.27" />

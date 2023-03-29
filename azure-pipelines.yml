@@ -13,13 +13,10 @@ trigger:
     - dev/*
     - release/*
 
-variables:
-  iaiStorageAccount: azureiiot
-  iaiStorageAccountSubscription: azureiiotbak-storage
-
 stages:
 - stage: build
   displayName: 'Build and Test Code'
+  condition: ne(variables['SkipBuild'], true)
   jobs:
   - template: tools/templates/ci.yml
   - template: tools/templates/sdl.yml

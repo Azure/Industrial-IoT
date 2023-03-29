@@ -47,7 +47,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             const string LegacyCompatibility = "LegacyCompatibility";
 
             // command line options
-            var options = new Mono.Options.OptionSet {
+            var options = new Mono.Options.OptionSet(s => { Console.WriteLine(s); return s; })
+            {
                 "",
                 "General",
                 "-------",
@@ -148,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "Specify this to enable the OPC Publisher REST api.\n.Default: `disabled`.\n",
                     (bool? b) => this[Configuration.Kestrel.EnableHttpServerKey] = b?.ToString() ?? "True" },
                 { $"p|httpserverport=|{Configuration.Kestrel.HttpServerPortKey}=",
-                    $"The port on which the REST api of OPC Publisher is is listening. Implicitly enables the http server and REST api capabilities.\nDefault: `not set` if https is not enabled, otherwise `{Configuration.Kestrel.HttpsPortDefault}` if no value is provided.\n",
+                    $"The port on which the http server of OPC Publisher is listening. Implicitly enables the http server and REST api capabilities.\nDefault: `not set` if https is not enabled, otherwise `{Configuration.Kestrel.HttpsPortDefault}` if no value is provided.\n",
                     p => this[Configuration.Kestrel.HttpServerPortKey] = p },
                     { $"unsecurehttp:|{Configuration.Kestrel.UnsecureHttpServerPortKey}:",
                         $"Allow unsecure access to the REST api of OPC Publisher. A port can be specified if the default port {Configuration.Kestrel.HttpPortDefault} is not desired.\nDo not enable this in production as it exposes the Api Key on the network.\nDefault: `disabled`, if specified without a port `{Configuration.Kestrel.HttpPortDefault}` port is used.\n",
