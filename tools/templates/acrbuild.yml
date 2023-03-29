@@ -38,17 +38,12 @@ jobs:
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/set-namespace.ps1
-  - task: PowerShell@2
+  - task: AzureCLI@1
     displayName: Build
     inputs:
       azureSubscription: azureiiot
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: ./tools/scripts/acr-build.ps1
-      scriptArguments: >
-        -ImageNamespace "$(ImageNamespace)"
-        -Arch "$(arch)"
-        -Os "$(os)"
+      scriptLocation: inlineScript
+      inlineScript: powershell ./tools/scripts/acr-build.ps1 -ImageNamespace "$(ImageNamespace)" -Arch "$(arch)" -Os "$(os)"
 - job: manifest
   displayName: Push Manifests
   pool:
@@ -68,9 +63,7 @@ jobs:
     displayName: Push Manifests
     inputs:
       azureSubscription: azureiiot
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: ./tools/scripts/acr-push.ps1
-      scriptArguments: >
-        -ImageNamespace "$(ImageNamespace)"
+      scriptLocation: inlineScript
+      inlineScript: powershell ./tools/scripts/acr-push.ps1 -ImageNamespace "$(ImageNamespace)"
+
       
