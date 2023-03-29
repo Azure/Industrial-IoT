@@ -21,3 +21,7 @@ Write-Host "Setting version build variables:"
 Write-Host "##vso[task.setvariable variable=Version_Full;isOutput=true]$($version.Full)"
 Write-Host "##vso[task.setvariable variable=Version_Prefix;isOutput=true]$($version.Prefix)"
 Write-Host "##vso[task.setvariable variable=Version_Prerelease;isOutput=true]$($version.Prerelease)"
+
+Write-Host "Version_Full=$($version.Full)"
+Write-Host "Version_Prefix;=$($version.Prefix)"
+Write-Host "Version_Prerelease=$($version.Prerelease)"

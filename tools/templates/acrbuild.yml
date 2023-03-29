@@ -21,11 +21,6 @@ jobs:
         os: linux
         arch: x64
   steps:
-  - task: PowerShell@2
-    displayName: Versioning
-    inputs:
-      targetType: filePath
-      filePath: ./tools/scripts/set-version.ps1
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
     inputs:
@@ -33,6 +28,11 @@ jobs:
       version: 7.0.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: PowerShell@2
+    displayName: Versioning
+    inputs:
+      targetType: filePath
+      filePath: ./tools/scripts/set-version.ps1
   - task: PowerShell@2
     displayName: Set Namespace
     inputs:
@@ -59,6 +59,18 @@ jobs:
     skipComponentGovernanceDetection: true
     runCodesignValidationInjection: false
   steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      packageType: sdk
+      version: 7.0.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: PowerShell@2
+    displayName: Versioning
+    inputs:
+      targetType: filePath
+      filePath: ./tools/scripts/set-version.ps1
   - task: PowerShell@2
     displayName: Set Namespace
     inputs:
