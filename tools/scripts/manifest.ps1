@@ -11,7 +11,7 @@
  .PARAMETER ImageNamespace
     The namespace to use for the image inside the registry.
  .PARAMETER Tag
-    Tag to publish under. Defaults to version or "latest"
+    Tag to publish under. Defaults to "latest"
  .PARAMETER Debug
     Whether to build Release or Debug - default to Release.  
 #>
@@ -21,25 +21,16 @@ Param(
     [string] $User = $null,
     [string] $Pw = $null,
     [string] $ImageNamespace = $null,
-    [string] $Tag = $null,
+    [string] $Tag = "latest",
     [switch] $Debug
 )
+$ErrorActionPreference = "Stop"
 
 $platforms = @{
     "linux" = @( "x64", "arm", "arm64")
 }
 
 $Path = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "Industrial-IoT.sln"
-
-if ([string]::IsNullOrEmpty($script:Tag)) {
-    try {
-        $version = & (Join-Path $PSScriptRoot "get-version.ps1")
-        $script:Tag = $version.Prefix
-    }
-    catch {
-        $script:Tag = "latest"
-    }
-}
 
 # Build manifest using the manifest tool
 $manifestFile = New-TemporaryFile

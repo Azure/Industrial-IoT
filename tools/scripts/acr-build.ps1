@@ -18,6 +18,8 @@
     Architecture to build. Defaults to x64
  .PARAMETER ImageNamespace
     The namespace to use for the image inside the registry.
+ .PARAMETER Tag
+    Tag to publish under. Defaults to "latest"
 
  .PARAMETER NoBuid
     Whether to build before publishing.
@@ -31,9 +33,11 @@ Param(
     [string] $Os = "linux",
     [string] $Arch = "x64",
     [string] $ImageNamespace = $null,
+    [string] $Tag = "latest",
     [switch] $NoBuild,
     [switch] $Debug
 )
+$ErrorActionPreference = "Stop"
 
 if ([string]::IsNullOrEmpty($Registry)) {
     $Registry = $env.BUILD_REGISTRY
@@ -86,7 +90,8 @@ Write-Host "Build and push images..."
 # Build the docker images and push them to acr
 & (Join-Path $PSScriptRoot "build.ps1") -Registry "$($Registry).azurecr.io" `
     -Debug:$script:Debug -NoBuild:$script:NoBuild `
-    -ImageNamespace $script:ImageNamespace -Os $script:Os -Arch $script:Arch `
+    -ImageNamespace $script:ImageNamespace -Tag $script:Tag `
+    -Os $script:Os -Arch $script:Arch `
     -Push
 
 # Logout

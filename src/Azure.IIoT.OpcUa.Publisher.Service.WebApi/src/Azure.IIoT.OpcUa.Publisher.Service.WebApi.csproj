@@ -9,7 +9,7 @@
   <PropertyGroup>
     <PublishProfile>DefaultContainer</PublishProfile>
     <ContainerImageName>iot/opc-publisher-service</ContainerImageName>
-    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0-alpine</ContainerBaseImage>
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0</ContainerBaseImage>
   </PropertyGroup>
   <ItemGroup>
     <ContainerPort Include="9045" Type="tcp" />
@@ -36,6 +36,5 @@
   </ItemGroup>
   <ItemGroup>
     <Content Remove="container.json" />
-    <None Include="container.json" />
   </ItemGroup>
 </Project>

@@ -13,6 +13,9 @@
     The subscription to use - otherwise uses default
  .PARAMETER ImageNamespace
     The namespace to use for the image inside the registry.
+ .PARAMETER Tag
+    Tag to publish under. Defaults to "latest"
+
  .PARAMETER Debug
     Whether to build Release or Debug - default to Release.  
 #>
@@ -21,8 +24,10 @@ Param(
     [string] $Registry = $null,
     [string] $Subscription = $null,
     [string] $ImageNamespace = $null,
+    [string] $Tag = "latest",
     [switch] $Debug
 )
+$ErrorActionPreference = "Stop"
 
 if ([string]::IsNullOrEmpty($Registry)) {
     $Registry = $env.BUILD_REGISTRY
@@ -66,7 +71,7 @@ Write-Host "Build and push manifest lists..."
 # Build the docker images and push them to acr
 & (Join-Path $PSScriptRoot "manifest.ps1") -Registry "$($Registry).azurecr.io" `
     -Debug:$script:Debug -User $user -Pw $password `
-    -ImageNamespace $script:ImageNamespace `
+    -ImageNamespace $script:ImageNamespace -Tag $script:Tag `
     -Push
 
 Write-Host "Manifests pushed."

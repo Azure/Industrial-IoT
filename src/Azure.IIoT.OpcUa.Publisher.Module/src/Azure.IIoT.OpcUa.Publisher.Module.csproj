@@ -9,7 +9,7 @@
   <PropertyGroup>
     <PublishProfile>DefaultContainer</PublishProfile>
     <ContainerImageName>iotedge/opc-publisher</ContainerImageName>
-    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0-alpine</ContainerBaseImage>
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0</ContainerBaseImage>
   </PropertyGroup>
   <ItemGroup>
     <ContainerPort Include="80" Type="tcp" />

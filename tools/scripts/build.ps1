@@ -14,7 +14,7 @@
  .PARAMETER Arch
     Architecture to build. Defaults to x64
  .PARAMETER Tag
-    Tag to publish under. Defaults to version or "latest"
+    Tag to publish under. Defaults "latest"
 
  .PARAMETER NoBuid
     Whether to build before publishing.
@@ -28,34 +28,18 @@ Param(
     [string] $ImageNamespace = $null,
     [string] $Os = "linux",
     [string] $Arch = "x64",
-    [string] $Tag = $null,
+    [string] $Tag = "latest",
     [switch] $NoBuild,
     [switch] $Debug
 )
+
+$ErrorActionPreference = "Stop"
 
 $Path = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "Industrial-IoT.sln"
 
 $configuration = "Release"
 if ($script:Debug.IsPresent) {
     $configuration = "Debug"
-}
-
-if ([string]::IsNullOrEmpty($script:Tag)) {
-    try {
-        $version = & (Join-Path $PSScriptRoot "get-version.ps1")
-        $script:Tag = $version.Prefix
-    }
-    catch {
-        $script:Tag = "latest"
-    }
-}
-
-$runtimes = @{
-    "linux" = @{
-        "arm" = "linux-musl-arm"
-        "arm64" = "linux-musl-arm64"
-        "x64" = "linux-musl-x64"
-    }
 }
 
 # Find all container projects, publish them and then push to container registry
@@ -84,11 +68,35 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         if ($script:NoBuild) {
             $extra += "--no-build"
         }
+        
+        $baseImage = "$($properties.ContainerBaseImage)"
+        if ($os -eq "linux") {
+            $architecture = $arch
+            if ($architecture -eq "x64"){
+                $architecture = "amd64"
+            }
+
+            # repoint to alpine images for all builds
+            # https://github.com/dotnet/sdk-container-builds/blob/main/docs/ContainerCustomization.md
+            if ($baseImage -like "*-alpine") {
+                $baseImage = "$($baseImage)-$($architecture)"
+            }
+            else {
+                $baseImage = "$($baseImage)-alpine-$($architecture)"
+            }
+            $runtimeId = "$($os)-musl-$($arch)"
+        }
+        else {
+            if ($os -eq "windows") {
+                $runtimeId = "win10"
+            }
+            $runtimeId = "portable"
+        }
+
         # add -r to select musl runtime?
-        dotnet publish $projFile.FullName -c $configuration `
-            --os $script:Os --arch $script:Arch `
-            /p:TargetLatestRuntimePatch=true `
-            /p:ContainerImageName=$fullName `
+        dotnet publish $projFile.FullName -c $configuration --self-contained `
+            -r $runtimeId /p:TargetLatestRuntimePatch=true `
+            /p:ContainerImageName=$fullName /p:ContainerBaseImage=$baseImage `
             /p:ContainerImageTag=$fullTag `
             /t:PublishContainer $extra
 

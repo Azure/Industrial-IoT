@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             const string LegacyCompatibility = "LegacyCompatibility";
 
             // command line options
-            var options = new Mono.Options.OptionSet(s => { Console.WriteLine(s); return s; })
+            var options = new Mono.Options.OptionSet
             {
                 "",
                 "General",
