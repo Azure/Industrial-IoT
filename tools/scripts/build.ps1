@@ -61,7 +61,6 @@ $runtimes = @{
 # Find all container projects, publish them and then push to container registry
 Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
     $projFile = $_
-    Write-Host "Check $($projFile.FullName)..."
     $properties = ([xml] (Get-Content -Path $projFile.FullName)).Project.PropertyGroup `
         | Where-Object { ![string]::IsNullOrWhiteSpace($_.ContainerImageName) } `
         | Select-Object -First 1
