@@ -52,7 +52,7 @@ jobs:
 - job: manifest
   displayName: Push Manifests
   pool:
-    vmImage: 'ubuntu-latest'
+    vmImage: 'windows-latest'
   dependsOn: containers
   variables:
     skipComponentGovernanceDetection: true
