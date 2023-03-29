@@ -42,7 +42,6 @@ jobs:
     displayName: Build
     inputs:
       azureSubscription: azureiiot
-      azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
       scriptType: filePath
       scriptPath: ./tools/scripts/acr-build.ps1
@@ -69,7 +68,6 @@ jobs:
     displayName: Push Manifests
     inputs:
       azureSubscription: azureiiot
-      azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
       scriptType: filePath
       scriptPath: ./tools/scripts/acr-push.ps1
