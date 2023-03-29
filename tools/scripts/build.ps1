@@ -72,8 +72,15 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         $baseImage = "$($properties.ContainerBaseImage)"
         if ($os -eq "linux") {
             $architecture = $arch
-            if ($architecture -eq "x64"){
+            # see architecture tags e.g., here https://hub.docker.com/_/microsoft-dotnet-aspnet
+            if ($arch -eq "x64"){
                 $architecture = "amd64"
+            }
+            if ($arch -eq "arm64") {
+                $architecture = "arm64v8"
+            }
+            if ($arch -eq "arm") {
+                $architecture = "arm32v7"
             }
 
             # repoint to alpine images for all builds
