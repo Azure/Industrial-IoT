@@ -5,7 +5,7 @@ jobs:
 - job: containers
   displayName: Build Images
   pool:
-    name: 'windows-latest'
+    vmImage: 'windows-latest'
   variables:
     skipComponentGovernanceDetection: true
     runCodesignValidationInjection: false
@@ -52,7 +52,7 @@ jobs:
 - job: manifest
   displayName: Push Manifests
   pool:
-    name: 'windows-latest'
+    vmImage: 'windows-latest'
   dependsOn: containers
   variables:
     skipComponentGovernanceDetection: true
