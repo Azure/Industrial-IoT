@@ -25,7 +25,7 @@ jobs:
     displayName: Versioning
     inputs:
       targetType: filePath
-      filePath: '$(BasePath)/../scripts/set-version.ps1'
+      filePath: '$(BasePath)\..\scripts\set-version.ps1'
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
     inputs:
@@ -37,14 +37,14 @@ jobs:
     displayName: Set Namespace
     inputs:
       targetType: filePath
-      filePath: '$(BasePath)/../scripts/set-namespace.ps1'
+      filePath: '$(BasePath)\..\scripts\set-namespace.ps1'
   - task: AzureCLI@1
     displayName: Build
     inputs:
       azureSubscription: azureiiot
       azurePowerShellVersion: 'latestVersion'
       scriptType: 'ps'
-      scriptPath: '$(BasePath)/../scripts/acr-build.ps1'
+      scriptPath: '$(BasePath)\..\scripts\acr-build.ps1'
       arguments: >
         -ImageNamespace "$(ImageNamespace)"
         -Arch "$(arch)" 
@@ -62,7 +62,7 @@ jobs:
     displayName: Set Namespace
     inputs:
       targetType: filePath
-      filePath: '$(BasePath)/../scripts/set-namespace.ps1'
+      filePath: '$(BasePath)\..\scripts\set-namespace.ps1'
   - task: AzureCLI@1
     name: Push
     displayName: Push Manifests
@@ -70,7 +70,7 @@ jobs:
       azureSubscription: azureiiot
       azurePowerShellVersion: 'latestVersion'
       scriptType: 'ps'
-      scriptPath: '$(BasePath)/../scripts/acr-push.ps1'
+      scriptPath: '$(BasePath)\..\scripts\acr-push.ps1'
       arguments: >
         -ImageNamespace "$(ImageNamespace)"
       
