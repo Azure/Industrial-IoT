@@ -1689,7 +1689,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _lock = readerLock;
                 _activity = Diagnostics.Activity.StartActivity(activity);
 
-                if (opcUaClient._logger.IsEnabled(LogLevel.Information))
+                if (opcUaClient._logger.IsEnabled(LogLevel.Debug))
                 {
                     _logScope = new LogScope(activity, Stopwatch.StartNew(),
                         opcUaClient._logger);
@@ -1706,7 +1706,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (_logScope != null)
                 {
-                    _logScope.logger.LogInformation(
+                    _logScope.logger.LogDebug(
                         "Session activity {Activity} completed in {Elapsed}.",
                         _logScope.name, _logScope.sw.Elapsed);
                 }

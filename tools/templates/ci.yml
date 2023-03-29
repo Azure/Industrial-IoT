@@ -49,11 +49,6 @@ jobs:
     inputs:
       command: build
       projects: '$(file)'
-      arguments: '--configuration Release'
-  - task: DotNetCoreCLI@2
-    displayName: 'Publish Release'
-    inputs:
-      command: 'publish'
       arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/$(agent)_Release'
   - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
     displayName: 'Software BOM'
@@ -68,11 +63,6 @@ jobs:
     inputs:
       command: build
       projects: '$(file)'
-      arguments: '--configuration Debug'
-  - task: DotNetCoreCLI@2
-    displayName: 'Publish Debug'
-    inputs:
-      command: 'publish'
       arguments: '--configuration Debug --output $(Build.ArtifactStagingDirectory)/$(agent)_Debug'
   - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
     displayName: 'Software BOM'

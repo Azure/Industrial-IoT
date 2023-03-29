@@ -27,8 +27,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
         {
             return new ReadScalarValueTests<ConnectionModel>(
                 () => new NodeServices<ConnectionModel>(_server.Client,
-                    _output.BuildLoggerFor<NodeServices<ConnectionModel>>()), _server.GetConnection(),
-                (ep, n, s) => _server.Client.ReadValueAsync(ep, n, s));
+                    _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level)),
+                _server.GetConnection(), (ep, n, s) => _server.Client.ReadValueAsync(ep, n, s));
         }
 
         private readonly TestDataServer _server;

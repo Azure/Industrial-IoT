@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         public PublisherConfigServicesTests(ITestOutputHelper output)
         {
             _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
-            _loggerFactory = LogFactory.Create(output);
+            _loggerFactory = LogFactory.Create(output, Logging.Config);
 
             var clientConfigMock = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
 

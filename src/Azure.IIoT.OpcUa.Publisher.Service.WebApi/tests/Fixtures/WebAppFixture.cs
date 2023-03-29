@@ -112,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
 
             builder.ConfigureServices(services => services.AddLogging());
             builder.AddOptions();
-            builder.RegisterInstance(LogFactory.Create(output))
+            builder.RegisterInstance(LogFactory.Create(output, Logging.Config))
                 .AsImplementedInterfaces();
 
             // Add API

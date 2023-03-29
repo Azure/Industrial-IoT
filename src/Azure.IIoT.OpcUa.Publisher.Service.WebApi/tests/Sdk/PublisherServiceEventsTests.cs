@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     {
         public PublisherServiceEventsTests(ITestOutputHelper output)
         {
-            _factory = WebAppFixture.Create(LogFactory.Create(output));
+            _factory = WebAppFixture.Create(LogFactory.Create(output, Logging.Config));
             _output = output;
         }
 

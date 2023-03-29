@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.Plc
         {
             return new PlcModelComplexTypeTests<ConnectionModel>(_server,
                 () => new NodeServices<ConnectionModel>(_server.Client,
-                    _output.BuildLoggerFor<NodeServices<ConnectionModel>>()),
+                    _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level)),
                 _server.GetConnection());
         }
 

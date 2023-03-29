@@ -49,7 +49,7 @@ namespace TestData
                 _updateTimer.Dispose();
                 _updateTimer = null;
             }
-    }
+        }
 
         /// <summary>
         /// Creates a new record in the archive.

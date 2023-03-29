@@ -317,7 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             builder.ConfigureServices(services => services.AddLogging());
             builder.AddOptions();
-            builder.RegisterInstance(LogFactory.Create(output))
+            builder.RegisterInstance(LogFactory.Create(output, Logging.Config))
                 .AsImplementedInterfaces();
 
             // Add API

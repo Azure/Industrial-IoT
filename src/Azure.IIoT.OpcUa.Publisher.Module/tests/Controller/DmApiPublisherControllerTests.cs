@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public DmApiPublisherControllerTests(ITestOutputHelper output)
         {
             _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
-            _loggerFactory = LogFactory.Create(output);
+            _loggerFactory = LogFactory.Create(output, Logging.Config);
 
             _options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             _options.Value.PublishedNodesFile = _tempFile;
