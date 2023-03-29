@@ -74,4 +74,7 @@ Write-Host "Build and push manifest lists..."
     -ImageNamespace $script:ImageNamespace -Tag $script:Tag `
     -Push
 
+if ($LastExitCode -ne 0) {
+    throw "Failed to publish manifest."
+}
 Write-Host "Manifests pushed."

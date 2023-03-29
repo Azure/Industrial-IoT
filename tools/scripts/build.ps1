@@ -106,9 +106,14 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
             /p:ContainerImageName=$fullName /p:ContainerBaseImage=$baseImage `
             /p:ContainerImageTag=$fullTag `
             /t:PublishContainer $extra
-
+        if ($LastExitCode -ne 0) {
+            throw "Failed to publish container."
+        }
         if ($script:Registry -and $script:Push.IsPresent) {
             docker push "$($fullName):$($fullTag)"
+            if ($LastExitCode -ne 0) {
+                throw "Failed to push container image."
+            }
         }
         Write-Host "$($fullName):$($fullTag) published."
     }

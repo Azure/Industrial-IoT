@@ -93,7 +93,9 @@ Write-Host "Build and push images..."
     -ImageNamespace $script:ImageNamespace -Tag $script:Tag `
     -Os $script:Os -Arch $script:Arch `
     -Push
-
+if ($LastExitCode -ne 0) {
+    throw "Failed to publish container."
+}
 # Logout
 docker logout "$($Registry).azurecr.io"
 Write-Host "Images pushed."
