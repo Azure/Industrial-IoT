@@ -447,7 +447,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     var sessionTimeout = SessionTimeout ?? TimeSpan.FromSeconds(30);
                     var session = await Session.Create(_configuration, endpoint,
-                        false, false, _sessionName, (uint)sessionTimeout.TotalMilliseconds,
+                        updateBeforeConnect: true, // Udpate endpoint through discovery
+                        checkDomain: false, // Domain must match on connect
+                        _sessionName,
+                        (uint)sessionTimeout.TotalMilliseconds,
                         userIdentity, preferredLocales).ConfigureAwait(false);
 
                     // Assign the created session
@@ -456,14 +459,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "New Session {Name} created with endpoint {EndpointUrl} ({Original}).",
                         _sessionName, endpointUrl, _connection.Endpoint.Url);
 
-                    _limits = await FetchOperationLimitsAsync(new RequestHeader(), default).ConfigureAwait(false);
+                    _limits = await FetchOperationLimitsAsync(new RequestHeader(),
+                        default).ConfigureAwait(false);
 
                     // Try and load type system - does not throw but logs error
                     Debug.Assert(_complexTypeSystem != null);
                     await _complexTypeSystem.ConfigureAwait(false);
                     NumberOfConnectRetries++;
 
-                    _logger.LogInformation("--- SESSION {Name} CONNECTED ---", _sessionName);
+                    _logger.LogInformation("--- SESSION {Name} CONNECTED to {EndpointUrl}---",
+                        _sessionName, endpointUrl);
                     return true;
                 }
                 catch (Exception ex)
