@@ -47,7 +47,7 @@ jobs:
       scriptPath: ./tools/scripts/acr-publish.ps1
       arguments: >
         -ImageNamespace "$(ImageNamespace)"
-        -Tag "$(Version_Prefix)"
+        -ImageTag "$(Version_Prefix)"
         -Arch "$(arch)" 
         -Os "$(os)"
 - job: manifest
@@ -85,7 +85,7 @@ jobs:
       scriptType: 'ps'
       scriptPath: ./tools/scripts/acr-build.ps1
       arguments: >
-        -Tag "$(Version_Prefix)"
+        -ImageTag "$(Version_Prefix)"
         -ImageNamespace "$(ImageNamespace)"
         -NoBuild
       
