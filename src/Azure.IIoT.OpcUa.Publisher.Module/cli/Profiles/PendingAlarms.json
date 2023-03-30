@@ -1,7 +1,7 @@
 ﻿[
     {
         "EndpointUrl": "opc.tcp://localhost:{{Port}}/UA/SampleServer",
-        "UseSecurity": false,
+        "UseSecurity": true,
         "OpcNodes": [
             {
                 "DisplayName": "PendingAlarms",

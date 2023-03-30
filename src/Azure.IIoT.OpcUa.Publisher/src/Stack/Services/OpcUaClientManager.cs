@@ -346,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             var timer = new PeriodicTimer(period);
             _logger.LogDebug("Client manager starting...");
-            while (ct.IsCancellationRequested)
+            while (!ct.IsCancellationRequested)
             {
                 if (!await timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
                 {
@@ -427,7 +427,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="e"></param>
         private void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e)
         {
-            if (e.Accept)
+            if (e.Accept || e.AcceptAll)
             {
                 return;
             }
@@ -439,18 +439,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogWarning("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
                         "due to AutoAccept(UntrustedCertificates) set!",
                         e.Certificate.Thumbprint, e.Certificate.Subject);
+                    e.AcceptAll = true;
                     e.Accept = true;
                 }
 
                 // Validate thumbprint
-                if (e.Certificate.RawData != null && !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint) &&
+                else if (e.Certificate.RawData != null && !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint) &&
                     _clients.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
                     e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate))
                 {
                     e.Accept = true;
 
                     _logger.LogInformation("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
-                        "since it was specified in the endpoint!",
+                        "since the same thumbprint was specified in the connection!",
                         e.Certificate.Thumbprint, e.Certificate.Subject);
 
                     // add the certificate to trusted store
