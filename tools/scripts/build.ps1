@@ -1,120 +1,182 @@
 <#
  .SYNOPSIS
-    Builds csproj files with container support into docker images
+    Builds a manifest list from images produced as part of 
+    a full build of all csproj files. A full build includes
+    building linux-arm, linux-arm64, linux-x64, etc.
 
  .PARAMETER Registry
     The name of the container registry to push to (optional)
- .PARAMETER Push
-    Whether to push the image to the registry
+ .PARAMETER User
+    The user name to use when pushing.
+ .PARAMETER Pw
+    The password used when pushing.
  .PARAMETER ImageNamespace
     The namespace to use for the image inside the registry.
+ .PARAMETER ImageTag
+    Image tags to combine into manifest. Defaults to "latest"
+ .PARAMETER PublishTags
+    Comma seperated tags to publish. Defaults to Tag
 
- .PARAMETER Os
-    Operating system to build for. Defaults to Linux
- .PARAMETER Arch
-    Architecture to build. Defaults to x64
- .PARAMETER Tag
-    Tag to publish under. Defaults "latest"
-
- .PARAMETER NoBuid
-    Whether to build before publishing.
  .PARAMETER Debug
     Whether to build Release or Debug - default to Release.  
+ .PARAMETER NoBuid
+    If set does not build but just packages the images into a 
+    manifest list
 #>
 
 Param(
     [string] $Registry = $null,
-    [switch] $Push,
+    [string] $User = $null,
+    [string] $Pw = $null,
     [string] $ImageNamespace = $null,
-    [string] $Os = "linux",
-    [string] $Arch = "x64",
-    [string] $Tag = "latest",
-    [switch] $NoBuild,
-    [switch] $Debug
+    [string] $ImageTag = "latest",
+    [string] $PublishTags = $null,
+    [switch] $Debug,
+    [switch] $NoBuild
 )
 
 $ErrorActionPreference = "Stop"
 
-$Path = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "Industrial-IoT.sln"
-
-$configuration = "Release"
-if ($script:Debug.IsPresent) {
-    $configuration = "Debug"
+if (!$script:PublishTags) {
+    $script:PublishTags = "latest"
+    if ($script:ImageTag -ne "latest") {
+        $script:PublishTags = "$($script:PublishTags),$($script:ImageTag)"
+    }
+}
+$platforms = @{
+    "linux" = @( "x64", "arm", "arm64")
 }
 
-# Find all container projects, publish them and then push to container registry
-Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
-    $projFile = $_
-    $properties = ([xml] (Get-Content -Path $projFile.FullName)).Project.PropertyGroup `
-        | Where-Object { ![string]::IsNullOrWhiteSpace($_.ContainerImageName) } `
-        | Select-Object -First 1
-    if ($properties) {
-        $fullName = ""
-        if ($script:Registry) {
-            $fullName = "$($script:Registry)/"
-        }
-        if ($script:ImageNamespace) {
-            $fullName = "$($fullName)$($script:ImageNamespace)/"
-        }
-        $fullName = "$($fullName)$($properties.ContainerImageName)"
+$Path = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "Industrial-IoT.sln"
 
-        $fullTag = "$($script:Tag)-$($script:Os)-$($script:Arch)"
-        if ($script:Debug.IsPresent) {
-            $fullTag = "$($fullTag)-debug"
-        }
+# Build manifest using the manifest tool
+$manifestFile = New-TemporaryFile
+$url = "https://github.com/estesp/manifest-tool/releases/download/v1.0.0/"
+if ($env:OS -eq "windows_nt") {
+    $manifestTool = "manifest-tool-windows-amd64.exe"
+}
+else {
+    $manifestTool = "manifest-tool-linux-amd64"
+}
+$manifestToolPath = Join-Path $PSScriptRoot $manifestTool
+while ($true) {
+    try {
+        # Download and verify manifest tool
+        $wc = New-Object System.Net.WebClient
+        $url += $manifestTool
+        Write-Host "Downloading $($manifestTool)..."
+        $wc.DownloadFile($url, $manifestToolPath)
 
-        Write-Host "Publish $($projFile.FullName) as $($fullName):$($fullTag)..."
-        $extra = @()
-        if ($script:NoBuild) {
-            $extra += "--no-build"
+        if (Test-Path $manifestToolPath) {
+            break
         }
-        
-        $baseImage = "$($properties.ContainerBaseImage)"
-        if ($os -eq "linux") {
-            $architecture = $arch
-            # see architecture tags e.g., here https://hub.docker.com/_/microsoft-dotnet-aspnet
-            if ($arch -eq "x64"){
-                $architecture = "amd64"
-            }
-            if ($arch -eq "arm64") {
-                $architecture = "arm64v8"
-            }
-            if ($arch -eq "arm") {
-                $architecture = "arm32v7"
-            }
-
-            # repoint to alpine images for all builds
-            # https://github.com/dotnet/sdk-container-builds/blob/main/docs/ContainerCustomization.md
-            if ($baseImage -like "*-alpine") {
-                $baseImage = "$($baseImage)-$($architecture)"
-            }
-            else {
-                $baseImage = "$($baseImage)-alpine-$($architecture)"
-            }
-            $runtimeId = "$($os)-musl-$($arch)"
-        }
-        else {
-            if ($os -eq "windows") {
-                $runtimeId = "win10"
-            }
-            $runtimeId = "portable"
-        }
-
-        # add -r to select musl runtime?
-        dotnet publish $projFile.FullName -c $configuration --self-contained `
-            -r $runtimeId /p:TargetLatestRuntimePatch=true `
-            /p:ContainerImageName=$fullName /p:ContainerBaseImage=$baseImage `
-            /p:ContainerImageTag=$fullTag `
-            /t:PublishContainer $extra
-        if ($LastExitCode -ne 0) {
-            throw "Failed to publish container."
-        }
-        if ($script:Registry -and $script:Push.IsPresent) {
-            docker push "$($fullName):$($fullTag)"
-            if ($LastExitCode -ne 0) {
-                throw "Failed to push container image."
-            }
-        }
-        Write-Host "$($fullName):$($fullTag) published."
     }
+    catch {
+        Write-Warning "Failed to download $($manifestTool) - try again..."
+        Start-Sleep -s 3
+    }
+}
+
+if (-not $script:Build.IsPresent) {
+    # Build all platforms
+    $platforms.Keys | ForEach-Object {
+        $os = $_
+        $platforms.Item($_) | ForEach-Object {
+            $arch = $_
+                        
+            Write-Host "Build and push images..."
+            # Build the docker images and push them to acr
+            & (Join-Path $PSScriptRoot "build.ps1") -Registry $($script:Registry) `
+                -ImageNamespace $script:ImageNamespace -ImageTag $script:ImageTag `
+                -Os $os -Arch $arch -Debug:$script:Debug
+            if ($LastExitCode -ne 0) {
+                throw "Failed to build containers for $os $arch."
+            }
+        }
+    }
+}
+
+try {
+    # Find all container projects, publish them and then push to container registry
+    Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
+        $projFile = $_
+        $properties = ([xml] (Get-Content -Path $projFile.FullName)).Project.PropertyGroup `
+            | Where-Object { ![string]::IsNullOrWhiteSpace($_.ContainerImageName) } `
+            | Select-Object -First 1
+        if ($properties) {
+            $fullName = ""
+            if ($script:Registry) {
+                $fullName = "$($script:Registry)/"
+            }
+            if ($script:ImageNamespace) {
+                $fullName = "$($fullName)$($script:ImageNamespace)/"
+            }
+            $fullName = "$($fullName)$($properties.ContainerImageName)"
+            $tagPostfix = ""
+            if ($script:Debug.IsPresent) {
+                $tagPostfix = "-debug"
+            }
+
+            $manifest = @"
+image: $($fullName)
+tags: [$($script:PublishTags)]
+manifests:
+"@
+            $platforms.Keys | ForEach-Object {
+                $os = $_
+                $platforms.Item($_) | ForEach-Object {
+                    $arch = $_
+                    $architecture = $arch
+                    if ($architecture -eq "x64") {
+                        $architecture = "amd64"
+                    }
+
+        # Append to manifest
+        if (![string]::IsNullOrEmpty($os)) {
+            $manifest += @"
+
+  - 
+    image: $($fullName):$($script:ImageTag)-$($os)-$($arch)$($tagPostfix)
+    platform: 
+      os: $($os)
+      architecture: $($architecture)
+"@
+    }
+                }
+            }
+
+            Write-Host "Building and pushing manifest file:"
+            Write-Host
+            $manifest | Out-Host
+            $manifest | Out-File -Encoding ascii -FilePath $manifestFile.FullName
+            $argumentList = @()
+            if ($script:User) {
+                $argumentList += "--username"
+                $argumentList += $script:User
+            }
+            if ($script:Pw) {
+                $argumentList += "--password"
+                $argumentList += $script:Pw
+            }
+            $argumentList += "push"
+            $argumentList += "from-spec"
+            $argumentList += $manifestFile.FullName
+            while ($true) {
+                (& $manifestToolPath $argumentList) | Out-Host
+                if ($LastExitCode -eq 0) {
+                    break   
+                }
+                Write-Warning "Manifest push failed - try again."
+                Start-Sleep -s 2
+            }
+    Write-Host "Manifest $($fullName) successfully pushed with tags $($script:PublishTags)."
+        }
+    }
+}
+catch {
+    throw $_.Exception
+}
+finally {
+    Remove-Item -Force -Path $manifestFile.FullName
+    Remove-Item -Force -Path $manifestToolPath
 }

@@ -109,7 +109,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             app.UseAuthentication();
             app.UseAuthorization();
 
+#if DEBUG
             app.UseSwagger();
+#endif
             app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
             app.UseEndpoints(endpoints =>

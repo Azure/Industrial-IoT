@@ -18,7 +18,7 @@
     Architecture to build. Defaults to x64
  .PARAMETER ImageNamespace
     The namespace to use for the image inside the registry.
- .PARAMETER Tag
+ .PARAMETER ImageTag
     Tag to publish under. Defaults to "latest"
 
  .PARAMETER NoBuid
@@ -33,17 +33,17 @@ Param(
     [string] $Os = "linux",
     [string] $Arch = "x64",
     [string] $ImageNamespace = $null,
-    [string] $Tag = "latest",
+    [string] $ImageTag = "latest",
     [switch] $NoBuild,
     [switch] $Debug
 )
 $ErrorActionPreference = "Stop"
 
-if ([string]::IsNullOrEmpty($Registry)) {
-    $Registry = $env.BUILD_REGISTRY
-    if ([string]::IsNullOrEmpty($Registry)) {
+if ([string]::IsNullOrEmpty($script:Registry)) {
+    $script:Registry = $env.BUILD_REGISTRY
+    if ([string]::IsNullOrEmpty($script:Registry)) {
         # Feature builds by default into dev registry
-        $Registry = "industrialiotdev"
+        $script:Registry = "industrialiotdev"
     }
 }
 
@@ -86,16 +86,16 @@ $argumentList = @(
 # log into acr to push
 (& az $argumentList) | Out-Host
 
-Write-Host "Build and push images..."
+Write-Host "Build and push containers to $($script:Registry).azurecr.io..."
 # Build the docker images and push them to acr
-& (Join-Path $PSScriptRoot "build.ps1") -Registry "$($Registry).azurecr.io" `
+& (Join-Path $PSScriptRoot "publish.ps1") -Registry "$($script:Registry).azurecr.io" `
     -Debug:$script:Debug -NoBuild:$script:NoBuild `
-    -ImageNamespace $script:ImageNamespace -Tag $script:Tag `
+    -ImageNamespace $script:ImageNamespace -ImageTag $script:ImageTag `
     -Os $script:Os -Arch $script:Arch `
     -Push
 if ($LastExitCode -ne 0) {
-    throw "Failed to publish container."
+    throw "Failed to build and push containers."
 }
 # Logout
 docker logout "$($Registry).azurecr.io"
-Write-Host "Images pushed."
+Write-Host "Containers successfuly built and pushed to $($script:Registry).azurecr.io."

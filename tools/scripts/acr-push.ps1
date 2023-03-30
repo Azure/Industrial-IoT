@@ -13,8 +13,10 @@
     The subscription to use - otherwise uses default
  .PARAMETER ImageNamespace
     The namespace to use for the image inside the registry.
- .PARAMETER Tag
-    Tag to publish under. Defaults to "latest"
+ .PARAMETER ImageTag
+    Image tags to combine into manifest. Defaults to "latest"
+ .PARAMETER PublishTags
+    Comma seperated tags to publish. Defaults to Tag and latest
 
  .PARAMETER Debug
     Whether to build Release or Debug - default to Release.  
@@ -24,16 +26,24 @@ Param(
     [string] $Registry = $null,
     [string] $Subscription = $null,
     [string] $ImageNamespace = $null,
-    [string] $Tag = "latest",
+    [string] $ImageTag = "latest",
+    [string] $PublishTags = $null,
     [switch] $Debug
 )
 $ErrorActionPreference = "Stop"
 
-if ([string]::IsNullOrEmpty($Registry)) {
-    $Registry = $env.BUILD_REGISTRY
-    if ([string]::IsNullOrEmpty($Registry)) {
+if (!$script:PublishTags) {
+    $script:PublishTags = "latest"
+    if ($script:ImageTag -ne "latest") {
+        $script:PublishTags = "$($script:PublishTags),$($script:ImageTag)"
+    }
+}
+
+if ([string]::IsNullOrEmpty($script:Registry)) {
+    $script:Registry = $env.BUILD_REGISTRY
+    if ([string]::IsNullOrEmpty($script:Registry)) {
         # Feature builds by default into dev registry
-        $Registry = "industrialiotdev"
+        $script:Registry = "industrialiotdev"
     }
 }
 
@@ -67,14 +77,15 @@ $user = $credentials.username
 $password = $credentials.passwords[0].value
 Write-Debug "Using User name $($user) and passsword ****"
 
-Write-Host "Build and push manifest lists..."
-# Build the docker images and push them to acr
-& (Join-Path $PSScriptRoot "manifest.ps1") -Registry "$($Registry).azurecr.io" `
-    -Debug:$script:Debug -User $user -Pw $password `
-    -ImageNamespace $script:ImageNamespace -Tag $script:Tag `
-    -Push
+Write-Host "Build and push manifest lists to $($script:Registry).azurecr.io..."
+
+# Build the manifest list from the images in the manifest 
+& (Join-Path $PSScriptRoot "build.ps1") -Registry "$($script:Registry).azurecr.io" `
+    -Debug:$script:Debug -User $user -Pw $password -PublishTags $script:PublishTags `
+    -ImageNamespace $script:ImageNamespace -ImageTag $script:ImageTag `
+    -NoBuild
 
 if ($LastExitCode -ne 0) {
-    throw "Failed to publish manifest."
+    throw "Failed to build and push manifest list."
 }
-Write-Host "Manifests pushed."
+Write-Host "Manifest lists were successfully pushed to $($script:Registry).azurecr.io."
