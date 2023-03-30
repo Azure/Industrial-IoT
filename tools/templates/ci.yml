@@ -122,4 +122,4 @@ jobs:
       command: test
       # projects: '$(folder)/**/tests/*.csproj'
       projects: '**/tests/*.csproj'
-      arguments: '--blame-hang --blame-hang-timeout 10m -configuration Release'
+      arguments: '--blame-hang --blame-hang-timeout 10m --configuration Release'
