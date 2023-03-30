@@ -37,9 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <exception cref="ArgumentException"></exception>
         public static void Main(string[] args)
         {
-            var checkTrust = true;
+            var checkTrust = false;
             var withServer = false;
-            var verbose = false;
             string deviceId = null, moduleId = null;
 
             var loggerFactory = Log.ConsoleFactory();
@@ -130,10 +129,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                             }
                             throw new ArgumentException(
                                 "Missing argument for --publish-profile");
-                        case "-v":
-                        case "--verbose":
-                            verbose = true;
-                            break;
                         default:
                             unknownArgs.Add(args[i]);
                             break;
@@ -199,7 +194,7 @@ Options:
                 else
                 {
                     tasks.Add(WithServerAsync(cs, loggerFactory, deviceId, moduleId, args, publishProfile,
-                        disconnectInterval, reconnectDelay));
+                        !checkTrust, disconnectInterval, reconnectDelay));
                 }
                 Task.WaitAll(tasks.ToArray());
             }
@@ -218,7 +213,6 @@ Options:
         /// <param name="moduleId"></param>
         /// <param name="args"></param>
         /// <param name="acceptAll"></param>
-        ///
         private static async Task HostAsync(string connectionString, ILoggerFactory loggerFactory,
             string deviceId, string moduleId, string[] args, bool acceptAll = false)
         {
@@ -276,12 +270,13 @@ Options:
         /// <param name="disconnectInterval"></param>
         /// <param name="reconnectDelay"></param>
         private static async Task WithServerAsync(string connectionString, ILoggerFactory loggerFactory,
-            string deviceId, string moduleId, string[] args, string publishProfile = null,
+            string deviceId, string moduleId, string[] args, string publishProfile = null, bool acceptAll = false,
             TimeSpan? disconnectInterval = null, TimeSpan? reconnectDelay = null)
         {
             var logger = loggerFactory.CreateLogger<Program>();
             try
             {
+                // Start test server
                 using (var server = new ServerWrapper(loggerFactory, disconnectInterval, reconnectDelay))
                 {
                     if (publishProfile != null)
@@ -303,10 +298,9 @@ Options:
                         }
                     }
 
-                    // Start test server
                     // Start publisher module
                     await HostAsync(connectionString, loggerFactory, deviceId, moduleId,
-                        args, false).ConfigureAwait(false);
+                        args, acceptAll).ConfigureAwait(false);
 
                     logger.LogInformation("Server exiting...");
                 }

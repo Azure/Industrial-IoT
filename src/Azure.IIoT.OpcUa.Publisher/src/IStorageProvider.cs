@@ -52,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Write new content to published nodes file
         /// </summary>
         /// <param name="content"> Content to be written. </param>
-        /// <param name="disableRaisingEvents"> If set FileSystemWatcher notifications will be disabled while updating the file.</param>
+        /// <param name="disableRaisingEvents"> If set FileSystemWatcher
+        /// notifications will be disabled while updating the file.</param>
         void WriteContent(string content, bool disableRaisingEvents = false);
     }
 }

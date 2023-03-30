@@ -242,25 +242,39 @@ namespace IIoTPlatform_E2E_Tests
             CancellationToken ct = default
         )
         {
-            await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context).ConfigureAwait(false);
-            using var scpClient = CreateScpClientAndConnect(context);
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-            scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
-
-            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable")
+            for (var attempt = 0; ; attempt++)
             {
-                using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
-                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
+                try
                 {
-                    if (edge != string.Empty)
+                    await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context).ConfigureAwait(false);
+            		using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
+                    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+                    scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
+
+                    if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable")
                     {
-                        // Copy file to the edge vm
-                        var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
-                        sshCient.RunCommand(command);
-                        // Move file to the target folder with sudo permissions
-                        command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
-                        sshCient.RunCommand(command);
+                        using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
+                        foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
+                        {
+                            if (edge != string.Empty)
+                            {
+                                // Copy file to the edge vm
+                                var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
+                                sshCient.RunCommand(command);
+                                // Move file to the target folder with sudo permissions
+                                command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
+                                sshCient.RunCommand(command);
+                            }
+                        }
                     }
+                    return;
+                }
+                catch (Exception ex) when (attempt < 60)
+                {
+                    context.OutputHelper?.WriteLine("Failed to write published nodes file to host {0} with username {1} ({2})",
+                        context.SshConfig.Host,
+                        context.SshConfig.Username, ex.Message);
+                    await Task.Delay(1000, ct).ConfigureAwait(false);
                 }
             }
         }
@@ -292,12 +306,27 @@ namespace IIoTPlatform_E2E_Tests
         /// <returns></returns>
         public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context)
         {
-            // Make sure directories exist.
-            using (var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false))
+            for (var attempt = 0; ; attempt++)
             {
-                sshCient.RunCommand($"[ ! -d {TestConstants.PublishedNodesFolder} ]" +
-                    $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
+                try
+                {
+                    // Make sure directories exist.
+                    using (var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false))
+                    {
+                        sshCient.RunCommand($"[ ! -d {TestConstants.PublishedNodesFolder} ]" +
+                            $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
+                    }
+                    break;
+                }
+                catch (Exception ex) when (attempt < 60)
+                {
+                    context.OutputHelper?.WriteLine("Failed to create folder on host {0} with username {1} ({2})",
+                        context.SshConfig.Host,
+                        context.SshConfig.Username, ex.Message);
+                    await Task.Delay(1000).ConfigureAwait(false);
+                }
             }
+
             await PublishNodesAsync(
                 context,
                 Array.Empty<PublishedNodesEntryModel>()
@@ -391,7 +420,7 @@ namespace IIoTPlatform_E2E_Tests
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
-        private static ScpClient CreateScpClientAndConnect(IIoTPlatformTestContext context)
+        private static async Task<ScpClient> CreateScpClientAndConnectAsync(IIoTPlatformTestContext context)
         {
             var privateKeyFile = GetPrivateSshKey(context);
             try
@@ -411,7 +440,7 @@ namespace IIoTPlatform_E2E_Tests
                     }
                     catch (SocketException) when (++connectAttempt < 5)
                     {
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000).ConfigureAwait(false);
                     }
                 }
             }

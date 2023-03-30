@@ -207,7 +207,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             /// <summary>
             /// Get status code
             /// </summary>
-            public StatusCode StatusCode => _outer._statusCode(Result);
+            public StatusCode StatusCode
+            {
+                get
+                {
+                    try
+                    {
+                        return _outer._statusCode(Result);
+                    }
+                    catch
+                    {
+                        return StatusCodes.BadUnknownResponse;
+                    }
+                }
+            }
 
             /// <summary>
             /// Error info
@@ -243,20 +256,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 
                 Activity.Current?.AddTag("Result_" + i, ErrorInfo);
             }
-#if UNUSED
-
-            /// <summary>
-            /// Throw if error result
-            /// </summary>
-            /// <exception cref="ServiceResultException"></exception>
-            public void ThrowIfError() {
-                if (StatusCode.IsBad(StatusCode)) {
-                    throw new ServiceResultException(new ServiceResult(
-                        StatusCode, DiagnosticInfo,
-                        _outer._response.ResponseHeader.StringTable));
-                }
-            }
-#endif
 
             private readonly ServiceResponse<TRequest, TResult> _outer;
         }

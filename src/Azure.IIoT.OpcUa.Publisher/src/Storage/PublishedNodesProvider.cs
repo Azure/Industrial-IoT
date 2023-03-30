@@ -91,8 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     _options.Value.PublishedNodesFile,
                     FileMode.OpenOrCreate,
                     FileAccess.Read,
-                    FileShare.Read
-                 ))
+                    FileShare.Read))
                 {
                     return fileStream.ReadAsString(Encoding.UTF8);
                 }
@@ -112,10 +111,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <inheritdoc/>
         public void WriteContent(string content, bool disableRaisingEvents = false)
         {
+            _lock.Wait();
             // Store current state.
             var eventState = _fileSystemWatcher.EnableRaisingEvents;
-
-            _lock.Wait();
             try
             {
                 if (disableRaisingEvents)
@@ -130,8 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         FileMode.OpenOrCreate,
                         FileAccess.Write,
                         // We will require that there is no other process using the file.
-                        FileShare.None
-                     ))
+                        FileShare.None))
                     {
                         fileStream.SetLength(0);
                         fileStream.Write(Encoding.UTF8.GetBytes(content));
@@ -152,21 +149,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             FileMode.OpenOrCreate,
                             FileAccess.Write,
                             // Relaxing requirements.
-                            FileShare.ReadWrite
-                         ))
+                            FileShare.ReadWrite))
                         {
                             fileStream.SetLength(0);
                             fileStream.Write(Encoding.UTF8.GetBytes(content));
                         }
+                        return;
                     }
                     catch (Exception)
                     {
                         // Report and raise original exception if fallback also failed.
                         _logger.LogError(e, "Failed to update published nodes file at \"{Path}\"",
                             _options.Value.PublishedNodesFile);
-
-                        throw e;
                     }
+                    throw;
                 }
             }
             finally
