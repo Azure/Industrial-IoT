@@ -1,43 +1,47 @@
 <#
  .SYNOPSIS
-    Build and push containers to Azure container registry
+    Push multi arch containers to Azure container registry
 
  .DESCRIPTION
     The script requires az to be installed and already logged on to a 
-    tenant.  This means it should be run in a azcliv2 task in the
+    tenant. This means it should be run in a azcliv2 task in the
     azure pipeline or "az login" must have been performed already.
 
  .PARAMETER Registry
     The name of the registry
  .PARAMETER Subscription
     The subscription to use - otherwise uses default
-
- .PARAMETER Os
-    Operating system to build for. Defaults to Linux
- .PARAMETER Arch
-    Architecture to build. Defaults to x64
  .PARAMETER ImageNamespace
     The namespace to use for the image inside the registry.
  .PARAMETER ImageTag
-    Tag to publish under. Defaults to "latest"
+    Image tags to combine into manifest. Defaults to "latest"
+ .PARAMETER PublishTags
+    Comma seperated tags to publish. Defaults to Tag and latest
 
- .PARAMETER NoBuid
-    Whether to build before publishing.
  .PARAMETER Debug
     Whether to build Release or Debug - default to Release.  
+ .PARAMETER NoBuid
+    If set does not build but just packages the images into a 
+    manifest list
 #>
 
 Param(
     [string] $Registry = $null,
     [string] $Subscription = $null,
-    [string] $Os = "linux",
-    [string] $Arch = "x64",
     [string] $ImageNamespace = $null,
     [string] $ImageTag = "latest",
-    [switch] $NoBuild,
-    [switch] $Debug
+    [string] $PublishTags = $null,
+    [switch] $Debug,
+    [switch] $NoBuild
 )
 $ErrorActionPreference = "Stop"
+
+if (!$script:PublishTags) {
+    $script:PublishTags = "latest"
+    if ($script:ImageTag -ne "latest") {
+        $script:PublishTags = "$($script:PublishTags),$($script:ImageTag)"
+    }
+}
 
 if ([string]::IsNullOrEmpty($script:Registry)) {
     $script:Registry = $env.BUILD_REGISTRY
@@ -77,25 +81,15 @@ $user = $credentials.username
 $password = $credentials.passwords[0].value
 Write-Debug "Using User name $($user) and passsword ****"
 
-$argumentList = @(
-    "acr", "login",
-    "--name", $Registry,
-    "--username", $user,
-    "--password", $password
-)
-# log into acr to push
-(& az $argumentList) | Out-Host
+Write-Host "Build and push manifest lists to $($script:Registry).azurecr.io..."
 
-Write-Host "Build and push containers to $($script:Registry).azurecr.io..."
-# Build the docker images and push them to acr
-& (Join-Path $PSScriptRoot "publish.ps1") -Registry "$($script:Registry).azurecr.io" `
-    -Debug:$script:Debug -NoBuild:$script:NoBuild `
+# Build the manifest list from the images in the manifest 
+& (Join-Path $PSScriptRoot "build.ps1") -Registry "$($script:Registry).azurecr.io" `
+    -User $user -Pw $password -PublishTags $script:PublishTags `
     -ImageNamespace $script:ImageNamespace -ImageTag $script:ImageTag `
-    -Os $script:Os -Arch $script:Arch `
-    -Push
+    -NoBuild:$script:NoBuild -Debug:$script:Debug
+
 if ($LastExitCode -ne 0) {
-    throw "Failed to build and push containers."
+    throw "Failed to build and push manifest list."
 }
-# Logout
-docker logout "$($Registry).azurecr.io"
-Write-Host "Containers successfuly built and pushed to $($script:Registry).azurecr.io."
+Write-Host "Manifest lists were successfully pushed to $($script:Registry).azurecr.io."

@@ -114,6 +114,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
             throw "Failed to publish container."
         }
         if ($script:Registry -and $script:Push.IsPresent) {
+            Write-Host "Pushing $($fullName):$($fullTag) to registry..."
             docker push "$($fullName):$($fullTag)"
             if ($LastExitCode -ne 0) {
                 throw "Failed to push container image."

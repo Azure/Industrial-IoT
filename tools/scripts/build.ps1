@@ -77,22 +77,33 @@ while ($true) {
     }
 }
 
-if (-not $script:Build.IsPresent) {
+if (-not $script:NoBuild.IsPresent) {
+    $push = $false
+    if ($script:Registry -and ($script:User -and $script:Pw)) {
+        Write-Host "Logging into $($script:Registry) with $($script:Pw)..."
+        (& docker login $script:Registry -u $script:User -p $script:Pw) | Out-Null
+        $push = ($LastExitCode -ne 0)
+        Write-Host "Pushing to $($script:Registry)..."
+    }
+
     # Build all platforms
     $platforms.Keys | ForEach-Object {
         $os = $_
         $platforms.Item($_) | ForEach-Object {
             $arch = $_
                         
-            Write-Host "Build and push images..."
+            Write-Host "Publish containers for $os-$arch..."
             # Build the docker images and push them to acr
-            & (Join-Path $PSScriptRoot "build.ps1") -Registry $($script:Registry) `
+            & (Join-Path $PSScriptRoot "publish.ps1") -Registry $($script:Registry) `
                 -ImageNamespace $script:ImageNamespace -ImageTag $script:ImageTag `
-                -Os $os -Arch $arch -Debug:$script:Debug
+                -Os $os -Arch $arch -Debug:$script:Debug -Push:$push
             if ($LastExitCode -ne 0) {
-                throw "Failed to build containers for $os $arch."
+                throw "Failed to publish containers for $os-$arch."
             }
         }
+    }
+    if ($push) {
+        docker logout $script:Registry
     }
 }
 
