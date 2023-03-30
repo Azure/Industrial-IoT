@@ -44,7 +44,7 @@ jobs:
       azureSubscription: azureiiot
       azurePowerShellVersion: 'latestVersion'
       scriptType: 'pscore'
-      scriptPath: ./tools/scripts/acr-push.ps1
+      scriptPath: ./tools/scripts/acr-publish.ps1
       arguments: >
         -ImageNamespace "$(ImageNamespace)"
         -Tag "$(Version_Prefix)"
