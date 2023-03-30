@@ -189,6 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
             });
 
+            Assert.NotNull(metadata);
             BasicPubSubIntegrationTests.AssertSimpleEventsMetadata(metadata.Value);
         }
 

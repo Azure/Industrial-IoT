@@ -190,16 +190,16 @@ Options:
                 var enableEventBroker = instances == 1;
                 for (var i = 1; i < instances; i++)
                 {
-                    tasks.Add(HostAsync(cs, loggerFactory, deviceId + "_" + i, moduleId, args, verbose, !checkTrust));
+                    tasks.Add(HostAsync(cs, loggerFactory, deviceId + "_" + i, moduleId, args, !checkTrust));
                 }
                 if (!withServer)
                 {
-                    tasks.Add(HostAsync(cs, loggerFactory, deviceId, moduleId, args, verbose, !checkTrust));
+                    tasks.Add(HostAsync(cs, loggerFactory, deviceId, moduleId, args, !checkTrust));
                 }
                 else
                 {
-                    tasks.Add(WithServerAsync(cs, loggerFactory, deviceId, moduleId, args, verbose,
-                        publishProfile, disconnectInterval, reconnectDelay));
+                    tasks.Add(WithServerAsync(cs, loggerFactory, deviceId, moduleId, args, publishProfile,
+                        disconnectInterval, reconnectDelay));
                 }
                 Task.WaitAll(tasks.ToArray());
             }
@@ -217,11 +217,10 @@ Options:
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="args"></param>
-        /// <param name="verbose"></param>
         /// <param name="acceptAll"></param>
+        ///
         private static async Task HostAsync(string connectionString, ILoggerFactory loggerFactory,
-            string deviceId, string moduleId, string[] args, bool verbose = false,
-            bool acceptAll = false)
+            string deviceId, string moduleId, string[] args, bool acceptAll = false)
         {
             var logger = loggerFactory.CreateLogger<Program>();
             logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
@@ -273,12 +272,11 @@ Options:
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <param name="args"></param>
-        /// <param name="verbose"></param>
         /// <param name="publishProfile"></param>
         /// <param name="disconnectInterval"></param>
         /// <param name="reconnectDelay"></param>
         private static async Task WithServerAsync(string connectionString, ILoggerFactory loggerFactory,
-            string deviceId, string moduleId, string[] args, bool verbose = false, string publishProfile = null,
+            string deviceId, string moduleId, string[] args, string publishProfile = null,
             TimeSpan? disconnectInterval = null, TimeSpan? reconnectDelay = null)
         {
             var logger = loggerFactory.CreateLogger<Program>();
@@ -308,7 +306,7 @@ Options:
                     // Start test server
                     // Start publisher module
                     await HostAsync(connectionString, loggerFactory, deviceId, moduleId,
-                        args, verbose, false).ConfigureAwait(false);
+                        args, false).ConfigureAwait(false);
 
                     logger.LogInformation("Server exiting...");
                 }
@@ -425,6 +423,7 @@ Options:
                                 LogStatus = false
                             }, loggerFactory.CreateLogger<ServerConsoleHost>())
                         {
+                            PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "server"),
                             AutoAccept = true
                         })
                         {

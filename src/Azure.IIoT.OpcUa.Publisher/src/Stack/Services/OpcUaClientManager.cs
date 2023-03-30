@@ -277,6 +277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _cts.Cancel();
                 await _processor.ConfigureAwait(false);
             }
+            catch (OperationCanceledException) { }
             finally
             {
                 _logger.LogDebug("Client manager process stopped.");
@@ -417,7 +418,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     inactive.Clear();
                 }
             }
-            _logger.LogDebug("Client manager exiting...");
         }
 
         /// <summary>
