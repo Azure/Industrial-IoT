@@ -131,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is MessagingProfile profile &&
                 DataSetMessageContentMask == profile.DataSetMessageContentMask &&

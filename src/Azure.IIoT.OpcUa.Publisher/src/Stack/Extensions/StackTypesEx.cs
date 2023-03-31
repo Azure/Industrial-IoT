@@ -98,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="nodeClasses"></param>
         /// <returns></returns>
-        public static UaNodeClass ToStackMask(this IReadOnlyList<NodeClass> nodeClasses)
+        public static UaNodeClass ToStackMask(this IReadOnlyList<NodeClass>? nodeClasses)
         {
             var mask = 0u;
             if (nodeClasses != null)

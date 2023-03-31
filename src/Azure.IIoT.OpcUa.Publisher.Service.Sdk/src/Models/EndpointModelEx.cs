@@ -17,8 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// </summary>
         /// <param name="update"></param>
         /// <param name="endpoint"></param>
-        public static EndpointModel Patch(this EndpointModel update,
-            EndpointModel endpoint)
+        public static EndpointModel? Patch(this EndpointModel? update,
+            EndpointModel? endpoint)
         {
             if (update == null)
             {

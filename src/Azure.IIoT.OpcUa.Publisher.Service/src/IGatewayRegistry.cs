@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<GatewayListModel> ListGatewaysAsync(
-            string continuation, int? pageSize = null,
+            string? continuation, int? pageSize = null,
             CancellationToken ct = default);
 
         /// <summary>

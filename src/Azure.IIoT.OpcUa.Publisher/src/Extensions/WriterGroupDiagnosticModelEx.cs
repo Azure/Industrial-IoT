@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Diagnostics.CodeAnalysis;
+
     /// <summary>
     /// Writer group Model extensions
     /// </summary>
@@ -15,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static WriterGroupDiagnosticModel Clone(this WriterGroupDiagnosticModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static WriterGroupDiagnosticModel? Clone(this WriterGroupDiagnosticModel? model)
         {
             if (model == null)
             {

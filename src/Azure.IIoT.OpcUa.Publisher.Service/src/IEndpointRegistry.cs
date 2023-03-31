@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<EndpointInfoListModel> ListEndpointsAsync(string continuation,
+        Task<EndpointInfoListModel> ListEndpointsAsync(string? continuation,
             bool onlyServerState = false, int? pageSize = null,
             CancellationToken ct = default);
 

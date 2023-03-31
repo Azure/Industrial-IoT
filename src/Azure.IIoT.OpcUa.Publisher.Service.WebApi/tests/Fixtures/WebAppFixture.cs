@@ -16,11 +16,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
-    using Microsoft.Extensions.Logging;
 
     /// <inheritdoc/>
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory

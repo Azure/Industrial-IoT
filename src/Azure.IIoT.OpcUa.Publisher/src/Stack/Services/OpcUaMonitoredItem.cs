@@ -40,17 +40,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Monitored item as data
         /// </summary>
-        public DataMonitoredItemModel DataTemplate => Template as DataMonitoredItemModel;
+        public DataMonitoredItemModel? DataTemplate => Template as DataMonitoredItemModel;
 
         /// <summary>
         /// Monitored item as event
         /// </summary>
-        public EventMonitoredItemModel EventTemplate => Template as EventMonitoredItemModel;
+        public EventMonitoredItemModel? EventTemplate => Template as EventMonitoredItemModel;
 
         /// <summary>
         /// Monitored item created from template
         /// </summary>
-        public MonitoredItem Item { get; private set; }
+        public MonitoredItem? Item { get; private set; }
 
         /// <summary>
         /// Status Code
@@ -66,13 +66,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// List of field names. Only used for event filter items
         /// </summary>
-        public List<(string Name, Guid DataSetFieldId)> Fields { get; } = new List<(string, Guid)>();
+        public List<(string? Name, Guid DataSetFieldId)> Fields { get; } = new();
 
         /// <summary>
         /// Field identifier either configured or randomly assigned for data change items
         /// </summary>
-        public Guid DataSetFieldId => DataTemplate.DataSetClassFieldId == Guid.Empty ? _fieldId
-            : DataTemplate.DataSetClassFieldId;
+        public Guid DataSetFieldId => DataTemplate?.DataSetClassFieldId == Guid.Empty ? _fieldId
+            : DataTemplate?.DataSetClassFieldId ?? Guid.Empty;
         private readonly Guid _fieldId = Guid.NewGuid();
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is not OpcUaMonitoredItem wrapper)
             {
@@ -171,13 +171,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Template.Id);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<IReadOnlyList<string>>.Default.GetHashCode(Template.RelativePath);
+                EqualityComparer<IReadOnlyList<string>>.Default.GetHashCode(
+                    Template.RelativePath ?? Array.Empty<string>());
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Template.StartNodeId);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(Template.IndexRange);
+                EqualityComparer<string>.Default.GetHashCode(Template.IndexRange ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<NodeAttribute?>.Default.GetHashCode(Template.AttributeId);
+                EqualityComparer<NodeAttribute>.Default.GetHashCode(
+                    Template.AttributeId ?? NodeAttribute.NodeId);
             return hashCode;
         }
 
@@ -195,8 +197,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="codec"></param>
         public void Create(ISession session, IVariantEncoder codec)
         {
-            Create(session.MessageContext as ServiceMessageContext,
-                session.NodeCache, session.TypeTree, codec);
+            Create(session.MessageContext, session.NodeCache, session.TypeTree, codec);
         }
 
         /// <summary>
@@ -204,7 +205,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         public void Dispose()
         {
-            Item.Handle = null;
+            if (Item != null)
+            {
+                Item.Handle = null;
+            }
             var conditionTimer = _conditionTimer;
             _conditionTimer = null;
             if (conditionTimer != null)
@@ -225,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="dataTypes"></param>
         /// <returns></returns>
         public void GetMetaData(IServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
-            ComplexTypeSystem typeSystem, FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes)
+            ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes)
         {
             Debug.Assert(Item != null);
             try
@@ -252,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="nodeCache"></param>
         /// <param name="typeTree"></param>
         /// <param name="codec"></param>
-        public void Create(ServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
+        public void Create(IServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
             IVariantEncoder codec)
         {
             Item = new MonitoredItem
@@ -274,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (DataTemplate != null)
             {
                 Item.Filter = DataTemplate.DataChangeFilter.ToStackModel() ??
-                    (MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(messageContext);
+                    (MonitoringFilter?)DataTemplate.AggregateFilter.ToStackModel(messageContext);
                 if (!TrySetSkipFirst(DataTemplate.SkipFirst))
                 {
                     Debug.Fail("Unexpected: Failed to set skip first setting.");
@@ -301,7 +305,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="metadataChange"></param>
         /// <returns>Whether apply changes should be called on the subscription</returns>
         internal bool MergeWith(IServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
-            IVariantEncoder codec, OpcUaMonitoredItem model, out bool metadataChange)
+            IVariantEncoder codec, OpcUaMonitoredItem? model, out bool metadataChange)
         {
             metadataChange = false;
             if (model == null || Item == null)
@@ -365,6 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (model.DataTemplate != null)
             {
+                Debug.Assert(DataTemplate != null);
                 if (DataTemplate.DataSetClassFieldId != model.DataTemplate.DataSetClassFieldId)
                 {
                     var previous = DataSetFieldId;
@@ -421,6 +426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             else if (model.EventTemplate != null)
             {
                 // Update event filter
+                Debug.Assert(EventTemplate != null);
                 if (!model.EventTemplate.EventFilter.IsSameAs(EventTemplate.EventFilter) ||
                     !model.EventTemplate.ConditionHandling.IsSameAs(EventTemplate.ConditionHandling))
                 {
@@ -469,27 +475,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private EventFilter GetEventFilter(IServiceMessageContext messageContext, INodeCache nodeCache,
             ITypeTable typeTree, IVariantEncoder codec)
         {
-            // set up the timer even if event is not a pending alarms event.
-            var created = false;
-            if (_conditionTimer == null)
-            {
-                _conditionTimer = new Timer(1000);
-                _conditionTimer.AutoReset = false;
-                _conditionTimer.Elapsed += OnConditionTimerElapsed;
-                created = true;
-            }
+            Debug.Assert(EventTemplate != null);
 
-            if (!created && EventTemplate.ConditionHandling.IsDisabled())
+            // Save condition handling state and disable condition processing while we update
+            bool conditionHandlingWasEnabled;
+            lock (_lock)
             {
-                // Always stop in case we are asked to disable condition handling
-                _conditionTimer.Stop();
-                lock (_lock)
+                conditionHandlingWasEnabled = _conditionHandlingState != null;
+                _conditionHandlingState = null;
+
+                if (_conditionTimer == null)
                 {
-                    _conditionHandlingState = null;
+                    _conditionTimer = new Timer(1000);
+                    _conditionTimer.AutoReset = false;
+                    _conditionTimer.Elapsed += OnConditionTimerElapsed;
                 }
-                _logger.LogInformation("{Item}: Disabled pending alarm handling.", this);
+                else
+                {
+                    // Always stop in case we are asked to disable condition handling
+                    _conditionTimer.Stop();
+                    _logger.LogInformation("{Item}: Disabled pending condition handling.", this);
+                }
             }
 
+            // set up the timer even if event is not a pending alarms event.
             var eventFilter = new EventFilter();
             if (EventTemplate.EventFilter != null)
             {
@@ -515,17 +524,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 internalSelectClauses.Add(selectClause);
             }
 
-            if (!EventTemplate.ConditionHandling.IsDisabled())
-            {
-                var conditionHandlingState = InitializeConditionHandlingState(eventFilter, internalSelectClauses);
-                lock (_lock)
-                {
-                    _conditionHandlingState = conditionHandlingState;
-                }
-                _conditionTimer.Start();
-                _logger.LogInformation("{Item}: {Action} pending alarm handling.", this, created ? "Enabled" : "Re-enabled");
-            }
-
             var sb = new StringBuilder();
 
             // let's loop thru the final set of select clauses and setup the field names used
@@ -534,7 +532,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (!internalSelectClauses.Any(x => x == selectClause))
                 {
                     sb.Clear();
-                    var definedSelectClause = EventTemplate.EventFilter.SelectClauses?
+                    var definedSelectClause = EventTemplate.EventFilter?.SelectClauses?
                         .ElementAtOrDefault(eventFilter.SelectClauses.IndexOf(selectClause));
                     if (!string.IsNullOrEmpty(definedSelectClause?.DisplayName))
                     {
@@ -580,6 +578,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // if a field's nameis empty, it's not written to the output
                     Fields.Add((null, Guid.Empty));
                 }
+            }
+
+            if (!EventTemplate.ConditionHandling.IsDisabled())
+            {
+                var conditionHandlingState = InitializeConditionHandlingState(eventFilter,
+                    internalSelectClauses);
+                lock (_lock)
+                {
+                    _conditionHandlingState = conditionHandlingState;
+                }
+                _conditionTimer.Start();
+                _logger.LogInformation("{Item}: {Action} condition handling.", this,
+                    !conditionHandlingWasEnabled ? "Enabled" : "Re-enabled");
             }
 
             return eventFilter;
@@ -641,9 +652,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private EventFilter GetSimpleEventFilter(INodeCache nodeCache, ITypeTable typeTree, IServiceMessageContext context)
         {
+            Debug.Assert(EventTemplate != null);
             var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(context);
             var nodes = new List<Node>();
-            ExpandedNodeId superType = null;
+            ExpandedNodeId? superType = null;
             nodes.Insert(0, nodeCache.FetchNode(typeDefinitionId));
             do
             {
@@ -702,31 +714,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="message"></param>
         /// <param name="notification"></param>
         public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message,
-            MonitoredItemNotification notification)
+            MonitoredItemNotification? notification)
         {
             Debug.Assert(Item != null);
-            Debug.Assert(Template != null);
+            Debug.Assert(DataTemplate != null);
             var shouldHeartbeat = ValidateHeartbeat(message.Timestamp);
-            if (notification == null && shouldHeartbeat)
+            if (notification == null)
             {
-                var heartbeatValues = Item.LastValue.ToMonitoredItemNotifications(Item,
-                    () => new MonitoredItemNotificationModel
-                    {
-                        DataSetFieldName = string.IsNullOrEmpty(Item.DisplayName) ? Template.Id : Item.DisplayName,
-                        Id = Template.Id,
-                        DisplayName = Item.DisplayName,
-                        NodeId = Template.StartNodeId,
-                        AttributeId = Item.AttributeId,
-                        Value = new DataValue(Item.Status?.Error?.StatusCode ?? StatusCodes.BadMonitoredItemIdInvalid)
-                    });
-                foreach (var heartbeat in heartbeatValues)
+                if (shouldHeartbeat)
                 {
-                    var heartbeatValue = heartbeat.Clone();
-                    heartbeatValue.SequenceNumber = 0;
-                    heartbeatValue.IsHeartbeat = true;
-                    Debug.Assert(message.Notifications != null);
-                    message.Notifications.Add(heartbeatValue);
-                    message.MessageType = Encoders.PubSub.MessageType.KeyFrame;
+                    var heartbeatValues = Item.LastValue.ToMonitoredItemNotifications(Item,
+                        () => new MonitoredItemNotificationModel
+                        {
+                            DataSetFieldName = string.IsNullOrEmpty(Item.DisplayName) ? Template.Id : Item.DisplayName,
+                            Id = Template.Id,
+                            DisplayName = Item.DisplayName,
+                            NodeId = Template.StartNodeId,
+                            AttributeId = Item.AttributeId,
+                            Value = new DataValue(Item.Status?.Error?.StatusCode ?? StatusCodes.BadMonitoredItemIdInvalid)
+                        });
+                    foreach (var heartbeat in heartbeatValues)
+                    {
+                        var heartbeatValue = heartbeat.Clone();
+                        if (heartbeatValue != null)
+                        {
+                            heartbeatValue.SequenceNumber = 0;
+                            heartbeatValue.IsHeartbeat = true;
+                            Debug.Assert(message.Notifications != null);
+                            message.Notifications.Add(heartbeatValue);
+                            message.MessageType = Encoders.PubSub.MessageType.KeyFrame;
+                        }
+                    }
                 }
             }
             else
@@ -751,8 +769,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                NextHeartbeat = TimeSpan.Zero < (DataTemplate.HeartbeatInterval ?? TimeSpan.Zero) ?
-                    currentPublish + DataTemplate.HeartbeatInterval.Value : DateTime.MaxValue;
+                var interval = DataTemplate.HeartbeatInterval ?? TimeSpan.Zero;
+                NextHeartbeat = TimeSpan.Zero < interval ?
+                    currentPublish + interval : DateTime.MaxValue;
                 return true;
             }
         }
@@ -765,13 +784,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public void ProcessEventNotification(SubscriptionNotificationModel message, EventFieldList notification)
         {
             Debug.Assert(Item != null);
+            Debug.Assert(EventTemplate != null);
+
             var evFilter = Item.Filter as EventFilter;
             var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
                 evFilter?.SelectClauses
                     .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
                         && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
 
-            ConditionHandlingState state;
+            ConditionHandlingState? state;
             lock (_lock)
             {
                 state = _conditionHandlingState;
@@ -786,7 +807,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // stop the timers during condition refresh
                     if (state != null)
                     {
-                        _conditionTimer.Stop();
+                        _conditionTimer?.Stop();
                         lock (_lock)
                         {
                             state.Active.Clear();
@@ -800,7 +821,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (state != null)
                     {
                         // restart the timers once condition refresh is done.
-                        _conditionTimer.Start();
+                        _conditionTimer?.Start();
                         _logger.LogDebug("{Item}: Restarted pending alarm handling after condition refresh.", this);
                     }
                     return;
@@ -844,28 +865,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var monitoredItemNotifications = notification.ToMonitoredItemNotifications(Item).ToList();
             if (state != null)
             {
-                // Cache conditions
-                var conditionId = monitoredItemNotifications[state.ConditionIdIndex].Value.Value?.ToString();
-                if (conditionId != null)
+                var conditionIdIndex = state.ConditionIdIndex;
+                var retainIndex = state.RetainIndex;
+                if (conditionIdIndex < monitoredItemNotifications.Count &&
+                    retainIndex < monitoredItemNotifications.Count)
                 {
-                    var retain = monitoredItemNotifications[state.RetainIndex].Value.GetValue(false);
-                    lock (_lock)
+                    // Cache conditions
+                    var conditionId = monitoredItemNotifications[conditionIdIndex].Value?.Value?.ToString();
+                    if (conditionId != null)
                     {
-                        if (state.Active.ContainsKey(conditionId) && !retain)
+                        var retain = monitoredItemNotifications[retainIndex].Value?.GetValue(false) ?? false;
+                        lock (_lock)
                         {
-                            state.Active.Remove(conditionId, out _);
-                            state.Dirty = true;
-                        }
-                        else if (retain && !monitoredItemNotifications.All(m => m.Value?.Value == null))
-                        {
-                            state.Dirty = true;
-                            monitoredItemNotifications.ForEach(notification =>
+                            if (state.Active.ContainsKey(conditionId) && !retain)
                             {
-                                notification.Value ??= new DataValue(StatusCodes.BadNoData);
-                                // Set SourceTimestamp to publish time
-                                notification.Value.SourceTimestamp = message.Timestamp;
-                            });
-                            state.Active.AddOrUpdate(conditionId, monitoredItemNotifications);
+                                state.Active.Remove(conditionId, out _);
+                                state.Dirty = true;
+                            }
+                            else if (retain && !monitoredItemNotifications.All(m => m.Value?.Value == null))
+                            {
+                                state.Dirty = true;
+                                monitoredItemNotifications.ForEach(notification =>
+                                {
+                                    notification.Value ??= new DataValue(StatusCodes.BadNoData);
+                                    // Set SourceTimestamp to publish time
+                                    notification.Value.SourceTimestamp = message.Timestamp;
+                                });
+                                state.Active.AddOrUpdate(conditionId, monitoredItemNotifications);
+                            }
                         }
                     }
                 }
@@ -892,8 +919,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var nodeId = default(NodeId);
                         try
                         {
-                            nodeId = (filterOperand.Body as LiteralOperand).Value.ToString().ToNodeId(messageContext);
-                            nodeCache.FetchNode(nodeId.ToExpandedNodeId(messageContext.NamespaceUris)); // it will throw an exception if it doesn't work
+                            nodeId = (filterOperand.Body as LiteralOperand)?.Value.ToString().ToNodeId(messageContext);
+                            nodeCache.FetchNode(nodeId?.ToExpandedNodeId(messageContext.NamespaceUris)); // it will throw an exception if it doesn't work
                         }
                         catch (Exception ex)
                         {
@@ -910,10 +937,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnConditionTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void OnConditionTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
+            Debug.Assert(EventTemplate != null);
             var now = DateTime.UtcNow;
-            ConditionHandlingState state;
+            ConditionHandlingState? state;
             lock (_lock)
             {
                 state = _conditionHandlingState;
@@ -922,7 +950,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    if (!Item.Created)
+                    if (Item?.Created != true)
                     {
                         return;
                     }
@@ -952,7 +980,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 finally
                 {
-                    _conditionTimer.Start();
+                    _conditionTimer?.Start();
                 }
             }
         }
@@ -962,7 +990,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         private void SendPendingConditions()
         {
-            List<List<MonitoredItemNotificationModel>> notifications = null;
+            List<List<MonitoredItemNotificationModel>>? notifications = null;
             lock (_lock)
             {
                 if (_conditionHandlingState == null)
@@ -972,12 +1000,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 notifications = _conditionHandlingState.Active
                     .Select(entry => entry.Value
                         .Where(n => n.DataSetFieldName != null)
-                        .Select(n => n.Clone())
+                        .Select(n => n.Clone()!)
+                        .Where(n => n != null)
                         .ToList())
                     .ToList();
+
                 _conditionHandlingState.Dirty = false;
             }
-            if (Item.Subscription?.Handle is OpcUaSubscription subscription)
+            if (Item?.Subscription?.Handle is OpcUaSubscription subscription)
             {
                 foreach (var conditionNotification in notifications)
                 {
@@ -996,7 +1026,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="fields"></param>
         /// <param name="dataTypes"></param>
         private void GetDataMetadata(IServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
-            ComplexTypeSystem typeSystem, FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes)
+            ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes)
         {
             var nodeId = Template.StartNodeId.ToExpandedNodeId(messageContext);
             try
@@ -1004,13 +1034,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (nodeCache.FetchNode(nodeId) is VariableNode variable)
                 {
                     AddVariableField(fields, dataTypes, nodeCache, typeTree, typeSystem, variable,
-                        string.IsNullOrEmpty(Item.DisplayName) ? Template.Id : Item.DisplayName, (Uuid)DataSetFieldId);
+                        string.IsNullOrEmpty(Item?.DisplayName) ? Template.Id : Item.DisplayName, (Uuid)DataSetFieldId);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogWarning("{Item}: Failed to get meta data for field {Field} with node {NodeId}: {Message}",
-                    this, string.IsNullOrEmpty(Item.DisplayName) ? Template.Id : Item.DisplayName, nodeId, ex.Message);
+                    this, string.IsNullOrEmpty(Item?.DisplayName) ? Template.Id : Item?.DisplayName, nodeId, ex.Message);
             }
         }
 
@@ -1027,7 +1057,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="dataSetClassFieldId"></param>
         private void AddVariableField(FieldMetaDataCollection fields,
             NodeIdDictionary<DataTypeDescription> dataTypes, INodeCache nodeCache, ITypeTable typeTree,
-            ComplexTypeSystem typeSystem, VariableNode variable, string fieldName, Uuid dataSetClassFieldId)
+            ComplexTypeSystem? typeSystem, VariableNode variable, string fieldName, Uuid dataSetClassFieldId)
         {
             var builtInType = TypeInfo.GetBuiltInType(variable.DataType, nodeCache.TypeTree);
             fields.Add(new FieldMetaData
@@ -1058,7 +1088,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="dataTypes"></param>
         /// <returns></returns>
         private void GetEventMetadata(EventFilter eventFilter, INodeCache nodeCache, ITypeTable typeTree,
-            ComplexTypeSystem typeSystem, FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes)
+            ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes)
         {
             Debug.Assert(Fields.Count == eventFilter.SelectClauses.Count);
             for (var i = 0; i < eventFilter.SelectClauses.Count; i++)
@@ -1086,10 +1116,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private static INode FindNodeWithBrowsePath(INodeCache nodeCache, ITypeTable typeTree,
+        private static INode? FindNodeWithBrowsePath(INodeCache nodeCache, ITypeTable typeTree,
             QualifiedNameCollection browsePath, ExpandedNodeId nodeId)
         {
-            INode found = null;
+            INode? found = null;
             foreach (var browseName in browsePath)
             {
                 found = null;
@@ -1138,7 +1168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="typeTree"></param>
         /// <param name="typeSystem"></param>
         private void AddDataTypes(NodeIdDictionary<DataTypeDescription> dataTypes, NodeId dataTypeId,
-            INodeCache nodeCache, ITypeTable typeTree, ComplexTypeSystem typeSystem)
+            INodeCache nodeCache, ITypeTable typeTree, ComplexTypeSystem? typeSystem)
         {
             var baseType = dataTypeId;
             while (!NodeId.IsNull(baseType))
@@ -1334,9 +1364,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 = new Dictionary<string, List<MonitoredItemNotificationModel>>();
         }
 
-        private ConditionHandlingState _conditionHandlingState;
+        private ConditionHandlingState? _conditionHandlingState;
         private volatile int _skipDataChangeNotification = (int)SkipSetting.Unconfigured;
-        private Timer _conditionTimer;
+        private Timer? _conditionTimer;
         private DateTime _lastSentPendingConditions = DateTime.UtcNow;
         private MonitoringMode? _modeChange;
         private readonly ILogger _logger;

@@ -43,13 +43,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         /// <inheritdoc/>
-        public async ValueTask HandleAsync(string deviceId, string moduleId, ReadOnlyMemory<byte> payload,
-            IReadOnlyDictionary<string, string> properties, CancellationToken ct)
+        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlyMemory<byte> payload,
+            IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
         {
-            DiscoveryEventModel discovery;
+            DiscoveryEventModel? discovery;
             try
             {
                 discovery = _serializer.Deserialize<DiscoveryEventModel>(payload);
+                if (discovery == null)
+                {
+                    throw new FormatException($"Bad payload for scheme {MessageSchema}.");
+                }
             }
             catch (Exception ex)
             {
@@ -146,9 +150,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                 {
                     try
                     {
-                        // Process discoveries
-                        await _processor.ProcessDiscoveryResultsAsync(
-                                discovererId, queue.Result, queue.Events).ConfigureAwait(false);
+                        if (queue.Result != null)
+                        {
+                            // Process discoveries
+                            await _processor.ProcessDiscoveryResultsAsync(
+                                    discovererId, queue.Result, queue.Events).ConfigureAwait(false);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -210,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             /// <summary>
             /// Result of discovery
             /// </summary>
-            public DiscoveryResultModel Result { get; private set; }
+            public DiscoveryResultModel? Result { get; private set; }
 
             /// <summary>
             /// Create queue

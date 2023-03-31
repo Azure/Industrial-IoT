@@ -359,18 +359,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 case DiscoveryProgressType.EndpointsDiscoveryStarted:
                     _logger.LogInformation(
                         "{Request}: Trying to find endpoints on {Details}...",
-                        progress.Request.Id, progress.RequestDetails["url"]);
+                        progress.Request.Id, progress.RequestDetails?["url"]);
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryFinished:
                     if (!progress.Discovered.HasValue || progress.Discovered == 0)
                     {
                         _logger.LogInformation(
                             "{Request}: No endpoints ev.Discovered on {Details}.",
-                            progress.Request.Id, progress.RequestDetails["url"]);
+                            progress.Request.Id, progress.RequestDetails?["url"]);
                     }
                     _logger.LogInformation(
                         "{Request}: Found {Count} endpoints on {Details}.",
-                        progress.Request.Id, progress.Discovered, progress.RequestDetails["url"]);
+                        progress.Request.Id, progress.Discovered, progress.RequestDetails?["url"]);
                     break;
                 case DiscoveryProgressType.ServerDiscoveryFinished:
                     _logger.LogInformation("{Request}: Found total of {Count} servers ...",

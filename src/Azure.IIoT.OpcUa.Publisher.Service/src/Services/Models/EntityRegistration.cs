@@ -19,26 +19,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Device id for registration
         /// </summary>
         [DataMember]
-        public virtual string DeviceId { get; set; }
+        public virtual string? DeviceId { get; set; }
 
         /// <summary>
         /// Site of the registration
         /// </summary>
         [DataMember]
-        public virtual string SiteId { get; set; }
+        public virtual string? SiteId { get; set; }
 
         /// <summary>
         /// Searchable grouping (either device or site id)
         /// </summary>
         [DataMember]
-        public virtual string SiteOrGatewayId =>
+        public virtual string? SiteOrGatewayId =>
             !string.IsNullOrEmpty(SiteId) ? SiteId : DeviceId;
 
         /// <summary>
         /// Etag id
         /// </summary>
         [DataMember(Name = "_etag")]
-        public string Etag { get; set; }
+        public string? Etag { get; set; }
 
         /// <summary>
         /// Registration type
@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Reported Type
         /// </summary>
         [DataMember]
-        public virtual string Type { get; set; }
+        public virtual string? Type { get; set; }
 
         /// <summary>
         /// Connected
@@ -74,10 +74,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Reported version of the entity
         /// </summary>
         [DataMember]
-        public string Version { get; set; }
+        public string? Version { get; set; }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is not EntityRegistration registration)
             {
@@ -119,15 +119,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         {
             var hashCode = 479558466;
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(DeviceId);
+                EqualityComparer<string>.Default.GetHashCode(DeviceId ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(DeviceType);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(SiteId);
+                EqualityComparer<string>.Default.GetHashCode(SiteId ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<bool>.Default.GetHashCode(IsDisabled ?? false);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<DateTime?>.Default.GetHashCode(NotSeenSince);
+                EqualityComparer<DateTime>.Default.GetHashCode(NotSeenSince ?? DateTime.MaxValue);
             return hashCode;
         }
     }

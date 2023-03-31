@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }).ConfigureAwait(false);
 
             Assert.Null(results.ErrorInfo);
-            var target = Assert.Single(results.Targets);
+            var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
             Assert.Equal(Namespaces.DeterministicAlarmsInstance + "#i=1", target.Target.NodeId);

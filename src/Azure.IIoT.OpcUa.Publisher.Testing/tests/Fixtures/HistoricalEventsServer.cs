@@ -21,9 +21,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <param name="factory"></param>
         /// <param name="timeservice"></param>
         public static IEnumerable<INodeManagerFactory> HistoricalEvents(
-            ILoggerFactory factory, TimeService timeservice)
+            ILoggerFactory? factory, TimeService timeservice)
         {
-            yield return new global::HistoricalEvents.HistoricalEventsServer(timeservice);
+            yield return new HistoricalEvents.HistoricalEventsServer(timeservice);
         }
 
         /// <inheritdoc/>

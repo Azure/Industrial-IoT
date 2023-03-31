@@ -34,15 +34,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(results);
             Assert.NotNull(results.AggregateFunctions);
             Assert.Equal(37, results.AggregateFunctions.Count);
-            Assert.Single(results.SupportedLocales);
-            Assert.Equal("en-US", results.SupportedLocales[0]);
-            Assert.NotEmpty(results.ServerProfiles);
-            Assert.Equal(3, results.ServerProfiles.Count);
+            Assert.Single(results.SupportedLocales!);
+            Assert.Equal("en-US", results.SupportedLocales![0]);
+            Assert.NotEmpty(results.ServerProfiles!);
+            Assert.Equal(3, results.ServerProfiles!.Count);
             Assert.NotNull(results.OperationLimits);
             Assert.Equal(0, results.OperationLimits.MinSupportedSampleRate);
-            Assert.Equal(1000, results.OperationLimits.MaxBrowseContinuationPoints.Value);
-            Assert.Equal(1000, results.OperationLimits.MaxQueryContinuationPoints.Value);
-            Assert.Equal(1000, results.OperationLimits.MaxHistoryContinuationPoints.Value);
+            Assert.Equal(1000, results.OperationLimits.MaxBrowseContinuationPoints!.Value);
+            Assert.Equal(1000, results.OperationLimits.MaxQueryContinuationPoints!.Value);
+            Assert.Equal(1000, results.OperationLimits.MaxHistoryContinuationPoints!.Value);
             Assert.Equal(2147483647u, results.OperationLimits.MaxNodesPerBrowse);
             Assert.Equal(2147483647u, results.OperationLimits.MaxNodesPerRegisterNodes);
             Assert.Equal(2147483647u, results.OperationLimits.MaxNodesPerWrite);
@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Opc.Ua.ObjectTypeIds.ServerType.ToString(),
                 result.TypeDefinition.TypeDefinitionId);
             Assert.Equal(NodeType.Object, result.TypeDefinition.NodeType);
-            var baseType = Assert.Single(result.TypeDefinition.TypeHierarchy);
+            var baseType = Assert.Single(result.TypeDefinition.TypeHierarchy!);
             Assert.Equal("i=58", baseType.NodeId);
             Assert.Equal("BaseObjectType", baseType.BrowseName);
             Assert.NotNull(result.TypeDefinition.Declarations);
@@ -223,8 +223,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.TypeDefinition);
             Assert.Equal(NodeType.Event, result.TypeDefinition.NodeType);
-            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy);
-            Assert.Equal(2, result.TypeDefinition.TypeHierarchy.Count);
+            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy!);
+            Assert.Equal(2, result.TypeDefinition.TypeHierarchy!.Count);
             Assert.NotNull(result.TypeDefinition.Declarations);
             Assert.NotEmpty(result.TypeDefinition.Declarations);
             Assert.Equal(34, result.TypeDefinition.Declarations.Count);
@@ -248,7 +248,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Opc.Ua.VariableTypeIds.ServerStatusType.ToString(),
                 result.TypeDefinition.TypeDefinitionId);
             Assert.Equal(NodeType.DataVariable, result.TypeDefinition.NodeType);
-            Assert.Equal(2, result.TypeDefinition.TypeHierarchy.Count);
+            Assert.Equal(2, result.TypeDefinition.TypeHierarchy!.Count);
             Assert.Equal("i=62", result.TypeDefinition.TypeHierarchy[0].NodeId);
             Assert.Equal("BaseVariableType", result.TypeDefinition.TypeHierarchy[0].BrowseName);
             Assert.NotNull(result.TypeDefinition.Declarations);
@@ -287,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(Opc.Ua.VariableTypeIds.PropertyType.ToString(),
                 result.TypeDefinition.TypeDefinitionId);
             Assert.Equal(NodeType.Property, result.TypeDefinition.NodeType);
-            var baseType = Assert.Single(result.TypeDefinition.TypeHierarchy);
+            var baseType = Assert.Single(result.TypeDefinition.TypeHierarchy!);
             Assert.Equal("i=62", baseType.NodeId);
             Assert.Equal("BaseVariableType", baseType.BrowseName);
             Assert.NotNull(result.TypeDefinition.Declarations);
@@ -315,8 +315,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Assert
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.TypeDefinition);
-            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy);
-            var baseType = Assert.Single(result.TypeDefinition.TypeHierarchy);
+            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy!);
+            var baseType = Assert.Single(result.TypeDefinition.TypeHierarchy!);
             Assert.Equal("i=58", baseType.NodeId);
             Assert.Equal("BaseObjectType", baseType.BrowseName);
             Assert.Equal(NodeType.Interface, result.TypeDefinition.NodeType);
@@ -347,8 +347,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.TypeDefinition);
             Assert.NotNull(result.TypeDefinition.Declarations);
             Assert.NotEmpty(result.TypeDefinition.Declarations);
-            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy);
-            var baseType = Assert.Single(result.TypeDefinition.TypeHierarchy);
+            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy!);
+            var baseType = Assert.Single(result.TypeDefinition!.TypeHierarchy!);
             Assert.Equal("i=58", baseType.NodeId);
             Assert.Equal("BaseObjectType", baseType.BrowseName);
             Assert.Equal(NodeType.Event, result.TypeDefinition.NodeType);
@@ -361,14 +361,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(arg.VariableMetadata.ArrayDimensions);
                 Assert.Null(arg.Description);
                 Assert.Null(arg.OverriddenDeclaration);
-                Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank.Value);
+                Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank!.Value);
             });
             Assert.Collection(result.TypeDefinition.Declarations,
                 arg =>
                 {
                     Assert.Equal("EventId", arg.BrowsePath);
                     Assert.Equal("EventId", arg.DisplayName);
-                    Assert.Equal("ByteString", arg.VariableMetadata.DataType.DataType);
+                    Assert.Equal("ByteString", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2042", arg.NodeId);
                 },
@@ -376,7 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("EventType", arg.BrowsePath);
                     Assert.Equal("EventType", arg.DisplayName);
-                    Assert.Equal("NodeId", arg.VariableMetadata.DataType.DataType);
+                    Assert.Equal("NodeId", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2043", arg.NodeId);
                 },
@@ -384,7 +384,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("SourceNode", arg.BrowsePath);
                     Assert.Equal("SourceNode", arg.DisplayName);
-                    Assert.Equal("NodeId", arg.VariableMetadata.DataType.DataType);
+                    Assert.Equal("NodeId", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2044", arg.NodeId);
                 },
@@ -392,7 +392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("SourceName", arg.BrowsePath);
                     Assert.Equal("SourceName", arg.DisplayName);
-                    Assert.Equal("String", arg.VariableMetadata.DataType.DataType);
+                    Assert.Equal("String", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2045", arg.NodeId);
                 },
@@ -400,7 +400,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("Time", arg.BrowsePath);
                     Assert.Equal("Time", arg.DisplayName);
-                    Assert.Equal("UtcTime", arg.VariableMetadata.DataType.DataType);
+                    Assert.Equal("UtcTime", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2046", arg.NodeId);
                 },
@@ -408,7 +408,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("ReceiveTime", arg.BrowsePath);
                     Assert.Equal("ReceiveTime", arg.DisplayName);
-                    Assert.Equal("UtcTime", arg.VariableMetadata.DataType.DataType);
+                    Assert.Equal("UtcTime", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2047", arg.NodeId);
                 },
@@ -416,7 +416,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("LocalTime", arg.BrowsePath);
                     Assert.Equal("LocalTime", arg.DisplayName);
-                    Assert.Equal("TimeZoneDataType", arg.VariableMetadata.DataType.DataType);
+                    Assert.Equal("TimeZoneDataType", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Optional", arg.ModellingRule);
                     Assert.Equal("i=3190", arg.NodeId);
                 },
@@ -424,7 +424,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("Message", arg.BrowsePath);
                     Assert.Equal("Message", arg.DisplayName);
-                    Assert.Equal("LocalizedText", arg.VariableMetadata.DataType.DataType);
+                    Assert.Equal("LocalizedText", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2050", arg.NodeId);
                 },
@@ -432,7 +432,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("Severity", arg.BrowsePath);
                     Assert.Equal("Severity", arg.DisplayName);
-                    Assert.Equal("UInt16", arg.VariableMetadata.DataType.DataType);
+                    Assert.Equal("UInt16", arg.VariableMetadata!.DataType!.DataType);
                     Assert.Equal("Mandatory", arg.ModellingRule);
                     Assert.Equal("i=2051", arg.NodeId);
                 });
@@ -452,8 +452,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Assert
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.TypeDefinition);
-            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy);
-            var baseType = Assert.Single(result.TypeDefinition.TypeHierarchy);
+            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy!);
+            var baseType = Assert.Single(result.TypeDefinition.TypeHierarchy!);
             Assert.Equal("i=62", baseType.NodeId);
             Assert.Equal("BaseVariableType", baseType.BrowseName);
             Assert.Equal(NodeType.Property, result.TypeDefinition.NodeType);
@@ -475,8 +475,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Assert
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.TypeDefinition);
-            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy);
-            var baseType = Assert.Single(result.TypeDefinition.TypeHierarchy);
+            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy!);
+            var baseType = Assert.Single(result.TypeDefinition.TypeHierarchy!);
             Assert.Equal("i=62", baseType.NodeId);
             Assert.Equal("BaseVariableType", baseType.BrowseName);
             Assert.Equal(NodeType.DataVariable, result.TypeDefinition.NodeType);
@@ -498,8 +498,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Assert
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.TypeDefinition);
-            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy);
-            Assert.Equal(2, result.TypeDefinition.TypeHierarchy.Count);
+            Assert.NotEmpty(result.TypeDefinition.TypeHierarchy!);
+            Assert.Equal(2, result.TypeDefinition.TypeHierarchy!.Count);
             Assert.Equal(NodeType.DataVariable, result.TypeDefinition.NodeType);
             Assert.NotNull(result.TypeDefinition.Declarations);
             Assert.Equal(3, result.TypeDefinition.Declarations.Count);
@@ -513,8 +513,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(arg.Description);
                 Assert.Null(arg.OverriddenDeclaration);
                 Assert.NotNull(arg.VariableMetadata.DataType);
-                Assert.Equal("String", arg.VariableMetadata.DataType.DataType);
-                Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata.ValueRank.Value);
+                Assert.Equal("String", arg.VariableMetadata!.DataType!.DataType);
+                Assert.Equal(NodeValueRank.Scalar, arg.VariableMetadata!.ValueRank!.Value);
             });
             Assert.Collection(result.TypeDefinition.Declarations,
                 arg =>

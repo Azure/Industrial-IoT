@@ -41,8 +41,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         /// <inheritdoc/>
-        public async ValueTask HandleAsync(string deviceId, string moduleId, ReadOnlyMemory<byte> payload,
-            IReadOnlyDictionary<string, string> properties, CancellationToken ct)
+        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlyMemory<byte> payload,
+            IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
         {
             try
             {
@@ -59,34 +59,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                 {
                     var type = BuiltInType.Null;
                     var codec = _encoder.Create(context);
-                    var extensionFields = message.ExtensionFields.ToDictionary(k => k.Key, v => v.Value);
+                    var extensionFields = message.ExtensionFields?.ToDictionary(k => k.Key, v => v.Value);
                     var sample = new MonitoredItemMessageModel
                     {
-                        PublisherId = (message.ExtensionFields != null &&
+                        PublisherId = (extensionFields != null &&
                             extensionFields.TryGetValue("PublisherId", out var publisherId))
                                 ? publisherId : message.ApplicationUri ?? message.EndpointUrl,
-                        DataSetWriterId = (message.ExtensionFields != null &&
+                        DataSetWriterId = (extensionFields != null &&
                             extensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
                                 ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
                         NodeId = message.NodeId,
                         DisplayName = message.DisplayName,
                         Timestamp = message.Timestamp,
                         SequenceNumber = message.SequenceNumber,
-                        Value = message?.Value == null
+                        Value = message.Value == null
                             ? null : codec.Encode(message.Value.WrappedValue, out type),
                         DataType = type == BuiltInType.Null
                             ? null : type.ToString(),
-                        Status = (message?.Value?.StatusCode.Code == StatusCodes.Good)
-                            ? null : StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
-                        SourceTimestamp = (message?.Value?.SourceTimestamp == DateTime.MinValue)
-                            ? null : message?.Value?.SourceTimestamp,
-                        SourcePicoseconds = (message?.Value?.SourcePicoseconds == 0)
-                            ? null : message?.Value?.SourcePicoseconds,
-                        ServerTimestamp = (message?.Value?.ServerTimestamp == DateTime.MinValue)
-                            ? null : message?.Value?.ServerTimestamp,
-                        ServerPicoseconds = (message?.Value?.ServerPicoseconds == 0)
-                            ? null : message?.Value?.ServerPicoseconds,
-                        EndpointId = (message.ExtensionFields != null &&
+                        Status = (message.Value?.StatusCode.Code == StatusCodes.Good)
+                            ? null : StatusCode.LookupSymbolicId(message.Value?.StatusCode.Code ?? 0),
+                        SourceTimestamp = (message.Value?.SourceTimestamp == DateTime.MinValue)
+                            ? null : message.Value?.SourceTimestamp,
+                        SourcePicoseconds = (message.Value?.SourcePicoseconds == 0)
+                            ? null : message.Value?.SourcePicoseconds,
+                        ServerTimestamp = (message.Value?.ServerTimestamp == DateTime.MinValue)
+                            ? null : message.Value?.ServerTimestamp,
+                        ServerPicoseconds = (message.Value?.ServerPicoseconds == 0)
+                            ? null : message.Value?.ServerPicoseconds,
+                        EndpointId = (extensionFields != null &&
                             extensionFields.TryGetValue("EndpointId", out var endpointId))
                                 ? endpointId : message.ApplicationUri ?? message.EndpointUrl
                     };

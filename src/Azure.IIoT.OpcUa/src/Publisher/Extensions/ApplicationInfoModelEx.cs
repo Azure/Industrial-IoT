@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -44,8 +45,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="applicationUri"></param>
         /// <param name="applicationType"></param>
         /// <returns></returns>
-        public static string CreateApplicationId(string siteOrGatewayId,
-            string applicationUri, ApplicationType? applicationType)
+        [return: NotNullIfNotNull(nameof(applicationUri))]
+        public static string? CreateApplicationId(string? siteOrGatewayId,
+            string? applicationUri, ApplicationType? applicationType)
         {
             if (string.IsNullOrEmpty(applicationUri))
             {
@@ -64,8 +66,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<ApplicationInfoModel> model,
-            IEnumerable<ApplicationInfoModel> that)
+        public static bool IsSameAs(this IEnumerable<ApplicationInfoModel>? model,
+            IEnumerable<ApplicationInfoModel>? that)
         {
             if (model == that)
             {
@@ -95,8 +97,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this ApplicationInfoModel model,
-            ApplicationInfoModel that)
+        public static bool IsSameAs(this ApplicationInfoModel? model,
+            ApplicationInfoModel? that)
         {
             if (model == that)
             {
@@ -116,7 +118,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ApplicationInfoModel Clone(this ApplicationInfoModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static ApplicationInfoModel? Clone(this ApplicationInfoModel? model)
         {
             if (model == null)
             {
@@ -155,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="context"></param>
         /// <returns></returns>
         public static ApplicationRegistrationRequestModel ToRegistrationRequest(
-            this ApplicationInfoModel model, OperationContextModel context = null)
+            this ApplicationInfoModel model, OperationContextModel? context = null)
         {
             return new ApplicationRegistrationRequestModel
             {
@@ -194,7 +197,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 DiscoveryUrls = request.DiscoveryUrls,
                 DiscoveryProfileUri = request.DiscoveryProfileUri,
                 ApplicationType = request.ApplicationType ?? ApplicationType.Server,
-                ApplicationUri = request.ApplicationUri,
+                ApplicationUri = request.ApplicationUri!,
                 Locale = request.Locale,
                 Capabilities = request.Capabilities,
                 GatewayServerUri = request.GatewayServerUri,
@@ -202,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 NotSeenSince = disabled ? DateTime.UtcNow : null,
                 Created = context,
                 Updated = null,
-                ApplicationId = null,
+                ApplicationId = null!,
                 DiscovererId = null,
                 HostAddresses = null
             };
@@ -292,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static string GetSiteOrGatewayId(this ApplicationInfoModel model)
+        public static string? GetSiteOrGatewayId(this ApplicationInfoModel model)
         {
             if (string.IsNullOrEmpty(model.SiteId))
             {
@@ -308,8 +311,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         private class LogicalComparer : IEqualityComparer<ApplicationInfoModel>
         {
             /// <inheritdoc />
-            public bool Equals(ApplicationInfoModel x, ApplicationInfoModel y)
+            public bool Equals(ApplicationInfoModel? x, ApplicationInfoModel? y)
             {
+                if (x is null)
+                {
+                    return y is null;
+                }
+                if (y is null)
+                {
+                    return false;
+                }
                 if (x.GetSiteOrGatewayId() != y.GetSiteOrGatewayId())
                 {
                     return false;
@@ -330,11 +341,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 var hashCode = 1200389859;
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<ApplicationType?>.Default.GetHashCode(obj.ApplicationType);
+                    EqualityComparer<ApplicationType?>.Default.GetHashCode(
+                        obj.ApplicationType);
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(obj.ApplicationUri?.ToLowerInvariant());
+                    EqualityComparer<string>.Default.GetHashCode(
+                        obj.ApplicationUri?.ToLowerInvariant() ?? string.Empty);
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(obj.GetSiteOrGatewayId());
+                    EqualityComparer<string>.Default.GetHashCode(
+                        obj.GetSiteOrGatewayId() ?? string.Empty);
                 return hashCode;
             }
         }

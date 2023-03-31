@@ -13,9 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.ComponentModel.DataAnnotations;
+    using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Globalization;
 
     /// <summary>
     /// Read, Update and Query publisher resources
@@ -101,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<SupervisorListModel> GetListOfSupervisorsAsync(
             [FromQuery] bool? onlyServerState,
-            [FromQuery] string continuationToken,
+            [FromQuery] string? continuationToken,
             [FromQuery] int? pageSize)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
@@ -112,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _supervisors.ListSupervisorsAsync(
@@ -149,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
 
@@ -189,7 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
 

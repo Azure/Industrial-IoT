@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Diagnostics.CodeAnalysis;
+
     /// <summary>
     /// Condition options extensions
     /// </summary>
@@ -15,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ConditionHandlingOptionsModel Clone(this ConditionHandlingOptionsModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static ConditionHandlingOptionsModel? Clone(this ConditionHandlingOptionsModel? model)
         {
             if (model == null)
             {
@@ -33,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static bool IsDisabled(this ConditionHandlingOptionsModel model)
+        public static bool IsDisabled(this ConditionHandlingOptionsModel? model)
         {
             if (model == null)
             {
@@ -50,7 +53,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this ConditionHandlingOptionsModel model, ConditionHandlingOptionsModel other)
+        public static bool IsSameAs(this ConditionHandlingOptionsModel? model,
+            ConditionHandlingOptionsModel? other)
         {
             if (model == null && other == null)
             {

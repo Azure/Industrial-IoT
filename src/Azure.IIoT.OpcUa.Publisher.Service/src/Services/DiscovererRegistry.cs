@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// <param name="logger"></param>
         /// <param name="broker"></param>
         public DiscovererRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
-            ILogger<DiscovererRegistry> logger, IDiscovererRegistryListener broker = null)
+            ILogger<DiscovererRegistry> logger, IDiscovererRegistryListener? broker = null)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
@@ -59,7 +59,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 throw new ResourceNotFoundException(
                     $"{discovererId} is not a discoverer registration.");
             }
-            return registration.ToDiscovererModel();
+            var model = registration.ToDiscovererModel();
+            if (model == null)
+            {
+                throw new ResourceInvalidStateException(
+                    $"{discovererId} is not a valid discoverer registration.");
+            }
+            return model;
         }
 
         /// <inheritdoc/>
@@ -94,11 +100,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     if (!(twin.ToEntityRegistration(true) is PublisherRegistration registration))
                     {
                         throw new ResourceNotFoundException(
-                            $"{discovererId} is not a discoverer registration.");
+                            $"{discovererId} is not a publisher registration.");
                     }
 
                     // Update registration from update request
                     var patched = registration.ToDiscovererModel();
+                    if (patched == null)
+                    {
+                        throw new ResourceInvalidStateException(
+                            $"{discovererId} is not a valid publisher registration.");
+                    }
+
                     if (request.Discovery != null && request.Discovery != DiscoveryMode.Off)
                     {
                         _logger.LogWarning("Discovery mode setting is no longer supported." +
@@ -121,8 +133,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                         patched.ToPublisherRegistration(), _serializer), false, ct).ConfigureAwait(false);
 
                     // Send update to through broker
-                    registration = twin.ToEntityRegistration(true) as PublisherRegistration;
-                    await (_events?.OnDiscovererUpdatedAsync(null, registration.ToDiscovererModel())).ConfigureAwait(false);
+                    if (_events != null)
+                    {
+                        patched = (twin.ToEntityRegistration(true) as PublisherRegistration).ToDiscovererModel();
+                        if (patched != null)
+                        {
+                            await _events.OnDiscovererUpdatedAsync(null, patched).ConfigureAwait(false);
+                        }
+                    }
                     return;
                 }
                 catch (ResourceOutOfDateException ex)
@@ -135,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
         /// <inheritdoc/>
         public async Task<DiscovererListModel> ListDiscoverersAsync(
-            string continuation, int? pageSize, CancellationToken ct)
+            string? continuation, int? pageSize, CancellationToken ct)
         {
             const string query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{Constants.TwinPropertyTypeKey} = '{Constants.EntityTypePublisher}' " +
@@ -146,7 +164,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
                     .Select(t => t.ToPublisherRegistration())
-                    .Select(s => s.ToDiscovererModel())
+                    .Select(s => s.ToDiscovererModel()!)
+                    .Where(s => s != null)
                     .ToList()
             };
         }
@@ -193,14 +212,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
                     .Select(t => t.ToPublisherRegistration())
-                    .Select(s => s.ToDiscovererModel())
+                    .Select(s => s.ToDiscovererModel()!)
+                    .Where(s => s != null)
                     .ToList()
             };
         }
 
         private readonly IIoTHubTwinServices _iothub;
         private readonly IJsonSerializer _serializer;
-        private readonly IDiscovererRegistryListener _events;
+        private readonly IDiscovererRegistryListener? _events;
         private readonly ILogger _logger;
     }
 }

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Subscription model extensions
@@ -17,7 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static SubscriptionConfigurationModel Clone(this SubscriptionConfigurationModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static SubscriptionConfigurationModel? Clone(this SubscriptionConfigurationModel? model)
         {
             if (model == null)
             {

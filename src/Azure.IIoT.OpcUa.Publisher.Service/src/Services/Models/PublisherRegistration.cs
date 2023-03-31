@@ -22,27 +22,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Device id for registration
         /// </summary>
         [DataMember]
-        public string ModuleId { get; set; }
+        public string? ModuleId { get; set; }
 
         /// <summary>
         /// Api key for the module
         /// </summary>
-        public string ApiKey { get; set; }
+        [DataMember]
+        public string? ApiKey { get; set; }
 
         /// <summary>
         /// Create registration - for testing purposes
         /// </summary>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
-        public PublisherRegistration(string deviceId = null,
-            string moduleId = null)
+        public PublisherRegistration(string? deviceId = null,
+            string? moduleId = null)
         {
             DeviceId = deviceId;
             ModuleId = moduleId;
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is not PublisherRegistration registration)
             {
@@ -76,9 +77,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         {
             var hashCode = base.GetHashCode();
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(ModuleId);
+                EqualityComparer<string>.Default.GetHashCode(ModuleId ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(ApiKey);
+                EqualityComparer<string>.Default.GetHashCode(ApiKey ?? string.Empty);
             return hashCode;
         }
 

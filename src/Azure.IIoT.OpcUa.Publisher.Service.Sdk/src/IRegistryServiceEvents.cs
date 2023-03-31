@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="callback"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeApplicationEventsAsync(
-            Func<ApplicationEventModel, Task> callback);
+            Func<ApplicationEventModel?, Task> callback);
 
         /// <summary>
         /// Subscribe to endpoint events
@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="callback"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeEndpointEventsAsync(
-            Func<EndpointEventModel, Task> callback);
+            Func<EndpointEventModel?, Task> callback);
 
         /// <summary>
         /// Subscribe to gateway events
@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="callback"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeGatewayEventsAsync(
-            Func<GatewayEventModel, Task> callback);
+            Func<GatewayEventModel?, Task> callback);
 
         /// <summary>
         /// Subscribe to supervisor events
@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="callback"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeSupervisorEventsAsync(
-            Func<SupervisorEventModel, Task> callback);
+            Func<SupervisorEventModel?, Task> callback);
 
         /// <summary>
         /// Subscribe to discoverer events
@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="callback"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeDiscovererEventsAsync(
-            Func<DiscovererEventModel, Task> callback);
+            Func<DiscovererEventModel?, Task> callback);
 
         /// <summary>
         /// Subscribe to publisher events
@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="callback"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribePublisherEventsAsync(
-            Func<PublisherEventModel, Task> callback);
+            Func<PublisherEventModel?, Task> callback);
 
         /// <summary>
         /// Subscribe to supervisor discovery events
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="callback"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeDiscoveryProgressByDiscovererIdAsync(
-            string discovererId, Func<DiscoveryProgressModel, Task> callback);
+            string discovererId, Func<DiscoveryProgressModel?, Task> callback);
 
         /// <summary>
         /// Subscribe to discovery events for a particular request
@@ -78,6 +78,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="callback"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> SubscribeDiscoveryProgressByRequestIdAsync(
-            string requestId, Func<DiscoveryProgressModel, Task> callback);
+            string requestId, Func<DiscoveryProgressModel?, Task> callback);
     }
 }

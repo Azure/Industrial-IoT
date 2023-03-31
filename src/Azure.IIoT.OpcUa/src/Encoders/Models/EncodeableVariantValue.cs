@@ -24,10 +24,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// </summary>
         /// <param name="serializer"></param>
         /// <param name="value"></param>
-        public EncodeableVariantValue(IJsonSerializer serializer, VariantValue value = null)
+        public EncodeableVariantValue(IJsonSerializer serializer, VariantValue? value = null)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            Value = value;
+            Value = value ?? VariantValue.Null;
         }
 
         /// <inheritdoc/>

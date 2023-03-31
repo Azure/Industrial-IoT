@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-#nullable enable
+
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
@@ -690,7 +690,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 DataType = new DataTypeMetadataModel
                 {
                     DataType = node.Value[Attributes.DataType]
-                        .GetValueOrDefault<NodeId>().AsString(session.MessageContext)
+                        .GetValueOrDefault<NodeId>()?.AsString(session.MessageContext)
                 },
                 ValueRank = (NodeValueRank?)node.Value[Attributes.ValueRank]
                     .GetValueOrDefault<int?>(v => v == ValueRanks.Any ? null : v)

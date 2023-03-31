@@ -41,6 +41,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// The metadata header information or null if disabled.
         /// </summary>
-        public DataSetMetaDataModel MetaData { get; set; }
+        public DataSetMetaDataModel? MetaData { get; set; }
     }
 }

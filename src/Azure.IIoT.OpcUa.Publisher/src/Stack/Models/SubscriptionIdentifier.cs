@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is not SubscriptionIdentifier that)
             {
@@ -66,10 +66,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         }
 
         /// <inheritdoc/>
-        public bool Equals(SubscriptionIdentifier other)
+        public bool Equals(SubscriptionIdentifier? other)
         {
-            return Connection.IsSameAs(other.Connection) &&
-                Id == other.Id;
+            return Connection.IsSameAs(other?.Connection) &&
+                Id == other?.Id;
         }
 
         /// <inheritdoc/>

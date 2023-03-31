@@ -25,8 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <param name="logger"></param>
         /// <param name="jsonSettings"></param>
         public SignalRHubClient(IOptions<ServiceSdkOptions> options,
-            ILogger<SignalRHubClient> logger,
-            INewtonsoftSerializerSettingsProvider jsonSettings = null)
+            ILogger<SignalRHubClient> logger, INewtonsoftSerializerSettingsProvider? jsonSettings = null)
         {
             _jsonSettings = jsonSettings;
             _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -109,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         private sealed class SignalRClientRegistrar : ICallbackRegistrar
         {
             /// <inheritdoc/>
-            public string ConnectionId
+            public string? ConnectionId
             {
                 get
                 {
@@ -138,8 +137,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             /// <exception cref="ArgumentNullException"></exception>
             internal static async Task<SignalRClientRegistrar> CreateAsync(
                 IOptions<ServiceSdkOptions> options, string endpointUrl, ILogger logger,
-                INewtonsoftSerializerSettingsProvider jsonSettings,
-                IMessagePackFormatterResolverProvider msgPack)
+                INewtonsoftSerializerSettingsProvider? jsonSettings,
+                IMessagePackFormatterResolverProvider? msgPack)
             {
                 if (string.IsNullOrEmpty(endpointUrl))
                 {
@@ -154,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             }
 
             /// <inheritdoc/>
-            public IDisposable Register(Func<object[], object, Task> handler,
+            public IDisposable Register(Func<object?[], object, Task> handler,
                 object thiz, string method, Type[] arguments)
             {
                 if (_disposed)
@@ -183,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             private readonly SignalRHubClientHost _client;
         }
 
-        private readonly INewtonsoftSerializerSettingsProvider _jsonSettings;
+        private readonly INewtonsoftSerializerSettingsProvider? _jsonSettings;
         private readonly IOptions<ServiceSdkOptions> _options;
         private readonly Dictionary<string, SignalRClientRegistrar> _clients;
         private readonly SemaphoreSlim _lock;

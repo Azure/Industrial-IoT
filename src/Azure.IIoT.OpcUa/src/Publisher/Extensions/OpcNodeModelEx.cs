@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="that"></param>
-        public static bool IsSame(this OpcNodeModel model, OpcNodeModel that)
+        public static bool IsSame(this OpcNodeModel? model, OpcNodeModel? that)
         {
             if (model == that)
             {
@@ -245,7 +245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         private class OpcNodeModelComparer : EqualityComparer<OpcNodeModel>
         {
             /// <inheritdoc/>
-            public override bool Equals(OpcNodeModel node1, OpcNodeModel node2)
+            public override bool Equals(OpcNodeModel? node1, OpcNodeModel? node2)
             {
                 return node1.IsSame(node2);
             }

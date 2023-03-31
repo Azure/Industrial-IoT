@@ -56,12 +56,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         NodeId = methodId
                     }).ConfigureAwait(false);
-                result = metadata.MethodMetadata;
+                result = metadata.MethodMetadata!;
             }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
-            Assert.Collection(result.InputArguments,
+            Assert.Collection(result.InputArguments!,
                 arg =>
                 {
                     Assert.Equal("BooleanIn", arg.Name);
@@ -183,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Double", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 });
-            Assert.Collection(result.OutputArguments,
+            Assert.Collection(result.OutputArguments!,
                 arg =>
                 {
                     Assert.Equal("BooleanOut", arg.Name);
@@ -330,12 +330,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         NodeId = methodId
                     }).ConfigureAwait(false);
-                result = metadata.MethodMetadata;
+                result = metadata.MethodMetadata!;
             }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
-            Assert.Collection(result.InputArguments,
+            Assert.Collection(result.InputArguments!,
                 arg =>
                 {
                     Assert.Equal("StringIn", arg.Name);
@@ -446,7 +446,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("StatusCode", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 });
-            Assert.Collection(result.OutputArguments,
+            Assert.Collection(result.OutputArguments!,
                 arg =>
                 {
                     Assert.Equal("StringOut", arg.Name);
@@ -582,12 +582,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         NodeId = methodId
                     }).ConfigureAwait(false);
-                result = metadata.MethodMetadata;
+                result = metadata.MethodMetadata!;
             }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
-            Assert.Collection(result.InputArguments,
+            Assert.Collection(result.InputArguments!,
                 arg =>
                 {
                     Assert.Equal("VariantIn", arg.Name);
@@ -621,7 +621,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Structure", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 });
-            Assert.Collection(result.OutputArguments,
+            Assert.Collection(result.OutputArguments!,
                 arg =>
                 {
                     Assert.Equal("VariantOut", arg.Name);
@@ -684,12 +684,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         NodeId = objectId,
                         BrowsePath = path
                     }).ConfigureAwait(false);
-                result = metadata.MethodMetadata;
+                result = metadata.MethodMetadata!;
             }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
-            Assert.Collection(result.InputArguments,
+            Assert.Collection(result.InputArguments!,
                 arg =>
                 {
                     Assert.Equal("VariantIn", arg.Name);
@@ -723,7 +723,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Structure", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 });
-            Assert.Collection(result.OutputArguments,
+            Assert.Collection(result.OutputArguments!,
                 arg =>
                 {
                     Assert.Equal("VariantOut", arg.Name);
@@ -787,12 +787,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         BrowsePath = path
                     }).ConfigureAwait(false);
-                result = metadata.MethodMetadata;
+                result = metadata.MethodMetadata!;
             }
 
             // Assert
             Assert.Equal("http://test.org/UA/Data/#i=10755", result.ObjectId);
-            Assert.Collection(result.InputArguments,
+            Assert.Collection(result.InputArguments!,
                 arg =>
                 {
                     Assert.Equal("VariantIn", arg.Name);
@@ -826,7 +826,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Structure", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 });
-            Assert.Collection(result.OutputArguments,
+            Assert.Collection(result.OutputArguments!,
                 arg =>
                 {
                     Assert.Equal("VariantOut", arg.Name);
@@ -926,17 +926,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.True((bool)arg.Value),
-                arg => Assert.Equal((sbyte)input[1].Value, (sbyte)arg.Value),
-                arg => Assert.Equal((byte)input[2].Value, (byte)arg.Value),
-                arg => Assert.Equal(short.MinValue, (short)arg.Value),
-                arg => Assert.Equal((ushort)0, (ushort)arg.Value),
-                arg => Assert.Equal(int.MinValue, (int)arg.Value),
-                arg => Assert.Equal(uint.MaxValue, (uint)arg.Value),
-                arg => Assert.Equal((long)input[7].Value, (long)arg.Value),
-                arg => Assert.Equal((ulong)input[8].Value, (ulong)arg.Value),
-                arg => Assert.Equal((float)input[9].Value, (float)arg.Value),
-                arg => Assert.Equal((double)input[10].Value, (double)arg.Value));
+                arg => Assert.True((bool)arg.Value!),
+                arg => Assert.Equal((sbyte)input[1]!.Value!, (sbyte)arg.Value!),
+                arg => Assert.Equal((byte)input[2]!.Value!, (byte)arg.Value!),
+                arg => Assert.Equal(short.MinValue, (short)arg.Value!),
+                arg => Assert.Equal((ushort)0, (ushort)arg.Value!),
+                arg => Assert.Equal(int.MinValue, (int)arg.Value!),
+                arg => Assert.Equal(uint.MaxValue, (uint)arg.Value!),
+                arg => Assert.Equal((long)input[7]!.Value!, (long)arg.Value!),
+                arg => Assert.Equal((ulong)input[8]!.Value!, (ulong)arg.Value!),
+                arg => Assert.Equal((float)input[9]!.Value!, (float)arg.Value!),
+                arg => Assert.Equal((double)input[10]!.Value!, (double)arg.Value!));
         }
 
         public async Task NodeMethodCallStaticScalarMethod1Test2Async()
@@ -971,17 +971,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.False((bool)arg.Value),
-                arg => Assert.Equal((sbyte)input[1].Value, (sbyte)arg.Value),
-                arg => Assert.Equal((byte)input[2].Value, (byte)arg.Value),
-                arg => Assert.Equal((short)0, (short)arg.Value),
-                arg => Assert.Equal((ushort)0, (ushort)arg.Value),
-                arg => Assert.Equal(0, (int)arg.Value),
-                arg => Assert.Equal((uint)0, (uint)arg.Value),
-                arg => Assert.Equal(0, (long)arg.Value),
-                arg => Assert.Equal((ulong)0, (ulong)arg.Value),
-                arg => Assert.Equal(0, (float)arg.Value),
-                arg => Assert.Equal(0, (double)arg.Value));
+                arg => Assert.False((bool)arg.Value!),
+                arg => Assert.Equal((sbyte)input[1]!.Value!, (sbyte)arg.Value!),
+                arg => Assert.Equal((byte)input[2]!.Value!, (byte)arg.Value!),
+                arg => Assert.Equal((short)0, (short)arg.Value!),
+                arg => Assert.Equal((ushort)0, (ushort)arg.Value!),
+                arg => Assert.Equal(0, (int)arg.Value!),
+                arg => Assert.Equal((uint)0, (uint)arg.Value!),
+                arg => Assert.Equal(0, (long)arg.Value!),
+                arg => Assert.Equal((ulong)0, (ulong)arg.Value!),
+                arg => Assert.Equal(0, (float)arg.Value!),
+                arg => Assert.Equal(0, (double)arg.Value!));
         }
 
         public async Task NodeMethodCallStaticScalarMethod1Test3Async()
@@ -1000,17 +1000,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.False((bool)arg.Value),
-                arg => Assert.Equal((sbyte)0, (sbyte)arg.Value),
-                arg => Assert.Equal((byte)0, (byte)arg.Value),
-                arg => Assert.Equal((short)0, (short)arg.Value),
-                arg => Assert.Equal((ushort)0, (ushort)arg.Value),
-                arg => Assert.Equal(0, (int)arg.Value),
-                arg => Assert.Equal((uint)0, (uint)arg.Value),
-                arg => Assert.Equal(0, (long)arg.Value),
-                arg => Assert.Equal((ulong)0, (ulong)arg.Value),
-                arg => Assert.Equal(0, (float)arg.Value),
-                arg => Assert.Equal(0, (double)arg.Value));
+                arg => Assert.False((bool)arg.Value!),
+                arg => Assert.Equal((sbyte)0, (sbyte)arg.Value!),
+                arg => Assert.Equal((byte)0, (byte)arg.Value!),
+                arg => Assert.Equal((short)0, (short)arg.Value!),
+                arg => Assert.Equal((ushort)0, (ushort)arg.Value!),
+                arg => Assert.Equal(0, (int)arg.Value!),
+                arg => Assert.Equal((uint)0, (uint)arg.Value!),
+                arg => Assert.Equal(0, (long)arg.Value!),
+                arg => Assert.Equal((ulong)0, (ulong)arg.Value!),
+                arg => Assert.Equal(0, (float)arg.Value!),
+                arg => Assert.Equal(0, (double)arg.Value!));
         }
 
         public async Task NodeMethodCallStaticScalarMethod1Test4Async()
@@ -1030,17 +1030,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.False((bool)arg.Value),
-                arg => Assert.Equal((sbyte)0, (sbyte)arg.Value),
-                arg => Assert.Equal((byte)0, (byte)arg.Value),
-                arg => Assert.Equal((short)0, (short)arg.Value),
-                arg => Assert.Equal((ushort)0, (ushort)arg.Value),
-                arg => Assert.Equal(0, (int)arg.Value),
-                arg => Assert.Equal((uint)0, (uint)arg.Value),
-                arg => Assert.Equal(0, (long)arg.Value),
-                arg => Assert.Equal((ulong)0, (ulong)arg.Value),
-                arg => Assert.Equal(0, (float)arg.Value),
-                arg => Assert.Equal(0, (double)arg.Value));
+                arg => Assert.False((bool)arg.Value!),
+                arg => Assert.Equal((sbyte)0, (sbyte)arg.Value!),
+                arg => Assert.Equal((byte)0, (byte)arg.Value!),
+                arg => Assert.Equal((short)0, (short)arg.Value!),
+                arg => Assert.Equal((ushort)0, (ushort)arg.Value!),
+                arg => Assert.Equal(0, (int)arg.Value!),
+                arg => Assert.Equal((uint)0, (uint)arg.Value!),
+                arg => Assert.Equal(0, (long)arg.Value!),
+                arg => Assert.Equal((ulong)0, (ulong)arg.Value!),
+                arg => Assert.Equal(0, (float)arg.Value!),
+                arg => Assert.Equal(0, (double)arg.Value!));
         }
 
         public async Task NodeMethodCallStaticScalarMethod1Test5Async()
@@ -1049,7 +1049,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string methodId = "http://test.org/UA/Data/#i=10756";
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
-            var input = new List<MethodCallArgumentModel> {
+            var input = new List<MethodCallArgumentModel?> {
                 new MethodCallArgumentModel {
                     DataType = "boolean",
                     Value = true
@@ -1086,17 +1086,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.True((bool)arg.Value),
-                arg => Assert.Equal((sbyte)input[1].Value, (sbyte)arg.Value),
-                arg => Assert.Equal((byte)input[2].Value, (byte)arg.Value),
-                arg => Assert.Equal((short)0, (short)arg.Value),
-                arg => Assert.Equal((ushort)0, (ushort)arg.Value),
-                arg => Assert.Equal(0, (int)arg.Value),
-                arg => Assert.Equal((uint)0, (uint)arg.Value),
-                arg => Assert.Equal(0, (long)arg.Value),
-                arg => Assert.Equal((ulong)0, (ulong)arg.Value),
-                arg => Assert.Equal(0, (float)arg.Value),
-                arg => Assert.Equal((double)input[10].Value, (double)arg.Value));
+                arg => Assert.True((bool)arg.Value!),
+                arg => Assert.Equal((sbyte)input[1]!.Value!, (sbyte)arg.Value!),
+                arg => Assert.Equal((byte)input[2]!.Value!, (byte)arg.Value!),
+                arg => Assert.Equal((short)0, (short)arg.Value!),
+                arg => Assert.Equal((ushort)0, (ushort)arg.Value!),
+                arg => Assert.Equal(0, (int)arg.Value!),
+                arg => Assert.Equal((uint)0, (uint)arg.Value!),
+                arg => Assert.Equal(0, (long)arg.Value!),
+                arg => Assert.Equal((ulong)0, (ulong)arg.Value!),
+                arg => Assert.Equal(0, (float)arg.Value!),
+                arg => Assert.Equal((double)input[10]!.Value!, (double)arg.Value!));
         }
 
         public async Task NodeMethodCallStaticScalarMethod2Test1Async()
@@ -1215,7 +1215,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.Equal(8888888, (int)arg.Value);
+                    Assert.Equal(8888888, (int)arg.Value!);
                     Assert.Equal(input[9].DataType, arg.DataType);
                 });
         }
@@ -1333,8 +1333,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.Equal(50u, (uint)arg.Value),
-                arg => Assert.Equal(8, (int)arg.Value),
+                arg => Assert.Equal(50u, (uint)arg.Value!),
+                arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
@@ -1378,8 +1378,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.Equal("varianttest", (string)arg.Value),
-                arg => Assert.Equal(9999, (int)arg.Value),
+                arg => Assert.Equal("varianttest", (string)arg.Value!),
+                arg => Assert.Equal(9999, (int)arg.Value!),
                 arg => Assert.Equal(input[2].Value, arg.Value));
         }
 
@@ -1431,8 +1431,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.Equal(50u, (uint)arg.Value),
-                arg => Assert.Equal(8, (int)arg.Value),
+                arg => Assert.Equal(50u, (uint)arg.Value!),
+                arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
@@ -1482,8 +1482,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.Equal(50u, (uint)arg.Value),
-                arg => Assert.Equal(8, (int)arg.Value),
+                arg => Assert.Equal(50u, (uint)arg.Value!),
+                arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
@@ -1538,8 +1538,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.Equal(50u, (uint)arg.Value),
-                arg => Assert.Equal(8, (int)arg.Value),
+                arg => Assert.Equal(50u, (uint)arg.Value!),
+                arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
@@ -1599,8 +1599,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.Equal(50u, (uint)arg.Value),
-                arg => Assert.Equal(8, (int)arg.Value),
+                arg => Assert.Equal(50u, (uint)arg.Value!),
+                arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
@@ -1660,8 +1660,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Collection(result.Results,
-                arg => Assert.Equal(50u, (uint)arg.Value),
-                arg => Assert.Equal(8, (int)arg.Value),
+                arg => Assert.Equal(50u, (uint)arg.Value!),
+                arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
                     Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),

@@ -22,6 +22,10 @@ namespace System.IO
         {
             // Try to read as much as possible
             var buffer = stream.ReadAsBuffer();
+            if (buffer.Array == null)
+            {
+                return string.Empty;
+            }
             return encoder.GetString(buffer.Array, 0, buffer.Count);
         }
 

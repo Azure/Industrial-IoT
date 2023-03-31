@@ -20,21 +20,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Subscriber
         /// </summary>
         [DataMember(Name = "value", Order = 0,
             EmitDefaultValue = false)]
-        public VariantValue Value { get; set; }
+        public VariantValue? Value { get; set; }
 
         /// <summary>
         /// Data type of value
         /// </summary>
         [DataMember(Name = "dataType", Order = 1,
             EmitDefaultValue = false)]
-        public string DataType { get; set; }
+        public string? DataType { get; set; }
 
         /// <summary>
         /// Status of the value (Quality)
         /// </summary>
         [DataMember(Name = "status", Order = 2,
             EmitDefaultValue = false)]
-        public string Status { get; set; }
+        public string? Status { get; set; }
 
         /// <summary>
         /// Source Timesamp

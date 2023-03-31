@@ -38,8 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public WriterGroupDataFlow(IMessageSource source, IMessageEncoder encoder,
             IMessageSink sink, IOptions<PublisherOptions> options,
             ILogger<WriterGroupDataFlow> logger, IMetricsContext metrics,
-            IWriterGroupDiagnostics diagnostics = null)
-            : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
+            IWriterGroupDiagnostics? diagnostics = null)
         {
             _options = options;
             Source = source;
@@ -47,6 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _messageEncoder = encoder;
             _logger = logger;
             _diagnostics = diagnostics;
+
+            InitMetricsContext(metrics ?? throw new ArgumentNullException(nameof(metrics)));
 
             if (_options.Value.BatchSize > 1)
             {
@@ -131,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Batch trigger interval
         /// </summary>
         /// <param name="state"></param>
-        private void BatchTriggerIntervalTimer_Elapsed(object state)
+        private void BatchTriggerIntervalTimer_Elapsed(object? state)
         {
             if (_batchTriggerInterval > TimeSpan.Zero)
             {
@@ -145,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        private void OnMessageReceived(object sender, SubscriptionNotificationModel args)
+        private void OnMessageReceived(object? sender, SubscriptionNotificationModel args)
         {
             _logger.LogDebug("Message source received message with sequenceNumber {SequenceNumber}",
                 args.SequenceNumber);
@@ -172,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
         }
 
-        private void MessageTriggerCounterResetReceived(object sender, EventArgs e)
+        private void MessageTriggerCounterResetReceived(object? sender, EventArgs e)
         {
             _dataFlowStartTime = DateTime.MinValue;
         }
@@ -181,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create observable metrics
         /// </summary>
         /// <param name="metrics"></param>
-        private WriterGroupDataFlow(IMetricsContext metrics)
+        private void InitMetricsContext(IMetricsContext metrics)
         {
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_iothub_queue_dropped_count",
                 () => new Measurement<long>(_sinkBlockInputDroppedCount, metrics.TagList), "Messages",
@@ -211,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IMessageSink _messageSink;
         private readonly IMessageEncoder _messageEncoder;
         private readonly ILogger _logger;
-        private readonly IWriterGroupDiagnostics _diagnostics;
+        private readonly IWriterGroupDiagnostics? _diagnostics;
         private readonly BatchBlock<SubscriptionNotificationModel> _batchDataSetMessageBlock;
         private readonly TransformManyBlock<SubscriptionNotificationModel[], IEvent> _encodingBlock;
         private readonly ActionBlock<IEvent> _sinkBlock;

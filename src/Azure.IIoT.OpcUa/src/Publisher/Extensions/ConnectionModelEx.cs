@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Furly.Extensions.Serializers;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Connection endpoint model extensions
@@ -19,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this ConnectionModel model, ConnectionModel that)
+        public static bool IsSameAs(this ConnectionModel? model, ConnectionModel? that)
         {
             if (model == that)
             {
@@ -57,13 +58,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             var hashCode = -1971667340;
             hashCode = (hashCode * -1521134295) +
-                model.Endpoint.CreateConsistentHash();
+                model.Endpoint?.CreateConsistentHash() ?? 0;
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<VariantValue>.Default.GetHashCode(model.User?.Value);
+                EqualityComparer<VariantValue>.Default.GetHashCode(model.User?.Value ?? VariantValue.Null);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(model.Diagnostics?.AuditId);
+                EqualityComparer<string>.Default.GetHashCode(model.Diagnostics?.AuditId ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(model.Group);
+                EqualityComparer<string>.Default.GetHashCode(model.Group ?? string.Empty);
             return hashCode;
         }
 
@@ -72,7 +73,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ConnectionModel Clone(this ConnectionModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static ConnectionModel? Clone(this ConnectionModel? model)
         {
             if (model == null)
             {
@@ -92,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// endpoint url, hash and associated group
         /// </summary>
         /// <param name="model"></param>
-        public static string CreateConnectionId(this ConnectionModel model)
+        public static string? CreateConnectionId(this ConnectionModel? model)
         {
             if (string.IsNullOrEmpty(model?.Endpoint?.Url))
             {

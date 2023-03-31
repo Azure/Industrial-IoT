@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
         /// <param name="configure"></param>
         /// <returns></returns>
         public static ContainerBuilder AddServiceSdk(this ContainerBuilder builder,
-            Action<ServiceSdkOptions> configure = null)
+            Action<ServiceSdkOptions>? configure = null)
         {
             builder.ConfigureServiceSdk(configure);
 

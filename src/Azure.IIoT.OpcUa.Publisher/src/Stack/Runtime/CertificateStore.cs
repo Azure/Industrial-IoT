@@ -13,11 +13,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Store type
         /// </summary>
-        public string StoreType { get; set; }
+        public string? StoreType { get; set; }
 
         /// <summary>
         /// Store path
         /// </summary>
-        public string StorePath { get; set; }
+        public string? StorePath { get; set; }
     }
 }

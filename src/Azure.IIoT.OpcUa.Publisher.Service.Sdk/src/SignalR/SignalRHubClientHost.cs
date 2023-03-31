@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         IAwaitable<SignalRHubClientHost>, IAsyncDisposable, IDisposable
     {
         /// <inheritdoc/>
-        public string ConnectionId => _connection.ConnectionId;
+        public string? ConnectionId => _connection?.ConnectionId;
 
         /// <summary>
         /// Create client
@@ -37,8 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <param name="msgPack"></param>
         public SignalRHubClientHost(string endpointUrl,
             IOptions<ServiceSdkOptions> options, ILogger logger,
-            INewtonsoftSerializerSettingsProvider jsonSettings,
-            IMessagePackFormatterResolverProvider msgPack)
+            INewtonsoftSerializerSettingsProvider? jsonSettings,
+            IMessagePackFormatterResolverProvider? msgPack)
         {
             if (string.IsNullOrEmpty(endpointUrl))
             {
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         }
 
         /// <inheritdoc/>
-        public IDisposable Register(Func<object[], object, Task> handler,
+        public IDisposable Register(Func<object?[], object, Task> handler,
             object thiz, string method, Type[] arguments)
         {
             _lock.Wait();
@@ -202,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        private static async Task DisposeAsync(HubConnection connection)
+        private static async Task DisposeAsync(HubConnection? connection)
         {
             if (connection == null)
             {
@@ -220,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <param name="connection"></param>
         /// <param name="ex"></param>
         /// <returns></returns>
-        private async Task OnClosedAsync(HubConnection connection, Exception ex)
+        private async Task OnClosedAsync(HubConnection connection, Exception? ex)
         {
             _logger.LogError(ex, "SignalR client host Disconnected!");
             await DisposeAsync(connection).ConfigureAwait(false);
@@ -233,14 +233,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         }
 
         private readonly SemaphoreSlim _lock = new(1, 1);
-        private readonly INewtonsoftSerializerSettingsProvider _jsonSettings;
-        private readonly IMessagePackFormatterResolverProvider _msgPack;
+        private readonly INewtonsoftSerializerSettingsProvider? _jsonSettings;
+        private readonly IMessagePackFormatterResolverProvider? _msgPack;
         private readonly Uri _endpointUri;
         private readonly bool _useMessagePack;
         private readonly IOptions<ServiceSdkOptions> _options;
         private readonly ILogger _logger;
         private readonly Task _started;
         private bool _isDisposed;
-        private HubConnection _connection;
+        private HubConnection? _connection;
     }
 }

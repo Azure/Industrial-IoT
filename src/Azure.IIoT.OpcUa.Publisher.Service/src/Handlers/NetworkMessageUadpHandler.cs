@@ -41,8 +41,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         /// <inheritdoc/>
-        public async ValueTask HandleAsync(string deviceId, string moduleId, ReadOnlyMemory<byte> payload,
-            IReadOnlyDictionary<string, string> properties, CancellationToken ct)
+        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlyMemory<byte> payload,
+            IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
         {
             try
             {
@@ -66,31 +66,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                             SequenceNumber = dataSetMessage.SequenceNumber,
                             Status = dataSetMessage.Status == null ? null :
                                 StatusCode.LookupSymbolicId(dataSetMessage.Status.Value.Code),
-                            MetaDataVersion = $"{dataSetMessage.MetaDataVersion.MajorVersion}" +
-                                $".{dataSetMessage.MetaDataVersion.MinorVersion}",
+                            MetaDataVersion = $"{dataSetMessage.MetaDataVersion?.MajorVersion ?? 1}" +
+                                $".{dataSetMessage.MetaDataVersion?.MinorVersion ?? 0}",
                             Timestamp = dataSetMessage.Timestamp,
-                            Payload = new Dictionary<string, DataValueModel>()
+                            Payload = new Dictionary<string, DataValueModel?>()
                         };
                         foreach (var datapoint in dataSetMessage.Payload)
                         {
                             var codec = _encoder.Create(context);
                             var type = BuiltInType.Null;
-                            dataset.Payload[datapoint.Key] = new DataValueModel
+                            var dataValue = datapoint.Value;
+                            dataset.Payload[datapoint.Key] = dataValue == null ? null : new DataValueModel
                             {
-                                Value = datapoint.Value == null
-                                    ? null : codec.Encode(datapoint.Value.WrappedValue, out type),
+                                Value = codec.Encode(dataValue.WrappedValue, out type),
                                 DataType = type == BuiltInType.Null
                                     ? null : type.ToString(),
-                                Status = (datapoint.Value?.StatusCode.Code == StatusCodes.Good)
-                                    ? null : StatusCode.LookupSymbolicId(datapoint.Value.StatusCode.Code),
-                                SourceTimestamp = (datapoint.Value?.SourceTimestamp == DateTime.MinValue)
-                                    ? null : datapoint.Value?.SourceTimestamp,
-                                SourcePicoseconds = (datapoint.Value?.SourcePicoseconds == 0)
-                                    ? null : datapoint.Value?.SourcePicoseconds,
-                                ServerTimestamp = (datapoint.Value?.ServerTimestamp == DateTime.MinValue)
-                                    ? null : datapoint.Value?.ServerTimestamp,
-                                ServerPicoseconds = (datapoint.Value?.ServerPicoseconds == 0)
-                                    ? null : datapoint.Value?.ServerPicoseconds
+                                Status = (dataValue.StatusCode.Code == StatusCodes.Good)
+                                    ? null : StatusCode.LookupSymbolicId(dataValue.StatusCode.Code),
+                                SourceTimestamp = (dataValue.SourceTimestamp == DateTime.MinValue)
+                                    ? null : dataValue.SourceTimestamp,
+                                SourcePicoseconds = (dataValue.SourcePicoseconds == 0)
+                                    ? null : dataValue.SourcePicoseconds,
+                                ServerTimestamp = (dataValue.ServerTimestamp == DateTime.MinValue)
+                                    ? null : dataValue.ServerTimestamp,
+                                ServerPicoseconds = (dataValue.ServerPicoseconds == 0)
+                                    ? null : dataValue.ServerPicoseconds
                             };
                         }
                         await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(dataset))).ConfigureAwait(false);

@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils
     using System.IO;
     using System.Text;
 
-
     /// <summary>
     /// Utilities for tests.
     /// </summary>

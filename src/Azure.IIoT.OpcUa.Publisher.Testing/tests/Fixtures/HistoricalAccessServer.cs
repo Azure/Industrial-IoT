@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <param name="factory"></param>
         /// <param name="timeservice"></param>
         public static IEnumerable<INodeManagerFactory> HistoricalAccess(
-            ILoggerFactory factory, TimeService timeservice)
+            ILoggerFactory? factory, TimeService timeservice)
         {
             yield return new HistoricalAccess.HistoricalAccessServer(timeservice);
         }

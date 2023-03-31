@@ -22,6 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// {deviceId}_module_{moduleId}
         /// </code>.
         /// </summary>
-        public string Target { get; set; }
+        public string? Target { get; set; }
     }
 }

@@ -43,6 +43,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             using var activity = Diagnostics.Activity.StartActivity("CancelDiscovery");
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
+                if (publisher.Id == null)
+                {
+                    continue;
+                }
                 var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
                 try
                 {
@@ -65,6 +69,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             var exceptions = new List<Exception>();
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
+                if (publisher.Id == null)
+                {
+                    continue;
+                }
                 var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
                 try
                 {
@@ -85,6 +93,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             using var activity = Diagnostics.Activity.StartActivity("Discover");
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
+                if (publisher.Id == null)
+                {
+                    continue;
+                }
                 var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
                 try
                 {
@@ -104,6 +116,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             using var activity = Diagnostics.Activity.StartActivity("RegisterServer");
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
+                if (publisher.Id == null)
+                {
+                    continue;
+                }
                 var client = new DiscoveryApiClient(_client, publisher.Id, _serializer);
                 try
                 {
@@ -126,14 +142,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         private async IAsyncEnumerable<PublisherModel> EnumeratePublishersAsync(
             [EnumeratorCancellation] CancellationToken ct = default)
         {
-            string continuationToken = null;
+            string? continuationToken = null;
             do
             {
                 var result = await _publishers.ListPublishersAsync(continuationToken, false,
                     null, ct).ConfigureAwait(false);
-                foreach (var item in result.Items)
+                if (result.Items != null)
                 {
-                    yield return item;
+                    foreach (var item in result.Items)
+                    {
+                        yield return item;
+                    }
                 }
                 continuationToken = result.ContinuationToken;
             }

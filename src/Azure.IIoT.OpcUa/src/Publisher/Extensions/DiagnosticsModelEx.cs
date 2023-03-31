@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Diagnostics.CodeAnalysis;
+
     /// <summary>
     /// Diagnostics model extensions
     /// </summary>
@@ -15,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DiagnosticsModel Clone(this DiagnosticsModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static DiagnosticsModel? Clone(this DiagnosticsModel? model)
         {
             if (model == null)
             {

@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 {
+    using Furly.Extensions.Logging;
     using Microsoft.Extensions.Logging;
     using Opc.Ua.Server;
     using Opc.Ua.Test;
@@ -17,10 +18,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     {
         /// <inheritdoc/>
         public static IEnumerable<INodeManagerFactory> Plc(
-            ILoggerFactory factory, TimeService timeservice)
+            ILoggerFactory? factory, TimeService timeservice)
         {
             yield return new Plc.PlcServer(timeservice,
-                factory.CreateLogger<Plc.PlcServer>());
+                (factory ?? Log.ConsoleFactory()).CreateLogger<Plc.PlcServer>());
         }
 
         /// <inheritdoc/>

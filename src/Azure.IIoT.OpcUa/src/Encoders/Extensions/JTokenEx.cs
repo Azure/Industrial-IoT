@@ -17,13 +17,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Returns dimensions of the multi dimensional array assuming
         /// it is not jagged.
         /// </summary>
-        /// <param name="array"></param>
+        /// <param name="token"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static int[] GetDimensions(this JArray array, out JTokenType type)
+        public static int[] GetDimensions(this JArray token, out JTokenType type)
         {
             var dimensions = new List<int>();
             type = JTokenType.Undefined;
+            var array = token;
             while (array != null && array.Count != 0)
             {
                 dimensions.Add(array.Count);

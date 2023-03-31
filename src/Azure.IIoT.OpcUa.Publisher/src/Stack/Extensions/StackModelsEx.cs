@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using DiagnosticsLevel = OpcUa.Publisher.Models.DiagnosticsLevel;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
 
@@ -26,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="header"></param>
         /// <param name="timeoutHint"></param>
         /// <returns></returns>
-        public static RequestHeader ToRequestHeader(this RequestHeaderModel header,
+        public static RequestHeader ToRequestHeader(this RequestHeaderModel? header,
             uint timeoutHint = 0)
         {
             return (header?.Diagnostics?.Level).ToRequestHeader(header?.Diagnostics?.AuditId,
@@ -41,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="timestamp"></param>
         /// <param name="timeoutHint"></param>
         /// <returns></returns>
-        public static RequestHeader ToRequestHeader(this OperationContextModel context,
+        public static RequestHeader ToRequestHeader(this OperationContextModel? context,
             DiagnosticsLevel? level = null, DateTime? timestamp = null,
             uint timeoutHint = 0)
         {
@@ -57,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="timeoutHint"></param>
         /// <returns></returns>
         public static RequestHeader ToRequestHeader(this DiagnosticsLevel? level,
-            string auditId = null, DateTime? timestamp = null, uint timeoutHint = 0)
+            string? auditId = null, DateTime? timestamp = null, uint timeoutHint = 0)
         {
             return new RequestHeader
             {
@@ -74,21 +75,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Convert diagnostics to request header
         /// </summary>
-        /// <param name="viewModel"></param>
+        /// <param name="model"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static ViewDescription ToStackModel(this BrowseViewModel viewModel,
+        [return: NotNullIfNotNull(nameof(model))]
+        public static ViewDescription? ToStackModel(this BrowseViewModel? model,
             IServiceMessageContext context)
         {
-            if (viewModel == null)
+            if (model == null)
             {
                 return null;
             }
             return new ViewDescription
             {
-                Timestamp = viewModel.Timestamp ?? DateTime.MinValue,
-                ViewVersion = viewModel.Version ?? 0,
-                ViewId = viewModel.ViewId.ToNodeId(context)
+                Timestamp = model.Timestamp ?? DateTime.MinValue,
+                ViewVersion = model.Version ?? 0,
+                ViewId = model.ViewId.ToNodeId(context)
             };
         }
 
@@ -119,7 +121,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DataChangeFilter ToStackModel(this DataChangeFilterModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static DataChangeFilter? ToStackModel(this DataChangeFilterModel? model)
         {
             if (model == null)
             {
@@ -139,7 +142,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="model"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static AggregateFilter ToStackModel(this AggregateFilterModel model,
+        [return: NotNullIfNotNull(nameof(model))]
+        public static AggregateFilter? ToStackModel(this AggregateFilterModel? model,
             IServiceMessageContext context)
         {
             if (model == null)
@@ -161,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="model"></param>
         /// <returns></returns>
         public static AggregateConfiguration ToStackModel(
-            this AggregateConfigurationModel model)
+            this AggregateConfigurationModel? model)
         {
             if (model == null)
             {
@@ -185,7 +189,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="model"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static SimpleAttributeOperand ToStackModel(this SimpleAttributeOperandModel model,
+        [return: NotNullIfNotNull(nameof(model))]
+        public static SimpleAttributeOperand? ToStackModel(this SimpleAttributeOperandModel? model,
             IServiceMessageContext context)
         {
             if (model == null)
@@ -209,7 +214,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="model"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static SimpleAttributeOperandModel ToServiceModel(this SimpleAttributeOperand model,
+        [return: NotNullIfNotNull(nameof(model))]
+        public static SimpleAttributeOperandModel? ToServiceModel(this SimpleAttributeOperand? model,
             IServiceMessageContext context)
         {
             if (model == null)
@@ -236,15 +242,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         {
             if (policies == null || policies.Count == 0)
             {
-                return new List<AuthenticationMethodModel>{
-                     new AuthenticationMethodModel {
+                return new List<AuthenticationMethodModel>
+                {
+                     new AuthenticationMethodModel
+                     {
                          Id = "Anonymous",
                          CredentialType = CredentialType.None
                      }
                 };
             }
             return policies
-                .Select(p => p.ToServiceModel(serializer))
+                .Select(p => p.ToServiceModel(serializer)!)
                 .Where(p => p != null)
                 .Distinct()
                 .ToList();
@@ -256,7 +264,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="policy"></param>
         /// <param name="serializer"></param>
         /// <returns></returns>
-        public static AuthenticationMethodModel ToServiceModel(this UserTokenPolicy policy,
+        public static AuthenticationMethodModel? ToServiceModel(this UserTokenPolicy? policy,
             IJsonSerializer serializer)
         {
             if (policy == null)
@@ -316,34 +324,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="authentication"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        public static IUserIdentity ToStackModel(this CredentialModel authentication)
+        public static IUserIdentity? ToStackModel(this CredentialModel? authentication)
         {
             switch (authentication?.Type ?? CredentialType.None)
             {
                 case CredentialType.UserName:
-                    if (authentication.Value?.IsObject == true &&
+                    if (authentication!.Value?.IsObject == true &&
                         authentication.Value.TryGetProperty("user", out var user) &&
                             user.IsString &&
                         authentication.Value.TryGetProperty("password", out var password) &&
                             password.IsString)
                     {
-                        return new UserIdentity((string)user, (string)password);
+                        return new UserIdentity((string?)user, (string?)password);
                     }
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
                         "User/passord token format is not supported.");
                 case CredentialType.X509Certificate:
                     return new UserIdentity(new X509Certificate2(
-                        authentication.Value?.ConvertTo<byte[]>()));
+                        authentication!.Value?.ConvertTo<byte[]>() ?? Array.Empty<byte>()));
                 case CredentialType.JwtToken:
                     return new UserIdentity(new IssuedIdentityToken
                     {
-                        DecryptedTokenData = authentication.Value?.ConvertTo<byte[]>()
+                        DecryptedTokenData = authentication!.Value?.ConvertTo<byte[]>()
                     });
                 case CredentialType.None:
                     return new UserIdentity(new AnonymousIdentityToken());
                 default:
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
-                        $"Token type {authentication.Type} is not supported");
+                        $"Token type {authentication!.Type} is not supported");
             }
         }
     }

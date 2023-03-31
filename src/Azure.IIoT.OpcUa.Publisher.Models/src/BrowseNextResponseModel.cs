@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "references", Order = 0,
             EmitDefaultValue = false)]
-        public IReadOnlyList<NodeReferenceModel>? References { get; set; }
+        public IReadOnlyList<NodeReferenceModel> References { get; set; } = null!;
 
         /// <summary>
         /// Continuation token if more results pending.

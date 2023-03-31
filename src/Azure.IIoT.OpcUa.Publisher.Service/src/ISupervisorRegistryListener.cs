@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="context"></param>
         /// <param name="supervisor"></param>
         /// <returns></returns>
-        Task OnSupervisorNewAsync(OperationContextModel context,
+        Task OnSupervisorNewAsync(OperationContextModel? context,
             SupervisorModel supervisor);
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="context"></param>
         /// <param name="supervisor"></param>
         /// <returns></returns>
-        Task OnSupervisorUpdatedAsync(OperationContextModel context,
+        Task OnSupervisorUpdatedAsync(OperationContextModel? context,
             SupervisorModel supervisor);
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="context"></param>
         /// <param name="supervisorId"></param>
         /// <returns></returns>
-        Task OnSupervisorDeletedAsync(OperationContextModel context,
+        Task OnSupervisorDeletedAsync(OperationContextModel? context,
             string supervisorId);
     }
 }

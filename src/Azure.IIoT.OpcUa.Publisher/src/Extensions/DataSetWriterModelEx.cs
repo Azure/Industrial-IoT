@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using System;
+    using System.Diagnostics;
 
     /// <summary>
     /// Data set extensions
@@ -24,12 +25,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <exception cref="ArgumentException"></exception>
         public static SubscriptionModel ToSubscriptionModel(
             this DataSetWriterModel dataSetWriter, SubscriptionOptions configuration,
-            string writerGroupId = null)
+            string? writerGroupId = null)
         {
-            if (dataSetWriter == null)
-            {
-                return null;
-            }
             if (dataSetWriter.DataSet == null)
             {
                 throw new ArgumentException("DataSet missing,", nameof(dataSetWriter));
@@ -47,8 +44,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 Id = ToSubscriptionId(dataSetWriter, writerGroupId),
                 MonitoredItems = monitoredItems,
-                ExtensionFields = dataSetWriter.DataSet.ExtensionFields,
-                Configuration = dataSetWriter.DataSet.DataSetSource.ToSubscriptionConfigurationModel(
+                ExtensionFields = dataSetWriter.DataSet?.ExtensionFields,
+                Configuration = dataSetWriter.DataSet?.DataSetSource.ToSubscriptionConfigurationModel(
                     dataSetWriter.DataSet.DataSetMetaData, configuration)
             };
         }
@@ -61,17 +58,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         public static SubscriptionIdentifier ToSubscriptionId(this DataSetWriterModel dataSetWriter,
-            string writerGroupId = null)
+            string? writerGroupId = null)
         {
             if (dataSetWriter == null)
             {
-                return null;
+                throw new ArgumentNullException(nameof(dataSetWriter));
             }
             if (dataSetWriter.DataSetWriterName == null)
             {
                 throw new ArgumentException("DataSetWriterName missing.", nameof(dataSetWriter));
             }
-            if (dataSetWriter.DataSet.DataSetSource.Connection == null)
+            if (dataSetWriter.DataSet?.DataSetSource?.Connection == null)
             {
                 throw new ArgumentException("Connection missing from data source", nameof(dataSetWriter));
             }
@@ -81,7 +78,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             // TODO: We should get rid of this in connection model, it is redundant in the model tree
             if (connection.Group == null)
             {
-                connection = dataSetWriter.DataSet.DataSetSource.Connection.Clone();
+                connection = connection.Clone();
+                Debug.Assert(connection != null);
                 connection.Group = writerGroupId;
             }
             return new SubscriptionIdentifier(connection, dataSetWriter.DataSetWriterName);

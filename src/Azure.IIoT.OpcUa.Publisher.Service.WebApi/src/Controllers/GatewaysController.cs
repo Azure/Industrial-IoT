@@ -13,9 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.ComponentModel.DataAnnotations;
+    using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Globalization;
 
     /// <summary>
     /// Read, Update and Query Gateway resources
@@ -92,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<GatewayListModel> GetListOfGatewayAsync(
-            [FromQuery] string continuationToken,
+            [FromQuery] string? continuationToken,
             [FromQuery] int? pageSize)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
@@ -103,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _gateways.ListGatewaysAsync(
@@ -136,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _gateways.QueryGatewaysAsync(
@@ -169,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _gateways.QueryGatewaysAsync(

@@ -7,6 +7,7 @@ namespace System.Linq
 {
     using System.Collections;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Enumerable extensions
@@ -20,7 +21,8 @@ namespace System.Linq
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        public static IReadOnlySet<T> MergeWith<T>(this IReadOnlySet<T> a, IEnumerable<T> b)
+        [return: NotNullIfNotNull(nameof(a))]
+        public static IReadOnlySet<T>? MergeWith<T>(this IReadOnlySet<T>? a, IEnumerable<T>? b)
         {
             if (b?.Any() ?? false)
             {
@@ -40,7 +42,8 @@ namespace System.Linq
         /// <typeparam name="T"></typeparam>
         /// <param name="enumerable"></param>
         /// <returns></returns>
-        public static HashSet<T> ToHashSetSafe<T>(this IEnumerable<T> enumerable)
+        [return: NotNullIfNotNull(nameof(enumerable))]
+        public static HashSet<T>? ToHashSetSafe<T>(this IEnumerable<T>? enumerable)
         {
             if (enumerable == null)
             {

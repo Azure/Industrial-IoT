@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this DataChangeFilterModel model, DataChangeFilterModel other)
+        public static bool IsSameAs(this DataChangeFilterModel? model, DataChangeFilterModel? other)
         {
             if (model == null && other == null)
             {

@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
     using Nito.Disposables;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
@@ -31,8 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="serializers"></param>
         public PublisherServiceEvents(IHttpClientFactory httpClient, ICallbackClient client,
             IOptions<ServiceSdkOptions> options, IEnumerable<ISerializer> serializers) :
-            this(httpClient, client, options?.Value.ServiceUrl, options?.Value.TokenProvider,
-                serializers.Resolve(options?.Value))
+            this(httpClient, client, options.Value.ServiceUrl!, options.Value.TokenProvider,
+                serializers.Resolve(options.Value))
         {
         }
 
@@ -45,8 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="authorization"></param>
         /// <param name="serializer"></param>
         public PublisherServiceEvents(IHttpClientFactory httpClient, ICallbackClient client,
-            string serviceUri, Func<Task<string>> authorization,
-            ISerializer serializer = null)
+            string serviceUri, Func<Task<string?>>? authorization,
+            ISerializer? serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
             {
@@ -62,13 +63,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(string endpointId,
-            Func<MonitoredItemMessageModel, Task> callback)
+            Func<MonitoredItemMessageModel?, Task> callback)
         {
             if (callback == null)
             {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/publishers/events").ConfigureAwait(false);
+            if (hub.ConnectionId == null)
+            {
+                throw new IOException("Hub not connected");
+            }
             var registration = hub.Register(EventTargets.PublisherSampleTarget, callback);
             try
             {
@@ -125,6 +130,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
         private readonly ICallbackClient _client;
-        private readonly Func<Task<string>> _authorization;
+        private readonly Func<Task<string?>>? _authorization;
     }
 }

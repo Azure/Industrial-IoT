@@ -20,10 +20,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Convert to monitored items
         /// </summary>
         /// <param name="eventItems"></param>
-        /// <param name="configuration"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         public static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
-            this PublishedEventItemsModel eventItems, SubscriptionOptions configuration = null)
+            this PublishedEventItemsModel eventItems, SubscriptionOptions options)
         {
             if (eventItems?.PublishedData == null)
             {
@@ -31,13 +31,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
 
             var map = new Dictionary<string, BaseMonitoredItemModel>();
-            foreach (var item in eventItems.PublishedData)
+            foreach (var publishedData in eventItems.PublishedData)
             {
-                if (item == null)
+                var monitoredItem = publishedData?.ToMonitoredItem(options);
+                if (monitoredItem == null)
                 {
                     continue;
                 }
-                var monitoredItem = item.ToMonitoredItem(configuration);
                 map.AddOrUpdate(monitoredItem.Id ?? Guid.NewGuid().ToString(), monitoredItem);
             }
             return map.Values;

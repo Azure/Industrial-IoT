@@ -15,16 +15,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
     public class KeyDataValuePair : IEncodeable
     {
         /// <summary>
-        /// The default constructor.
+        /// Constructor only to be used when deserializing.
         /// </summary>
-        public KeyDataValuePair() { }
+        public KeyDataValuePair() : this(string.Empty, null)
+        {
+        }
 
         /// <summary>
         /// The default constructor.
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public KeyDataValuePair(string key, DataValue value)
+        public KeyDataValuePair(string key, DataValue? value)
         {
             Key = key;
             Value = value;
@@ -40,16 +42,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// Value
         /// </summary>
         [DataMember(Name = "Value", IsRequired = true, Order = 2)]
-        public DataValue Value { get; set; }
+        public DataValue? Value { get; set; }
 
         /// <inheritdoc/>
-        public virtual ExpandedNodeId TypeId { get; }
+        public virtual ExpandedNodeId? TypeId { get; }
 
         /// <inheritdoc/>
-        public virtual ExpandedNodeId BinaryEncodingId { get; }
+        public virtual ExpandedNodeId? BinaryEncodingId { get; }
 
         /// <inheritdoc/>
-        public virtual ExpandedNodeId XmlEncodingId { get; }
+        public virtual ExpandedNodeId? XmlEncodingId { get; }
 
         /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder)
@@ -129,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// Converts a collection to an array.
         /// </summary>
         /// <param name="values"></param>
-        public static explicit operator KeyDataValuePair[](KeyDataValuePairCollection values)
+        public static explicit operator KeyDataValuePair[]?(KeyDataValuePairCollection values)
         {
             if (values != null)
             {

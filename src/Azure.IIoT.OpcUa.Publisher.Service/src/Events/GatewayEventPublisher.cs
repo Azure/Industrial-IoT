@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnGatewayDeletedAsync(OperationContextModel context,
+        public Task OnGatewayDeletedAsync(OperationContextModel? context,
             string gatewayId)
         {
             return PublishAsync(GatewayEventType.Deleted, context,
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnGatewayNewAsync(OperationContextModel context,
+        public Task OnGatewayNewAsync(OperationContextModel? context,
             GatewayModel gateway)
         {
             return PublishAsync(GatewayEventType.New, context,
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnGatewayUpdatedAsync(OperationContextModel context,
+        public Task OnGatewayUpdatedAsync(OperationContextModel? context,
             GatewayModel gateway)
         {
             return PublishAsync(GatewayEventType.Updated, context,
@@ -54,11 +54,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         /// <param name="gateway"></param>
         /// <returns></returns>
         public Task PublishAsync(GatewayEventType type,
-            OperationContextModel context, string gatewayId,
-            GatewayModel gateway)
+            OperationContextModel? context, string? gatewayId,
+            GatewayModel? gateway)
         {
-            var arguments = new object[] {
-                new GatewayEventModel {
+            var arguments = new object[]
+            {
+                new GatewayEventModel
+                {
                     EventType = type,
                     Context = context,
                     Id = gatewayId,

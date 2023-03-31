@@ -40,9 +40,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients
         /// <inheritdoc/>
         public async Task HandleMessageAsync(DataSetMessageModel message)
         {
-            foreach (var datapoint in message.Payload)
+            if (message.Payload != null)
             {
-                var arguments = new object[] {
+                foreach (var datapoint in message.Payload)
+                {
+                    var arguments = new object[] {
                      new MonitoredItemMessageModel {
                         Timestamp = message.Timestamp,
                         DataSetWriterId = message.DataSetWriterId,
@@ -60,11 +62,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients
                         EndpointId = null // TODO Remove
                     }
                 };
-                if (!string.IsNullOrEmpty(message.DataSetWriterId))
-                {
-                    // Send to endpoint listeners
-                    await _callback.MulticastAsync(message.DataSetWriterId,
-                        EventTargets.PublisherSampleTarget, arguments).ConfigureAwait(false);
+                    if (!string.IsNullOrEmpty(message.DataSetWriterId))
+                    {
+                        // Send to endpoint listeners
+                        await _callback.MulticastAsync(message.DataSetWriterId,
+                            EventTargets.PublisherSampleTarget, arguments).ConfigureAwait(false);
+                    }
                 }
             }
         }

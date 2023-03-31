@@ -8,37 +8,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// <summary>
     /// Data set message emitted by writer in a writer group.
     /// </summary>
-    public class WriterGroupMessageContext
+    public record class WriterGroupMessageContext
     {
         /// <summary>
         /// Sequence number inside the writer group and based
         /// on message type
         /// </summary>
-        public uint SequenceNumber { get; set; }
+        public required uint SequenceNumber { get; init; }
 
         /// <summary>
         /// Topic for the message if not metadata message
         /// </summary>
-        public string Topic { get; set; }
+        public required string Topic { get; init; }
 
         /// <summary>
         /// Metadata topic for metadata messages
         /// </summary>
-        public string MetaDataTopic { get; set; }
+        public required string MetaDataTopic { get; init; }
 
         /// <summary>
         /// Publisher id
         /// </summary>
-        public string PublisherId { get; set; }
+        public required string PublisherId { get; init; }
 
         /// <summary>
         /// Dataset writer model reference
         /// </summary>
-        public DataSetWriterModel Writer { get; set; }
+        public required DataSetWriterModel Writer { get; init; }
 
         /// <summary>
         /// Writer group model reference
         /// </summary>
-        public WriterGroupModel WriterGroup { get; set; }
+        public required WriterGroupModel WriterGroup { get; init; }
     }
 }

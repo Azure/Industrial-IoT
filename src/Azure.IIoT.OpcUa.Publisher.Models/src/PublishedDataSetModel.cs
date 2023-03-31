@@ -40,6 +40,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "extensionFields", Order = 3,
             EmitDefaultValue = false)]
-        public Dictionary<string, string>? ExtensionFields { get; set; }
+        public Dictionary<string, string?>? ExtensionFields { get; set; }
     }
 }

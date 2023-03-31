@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -43,7 +44,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="model"></param>
         /// <param name="noDefaultFilter"></param>
         /// <returns></returns>
-        public static EventFilter Decode(this IVariantEncoder encoder, EventFilterModel model,
+        [return: NotNullIfNotNull(nameof(model))]
+        public static EventFilter? Decode(this IVariantEncoder encoder, EventFilterModel? model,
             bool noDefaultFilter = false)
         {
             if (model == null || !(model.SelectClauses?.Any() ?? false))
@@ -69,7 +71,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="encoder"></param>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static EventFilterModel Encode(this IVariantEncoder encoder, EventFilter model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static EventFilterModel? Encode(this IVariantEncoder encoder, EventFilter? model)
         {
             if (model == null)
             {
@@ -91,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="model"></param>
         /// <param name="onlySimpleAttributeOperands"></param>
         /// <returns></returns>
-        public static ContentFilter Decode(this IVariantEncoder encoder, ContentFilterModel model,
+        public static ContentFilter Decode(this IVariantEncoder encoder, ContentFilterModel? model,
             bool onlySimpleAttributeOperands = false)
         {
             if (model == null)
@@ -112,7 +115,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="encoder"></param>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ContentFilterModel Encode(this IVariantEncoder encoder, ContentFilter model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static ContentFilterModel? Encode(this IVariantEncoder encoder, ContentFilter? model)
         {
             if (model == null)
             {
@@ -133,8 +137,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="model"></param>
         /// <param name="onlySimpleAttributeOperands"></param>
         /// <returns></returns>
-        public static ContentFilterElement Decode(this IVariantEncoder encoder,
-            ContentFilterElementModel model, bool onlySimpleAttributeOperands = false)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static ContentFilterElement? Decode(this IVariantEncoder encoder,
+            ContentFilterElementModel? model, bool onlySimpleAttributeOperands = false)
         {
             if (model == null)
             {
@@ -142,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             return new ContentFilterElement
             {
-                FilterOperands = new ExtensionObjectCollection(model?.FilterOperands == null ?
+                FilterOperands = new ExtensionObjectCollection(model.FilterOperands == null ?
                     Enumerable.Empty<ExtensionObject>() : model.FilterOperands
                         .Select(e => new ExtensionObject(
                             encoder.Decode(e, onlySimpleAttributeOperands)))),
@@ -156,8 +161,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="encoder"></param>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ContentFilterElementModel Encode(this IVariantEncoder encoder,
-            ContentFilterElement model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static ContentFilterElementModel? Encode(this IVariantEncoder encoder,
+            ContentFilterElement? model)
         {
             if (model == null)
             {
@@ -181,8 +187,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="model"></param>
         /// <param name="onlySimpleAttributeOperands"></param>
         /// <returns></returns>
-        public static FilterOperand Decode(this IVariantEncoder encoder,
-            FilterOperandModel model, bool onlySimpleAttributeOperands = false)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static FilterOperand? Decode(this IVariantEncoder encoder,
+            FilterOperandModel? model, bool onlySimpleAttributeOperands = false)
         {
             if (model == null)
             {
@@ -241,8 +248,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="model"></param>
         /// <returns></returns>
         /// <exception cref="NotSupportedException"></exception>
-        public static FilterOperandModel Encode(this IVariantEncoder encoder,
-            FilterOperand model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static FilterOperandModel? Encode(this IVariantEncoder encoder,
+            FilterOperand? model)
         {
             if (model == null)
             {

@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Diagnostics.CodeAnalysis;
+
     /// <summary>
     /// Dataset source extensions
     /// </summary>
@@ -15,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static PublishedDataSetSourceModel Clone(this PublishedDataSetSourceModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static PublishedDataSetSourceModel? Clone(this PublishedDataSetSourceModel? model)
         {
             if (model == null)
             {

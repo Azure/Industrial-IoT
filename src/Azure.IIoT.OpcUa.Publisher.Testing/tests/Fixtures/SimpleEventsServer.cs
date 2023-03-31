@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     {
         /// <inheritdoc/>
         public static IEnumerable<INodeManagerFactory> SimpleEvents(
-            ILoggerFactory factory, TimeService timeservice)
+            ILoggerFactory? factory, TimeService timeservice)
         {
             yield return new SimpleEvents.SimpleEventsServer();
         }

@@ -115,11 +115,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var sites = new List<string>();
             var result = await service.ListSitesAsync(null, null, ct).ConfigureAwait(false);
-            sites.AddRange(result.Sites);
+            if (result.Sites != null)
+            {
+                sites.AddRange(result.Sites);
+            }
+
             while (result.ContinuationToken != null)
             {
                 result = await service.ListSitesAsync(result.ContinuationToken, null, ct).ConfigureAwait(false);
-                sites.AddRange(result.Sites);
+                if (result.Sites != null)
+                {
+                    sites.AddRange(result.Sites);
+                }
             }
             return sites;
         }
@@ -135,12 +142,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var registrations = new List<DiscovererModel>();
             var result = await service.ListDiscoverersAsync(null, null, ct).ConfigureAwait(false);
-            registrations.AddRange(result.Items);
+            if (result.Items != null)
+            {
+                registrations.AddRange(result.Items);
+            }
+
             while (result.ContinuationToken != null)
             {
                 result = await service.ListDiscoverersAsync(result.ContinuationToken,
                     null, ct).ConfigureAwait(false);
-                registrations.AddRange(result.Items);
+                if (result.Items != null)
+                {
+                    registrations.AddRange(result.Items);
+                }
             }
             return registrations;
         }
@@ -159,12 +173,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var registrations = new List<DiscovererModel>();
             var result = await service.QueryDiscoverersAsync(query, null, ct).ConfigureAwait(false);
-            registrations.AddRange(result.Items);
+            if (result.Items != null)
+            {
+                registrations.AddRange(result.Items);
+            }
+
             while (result.ContinuationToken != null)
             {
                 result = await service.ListDiscoverersAsync(result.ContinuationToken,
                     null, ct).ConfigureAwait(false);
-                registrations.AddRange(result.Items);
+                if (result.Items != null)
+                {
+                    registrations.AddRange(result.Items);
+                }
             }
             return registrations;
         }
@@ -182,12 +203,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var registrations = new List<SupervisorModel>();
             var result = await service.ListSupervisorsAsync(null, onlyServerState, null, ct).ConfigureAwait(false);
-            registrations.AddRange(result.Items);
+            if (result.Items != null)
+            {
+                registrations.AddRange(result.Items);
+            }
+
             while (result.ContinuationToken != null)
             {
                 result = await service.ListSupervisorsAsync(result.ContinuationToken,
                     onlyServerState, null, ct).ConfigureAwait(false);
-                registrations.AddRange(result.Items);
+                if (result.Items != null)
+                {
+                    registrations.AddRange(result.Items);
+                }
             }
             return registrations;
         }
@@ -206,12 +234,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var registrations = new List<SupervisorModel>();
             var result = await service.QuerySupervisorsAsync(query, onlyServerState, null, ct).ConfigureAwait(false);
-            registrations.AddRange(result.Items);
+            if (result.Items != null)
+            {
+                registrations.AddRange(result.Items);
+            }
+
             while (result.ContinuationToken != null)
             {
                 result = await service.ListSupervisorsAsync(result.ContinuationToken,
                     onlyServerState, null, ct).ConfigureAwait(false);
-                registrations.AddRange(result.Items);
+                if (result.Items != null)
+                {
+                    registrations.AddRange(result.Items);
+                }
             }
             return registrations;
         }
@@ -229,12 +264,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var registrations = new List<PublisherModel>();
             var result = await service.ListPublishersAsync(null, onlyServerState, null, ct).ConfigureAwait(false);
-            registrations.AddRange(result.Items);
+            if (result.Items != null)
+            {
+                registrations.AddRange(result.Items);
+            }
+
             while (result.ContinuationToken != null)
             {
                 result = await service.ListPublishersAsync(result.ContinuationToken,
                     onlyServerState, null, ct).ConfigureAwait(false);
-                registrations.AddRange(result.Items);
+                if (result.Items != null)
+                {
+                    registrations.AddRange(result.Items);
+                }
             }
             return registrations;
         }
@@ -253,12 +295,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var registrations = new List<PublisherModel>();
             var result = await service.QueryPublishersAsync(query, onlyServerState, null, ct).ConfigureAwait(false);
-            registrations.AddRange(result.Items);
+            if (result.Items != null)
+            {
+                registrations.AddRange(result.Items);
+            }
+
             while (result.ContinuationToken != null)
             {
                 result = await service.ListPublishersAsync(result.ContinuationToken,
                     onlyServerState, null, ct).ConfigureAwait(false);
-                registrations.AddRange(result.Items);
+                if (result.Items != null)
+                {
+                    registrations.AddRange(result.Items);
+                }
             }
             return registrations;
         }
@@ -274,12 +323,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var registrations = new List<GatewayModel>();
             var result = await service.ListGatewaysAsync(null, null, ct).ConfigureAwait(false);
-            registrations.AddRange(result.Items);
+            if (result.Items != null)
+            {
+                registrations.AddRange(result.Items);
+            }
+
             while (result.ContinuationToken != null)
             {
                 result = await service.ListGatewaysAsync(result.ContinuationToken,
                     null, ct).ConfigureAwait(false);
-                registrations.AddRange(result.Items);
+                if (result.Items != null)
+                {
+                    registrations.AddRange(result.Items);
+                }
             }
             return registrations;
         }
@@ -297,12 +353,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var registrations = new List<GatewayModel>();
             var result = await service.QueryGatewaysAsync(query, null, ct).ConfigureAwait(false);
-            registrations.AddRange(result.Items);
+            if (result.Items != null)
+            {
+                registrations.AddRange(result.Items);
+            }
+
             while (result.ContinuationToken != null)
             {
                 result = await service.ListGatewaysAsync(result.ContinuationToken,
                     null, ct).ConfigureAwait(false);
-                registrations.AddRange(result.Items);
+                if (result.Items != null)
+                {
+                    registrations.AddRange(result.Items);
+                }
             }
             return registrations;
         }

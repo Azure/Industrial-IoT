@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
     using System.Globalization;
     using System.Text;
@@ -31,9 +32,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create collector
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="config"></param>
+        /// <param name="options"></param>
         public PublisherDiagnosticCollector(ILogger<PublisherDiagnosticCollector> logger,
-            IOptions<PublisherOptions> config = null)
+            IOptions<PublisherOptions>? options = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -47,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meterListener.SetMeasurementEventCallback<decimal>(OnMeasurementRecorded);
             _meterListener.SetMeasurementEventCallback<short>(OnMeasurementRecorded);
 
-            _diagnosticInterval = config?.Value.DiagnosticsInterval ?? TimeSpan.Zero;
+            _diagnosticInterval = options?.Value.DiagnosticsInterval ?? TimeSpan.Zero;
             if (_diagnosticInterval == TimeSpan.Zero)
             {
                 _diagnosticInterval = Timeout.InfiniteTimeSpan;
@@ -59,7 +60,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public void ResetWriterGroup(string writerGroupId)
         {
             var diag = new WriterGroupDiagnosticModel { IngestionStart = DateTime.UtcNow };
-            writerGroupId ??= Constants.DefaultWriterGroupId;
             _diagnostics.AddOrUpdate(writerGroupId, _ => diag, (_, _) => diag);
             _logger.LogInformation("Tracking diagnostics for {WriterGroup} was (re-)started.",
                 writerGroupId);
@@ -67,9 +67,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public bool TryGetDiagnosticsForWriterGroup(string writerGroupId,
-            out WriterGroupDiagnosticModel diagnostic)
+            [NotNullWhen(true)] out WriterGroupDiagnosticModel? diagnostic)
         {
-            writerGroupId ??= Constants.DefaultWriterGroupId;
             if (_diagnostics.TryGetValue(writerGroupId, out var value))
             {
                 //
@@ -87,7 +86,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public bool RemoveWriterGroup(string writerGroupId)
         {
-            writerGroupId ??= Constants.DefaultWriterGroupId;
             if (_diagnostics.TryRemove(writerGroupId, out _))
             {
                 _logger.LogInformation("Stop tracking diagnostics for {WriterGroup}.",
@@ -140,22 +138,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="tags"></param>
         /// <param name="state"></param>
         private void OnMeasurementRecorded<T>(Instrument instrument, T measurement,
-            ReadOnlySpan<KeyValuePair<string, object>> tags, object state)
+            ReadOnlySpan<KeyValuePair<string, object?>> tags, object? state)
         {
             if (_bindings.TryGetValue(instrument.Name, out var binding))
             {
                 for (var index = 0; index < tags.Length; index++)
                 {
                     if (tags[index].Key == Constants.WriterGroupIdTag &&
-                        tags[index].Value != null)
+                        tags[index].Value is string name)
                     {
-                        _diagnostics.AddOrUpdate((string)tags[index].Value,
+                        _diagnostics.AddOrUpdate(name,
                             writerGroupId => Update(new WriterGroupDiagnosticModel()),
                             (writerGroupId, existing) => Update(existing));
                         // Apply value through binding
                         WriterGroupDiagnosticModel Update(WriterGroupDiagnosticModel diag)
                         {
-                            binding(diag, measurement);
+                            if (!EqualityComparer<T?>.Default.Equals(measurement, default))
+                            {
+                                binding(diag, measurement!);
+                            }
                             return diag;
                         }
                         break;
@@ -168,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Diagnostics timer to dump out all diagnostics
         /// </summary>
         /// <param name="state"></param>
-        private void DiagnosticsOutputTimer_Elapsed(object state)
+        private void DiagnosticsOutputTimer_Elapsed(object? state)
         {
             var now = DateTime.UtcNow;
             _meterListener.RecordObservableInstruments();
@@ -180,12 +181,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             Console.Out.WriteLine(builder.ToString());
 
-            StringBuilder Append(StringBuilder builder, string writerGroupId, WriterGroupDiagnosticModel info,
-                TimeSpan ingestionDuration)
+            StringBuilder Append(StringBuilder builder, string writerGroupId,
+                WriterGroupDiagnosticModel info, TimeSpan ingestionDuration)
             {
                 var valueChangesPerSec = info.IngressValueChanges / ingestionDuration.TotalSeconds;
                 var dataChangesPerSec = info.IngressDataChanges / ingestionDuration.TotalSeconds;
-                var dataChangesLastMin = info.IngressDataChangesInLastMinute.ToString("D2", CultureInfo.CurrentCulture);
+                var dataChangesLastMin = info.IngressDataChangesInLastMinute
+                    .ToString("D2", CultureInfo.CurrentCulture);
                 var valueChangesPerSecLastMin = info.IngressValueChangesInLastMinute /
                     Math.Min(ingestionDuration.TotalSeconds, 60d);
                 var dataChangesPerSecLastMin = info.IngressDataChangesInLastMinute /

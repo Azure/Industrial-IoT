@@ -29,8 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="serializers"></param>
         public RegistryServiceClient(IHttpClientFactory httpClient,
             IOptions<ServiceSdkOptions> options, IEnumerable<ISerializer> serializers) :
-            this(httpClient, options?.Value.ServiceUrl, options?.Value.TokenProvider,
-                serializers.Resolve(options?.Value))
+            this(httpClient, options.Value.ServiceUrl!, options.Value.TokenProvider,
+                serializers.Resolve(options.Value))
         {
         }
 
@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="authorization"></param>
         /// <param name="serializer"></param>
         public RegistryServiceClient(IHttpClientFactory httpClient, string serviceUri,
-            Func<Task<string>> authorization, ISerializer serializer = null)
+            Func<Task<string?>>? authorization, ISerializer? serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
             {
@@ -60,8 +60,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="serializer"></param>
-        public RegistryServiceClient(HttpClient httpClient, ISerializer serializer = null) :
-            this(httpClient.ToHttpClientFactory(), httpClient.BaseAddress?.ToString(),
+        public RegistryServiceClient(HttpClient httpClient, ISerializer? serializer = null) :
+            this(httpClient.ToHttpClientFactory(), httpClient.BaseAddress?.ToString()!,
                 null, serializer)
         {
         }
@@ -105,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<DiscovererListModel> ListDiscoverersAsync(
-            string continuation, int? pageSize, CancellationToken ct)
+            string? continuation, int? pageSize, CancellationToken ct)
         {
             var uri = new Uri($"{_serviceUri}/v2/discovery");
             return await _httpClient.GetAsync<DiscovererListModel>(uri,
@@ -153,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task SetDiscoveryModeAsync(string discovererId,
-            DiscoveryMode mode, DiscoveryConfigModel config, CancellationToken ct)
+            DiscoveryMode mode, DiscoveryConfigModel? config, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(discovererId))
             {
@@ -163,8 +163,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
             {
                 Query = $"mode={mode}"
             };
-            await _httpClient.PostAsync(uri.Uri, config, _serializer,
-                authorization: _authorization, ct: ct).ConfigureAwait(false);
+            await _httpClient.PostAsync(uri.Uri, config ?? new DiscoveryConfigModel(),
+                _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<SupervisorListModel> ListSupervisorsAsync(
-            string continuation, bool? onlyServerState, int? pageSize, CancellationToken ct)
+            string? continuation, bool? onlyServerState, int? pageSize, CancellationToken ct)
         {
             var uri = new UriBuilder($"{_serviceUri}/v2/supervisors");
             if (onlyServerState ?? false)
@@ -312,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                 throw new ArgumentNullException(nameof(applicationId));
             }
             var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}/enable");
-            await _httpClient.PostAsync(uri, null, _serializer,
+            await _httpClient.PostAsync(uri, string.Empty, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
@@ -324,7 +324,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                 throw new ArgumentNullException(nameof(applicationId));
             }
             var uri = new Uri($"{_serviceUri}/v2/applications/{applicationId}/disable");
-            await _httpClient.PostAsync(uri, null, _serializer,
+            await _httpClient.PostAsync(uri, string.Empty, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
@@ -375,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> ListApplicationsAsync(
-            string continuation, int? pageSize, CancellationToken ct)
+            string? continuation, int? pageSize, CancellationToken ct)
         {
             var uri = new Uri($"{_serviceUri}/v2/applications");
             return await _httpClient.GetAsync<ApplicationInfoListModel>(uri,
@@ -394,7 +394,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<ApplicationSiteListModel> ListSitesAsync(
-            string continuation, int? pageSize, CancellationToken ct)
+            string? continuation, int? pageSize, CancellationToken ct)
         {
             var uri = new Uri($"{_serviceUri}/v2/applications/sites");
             return await _httpClient.GetAsync<ApplicationSiteListModel>(uri,
@@ -442,7 +442,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<EndpointInfoListModel> ListEndpointsAsync(string continuation,
+        public async Task<EndpointInfoListModel> ListEndpointsAsync(string? continuation,
             bool? onlyServerState, int? pageSize, CancellationToken ct)
         {
             var uri = new UriBuilder($"{_serviceUri}/v2/endpoints");
@@ -522,7 +522,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/activate");
-            await _httpClient.PostAsync(uri, null, _serializer,
+            await _httpClient.PostAsync(uri, string.Empty, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
@@ -534,13 +534,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var uri = new Uri($"{_serviceUri}/v2/endpoints/{endpointId}/deactivate");
-            await _httpClient.PostAsync(uri, null, _serializer,
+            await _httpClient.PostAsync(uri, string.Empty, _serializer,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<PublisherListModel> ListPublishersAsync(
-            string continuation, bool? onlyServerState, int? pageSize, CancellationToken ct)
+            string? continuation, bool? onlyServerState, int? pageSize, CancellationToken ct)
         {
             var uri = new UriBuilder($"{_serviceUri}/v2/publishers");
             if (onlyServerState ?? false)
@@ -617,7 +617,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<GatewayListModel> ListGatewaysAsync(
-            string continuation, int? pageSize, CancellationToken ct)
+            string? continuation, int? pageSize, CancellationToken ct)
         {
             var uri = new Uri($"{_serviceUri}/v2/gateways");
             return await _httpClient.GetAsync<GatewayListModel>(uri, _serializer, request =>
@@ -679,7 +679,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         }
 
         private readonly IHttpClientFactory _httpClient;
-        private readonly Func<Task<string>> _authorization;
+        private readonly Func<Task<string?>>? _authorization;
         private readonly string _serviceUri;
         private readonly ISerializer _serializer;
     }

@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Diagnostics.CodeAnalysis;
+
     /// <summary>
     /// Message setting extensions
     /// </summary>
@@ -15,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DataSetWriterMessageSettingsModel Clone(this DataSetWriterMessageSettingsModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static DataSetWriterMessageSettingsModel? Clone(this DataSetWriterMessageSettingsModel? model)
         {
             if (model == null)
             {

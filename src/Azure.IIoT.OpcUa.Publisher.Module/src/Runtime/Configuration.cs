@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <param name="configuration"></param>
             /// <param name="workload"></param>
             public Kestrel(IMemoryCache memoryCache, IConfiguration configuration,
-                IoTEdgeWorkloadApi workload = null)
+                IoTEdgeWorkloadApi? workload = null)
                 : base(configuration)
             {
                 _memoryCache = memoryCache;
@@ -137,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
 
             /// <inheritdoc/>
-            public override void Configure(string name, KestrelServerOptions options)
+            public override void Configure(string? name, KestrelServerOptions options)
             {
                 var supportHttp = GetBoolOrDefault(AllowUnsecureHttpServerAccessKey);
                 var httpPort = GetIntOrNull(UnsecureHttpServerPortKey);
@@ -171,27 +171,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         });
                     });
 
-                    X509Certificate2 GetCertificate(string dnsName, HttpsConnectionAdapterOptions httpsOptions)
+                    X509Certificate2? GetCertificate(string dnsName, HttpsConnectionAdapterOptions httpsOptions)
                     {
                         return _memoryCache.GetOrCreate(dnsName, async cacheEntry =>
                         {
-                            cacheEntry.AbsoluteExpirationRelativeToNow =
-                                TimeSpan.FromDays(30);
-                            var expiration = DateTime.UtcNow +
-                                cacheEntry.AbsoluteExpirationRelativeToNow.Value;
-                            var chain = await _workload.CreateServerCertificateAsync(
-                                dnsName, expiration, default).ConfigureAwait(false);
-                            // TODO: where should the chain go?
-                            httpsOptions.ServerCertificateChain =
-                                new X509Certificate2Collection(chain.Skip(1).ToArray());
-                            return chain[0];
-                        }).Result;
+                            if (_workload != null)
+                            {
+                                cacheEntry.AbsoluteExpirationRelativeToNow =
+                                    TimeSpan.FromDays(30);
+                                var expiration = DateTime.UtcNow +
+                                    cacheEntry.AbsoluteExpirationRelativeToNow.Value;
+                                var chain = await _workload.CreateServerCertificateAsync(
+                                    dnsName, expiration, default).ConfigureAwait(false);
+                                // TODO: where should the chain go?
+                                httpsOptions.ServerCertificateChain =
+                                    new X509Certificate2Collection(chain.Skip(1).ToArray());
+                                return chain[0];
+                            }
+                            return null;
+                        })?.Result;
                     }
                 }
             }
 
             private readonly IMemoryCache _memoryCache;
-            private readonly IoTEdgeWorkloadApi _workload;
+            private readonly IoTEdgeWorkloadApi? _workload;
         }
 
         /// <summary>
@@ -205,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public const string LogLevelKey = "LogLevel";
 
             /// <inheritdoc/>
-            public override void Configure(string name, LoggerFilterOptions options)
+            public override void Configure(string? name, LoggerFilterOptions options)
             {
                 if (Enum.TryParse<LogLevel>(GetStringOrDefault(LogLevelKey), out var logLevel))
                 {
@@ -239,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
 
             /// <inheritdoc/>
-            public override void PostConfigure(string name, RouterOptions options)
+            public override void PostConfigure(string? name, RouterOptions options)
             {
                 if (options.MountPoint == null)
                 {
@@ -268,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public const string UseTlsKey = "MqttBrokerUsesTls";
 
             /// <inheritdoc/>
-            public override void Configure(string name, MqttOptions options)
+            public override void Configure(string? name, MqttOptions options)
             {
                 var mqttClientConnectionString = GetStringOrDefault(MqttClientConnectionStringKey);
                 if (mqttClientConnectionString != null)
@@ -358,7 +362,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public const string EdgeHubConnectionString = "EdgeHubConnectionString";
 
             /// <inheritdoc/>
-            public override void Configure(string name, IoTEdgeClientOptions options)
+            public override void Configure(string? name, IoTEdgeClientOptions options)
             {
                 if (string.IsNullOrEmpty(options.EdgeHubConnectionString))
                 {

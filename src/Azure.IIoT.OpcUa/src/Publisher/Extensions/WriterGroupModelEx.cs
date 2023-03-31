@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -16,14 +17,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Returns the job Id
         /// </summary>
         /// <param name="model"></param>
-        public static string GetJobId(this WriterGroupModel model)
+        public static string? GetJobId(this WriterGroupModel? model)
         {
             var connection = model?.DataSetWriters?.First()?.DataSet?.DataSetSource?.Connection;
             if (connection == null)
             {
                 return null;
             }
-
             return connection.CreateConnectionId();
         }
 
@@ -34,8 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this WriterGroupModel model,
-            WriterGroupModel other)
+        public static bool IsSameAs(this WriterGroupModel? model,
+            WriterGroupModel? other)
         {
             if (model == null && other == null)
             {
@@ -97,7 +97,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static WriterGroupModel Clone(this WriterGroupModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static WriterGroupModel? Clone(this WriterGroupModel model)
         {
             if (model?.DataSetWriters == null)
             {

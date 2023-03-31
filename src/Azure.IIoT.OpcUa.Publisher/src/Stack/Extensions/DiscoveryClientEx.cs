@@ -25,8 +25,8 @@ namespace Opc.Ua.Client
         /// <param name="serverUris"></param>
         /// <returns></returns>
         public static Task<FindServersResponse> FindServersAsync(this DiscoveryClient client,
-            RequestHeader requestHeader, string endpointUrl, StringCollection localeIds,
-            StringCollection serverUris)
+            RequestHeader requestHeader, string endpointUrl, StringCollection? localeIds,
+            StringCollection? serverUris)
         {
 #if !USE_TASK_RUN
             return Task.Factory.FromAsync(
@@ -94,7 +94,7 @@ namespace Opc.Ua.Client
         /// <returns></returns>
         public static Task<GetEndpointsResponse> GetEndpointsAsync(
             this DiscoveryClient client, RequestHeader requestHeader,
-            string endpointUrl, StringCollection localeIds, StringCollection profileUris)
+            string endpointUrl, StringCollection? localeIds, StringCollection? profileUris)
         {
 #if !USE_TASK_RUN
             return Task.Factory.FromAsync(

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Attribute operand extensions
@@ -17,7 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static SimpleAttributeOperandModel Clone(this SimpleAttributeOperandModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static SimpleAttributeOperandModel? Clone(this SimpleAttributeOperandModel? model)
         {
             if (model == null)
             {
@@ -40,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this SimpleAttributeOperandModel model, SimpleAttributeOperandModel other)
+        public static bool IsSameAs(this SimpleAttributeOperandModel? model, SimpleAttributeOperandModel? other)
         {
             if (model == null && other == null)
             {

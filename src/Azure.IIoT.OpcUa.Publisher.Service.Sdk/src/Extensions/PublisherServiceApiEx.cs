@@ -25,12 +25,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var nodes = new List<PublishedItemModel>();
             var result = await service.NodePublishListAsync(endpointId).ConfigureAwait(false);
-            nodes.AddRange(result.Items);
+            if (result.Items != null)
+            {
+                nodes.AddRange(result.Items);
+            }
             while (result.ContinuationToken != null)
             {
                 result = await service.NodePublishListAsync(endpointId,
                     result.ContinuationToken).ConfigureAwait(false);
-                nodes.AddRange(result.Items);
+                if (result.Items != null)
+                {
+                    nodes.AddRange(result.Items);
+                }
             }
             return nodes;
         }
@@ -43,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="continuation"></param>
         /// <returns></returns>
         public static Task<PublishedItemListResponseModel> NodePublishListAsync(
-            this IPublisherServiceApi service, string endpointId, string continuation = null)
+            this IPublisherServiceApi service, string endpointId, string? continuation = null)
         {
             return service.NodePublishListAsync(endpointId, new PublishedItemListRequestModel
             {

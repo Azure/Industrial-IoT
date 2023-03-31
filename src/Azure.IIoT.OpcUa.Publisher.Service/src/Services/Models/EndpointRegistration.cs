@@ -23,31 +23,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Device id is twin id
         /// </summary>
         [DataMember]
-        public override string DeviceId => base.DeviceId ?? Id;
+        public override string? DeviceId => base.DeviceId ?? Id;
 
         /// <summary>
         /// Site or gateway id
         /// </summary>
         [DataMember]
-        public override string SiteOrGatewayId => this.GetSiteOrGatewayId();
+        public override string? SiteOrGatewayId => this.GetSiteOrGatewayId();
 
         /// <summary>
         /// Identity that owns the twin.
         /// </summary>
         [DataMember]
-        public string DiscovererId { get; set; }
+        public string? DiscovererId { get; set; }
 
         /// <summary>
         /// Application id of twin
         /// </summary>
         [DataMember]
-        public string ApplicationId { get; set; }
+        public string? ApplicationId { get; set; }
 
         /// <summary>
         /// Lower case endpoint url
         /// </summary>
         [DataMember]
-        public string EndpointUrlLC =>
+        public string? EndpointUrlLC =>
             EndpointRegistrationUrl?.ToLowerInvariant();
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// one that can be used to connect with.
         /// </summary>
         [DataMember]
-        public string EndpointRegistrationUrl { get; set; }
+        public string? EndpointRegistrationUrl { get; set; }
 
         /// <summary>
         /// Security level of endpoint
@@ -67,25 +67,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// The credential policies supported by the registered endpoint
         /// </summary>
         [DataMember]
-        public IReadOnlyDictionary<string, AuthenticationMethodModel> AuthenticationMethods { get; set; }
+        public IReadOnlyDictionary<string, AuthenticationMethodModel>? AuthenticationMethods { get; set; }
 
         /// <summary>
         /// Endoint url for direct server access
         /// </summary>
         [DataMember]
-        public string EndpointUrl { get; set; }
+        public string? EndpointUrl { get; set; }
 
         /// <summary>
         /// Alternative urls
         /// </summary>
         [DataMember]
-        public IReadOnlyDictionary<string, string> AlternativeUrls { get; set; }
+        public IReadOnlyDictionary<string, string>? AlternativeUrls { get; set; }
 
         /// <summary>
         /// Endpoint security policy to use.
         /// </summary>
         [DataMember]
-        public string SecurityPolicy { get; set; }
+        public string? SecurityPolicy { get; set; }
 
         /// <summary>
         /// Security mode to use for communication
@@ -103,17 +103,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Certificate Thumbprint
         /// </summary>
         [DataMember]
-        public string Thumbprint { get; set; }
+        public string? Thumbprint { get; set; }
 
         /// <summary>
         /// Device id is the endpoint id
         /// </summary>
         [DataMember(Name = "id")]
-        public string Id => EndpointInfoModelEx.CreateEndpointId(
+        public string? Id => EndpointInfoModelEx.CreateEndpointId(
             ApplicationId, EndpointRegistrationUrl, SecurityMode, SecurityPolicy);
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is not EndpointRegistration registration)
             {
@@ -173,19 +173,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         {
             var hashCode = base.GetHashCode();
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(EndpointUrlLC);
+                EqualityComparer<string>.Default.GetHashCode(EndpointUrlLC ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(DiscovererId);
+                EqualityComparer<string>.Default.GetHashCode(DiscovererId ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(ApplicationId);
+                EqualityComparer<string>.Default.GetHashCode(ApplicationId ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(Thumbprint);
+                EqualityComparer<string>.Default.GetHashCode(Thumbprint ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<int?>.Default.GetHashCode(SecurityLevel);
+                EqualityComparer<int?>.Default.GetHashCode(SecurityLevel ?? 0);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<SecurityMode?>.Default.GetHashCode(SecurityMode);
+                EqualityComparer<SecurityMode>.Default.GetHashCode(
+                    SecurityMode ?? Publisher.Models.SecurityMode.Best);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(SecurityPolicy);
+                EqualityComparer<string>.Default.GetHashCode(SecurityPolicy ?? string.Empty);
             return hashCode;
         }
 

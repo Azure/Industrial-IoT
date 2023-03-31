@@ -19,11 +19,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Globalization;
-    using System.IO;
 
     /// <summary>
     /// Publisher module host process
@@ -267,6 +267,7 @@ Options:
         /// <param name="moduleId"></param>
         /// <param name="args"></param>
         /// <param name="publishProfile"></param>
+        /// <param name="acceptAll"></param>
         /// <param name="disconnectInterval"></param>
         /// <param name="reconnectDelay"></param>
         private static async Task WithServerAsync(string connectionString, ILoggerFactory loggerFactory,

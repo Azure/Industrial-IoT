@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// <param name="logger"></param>
         /// <param name="events"></param>
         public SupervisorRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
-            ILogger<SupervisorRegistry> logger, ISupervisorRegistryListener events = null)
+            ILogger<SupervisorRegistry> logger, ISupervisorRegistryListener? events = null)
         {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -54,10 +54,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             var device = await _iothub.GetAsync(deviceId, moduleId, ct).ConfigureAwait(false);
             if (device.ToEntityRegistration(onlyServerState) is not PublisherRegistration registration)
             {
-                throw new ResourceNotFoundException(
-                    $"{supervisorId} is not a supervisor registration.");
+                throw new ResourceNotFoundException($"{supervisorId} is not a supervisor registration.");
             }
-            return registration.ToSupervisorModel();
+            var supervisor = registration.ToSupervisorModel();
+            if (supervisor == null)
+            {
+                throw new ResourceInvalidStateException($"{supervisorId} is not a valid supervisor.");
+            }
+            return supervisor;
         }
 
         /// <inheritdoc/>
@@ -89,13 +93,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
                     if (!(twin.ToEntityRegistration(true) is PublisherRegistration registration))
                     {
-                        throw new ResourceNotFoundException(
-                            $"{supervisorId} is not a supervisor registration.");
+                        throw new ResourceNotFoundException($"{supervisorId} is not a supervisor registration.");
                     }
 
                     // Update registration from update request
                     var patched = registration.ToSupervisorModel();
-
+                    if (patched == null)
+                    {
+                        throw new ResourceInvalidStateException($"{supervisorId} is not a valid supervisor.");
+                    }
                     if (request.SiteId != null)
                     {
                         patched.SiteId = string.IsNullOrEmpty(request.SiteId) ?
@@ -103,12 +109,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
 
                     // Patch
-                    twin = await _iothub.PatchAsync(registration.Patch(
-                        patched.ToPublisherRegistration(), _serializer), false, ct).ConfigureAwait(false);
+                    twin = await _iothub.PatchAsync(registration.Patch(patched.ToPublisherRegistration(),
+                        _serializer), false, ct).ConfigureAwait(false);
 
-                    // Send update to through broker
-                    registration = twin.ToEntityRegistration(true) as PublisherRegistration;
-                    await (_events?.OnSupervisorUpdatedAsync(null, registration.ToSupervisorModel())).ConfigureAwait(false);
+                    if (_events != null)
+                    {
+                        // Send update to through broker
+                        patched = (twin.ToEntityRegistration(true) as PublisherRegistration).ToSupervisorModel();
+                        if (patched != null)
+                        {
+                            await _events.OnSupervisorUpdatedAsync(null, patched).ConfigureAwait(false);
+                        }
+                    }
                     return;
                 }
                 catch (ResourceOutOfDateException ex)
@@ -121,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
         /// <inheritdoc/>
         public async Task<SupervisorListModel> ListSupervisorsAsync(
-            string continuation, bool onlyServerState, int? pageSize, CancellationToken ct)
+            string? continuation, bool onlyServerState, int? pageSize, CancellationToken ct)
         {
             const string query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{Constants.TwinPropertyTypeKey} = '{Constants.EntityTypePublisher}' " +
@@ -131,8 +143,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
-                    .Select(t => t.ToPublisherRegistration(onlyServerState))
-                    .Select(s => s.ToSupervisorModel())
+                    .Select(t => t.ToPublisherRegistration(onlyServerState)?.ToSupervisorModel()!)
+                    .Where(s => s != null)
                     .ToList()
             };
         }
@@ -155,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             if (EndpointInfoModelEx.IsEndpointId(query?.EndpointId))
             {
                 // If endpoint id provided include in search
-                sql += $"AND IS_DEFINED(properties.desired.{query.EndpointId}) ";
+                sql += $"AND IS_DEFINED(properties.desired.{query!.EndpointId}) ";
             }
 
             if (query?.Connected != null)
@@ -176,14 +188,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
-                    .Select(t => t.ToPublisherRegistration(onlyServerState))
-                    .Select(s => s.ToSupervisorModel())
+                    .Select(t => t.ToPublisherRegistration(onlyServerState)?.ToSupervisorModel()!)
+                    .Where(s => s != null)
                     .ToList()
             };
         }
 
         private readonly IIoTHubTwinServices _iothub;
-        private readonly ISupervisorRegistryListener _events;
+        private readonly ISupervisorRegistryListener? _events;
         private readonly ILogger _logger;
         private readonly IJsonSerializer _serializer;
     }

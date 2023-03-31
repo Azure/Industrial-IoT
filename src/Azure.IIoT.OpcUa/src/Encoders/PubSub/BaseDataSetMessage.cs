@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Metadata version
         /// </summary>
-        public ConfigurationVersionDataType MetaDataVersion { get; set; }
+        public ConfigurationVersionDataType? MetaDataVersion { get; set; }
 
         /// <summary>
         /// Sequence number
@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public DataSet Payload { get; set; } = new DataSet();
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
             {

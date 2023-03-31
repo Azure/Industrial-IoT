@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="context"></param>
         /// <param name="application"></param>
         /// <returns></returns>
-        Task OnApplicationNewAsync(OperationContextModel context,
+        Task OnApplicationNewAsync(OperationContextModel? context,
             ApplicationInfoModel application);
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="context"></param>
         /// <param name="application"></param>
         /// <returns></returns>
-        Task OnApplicationUpdatedAsync(OperationContextModel context,
+        Task OnApplicationUpdatedAsync(OperationContextModel? context,
             ApplicationInfoModel application);
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="context"></param>
         /// <param name="application"></param>
         /// <returns></returns>
-        Task OnApplicationEnabledAsync(OperationContextModel context,
+        Task OnApplicationEnabledAsync(OperationContextModel? context,
             ApplicationInfoModel application);
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="context"></param>
         /// <param name="application"></param>
         /// <returns></returns>
-        Task HandleApplicationDisabledAsync(OperationContextModel context,
+        Task HandleApplicationDisabledAsync(OperationContextModel? context,
             ApplicationInfoModel application);
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="applicationId"></param>
         /// <param name="application"></param>
         /// <returns></returns>
-        Task OnApplicationDeletedAsync(OperationContextModel context,
+        Task OnApplicationDeletedAsync(OperationContextModel? context,
             string applicationId, ApplicationInfoModel application);
     }
 }

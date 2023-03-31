@@ -13,6 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Subject name
         /// </summary>
-        public string SubjectName { get; set; }
+        public string? SubjectName { get; set; }
     }
 }

@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <param name="factory"></param>
         /// <param name="timeservice"></param>
         public static IEnumerable<INodeManagerFactory> TestData(
-            ILoggerFactory factory, TimeService timeservice)
+            ILoggerFactory? factory, TimeService timeservice)
         {
             yield return new TestData.TestDataServer();
             yield return new MemoryBuffer.MemoryBufferServer();

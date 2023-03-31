@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-#nullable enable
+
 namespace Opc.Ua.Extensions
 {
     using Opc.Ua;
@@ -22,7 +22,7 @@ namespace Opc.Ua.Extensions
         /// <param name="path"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static RelativePath ToRelativePath(this IReadOnlyList<string> path,
+        public static RelativePath ToRelativePath(this IReadOnlyList<string>? path,
             IServiceMessageContext context)
         {
             if (path == null)

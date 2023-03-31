@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 return;
             }
 
-            var sites = events.Select(e => e.Application.SiteId).Distinct();
+            var sites = events.Select(e => e.Application?.SiteId).Distinct();
             if (sites.Count() > 1)
             {
                 throw new ArgumentException("Unexpected number of sites in discovery");

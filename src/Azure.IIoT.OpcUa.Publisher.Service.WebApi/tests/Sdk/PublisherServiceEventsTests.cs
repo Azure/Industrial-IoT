@@ -8,16 +8,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Autofac;
+    using Divergic.Logging.Xunit;
     using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using xRetry;
     using Xunit;
     using Xunit.Abstractions;
-    using Divergic.Logging.Xunit;
-    using xRetry;
 
     public sealed class PublisherServiceEventsTests : IDisposable
     {

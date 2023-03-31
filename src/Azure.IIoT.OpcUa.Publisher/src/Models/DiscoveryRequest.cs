@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Address ranges to use or null to use from network info
         /// </summary>
-        public IEnumerable<AddressRange> AddressRanges { get; }
+        public IEnumerable<AddressRange>? AddressRanges { get; }
 
         /// <summary>
         /// Total addresses to be scanned
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Port ranges to use if not from discovery mode
         /// </summary>
-        public IEnumerable<PortRange> PortRanges { get; }
+        public IEnumerable<PortRange>? PortRanges { get; }
 
         /// <summary>
         /// Total ports to be scanned
@@ -93,8 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="mode"></param>
         /// <param name="configuration"></param>
-        public DiscoveryRequest(DiscoveryMode? mode,
-            DiscoveryConfigModel configuration) :
+        public DiscoveryRequest(DiscoveryMode? mode, DiscoveryConfigModel? configuration) :
             this(new DiscoveryRequestModel
             {
                 Id = "",
@@ -182,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                             .Concat(interfaces
                                 .Where(t => t.Gateway?.Equals(IPAddress.Any) == false &&
                                             !t.Gateway.Equals(IPAddress.None))
-                                .Select(i => new AddressRange(i.Gateway, 32)))
+                                .Select(i => new AddressRange(i.Gateway!, 32)))
                             .Distinct());
                         break;
                     case DiscoveryMode.Network:
@@ -193,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                             .Concat(interfaces
                                 .Where(t => t.Gateway?.Equals(IPAddress.Any) == false &&
                                             !t.Gateway.Equals(IPAddress.None))
-                                .Select(i => new AddressRange(i.Gateway, 32)))
+                                .Select(i => new AddressRange(i.Gateway!, 32)))
                             .Distinct());
                         break;
                     default:

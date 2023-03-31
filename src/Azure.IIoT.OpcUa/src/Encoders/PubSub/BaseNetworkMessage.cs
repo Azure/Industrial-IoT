@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public List<BaseDataSetMessage> Messages { get; set; } = new List<BaseDataSetMessage>();
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
             {

@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "arguments", Order = 2,
             EmitDefaultValue = false)]
-        public IReadOnlyList<MethodCallArgumentModel>? Arguments { get; set; }
+        public IReadOnlyList<MethodCallArgumentModel?>? Arguments { get; set; }
 
         /// <summary>
         /// An optional component path from the node identified by

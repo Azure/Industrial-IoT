@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="twin"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public static EntityRegistration ToEntityRegistration(this DeviceTwinModel twin,
+        public static EntityRegistration? ToEntityRegistration(this DeviceTwinModel twin,
             bool onlyServerState = false)
         {
             if (twin == null)
@@ -30,11 +30,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             var type = twin.Tags.GetValueOrDefault<string>(nameof(EntityRegistration.DeviceType), null);
             if (string.IsNullOrEmpty(type) && twin.Reported != null)
             {
-                type = twin.Reported.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string)null);
+                type = twin.Reported.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string?)null);
             }
             if (string.IsNullOrEmpty(type))
             {
-                type = twin.Tags.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string)null);
+                type = twin.Tags.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string?)null);
             }
             if (StringComparer.OrdinalIgnoreCase.Equals(Constants.EntityTypeGateway, type))
             {

@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// <param name="logger"></param>
         /// <param name="events"></param>
         public PublisherRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
-            ILogger<PublisherRegistry> logger, IPublisherRegistryListener events = null)
+            ILogger<PublisherRegistry> logger, IPublisherRegistryListener? events = null)
         {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -56,7 +56,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 throw new ResourceNotFoundException($"{publisherId} is not a publisher registration.");
             }
-            return registration.ToPublisherModel();
+            var publisherModel = registration.ToPublisherModel();
+            if (publisherModel == null)
+            {
+                throw new ResourceInvalidStateException($"{publisherId} is not a valid publisher model.");
+            }
+            return publisherModel;
         }
 
         /// <inheritdoc/>
@@ -93,6 +98,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
                     // Update registration from update request
                     var patched = registration.ToPublisherModel();
+                    if (patched == null)
+                    {
+                        throw new ResourceInvalidStateException($"{publisherId} is not a valid publisher model.");
+                    }
                     if (request.SiteId != null)
                     {
                         patched.SiteId = string.IsNullOrEmpty(request.SiteId) ?
@@ -111,9 +120,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
                     if (_events != null)
                     {
-                        registration = twin.ToEntityRegistration(true) as PublisherRegistration;
-                        await _events.OnPublisherUpdatedAsync(null,
-                            registration.ToPublisherModel(true)).ConfigureAwait(false);
+                        patched = (twin.ToEntityRegistration(true) as PublisherRegistration).ToPublisherModel(true);
+                        if (patched != null)
+                        {
+                            await _events.OnPublisherUpdatedAsync(null, patched).ConfigureAwait(false);
+                        }
                     }
                     return;
                 }
@@ -126,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
         /// <inheritdoc/>
         public async Task<PublisherListModel> ListPublishersAsync(
-            string continuation, bool onlyServerState, int? pageSize, CancellationToken ct)
+            string? continuation, bool onlyServerState, int? pageSize, CancellationToken ct)
         {
             const string query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{Constants.TwinPropertyTypeKey} = '{Constants.EntityTypePublisher}' " +
@@ -136,8 +147,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
-                    .Select(t => t.ToPublisherRegistration(onlyServerState))
-                    .Select(s => s.ToPublisherModel(true))
+                    .Select(t => t.ToPublisherRegistration(onlyServerState).ToPublisherModel(true)!)
+                    .Where(s => s != null)
                     .ToList()
             };
         }
@@ -176,15 +187,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
-                    .Select(t => t.ToPublisherRegistration(onlyServerState))
-                    .Select(s => s.ToPublisherModel(true))
+                    .Select(t => t.ToPublisherRegistration(onlyServerState).ToPublisherModel(true)!)
+                    .Where(s => s != null)
                     .ToList()
             };
         }
 
         private readonly IIoTHubTwinServices _iothub;
         private readonly IJsonSerializer _serializer;
-        private readonly IPublisherRegistryListener _events;
+        private readonly IPublisherRegistryListener? _events;
         private readonly ILogger _logger;
     }
 }

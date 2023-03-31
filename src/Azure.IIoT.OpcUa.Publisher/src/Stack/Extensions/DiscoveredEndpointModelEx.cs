@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <param name="serializer"></param>
         /// <returns></returns>
         public static ApplicationRegistrationModel ToServiceModel(this DiscoveredEndpointModel result,
-            string hostAddress, string siteId, string discovererId, IJsonSerializer serializer)
+            string hostAddress, string? siteId, string discovererId, IJsonSerializer serializer)
         {
             var type = result.Description.Server.ApplicationType.ToServiceType() ??
                 ApplicationType.Server;

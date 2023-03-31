@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// <param name="logger"></param>
         /// <param name="events"></param>
         public GatewayRegistry(IIoTHubTwinServices iothub,
-            ILogger<GatewayRegistry> logger, IGatewayRegistryListener events = null)
+            ILogger<GatewayRegistry> logger, IGatewayRegistryListener? events = null)
         {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -104,12 +104,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
                     if (!(twin.ToEntityRegistration(true) is GatewayRegistration registration))
                     {
-                        throw new ResourceNotFoundException(
-                            $"{gatewayId} is not a gateway registration.");
+                        throw new ResourceNotFoundException($"{gatewayId} is not a gateway registration.");
                     }
 
                     // Update registration from update request
                     var patched = registration.ToServiceModel();
+                    if (patched == null)
+                    {
+                        throw new ResourceInvalidStateException($"{gatewayId} is not a valid gateway.");
+                    }
 
                     if (request.SiteId != null)
                     {
@@ -121,8 +124,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                         patched.ToGatewayRegistration()), false, ct).ConfigureAwait(false);
 
                     // Send update to through broker
-                    registration = twin.ToEntityRegistration(true) as GatewayRegistration;
-                    await (_events?.OnGatewayUpdatedAsync(null, registration.ToServiceModel())).ConfigureAwait(false);
+                    if (_events != null)
+                    {
+                        patched = (twin.ToEntityRegistration(true) as GatewayRegistration).ToServiceModel();
+                        if (patched != null)
+                        {
+                            await _events.OnGatewayUpdatedAsync(null, patched).ConfigureAwait(false);
+                        }
+                    }
                     return;
                 }
                 catch (ResourceOutOfDateException ex)
@@ -135,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
         /// <inheritdoc/>
         public async Task<GatewayListModel> ListGatewaysAsync(
-            string continuation, int? pageSize, CancellationToken ct)
+            string? continuation, int? pageSize, CancellationToken ct)
         {
             const string query = "SELECT * FROM devices WHERE " +
                 $"tags.{Constants.TwinPropertyTypeKey} = '{Constants.EntityTypeGateway}' " +
@@ -145,8 +154,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
-                    .Select(t => t.ToGatewayRegistration())
-                    .Select(s => s.ToServiceModel())
+                    .Select(t => t.ToGatewayRegistration().ToServiceModel()!)
+                    .Where(s => s != null)
                     .ToList()
             };
         }
@@ -182,14 +191,14 @@ $"AND (tags.{Constants.TwinPropertySiteKey} = '{query.SiteId}' OR deviceId = '{q
             {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
-                    .Select(t => t.ToGatewayRegistration())
-                    .Select(s => s.ToServiceModel())
+                    .Select(t => t.ToGatewayRegistration().ToServiceModel()!)
+                    .Where(s => s != null)
                     .ToList()
             };
         }
 
         private readonly IIoTHubTwinServices _iothub;
-        private readonly IGatewayRegistryListener _events;
+        private readonly IGatewayRegistryListener? _events;
         private readonly ILogger _logger;
     }
 }

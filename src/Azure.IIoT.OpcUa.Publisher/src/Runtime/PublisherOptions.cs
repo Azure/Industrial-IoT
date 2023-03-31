@@ -16,17 +16,17 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Publisher id
         /// </summary>
-        public string PublisherId { get; set; }
+        public string? PublisherId { get; set; }
 
         /// <summary>
         /// Site of the publisher
         /// </summary>
-        public string Site { get; set; }
+        public string? Site { get; set; }
 
         /// <summary>
         /// Configuration file
         /// </summary>
-        public string PublishedNodesFile { get; set; }
+        public string? PublishedNodesFile { get; set; }
 
         /// <summary>
         /// Max number of nodes per data set (publishing
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Messaging profile to use as default inside the
         /// publisher.
         /// </summary>
-        public MessagingProfile MessagingProfile { get; set; }
+        public MessagingProfile? MessagingProfile { get; set; }
 
         /// <summary>
         /// Batch size
@@ -75,27 +75,27 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Root topic template
         /// </summary>
-        public string RootTopicTemplate { get; set; }
+        public string? RootTopicTemplate { get; set; }
 
         /// <summary>
         /// Method topic template
         /// </summary>
-        public string MethodTopicTemplate { get; set; }
+        public string? MethodTopicTemplate { get; set; }
 
         /// <summary>
         /// Events topic template
         /// </summary>
-        public string EventsTopicTemplate { get; set; }
+        public string? EventsTopicTemplate { get; set; }
 
         /// <summary>
         /// Telemetry topic template
         /// </summary>
-        public string TelemetryTopicTemplate { get; set; }
+        public string? TelemetryTopicTemplate { get; set; }
 
         /// <summary>
         /// Default metadata queue name
         /// </summary>
-        public string DataSetMetaDataTopicTemplate { get; set; }
+        public string? DataSetMetaDataTopicTemplate { get; set; }
 
         /// <summary>
         /// Default Max messages per publish
@@ -112,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// The routing info to add to the runtime state
         /// events.
         /// </summary>
-        public string RuntimeStateRoutingInfo { get; set; }
+        public string? RuntimeStateRoutingInfo { get; set; }
 
         /// <summary>
         /// Enable adding data set routing info to messages

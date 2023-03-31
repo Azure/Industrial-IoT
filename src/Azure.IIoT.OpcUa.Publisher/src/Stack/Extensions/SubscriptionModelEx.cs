@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -17,7 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static SubscriptionModel Clone(this SubscriptionModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static SubscriptionModel? Clone(this SubscriptionModel? model)
         {
             if (model == null)
             {
@@ -39,9 +41,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static SubscriptionIdentifier Clone(this SubscriptionIdentifier model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static SubscriptionIdentifier? Clone(this SubscriptionIdentifier? model)
         {
-            if (model == null)
+            if (model is null)
             {
                 return null;
             }

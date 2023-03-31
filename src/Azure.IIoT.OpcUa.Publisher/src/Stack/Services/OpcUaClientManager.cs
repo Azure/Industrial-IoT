@@ -45,9 +45,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="identity"></param>
         /// <param name="metrics"></param>
         public OpcUaClientManager(ILoggerFactory loggerFactory, IOptions<ClientOptions> options,
-            IJsonSerializer serializer, IProcessIdentity identity = null,
-            IMetricsContext metrics = null) : this(metrics ?? IMetricsContext.Empty)
+            IJsonSerializer serializer, IProcessIdentity? identity = null,
+            IMetricsContext? metrics = null)
         {
+            _metrics = metrics ?? IMetricsContext.Empty;
+            InitializeMetrics();
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
             _serializer = serializer ??
@@ -82,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public async ValueTask<ISessionHandle> GetOrCreateSessionAsync(ConnectionModel connection,
-            IMetricsContext metrics, CancellationToken ct)
+            IMetricsContext? metrics, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             // Find session and if not exists create
@@ -118,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public Task ConnectAsync(ConnectionModel endpoint, CredentialModel credential,
+        public Task ConnectAsync(ConnectionModel endpoint, CredentialModel? credential,
             CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -126,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task DisconnectAsync(ConnectionModel endpoint, CredentialModel credential,
+        public async Task DisconnectAsync(ConnectionModel endpoint, CredentialModel? credential,
             CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -157,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public ISessionHandle GetSessionHandle(ConnectionModel connection)
+        public ISessionHandle? GetSessionHandle(ConnectionModel connection)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             return FindClient(connection);
@@ -317,7 +319,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        private OpcUaClient FindClient(ConnectionModel connection)
+        private OpcUaClient? FindClient(ConnectionModel connection)
         {
             // Find session and if not exists create
             var id = new ConnectionIdentifier(connection);
@@ -505,7 +507,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public async Task<IEnumerable<DiscoveredEndpointModel>> FindEndpointsAsync(
-            Uri discoveryUrl, IReadOnlyList<string> locales, CancellationToken ct)
+            Uri discoveryUrl, IReadOnlyList<string>? locales, CancellationToken ct)
         {
             var results = new HashSet<DiscoveredEndpointModel>();
             var visitedUris = new HashSet<string> {
@@ -563,7 +565,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var discoveryUrl = new Uri(endpoint.Url);
             using var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration);
             // Get endpoint descriptions from endpoint url
-            var endpoints = await client.GetEndpointsAsync(null,
+            var endpoints = await client.GetEndpointsAsync(new RequestHeader(),
                 client.Endpoint.EndpointUrl, null, null).ConfigureAwait(false);
 
             // Match to provided endpoint info
@@ -609,7 +611,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="visitedUris"></param>
         /// <param name="queue"></param>
         /// <param name="result"></param>
-        private async Task DiscoverAsync(Uri discoveryUrl, StringCollection localeIds,
+        private async Task DiscoverAsync(Uri discoveryUrl, StringCollection? localeIds,
             IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
             Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result)
         {
@@ -620,7 +622,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             //
             // Get endpoints from current discovery server
             //
-            var endpoints = await client.GetEndpointsAsync(null,
+            var endpoints = await client.GetEndpointsAsync(new RequestHeader(),
                 client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
             if (!(endpoints?.Endpoints?.Any() ?? false))
             {
@@ -649,8 +651,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             //
             try
             {
-                var response = await client.FindServersOnNetworkAsync(null, 0, 1000,
-                    new StringCollection()).ConfigureAwait(false);
+                var response = await client.FindServersOnNetworkAsync(new RequestHeader(),
+                    0, 1000, new StringCollection()).ConfigureAwait(false);
                 foreach (var server in response?.Servers ?? new ServerOnNetworkCollection())
                 {
                     var url = CreateDiscoveryUri(server.DiscoveryUrl, discoveryUrl.Port);
@@ -673,7 +675,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Call FindServers first to push more unique discovery urls
             // into the discovery queue
             //
-            var found = await client.FindServersAsync(null,
+            var found = await client.FindServersAsync(new RequestHeader(),
                 client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
             if (found?.Servers != null)
             {
@@ -709,13 +711,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Create metrics
         /// </summary>
-        /// <param name="metrics"></param>
-        private OpcUaClientManager(IMetricsContext metrics)
+        private void InitializeMetrics()
         {
             Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_count",
-                () => new Measurement<int>(_clients.Count, metrics.TagList), "Clients",
+                () => new Measurement<int>(_clients.Count, _metrics.TagList), "Clients",
                 "Number of connected clients.");
-            _metrics = metrics;
         }
 
         private const int kMaxDiscoveryAttempts = 3;

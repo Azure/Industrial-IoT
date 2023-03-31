@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Topic templating support
     /// </summary>
-    public sealed class TopicBuilder
+    public sealed partial class TopicBuilder
     {
         /// <summary>
         /// Root topic
@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="options"></param>
         /// <param name="variables"></param>
         public TopicBuilder(IOptions<PublisherOptions> options,
-            IReadOnlyDictionary<string, string> variables = null)
+            IReadOnlyDictionary<string, string>? variables = null)
         {
             _options = options;
             _variables = new Dictionary<string, Func<Formatter, string>>
@@ -81,12 +81,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="topicName"></param>
         /// <param name="template"></param>
         /// <returns></returns>
-        internal string Format(string topicName, string template)
+        internal string Format(string topicName, string? template)
         {
             return new Formatter(topicName, _variables).Format(template);
         }
 
-        private sealed class Formatter
+        private sealed partial class Formatter
         {
             /// <summary>
             /// Unused variables
@@ -107,14 +107,13 @@ namespace Azure.IIoT.OpcUa.Publisher
             /// </summary>
             /// <param name="template"></param>
             /// <returns></returns>
-            public string Format(string template)
+            public string Format(string? template)
             {
                 if (template == null)
                 {
-                    return null;
+                    return string.Empty;
                 }
-                return Regex.Replace(template, "{([^}]+)}",
-                    m =>
+                return VariableRegex().Replace(template, m =>
                     {
                         if (Variables.TryGetValue(m.Groups[1].Value, out var v))
                         {
@@ -125,6 +124,9 @@ namespace Azure.IIoT.OpcUa.Publisher
                     });
             }
         }
+
+        [GeneratedRegex("{([^}]+)}")]
+        private static partial Regex VariableRegex();
 
         private readonly IOptions<PublisherOptions> _options;
         private readonly Dictionary<string, Func<Formatter, string>> _variables;

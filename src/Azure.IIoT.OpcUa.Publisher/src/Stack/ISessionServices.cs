@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<BrowseResponse> BrowseAsync(RequestHeader requestHeader,
-            ViewDescription view, uint requestedMaxReferencesPerNode,
+            ViewDescription? view, uint requestedMaxReferencesPerNode,
             BrowseDescriptionCollection nodesToBrowse, CancellationToken ct);
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryReadResponse> HistoryReadAsync(RequestHeader requestHeader,
-            ExtensionObject historyReadDetails, TimestampsToReturn timestampsToReturn,
+            ExtensionObject? historyReadDetails, TimestampsToReturn timestampsToReturn,
             bool releaseContinuationPoints, HistoryReadValueIdCollection nodesToRead,
             CancellationToken ct);
 

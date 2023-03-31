@@ -17,12 +17,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <summary>
         /// Web service url
         /// </summary>
-        public string ServiceUrl { get; set; }
+        public string? ServiceUrl { get; set; }
 
         /// <summary>
         /// Provider
         /// </summary>
-        public Func<Task<string>> TokenProvider { get; set; }
+        public Func<Task<string?>>? TokenProvider { get; set; }
 
         /// <summary>
         /// Use message pack or json
@@ -32,6 +32,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <summary>
         /// Insert a message handler
         /// </summary>
-        public Func<HttpMessageHandler, HttpMessageHandler> HttpMessageHandler { get; set; }
+        public Func<HttpMessageHandler, HttpMessageHandler>? HttpMessageHandler { get; set; }
     }
 }

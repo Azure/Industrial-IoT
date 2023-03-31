@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Furly.Extensions.Serializers;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Content filter element extensions
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static FilterOperandModel Clone(this FilterOperandModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static FilterOperandModel? Clone(this FilterOperandModel? model)
         {
             if (model == null)
             {
@@ -42,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this FilterOperandModel model, FilterOperandModel other)
+        public static bool IsSameAs(this FilterOperandModel? model, FilterOperandModel? other)
         {
             if (model == null && other == null)
             {

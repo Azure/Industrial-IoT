@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// PublishedNodesEntryModel extensions
@@ -43,7 +44,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static PublishedNodesEntryModel ToPublishedNodesEntry(this ConnectionModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static PublishedNodesEntryModel? ToPublishedNodesEntry(this ConnectionModel model)
         {
             if (model == null)
             {
@@ -51,8 +53,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             }
             return new PublishedNodesEntryModel
             {
-                EndpointUrl = model.Endpoint.Url,
-                UseSecurity = model.Endpoint.SecurityMode != SecurityMode.None,
+                EndpointUrl = model.Endpoint?.Url,
+                UseSecurity = model.Endpoint?.SecurityMode != SecurityMode.None,
                 OpcAuthenticationMode = (model.User?.Type ?? CredentialType.None)
                     == CredentialType.None ?
                         OpcAuthenticationMode.Anonymous : OpcAuthenticationMode.UsernamePassword,
@@ -120,7 +122,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static PublishedNodesEntryModel ToDataSetEntry(this PublishedNodesEntryModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static PublishedNodesEntryModel? ToDataSetEntry(this PublishedNodesEntryModel? model)
         {
             if (model == null)
             {
@@ -214,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         public static PublishedNodesEntryModel PropagatePublishingIntervalToNodes(
             this PublishedNodesEntryModel model)
         {
-            if ((model?.OpcNodes) != null && model.OpcNodes.Count != 0)
+            if (model.OpcNodes != null && model.OpcNodes.Count != 0)
             {
                 var rootInterval = model.GetNormalizedDataSetPublishingInterval();
                 if (rootInterval == null)

@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<ApplicationSiteListModel> ListSitesAsync(
-            string continuation = null, int? pageSize = null,
+            string? continuation = null, int? pageSize = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<ApplicationInfoListModel> ListApplicationsAsync(
-            string continuation = null, int? pageSize = null,
+            string? continuation = null, int? pageSize = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -208,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<EndpointInfoListModel> ListEndpointsAsync(
-            string continuation = null, bool? onlyServerState = null,
+            string? continuation = null, bool? onlyServerState = null,
             int? pageSize = null, CancellationToken ct = default);
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<SupervisorListModel> ListSupervisorsAsync(
-            string continuation = null, bool? onlyServerState = null,
+            string? continuation = null, bool? onlyServerState = null,
             int? pageSize = null, CancellationToken ct = default);
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<DiscovererListModel> ListDiscoverersAsync(
-            string continuation = null, int? pageSize = null,
+            string? continuation = null, int? pageSize = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -327,7 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="ct"></param>
         /// <returns></returns>
         Task SetDiscoveryModeAsync(string discovererId,
-            DiscoveryMode mode, DiscoveryConfigModel config = null,
+            DiscoveryMode mode, DiscoveryConfigModel? config = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -361,7 +361,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<PublisherListModel> ListPublishersAsync(
-            string continuation = null, bool? onlyServerState = null,
+            string? continuation = null, bool? onlyServerState = null,
             int? pageSize = null, CancellationToken ct = default);
 
         /// <summary>
@@ -406,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<GatewayListModel> ListGatewaysAsync(
-            string continuation = null, int? pageSize = null,
+            string? continuation = null, int? pageSize = null,
             CancellationToken ct = default);
 
         /// <summary>

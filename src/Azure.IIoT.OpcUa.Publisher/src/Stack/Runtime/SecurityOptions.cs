@@ -13,12 +13,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// PkiRootPath
         /// </summary>
-        public string PkiRootPath { get; set; }
+        public string? PkiRootPath { get; set; }
 
         /// <summary>
         /// Certificate
         /// </summary>
-        public CertificateInfo ApplicationCertificate { get; set; }
+        public CertificateInfo? ApplicationCertificate { get; set; }
 
         /// <summary>
         /// Whether to auto accept untrusted certificates
@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Rejected store
         /// </summary>
-        public CertificateStore RejectedCertificateStore { get; set; }
+        public CertificateStore? RejectedCertificateStore { get; set; }
 
         /// <summary>
         /// Whether to reject unsecure signatures
@@ -43,12 +43,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Trusted certificates
         /// </summary>
-        public CertificateStore TrustedIssuerCertificates { get; set; }
+        public CertificateStore? TrustedIssuerCertificates { get; set; }
 
         /// <summary>
         /// Trusted peer certificates
         /// </summary>
-        public CertificateStore TrustedPeerCertificates { get; set; }
+        public CertificateStore? TrustedPeerCertificates { get; set; }
 
         /// <summary>
         /// Automatically add application certificate to the trusted store

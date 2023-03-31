@@ -16,16 +16,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Endpoint
         /// </summary>
-        public EndpointDescription Description { get; set; }
+        public required EndpointDescription Description { get; init; }
 
         /// <summary>
         /// Endpoint url that can be accessed
         /// </summary>
-        public string AccessibleEndpointUrl { get; set; }
+        public required string AccessibleEndpointUrl { get; init; }
 
         /// <summary>
         /// Capabilities of endpoint (server)
         /// </summary>
-        public HashSet<string> Capabilities { get; set; }
+        public required HashSet<string> Capabilities { get; init; }
     }
 }

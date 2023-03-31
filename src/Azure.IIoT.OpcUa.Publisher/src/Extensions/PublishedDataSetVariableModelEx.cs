@@ -17,28 +17,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Convert published dataset variable to monitored item
         /// </summary>
         /// <param name="publishedVariable"></param>
-        /// <param name="configuration"></param>
+        /// <param name="options"></param>
         /// <param name="displayName"></param>
         /// <returns></returns>
-        public static DataMonitoredItemModel ToMonitoredItem(
+        public static DataMonitoredItemModel? ToMonitoredItem(
             this PublishedDataSetVariableModel publishedVariable,
-            SubscriptionOptions configuration = null, string displayName = null)
+            SubscriptionOptions options, string? displayName = null)
         {
-            if (string.IsNullOrEmpty(publishedVariable?.PublishedVariableNodeId))
+            if (string.IsNullOrEmpty(publishedVariable.PublishedVariableNodeId))
             {
                 return null;
             }
             return new DataMonitoredItemModel
             {
-                Id = publishedVariable.Id,
+                Id = publishedVariable.Id ?? publishedVariable.PublishedVariableNodeId,
                 DataSetClassFieldId = publishedVariable.DataSetClassFieldId,
                 DisplayName = displayName ?? publishedVariable.PublishedVariableDisplayName,
-                DataChangeFilter = ToDataChangeFilter(publishedVariable, configuration),
+                DataChangeFilter = ToDataChangeFilter(publishedVariable, options),
                 AggregateFilter = null,
                 SkipFirst = publishedVariable.SkipFirst
-                    ?? configuration?.DefaultSkipFirst ?? false,
+                    ?? options?.DefaultSkipFirst ?? false,
                 DiscardNew = publishedVariable.DiscardNew
-                    ?? configuration?.DefaultDiscardNew,
+                    ?? options?.DefaultDiscardNew,
                 StartNodeId = publishedVariable.PublishedVariableNodeId,
 
                 //
@@ -49,15 +49,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 // since beginning of publisher time.
                 //
                 QueueSize = publishedVariable.QueueSize
-                    ?? configuration?.DefaultQueueSize ?? 1,
+                    ?? options?.DefaultQueueSize ?? 1,
                 RelativePath = publishedVariable.BrowsePath,
                 AttributeId = publishedVariable.Attribute,
                 IndexRange = publishedVariable.IndexRange,
                 MonitoringMode = publishedVariable.MonitoringMode,
                 SamplingInterval = publishedVariable.SamplingInterval
-                    ?? configuration?.DefaultSamplingInterval,
+                    ?? options?.DefaultSamplingInterval,
                 HeartbeatInterval = publishedVariable.HeartbeatInterval
-                    ?? configuration?.DefaultHeartbeatInterval
+                    ?? options?.DefaultHeartbeatInterval
             };
         }
 
@@ -65,23 +65,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Convert to data change filter
         /// </summary>
         /// <param name="publishedVariable"></param>
-        /// <param name="configuration"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
-        private static DataChangeFilterModel ToDataChangeFilter(
+        private static DataChangeFilterModel? ToDataChangeFilter(
             this PublishedDataSetVariableModel publishedVariable,
-            SubscriptionOptions configuration = null)
+            SubscriptionOptions options)
         {
-            if (publishedVariable?.DataChangeTrigger == null &&
-                configuration?.DefaultDataChangeTrigger == null &&
-                publishedVariable?.DeadbandType == null &&
-                publishedVariable?.DeadbandValue == null)
+            if (publishedVariable.DataChangeTrigger == null &&
+                publishedVariable.DeadbandType == null &&
+                publishedVariable.DeadbandValue == null)
             {
                 return null;
             }
             return new DataChangeFilterModel
             {
                 DataChangeTrigger = publishedVariable.DataChangeTrigger
-                    ?? configuration?.DefaultDataChangeTrigger,
+                    ?? options.DefaultDataChangeTrigger
+                    ?? DataChangeTriggerType.StatusValue,
                 DeadbandType = publishedVariable.DeadbandType,
                 DeadbandValue = publishedVariable.DeadbandValue
             };

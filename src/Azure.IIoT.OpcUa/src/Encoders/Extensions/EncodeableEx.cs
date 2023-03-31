@@ -19,7 +19,7 @@ namespace Opc.Ua.Extensions
         /// <param name="encodeable"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static XmlElement AsXmlElement(this IEncodeable encodeable,
+        public static XmlElement? AsXmlElement(this IEncodeable encodeable,
             IServiceMessageContext context)
         {
             var encoder = new XmlEncoder(context);

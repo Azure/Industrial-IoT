@@ -77,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
-        public override void PostConfigure(string name, ClientOptions options)
+        public override void PostConfigure(string? name, ClientOptions options)
         {
             if (options.ApplicationName == null)
             {

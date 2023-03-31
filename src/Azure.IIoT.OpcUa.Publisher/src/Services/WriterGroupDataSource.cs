@@ -27,10 +27,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     public sealed class WriterGroupDataSource : IMessageSource, IDisposable
     {
         /// <inheritdoc/>
-        public event EventHandler<SubscriptionNotificationModel> OnMessage;
+        public event EventHandler<SubscriptionNotificationModel>? OnMessage;
 
         /// <inheritdoc/>
-        public event EventHandler<EventArgs> OnCounterReset;
+        public event EventHandler<EventArgs>? OnCounterReset;
 
         /// <summary>
         /// Create trigger from writer group
@@ -44,8 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public WriterGroupDataSource(WriterGroupModel writerGroup,
             IOptions<PublisherOptions> options, ISubscriptionManager subscriptionManager,
             IOptions<SubscriptionOptions> subscriptionConfig,
-            IMetricsContext metrics, ILogger<WriterGroupDataSource> logger)
-            : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
+            IMetricsContext? metrics, ILogger<WriterGroupDataSource> logger)
         {
             _writerGroup = writerGroup?.Clone() ??
                 throw new ArgumentNullException(nameof(writerGroup));
@@ -57,7 +56,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 throw new ArgumentNullException(nameof(subscriptionManager));
             _subscriptionConfig = subscriptionConfig ??
                 throw new ArgumentNullException(nameof(subscriptionConfig));
-            _metrics = metrics;
+            _metrics = metrics ??
+                throw new ArgumentNullException(nameof(metrics));
+            InitializeMetrics();
             _subscriptions = new Dictionary<SubscriptionIdentifier, DataSetWriterSubscription>();
         }
 
@@ -69,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 Debug.Assert(_subscriptions.Count == 0);
 
-                foreach (var writer in _writerGroup.DataSetWriters)
+                foreach (var writer in _writerGroup.DataSetWriters ?? Enumerable.Empty<DataSetWriterModel>())
                 {
                     // Create writer subscriptions
                     var writerSubscription = await DataSetWriterSubscription.CreateAsync(
@@ -91,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 writerGroup = writerGroup.Clone();
 
-                if (writerGroup?.DataSetWriters == null ||
+                if (writerGroup.DataSetWriters == null ||
                     writerGroup.DataSetWriters.Count == 0)
                 {
                     foreach (var subscription in _subscriptions.Values)
@@ -143,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _writerGroup.WriterGroupId, writerGroup.WriterGroupId);
                 }
 
-                _logger.LogInformation("Update all subscriptions inside writer group {Name}.",
+                _logger.LogInformation("Successfully updated all subscriptions inside the writer group {Name}.",
                     writerGroup.WriterGroupId);
                 _writerGroup = writerGroup;
             }
@@ -185,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Active subscription
             /// </summary>
-            public ISubscription Subscription { get; set; }
+            public ISubscription? Subscription { get; set; }
 
             /// <summary>
             /// Create subscription from a DataSetWriterModel template
@@ -201,23 +202,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
                     _outer._subscriptionConfig.Value, outer._writerGroup.WriterGroupId);
 
+                var dataSetClassId = dataSetWriter.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty;
                 var builder = new TopicBuilder(_outer._options, new Dictionary<string, string>
                 {
                     [PublisherConfig.DataSetWriterNameVariableName] =
                         dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName,
                     [PublisherConfig.DataSetClassIdVariableName] =
-                        dataSetWriter.DataSet.DataSetMetaData.DataSetClassId.ToString(),
+                        dataSetClassId.ToString(),
                     [PublisherConfig.DataSetWriterGroupVariableName] =
                         outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId
 
                     // ...
                 });
+
                 _topic = builder.TelemetryTopic;
                 _metadataTopic = builder.DataSetMetaDataTopic;
+                if (string.IsNullOrWhiteSpace(_metadataTopic))
+                {
+                    _metadataTopic = _topic;
+                }
 
                 TagList = new TagList(outer._metrics.TagList.ToArray().AsSpan())
                 {
-                    { "dataSetWriterName", dataSetWriter.DataSetWriterName }
+                    { "dataSetWriterName", dataSetWriter.DataSetWriterName },
+                    { "dataSetClassId", dataSetClassId }
                 };
             }
 
@@ -246,25 +254,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="ct"></param>
             public async ValueTask UpdateAsync(DataSetWriterModel dataSetWriter, CancellationToken ct)
             {
-                if (Subscription == null)
-                {
-                    _outer._logger.LogWarning("Subscription does not exist");
-                    return;
-                }
-                _outer._logger.LogDebug("Updating subscription {Id} in writer group {Name}...",
+                _outer._logger.LogDebug("Updating writer with subscription {Id} in writer group {Name}...",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
                 _dataSetWriter = dataSetWriter.Clone();
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
                     _outer._subscriptionConfig.Value, _outer._writerGroup.WriterGroupId);
 
+                if (Subscription == null)
+                {
+                    _outer._logger.LogWarning("Writer does not have a subscription to update yet!");
+                    return;
+                }
                 InitializeKeyframeTrigger();
                 InitializeMetaDataTrigger();
 
                 // Apply changes
                 await Subscription.UpdateAsync(_subscriptionInfo, ct).ConfigureAwait(false);
 
-                _outer._logger.LogInformation("Updated subscription {Id} in writer group {Name}.",
+                _outer._logger.LogInformation("Updated subscription for writer {Id} in writer group {Name}.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
@@ -295,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <returns></returns>
             private async ValueTask OpenAsync(CancellationToken ct)
             {
-                _outer._logger.LogDebug("Creating new subscription {Id} in writer group {Name}...",
+                _outer._logger.LogDebug("Open new writer with subscription {Id} in writer group {Name}...",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
                 //
@@ -319,7 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     += OnSubscriptionEventDiagnosticsChanged;
 
                 _metadataTimer?.Start();
-                _outer._logger.LogInformation("Created new subscription {Id} in writer group {Name}.",
+                _outer._logger.LogInformation("New writer with subscription {Id} in writer group {Name} opened.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
@@ -329,9 +337,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <returns></returns>
             private async ValueTask CloseAsync()
             {
-                _outer._logger.LogDebug("Removing subscription {Id} from writer group {Name}...",
-                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
+                if (Subscription == null)
+                {
+                    return;
+                }
 
+                _outer._logger.LogDebug("Closing writer with subscription {Id} in writer group {Name}...",
+                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
                 await Subscription.CloseAsync().ConfigureAwait(false);
 
                 Subscription.OnSubscriptionDataChange
@@ -346,7 +358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Subscription.Dispose();
                 Subscription = null;
 
-                _outer._logger.LogInformation("Removed subscription {Id} from writer group {Name}.",
+                _outer._logger.LogInformation("Writer with subscription {Id} in writer group {Name} closed.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
@@ -399,11 +411,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="e"></param>
-            private void MetadataTimerElapsed(object sender, ElapsedEventArgs e)
+            private void MetadataTimerElapsed(object? sender, ElapsedEventArgs e)
             {
                 try
                 {
-                    _metadataTimer.Enabled = false;
+                    var timer = _metadataTimer;
+                    if (timer == null)
+                    {
+                        return;
+                    }
+                    timer.Enabled = false;
                     // Enabled again after calling message receiver delegate
                 }
                 catch (ObjectDisposedException)
@@ -413,7 +430,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 _outer._logger.LogDebug("Insert metadata message into Subscription {Id}...", Id);
-                var notification = Subscription.CreateKeepAlive();
+                var notification = Subscription?.CreateKeepAlive();
                 if (notification != null)
                 {
                     // This call udpates the message type, so no need to do it here.
@@ -431,7 +448,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="notification"></param>
-            private void OnSubscriptionDataChangeNotification(object sender, SubscriptionNotificationModel notification)
+            private void OnSubscriptionDataChangeNotification(object? sender, SubscriptionNotificationModel notification)
             {
                 CallMessageReceiverDelegates(sender, ProcessKeyFrame(notification));
 
@@ -442,7 +459,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var frameCount = Interlocked.Increment(ref _frameCount);
                         if ((frameCount % _keyFrameCount) == 0)
                         {
-                            Subscription.TryUpgradeToKeyFrame(notification);
+                            Subscription?.TryUpgradeToKeyFrame(notification);
                         }
                     }
                     return notification;
@@ -454,7 +471,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="notificationCount"></param>
-            private void OnSubscriptionDataDiagnosticsChanged(object sender, int notificationCount)
+            private void OnSubscriptionDataDiagnosticsChanged(object? sender, int notificationCount)
             {
                 lock (_lock)
                 {
@@ -481,7 +498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="notification"></param>
-            private void OnSubscriptionEventNotification(object sender, SubscriptionNotificationModel notification)
+            private void OnSubscriptionEventNotification(object? sender, SubscriptionNotificationModel notification)
             {
                 CallMessageReceiverDelegates(sender, notification);
             }
@@ -491,7 +508,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="notificationCount"></param>
-            private void OnSubscriptionEventDiagnosticsChanged(object sender, int notificationCount)
+            private void OnSubscriptionEventDiagnosticsChanged(object? sender, int notificationCount)
             {
                 lock (_lock)
                 {
@@ -519,7 +536,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="sender"></param>
             /// <param name="notification"></param>
             /// <param name="metaDataTimer"></param>
-            private void CallMessageReceiverDelegates(object sender,
+            private void CallMessageReceiverDelegates(object? sender,
                 SubscriptionNotificationModel notification, bool metaDataTimer = false)
             {
                 try
@@ -591,7 +608,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     while (sequenceNumber == 0);
                     return new WriterGroupMessageContext
                     {
-                        PublisherId = _outer._options.Value.PublisherId,
+                        PublisherId = _outer._options.Value.PublisherId ?? Constants.DefaultPublisherId,
                         Writer = _dataSetWriter,
                         SequenceNumber = sequenceNumber,
                         WriterGroup = _outer._writerGroup,
@@ -603,7 +620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             private readonly WriterGroupDataSource _outer;
             private readonly object _lock = new();
-            private Timer _metadataTimer;
+            private Timer? _metadataTimer;
             private uint _keyFrameCount;
             private volatile uint _frameCount;
             private readonly string _topic;
@@ -747,33 +764,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create observable metrics
         /// </summary>
-        /// <param name="metrics"></param>
-        private WriterGroupDataSource(IMetricsContext metrics)
+        private void InitializeMetrics()
         {
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_events",
-                () => new Measurement<long>(_eventCount, metrics.TagList), "Events",
+                () => new Measurement<long>(_eventCount, _metrics.TagList), "Events",
                 "Total Opc Events delivered for processing.");
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_value_changes",
-                () => new Measurement<long>(ValueChangesCount, metrics.TagList), "Values",
+                () => new Measurement<long>(ValueChangesCount, _metrics.TagList), "Values",
                 "Total Opc Value changes delivered for processing.");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second",
-                () => new Measurement<double>(ValueChangesCount / UpTime, metrics.TagList), "Values/sec",
+                () => new Measurement<double>(ValueChangesCount / UpTime, _metrics.TagList), "Values/sec",
                 "Opc Value changes/second delivered for processing.");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second_last_min",
-                () => new Measurement<long>(ValueChangesCountLastMinute, metrics.TagList), "Values",
+                () => new Measurement<long>(ValueChangesCountLastMinute, _metrics.TagList), "Values",
                 "Opc Value changes/second delivered for processing in last 60s.");
 
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_event_notifications",
-                () => new Measurement<long>(_eventNotificationCount, metrics.TagList), "Notifications",
+                () => new Measurement<long>(_eventNotificationCount, _metrics.TagList), "Notifications",
                 "Total Opc Event notifications delivered for processing.");
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_data_changes",
-                () => new Measurement<long>(DataChangesCount, metrics.TagList), "Notifications",
+                () => new Measurement<long>(DataChangesCount, _metrics.TagList), "Notifications",
                 "Total Opc Data change notifications delivered for processing.");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second",
-                () => new Measurement<double>(DataChangesCount / UpTime, metrics.TagList), "Notifications/sec",
+                () => new Measurement<double>(DataChangesCount / UpTime, _metrics.TagList), "Notifications/sec",
                 "Opc Data change notifications/second delivered for processing.");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second_last_min",
-                () => new Measurement<long>(DataChangesCountLastMinute, metrics.TagList), "Notifications",
+                () => new Measurement<long>(DataChangesCountLastMinute, _metrics.TagList), "Notifications",
                 "Opc Data change notifications/second delivered for processing in last 60s.");
         }
 

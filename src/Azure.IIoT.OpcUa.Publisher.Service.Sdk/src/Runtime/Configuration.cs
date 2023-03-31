@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
         /// <param name="configure"></param>
         /// <returns></returns>
         public static ContainerBuilder ConfigureServiceSdk(this ContainerBuilder builder,
-            Action<ServiceSdkOptions> configure = null)
+            Action<ServiceSdkOptions>? configure = null)
         {
             builder.AddOptions();
             if (configure != null)
@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime
             private const string kServiceUrlKey = "ServiceUrl";
 
             /// <inheritdoc/>
-            public override void PostConfigure(string name, ServiceSdkOptions options)
+            public override void PostConfigure(string? name, ServiceSdkOptions options)
             {
                 if (options.ServiceUrl == null)
                 {

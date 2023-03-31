@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// Create client
         /// </summary>
         /// <param name="configure"></param>
-        public ServiceClient(Action<ServiceSdkOptions> configure = null)
+        public ServiceClient(Action<ServiceSdkOptions>? configure = null)
             : this(new ConfigurationBuilder()
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
@@ -70,8 +70,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="configure"></param>
         /// <param name="configureBuilder"></param>
         public ServiceClient(IConfiguration configuration,
-            Action<ServiceSdkOptions> configure = null,
-            Action<ContainerBuilder> configureBuilder = null)
+            Action<ServiceSdkOptions>? configure = null,
+            Action<ContainerBuilder>? configureBuilder = null)
         {
             var builder = new ContainerBuilder();
             builder.AddServiceSdk(configure);

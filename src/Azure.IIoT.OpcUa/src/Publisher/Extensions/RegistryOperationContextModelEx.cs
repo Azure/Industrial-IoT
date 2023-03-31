@@ -17,8 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static OperationContextModel Clone(
-            this OperationContextModel model)
+        public static OperationContextModel? Clone(
+            this OperationContextModel? model)
         {
             model = model.Validate();
             return new OperationContextModel
@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="context"></param>
         /// <returns></returns>
         public static OperationContextModel Validate(
-            this OperationContextModel context)
+            this OperationContextModel? context)
         {
             if (context == null)
             {

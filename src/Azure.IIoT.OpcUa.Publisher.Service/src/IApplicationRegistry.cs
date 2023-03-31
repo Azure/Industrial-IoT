@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<ApplicationInfoListModel> ListApplicationsAsync(
-            string continuation = null, int? pageSize = null,
+            string? continuation = null, int? pageSize = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<ApplicationSiteListModel> ListSitesAsync(
-            string continuation = null, int? pageSize = null,
+            string? continuation = null, int? pageSize = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="ct"></param>
         /// <returns></returns>
         Task DisableApplicationAsync(string applicationId,
-            OperationContextModel context = null,
+            OperationContextModel? context = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="ct"></param>
         /// <returns></returns>
         Task EnableApplicationAsync(string applicationId,
-            OperationContextModel context = null,
+            OperationContextModel? context = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="ct"></param>
         /// <returns></returns>
         Task UnregisterApplicationAsync(string applicationId,
-            OperationContextModel context = null,
+            OperationContextModel? context = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="ct"></param>
         /// <returns></returns>
         Task PurgeDisabledApplicationsAsync(TimeSpan notSeenFor,
-            OperationContextModel context = null,
+            OperationContextModel? context = null,
             CancellationToken ct = default);
     }
 }

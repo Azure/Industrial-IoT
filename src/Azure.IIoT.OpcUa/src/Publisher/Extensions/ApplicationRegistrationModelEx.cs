@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -20,8 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<ApplicationRegistrationModel> model,
-            IEnumerable<ApplicationRegistrationModel> that)
+        public static bool IsSameAs(this IEnumerable<ApplicationRegistrationModel>? model,
+            IEnumerable<ApplicationRegistrationModel>? that)
         {
             if (model == that)
             {
@@ -51,8 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this ApplicationRegistrationModel model,
-            ApplicationRegistrationModel that)
+        public static bool IsSameAs(this ApplicationRegistrationModel? model,
+            ApplicationRegistrationModel? that)
         {
             if (model == that)
             {
@@ -78,7 +79,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ApplicationRegistrationModel Clone(this ApplicationRegistrationModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static ApplicationRegistrationModel? Clone(this ApplicationRegistrationModel? model)
         {
             if (model == null)
             {

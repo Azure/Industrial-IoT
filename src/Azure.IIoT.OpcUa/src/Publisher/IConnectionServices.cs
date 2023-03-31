@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="credential"></param>
         /// <returns></returns>
         /// <param name="ct"></param>
-        Task ConnectAsync(T endpoint, CredentialModel credential = null,
+        Task ConnectAsync(T endpoint, CredentialModel? credential = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="credential"></param>
         /// <returns></returns>
         /// <param name="ct"></param>
-        Task DisconnectAsync(T endpoint, CredentialModel credential = null,
+        Task DisconnectAsync(T endpoint, CredentialModel? credential = null,
             CancellationToken ct = default);
     }
 }

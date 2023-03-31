@@ -6,13 +6,11 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Furly.Exceptions;
-    using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Configuration;
     using System;
     using System.Net.NetworkInformation;
-    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -29,24 +27,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="logger"></param>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="InvalidConfigurationException"></exception>
+        /// <exception cref="InvalidProgramException"></exception>
         public static async Task<ApplicationConfiguration> BuildApplicationConfigurationAsync(
-            this ClientOptions options, string identity,
-            CertificateValidationEventHandler handler, ILogger logger)
+            this ClientOptions options, string identity, CertificateValidationEventHandler handler,
+            ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(options.ApplicationName))
             {
                 throw new ArgumentException("Application name is empty", nameof(options));
-            }
-
-            // wait with the configuration until network is up
-            for (var retry = 0; retry < 3; retry++)
-            {
-                if (NetworkInterface.GetIsNetworkAvailable())
-                {
-                    break;
-                }
-
-                await Task.Delay(3000).ConfigureAwait(false);
             }
 
             var appInstance = new ApplicationInstance
@@ -55,79 +43,85 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 ApplicationType = ApplicationType.Client
             };
 
-            try
+            Exception innerException = new InvalidConfigurationException("Missing network.");
+            for (var attempt = 0; attempt < 60; attempt++)
             {
-                await Retry.WithLinearBackoff(null, new CancellationToken(),
-                    async () =>
+                // wait with the configuration until network is up
+                if (!NetworkInterface.GetIsNetworkAvailable())
+                {
+                    logger.LogWarning("Network not available...");
+                    await Task.Delay(3000).ConfigureAwait(false);
+                    continue;
+                }
+
+                var hostname = !string.IsNullOrWhiteSpace(identity) ? identity : Utils.GetHostName();
+                var applicationUri = options.ApplicationUri;
+                if (applicationUri == null)
+                {
+                    applicationUri = $"urn:{hostname}:opc-publisher";
+                }
+                else
+                {
+                    applicationUri = applicationUri
+                        .Replace("urn:localhost", $"urn:{hostname}", StringComparison.Ordinal);
+                }
+                var appBuilder = appInstance.Build(applicationUri, options.ProductUri)
+                    .SetTransportQuotas(options.Quotas.ToTransportQuotas())
+                    .AsClient();
+                try
+                {
+                    var appConfig = await options.Security.BuildSecurityConfiguration(
+                        appBuilder, appInstance.ApplicationConfiguration, hostname)
+                        .ConfigureAwait(false);
+
+                    appConfig.CertificateValidator.CertificateValidation += handler;
+                    var ownCertificate = appConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
+
+                    if (ownCertificate == null)
                     {
-                        //  try to resolve the hostname
-                        var hostname = !string.IsNullOrWhiteSpace(identity)
-                                ? identity
-                                : Utils.GetHostName();
+                        logger.LogInformation("No application own certificate found. Creating a self-signed " +
+                            "own certificate valid since yesterday for {DefaultLifeTime} months, with a " +
+                            "{DefaultKeySize} bit key and {DefaultHashSize} bit hash.",
+                            CertificateFactory.DefaultLifeTime,
+                            CertificateFactory.DefaultKeySize,
+                            CertificateFactory.DefaultHashSize);
+                    }
+                    else
+                    {
+                        logger.LogInformation("Own certificate Subject '{Subject}' (Thumbprint: {Tthumbprint}) loaded.",
+                            ownCertificate.Subject, ownCertificate.Thumbprint);
+                    }
 
-                        var appBuilder = appInstance
-                            .Build(
-                                options.ApplicationUri.Replace("urn:localhost", $"urn:{hostname}", StringComparison.Ordinal),
-                                options.ProductUri)
-                            .SetTransportQuotas(options.Quotas.ToTransportQuotas())
-                            .AsClient();
+                    var hasAppCertificate = await appInstance.CheckApplicationInstanceCertificate(true,
+                        CertificateFactory.DefaultKeySize, CertificateFactory.DefaultLifeTime).ConfigureAwait(false);
+                    if (!hasAppCertificate ||
+                        appConfig.SecurityConfiguration.ApplicationCertificate.Certificate == null)
+                    {
+                        logger.LogError("Failed to load or create application own certificate.");
+                        throw new InvalidConfigurationException("OPC UA application own certificate invalid");
+                    }
 
-                        var appConfig = await options.Security
-                            .BuildSecurityConfiguration(
-                                appBuilder,
-                                appInstance.ApplicationConfiguration,
-                                hostname)
-                            .ConfigureAwait(false);
+                    if (ownCertificate == null)
+                    {
+                        ownCertificate = appConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
+                        logger.LogInformation("Own certificate Subject '{Subject}' (Thumbprint: {Thumbprint}) created.",
+                            ownCertificate.Subject, ownCertificate.Thumbprint);
+                    }
+                    await ShowCertificateStoreInformationAsync(appConfig, logger).ConfigureAwait(false);
+                    return appInstance.ApplicationConfiguration;
+                }
+                catch (Exception e)
+                {
+                    logger.LogInformation("Error {Message} while configuring OPC UA stack - retry...", e.Message);
+                    logger.LogDebug(e, "Detailed error while configuring OPC UA stack.");
+                    innerException = e;
 
-                        appConfig.CertificateValidator.CertificateValidation += handler;
-                        var ownCertificate = appConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
-
-                        if (ownCertificate == null)
-                        {
-                            logger.LogInformation("No application own certificate found. Creating a self-signed " +
-                                "own certificate valid since yesterday for {DefaultLifeTime} months, with a " +
-                                "{DefaultKeySize} bit key and {DefaultHashSize} bit hash.",
-                                CertificateFactory.DefaultLifeTime,
-                                CertificateFactory.DefaultKeySize,
-                                CertificateFactory.DefaultHashSize);
-                        }
-                        else
-                        {
-                            logger.LogInformation("Own certificate Subject '{Subject}' (Thumbprint: {Tthumbprint}) loaded.",
-                                ownCertificate.Subject, ownCertificate.Thumbprint);
-                        }
-
-                        var hasAppCertificate = await appInstance
-                            .CheckApplicationInstanceCertificate(
-                                true,
-                                CertificateFactory.DefaultKeySize,
-                                CertificateFactory.DefaultLifeTime)
-                            .ConfigureAwait(false);
-
-                        if (!hasAppCertificate ||
-                            appConfig.SecurityConfiguration.ApplicationCertificate.Certificate == null)
-                        {
-                            logger.LogError("Failed to load or create application own certificate.");
-                            throw new InvalidConfigurationException("OPC UA application own certificate invalid");
-                        }
-
-                        if (ownCertificate == null)
-                        {
-                            ownCertificate = appConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
-                            logger.LogInformation("Own certificate Subject '{Subject}' (Thumbprint: {Thumbprint}) created.",
-                                ownCertificate.Subject, ownCertificate.Thumbprint);
-                        }
-
-                        await ShowCertificateStoreInformationAsync(appConfig, logger)
-                            .ConfigureAwait(false);
-                    },
-                    e => true, 5).ConfigureAwait(false);
+                    await Task.Delay(3000).ConfigureAwait(false);
+                }
             }
-            catch (Exception e)
-            {
-                throw new InvalidConfigurationException("OPC UA configuration not valid", e);
-            }
-            return appInstance.ApplicationConfiguration;
+
+            logger.LogCritical("Failed to configure OPC UA stack - exit.");
+            throw new InvalidProgramException("OPC UA stack configuration not possible.", innerException);
         }
 
         /// <summary>
@@ -297,7 +291,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     nameof(securityOptions));
             }
 
-            if (securityOptions.ApplicationCertificate == null)
+            if (securityOptions.ApplicationCertificate?.SubjectName == null)
             {
                 throw new ArgumentException("Application certificate missing",
                     nameof(securityOptions));
@@ -308,11 +302,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     securityOptions.ApplicationCertificate.SubjectName
                         .Replace("localhost", hostname, StringComparison.InvariantCulture),
                     securityOptions.PkiRootPath)
-                .SetAutoAcceptUntrustedCertificates(securityOptions.AutoAcceptUntrustedCertificates.Value)
-                .SetRejectSHA1SignedCertificates(securityOptions.RejectSha1SignedCertificates.Value)
+                .SetAutoAcceptUntrustedCertificates(securityOptions.AutoAcceptUntrustedCertificates ?? false)
+                .SetRejectSHA1SignedCertificates(securityOptions.RejectSha1SignedCertificates ?? true)
                 .SetMinimumCertificateKeySize(securityOptions.MinimumCertificateKeySize)
-                .SetAddAppCertToTrustedStore(securityOptions.AddAppCertToTrustedStore.Value)
-                .SetRejectUnknownRevocationStatus(securityOptions.RejectUnknownRevocationStatus.Value);
+                .SetAddAppCertToTrustedStore(securityOptions.AddAppCertToTrustedStore ?? true)
+                .SetRejectUnknownRevocationStatus(securityOptions.RejectUnknownRevocationStatus ?? true);
 
             applicationConfiguration.SecurityConfiguration.ApplicationCertificate
                 .ApplyLocalConfig(securityOptions.ApplicationCertificate);

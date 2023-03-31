@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask<ISessionHandle> GetOrCreateSessionAsync(
-            T connection, IMetricsContext metrics = null,
+            T connection, IMetricsContext? metrics = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        ISessionHandle GetSessionHandle(T connection);
+        ISessionHandle? GetSessionHandle(T connection);
 
         /// <summary>
         /// Get a session handle from a session

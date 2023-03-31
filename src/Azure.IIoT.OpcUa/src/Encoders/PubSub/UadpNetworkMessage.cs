@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public override string ContentType => ContentMimeType.Binary;
 
         /// <inheritdoc/>
-        public override string ContentEncoding => null;
+        public override string? ContentEncoding => null;
 
         /// <summary>
         /// Writer group id
@@ -440,7 +440,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
-            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver resolver)
+            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver? resolver)
         {
             var chunks = new List<Message>();
             while (reader.TryPeek(out var buffer))
@@ -480,7 +480,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(
-            IServiceMessageContext context, int maxChunkSize, IDataSetMetaDataResolver resolver)
+            IServiceMessageContext context, int maxChunkSize, IDataSetMetaDataResolver? resolver)
         {
             var messages = new List<ReadOnlyMemory<byte>>();
             var isChunkMessage = false;
@@ -596,7 +596,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="buffers"></param>
         /// <param name="resolver"></param>
         protected virtual void DecodePayloadChunks(IServiceMessageContext context,
-            IReadOnlyList<byte[]> buffers, IDataSetMetaDataResolver resolver)
+            IReadOnlyList<byte[]> buffers, IDataSetMetaDataResolver? resolver)
         {
             var payloadLength = buffers.Sum(b => b.Length);
             using (var stream = new RecyclableMemoryStream(Memory, Guid.NewGuid(),
@@ -642,7 +642,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="resolver"></param>
         /// <returns></returns>
         protected virtual Message[] EncodePayloadChunks(IServiceMessageContext context,
-            IDataSetMetaDataResolver resolver)
+            IDataSetMetaDataResolver? resolver)
         {
             var chunks = new Message[Messages.Count];
             for (var i = 0; i < Messages.Count; i++)
@@ -1042,8 +1042,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 else
                 {
-                    Messages.Add(new UadpDataSetMessage());
-                    messages.Add(decoder.BaseStream.ReadAsBuffer().Array);
+                    var buffer = decoder.BaseStream.ReadAsBuffer().Array;
+                    if (buffer != null)
+                    {
+                        Messages.Add(new UadpDataSetMessage());
+                        messages.Add(buffer);
+                    }
                 }
             }
             return messages;
@@ -1270,7 +1274,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             /// </summary>
             /// <param name="chunks"></param>
             /// <returns></returns>
-            public static byte[] GetMessageBufferFromChunks(List<Message> chunks)
+            public static byte[]? GetMessageBufferFromChunks(List<Message> chunks)
             {
                 if (chunks.Count == 0)
                 {

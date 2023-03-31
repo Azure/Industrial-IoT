@@ -19,12 +19,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Subscribe to writer messages
         /// </summary>
-        event EventHandler<SubscriptionNotificationModel> OnMessage;
+        event EventHandler<SubscriptionNotificationModel>? OnMessage;
 
         /// <summary>
         /// Called when ValueChangesCount or DataChangesCount are resetted
         /// </summary>
-        event EventHandler<EventArgs> OnCounterReset;
+        event EventHandler<EventArgs>? OnCounterReset;
 
         /// <summary>
         /// Start trigger

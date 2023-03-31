@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Identity that owns the twin.
         /// </summary>
         [DataMember]
-        public string DiscovererId { get; set; }
+        public string? DiscovererId { get; set; }
 
         /// <summary>
         /// Connected
@@ -36,13 +36,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Device id is application id
         /// </summary>
         [DataMember]
-        public override string DeviceId => base.DeviceId ?? Id;
+        public override string? DeviceId => base.DeviceId ?? Id;
 
         /// <summary>
         /// Site or gateway id
         /// </summary>
         [DataMember]
-        public override string SiteOrGatewayId => this.GetSiteOrGatewayId();
+        public override string? SiteOrGatewayId => this.GetSiteOrGatewayId();
 
         /// <summary>
         /// Type
@@ -54,55 +54,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Device id is application id
         /// </summary>
         [DataMember]
-        public string ApplicationId => DeviceId;
+        public string? ApplicationId => DeviceId;
 
         /// <summary>
         /// Application uri
         /// </summary>
         [DataMember]
-        public string ApplicationUri { get; set; }
+        public string? ApplicationUri { get; set; }
 
         /// <summary>
         /// Lower case application url
         /// </summary>
         [DataMember]
-        public string ApplicationUriLC => ApplicationUri?.ToLowerInvariant();
+        public string? ApplicationUriLC => ApplicationUri?.ToLowerInvariant();
 
         /// <summary>
         /// Application name
         /// </summary>
         [DataMember]
-        public string ApplicationName { get; set; }
+        public string? ApplicationName { get; set; }
 
         /// <summary>
         /// Application name locale
         /// </summary>
         [DataMember]
-        public string Locale { get; set; }
+        public string? Locale { get; set; }
 
         /// <summary>
         /// Application name locale
         /// </summary>
         [DataMember]
-        public IReadOnlyDictionary<string, string> LocalizedNames { get; set; }
+        public IReadOnlyDictionary<string, string>? LocalizedNames { get; set; }
 
         /// <summary>
         /// Discovery profile uri
         /// </summary>
         [DataMember]
-        public string DiscoveryProfileUri { get; set; }
+        public string? DiscoveryProfileUri { get; set; }
 
         /// <summary>
         /// Gateway server uri
         /// </summary>
         [DataMember]
-        public string GatewayServerUri { get; set; }
+        public string? GatewayServerUri { get; set; }
 
         /// <summary>
         /// Product uri
         /// </summary>
         [DataMember]
-        public string ProductUri { get; set; }
+        public string? ProductUri { get; set; }
 
         /// <summary>
         /// Application type
@@ -114,19 +114,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Returns discovery urls of the application
         /// </summary>
         [DataMember]
-        public IReadOnlyDictionary<string, string> DiscoveryUrls { get; set; }
+        public IReadOnlyDictionary<string, string>? DiscoveryUrls { get; set; }
 
         /// <summary>
         /// Host address of server application
         /// </summary>
         [DataMember]
-        public IReadOnlyDictionary<string, string> HostAddresses { get; set; }
+        public IReadOnlyDictionary<string, string>? HostAddresses { get; set; }
 
         /// <summary>
         /// Capabilities
         /// </summary>
         [DataMember]
-        public IReadOnlyDictionary<string, bool> Capabilities { get; set; }
+        public IReadOnlyDictionary<string, bool>? Capabilities { get; set; }
 
         /// <summary>
         /// Create time
@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Authority
         /// </summary>
         [DataMember]
-        public string CreateAuthorityId { get; set; }
+        public string? CreateAuthorityId { get; set; }
 
         /// <summary>
         /// Update time
@@ -150,7 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Authority
         /// </summary>
         [DataMember]
-        public string UpdateAuthorityId { get; set; }
+        public string? UpdateAuthorityId { get; set; }
 
         /// <summary>
         /// Numeric id
@@ -162,11 +162,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Application registration id
         /// </summary>
         [DataMember(Name = "id")]
-        public string Id => ApplicationInfoModelEx.CreateApplicationId(
+        public string? Id => ApplicationInfoModelEx.CreateApplicationId(
              SiteOrGatewayId, ApplicationUri, ApplicationType);
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is not ApplicationRegistration registration)
             {
@@ -260,19 +260,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         {
             var hashCode = base.GetHashCode();
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(DiscovererId);
+                EqualityComparer<string>.Default.GetHashCode(DiscovererId ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(ApplicationId);
+                EqualityComparer<string>.Default.GetHashCode(ApplicationId ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<ApplicationType?>.Default.GetHashCode(ApplicationType);
+                EqualityComparer<ApplicationType>.Default.GetHashCode(ApplicationType
+                    ?? Publisher.Models.ApplicationType.Server);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(ProductUri);
+                EqualityComparer<string>.Default.GetHashCode(ProductUri ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(DiscoveryProfileUri);
+                EqualityComparer<string>.Default.GetHashCode(DiscoveryProfileUri ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(GatewayServerUri);
+                EqualityComparer<string>.Default.GetHashCode(GatewayServerUri ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(ApplicationName);
+                EqualityComparer<string>.Default.GetHashCode(ApplicationName ?? string.Empty);
             return hashCode;
         }
     }

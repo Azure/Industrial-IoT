@@ -28,14 +28,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
             {
                 case AggregateException ae:
                     var root = ae.GetBaseException();
-                    if (root is not AggregateException)
+                    if (root is not AggregateException ae2)
                     {
                         return Filter(root, out status);
                     }
-                    ae = root as AggregateException;
                     status = (int)HttpStatusCode.InternalServerError;
-                    Exception result = null;
-                    foreach (var ex in ae.InnerExceptions)
+                    Exception? result = null;
+                    foreach (var ex in ae2.InnerExceptions)
                     {
                         result = Filter(ex, out status);
                         if (status != (int)HttpStatusCode.InternalServerError)
@@ -43,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                             break;
                         }
                     }
-                    return result;
+                    return result ?? new InvalidOperationException();
                 case ResourceNotFoundException:
                     status = (int)HttpStatusCode.NotFound;
                     break;

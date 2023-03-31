@@ -15,11 +15,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Event filter
         /// </summary>
-        public EventFilterModel EventFilter { get; init; }
+        public EventFilterModel EventFilter { get; init; } = null!;
 
         /// <summary>
         /// Condition handling settings
         /// </summary>
-        public ConditionHandlingOptionsModel ConditionHandling { get; init; }
+        public ConditionHandlingOptionsModel? ConditionHandling { get; init; }
     }
 }

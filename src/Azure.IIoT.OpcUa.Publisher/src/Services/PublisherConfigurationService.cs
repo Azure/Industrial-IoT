@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public PublisherConfigurationService(PublishedNodesConverter publishedNodesJobConverter,
             IOptions<PublisherOptions> configuration, IPublisher publisherHost,
             ILogger<PublisherConfigurationService> logger, IStorageProvider publishedNodesProvider,
-            IJsonSerializer jsonSerializer, IDiagnosticCollector diagnostics = null)
+            IJsonSerializer jsonSerializer, IDiagnosticCollector? diagnostics = null)
         {
             _publishedNodesJobConverter = publishedNodesJobConverter ??
                 throw new ArgumentNullException(nameof(publishedNodesJobConverter));
@@ -121,6 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 currentNodes.Add(entry);
                 found = entry;
             }
+            found.OpcNodes ??= new List<OpcNodeModel>();
             var node = found.OpcNodes.Find(n => n.Id == item.NodeId);
             if (node == null)
             {
@@ -163,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var entry = endpoint.ToPublishedNodesEntry();
                 foreach (var nodeset in currentNodes.Where(n => n.HasSameDataSet(entry)))
                 {
-                    nodeset.OpcNodes.RemoveAll(n => n.Id == request.NodeId);
+                    nodeset.OpcNodes?.RemoveAll(n => n.Id == request.NodeId);
                 }
                 var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes,
                     _configuration.Value);
@@ -208,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     foreach (var nodeset in currentNodes.Where(n => n.HasSameDataSet(entry)))
                     {
-                        nodeset.OpcNodes.RemoveAll(n => request.NodesToRemove.Contains(n.Id));
+                        nodeset.OpcNodes?.RemoveAll(n => request.NodesToRemove.Contains(n.Id!));
                     }
                 }
                 if (request.NodesToAdd != null)
@@ -260,7 +261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     Items = GetCurrentPublishedNodes()
                         .Where(n => n.HasSameDataSet(entry))
-                        .SelectMany(n => n.OpcNodes)
+                        .SelectMany(n => n.OpcNodes ?? new List<OpcNodeModel>())
                         .Where(n => n.EventFilter == null) // Exclude event filtering
                         .Select(n => new PublishedItemModel
                         {
@@ -316,6 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             // Create HashSet of nodes for this entry.
                             var existingNodesSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
+                            entry.OpcNodes ??= new List<OpcNodeModel>();
                             existingNodesSet.UnionWith(entry.OpcNodes);
 
                             foreach (var nodeToAdd in request.OpcNodes)
@@ -386,7 +388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 // Create HashSet of nodes to remove.
                 var nodesToRemoveSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
-                if (!purgeDataSet)
+                if (!purgeDataSet && request.OpcNodes != null)
                 {
                     nodesToRemoveSet.UnionWith(request.OpcNodes);
                 }
@@ -399,12 +401,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // so we will remove nodes only if the whole DataSet definition matches.
                     if (entry.HasSameDataSet(request))
                     {
-                        foreach (var node in entry.OpcNodes)
+                        if (entry.OpcNodes != null)
                         {
-                            if (nodesToRemoveSet.Contains(node))
+                            foreach (var node in entry.OpcNodes)
                             {
-                                // Found a node. Remove it from hash set.
-                                nodesToRemoveSet.Remove(node);
+                                if (nodesToRemoveSet.Contains(node))
+                                {
+                                    // Found a node. Remove it from hash set.
+                                    nodesToRemoveSet.Remove(node);
+                                }
                             }
                         }
                         matchingGroups.Add(entry);
@@ -429,7 +434,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 // Create HashSet of nodes to remove again for the second pass.
                 nodesToRemoveSet.Clear();
-                if (!purgeDataSet)
+                if (!purgeDataSet && request.OpcNodes != null)
                 {
                     nodesToRemoveSet.UnionWith(request.OpcNodes);
                 }
@@ -446,16 +451,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             var updatedNodes = new List<OpcNodeModel>();
 
-                            foreach (var node in entry.OpcNodes)
+                            if (entry.OpcNodes != null)
                             {
-                                if (nodesToRemoveSet.Contains(node))
+                                foreach (var node in entry.OpcNodes)
                                 {
-                                    // Found a node. Remove it from hash set.
-                                    nodesToRemoveSet.Remove(node);
-                                }
-                                else
-                                {
-                                    updatedNodes.Add(node);
+                                    if (nodesToRemoveSet.Contains(node))
+                                    {
+                                        // Found a node. Remove it from hash set.
+                                        nodesToRemoveSet.Remove(node);
+                                    }
+                                    else
+                                    {
+                                        updatedNodes.Add(node);
+                                    }
                                 }
                             }
 
@@ -463,7 +471,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         else
                         {
-                            entry.OpcNodes.Clear();
+                            entry.OpcNodes?.Clear();
                         }
                     }
 
@@ -500,7 +508,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // purge content feature is implemented to ensure the backwards compatibility
             // with V2.5.x of the publisher
             //
-            var purge = request?.EndpointUrl == null;
+            var purge = request.EndpointUrl == null;
             request.PropagatePublishingIntervalToNodes();
             var sw = Stopwatch.StartNew();
             await _api.WaitAsync(ct).ConfigureAwait(false);
@@ -520,7 +528,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             // so we will remove nodes only if the whole DataSet definition matches.
                             if (entry.HasSameDataSet(request))
                             {
-                                entry.OpcNodes.Clear();
+                                entry.OpcNodes?.Clear();
                                 found = true;
                             }
                             matchingGroups.Add(entry);
@@ -737,8 +745,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 foreach (var nodes in GetCurrentPublishedNodes())
                 {
-                    if (!_diagnostics.TryGetDiagnosticsForWriterGroup(nodes.DataSetWriterGroup,
-                        out var model))
+                    if (!_diagnostics.TryGetDiagnosticsForWriterGroup(
+                        nodes.DataSetWriterGroup ?? Constants.DefaultWriterGroupId, out var model))
                     {
                         continue;
                     }
@@ -795,8 +803,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 var currentNodes = GetCurrentPublishedNodes(preferTimespan: false);
-                var updatedContent = _jsonSerializer.SerializeToString(currentNodes,
-                    SerializeOption.Indented);
+                var updatedContent = _jsonSerializer.SerializeToString(
+                    currentNodes, SerializeOption.Indented) ?? string.Empty;
+
                 _publishedNodesProvider.WriteContent(updatedContent, true);
                 // Update _lastKnownFileHash
                 _lastKnownFileHash = GetChecksum(updatedContent);
@@ -824,7 +833,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public IAwaiter<PublisherConfigurationService> GetAwaiter()
         {
-            return (_started.Task ?? Task.CompletedTask).AsAwaiter(this);
+            return (_started?.Task ?? Task.CompletedTask).AsAwaiter(this);
         }
 
         /// <inheritdoc/>
@@ -866,7 +875,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnChanged(object sender, FileSystemEventArgs e)
+        private void OnChanged(object? sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} changed. Triggering file refresh ...",
                 _configuration.Value.PublishedNodesFile);
@@ -878,7 +887,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnCreated(object sender, FileSystemEventArgs e)
+        private void OnCreated(object? sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} created. Triggering file refresh ...",
                 _configuration.Value.PublishedNodesFile);
@@ -890,7 +899,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnRenamed(object sender, FileSystemEventArgs e)
+        private void OnRenamed(object? sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} renamed. Triggering file refresh ...",
                 _configuration.Value.PublishedNodesFile);
@@ -902,7 +911,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnDeleted(object sender, FileSystemEventArgs e)
+        private void OnDeleted(object? sender, FileSystemEventArgs e)
         {
             _logger.LogDebug("File {PublishedNodesFile} deleted. Clearing configuration ...",
                 _configuration.Value.PublishedNodesFile);
@@ -957,9 +966,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                                     _lastKnownFileHash = currentFileHash;
                                     // Mark as started
-                                    _started.TrySetResult();
+                                    _started?.TrySetResult();
                                 }
-                                catch (Exception ex) when (_started.Task.IsCompletedSuccessfully)
+                                catch (Exception ex) when (_started?.Task.IsCompletedSuccessfully ?? false)
                                 {
                                     if (_publisherHost.TryUpdate(jobs))
                                     {
@@ -1007,7 +1016,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Debug.Assert(!clear);
                             _logger.LogError(sx, "SerializerException while loading job from file.");
                             retryCount = 0;
-                            _started.TrySetResult();
+                            _started?.TrySetResult();
                         }
                         catch (Exception ex) when (ex is not ObjectDisposedException)
                         {
@@ -1016,7 +1025,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 clear ? "Reset" : "Update");
                             _fileChanges.Writer.TryWrite(clear);
                             retryCount = 0;
-                            _started.TrySetResult();
+                            _started?.TrySetResult();
                         }
                     }
                     finally
@@ -1080,10 +1089,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         private static string GetChecksum(string content)
         {
-            if (string.IsNullOrEmpty(content))
-            {
-                return null;
-            }
             var checksum = SHA256.HashData(Encoding.UTF8.GetBytes(content));
             return BitConverter.ToString(checksum).Replace("-", string.Empty, StringComparison.Ordinal);
         }
@@ -1098,11 +1103,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly PublishedNodesConverter _publishedNodesJobConverter;
         private readonly IStorageProvider _publishedNodesProvider;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly IDiagnosticCollector _diagnostics;
+        private readonly IDiagnosticCollector? _diagnostics;
         private readonly IPublisher _publisherHost;
         private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;
-        private TaskCompletionSource _started;
+        private TaskCompletionSource? _started;
         private readonly Task _fileChangeProcessor;
         private readonly Channel<bool> _fileChanges;
         private readonly SemaphoreSlim _api = new(1, 1);

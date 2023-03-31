@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Opc.Ua;
     using System;
     using System.Linq;
 
@@ -21,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="publishedEvent"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        public static EventMonitoredItemModel ToMonitoredItem(
+        public static EventMonitoredItemModel? ToMonitoredItem(
             this PublishedDataSetEventModel publishedEvent,
             SubscriptionOptions configuration)
         {
@@ -30,14 +31,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 return null;
             }
 
+            var eventNotifier = publishedEvent.EventNotifier ?? ObjectIds.Server.ToString();
             return new EventMonitoredItemModel
             {
-                Id = publishedEvent.Id,
+                Id = publishedEvent.Id ?? eventNotifier,
                 DisplayName = publishedEvent.PublishedEventName,
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = publishedEvent.SelectClauses?
-                        .Select(s => s.Clone())
+                        .Select(s => s.Clone()!)
+                        .Where(s => s != null)
                         .ToList(),
                     WhereClause = publishedEvent.WhereClause?.Clone(),
                     TypeDefinitionId = publishedEvent.TypeDefinitionId
@@ -53,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 QueueSize = publishedEvent.QueueSize
                     ?? configuration?.DefaultQueueSize ?? 0,
                 MonitoringMode = publishedEvent.MonitoringMode,
-                StartNodeId = publishedEvent.EventNotifier,
+                StartNodeId = eventNotifier,
                 RelativePath = publishedEvent.BrowsePath,
                 AttributeId = null,
                 IndexRange = null,

@@ -29,8 +29,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="properties"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask HandleAsync(string deviceId, string moduleId,
-            ReadOnlyMemory<byte> payload, IReadOnlyDictionary<string, string> properties,
+        ValueTask HandleAsync(string deviceId, string? moduleId,
+            ReadOnlyMemory<byte> payload,
+            IReadOnlyDictionary<string, string?> properties,
             CancellationToken ct = default);
     }
 }

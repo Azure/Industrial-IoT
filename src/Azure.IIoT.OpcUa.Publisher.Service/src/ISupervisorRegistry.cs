@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<SupervisorListModel> ListSupervisorsAsync(
-            string continuation, bool onlyServerState = false,
+            string? continuation, bool onlyServerState = false,
             int? pageSize = null, CancellationToken ct = default);
 
         /// <summary>

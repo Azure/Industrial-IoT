@@ -257,6 +257,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result);
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
+            Assert.NotNull(result.Value);
             AssertEqualValue(expected, result.Value);
 
             Assert.Equal("ByteString", result.DataType);

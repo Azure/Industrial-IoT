@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.IO.Compression;
     using System.Text;
 
@@ -53,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Message id
         /// </summary>
-        public string MessageId { get; set; }
+        public string? MessageId { get; set; }
 
         /// <summary>
         /// Data set writer name in case of ua-metadata message
@@ -63,15 +64,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Data set writer name in case of ua-metadata message
         /// </summary>
-        public string DataSetWriterName { get; set; }
+        public string? DataSetWriterName { get; set; }
 
         /// <summary>
         /// Data set metadata in case this is a metadata message
         /// </summary>
-        public DataSetMetaDataType MetaData { get; set; }
+        public DataSetMetaDataType? MetaData { get; set; }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
             {
@@ -111,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
-            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver resolver)
+            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver? resolver)
         {
             if (reader.TryPeek(out var buffer))
             {
@@ -121,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 try
                 {
                     using var decoder = new JsonDecoderEx(
-                        UseGzipCompression ? compression : memoryStream, context, useJsonLoader: false);
+                        (Stream?)compression ?? memoryStream, context, useJsonLoader: false);
                     if (TryDecode(decoder))
                     {
                         reader.Dequeue();
@@ -137,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(IServiceMessageContext context,
-            int maxChunkSize, IDataSetMetaDataResolver resolver)
+            int maxChunkSize, IDataSetMetaDataResolver? resolver)
         {
             var chunks = new List<ReadOnlyMemory<byte>>();
             using var memoryStream = Memory.GetStream();
@@ -146,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             try
             {
                 using var encoder = new JsonEncoderEx(
-                    UseGzipCompression ? compression : memoryStream, context)
+                    (Stream?)compression ?? memoryStream, context)
                 {
                     UseAdvancedEncoding = UseAdvancedEncoding,
                     UseUriEncoding = UseAdvancedEncoding,

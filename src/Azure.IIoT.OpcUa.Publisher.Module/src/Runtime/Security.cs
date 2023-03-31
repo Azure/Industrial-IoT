@@ -67,11 +67,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             protected override Task<AuthenticateResult> HandleAuthenticateAsync()
             {
-                var authorization = _context.HttpContext.Request.Headers.Authorization;
+                var httpContext = _context.HttpContext;
+                if (httpContext == null)
+                {
+                    return Task.FromResult(AuthenticateResult.Fail(
+                        "No request."));
+                }
+
+                var authorization = httpContext.Request.Headers.Authorization;
                 if (authorization.Count == 0)
                 {
                     return Task.FromResult(AuthenticateResult.Fail(
-                        "Missing Authorization header"));
+                        "Missing Authorization header."));
                 }
                 try
                 {
@@ -80,8 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     {
                         return Task.FromResult(AuthenticateResult.NoResult());
                     }
-                    if (!_twin.TryGetValue(Constants.TwinPropertyApiKeyKey,
-                        out var key) || key != header.Parameter.Trim())
+                    if (!_twin.TryGetValue(Constants.TwinPropertyApiKeyKey, out var key) ||
+                        key != header.Parameter?.Trim())
                     {
                         throw new UnauthorizedAccessException();
                     }

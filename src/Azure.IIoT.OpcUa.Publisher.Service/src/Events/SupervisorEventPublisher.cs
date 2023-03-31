@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnSupervisorDeletedAsync(OperationContextModel context,
+        public Task OnSupervisorDeletedAsync(OperationContextModel? context,
             string supervisorId)
         {
             return PublishAsync(SupervisorEventType.Deleted, context,
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnSupervisorNewAsync(OperationContextModel context,
+        public Task OnSupervisorNewAsync(OperationContextModel? context,
             SupervisorModel supervisor)
         {
             return PublishAsync(SupervisorEventType.New, context,
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnSupervisorUpdatedAsync(OperationContextModel context,
+        public Task OnSupervisorUpdatedAsync(OperationContextModel? context,
             SupervisorModel supervisor)
         {
             return PublishAsync(SupervisorEventType.Updated, context,
@@ -54,8 +54,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         /// <param name="supervisor"></param>
         /// <returns></returns>
         public Task PublishAsync(SupervisorEventType type,
-            OperationContextModel context, string supervisorId,
-            SupervisorModel supervisor)
+            OperationContextModel? context, string? supervisorId,
+            SupervisorModel? supervisor)
         {
             var arguments = new object[] {
                 new SupervisorEventModel {

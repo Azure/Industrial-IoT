@@ -50,12 +50,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="options"> injected configuration. </param>
         /// <param name="metrics"> Metrics context </param>
         /// <param name="logger"> Logger to be used for reporting. </param>
-        public NetworkMessageEncoder(IOptions<PublisherOptions> options,
-            IMetricsContext metrics, ILogger<NetworkMessageEncoder> logger)
-            : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
+        public NetworkMessageEncoder(IOptions<PublisherOptions> options, IMetricsContext metrics,
+            ILogger<NetworkMessageEncoder> logger)
         {
+            ArgumentNullException.ThrowIfNull(metrics);
             _logger = logger;
             _options = options;
+            InitializeMetrics(metrics);
         }
 
         /// <inheritdoc/>
@@ -66,7 +67,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // by design all messages are generated in the same session context, therefore it is safe to
             // get the first message's context
             //
-            var encodingContext = notifications.FirstOrDefault(m => m.ServiceMessageContext != null)?.ServiceMessageContext;
+            var encodingContext = notifications
+                .FirstOrDefault(m => m.ServiceMessageContext != null)?.ServiceMessageContext;
             var chunkedMessages = new List<IEvent>();
             if (encodingContext == null)
             {
@@ -159,9 +161,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var result = new List<(int, PubSubMessage, string, bool, TimeSpan)>();
             // Group messages by publisher, then writer group and then by dataset class id
             foreach (var topics in messages
-                .Select(m => (Notification: m, Context: m.Context as WriterGroupMessageContext))
+                .Select(m => (Notification: m, Context: (m.Context as WriterGroupMessageContext)!))
                 .Where(m => m.Context != null)
-                .GroupBy(m => m.Context.Topic))
+                .GroupBy(m => m.Context!.Topic))
             {
                 var topic = topics.Key;
                 foreach (var publishers in topics.GroupBy(m => m.Context.PublisherId))
@@ -217,8 +219,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     while (notificationQueues.Any(q => q.Count > 0))
                                     {
                                         var orderedNotifications = notificationQueues
-                                            .Select(q => q.Count > 0 ? q.Dequeue() : null)
-                                            .Where(s => s != null);
+                                            .Select(q => q.Count > 0 ? q.Dequeue() : null!)
+                                            .Where(s => s?.DataSetFieldName != null);
 
                                         if (!hasSamplesPayload)
                                         {
@@ -228,6 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 {
                                                     UseCompatibilityMode = !standardsCompliant,
                                                     DataSetWriterName = Context.Writer.DataSetWriterName
+                                                        ?? Constants.DefaultDataSetWriterName
                                                 }
                                                 : new UadpDataSetMessage();
 
@@ -239,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             dataSetMessage.Timestamp = Notification.Timestamp;
                                             dataSetMessage.SequenceNumber = Context.SequenceNumber;
                                             dataSetMessage.Payload = new DataSet(orderedNotifications.ToDictionary(
-                                                s => s.DataSetFieldName, s => s.Value), (uint)dataSetFieldContentMask);
+                                                s => s.DataSetFieldName!, s => s.Value), (uint)dataSetFieldContentMask);
 
                                             AddMessage(dataSetMessage);
                                         }
@@ -270,7 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                     eventNotification.Value = new DataValue
                                                     {
                                                         Value = new EncodeableDictionary(notificationsInGroup
-                                                            .Select(n => new KeyDataValuePair(n.DataSetFieldName, n.Value)))
+                                                            .Select(n => new KeyDataValuePair(n.DataSetFieldName!, n.Value)))
                                                     };
                                                     eventNotification.DataSetFieldName = notificationsInGroup[0].DisplayName;
                                                     notificationsInGroup = new List<MonitoredItemNotificationModel> {
@@ -279,21 +282,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 }
                                                 foreach (var notification in notificationsInGroup)
                                                 {
-                                                    var dataSetMessage = new MonitoredItemMessage
+                                                    if (notification?.DataSetFieldName != null)
                                                     {
-                                                        UseCompatibilityMode = !standardsCompliant,
-                                                        ApplicationUri = Notification.ApplicationUri,
-                                                        EndpointUrl = Notification.EndpointUrl,
-                                                        NodeId = notification.NodeId,
-                                                        MessageType = Notification.MessageType,
-                                                        DataSetMessageContentMask = dataSetMessageContentMask,
-                                                        Timestamp = Notification.Timestamp,
-                                                        SequenceNumber = Context.SequenceNumber,
-                                                        ExtensionFields = Context.Writer.DataSet.ExtensionFields,
-                                                        Payload = new DataSet(notification.DataSetFieldName, notification.Value,
-                                                            (uint)dataSetFieldContentMask)
-                                                    };
-                                                    AddMessage(dataSetMessage);
+                                                        var dataSetMessage = new MonitoredItemMessage
+                                                        {
+                                                            UseCompatibilityMode = !standardsCompliant,
+                                                            ApplicationUri = Notification.ApplicationUri,
+                                                            EndpointUrl = Notification.EndpointUrl,
+                                                            NodeId = notification.NodeId,
+                                                            MessageType = Notification.MessageType,
+                                                            DataSetMessageContentMask = dataSetMessageContentMask,
+                                                            Timestamp = Notification.Timestamp,
+                                                            SequenceNumber = Context.SequenceNumber,
+                                                            ExtensionFields = Context.Writer.DataSet?.ExtensionFields,
+                                                            Payload = new DataSet(notification.DataSetFieldName,
+                                                                notification.Value, (uint)dataSetFieldContentMask)
+                                                        };
+                                                        AddMessage(dataSetMessage);
+                                                    }
                                                 }
                                             }
                                         }
@@ -336,16 +342,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             DataSetWriterId = Notification.SubscriptionId,
                                             MetaData = Notification.MetaData,
                                             MessageId = Guid.NewGuid().ToString(),
-                                            DataSetWriterName = Context.Writer.DataSetWriterName
+                                            DataSetWriterName = Context.Writer.DataSetWriterName ?? Constants.DefaultDataSetWriterName
                                         } : new UadpMetaDataMessage
                                         {
                                             DataSetWriterId = Notification.SubscriptionId,
                                             MetaData = Notification.MetaData
                                         };
                                     metadataMessage.PublisherId = publisherId;
-                                    metadataMessage.DataSetWriterGroup = writerGroup.WriterGroupId;
+                                    metadataMessage.DataSetWriterGroup = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
 
-                                    result.Add((0, metadataMessage, Context.MetaDataTopic ?? topic, true,
+                                    result.Add((0, metadataMessage, Context.MetaDataTopic, true,
                                         Context.Writer.MetaDataUpdateTime ?? default));
                                 }
                             }
@@ -375,7 +381,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 currentMessage.NetworkMessageContentMask = networkMessageContentMask;
                                 currentMessage.PublisherId = publisherId;
                                 currentMessage.DataSetClassId = dataSetClassId;
-                                currentMessage.DataSetWriterGroup = writerGroup.WriterGroupId;
+                                currentMessage.DataSetWriterGroup = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
                                 return currentMessage;
                             }
                         }
@@ -403,7 +409,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create observable metric registrations
         /// </summary>
         /// <param name="metrics"></param>
-        private NetworkMessageEncoder(IMetricsContext metrics)
+        private void InitializeMetrics(IMetricsContext metrics)
         {
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_encoded_notifications",
                 () => new Measurement<long>(NotificationsProcessedCount, metrics.TagList), "Notifications",

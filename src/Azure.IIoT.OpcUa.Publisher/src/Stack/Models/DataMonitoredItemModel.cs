@@ -21,12 +21,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Data change filter
         /// </summary>
-        public DataChangeFilterModel DataChangeFilter { get; init; }
+        public DataChangeFilterModel? DataChangeFilter { get; init; }
 
         /// <summary>
         /// Aggregate filter
         /// </summary>
-        public AggregateFilterModel AggregateFilter { get; init; }
+        public AggregateFilterModel? AggregateFilter { get; init; }
 
         /// <summary>
         /// heartbeat interval not present if zero

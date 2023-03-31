@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Furly.Extensions.Serializers;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -20,8 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<AuthenticationMethodModel> model,
-            IEnumerable<AuthenticationMethodModel> that)
+        public static bool IsSameAs(this IEnumerable<AuthenticationMethodModel>? model,
+            IEnumerable<AuthenticationMethodModel>? that)
         {
             if (model == that)
             {
@@ -51,8 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this AuthenticationMethodModel model,
-            AuthenticationMethodModel that)
+        public static bool IsSameAs(this AuthenticationMethodModel? model,
+            AuthenticationMethodModel? that)
         {
             if (model == that)
             {
@@ -78,7 +79,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static AuthenticationMethodModel Clone(this AuthenticationMethodModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static AuthenticationMethodModel? Clone(this AuthenticationMethodModel? model)
         {
             if (model == null)
             {

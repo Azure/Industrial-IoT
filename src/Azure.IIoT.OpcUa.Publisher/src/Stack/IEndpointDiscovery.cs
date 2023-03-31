@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<IEnumerable<DiscoveredEndpointModel>> FindEndpointsAsync(
-            Uri discoveryUrl, IReadOnlyList<string> locales = null,
+            Uri discoveryUrl, IReadOnlyList<string>? locales = null,
             CancellationToken ct = default);
     }
 }

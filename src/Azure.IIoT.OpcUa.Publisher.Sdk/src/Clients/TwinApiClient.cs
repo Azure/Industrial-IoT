@@ -28,12 +28,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// <param name="target"></param>
         /// <param name="serializer"></param>
         public TwinApiClient(IMethodClient methodClient, string target,
-            IJsonSerializer serializer = null)
+            IJsonSerializer? serializer = null)
         {
             _serializer = serializer ??
                 new NewtonsoftJsonSerializer();
             _methodClient = methodClient ??
                 throw new ArgumentNullException(nameof(methodClient));
+            if (string.IsNullOrEmpty(target))
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
             _target = target;
         }
 
@@ -44,8 +48,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         /// <param name="options"></param>
         /// <param name="serializer"></param>
         public TwinApiClient(IMethodClient methodClient, IOptions<SdkOptions> options,
-            IJsonSerializer serializer = null) :
-            this(methodClient, options?.Value.Target, serializer)
+            IJsonSerializer? serializer = null) :
+            this(methodClient, options.Value.Target!, serializer)
         {
         }
 
@@ -71,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<BrowseFirstResponseModel>(response);
+            return _serializer.DeserializeResponse<BrowseFirstResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -100,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<BrowseNextResponseModel>(response);
+            return _serializer.DeserializeResponse<BrowseNextResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -130,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<BrowsePathResponseModel>(response);
+            return _serializer.DeserializeResponse<BrowsePathResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -159,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<ReadResponseModel>(response);
+            return _serializer.DeserializeResponse<ReadResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -188,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<WriteResponseModel>(response);
+            return _serializer.DeserializeResponse<WriteResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -213,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<ValueReadResponseModel>(response);
+            return _serializer.DeserializeResponse<ValueReadResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -242,7 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<ValueWriteResponseModel>(response);
+            return _serializer.DeserializeResponse<ValueWriteResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -267,7 +271,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<MethodMetadataResponseModel>(response);
+            return _serializer.DeserializeResponse<MethodMetadataResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -292,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<MethodCallResponseModel>(response);
+            return _serializer.DeserializeResponse<MethodCallResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -310,7 +314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             var response = await _methodClient.CallMethodAsync(_target,
                 "GetServerCapabilities_V2", _serializer.SerializeToMemory(connection),
                 ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<ServerCapabilitiesModel>(response);
+            return _serializer.DeserializeResponse<ServerCapabilitiesModel>(response);
         }
 
         /// <inheritdoc/>
@@ -335,7 +339,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<NodeMetadataResponseModel>(response);
+            return _serializer.DeserializeResponse<NodeMetadataResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -353,7 +357,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             var response = await _methodClient.CallMethodAsync(_target,
                 "HistoryGetServerCapabilities_V2", _serializer.SerializeToMemory(connection),
                 ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<HistoryServerCapabilitiesModel>(response);
+            return _serializer.DeserializeResponse<HistoryServerCapabilitiesModel>(response);
         }
 
         /// <inheritdoc/>
@@ -378,7 +382,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<HistoryConfigurationResponseModel>(response);
+            return _serializer.DeserializeResponse<HistoryConfigurationResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -408,7 +412,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<HistoryReadResponseModel<VariantValue>>(response);
+            return _serializer.DeserializeResponse<HistoryReadResponseModel<VariantValue>>(response);
         }
 
         /// <inheritdoc/>
@@ -438,7 +442,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<HistoryReadNextResponseModel<VariantValue>>(response);
+            return _serializer.DeserializeResponse<HistoryReadNextResponseModel<VariantValue>>(response);
         }
 
         /// <inheritdoc/>
@@ -468,7 +472,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, null, ct).ConfigureAwait(false);
-            return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
+            return _serializer.DeserializeResponse<HistoryUpdateResponseModel>(response);
         }
 
         /// <inheritdoc/>

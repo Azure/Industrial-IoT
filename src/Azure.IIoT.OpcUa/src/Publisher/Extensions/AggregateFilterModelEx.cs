@@ -16,8 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this AggregateFilterModel model,
-            AggregateFilterModel other)
+        public static bool IsSameAs(this AggregateFilterModel? model,
+            AggregateFilterModel? other)
         {
             if (model == null && other == null)
             {

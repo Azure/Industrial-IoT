@@ -17,8 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// </summary>
         /// <param name="update"></param>
         /// <param name="config"></param>
-        public static DiscoveryConfigModel Patch(this DiscoveryConfigModel update,
-            DiscoveryConfigModel config)
+        public static DiscoveryConfigModel? Patch(this DiscoveryConfigModel? update,
+            DiscoveryConfigModel? config)
         {
             if (update == null)
             {

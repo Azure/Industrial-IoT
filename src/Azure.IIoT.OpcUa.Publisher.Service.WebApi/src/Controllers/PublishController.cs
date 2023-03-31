@@ -144,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [HttpGet("{endpointId}")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<PublishedItemListResponseModel> GetNextListOfPublishedNodesAsync(
-            string endpointId, [FromQuery][Required] string continuationToken)
+            string endpointId, [FromQuery][Required] string? continuationToken)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
             {

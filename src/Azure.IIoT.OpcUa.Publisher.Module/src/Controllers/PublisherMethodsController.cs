@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
@@ -172,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             List<PublishedNodesEntryModel> request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
-            var endpoints = request?.Select(e => e).ToList();
+            var endpoints = request.ConvertAll(e => e);
             await _configServices.AddOrUpdateEndpointsAsync(endpoints, ct).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }

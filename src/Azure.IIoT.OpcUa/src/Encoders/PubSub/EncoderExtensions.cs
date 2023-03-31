@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="decoder"></param>
         /// <param name="property"></param>
         /// <returns></returns>
-        public static bool IsArray(this JsonDecoderEx decoder, string property)
+        public static bool IsArray(this JsonDecoderEx decoder, string? property)
         {
             if (!decoder.TryGetToken(property, out var token))
             {
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="decoder"></param>
         /// <param name="property"></param>
         /// <returns></returns>
-        public static bool IsObject(this JsonDecoderEx decoder, string property)
+        public static bool IsObject(this JsonDecoderEx decoder, string? property)
         {
             if (!decoder.TryGetToken(property, out var token))
             {

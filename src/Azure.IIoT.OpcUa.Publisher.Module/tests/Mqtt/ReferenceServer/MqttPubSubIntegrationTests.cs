@@ -144,6 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
 
+            Assert.NotNull(metadata);
             BasicPubSubIntegrationTests.AssertSimpleEventsMetadata(metadata.Value);
         }
 
@@ -228,6 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
 
+            Assert.NotNull(metadata);
             BasicPubSubIntegrationTests.AssertCompliantSimpleEventsMetadata(metadata.Value);
         }
 
@@ -272,6 +274,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
             });
 
+            Assert.NotNull(metadata);
             BasicPubSubIntegrationTests.AssertCompliantSimpleEventsMetadata(metadata.Value);
         }
 

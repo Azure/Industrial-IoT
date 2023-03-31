@@ -15,17 +15,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Application name
         /// </summary>
-        public string ApplicationName { get; set; }
+        public string? ApplicationName { get; set; }
 
         /// <summary>
         /// Application uri
         /// </summary>
-        public string ApplicationUri { get; set; }
+        public string? ApplicationUri { get; set; }
 
         /// <summary>
         /// Product uri
         /// </summary>
-        public string ProductUri { get; set; }
+        public string? ProductUri { get; set; }
 
         /// <summary>
         /// Default session timeout in milliseconds.

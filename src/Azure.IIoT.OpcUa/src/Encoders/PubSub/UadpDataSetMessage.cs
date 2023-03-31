@@ -269,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal void Encode(BinaryEncoder binaryEncoder, IDataSetMetaDataResolver resolver)
+        internal void Encode(BinaryEncoder binaryEncoder, IDataSetMetaDataResolver? resolver)
         {
             StartPositionInStream = binaryEncoder.Position;
             if (DataSetOffset > 0 && StartPositionInStream < DataSetOffset)
@@ -281,7 +281,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             WriteDataSetMessageHeader(binaryEncoder);
 
             var metadata = resolver?.Find(DataSetWriterId,
-                MetaDataVersion.MajorVersion, MetaDataVersion.MinorVersion);
+                MetaDataVersion?.MajorVersion ?? 1, MetaDataVersion?.MinorVersion ?? 0);
 
             if ((DataSetFlags2 & DataSetFlags2EncodingMask.DataDeltaFrame) != 0)
             {
@@ -310,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="decoder"></param>
         /// <param name="resolver"></param>
         /// <exception cref="ServiceResultException"></exception>
-        internal bool TryDecode(BinaryDecoder decoder, IDataSetMetaDataResolver resolver)
+        internal bool TryDecode(BinaryDecoder decoder, IDataSetMetaDataResolver? resolver)
         {
             if (decoder is not BinaryDecoder binaryDecoder)
             {
@@ -325,7 +325,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
 
                 var metadata = resolver?.Find(DataSetWriterId,
-                    MetaDataVersion.MajorVersion, MetaDataVersion.MinorVersion);
+                    MetaDataVersion?.MajorVersion ?? 1, MetaDataVersion?.MinorVersion ?? 0);
                 if ((DataSetFlags2 & DataSetFlags2EncodingMask.DataDeltaFrame) != 0)
                 {
                     ReadPayloadDeltaFrame(binaryDecoder, metadata);
@@ -428,16 +428,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 // This is the high order 16 bits of the StatusCode DataType representing
                 // the numeric value of the Severity and SubCode of the StatusCode DataType.
                 var status = Status ?? Payload.Values
-                    .FirstOrDefault(s => StatusCode.IsNotGood(s.StatusCode))?.StatusCode ?? StatusCodes.Good;
+                    .FirstOrDefault(s => StatusCode.IsNotGood(s?.StatusCode ?? StatusCodes.BadNoData))?
+                        .StatusCode ?? StatusCodes.Good;
                 encoder.WriteUInt16(null, (ushort)(status.Code >> 16));
             }
             if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0)
             {
-                encoder.WriteUInt32(null, MetaDataVersion.MajorVersion);
+                encoder.WriteUInt32(null, MetaDataVersion?.MajorVersion ?? 1);
             }
             if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion) != 0)
             {
-                encoder.WriteUInt32(null, MetaDataVersion.MinorVersion);
+                encoder.WriteUInt32(null, MetaDataVersion?.MinorVersion ?? 0);
             }
         }
 
@@ -448,7 +449,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="metadata"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private void ReadPayloadKeyFrame(BinaryDecoder binaryDecoder, DataSetMetaDataType metadata)
+        private void ReadPayloadKeyFrame(BinaryDecoder binaryDecoder, DataSetMetaDataType? metadata)
         {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
             ushort dataSetFieldCount;
@@ -512,7 +513,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="binaryEncoder"></param>
         /// <param name="metadata"></param>
         /// <exception cref="ServiceResultException"></exception>
-        private void WritePayloadKeyFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType metadata)
+        private void WritePayloadKeyFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType? metadata)
         {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
             switch (fieldType)
@@ -522,7 +523,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     binaryEncoder.WriteUInt16(null, (ushort)Payload.Count);
                     foreach (var value in Payload)
                     {
-                        binaryEncoder.WriteVariant(null, value.Value.WrappedValue);
+                        binaryEncoder.WriteVariant(null, value.Value?.WrappedValue ?? default);
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeDataValue:
@@ -540,7 +541,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     {
                         var fieldMetaData = GetFieldMetadata(metadata, i);
                         WriteFieldAsRawData(binaryEncoder,
-                            values[i].Value.WrappedValue, fieldMetaData);
+                            values[i].Value?.WrappedValue ?? default, fieldMetaData);
                     }
                     break;
                 default:
@@ -556,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="metadata"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        private void ReadPayloadDeltaFrame(BinaryDecoder binaryDecoder, DataSetMetaDataType metadata)
+        private void ReadPayloadDeltaFrame(BinaryDecoder binaryDecoder, DataSetMetaDataType? metadata)
         {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
             var fieldCount = binaryDecoder.ReadUInt16(null);
@@ -596,7 +597,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="binaryEncoder"></param>
         /// <param name="metadata"></param>
         /// <exception cref="ServiceResultException"></exception>
-        private void WritePayloadDeltaFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType metadata)
+        private void WritePayloadDeltaFrame(BinaryEncoder binaryEncoder, DataSetMetaDataType? metadata)
         {
             // ignore null fields
             var fieldCount = Payload.Count(value => value.Value?.Value != null);
@@ -642,7 +643,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="key"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        private static ushort GetFieldIndex(DataSetMetaDataType metadata, string key, int pos)
+        private static ushort GetFieldIndex(DataSetMetaDataType? metadata, string key, int pos)
         {
             if (metadata?.Fields != null)
             {
@@ -667,7 +668,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="metadata"></param>
         /// <param name="fieldIndex"></param>
         /// <returns></returns>
-        private static FieldMetaData GetFieldMetadata(DataSetMetaDataType metadata,
+        private static FieldMetaData? GetFieldMetadata(DataSetMetaDataType? metadata,
             int fieldIndex)
         {
             if (metadata?.Fields == null)
@@ -688,7 +689,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="variant"></param>
         /// <param name="fieldMetaData"></param>
         private static void WriteFieldAsRawData(BinaryEncoder binaryEncoder, Variant variant,
-            FieldMetaData fieldMetaData)
+            FieldMetaData? fieldMetaData)
         {
             var builtInType = (BuiltInType?)fieldMetaData?.BuiltInType
                 ?? variant.TypeInfo?.BuiltInType ?? BuiltInType.Null;
@@ -799,7 +800,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="binaryDecoder"></param>
         /// <param name="fieldMetaData"></param>
         /// <returns></returns>
-        private static object ReadRawData(BinaryDecoder binaryDecoder, FieldMetaData fieldMetaData)
+        private static object? ReadRawData(BinaryDecoder binaryDecoder, FieldMetaData fieldMetaData)
         {
             if (fieldMetaData.BuiltInType != (byte)BuiltInType.Null)
             {
@@ -842,7 +843,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="binaryDecoder"></param>
         /// <param name="builtInType"></param>
         /// <returns>The decoded object</returns>
-        private static object ReadRawScalar(BinaryDecoder binaryDecoder, byte builtInType)
+        private static object? ReadRawScalar(BinaryDecoder binaryDecoder, byte builtInType)
         {
             switch ((BuiltInType)builtInType)
             {

@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Service message context
         /// </summary>
-        public IServiceMessageContext ServiceMessageContext { get; set; }
+        public IServiceMessageContext? ServiceMessageContext { get; set; }
 
         /// <summary>
         /// Notification
@@ -39,12 +39,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Meta data
         /// </summary>
-        public DataSetMetaDataType MetaData { get; set; }
+        public DataSetMetaDataType? MetaData { get; set; }
 
         /// <summary>
         /// Subscription from which message originated
         /// </summary>
-        public string SubscriptionName { get; set; }
+        public string? SubscriptionName { get; set; }
 
         /// <summary>
         /// Subscription identifier
@@ -54,12 +54,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Endpoint url
         /// </summary>
-        public string EndpointUrl { get; set; }
+        public string? EndpointUrl { get; set; }
 
         /// <summary>
         /// Appplication url
         /// </summary>
-        public string ApplicationUri { get; set; }
+        public string? ApplicationUri { get; set; }
 
         /// <summary>
         /// Publishing time
@@ -69,6 +69,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Additional context information
         /// </summary>
-        public object Context { get; set; }
+        public object? Context { get; set; }
     }
 }

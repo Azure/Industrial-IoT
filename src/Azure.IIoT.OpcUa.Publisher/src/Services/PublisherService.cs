@@ -68,8 +68,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _currentJobs = new Dictionary<string, JobContext>();
 
             TagList = new TagList(new[] {
-                new KeyValuePair<string, object>("publisherId", PublisherId),
-                new KeyValuePair<string, object>("timestamp_utc",
+                new KeyValuePair<string, object?>("publisherId", PublisherId),
+                new KeyValuePair<string, object?>("timestamp_utc",
                     DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                     CultureInfo.InvariantCulture))
             });
@@ -202,7 +202,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         else
                         {
                             // Create new job
-                            currentJob = await JobContext.CreateAsync(this, Version, job, ct).ConfigureAwait(false);
+                            currentJob = await JobContext.CreateAsync(this, jobId, Version,
+                                job, ct).ConfigureAwait(false);
                             _currentJobs.Add(currentJob.Id, currentJob);
                         }
                     }
@@ -260,7 +261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Job identifier
             /// </summary>
-            public string Id { get; private set; }
+            public string Id { get; }
 
             /// <summary>
             /// Current job configuration
@@ -282,14 +283,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="version"></param>
+            /// <param name="id"></param>
             /// <param name="writerGroup"></param>
-            private JobContext(PublisherService outer, int version,
+            private JobContext(PublisherService outer, int version, string id,
                 WriterGroupModel writerGroup)
             {
                 _outer = outer;
                 Version = version;
                 WriterGroup = writerGroup with { };
-                Id = WriterGroup.GetJobId();
+                Id = id;
                 _scope = _outer._factory.Create(WriterGroup);
                 Source = _scope.WriterGroup.Source;
             }
@@ -298,14 +300,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Create context
             /// </summary>
             /// <param name="outer"></param>
+            /// <param name="id"></param>
             /// <param name="version"></param>
             /// <param name="writerGroup"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
             public static async ValueTask<JobContext> CreateAsync(PublisherService outer,
-                int version, WriterGroupModel writerGroup, CancellationToken ct)
+                string id, int version, WriterGroupModel writerGroup, CancellationToken ct)
             {
-                var job = new JobContext(outer, version, writerGroup);
+                var job = new JobContext(outer, version, id, writerGroup);
                 try
                 {
                     await job.Source.StartAsync(ct).ConfigureAwait(false);
@@ -329,13 +332,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public async ValueTask UpdateAsync(int version, WriterGroupModel writerGroup,
                 CancellationToken ct)
             {
+                Debug.Assert(Id == GetJobId(writerGroup));
                 try
                 {
                     await Source.UpdateAsync(writerGroup, ct).ConfigureAwait(false);
 
-                    // Update if successful
+                    // Update inner state if successful
                     WriterGroup = writerGroup;
-                    Id = WriterGroup.GetJobId();
                 }
                 catch (Exception ex)
                 {
@@ -367,6 +370,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             private readonly IWriterGroupScope _scope;
             private readonly PublisherService _outer;
+        }
+
+        /// <summary>
+        /// Create a job id for the group
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        private static string? GetJobId(WriterGroupModel? model)
+        {
+            var connection = model?.DataSetWriters?.First()?.DataSet?.DataSetSource?.Connection;
+            if (connection == null)
+            {
+                return null;
+            }
+            return connection.CreateConnectionId();
         }
 
         private bool _isDisposed;

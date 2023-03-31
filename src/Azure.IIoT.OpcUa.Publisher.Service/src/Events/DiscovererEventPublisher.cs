@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnDiscovererDeletedAsync(OperationContextModel context,
+        public Task OnDiscovererDeletedAsync(OperationContextModel? context,
             string discovererId)
         {
             return PublishAsync(DiscovererEventType.Deleted, context,
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnDiscovererNewAsync(OperationContextModel context,
+        public Task OnDiscovererNewAsync(OperationContextModel? context,
             DiscovererModel discoverer)
         {
             return PublishAsync(DiscovererEventType.New, context,
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnDiscovererUpdatedAsync(OperationContextModel context,
+        public Task OnDiscovererUpdatedAsync(OperationContextModel? context,
             DiscovererModel discoverer)
         {
             return PublishAsync(DiscovererEventType.Updated, context,
@@ -54,8 +54,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         /// <param name="discoverer"></param>
         /// <returns></returns>
         public Task PublishAsync(DiscovererEventType type,
-            OperationContextModel context, string discovererId,
-            DiscovererModel discoverer)
+            OperationContextModel? context, string? discovererId,
+            DiscovererModel? discoverer)
         {
             var arguments = new[] {
                 new DiscovererEventModel {

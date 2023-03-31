@@ -22,13 +22,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Create registration - for testing purposes
         /// </summary>
         /// <param name="deviceId"></param>
-        public GatewayRegistration(string deviceId = null)
+        public GatewayRegistration(string? deviceId = null)
         {
             DeviceId = deviceId;
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             var registration = obj as GatewayRegistration;
             return base.Equals(registration);

@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     /// the current and legacy versions of the OPC Publisher. They are represented
     /// via configuration interfaces that is injected into the publisher container.
     /// </summary>
-    public class CommandLine : Dictionary<string, string>
+    public class CommandLine : Dictionary<string, string?>
     {
         /// <summary>
         /// Creates a new instance of the cli options based on existing configuration values.

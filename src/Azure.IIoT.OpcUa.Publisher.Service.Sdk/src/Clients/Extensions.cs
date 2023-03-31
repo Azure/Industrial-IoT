@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="serializers">Registered serializers.</param>
         /// <param name="options">Options with serializer configuration.</param>
         /// <returns></returns>
-        public static ISerializer Resolve(this IEnumerable<ISerializer> serializers,
+        public static ISerializer? Resolve(this IEnumerable<ISerializer> serializers,
             ServiceSdkOptions options)
         {
             if (options?.UseMessagePackProtocol ?? false)

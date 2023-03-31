@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public EndpointModel Endpoint { get; }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is string s)
             {

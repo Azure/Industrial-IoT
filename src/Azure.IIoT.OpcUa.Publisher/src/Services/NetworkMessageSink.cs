@@ -28,12 +28,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="logger"></param>
         public NetworkMessageSink(IEventClient clientAccessor, IMetricsContext metrics,
             ILogger<NetworkMessageSink> logger)
-            : this(metrics ?? throw new ArgumentNullException(nameof(metrics)))
         {
+            _metrics = metrics
+                ?? throw new ArgumentNullException(nameof(metrics));
             _clientAccessor = clientAccessor
                 ?? throw new ArgumentNullException(nameof(clientAccessor));
             _logger = logger
                 ?? throw new ArgumentNullException(nameof(logger));
+
+            InitMetricsContext();
         }
 
         /// <inheritdoc/>
@@ -73,18 +76,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create observable metric registrations
         /// </summary>
-        /// <param name="metrics"></param>
-        private NetworkMessageSink(IMetricsContext metrics)
+        private void InitMetricsContext()
         {
-            _tagList = metrics.TagList;
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_sent_iot_messages",
-                () => new Measurement<long>(_messagesSentCount, _tagList), "Messages",
+                () => new Measurement<long>(_messagesSentCount, _metrics.TagList), "Messages",
                 "Number of IoT messages successfully sent to Sink (IoT Hub or Edge Hub).");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_sent_iot_messages_per_second",
-                () => new Measurement<double>(_messagesSentCount / UpTime, _tagList), "Messages/second",
+                () => new Measurement<double>(_messagesSentCount / UpTime, _metrics.TagList), "Messages/second",
                 "IoT messages/second sent to Sink (IoT Hub or Edge Hub).");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_estimated_message_chunks_per_day",
-                () => new Measurement<double>(_messagesSentCount, _tagList), "Messages/day",
+                () => new Measurement<double>(_messagesSentCount, _metrics.TagList), "Messages/day",
                 "Estimated 4kb message chunks used from daily quota.");
         }
         static readonly Counter<long> kMessagesErrors = Diagnostics.Meter.CreateCounter<long>(
@@ -95,6 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;
         private readonly DateTime _startTime = DateTime.UtcNow;
         private readonly ILogger _logger;
+        private readonly IMetricsContext _metrics;
         private readonly IEventClient _clientAccessor;
         private readonly TagList _tagList;
         private long _messagesSentCount;

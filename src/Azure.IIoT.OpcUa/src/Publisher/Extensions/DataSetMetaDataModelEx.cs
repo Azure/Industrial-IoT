@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Diagnostics.CodeAnalysis;
+
     /// <summary>
     /// Dataset metadata extensions
     /// </summary>
@@ -15,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DataSetMetaDataModel Clone(this DataSetMetaDataModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static DataSetMetaDataModel? Clone(this DataSetMetaDataModel? model)
         {
             if (model == null)
             {

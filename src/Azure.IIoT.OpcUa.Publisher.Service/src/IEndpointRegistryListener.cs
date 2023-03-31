@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        Task OnEndpointNewAsync(OperationContextModel context,
+        Task OnEndpointNewAsync(OperationContextModel? context,
             EndpointInfoModel endpoint);
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        Task OnEndpointDisabledAsync(OperationContextModel context,
+        Task OnEndpointDisabledAsync(OperationContextModel? context,
             EndpointInfoModel endpoint);
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        Task OnEndpointEnabledAsync(OperationContextModel context,
+        Task OnEndpointEnabledAsync(OperationContextModel? context,
             EndpointInfoModel endpoint);
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <param name="endpointId"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        Task OnEndpointDeletedAsync(OperationContextModel context,
+        Task OnEndpointDeletedAsync(OperationContextModel? context,
             string endpointId, EndpointInfoModel endpoint);
     }
 }

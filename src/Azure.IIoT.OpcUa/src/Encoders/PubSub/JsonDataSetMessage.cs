@@ -23,10 +23,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Dataset writer name
         /// </summary>
-        public string DataSetWriterName { get; set; }
+        public string? DataSetWriterName { get; set; }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
             {
@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal virtual void Encode(JsonEncoderEx encoder, string publisherId, bool withHeader, string property)
+        internal virtual void Encode(JsonEncoderEx encoder, string? publisherId, bool withHeader, string? property)
         {
             if (withHeader)
             {
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0)
                 {
                     var status = Status ?? Payload.Values
-                        .FirstOrDefault(s => StatusCode.IsNotGood(s.StatusCode))?.StatusCode ?? StatusCodes.Good;
+                        .FirstOrDefault(s => StatusCode.IsNotGood(s?.StatusCode ?? StatusCodes.BadNoData))?.StatusCode ?? StatusCodes.Good;
                     if (!UseCompatibilityMode)
                     {
                         encoder.WriteUInt32(nameof(Status), status.Code);
@@ -131,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 WritePayload(encoder, property);
             }
-            void WritePayload(JsonEncoderEx jsonEncoder, string propertyName = null)
+            void WritePayload(JsonEncoderEx jsonEncoder, string? propertyName = null)
             {
                 var useReversibleEncoding =
                     (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0;
@@ -151,14 +151,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal virtual bool TryDecode(JsonDecoderEx jsonDecoder, string property, ref bool withHeader,
-            ref string publisherId)
+        internal virtual bool TryDecode(JsonDecoderEx jsonDecoder, string? property, ref bool withHeader,
+            ref string? publisherId)
         {
             if (TryReadDataSetMessageHeader(jsonDecoder, out var dataSetMessageContentMask))
             {
                 withHeader |= true;
                 DataSetMessageContentMask = dataSetMessageContentMask;
-                Payload = jsonDecoder.ReadDataSet(nameof(Payload));
+                var payload = jsonDecoder.ReadDataSet(nameof(Payload));
+                if (payload != null)
+                {
+                    Payload = payload;
+                }
                 return true;
             }
             else if (withHeader)
@@ -177,15 +181,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 MetaDataVersion = null;
                 Timestamp = DateTime.MinValue;
 
-                if (jsonDecoder.HasField(property))
-                {
+                var payload = property != null && jsonDecoder.HasField(property) ?
                     // Read payload off of the property name
-                    Payload = jsonDecoder.ReadDataSet(property);
-                }
-                else
-                {
+                    jsonDecoder.ReadDataSet(property) :
                     // Read the current object as dataset
-                    Payload = jsonDecoder.ReadDataSet(null);
+                    jsonDecoder.ReadDataSet(null);
+
+                if (payload != null)
+                {
+                    Payload = payload;
                 }
                 return true;
             }
@@ -221,7 +225,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
                 if (jsonDecoder.HasField(nameof(MetaDataVersion)))
                 {
-                    MetaDataVersion = (ConfigurationVersionDataType)jsonDecoder.ReadEncodeable(
+                    MetaDataVersion = (ConfigurationVersionDataType?)jsonDecoder.ReadEncodeable(
                         nameof(MetaDataVersion), typeof(ConfigurationVersionDataType));
                     if (MetaDataVersion != null)
                     {

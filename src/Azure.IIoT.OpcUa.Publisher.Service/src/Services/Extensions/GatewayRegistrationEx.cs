@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="existing"></param>
         /// <param name="update"></param>
-        public static DeviceTwinModel Patch(this GatewayRegistration existing,
+        public static DeviceTwinModel Patch(this GatewayRegistration? existing,
             GatewayRegistration update)
         {
             var tags = new Dictionary<string, VariantValue>();
@@ -56,8 +56,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
 
             return new DeviceTwinModel
             {
-                Id = update?.DeviceId ?? existing?.DeviceId,
-                Etag = existing?.Etag,
+                Id = update?.DeviceId ?? existing?.DeviceId ?? string.Empty,
+                Etag = existing?.Etag ?? string.Empty,
                 Tags = tags,
                 Desired = desired
             };
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="twin"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
-        public static GatewayRegistration ToGatewayRegistration(this DeviceTwinModel twin,
+        public static GatewayRegistration? ToGatewayRegistration(this DeviceTwinModel twin,
             IReadOnlyDictionary<string, VariantValue> properties)
         {
             if (twin == null)
@@ -96,9 +96,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 NotSeenSince =
                     tags.GetValueOrDefault(nameof(GatewayRegistration.NotSeenSince), (DateTime?)null),
                 Type =
-                    tags.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string)null),
+                    tags.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string?)null),
                 SiteId =
-                    tags.GetValueOrDefault(Constants.TwinPropertySiteKey, (string)null)
+                    tags.GetValueOrDefault(Constants.TwinPropertySiteKey, (string?)null)
 
                 // Properties
             };
@@ -109,9 +109,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static GatewayRegistration ToGatewayRegistration(this DeviceTwinModel twin)
+        public static GatewayRegistration? ToGatewayRegistration(this DeviceTwinModel twin)
         {
-            return ToGatewayRegistration(twin, out var tmp);
+            return ToGatewayRegistration(twin, out _);
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="twin"></param>
         /// <param name="connected"></param>
         /// <returns></returns>
-        public static GatewayRegistration ToGatewayRegistration(this DeviceTwinModel twin,
+        public static GatewayRegistration? ToGatewayRegistration(this DeviceTwinModel twin,
             out bool connected)
         {
             if (twin == null)
@@ -136,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
 
             var consolidated =
                 ToGatewayRegistration(twin, twin.GetConsolidatedProperties());
-            connected = consolidated.Connected;
+            connected = consolidated?.Connected ?? false;
             return consolidated;
         }
 
@@ -168,9 +168,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
-        public static GatewayModel ToServiceModel(this GatewayRegistration registration)
+        public static GatewayModel? ToServiceModel(this GatewayRegistration? registration)
         {
-            if (registration == null)
+            if (registration is null)
             {
                 return null;
             }

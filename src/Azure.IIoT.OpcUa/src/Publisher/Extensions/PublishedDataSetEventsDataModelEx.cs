@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -17,7 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static PublishedDataSetEventModel Clone(this PublishedDataSetEventModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static PublishedDataSetEventModel? Clone(this PublishedDataSetEventModel? model)
         {
             if (model == null)
             {

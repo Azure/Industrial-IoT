@@ -25,13 +25,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="dataSetSource"/> is <c>null</c>.</exception>
         public static SubscriptionConfigurationModel ToSubscriptionConfigurationModel(
-            this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel dataSetMetaData,
+            this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel? dataSetMetaData,
             SubscriptionOptions configuration)
         {
-            if (dataSetSource == null)
-            {
-                throw new ArgumentNullException(nameof(dataSetSource));
-            }
             return new SubscriptionConfigurationModel
             {
                 Priority = dataSetSource.SubscriptionSettings?.Priority,
@@ -52,22 +48,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Convert dataset source to monitored item
         /// </summary>
         /// <param name="dataSetSource"></param>
-        /// <param name="configuration"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         public static List<BaseMonitoredItemModel> ToMonitoredItems(
-            this PublishedDataSetSourceModel dataSetSource,
-            SubscriptionOptions configuration)
+            this PublishedDataSetSourceModel dataSetSource, SubscriptionOptions options)
         {
             var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();
             if (dataSetSource.PublishedVariables?.PublishedData != null)
             {
                 monitoredItems = monitoredItems
-                    .Concat(dataSetSource.PublishedVariables.ToMonitoredItems(configuration));
+                    .Concat(dataSetSource.PublishedVariables.ToMonitoredItems(options));
             }
             if (dataSetSource.PublishedEvents?.PublishedData != null)
             {
                 monitoredItems = monitoredItems
-                    .Concat(dataSetSource.PublishedEvents.ToMonitoredItems(configuration));
+                    .Concat(dataSetSource.PublishedEvents.ToMonitoredItems(options));
             }
             return monitoredItems.ToList();
         }

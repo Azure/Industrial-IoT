@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-#nullable enable
+
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
@@ -1010,7 +1010,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         /// <inheritdoc/>
         public void WriteStringDictionary(string? property,
-            IEnumerable<KeyValuePair<string, string>> values)
+            IEnumerable<KeyValuePair<string, string?>> values)
         {
             WriteDictionary(property, values, (k, v) => WriteString(k, v));
         }
@@ -1128,7 +1128,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     //
                     UseUriEncoding = true;
                     UseReversibleEncoding = false;
-                    WriteDictionary(property, dataSet, (k, v) => WriteVariant(k, v.WrappedValue));
+                    WriteDictionary(property, dataSet, (k, v) => WriteVariant(k, v?.WrappedValue ?? default));
                 }
                 else if (fieldContentMask == 0)
                 {
@@ -1139,7 +1139,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     //
                     UseUriEncoding = false;
                     UseReversibleEncoding = true;
-                    WriteDictionary(property, dataSet, (k, v) => WriteVariant(k, v.WrappedValue));
+                    WriteDictionary(property, dataSet, (k, v) => WriteVariant(k, v?.WrappedValue ?? default));
                 }
                 else
                 {
@@ -1153,25 +1153,28 @@ namespace Azure.IIoT.OpcUa.Encoders
                         PushObject(k);
                         try
                         {
-                            WriteVariant("Value", value.WrappedValue);
-                            if ((fieldContentMask & (uint)DataSetFieldContentMask.StatusCode) != 0)
+                            WriteVariant("Value", value?.WrappedValue ?? default);
+                            if (value != null)
                             {
-                                WriteStatusCode("StatusCode", value.StatusCode);
-                            }
-                            if ((fieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0)
-                            {
-                                WriteDateTime("SourceTimestamp", value.SourceTimestamp);
-                                if ((fieldContentMask & (uint)DataSetFieldContentMask.SourcePicoSeconds) != 0)
+                                if ((fieldContentMask & (uint)DataSetFieldContentMask.StatusCode) != 0)
                                 {
-                                    WriteUInt16("SourcePicoseconds", value.SourcePicoseconds);
+                                    WriteStatusCode("StatusCode", value.StatusCode);
                                 }
-                            }
-                            if ((fieldContentMask & (uint)DataSetFieldContentMask.ServerTimestamp) != 0)
-                            {
-                                WriteDateTime("ServerTimestamp", value.ServerTimestamp);
-                                if ((fieldContentMask & (uint)DataSetFieldContentMask.ServerPicoSeconds) != 0)
+                                if ((fieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0)
                                 {
-                                    WriteUInt16("ServerPicoseconds", value.ServerPicoseconds);
+                                    WriteDateTime("SourceTimestamp", value.SourceTimestamp);
+                                    if ((fieldContentMask & (uint)DataSetFieldContentMask.SourcePicoSeconds) != 0)
+                                    {
+                                        WriteUInt16("SourcePicoseconds", value.SourcePicoseconds);
+                                    }
+                                }
+                                if ((fieldContentMask & (uint)DataSetFieldContentMask.ServerTimestamp) != 0)
+                                {
+                                    WriteDateTime("ServerTimestamp", value.ServerTimestamp);
+                                    if ((fieldContentMask & (uint)DataSetFieldContentMask.ServerPicoSeconds) != 0)
+                                    {
+                                        WriteUInt16("ServerPicoseconds", value.ServerPicoseconds);
+                                    }
                                 }
                             }
                         }

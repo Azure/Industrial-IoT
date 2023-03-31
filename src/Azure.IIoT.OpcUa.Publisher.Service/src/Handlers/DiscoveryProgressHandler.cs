@@ -42,13 +42,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         /// <inheritdoc/>
-        public async ValueTask HandleAsync(string deviceId, string moduleId, ReadOnlyMemory<byte> payload,
-            IReadOnlyDictionary<string, string> properties, CancellationToken ct)
+        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlyMemory<byte> payload,
+            IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
         {
-            DiscoveryProgressModel discovery;
+            DiscoveryProgressModel? discovery;
             try
             {
                 discovery = _serializer.Deserialize<DiscoveryProgressModel>(payload);
+                if (discovery == null)
+                {
+                    throw new FormatException($"Bad payload for scheme {MessageSchema}.");
+                }
             }
             catch (Exception ex)
             {

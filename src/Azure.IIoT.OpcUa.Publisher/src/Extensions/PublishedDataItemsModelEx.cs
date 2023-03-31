@@ -18,21 +18,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Convert to monitored items including heartbeat handling.
         /// </summary>
         /// <param name="dataItems"></param>
-        /// <param name="configuration"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         public static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
-            this PublishedDataItemsModel dataItems,
-            SubscriptionOptions configuration = null)
+            this PublishedDataItemsModel dataItems, SubscriptionOptions options)
         {
             if (dataItems?.PublishedData != null)
             {
-                foreach (var item in dataItems.PublishedData)
+                foreach (var publishedData in dataItems.PublishedData)
                 {
-                    if (item == null)
+                    var item = publishedData?.ToMonitoredItem(options);
+                    if (item != null)
                     {
-                        continue;
+                        yield return item;
                     }
-                    yield return item.ToMonitoredItem(configuration);
                 }
             }
         }

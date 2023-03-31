@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="properties"></param>
         public RuntimeStateReporter(IEventClient events, IJsonSerializer serializer,
             IOptions<PublisherOptions> options, ILogger<RuntimeStateReporter> logger,
-            IDictionary<string, VariantValue> properties = null)
+            IDictionary<string, VariantValue>? properties = null)
         {
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -92,6 +92,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IEventClient _events;
         private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;
-        private readonly IDictionary<string, VariantValue> _properties;
+        private readonly IDictionary<string, VariantValue>? _properties;
     }
 }

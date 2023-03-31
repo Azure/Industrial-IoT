@@ -28,22 +28,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 StartNodeId;
             init => _id = value;
         }
-        private string _id;
+        private string? _id;
 
         /// <summary>
         /// Display name
         /// </summary>
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
 
         /// <summary>
         /// Node id
         /// </summary>
-        public string StartNodeId { get; init; }
+        public string StartNodeId { get; init; } = null!;
 
         /// <summary>
         /// Path from node
         /// </summary>
-        public IReadOnlyList<string> RelativePath { get; init; }
+        public IReadOnlyList<string>? RelativePath { get; init; }
 
         /// <summary>
         /// Attribute
@@ -53,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Range of value to report
         /// </summary>
-        public string IndexRange { get; init; }
+        public string? IndexRange { get; init; }
 
         /// <summary>
         /// Sampling interval

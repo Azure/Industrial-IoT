@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Whether the module is running
         /// </summary>
-        public event EventHandler<bool> OnRunning;
+        public event EventHandler<bool>? OnRunning;
 
         /// <summary>
         /// Create hosted service for module operation
@@ -88,28 +88,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public void OnClosed(int counter, string deviceId, string moduleId, string reason)
+        public void OnClosed(int counter, string deviceId, string? moduleId, string reason)
         {
             _logger.LogInformation("{Counter}: Module {ModuleId} closed due to {Reason}.",
                 counter, moduleId ?? deviceId, reason);
         }
 
         /// <inheritdoc/>
-        public void OnConnected(int counter, string deviceId, string moduleId, string reason)
+        public void OnConnected(int counter, string deviceId, string? moduleId, string reason)
         {
             _logger.LogInformation("{Counter}: Module {ModuleId} reconnected due to {Reason}.",
                 counter, moduleId ?? deviceId, reason);
         }
 
         /// <inheritdoc/>
-        public void OnDisconnected(int counter, string deviceId, string moduleId, string reason)
+        public void OnDisconnected(int counter, string deviceId, string? moduleId, string reason)
         {
             _logger.LogInformation("{Counter}: Module {ModuleId} disconnected due to {Reason}...",
                 counter, moduleId ?? deviceId, reason);
         }
 
         /// <inheritdoc/>
-        public void OnOpened(string deviceId, string moduleId)
+        public void OnOpened(string deviceId, string? moduleId)
         {
             _logger.LogInformation("0: Module {ModuleId} opened.",
                 moduleId ?? deviceId);

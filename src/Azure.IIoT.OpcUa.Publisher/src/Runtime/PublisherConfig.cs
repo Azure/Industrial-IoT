@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
-        public override void PostConfigure(string name, PublisherOptions options)
+        public override void PostConfigure(string? name, PublisherOptions options)
         {
             if (options.PublisherId == null)
             {
@@ -251,13 +251,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="identity"></param>
-        public PublisherConfig(IConfiguration configuration,
-            IProcessIdentity identity = null)
+        public PublisherConfig(IConfiguration configuration, IProcessIdentity? identity = null)
             : base(configuration)
         {
             _identity = identity;
         }
 
-        private readonly IProcessIdentity _identity;
+        private readonly IProcessIdentity? _identity;
     }
 }

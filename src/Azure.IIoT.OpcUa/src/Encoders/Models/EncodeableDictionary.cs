@@ -69,13 +69,17 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             {
                 throw new FormatException($"Cannot decode using the decoder: {decoder.GetType()}.");
             }
-            foreach (var keyValuePair in jsonDecoder.ReadDataSet(null))
+            var dataSet = jsonDecoder.ReadDataSet(null);
+            if (dataSet != null)
             {
-                Add(new KeyDataValuePair
+                foreach (var keyValuePair in dataSet)
                 {
-                    Key = keyValuePair.Key,
-                    Value = keyValuePair.Value
-                });
+                    Add(new KeyDataValuePair
+                    {
+                        Key = keyValuePair.Key,
+                        Value = keyValuePair.Value
+                    });
+                }
             }
         }
 

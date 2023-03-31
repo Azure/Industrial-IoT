@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-#nullable enable
+
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
@@ -71,6 +71,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public TimeSpan? SessionTimeout { get; set; }
 
         /// <summary>
+        /// The time of inactivity after which the client becomes inactive
+        /// </summary>
+        public TimeSpan ClientTimeout { get; set; } = TimeSpan.FromMinutes(5);
+
+        /// <summary>
         /// The file to use for log output.
         /// </summary>
         public int NumberOfConnectRetries { get; internal set; }
@@ -93,8 +98,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Check if session is active
         /// </summary>
-        public bool IsActive => HasSubscriptions ||
-            _lastActivity + (SessionTimeout ?? TimeSpan.FromSeconds(30)) > DateTime.UtcNow;
+        public bool IsActive => HasSubscriptions || _activeThreads > 0 ||
+            _lastActivity + ClientTimeout > DateTime.UtcNow;
 
         /// <summary>
         /// Create client
@@ -135,6 +140,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
+        public override string? ToString()
+        {
+            return $"{_sessionName} ({_lastState})";
+        }
+
+        /// <inheritdoc/>
         public IDisposable GetSession(out ISession? session)
         {
             var activity = new SessionActivity<IServiceResponse>(this, _lock.ReaderLock(),
@@ -146,6 +157,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public void RegisterSubscription(ISubscription subscription)
         {
+            if (subscription.Connection == null)
+            {
+                throw new ArgumentException("Connection missing", nameof(subscription));
+            }
+            if (subscription.Name == null)
+            {
+                throw new ArgumentException("Subscription name missing", nameof(subscription));
+            }
             var id = new ConnectionIdentifier(subscription.Connection);
             try
             {
@@ -163,6 +182,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public void UnregisterSubscription(ISubscription subscription)
         {
+            if (subscription.Name == null)
+            {
+                throw new ArgumentException("Subscription name missing", nameof(subscription));
+            }
             if (_subscriptions.TryRemove(subscription.Name, out _))
             {
                 _logger.LogInformation(
@@ -276,31 +299,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async Task<T> RunAsync<T>(Func<ISessionHandle, Task<T>> service,
             CancellationToken ct)
         {
-            while (true)
+            Interlocked.Increment(ref _activeThreads);
+            try
             {
-                await _connected.WaitAsync(ct).ConfigureAwait(false);
-                if (_disposed)
+                while (true)
                 {
-                    throw new ConnectionException(
-                        $"Session {_sessionName} was closed.");
+                    await _connected.WaitAsync(ct).ConfigureAwait(false);
+                    if (_disposed)
+                    {
+                        throw new ConnectionException($"Session {_sessionName} was closed.");
+                    }
+                    if (_session?.Connected != true)
+                    {
+                        _logger.LogInformation(
+                            "Connected signaled but not connected, retry in 5 seconds...");
+                        // Delay and try again
+                        await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
+                        continue;
+                    }
+                    try
+                    {
+                        var result = await service(this).ConfigureAwait(false);
+                        _lastActivity = DateTime.UtcNow;
+                        return result;
+                    }
+                    catch (Exception ex) when (!_session.Connected)
+                    {
+                        _logger.LogInformation("Session disconnected during service call " +
+                            "with message {Message}, retrying.", ex.Message);
+                    }
+                    ct.ThrowIfCancellationRequested();
                 }
-                if (_session?.Connected != true)
-                {
-                    _logger.LogInformation(
-                        "Connected signaled but not connected, retry in 5 seconds...");
-                    // Delay and try again
-                    await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
-                    continue;
-                }
-                try
-                {
-                    return await service(this).ConfigureAwait(false);
-                }
-                catch (Exception ex) when (!_session.Connected)
-                {
-                    _logger.LogInformation("Session disconnected during service call " +
-                        "with message {Message}, retrying.", ex.Message);
-                }
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _activeThreads);
             }
         }
 
@@ -1378,6 +1411,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // override keep alive interval
             Codec = CreateCodec(session.MessageContext);
             _session = session;
+            _session.Handle = this;
             Debug.Assert(_session.OperationTimeout != 0);
             _session.KeepAliveInterval =
                 (int)(KeepAliveInterval ?? TimeSpan.FromSeconds(5)).TotalMilliseconds;
@@ -1385,7 +1419,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             // set up keep alive callback.
             _session.KeepAlive += Session_KeepAlive;
-            _session.Handle = this;
 
             // Need to work around accessibility here.
             _authenticationToken = (NodeId?)typeof(ClientBase).GetProperty(
@@ -1693,6 +1726,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Session = session;
                 _lock = readerLock;
                 _activity = Diagnostics.Activity.StartActivity(activity);
+                opcUaClient._lastActivity = DateTime.UtcNow;
 
                 if (opcUaClient._logger.IsEnabled(LogLevel.Debug))
                 {
@@ -1742,11 +1776,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private OperationLimitsModel? _limits;
         private HistoryServerCapabilitiesModel? _history;
         private Session? _session;
+        private DateTime _lastActivity = DateTime.UtcNow;
         private Task<ComplexTypeSystem?>? _complexTypeSystem;
         private EndpointConnectivityState _lastState;
         private bool _disposed;
         private NodeId _authenticationToken;
         private bool _needsConnecting;
+        private int _activeThreads;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly AsyncManualResetEvent _connected = new();
         private readonly ApplicationConfiguration _configuration;
@@ -1754,7 +1790,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly string _sessionName;
         private readonly ConnectionModel _connection;
         private readonly ILogger _logger;
-        private readonly DateTime _lastActivity = DateTime.UtcNow;
         private readonly ConcurrentDictionary<string, ISubscription> _subscriptions = new();
         private static readonly TypeTable kTypeTree = new(new NamespaceTable());
         private static readonly SystemContext kSystemContext = new();

@@ -43,6 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -95,6 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -148,6 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.AccessRestrictions);
 
             Assert.NotNull(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.True(results.References.Count == 1);
             Assert.Collection(results.References,
               reference =>
@@ -181,6 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.AccessRestrictions);
 
             Assert.NotNull(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.True(results.References.Count == 2);
             Assert.Collection(results.References,
               reference =>
@@ -224,6 +228,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -271,6 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -362,6 +368,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -454,6 +461,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -552,6 +560,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -649,6 +658,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -725,6 +735,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -804,6 +815,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -864,6 +876,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("Scalar", results.Node.DisplayName);
             Assert.Equal(NodeClass.Object, results.Node.NodeClass);
             Assert.True(results.Node.Children);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -1299,6 +1312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("Scalar", results.Node.DisplayName);
             Assert.Equal(NodeClass.Object, results.Node.NodeClass);
             Assert.True(results.Node.Children);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -1343,6 +1357,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("Scalar", results.Node.DisplayName);
             Assert.Equal(NodeClass.Object, results.Node.NodeClass);
             Assert.True(results.Node.Children);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -1374,6 +1389,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("Array", results.Node.DisplayName);
             Assert.Equal(NodeClass.Object, results.Node.NodeClass);
             Assert.True(results.Node.Children);
+            Assert.NotNull(results.References);
             Assert.True(results.References.Count == 30,
                 _serializer.SerializeToString(
                     results.References.Select(r => r.Target.DisplayName)));
@@ -1893,6 +1909,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal("Array", results.Node.DisplayName);
             Assert.Equal(NodeClass.Object, results.Node.NodeClass);
             Assert.True(results.Node.Children);
+            Assert.NotNull(results.References);
             Assert.True(results.References.Count == 30,
                 _serializer.SerializeToString(
                     results.References.Select(r => r.Target.DisplayName)));
@@ -1905,7 +1922,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Boolean", reference.Target.DataType);
                     Assert.Equal("BooleanValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -1915,7 +1932,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("SByte", reference.Target.DataType);
                     Assert.Equal("SByteValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -1927,7 +1944,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     // Assert.False(reference.Target.Value.IsNull());
                     if (!reference.Target.Value.IsNull())
                     {
-                        Assert.True(reference.Target.Value.IsString);
+                        Assert.True(reference.Target.Value!.IsString);
                     }
                 },
                 reference =>
@@ -1938,7 +1955,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Int16", reference.Target.DataType);
                     Assert.Equal("Int16Value", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -1948,7 +1965,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("UInt16", reference.Target.DataType);
                     Assert.Equal("UInt16Value", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -1958,7 +1975,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Int32", reference.Target.DataType);
                     Assert.Equal("Int32Value", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -1968,7 +1985,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("UInt32", reference.Target.DataType);
                     Assert.Equal("UInt32Value", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -1978,7 +1995,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Int64", reference.Target.DataType);
                     Assert.Equal("Int64Value", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -1988,7 +2005,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("UInt64", reference.Target.DataType);
                     Assert.Equal("UInt64Value", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -1998,7 +2015,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Float", reference.Target.DataType);
                     Assert.Equal("FloatValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2008,7 +2025,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Double", reference.Target.DataType);
                     Assert.Equal("DoubleValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2018,7 +2035,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("String", reference.Target.DataType);
                     Assert.Equal("StringValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2028,7 +2045,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("DateTime", reference.Target.DataType);
                     Assert.Equal("DateTimeValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2038,7 +2055,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Guid", reference.Target.DataType);
                     Assert.Equal("GuidValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2048,7 +2065,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("ByteString", reference.Target.DataType);
                     Assert.Equal("ByteStringValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2058,7 +2075,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("XmlElement", reference.Target.DataType);
                     Assert.Equal("XmlElementValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2068,7 +2085,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("NodeId", reference.Target.DataType);
                     Assert.Equal("NodeIdValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2078,7 +2095,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("ExpandedNodeId", reference.Target.DataType);
                     Assert.Equal("ExpandedNodeIdValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2088,7 +2105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("QualifiedName", reference.Target.DataType);
                     Assert.Equal("QualifiedNameValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2098,7 +2115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("LocalizedText", reference.Target.DataType);
                     Assert.Equal("LocalizedTextValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2108,7 +2125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("StatusCode", reference.Target.DataType);
                     Assert.Equal("StatusCodeValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2118,7 +2135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Variant", reference.Target.DataType);
                     Assert.Equal("VariantValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2128,7 +2145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Enumeration", reference.Target.DataType);
                     Assert.Equal("EnumerationValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2138,7 +2155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("ExtensionObject", reference.Target.DataType);
                     Assert.Equal("StructureValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsListOfValues);
+                    Assert.True(reference.Target.Value!.IsListOfValues);
                 },
                 reference =>
                 {
@@ -2148,7 +2165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     // Assert.Equal("Number", reference.Target.DataType);
                     Assert.Equal("NumberValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    // Assert.True(reference.Target.Value.IsArray);
+                    // Assert.True(reference.Target.Value!.IsArray);
                 },
                 reference =>
                 {
@@ -2158,7 +2175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     // Assert.Equal("Integer", reference.Target.DataType);
                     Assert.Equal("IntegerValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    // Assert.True(reference.Target.Value.IsArray);
+                    // Assert.True(reference.Target.Value!.IsArray);
                 },
                 reference =>
                 {
@@ -2168,7 +2185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     // Assert.Equal("UInteger", reference.Target.DataType);
                     Assert.Equal("UIntegerValue", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    // Assert.True(reference.Target.Value.IsArray);
+                    // Assert.True(reference.Target.Value!.IsArray);
                 },
                 reference =>
                 {
@@ -2178,7 +2195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Boolean", reference.Target.DataType);
                     Assert.Equal("SimulationActive", reference.Target.DisplayName);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Value.IsBoolean);
+                    Assert.True(reference.Target.Value!.IsBoolean);
                 },
                 reference =>
                 {
@@ -2216,6 +2233,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.Description);
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Collection(results.References,
                 reference =>
                 {
@@ -2276,6 +2294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             Assert.Null(results.ErrorInfo);
             Assert.NotNull(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Equal(5, results.References.Count);
 
             // Act
@@ -2287,6 +2306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             Assert.Null(results2.ErrorInfo);
             Assert.NotNull(results2.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Equal(5, results2.References.Count);
         }
 
@@ -2304,6 +2324,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             Assert.Null(results.ErrorInfo);
             Assert.NotNull(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Equal(200, results.References.Count);
 
             // Act
@@ -2315,6 +2336,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             Assert.Null(results2.ErrorInfo);
             Assert.NotNull(results2.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Equal(200, results2.References.Count);
         }
 
@@ -2332,6 +2354,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }).ConfigureAwait(false);
 
             Assert.NotNull(results.ContinuationToken);
+            Assert.NotNull(results.References);
             Assert.Single(results.References);
         }
 

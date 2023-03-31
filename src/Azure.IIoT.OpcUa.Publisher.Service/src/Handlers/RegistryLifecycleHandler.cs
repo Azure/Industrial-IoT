@@ -41,12 +41,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         /// <param name="discoverers"></param>
         public RegistryLifecycleHandler(IIoTHubTwinServices iothub,
             IJsonSerializer serializer, ILogger<RegistryLifecycleHandler> logger,
-            IGatewayRegistryListener gateways = null,
-            IPublisherRegistryListener publishers = null,
-            IApplicationRegistryListener applications = null,
-            IEndpointRegistryListener endpoints = null,
-            ISupervisorRegistryListener supervisors = null,
-            IDiscovererRegistryListener discoverers = null)
+            IGatewayRegistryListener? gateways = null,
+            IPublisherRegistryListener? publishers = null,
+            IApplicationRegistryListener? applications = null,
+            IEndpointRegistryListener? endpoints = null,
+            ISupervisorRegistryListener? supervisors = null,
+            IDiscovererRegistryListener? discoverers = null)
         {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -61,8 +61,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         /// <inheritdoc/>
-        public async ValueTask HandleAsync(string deviceId, string moduleId, ReadOnlyMemory<byte> payload,
-            IReadOnlyDictionary<string, string> properties, CancellationToken ct)
+        public async ValueTask HandleAsync(string deviceId, string? moduleId, ReadOnlyMemory<byte> payload,
+            IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
         {
             if (!properties.TryGetValue("opType", out var opType) ||
                 !properties.TryGetValue("operationTimestamp", out var ts))
@@ -127,23 +127,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             switch (type)
             {
                 case Constants.EntityTypeGateway:
-                    await (_gateways?.OnGatewayDeletedAsync(ctx, twin.Id)).ConfigureAwait(false);
+                    if (_gateways != null)
+                    {
+                        await _gateways.OnGatewayDeletedAsync(ctx, twin.Id).ConfigureAwait(false);
+                    }
                     break;
                 case Constants.EntityTypeEndpoint:
-                    await (_endpoints?.OnEndpointDeletedAsync(ctx, twin.Id,
-                        twin.ToEndpointRegistration(true).ToServiceModel())).ConfigureAwait(false);
+                    if (_endpoints != null)
+                    {
+                        var ev = twin.ToEndpointRegistration(true).ToServiceModel();
+                        if (ev != null)
+                        {
+                            await _endpoints.OnEndpointDeletedAsync(ctx, twin.Id, ev).ConfigureAwait(false);
+                        }
+                    }
                     break;
                 case Constants.EntityTypeApplication:
-                    await (_applications?.OnApplicationDeletedAsync(ctx, twin.Id,
-                        twin.ToApplicationRegistration().ToServiceModel())).ConfigureAwait(false);
+                    if (_applications != null)
+                    {
+                        var ev = twin.ToApplicationRegistration().ToServiceModel();
+                        if (ev != null)
+                        {
+                            await _applications.OnApplicationDeletedAsync(ctx, twin.Id, ev).ConfigureAwait(false);
+                        }
+                    }
                     break;
                 case Constants.EntityTypePublisher:
-                    await (_supervisors?.OnSupervisorDeletedAsync(ctx,
-                        HubResource.Format(null, twin.Id, twin.ModuleId))).ConfigureAwait(false);
-                    await (_publishers?.OnPublisherDeletedAsync(ctx,
-                        HubResource.Format(null, twin.Id, twin.ModuleId))).ConfigureAwait(false);
-                    await (_discoverers?.OnDiscovererDeletedAsync(ctx,
-                        HubResource.Format(null, twin.Id, twin.ModuleId))).ConfigureAwait(false);
+                    if (_supervisors != null)
+                    {
+                        await _supervisors.OnSupervisorDeletedAsync(ctx,
+                        HubResource.Format(null, twin.Id, twin.ModuleId)).ConfigureAwait(false);
+                    }
+                    if (_publishers != null)
+                    {
+                        await _publishers.OnPublisherDeletedAsync(ctx,
+                        HubResource.Format(null, twin.Id, twin.ModuleId)).ConfigureAwait(false);
+                    }
+                    if (_discoverers != null)
+                    {
+                        await _discoverers.OnDiscovererDeletedAsync(ctx,
+                        HubResource.Format(null, twin.Id, twin.ModuleId)).ConfigureAwait(false);
+                    }
                     break;
             }
         }
@@ -164,24 +188,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             switch (type)
             {
                 case Constants.EntityTypeGateway:
-                    await (_gateways?.OnGatewayNewAsync(ctx,
-                        twin.ToGatewayRegistration().ToServiceModel())).ConfigureAwait(false);
+                    if (_gateways != null)
+                    {
+                        var ev = twin.ToGatewayRegistration().ToServiceModel();
+                        if (ev != null)
+                        {
+                            await _gateways.OnGatewayNewAsync(ctx, ev).ConfigureAwait(false);
+                        }
+                    }
                     break;
                 case Constants.EntityTypeEndpoint:
-                    await (_endpoints?.OnEndpointNewAsync(ctx,
-                        twin.ToEndpointRegistration(true).ToServiceModel())).ConfigureAwait(false);
+                    if (_endpoints != null)
+                    {
+                        var ev = twin.ToEndpointRegistration(true).ToServiceModel();
+                        if (ev != null)
+                        {
+                            await _endpoints.OnEndpointNewAsync(ctx, ev).ConfigureAwait(false);
+                        }
+                    }
                     break;
                 case Constants.EntityTypeApplication:
-                    await (_applications?.OnApplicationNewAsync(ctx,
-                        twin.ToApplicationRegistration().ToServiceModel())).ConfigureAwait(false);
+                    if (_applications != null)
+                    {
+                        var ev = twin.ToApplicationRegistration().ToServiceModel();
+                        if (ev != null)
+                        {
+                            await _applications.OnApplicationNewAsync(ctx, ev).ConfigureAwait(false);
+                        }
+                    }
                     break;
                 case Constants.EntityTypePublisher:
-                    await (_supervisors?.OnSupervisorNewAsync(ctx,
-                        twin.ToPublisherRegistration(true).ToSupervisorModel())).ConfigureAwait(false);
-                    await (_publishers?.OnPublisherNewAsync(ctx,
-                        twin.ToPublisherRegistration(true).ToPublisherModel())).ConfigureAwait(false);
-                    await (_discoverers?.OnDiscovererNewAsync(ctx,
-                        twin.ToPublisherRegistration().ToDiscovererModel())).ConfigureAwait(false);
+                    if (_supervisors != null)
+                    {
+                        var ev = twin.ToPublisherRegistration().ToSupervisorModel();
+                        if (ev != null)
+                        {
+                            await _supervisors.OnSupervisorNewAsync(ctx, ev).ConfigureAwait(false);
+                        }
+                    }
+                    if (_publishers != null)
+                    {
+                        var ev = twin.ToPublisherRegistration().ToPublisherModel();
+                        if (ev != null)
+                        {
+                            await _publishers.OnPublisherNewAsync(ctx, ev).ConfigureAwait(false);
+                        }
+                    }
+                    if (_discoverers != null)
+                    {
+                        var ev = twin.ToPublisherRegistration().ToDiscovererModel();
+                        if (ev != null)
+                        {
+                            await _discoverers.OnDiscovererNewAsync(ctx, ev).ConfigureAwait(false);
+                        }
+                    }
                     break;
             }
         }
@@ -189,11 +249,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly IIoTHubTwinServices _iothub;
-        private readonly IGatewayRegistryListener _gateways;
-        private readonly IPublisherRegistryListener _publishers;
-        private readonly IApplicationRegistryListener _applications;
-        private readonly IEndpointRegistryListener _endpoints;
-        private readonly ISupervisorRegistryListener _supervisors;
-        private readonly IDiscovererRegistryListener _discoverers;
+        private readonly IGatewayRegistryListener? _gateways;
+        private readonly IPublisherRegistryListener? _publishers;
+        private readonly IApplicationRegistryListener? _applications;
+        private readonly IEndpointRegistryListener? _endpoints;
+        private readonly ISupervisorRegistryListener? _supervisors;
+        private readonly IDiscovererRegistryListener? _discoverers;
     }
 }

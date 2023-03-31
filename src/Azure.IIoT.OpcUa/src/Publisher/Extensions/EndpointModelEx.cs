@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -19,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this EndpointModel model, EndpointModel that)
+        public static bool IsSameAs(this EndpointModel? model, EndpointModel? that)
         {
             if (model == that)
             {
@@ -46,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool HasSameSecurityProperties(this EndpointModel model, EndpointModel that)
+        public static bool HasSameSecurityProperties(this EndpointModel? model, EndpointModel? that)
         {
             if (model == that)
             {
@@ -86,7 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             hashCode = (hashCode * -1521134295) +
                 endpoint.Certificate.SequenceGetHashSafe();
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(endpoint.SecurityPolicy);
+                EqualityComparer<string>.Default.GetHashCode(
+                    endpoint.SecurityPolicy ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<SecurityMode?>.Default.GetHashCode(
                     endpoint.SecurityMode ?? SecurityMode.Best);
@@ -99,18 +101,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static IEnumerable<string> GetAllUrls(this EndpointModel model)
+        public static IEnumerable<string> GetAllUrls(this EndpointModel? model)
         {
-            if (model == null)
+            if (model != null)
             {
-                return null;
+                if (model.Url != null)
+                {
+                    yield return model.Url;
+                }
+                if (model.AlternativeUrls != null)
+                {
+                    foreach (var url in model.AlternativeUrls)
+                    {
+                        yield return url;
+                    }
+                }
             }
-            var all = model.Url.YieldReturn();
-            if (model.AlternativeUrls != null)
-            {
-                all = all.Concat(model.AlternativeUrls);
-            }
-            return all;
         }
 
         /// <summary>
@@ -119,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="endpoint"></param>
         public static void UnionWith(this EndpointModel model,
-            EndpointModel endpoint)
+            EndpointModel? endpoint)
         {
             if (endpoint == null)
             {
@@ -127,16 +133,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
 
             var alternativeUrls = model.AlternativeUrls.MergeWith(
-                    endpoint.AlternativeUrls).ToHashSet();
-            if (model.Url == null)
+                endpoint.AlternativeUrls)?.ToHashSet() ?? new HashSet<string>();
+            if (model.Url != null)
             {
-                model.Url = endpoint.Url;
+                if (endpoint.Url != null)
+                {
+                    alternativeUrls.Add(endpoint.Url);
+                }
+                alternativeUrls.Remove(model.Url);
             }
             else
             {
-                alternativeUrls.Add(endpoint.Url);
+                model.Url = endpoint.Url;
             }
-            alternativeUrls.Remove(model.Url);
             model.AlternativeUrls = alternativeUrls;
         }
 
@@ -145,7 +154,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static EndpointModel Clone(this EndpointModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static EndpointModel? Clone(this EndpointModel? model)
         {
             if (model == null)
             {

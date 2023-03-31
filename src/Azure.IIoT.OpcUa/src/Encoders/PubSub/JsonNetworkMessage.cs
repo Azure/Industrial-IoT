@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.IO.Compression;
     using System.Linq;
     using System.Text;
@@ -93,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Sets the message schema to use
         /// </summary>
-        internal string MessageSchemaToUse
+        internal string? MessageSchemaToUse
         {
             get
             {
@@ -155,11 +156,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         public JsonNetworkMessage()
         {
-            MessageId = () => _messageId;
+            MessageId = () => _messageId ?? string.Empty;
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
             {
@@ -193,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
-            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver resolver = null)
+            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver? resolver = null)
         {
             // Decodes a single buffer
             if (reader.TryPeek(out var buffer))
@@ -204,9 +205,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
                     try
                     {
-                        using var decoder = new JsonDecoderEx(UseGzipCompression ?
-                            compression : memoryStream, context, useJsonLoader: false);
-                        if (!decoder.ReadArray(null, () => TryReadNetworkMessage(decoder)).All(s => s))
+                        using var decoder = new JsonDecoderEx((Stream?)compression ?? memoryStream,
+                            context, useJsonLoader: false);
+                        var readArray = decoder.ReadArray(null, () => TryReadNetworkMessage(decoder));
+                        if (readArray?.All(s => s) != true)
                         {
                             return false;
                         }
@@ -225,7 +227,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(IServiceMessageContext context,
-            int maxChunkSize, IDataSetMetaDataResolver resolver = null)
+            int maxChunkSize, IDataSetMetaDataResolver? resolver = null)
         {
             var chunks = new List<ReadOnlyMemory<byte>>();
             var messages = Messages.OfType<JsonDataSetMessage>().ToArray().AsSpan();
@@ -260,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     try
                     {
                         using var encoder = new JsonEncoderEx(
-                            UseGzipCompression ? compression : memoryStream, context, JsonEncoderStartingState)
+                            (Stream?)compression ?? memoryStream, context, JsonEncoderStartingState)
                         {
                             UseAdvancedEncoding = UseAdvancedEncoding,
                             UseUriEncoding = UseAdvancedEncoding,
@@ -368,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             NetworkMessageContentMask = 0;
             DataSetWriterGroup = null;
             DataSetClassId = default;
-            MessageId = null;
+            MessageId = () => Guid.NewGuid().ToString();
             PublisherId = null;
 
             if (decoder.IsObject(null))
@@ -384,11 +386,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
             return TryReadDataSetMessages(decoder, null);
 
-            bool TryReadDataSetMessages(JsonDecoderEx decoder, string property)
+            bool TryReadDataSetMessages(JsonDecoderEx decoder, string? property)
             {
                 var hasDataSetMessageHeader = false;
-                string publisherId = null;
-                var messages = decoder.ReadArray<BaseDataSetMessage>(property, () =>
+                string? publisherId = null;
+                var messages = decoder.ReadArray<BaseDataSetMessage?>(property, () =>
                 {
                     var message = !HasSamplesPayload ? new JsonDataSetMessage() : new MonitoredItemMessage();
                     if (!message.TryDecode(decoder, property, ref hasDataSetMessageHeader, ref publisherId))
@@ -397,6 +399,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     }
                     return message;
                 });
+                if (messages == null)
+                {
+                    return false;
+                }
                 // Add decoded messages to messages array
                 foreach (var message in messages)
                 {
@@ -510,7 +516,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 return false;
             }
             var messageType = decoder.ReadString(nameof(MessageType));
-            if (!messageType.Equals(MessageTypeUaData, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(messageType, MessageTypeUaData, StringComparison.OrdinalIgnoreCase))
             {
                 // Not a dataset network message
                 return false;
@@ -586,6 +592,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         private bool? _hasSamplesPayload;
         /// <summary> To update message id </summary>
-        protected string _messageId;
+        protected string? _messageId;
     }
 }

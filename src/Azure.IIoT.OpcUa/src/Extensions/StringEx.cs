@@ -32,10 +32,6 @@ namespace System
             Justification = "SHA1 not used for crypto operation.")]
         public static string ToSha1Hash(this byte[] bytestr)
         {
-            if (bytestr == null)
-            {
-                return null;
-            }
             var hash = SHA1.HashData(bytestr);
             return hash.ToBase16String(false);
         }

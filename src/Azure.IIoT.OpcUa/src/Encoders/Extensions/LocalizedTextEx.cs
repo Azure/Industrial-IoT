@@ -19,7 +19,7 @@ namespace Opc.Ua.Extensions
         {
             if (value == null || value.Text == null)
             {
-                return null;
+                return string.Empty;
             }
             var full = value.Text;
             if (!string.IsNullOrEmpty(value.Locale))
@@ -36,10 +36,6 @@ namespace Opc.Ua.Extensions
         /// <returns></returns>
         public static LocalizedText ToLocalizedText(this string str)
         {
-            if (str == null)
-            {
-                return null;
-            }
             if (string.IsNullOrEmpty(str))
             {
                 return new LocalizedText(string.Empty);

@@ -13,9 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.ComponentModel.DataAnnotations;
+    using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Globalization;
 
     /// <summary>
     /// CRUD and Query application resources
@@ -251,7 +251,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [HttpGet("sites")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<ApplicationSiteListModel> GetListOfSitesAsync(
-            [FromQuery] string continuationToken,
+            [FromQuery] string? continuationToken,
             [FromQuery] int? pageSize)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
@@ -262,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _applications.ListSitesAsync(
@@ -289,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<ApplicationInfoListModel> GetListOfApplicationsAsync(
-            [FromQuery] string continuationToken,
+            [FromQuery] string? continuationToken,
             [FromQuery] int? pageSize)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
@@ -300,7 +300,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _applications.ListApplicationsAsync(
@@ -335,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _applications.QueryApplicationsAsync(
@@ -369,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             if (Request.Headers.ContainsKey(HttpHeader.MaxItemCount))
             {
                 pageSize = int.Parse(
-                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault(),
+                    Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _applications.QueryApplicationsAsync(

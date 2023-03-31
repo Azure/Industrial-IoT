@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Publisher collector collects metrics from for writer groups
@@ -16,23 +17,26 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Remove writer group from collector
         /// </summary>
-        /// <param name="writerGroupId"></param>
+        /// <param name="writerGroupId">String with the id of the
+        /// writer group or null for the default writer group</param>
         /// <returns></returns>
         bool RemoveWriterGroup(string writerGroupId);
 
         /// <summary>
         /// Reset collector diagnostic info
         /// </summary>
-        /// <param name="writerGroupId"></param>
+        /// <param name="writerGroupId">String with the id of the
+        /// writer group or null for the default writer group</param>
         void ResetWriterGroup(string writerGroupId);
 
         /// <summary>
-        /// Try get copy of diagnostics from collector
+        /// Try get copy of diagnostics from collector.
         /// </summary>
-        /// <param name="writerGroupId"></param>
+        /// <param name="writerGroupId">String with the id of the
+        /// writer group or null for the default writer group</param>
         /// <param name="diagnostic"></param>
         /// <returns></returns>
         bool TryGetDiagnosticsForWriterGroup(string writerGroupId,
-            out WriterGroupDiagnosticModel diagnostic);
+            [NotNullWhen(true)] out WriterGroupDiagnosticModel? diagnostic);
     }
 }

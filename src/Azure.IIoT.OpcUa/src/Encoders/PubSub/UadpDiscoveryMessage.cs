@@ -29,12 +29,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Data set metadata in case this is a metadata message
         /// </summary>
-        public DataSetMetaDataType MetaData { get; set; }
+        public DataSetMetaDataType? MetaData { get; set; }
 
         /// <summary>
         /// If discovery request
         /// </summary>
-        internal ushort[] DataSetWriterIds { get; set; }
+        internal ushort[]? DataSetWriterIds { get; set; }
 
         /// <summary>
         /// Discovery type
@@ -86,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(IServiceMessageContext context,
-            int maxChunkSize, IDataSetMetaDataResolver resolver)
+            int maxChunkSize, IDataSetMetaDataResolver? resolver)
         {
             var messages = new List<ReadOnlyMemory<byte>>();
             var isChunkMessage = false;
@@ -192,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         protected override Message[] EncodePayloadChunks(IServiceMessageContext context,
-            IDataSetMetaDataResolver resolver)
+            IDataSetMetaDataResolver? resolver)
         {
             using (var stream = Memory.GetStream())
             {
@@ -240,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         protected override void DecodePayloadChunks(IServiceMessageContext context,
-            IReadOnlyList<byte[]> buffers, IDataSetMetaDataResolver resolver)
+            IReadOnlyList<byte[]> buffers, IDataSetMetaDataResolver? resolver)
         {
             if (buffers.Count == 0)
             {
@@ -285,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
             {

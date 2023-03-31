@@ -20,35 +20,35 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Node Id in string format as configured
         /// </summary>
-        public string NodeId { get; set; }
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// Endpoint url
         /// </summary>
-        public string EndpointUrl { get; set; }
+        public string? EndpointUrl { get; set; }
 
         /// <summary>
         /// Application uri
         /// </summary>
-        public string ApplicationUri { get; set; }
+        public string? ApplicationUri { get; set; }
 
         /// <summary>
         /// Display name
         /// </summary>
-        public string DisplayName => Payload.Keys.SingleOrDefault();
+        public string? DisplayName => Payload.Keys.SingleOrDefault();
 
         /// <summary>
         /// Data value for variable change notification
         /// </summary>
-        public DataValue Value => Payload.Values.SingleOrDefault();
+        public DataValue? Value => Payload.Values.SingleOrDefault();
 
         /// <summary>
         /// Extension fields
         /// </summary>
-        public IEnumerable<KeyValuePair<string, string>> ExtensionFields { get; set; }
+        public IEnumerable<KeyValuePair<string, string?>>? ExtensionFields { get; set; }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
             {
@@ -90,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal override void Encode(JsonEncoderEx encoder, string publisherId, bool withHeader, string property)
+        internal override void Encode(JsonEncoderEx encoder, string? publisherId, bool withHeader, string? property)
         {
             //
             // If not writing with samples header or writing to a property we fail. This is a
@@ -125,31 +125,32 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0 && Value != null)
             {
                 var status = Status ?? Payload.Values
-                    .FirstOrDefault(s => StatusCode.IsNotGood(s.StatusCode))?.StatusCode ?? StatusCodes.Good;
+                    .FirstOrDefault(s => StatusCode.IsNotGood(s?.StatusCode ?? StatusCodes.BadNoData))?
+                        .StatusCode ?? StatusCodes.Good;
                 encoder.WriteString(nameof(Status), StatusCode.LookupSymbolicId(status.Code));
             }
 
-            var value = new DataValue(Value.WrappedValue);
+            var value = new DataValue(Value?.WrappedValue ?? Variant.Null);
             if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0 ||
                 (Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.StatusCode) != 0)
             {
-                value.StatusCode = Value.StatusCode;
+                value.StatusCode = Value?.StatusCode ?? StatusCodes.BadNoData;
             }
 
             if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0)
             {
-                value.SourceTimestamp = Value.SourceTimestamp;
+                value.SourceTimestamp = Value?.SourceTimestamp ?? DateTime.MinValue;
                 if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourcePicoSeconds) != 0)
                 {
-                    value.SourcePicoseconds = Value.SourcePicoseconds;
+                    value.SourcePicoseconds = Value?.SourcePicoseconds ?? 0;
                 }
             }
             if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.ServerTimestamp) != 0)
             {
-                value.ServerTimestamp = Value.ServerTimestamp;
+                value.ServerTimestamp = Value?.ServerTimestamp ?? DateTime.MinValue;
                 if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.ServerPicoSeconds) != 0)
                 {
-                    value.ServerPicoseconds = Value.ServerPicoseconds;
+                    value.ServerPicoseconds = Value?.ServerPicoseconds ?? 0;
                 }
             }
 
@@ -179,12 +180,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.ExtensionFields) != 0)
             {
-                var extensionFields = new KeyValuePair<string, string>(nameof(DataSetWriterId), DataSetWriterName)
+                var extensionFields = new KeyValuePair<string, string?>(nameof(DataSetWriterId), DataSetWriterName)
                     .YieldReturn();
                 if (publisherId != null)
                 {
                     extensionFields = extensionFields
-                        .Append(new KeyValuePair<string, string>(nameof(JsonNetworkMessage.PublisherId), publisherId));
+                        .Append(new KeyValuePair<string, string?>(nameof(JsonNetworkMessage.PublisherId), publisherId));
                 }
                 if (ExtensionFields != null)
                 {
@@ -197,8 +198,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal override bool TryDecode(JsonDecoderEx decoder, string property, ref bool withHeader,
-            ref string publisherId)
+        internal override bool TryDecode(JsonDecoderEx decoder, string? property, ref bool withHeader,
+            ref string? publisherId)
         {
             // If reading from property return false as this means we are a standard dataset message
             if (property != null)

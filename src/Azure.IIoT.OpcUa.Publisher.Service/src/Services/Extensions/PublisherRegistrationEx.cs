@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="existing"></param>
         /// <param name="update"></param>
         /// <param name="serializer"></param>
-        public static DeviceTwinModel Patch(this PublisherRegistration existing,
+        public static DeviceTwinModel Patch(this PublisherRegistration? existing,
             PublisherRegistration update, IJsonSerializer serializer)
         {
             var tags = new Dictionary<string, VariantValue>();
@@ -72,9 +72,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
 
             return new DeviceTwinModel
             {
-                Id = update?.DeviceId ?? existing?.DeviceId,
+                Id = update?.DeviceId ?? existing?.DeviceId ?? string.Empty,
                 ModuleId = update?.ModuleId ?? existing?.ModuleId,
-                Etag = existing?.Etag,
+                Etag = existing?.Etag ?? string.Empty,
                 Tags = tags,
                 Desired = desired
             };
@@ -86,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="twin"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
-        public static PublisherRegistration ToPublisherRegistration(this DeviceTwinModel twin,
+        public static PublisherRegistration? ToPublisherRegistration(this DeviceTwinModel twin,
             IReadOnlyDictionary<string, VariantValue> properties)
         {
             if (twin == null)
@@ -115,13 +115,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 // Properties
 
                 ApiKey =
-                    properties.GetValueOrDefault(Constants.TwinPropertyApiKeyKey, (string)null),
+                    properties.GetValueOrDefault(Constants.TwinPropertyApiKeyKey, (string?)null),
                 SiteId =
-                    properties.GetValueOrDefault(Constants.TwinPropertySiteKey, (string)null),
+                    properties.GetValueOrDefault(Constants.TwinPropertySiteKey, (string?)null),
                 Version =
-                    properties.GetValueOrDefault(Constants.TwinPropertyVersionKey, (string)null),
+                    properties.GetValueOrDefault(Constants.TwinPropertyVersionKey, (string?)null),
                 Type =
-                    properties.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string)null)
+                    properties.GetValueOrDefault(Constants.TwinPropertyTypeKey, (string?)null)
             };
         }
 
@@ -131,10 +131,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="twin"></param>
         /// <param name="onlyServerState"></param>
         /// <returns></returns>
-        public static PublisherRegistration ToPublisherRegistration(this DeviceTwinModel twin,
+        public static PublisherRegistration? ToPublisherRegistration(this DeviceTwinModel twin,
             bool onlyServerState = false)
         {
-            return ToPublisherRegistration(twin, onlyServerState, out var tmp);
+            return ToPublisherRegistration(twin, onlyServerState, out _);
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// this means that you will look at stale information.</param>
         /// <param name="connected"></param>
         /// <returns></returns>
-        public static PublisherRegistration ToPublisherRegistration(this DeviceTwinModel twin,
+        public static PublisherRegistration? ToPublisherRegistration(this DeviceTwinModel twin,
             bool onlyServerState, out bool connected)
         {
             if (twin == null)
@@ -164,10 +164,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             var desired = (twin.Desired == null) ? null :
                 ToPublisherRegistration(twin, twin.Desired);
 
-            connected = consolidated.Connected;
-            if (desired != null)
+            connected = consolidated?.Connected ?? false;
+            if (desired is not null && consolidated is not null)
             {
-                desired.Connected = connected;
+                desired.Connected = consolidated.Connected;
                 if (desired.SiteId == null && consolidated.SiteId != null)
                 {
                     // Not set by user, but by config, so fake user desiring it.
@@ -181,12 +181,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 desired.Version = consolidated.Version;
             }
 
-            if (!onlyServerState)
+            if (!onlyServerState && consolidated is not null)
             {
                 consolidated._isInSync = consolidated.IsInSyncWith(desired);
                 return consolidated;
             }
-            if (desired != null)
+            if (desired is not null)
             {
                 desired._isInSync = desired.IsInSyncWith(consolidated);
             }
@@ -204,9 +204,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         public static PublisherRegistration ToPublisherRegistration(
             this PublisherModel model, bool? disabled = null)
         {
-            if (model == null)
+            if (model.Id == null)
             {
-                throw new ArgumentNullException(nameof(model));
+                throw new ArgumentException("Id missing", nameof(model));
             }
             if (!HubResource.Parse(model.Id, out _, out var deviceId,
                 out var moduleId, out var error))
@@ -236,9 +236,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         public static PublisherRegistration ToPublisherRegistration(
             this SupervisorModel model, bool? disabled = null)
         {
-            if (model == null)
+            if (model.Id == null)
             {
-                throw new ArgumentNullException(nameof(model));
+                throw new ArgumentException("Id missing", nameof(model));
             }
             if (!HubResource.Parse(model.Id, out _, out var deviceId,
                 out var moduleId, out var error))
@@ -268,9 +268,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         public static PublisherRegistration ToPublisherRegistration(
             this DiscovererModel model, bool? disabled = null)
         {
-            if (model == null)
+            if (model.Id == null)
             {
-                throw new ArgumentNullException(nameof(model));
+                throw new ArgumentException("Id missing", nameof(model));
             }
             if (!HubResource.Parse(model.Id, out _, out var deviceId,
                 out var moduleId, out var error))
@@ -295,10 +295,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="registration"></param>
         /// <param name="removeApiKey"></param>
         /// <returns></returns>
-        public static PublisherModel ToPublisherModel(this PublisherRegistration registration,
+        public static PublisherModel? ToPublisherModel(this PublisherRegistration? registration,
             bool removeApiKey = false)
         {
-            if (registration == null)
+            if (registration is null || registration.DeviceId == null)
             {
                 return null;
             }
@@ -318,9 +318,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
-        public static SupervisorModel ToSupervisorModel(this PublisherRegistration registration)
+        public static SupervisorModel? ToSupervisorModel(this PublisherRegistration? registration)
         {
-            if (registration == null)
+            if (registration is null || registration.DeviceId == null)
             {
                 return null;
             }
@@ -340,9 +340,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
-        public static DiscovererModel ToDiscovererModel(this PublisherRegistration registration)
+        public static DiscovererModel? ToDiscovererModel(this PublisherRegistration? registration)
         {
-            if (registration == null)
+            if (registration is null || registration.DeviceId == null)
             {
                 return null;
             }
@@ -366,15 +366,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="registration"></param>
         /// <param name="other"></param>
-        internal static bool IsInSyncWith(this PublisherRegistration registration,
-            PublisherRegistration other)
+        internal static bool IsInSyncWith(this PublisherRegistration? registration,
+            PublisherRegistration? other)
         {
-            if (registration == null)
+            if (registration is null)
             {
-                return other == null;
+                return other is null;
             }
             return
-                other != null &&
+                other is not null &&
                 registration.SiteId == other.SiteId &&
                 registration.ApiKey == other.ApiKey;
         }

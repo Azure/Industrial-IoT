@@ -59,16 +59,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 WriterGroupModel writerGroup, IJsonSerializer serializer)
             {
                 _outer = outer;
-                _writerGroup = writerGroup?.WriterGroupId ?? Constants.DefaultWriterGroupId;
+                _writerGroup = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
 
                 TagList = new TagList(new[] {
-                    new KeyValuePair<string, object>(Constants.PublisherIdTag,
+                    new KeyValuePair<string, object?>(Constants.PublisherIdTag,
                         _outer._options?.Value.PublisherId ?? Constants.DefaultPublisherId),
-                    new KeyValuePair<string, object>(Constants.SiteIdTag,
+                    new KeyValuePair<string, object?>(Constants.SiteIdTag,
                         _outer._options?.Value.Site ?? Constants.DefaultSite),
-                    new KeyValuePair<string, object>(Constants.WriterGroupIdTag,
+                    new KeyValuePair<string, object?>(Constants.WriterGroupIdTag,
                         _writerGroup),
-                    new KeyValuePair<string, object>(Constants.TimeStampTag,
+                    new KeyValuePair<string, object?>(Constants.TimeStampTag,
                         DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                         CultureInfo.InvariantCulture))
                 });
@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private readonly ILifetimeScope _lifetimeScope;
-        private readonly IDiagnosticCollector _collector;
-        private readonly IOptions<PublisherOptions> _options;
+        private readonly IDiagnosticCollector? _collector;
+        private readonly IOptions<PublisherOptions>? _options;
     }
 }

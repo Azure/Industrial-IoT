@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="type"></param>
         /// <returns></returns>
         public static Variant Decode(this IVariantEncoder encoder, VariantValue value,
-            string type)
+            string? type)
         {
             return encoder.Decode(value, string.IsNullOrEmpty(type) ? BuiltInType.Null :
                 TypeInfo.GetBuiltInType(type.ToNodeId(encoder.Context)));

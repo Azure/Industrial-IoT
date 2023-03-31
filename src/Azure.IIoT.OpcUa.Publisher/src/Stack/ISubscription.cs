@@ -19,27 +19,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Subscription data change events
         /// </summary>
-        event EventHandler<SubscriptionNotificationModel> OnSubscriptionDataChange;
+        event EventHandler<SubscriptionNotificationModel>? OnSubscriptionDataChange;
 
         /// <summary>
         /// Subscription event change events
         /// </summary>
-        event EventHandler<SubscriptionNotificationModel> OnSubscriptionEventChange;
+        event EventHandler<SubscriptionNotificationModel>? OnSubscriptionEventChange;
 
         /// <summary>
         /// Subscription data change diagnostics events
         /// </summary>
-        event EventHandler<int> OnSubscriptionDataDiagnosticsChange;
+        event EventHandler<int>? OnSubscriptionDataDiagnosticsChange;
 
         /// <summary>
         /// Subscription event change diagnostics events
         /// </summary>
-        event EventHandler<int> OnSubscriptionEventDiagnosticsChange;
+        event EventHandler<int>? OnSubscriptionEventDiagnosticsChange;
 
         /// <summary>
         /// Identifier of the subscription
         /// </summary>
-        string Name { get; }
+        string? Name { get; }
 
         /// <summary>
         /// Assigned index
@@ -49,13 +49,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Connection
         /// </summary>
-        ConnectionModel Connection { get; }
+        ConnectionModel? Connection { get; }
 
         /// <summary>
         /// Create a keep alive notification
         /// </summary>
         /// <returns></returns>
-        SubscriptionNotificationModel CreateKeepAlive();
+        SubscriptionNotificationModel? CreateKeepAlive();
 
         /// <summary>
         /// Adds a snapshot of all values to the notification

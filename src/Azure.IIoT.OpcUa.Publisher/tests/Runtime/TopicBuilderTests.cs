@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
             options.Value.MethodTopicTemplate = null;
-            new TopicBuilder(options).MethodTopic.Should().BeNull();
+            new TopicBuilder(options).MethodTopic.Should().BeEmpty();
         }
 
         [Fact]
@@ -161,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             {
                 ["DataSetWriterName"] = "Foo",
                 ["DataSetWriterGroup"] = "Bar"
-            }).DataSetMetaDataTopic.Should().BeNull();
+            }).DataSetMetaDataTopic.Should().BeEmpty();
         }
 
         [Fact]

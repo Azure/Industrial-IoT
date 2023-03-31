@@ -48,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public ConnectionModel Connection { get; }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is string s)
             {
@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <inheritdoc/>
         public override string ToString()
         {
-            return Connection.CreateConnectionId();
+            return Connection.CreateConnectionId() ?? "Bad connection";
         }
 
         private readonly int _hash;

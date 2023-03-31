@@ -157,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The browse response</returns>
         [HttpGet("browse/{endpointId}")]
         public async Task<BrowseFirstResponseModel> GetSetOfUniqueNodesAsync(
-            string endpointId, [FromQuery] string nodeId, CancellationToken ct)
+            string endpointId, [FromQuery] string? nodeId, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(nodeId))
             {
@@ -191,7 +191,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [HttpGet("browse/{endpointId}/next")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<BrowseNextResponseModel> GetNextSetOfUniqueNodesAsync(
-            string endpointId, [FromQuery][Required] string continuationToken, CancellationToken ct)
+            string endpointId, [FromQuery][Required] string? continuationToken,
+            CancellationToken ct)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
             {

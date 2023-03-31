@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Diagnostics.CodeAnalysis;
+
     /// <summary>
     /// Discovery request model extensions
     /// </summary>
@@ -15,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DiscoveryRequestModel Clone(this DiscoveryRequestModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static DiscoveryRequestModel? Clone(this DiscoveryRequestModel? model)
         {
             if (model == null)
             {

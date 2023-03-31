@@ -54,8 +54,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="metrics"></param>
         public NetworkDiscovery(IEndpointDiscovery client, IEventClient events,
             IJsonSerializer serializer, IOptions<PublisherOptions> options,
-            ILoggerFactory loggerFactory, IDiscoveryProgress progress = null,
-            IMetricsContext metrics = null)
+            ILoggerFactory loggerFactory, IDiscoveryProgress? progress = null,
+            IMetricsContext? metrics = null)
         {
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
@@ -80,6 +80,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <inheritdoc/>
         public Task RegisterAsync(ServerRegistrationRequestModel request, CancellationToken ct)
         {
+            if (request.DiscoveryUrl == null)
+            {
+                throw new ArgumentException("Missing discovery url", nameof(request));
+            }
             return DiscoverAsync(new DiscoveryRequestModel
             {
                 Id = request.Id,
@@ -256,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                         {
                             // Re-schedule another scan when idle time expired
                             _timer.Change(
-                                request.Request.Configuration.IdleTimeBetweenScans ??
+                                request.Request.Configuration?.IdleTimeBetweenScans ??
                                     TimeSpan.FromHours(1),
                                 Timeout.InfiniteTimeSpan);
                         }
@@ -281,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             _logger.LogDebug("Processing discovery request...");
             _progress.OnDiscoveryStarted(request.Request);
-            object diagnostics = null;
+            object? diagnostics = null;
 
             //
             // Discover servers
@@ -450,7 +454,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <returns></returns>
         private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
             DiscoveryRequest request, Dictionary<IPEndPoint, Uri> discoveryUrls,
-            List<string> locales)
+            IReadOnlyList<string>? locales)
         {
             kDiscoverServersAsync.Add(1, _metrics.TagList);
             var discovered = new List<ApplicationRegistrationModel>();
@@ -475,7 +479,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 foreach (var ep in eps)
                 {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
-                        _options?.Value.Site, _events.Identity, _serializer));
+                        _options.Value.Site, _events.Identity, _serializer));
                     endpoints++;
                 }
                 _progress.OnFindEndpointsFinished(request.Request, 1, count, discoveryUrls.Count,
@@ -517,13 +521,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        private Task<List<Tuple<IPEndPoint, Uri>>> GetHostEntryAsync(
+        private async Task<List<Tuple<IPEndPoint, Uri>>> GetHostEntryAsync(
             Uri discoveryUrl)
         {
-            return Try.Async(async () =>
+            var list = new List<Tuple<IPEndPoint, Uri>>();
+            try
             {
                 var host = discoveryUrl.DnsSafeHost;
-                var list = new List<Tuple<IPEndPoint, Uri>>();
 
                 // check first if host is an IP Address since the Dns.GetHostEntryAsync
                 // throws a socket exception when called with an IP address
@@ -589,8 +593,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                         return list;
                     }
                 }
-                return list;
-            });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to get host entry.");
+            }
+            return list;
         }
 
         /// <summary>
@@ -650,11 +658,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <returns></returns>
         private async Task SendDiscoveryResultsAsync(DiscoveryRequest request,
             List<ApplicationRegistrationModel> discovered, DateTime timestamp,
-            object diagnostics, CancellationToken ct)
+            object? diagnostics, CancellationToken ct)
         {
             _logger.LogInformation("Uploading {Count} results...", discovered.Count);
             var buffers = discovered
-                .SelectMany(server => server.Endpoints
+                .SelectMany(server => (server.Endpoints ?? Array.Empty<EndpointRegistrationModel>())
                     .Select(registration => new DiscoveryEventModel
                     {
                         Application = server.Application,

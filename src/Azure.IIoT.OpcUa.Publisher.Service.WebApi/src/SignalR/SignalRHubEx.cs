@@ -23,12 +23,12 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="endpoints"></param>
         /// <param name="assembly"></param>
         /// <returns></returns>
-        public static void MapHubs(this IEndpointRouteBuilder endpoints, Assembly assembly = null)
+        public static void MapHubs(this IEndpointRouteBuilder endpoints, Assembly? assembly = null)
         {
             foreach (var hub in (assembly ?? Assembly.GetCallingAssembly()).GetExportedTypes()
                 .Where(t => typeof(Hub).IsAssignableFrom(t)))
             {
-                var result = typeof(SignalRHubEx).GetMethod(nameof(MapHub)).MakeGenericMethod(hub)
+                var result = typeof(SignalRHubEx).GetMethod(nameof(MapHub))!.MakeGenericMethod(hub)
                     .Invoke(null, new object[] { endpoints });
             }
         }

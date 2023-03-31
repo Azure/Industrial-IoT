@@ -57,17 +57,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             private const string kAuth_DomainKey = "AzureAd:Domain";
 
             /// <inheritdoc/>
-            public override void Configure(string name, MicrosoftIdentityOptions options)
+            public override void Configure(string? name, MicrosoftIdentityOptions options)
             {
                 if (options.ClientId == null)
                 {
                     options.ClientId = GetStringOrDefault(kAuth_ClientIdKey,
-                        GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_APPID));
+                        GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_APPID, string.Empty));
                 }
                 if (options.ClientSecret == null)
                 {
                     options.ClientSecret = GetStringOrDefault(kAuth_ClientSecretKey,
-                        GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_SECRET));
+                        GetStringOrDefault(EnvVars.PCS_AAD_SERVICE_SECRET, string.Empty));
                 }
                 if (options.Domain == null)
                 {
@@ -89,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 if (options.TenantId == null)
                 {
                     options.TenantId = GetStringOrDefault(kAuth_TenantIdKey,
-                        GetStringOrDefault(EnvVars.PCS_AUTH_TENANT))?.Trim();
+                        GetStringOrDefault(EnvVars.PCS_AUTH_TENANT, string.Empty));
                 }
             }
 

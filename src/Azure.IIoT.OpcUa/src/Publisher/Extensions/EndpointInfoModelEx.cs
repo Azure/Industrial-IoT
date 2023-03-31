@@ -22,8 +22,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="mode"></param>
         /// <param name="securityPolicy"></param>
         /// <returns></returns>
-        public static string CreateEndpointId(string applicationId, string url,
-            SecurityMode? mode, string securityPolicy)
+        public static string? CreateEndpointId(string? applicationId, string? url,
+            SecurityMode? mode, string? securityPolicy)
         {
             if (applicationId == null || url == null)
             {
@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="endpointId"></param>
         /// <returns></returns>
-        public static bool IsEndpointId(string endpointId)
+        public static bool IsEndpointId(string? endpointId)
         {
             if (string.IsNullOrWhiteSpace(endpointId))
             {

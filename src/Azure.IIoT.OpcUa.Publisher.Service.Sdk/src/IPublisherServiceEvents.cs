@@ -21,6 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="callback"></param>
         /// <returns></returns>
         Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(
-            string endpointId, Func<MonitoredItemMessageModel, Task> callback);
+            string endpointId, Func<MonitoredItemMessageModel?, Task> callback);
     }
 }

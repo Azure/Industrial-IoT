@@ -16,8 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this AggregateConfigurationModel model,
-            AggregateConfigurationModel other)
+        public static bool IsSameAs(this AggregateConfigurationModel? model,
+            AggregateConfigurationModel? other)
         {
             if (model == null && other == null)
             {

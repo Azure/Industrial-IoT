@@ -45,12 +45,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         /// <inheritdoc/>
-        public async ValueTask HandleAsync(string deviceId, string moduleId, string topic,
+        public async ValueTask HandleAsync(string deviceId, string? moduleId, string topic,
             ReadOnlyMemory<byte> data, string contentType, string contentEncoding,
-            IReadOnlyDictionary<string, string> properties, CancellationToken ct)
+            IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
 
         {
-            if (!properties.TryGetValue(Constants.MessagePropertySchemaKey, out var schema))
+            if (!properties.TryGetValue(Constants.MessagePropertySchemaKey, out var schema) ||
+                schema == null)
             {
                 schema = topic;
             }

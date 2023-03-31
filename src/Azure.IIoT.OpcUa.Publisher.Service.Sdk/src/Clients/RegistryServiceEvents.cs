@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
     using Nito.Disposables;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
@@ -31,8 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="serializers"></param>
         public RegistryServiceEvents(IHttpClientFactory httpClient, ICallbackClient client,
             IOptions<ServiceSdkOptions> options, IEnumerable<ISerializer> serializers) :
-            this(httpClient, client, options?.Value.ServiceUrl, options?.Value.TokenProvider,
-                serializers.Resolve(options?.Value))
+            this(httpClient, client, options.Value.ServiceUrl!, options.Value.TokenProvider,
+                serializers.Resolve(options.Value))
         {
         }
 
@@ -45,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="authorization"></param>
         /// <param name="serializer"></param>
         public RegistryServiceEvents(IHttpClientFactory httpClient, ICallbackClient client,
-            string serviceUri, Func<Task<string>> authorization, ISerializer serializer = null)
+            string serviceUri, Func<Task<string?>>? authorization, ISerializer? serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
             {
@@ -61,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeApplicationEventsAsync(
-            Func<ApplicationEventModel, Task> callback)
+            Func<ApplicationEventModel?, Task> callback)
         {
             if (callback == null)
             {
@@ -78,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeEndpointEventsAsync(
-            Func<EndpointEventModel, Task> callback)
+            Func<EndpointEventModel?, Task> callback)
         {
             if (callback == null)
             {
@@ -95,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeGatewayEventsAsync(
-            Func<GatewayEventModel, Task> callback)
+            Func<GatewayEventModel?, Task> callback)
         {
             if (callback == null)
             {
@@ -112,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeSupervisorEventsAsync(
-            Func<SupervisorEventModel, Task> callback)
+            Func<SupervisorEventModel?, Task> callback)
         {
             if (callback == null)
             {
@@ -129,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeDiscovererEventsAsync(
-            Func<DiscovererEventModel, Task> callback)
+            Func<DiscovererEventModel?, Task> callback)
         {
             if (callback == null)
             {
@@ -146,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribePublisherEventsAsync(
-            Func<PublisherEventModel, Task> callback)
+            Func<PublisherEventModel?, Task> callback)
         {
             if (callback == null)
             {
@@ -163,13 +164,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeDiscoveryProgressByDiscovererIdAsync(
-            string discovererId, Func<DiscoveryProgressModel, Task> callback)
+            string discovererId, Func<DiscoveryProgressModel?, Task> callback)
         {
             if (callback == null)
             {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events").ConfigureAwait(false);
+            if (hub.ConnectionId == null)
+            {
+                throw new IOException("Hub not connected");
+            }
             var registration = hub.Register(EventTargets.DiscoveryProgressTarget, callback);
             try
             {
@@ -191,13 +196,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeDiscoveryProgressByRequestIdAsync(
-            string requestId, Func<DiscoveryProgressModel, Task> callback)
+            string requestId, Func<DiscoveryProgressModel?, Task> callback)
         {
             if (callback == null)
             {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/events/v2/discovery/events").ConfigureAwait(false);
+            if (hub.ConnectionId == null)
+            {
+                throw new IOException("Hub not connected");
+            }
             var registration = hub.Register(EventTargets.DiscoveryProgressTarget, callback);
             try
             {
@@ -287,6 +296,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         private readonly string _serviceUri;
         private readonly ISerializer _serializer;
         private readonly ICallbackClient _client;
-        private readonly Func<Task<string>> _authorization;
+        private readonly Func<Task<string?>>? _authorization;
     }
 }

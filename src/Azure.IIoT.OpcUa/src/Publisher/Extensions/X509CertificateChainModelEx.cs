@@ -22,10 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static X509CertificateChainModel ToCertificateChain(
             this byte[] rawCertificates)
         {
-            if (rawCertificates == null)
-            {
-                return null;
-            }
             var certificates = new List<X509Certificate2>();
             try
             {
@@ -58,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="rawCertificates"></param>
         /// <returns></returns>
-        public static string ToThumbprint(this byte[] rawCertificates)
+        public static string? ToThumbprint(this byte[] rawCertificates)
         {
             try
             {

@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnEndpointDeletedAsync(OperationContextModel context,
+        public Task OnEndpointDeletedAsync(OperationContextModel? context,
             string endpointId, EndpointInfoModel endpoint)
         {
             return PublishAsync(EndpointEventType.Deleted, context,
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnEndpointDisabledAsync(OperationContextModel context,
+        public Task OnEndpointDisabledAsync(OperationContextModel? context,
             EndpointInfoModel endpoint)
         {
             return PublishAsync(EndpointEventType.Disabled, context,
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnEndpointEnabledAsync(OperationContextModel context,
+        public Task OnEndpointEnabledAsync(OperationContextModel? context,
             EndpointInfoModel endpoint)
         {
             return PublishAsync(EndpointEventType.Enabled, context,
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         }
 
         /// <inheritdoc/>
-        public Task OnEndpointNewAsync(OperationContextModel context,
+        public Task OnEndpointNewAsync(OperationContextModel? context,
             EndpointInfoModel endpoint)
         {
             return PublishAsync(EndpointEventType.New, context,
@@ -62,11 +62,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Events
         /// <param name="endpoint"></param>
         /// <returns></returns>
         public Task PublishAsync(EndpointEventType type,
-            OperationContextModel context, string endpointId,
+            OperationContextModel? context, string? endpointId,
             EndpointInfoModel endpoint)
         {
-            var arguments = new object[] {
-                    new EndpointEventModel {
+            var arguments = new object[]
+            {
+                new EndpointEventModel
+                {
                     EventType = type,
                     Context = context,
                     Id = endpointId,

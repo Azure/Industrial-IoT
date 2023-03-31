@@ -105,8 +105,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="returning"></param>
         /// <returns></returns>
         private static async Task<IEnumerable<HistoricValueModel>> HistoryReadAllRemainingValuesAsync(
-            IHistoryServiceApi client, string endpointId, RequestHeaderModel header,
-            string continuationToken, IEnumerable<HistoricValueModel> returning)
+            IHistoryServiceApi client, string endpointId, RequestHeaderModel? header,
+            string? continuationToken, IEnumerable<HistoricValueModel> returning)
         {
             while (continuationToken != null)
             {
@@ -131,8 +131,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// <param name="returning"></param>
         /// <returns></returns>
         private static async Task<IEnumerable<HistoricEventModel>> HistoryReadAllRemainingEventsAsync(
-            IHistoryServiceApi client, string endpointId, RequestHeaderModel header,
-            string continuationToken, IEnumerable<HistoricEventModel> returning)
+            IHistoryServiceApi client, string endpointId, RequestHeaderModel? header,
+            string? continuationToken, IEnumerable<HistoricEventModel> returning)
         {
             while (continuationToken != null)
             {

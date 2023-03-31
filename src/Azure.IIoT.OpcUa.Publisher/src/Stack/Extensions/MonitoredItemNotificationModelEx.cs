@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -24,8 +25,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <param name="sequenceNumber"></param>
         /// <param name="dataValue"></param>
         /// <returns></returns>
-        public static MonitoredItemNotificationModel Clone(this MonitoredItemNotificationModel model,
-            uint? sequenceNumber = null, DataValue dataValue = null)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static MonitoredItemNotificationModel? Clone(this MonitoredItemNotificationModel? model,
+            uint? sequenceNumber = null, DataValue? dataValue = null)
         {
             if (model == null)
             {
@@ -53,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <returns></returns>
         public static IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
             this IEncodeable notification, MonitoredItem monitoredItem,
-            Func<MonitoredItemNotificationModel> defaultValue = null)
+            Func<MonitoredItemNotificationModel>? defaultValue = null)
         {
             if (notification != null && monitoredItem != null)
             {

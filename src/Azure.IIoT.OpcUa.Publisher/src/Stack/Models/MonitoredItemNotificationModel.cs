@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Identifier of the monitored item that originated the message
         /// </summary>
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Identifier to relate notifications to a value
@@ -25,12 +25,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Data set field identifier as configured
         /// </summary>
-        public string DataSetFieldName { get; set; }
+        public string? DataSetFieldName { get; set; }
 
         /// <summary>
         /// Node Id in string format as configured
         /// </summary>
-        public string NodeId { get; internal set; }
+        public string? NodeId { get; internal set; }
 
         /// <summary>
         /// Attribute monitored
@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Display name
         /// </summary>
-        public string DisplayName { get; internal set; }
+        public string? DisplayName { get; internal set; }
 
         /// <summary>
         /// Sequence number
@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Value of variable change notification
         /// </summary>
-        public DataValue Value { get; set; }
+        public DataValue? Value { get; set; }
 
         /// <summary>
         /// Is heartbeat?

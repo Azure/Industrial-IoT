@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -19,8 +20,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IEnumerable<EndpointRegistrationModel> model,
-            IEnumerable<EndpointRegistrationModel> that)
+        public static bool IsSameAs(this IEnumerable<EndpointRegistrationModel>? model,
+            IEnumerable<EndpointRegistrationModel>? that)
         {
             if (model == that)
             {
@@ -50,8 +51,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this EndpointRegistrationModel model,
-            EndpointRegistrationModel that)
+        public static bool IsSameAs(this EndpointRegistrationModel? model,
+            EndpointRegistrationModel? that)
         {
             if (model == that)
             {
@@ -81,7 +82,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static EndpointRegistrationModel Clone(this EndpointRegistrationModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static EndpointRegistrationModel? Clone(this EndpointRegistrationModel? model)
         {
             if (model == null)
             {
@@ -93,7 +95,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 EndpointUrl = model.EndpointUrl,
                 Id = model.Id,
                 AuthenticationMethods = model.AuthenticationMethods?
-                    .Select(c => c.Clone()).ToList(),
+                    .Select(c => c.Clone())
+                    .ToList(),
                 SecurityLevel = model.SecurityLevel,
                 SiteId = model.SiteId,
                 DiscovererId = model.DiscovererId

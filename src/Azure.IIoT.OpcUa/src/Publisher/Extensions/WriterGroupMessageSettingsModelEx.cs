@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Diagnostics.CodeAnalysis;
+
     /// <summary>
     /// Message setting extensions
     /// </summary>
@@ -16,8 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this WriterGroupMessageSettingsModel model,
-            WriterGroupMessageSettingsModel other)
+        public static bool IsSameAs(this WriterGroupMessageSettingsModel? model,
+            WriterGroupMessageSettingsModel? other)
         {
             if (model == null && other == null)
             {
@@ -59,7 +61,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static WriterGroupMessageSettingsModel Clone(this WriterGroupMessageSettingsModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static WriterGroupMessageSettingsModel? Clone(this WriterGroupMessageSettingsModel? model)
         {
             if (model == null)
             {

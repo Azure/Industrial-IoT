@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="update"></param>
         /// <param name="serializer"></param>
         /// <exception cref="ArgumentException"></exception>
-        public static DeviceTwinModel Patch(this ApplicationRegistration existing,
+        public static DeviceTwinModel Patch(this ApplicationRegistration? existing,
             ApplicationRegistration update, IJsonSerializer serializer)
         {
             var tags = new Dictionary<string, VariantValue>();
@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             tags.Add(nameof(EntityRegistration.DeviceType), update?.DeviceType);
 
             if (update?.ApplicationType != null &&
-                update?.ApplicationType != existing?.ApplicationType)
+                update.ApplicationType != existing?.ApplicationType)
             {
                 tags.Add(nameof(ApplicationRegistration.ApplicationType),
                     serializer.FromObject(update.ApplicationType.ToString()));
@@ -140,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             {
                 tags.Add(nameof(ApplicationRegistration.DiscoveryUrls),
                     update?.DiscoveryUrls == null ?
-                    null : serializer.FromObject(update.DiscoveryUrls));
+                    VariantValue.Null : serializer.FromObject(update.DiscoveryUrls));
             }
 
             var capsUpdate = update?.Capabilities.DecodeAsSet().SetEqualsSafe(
@@ -149,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             {
                 tags.Add(nameof(ApplicationRegistration.Capabilities),
                     update?.Capabilities == null ?
-                    null : serializer.FromObject(update.Capabilities));
+                    VariantValue.Null : serializer.FromObject(update.Capabilities));
             }
 
             var namesUpdate = update?.LocalizedNames.DictionaryEqualsSafe(
@@ -158,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             {
                 tags.Add(nameof(ApplicationRegistration.LocalizedNames),
                     update?.LocalizedNames == null ?
-                    null : serializer.FromObject(update.LocalizedNames));
+                    VariantValue.Null : serializer.FromObject(update.LocalizedNames));
             }
 
             var hostsUpdate = update?.HostAddresses.DecodeAsList().SequenceEqualsSafe(
@@ -167,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             {
                 tags.Add(nameof(ApplicationRegistration.HostAddresses),
                     update?.HostAddresses == null ?
-                    null : serializer.FromObject(update.HostAddresses));
+                    VariantValue.Null : serializer.FromObject(update.HostAddresses));
             }
 
             if (update?.CreateAuthorityId != existing?.CreateAuthorityId)
@@ -224,9 +224,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 siteOrGatewayId, applicationUri, applicationType);
             return new DeviceTwinModel
             {
-                Id = id,
+                Id = id ?? string.Empty,
                 // Force creation of new identity
-                Etag = existing?.DeviceId != id ? null : existing?.Etag,
+                Etag = existing?.DeviceId != id ? string.Empty : existing?.Etag ?? string.Empty,
                 Tags = tags,
                 Desired = desired
             };
@@ -238,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static ApplicationRegistration ToApplicationRegistration(this DeviceTwinModel twin)
+        public static ApplicationRegistration? ToApplicationRegistration(this DeviceTwinModel twin)
         {
             if (twin == null)
             {
@@ -310,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
         public static ApplicationRegistration ToApplicationRegistration(
-            this ApplicationInfoModel model, bool? disabled = null, string etag = null,
+            this ApplicationInfoModel model, bool? disabled = null, string? etag = null,
             uint? recordId = null)
         {
             if (model == null)
@@ -350,9 +350,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
-        public static ApplicationInfoModel ToServiceModel(this ApplicationRegistration registration)
+        public static ApplicationInfoModel? ToServiceModel(this ApplicationRegistration? registration)
         {
-            if (registration == null)
+            if (registration is null || registration.ApplicationId == null)
             {
                 return null;
             }
@@ -366,7 +366,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 NotSeenSince = registration.NotSeenSince,
                 ApplicationType = registration.ApplicationType ?? ApplicationType.Server,
                 ApplicationUri = string.IsNullOrEmpty(registration.ApplicationUri) ?
-                    registration.ApplicationUriLC : registration.ApplicationUri,
+                    registration.ApplicationUriLC! : registration.ApplicationUri,
                 ProductUri = registration.ProductUri,
                 SiteId = string.IsNullOrEmpty(registration.SiteId) ?
                     null : registration.SiteId,
@@ -387,9 +387,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="registration"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static string GetSiteOrGatewayId(this ApplicationRegistration registration)
+        public static string? GetSiteOrGatewayId(this ApplicationRegistration? registration)
         {
-            if (registration == null)
+            if (registration is null)
             {
                 return null;
             }
@@ -412,8 +412,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="authorityId"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        private static OperationContextModel ToOperationModel(
-            string authorityId, DateTime? time)
+        private static OperationContextModel? ToOperationModel(
+            string? authorityId, DateTime? time)
         {
             if (string.IsNullOrEmpty(authorityId) && time == null)
             {

@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <summary>
         /// Connection receiving events
         /// </summary>
-        string ConnectionId { get; }
+        string? ConnectionId { get; }
 
         /// <summary>
         /// Register handler to handle a method call
@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <param name="method"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        IDisposable Register(Func<object[], object, Task> handler,
+        IDisposable Register(Func<object?[], object, Task> handler,
             object thiz, string method, Type[] arguments);
 
         /// <summary>
@@ -36,12 +36,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
         /// <param name="method"></param>
         /// <param name="action"></param>
         public IDisposable Register<T0>(
-            string method, Func<T0, Task> action)
+            string method, Func<T0?, Task> action)
         {
             return Register((args, _) =>
             {
                 return action.Invoke(
-                    (T0)args[0]
+                    (T0?)args[0]
                 );
             }, this, method,
             new Type[] {

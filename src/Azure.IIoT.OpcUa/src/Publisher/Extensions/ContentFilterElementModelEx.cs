@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static ContentFilterElementModel Clone(this ContentFilterElementModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static ContentFilterElementModel? Clone(this ContentFilterElementModel? model)
         {
             if (model == null)
             {
@@ -39,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this ContentFilterElementModel model, ContentFilterElementModel other)
+        public static bool IsSameAs(this ContentFilterElementModel? model, ContentFilterElementModel? other)
         {
             if (model == null && other == null)
             {

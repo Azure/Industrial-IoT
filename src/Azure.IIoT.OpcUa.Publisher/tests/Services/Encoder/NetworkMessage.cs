@@ -197,6 +197,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     Context = new WriterGroupMessageContext
                     {
                         SequenceNumber = i,
+                        MetaDataTopic = string.Empty,
+                        Topic = string.Empty,
                         PublisherId = publisherId,
                         Writer = writer,
                         WriterGroup = writerGroup

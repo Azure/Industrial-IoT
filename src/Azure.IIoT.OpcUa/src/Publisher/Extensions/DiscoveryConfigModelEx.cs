@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DiscoveryConfigModel Clone(this DiscoveryConfigModel model)
+        [return: NotNullIfNotNull(nameof(model))]
+        public static DiscoveryConfigModel? Clone(this DiscoveryConfigModel? model)
         {
             if (model == null)
             {

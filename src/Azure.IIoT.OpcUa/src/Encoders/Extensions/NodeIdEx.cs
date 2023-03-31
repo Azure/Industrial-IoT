@@ -7,6 +7,7 @@ namespace Opc.Ua.Extensions
 {
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
     using System.Text;
@@ -15,7 +16,7 @@ namespace Opc.Ua.Extensions
     /// <summary>
     /// Node id extensions
     /// </summary>
-    public static class NodeIdEx
+    public static partial class NodeIdEx
     {
         /// <summary>
         /// Creates an expanded node id from node id.
@@ -25,19 +26,22 @@ namespace Opc.Ua.Extensions
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         public static ExpandedNodeId ToExpandedNodeId(this NodeId nodeId,
-            NamespaceTable namespaces)
+            NamespaceTable? namespaces)
         {
             if (NodeId.IsNull(nodeId))
             {
                 return ExpandedNodeId.Null;
             }
-            if (nodeId.NamespaceIndex > 0 && namespaces == null)
+            string? ns = null;
+            if (nodeId.NamespaceIndex > 0)
             {
-                throw new ArgumentNullException(nameof(namespaces));
+                if (namespaces == null)
+                {
+                    throw new ArgumentNullException(nameof(namespaces));
+                }
+                ns = namespaces.GetString(nodeId.NamespaceIndex);
             }
-            return new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex,
-                nodeId.NamespaceIndex > 0 ? namespaces.GetString(nodeId.NamespaceIndex) :
-                    null, 0);
+            return new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex, ns, 0);
         }
 
         /// <summary>
@@ -72,10 +76,9 @@ namespace Opc.Ua.Extensions
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public static NodeId ToNodeId(this ExpandedNodeId nodeId,
-            NamespaceTable namespaces)
+        public static NodeId ToNodeId(this ExpandedNodeId? nodeId, NamespaceTable namespaces)
         {
-            if (NodeId.IsNull(nodeId))
+            if (nodeId?.IsNull != false)
             {
                 return NodeId.Null;
             }
@@ -107,15 +110,16 @@ namespace Opc.Ua.Extensions
         /// <param name="context"></param>
         /// <param name="noRelativeUriAllowed"></param>
         /// <returns></returns>
-        public static string AsString(this NodeId nodeId, IServiceMessageContext context,
+        public static string? AsString(this NodeId nodeId, IServiceMessageContext context,
             bool noRelativeUriAllowed = false)
         {
             if (NodeId.IsNull(nodeId))
             {
                 return null;
             }
-            return nodeId.ToExpandedNodeId(context?.NamespaceUris).AsString(context,
-                noRelativeUriAllowed);
+            return nodeId
+                .ToExpandedNodeId(context.NamespaceUris)
+                .AsString(context, noRelativeUriAllowed);
         }
 
         /// <summary>
@@ -125,7 +129,7 @@ namespace Opc.Ua.Extensions
         /// <param name="context"></param>
         /// <param name="noRelativeUriAllowed"></param>
         /// <returns></returns>
-        public static string AsString(this ExpandedNodeId nodeId, IServiceMessageContext context,
+        public static string? AsString(this ExpandedNodeId nodeId, IServiceMessageContext context,
             bool noRelativeUriAllowed = false)
         {
             if (NodeId.IsNull(nodeId))
@@ -141,7 +145,7 @@ namespace Opc.Ua.Extensions
                     nsUri = null;
                 }
             }
-            string srvUri = null;
+            string? srvUri = null;
             if (nodeId.ServerIndex != 0 && context.ServerUris != null)
             {
                 srvUri = context.ServerUris.GetString(nodeId.ServerIndex);
@@ -164,7 +168,7 @@ namespace Opc.Ua.Extensions
         /// <param name="value"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static NodeId ToNodeId(this string value, IServiceMessageContext context)
+        public static NodeId ToNodeId(this string? value, IServiceMessageContext context)
         {
             if (value == null)
             {
@@ -189,7 +193,7 @@ namespace Opc.Ua.Extensions
         /// <param name="value"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static ExpandedNodeId ToExpandedNodeId(this string value, IServiceMessageContext context)
+        public static ExpandedNodeId ToExpandedNodeId(this string? value, IServiceMessageContext context)
         {
             if (value == null)
             {
@@ -223,7 +227,7 @@ namespace Opc.Ua.Extensions
         /// <param name="identifier"></param>
         /// <returns></returns>
         /// <exception cref="FormatException"></exception>
-        public static string FormatNodeIdUri(string nsUri, string srvUri,
+        public static string FormatNodeIdUri(string? nsUri, string? srvUri,
             IdType idType, object identifier)
         {
             var buffer = new StringBuilder();
@@ -257,7 +261,7 @@ namespace Opc.Ua.Extensions
                     {
                         break; // null
                     }
-                    buffer.Append(identifier.ToString().UrlEncode());
+                    buffer.Append(identifier.ToString()?.UrlEncode());
                     break;
                 case IdType.Guid:
                     buffer.Append("g=");
@@ -299,14 +303,13 @@ namespace Opc.Ua.Extensions
         /// <param name="srvUri"></param>
         /// <returns></returns>
         /// <exception cref="FormatException"></exception>
-        private static object ParseNodeIdUri(string value, out string nsUri, out string srvUri)
+        private static object? ParseNodeIdUri(string value, out string nsUri, out string? srvUri)
         {
             // Get resource uri
             if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
             {
                 // Not a absolute uri, try to mitigate a potentially nonstandard namespace string
-                const string sepPattern = @"(.+)#([isgb]{1}\=.*)";
-                var match = Regex.Match(value, sepPattern);
+                var match = NodeRegex().Match(value);
                 if (match.Success)
                 {
                     nsUri = match.Groups[1].Value;
@@ -333,7 +336,7 @@ namespace Opc.Ua.Extensions
             var and = value?.IndexOf('&', StringComparison.Ordinal) ?? -1;
             if (and != -1)
             {
-                var remainder = value.Substring(and);
+                var remainder = value!.Substring(and);
                 // See if the query contains the server identfier
                 if (remainder.StartsWith("&srv=", StringComparison.Ordinal))
                 {
@@ -355,7 +358,7 @@ namespace Opc.Ua.Extensions
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        private static object ParseIdentifier(string text)
+        private static object? ParseIdentifier(string? text)
         {
             if (text == null)
             {
@@ -452,7 +455,7 @@ namespace Opc.Ua.Extensions
         /// <param name="identifier"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        private static bool TryGetDataTypeName(object identifier, out string name)
+        private static bool TryGetDataTypeName(object identifier, [NotNullWhen(true)] out string? name)
         {
             name = null;
             try
@@ -489,5 +492,8 @@ namespace Opc.Ua.Extensions
                 return false;
             }
         }
+
+        [GeneratedRegex("(.+)#([isgb]{1}\\=.*)")]
+        private static partial Regex NodeRegex();
     }
 }

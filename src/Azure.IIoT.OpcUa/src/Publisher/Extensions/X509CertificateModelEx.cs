@@ -20,10 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static X509CertificateModel ToServiceModel(this X509Certificate2 cert)
         {
-            if (cert == null)
-            {
-                return null;
-            }
             return new X509CertificateModel
             {
                 Certificate = cert.RawData,

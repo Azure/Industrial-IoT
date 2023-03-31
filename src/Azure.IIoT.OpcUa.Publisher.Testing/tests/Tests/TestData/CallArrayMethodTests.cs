@@ -55,12 +55,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         NodeId = methodId
                     }).ConfigureAwait(false);
-                result = metadata.MethodMetadata;
+                result = metadata.MethodMetadata!;
             }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
-            Assert.Collection(result.InputArguments,
+            Assert.Collection(result.InputArguments!,
                 arg =>
                 {
                     Assert.Equal("BooleanIn", arg.Name);
@@ -204,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Double", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 });
-            Assert.Collection(result.OutputArguments,
+            Assert.Collection(result.OutputArguments!,
                 arg =>
                 {
                     Assert.Equal("BooleanOut", arg.Name);
@@ -373,12 +373,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         NodeId = methodId
                     }).ConfigureAwait(false);
-                result = metadata.MethodMetadata;
+                result = metadata.MethodMetadata!;
             }
 
             // Assert
             Assert.Equal(objectId, result.ObjectId);
-            Assert.Collection(result.InputArguments,
+            Assert.Collection(result.InputArguments!,
                 arg =>
                 {
                     Assert.Equal("StringIn", arg.Name);
@@ -509,7 +509,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("StatusCode", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 });
-            Assert.Collection(result.OutputArguments,
+            Assert.Collection(result.OutputArguments!,
                 arg =>
                 {
                     Assert.Equal("StringOut", arg.Name);
@@ -665,12 +665,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     {
                         NodeId = methodId
                     }).ConfigureAwait(false);
-                result = metadata.MethodMetadata;
+                result = metadata.MethodMetadata!;
             }
 
             // Assert
-            Assert.Equal(objectId, result.ObjectId);
-            Assert.Collection(result.InputArguments,
+            Assert.Equal(objectId, result!.ObjectId);
+            Assert.Collection(result.InputArguments!,
                 arg =>
                 {
                     Assert.Equal("VariantIn", arg.Name);
@@ -710,7 +710,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Structure", arg.Type.DisplayName);
                     Assert.True(arg.DefaultValue.IsNull());
                 });
-            Assert.Collection(result.OutputArguments,
+            Assert.Collection(result.OutputArguments!,
                 arg =>
                 {
                     Assert.Equal("VariantOut", arg.Name);
@@ -833,7 +833,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(input.Select(arg => arg.Value),
                 result.Results.Select(arg => arg.Value));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value.IsListOfValues));
+                arg => Assert.True(arg.Value!.IsListOfValues));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test2Async()
@@ -878,16 +878,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(input[0].Value, arg.Value),
                 arg => Assert.Equal(input[1].Value, arg.Value),
                 arg => Assert.Equal(input[2].Value, arg.Value),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values));
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value.IsListOfValues));
+                arg => Assert.True(arg.Value!.IsListOfValues));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test3Async()
@@ -910,9 +910,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.Empty(arg.Value.Values));
+                arg => Assert.Empty(arg.Value!.Values));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value.IsListOfValues));
+                arg => Assert.True(arg.Value!.IsListOfValues));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test4Async()
@@ -921,7 +921,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string methodId = "http://test.org/UA/Data/#i=10765";
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
-            var input = new List<MethodCallArgumentModel> {
+            var input = new List<MethodCallArgumentModel?> {
                 new MethodCallArgumentModel {
                     DataType = "boolean",
                     Value = _serializer.FromObject(
@@ -966,24 +966,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
             Assert.Collection(result.Results,
-                arg => Assert.Equal(input[0].Value, arg.Value),
-                arg => Assert.Equal(input[1].Value, arg.Value),
+                arg => Assert.Equal(input[0]!.Value, arg.Value),
+                arg => Assert.Equal(input[1]!.Value, arg.Value),
                 arg =>
                 {
                     Assert.Equal(_serializer.FromObject(
                         new byte[] { 0, 1, 2, 3, 4, 5, 6, byte.MaxValue }),
                         arg.Value);
                 },
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Equal(input[10].Value, arg.Value));
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Equal(input[10]!.Value, arg.Value));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value.IsListOfValues));
+                arg => Assert.True(arg.Value!.IsListOfValues));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test5Async()
@@ -1053,18 +1053,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value.IsListOfValues));
+                arg => Assert.True(arg.Value!.IsListOfValues));
             Assert.Collection(result.Results,
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
                 arg => Assert.True(arg.Value.IsNull()),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
-                arg => Assert.Empty(arg.Value.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values),
                 arg => Assert.Equal(input[10].Value, arg.Value));
         }
 
@@ -1209,7 +1209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(input[7].Value, arg.Value),
                 arg => Assert.Equal(input[8].Value, arg.Value),
                 arg => Assert.Equal(input[9].Value, arg.Value));
-            Assert.All(result.Results, arg => Assert.True(arg.Value.IsListOfValues));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
         }
 
         public async Task NodeMethodCallStaticArrayMethod2Test2Async()
@@ -1232,8 +1232,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "XmlElement", "NodeId", "ExpandedNodeId",
                 "QualifiedName","LocalizedText","StatusCode" },
                 result.Results.Select(arg => arg.DataType));
-            Assert.All(result.Results, arg => Assert.True(arg.Value.IsListOfValues));
-            Assert.All(result.Results, arg => Assert.Empty(arg.Value.Values));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
+            Assert.All(result.Results, arg => Assert.Empty(arg.Value!.Values));
         }
 
         public async Task NodeMethodCallStaticArrayMethod2Test3Async()
@@ -1242,7 +1242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string methodId = "http://test.org/UA/Data/#i=10768";
             const string objectId = "http://test.org/UA/Data/#i=10755";
 
-            var input = new List<MethodCallArgumentModel> {
+            var input = new List<MethodCallArgumentModel?> {
                 null,
                 null,
                 null,
@@ -1276,8 +1276,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "XmlElement", "NodeId", "ExpandedNodeId",
                 "QualifiedName","LocalizedText","StatusCode" },
                 result.Results.Select(arg => arg.DataType));
-            Assert.All(result.Results, arg => Assert.True(arg.Value.IsListOfValues));
-            Assert.Equal(3, result.Results[8].Value.Count);
+            Assert.NotNull(result.Results);
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
+            Assert.NotNull(result.Results[8].Value);
+            Assert.Equal(3, result.Results[8].Value!.Count);
         }
 
         public async Task NodeMethodCallStaticArrayMethod2Test4Async()
@@ -1346,8 +1348,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 result.Results.Select(arg => arg.DataType));
             Assert.Equal(input.Select(arg => arg.Value),
                 result.Results.Select(arg => arg.Value));
-            Assert.All(result.Results, arg => Assert.True(arg.Value.IsListOfValues));
-            Assert.All(result.Results, arg => Assert.Empty(arg.Value.Values));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
+            Assert.All(result.Results, arg => Assert.Empty(arg.Value!.Values));
         }
 
         public async Task NodeMethodCallStaticArrayMethod3Test1Async()
@@ -1386,7 +1388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, result.Results.Select(arg => arg.DataType));
             Assert.Equal(input.Select(arg => arg.Value),
                 result.Results.Select(arg => arg.Value));
-            Assert.All(result.Results, arg => Assert.True(arg.Value.IsListOfValues));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
         }
 
         public async Task NodeMethodCallStaticArrayMethod3Test2Async()
@@ -1451,7 +1453,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(new List<string> {
                 "Variant", "Int32", "ExtensionObject"
             }, result.Results.Select(arg => arg.DataType));
-            Assert.All(result.Results, arg => Assert.True(arg.Value.IsListOfValues));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
         }
 
         public async Task NodeMethodCallStaticArrayMethod3Test3Async()
@@ -1472,8 +1474,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(new List<string> {
                 "Variant", "Int32", "ExtensionObject"
             }, result.Results.Select(arg => arg.DataType));
-            Assert.All(result.Results, arg => Assert.True(arg.Value.IsListOfValues));
-            Assert.All(result.Results, arg => Assert.Empty(arg.Value.Values));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
+            Assert.All(result.Results, arg => Assert.Empty(arg.Value!.Values));
         }
 
         private readonly bool _newMetadata;

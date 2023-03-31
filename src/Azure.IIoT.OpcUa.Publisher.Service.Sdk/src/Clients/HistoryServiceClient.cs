@@ -28,8 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="serializers"></param>
         public HistoryServiceClient(IHttpClientFactory httpClient,
             IOptions<ServiceSdkOptions> options, IEnumerable<ISerializer> serializers) :
-            this(httpClient, options?.Value.ServiceUrl, options?.Value.TokenProvider,
-                serializers.Resolve(options?.Value))
+            this(httpClient, options.Value.ServiceUrl!, options.Value.TokenProvider,
+                serializers.Resolve(options.Value))
         {
         }
 
@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// <param name="authorization"></param>
         /// <param name="serializer"></param>
         public HistoryServiceClient(IHttpClientFactory httpClient, string serviceUri,
-            Func<Task<string>> authorization, ISerializer serializer = null)
+            Func<Task<string?>>? authorization, ISerializer? serializer = null)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
             {
@@ -59,8 +59,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="serializer"></param>
-        public HistoryServiceClient(HttpClient httpClient, ISerializer serializer = null) :
-            this(httpClient.ToHttpClientFactory(), httpClient.BaseAddress?.ToString(),
+        public HistoryServiceClient(HttpClient httpClient, ISerializer? serializer = null) :
+            this(httpClient.ToHttpClientFactory(), httpClient.BaseAddress?.ToString()!,
                 null, serializer)
         {
         }
@@ -388,7 +388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         }
 
         private readonly IHttpClientFactory _httpClient;
-        private readonly Func<Task<string>> _authorization;
+        private readonly Func<Task<string?>>? _authorization;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
     }

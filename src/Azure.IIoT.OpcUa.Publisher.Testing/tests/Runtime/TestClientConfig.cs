@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
         }
 
         /// <inheritdoc/>
-        public override void Configure(string name, ClientOptions options)
+        public override void Configure(string? name, ClientOptions options)
         {
             options.Security.AutoAcceptUntrustedCertificates = _autoAccept;
             options.Security.PkiRootPath = _path;

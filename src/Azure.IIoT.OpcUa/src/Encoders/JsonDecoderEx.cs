@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-#nullable enable
+
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
@@ -392,6 +392,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (token.Type == JTokenType.String)
             {
                 var id = (string?)token;
+
                 var nodeId = id.ToExpandedNodeId(Context);
                 if (!NodeId.IsNull(nodeId))
                 {
@@ -1297,7 +1298,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     //
                     // Return json token, update once stack supports json extension objects.
                     //
-                    var wrapper = new EncodeableJToken(body, typeId);
+                    var wrapper = new EncodeableJToken(body, typeId ?? ExpandedNodeId.Null);
                     return new ExtensionObject(wrapper.TypeId, wrapper);
             }
         }

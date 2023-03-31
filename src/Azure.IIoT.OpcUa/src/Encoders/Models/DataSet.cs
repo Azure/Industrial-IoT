@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
     /// <summary>
     /// Encodable dataset message payload
     /// </summary>
-    public class DataSet : Dictionary<string, DataValue>
+    public class DataSet : Dictionary<string, DataValue?>
     {
         /// <summary>
         /// Field mask
@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// </summary>
         /// <param name="values"></param>
         /// <param name="fieldContentMask"></param>
-        public DataSet(IDictionary<string, DataValue> values, uint fieldContentMask)
+        public DataSet(IDictionary<string, DataValue?> values, uint fieldContentMask)
             : this(fieldContentMask)
         {
             foreach (var value in values)
@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <param name="fieldContentMask"></param>
-        public DataSet(string field, DataValue value, uint fieldContentMask)
+        public DataSet(string field, DataValue? value, uint fieldContentMask)
             : this(fieldContentMask)
         {
             this[field] = value;
@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is not Dictionary<string, DataValue> set)
             {

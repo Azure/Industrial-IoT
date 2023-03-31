@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             this IIoTHubTwinServices service, string query, CancellationToken ct = default)
         {
             var result = new List<DeviceTwinModel>();
-            string continuation = null;
+            string? continuation = null;
             do
             {
                 var response = await service.QueryDeviceTwinsAsync(query, continuation,
@@ -124,8 +124,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
         /// <returns></returns>
-        public static IReadOnlyDictionary<string, T> EncodeAsDictionary<T>(
-            this IReadOnlyList<T> list)
+        public static IReadOnlyDictionary<string, T>? EncodeAsDictionary<T>(
+            this IReadOnlyList<T>? list)
         {
             return EncodeAsDictionary(list, t => t);
         }
@@ -138,8 +138,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="list"></param>
         /// <param name="converter"></param>
         /// <returns></returns>
-        public static IReadOnlyDictionary<string, TValue> EncodeAsDictionary<TKey, TValue>(
-            this IReadOnlyList<TKey> list, Func<TKey, TValue> converter)
+        public static IReadOnlyDictionary<string, TValue>? EncodeAsDictionary<TKey, TValue>(
+            this IReadOnlyList<TKey>? list, Func<TKey, TValue> converter)
         {
             if (list == null)
             {
@@ -159,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <typeparam name="T"></typeparam>
         /// <param name="dictionary"></param>
         /// <returns></returns>
-        public static IReadOnlyList<T> DecodeAsList<T>(this IReadOnlyDictionary<string, T> dictionary)
+        public static IReadOnlyList<T>? DecodeAsList<T>(this IReadOnlyDictionary<string, T>? dictionary)
         {
             return DecodeAsList(dictionary, t => t);
         }
@@ -172,15 +172,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="dictionary"></param>
         /// <param name="converter"></param>
         /// <returns></returns>
-        public static IReadOnlyList<TKey> DecodeAsList<TKey, TValue>(
-            this IReadOnlyDictionary<string, TValue> dictionary,
+        public static IReadOnlyList<TKey>? DecodeAsList<TKey, TValue>(
+            this IReadOnlyDictionary<string, TValue>? dictionary,
             Func<TValue, TKey> converter)
         {
             if (dictionary == null)
             {
                 return null;
             }
-            var result = Enumerable.Repeat(default(TKey), dictionary.Count).ToList();
+            var result = Enumerable.Repeat(default(TKey)!, dictionary.Count).ToList();
             foreach (var kv in dictionary)
             {
                 result[int.Parse(kv.Key, CultureInfo.InvariantCulture)] = converter(kv.Value);
@@ -193,8 +193,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="dictionary"></param>
         /// <returns></returns>
-        public static IReadOnlySet<string> DecodeAsSet(
-            this IReadOnlyDictionary<string, bool> dictionary)
+        public static IReadOnlySet<string>? DecodeAsSet(
+            this IReadOnlyDictionary<string, bool>? dictionary)
         {
             if (dictionary == null)
             {
@@ -209,8 +209,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="set"></param>
         /// <param name="upperCase"></param>
         /// <returns></returns>
-        public static IReadOnlyDictionary<string, bool> EncodeAsDictionary(
-            this IReadOnlySet<string> set, bool? upperCase = null)
+        public static IReadOnlyDictionary<string, bool>? EncodeAsDictionary(
+            this IReadOnlySet<string>? set, bool? upperCase = null)
         {
             if (set == null)
             {

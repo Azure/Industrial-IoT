@@ -51,13 +51,13 @@ namespace Opc.Ua.Extensions
         /// <param name="value"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static QualifiedName ToQualifiedName(this string value, IServiceMessageContext context)
+        public static QualifiedName ToQualifiedName(this string? value, IServiceMessageContext context)
         {
             if (string.IsNullOrEmpty(value))
             {
                 return QualifiedName.Null;
             }
-            string nsUri = null;
+            string? nsUri = null;
             if (Uri.TryCreate(value, UriKind.Absolute, out var uri))
             {
                 if (string.IsNullOrEmpty(uri.Fragment))

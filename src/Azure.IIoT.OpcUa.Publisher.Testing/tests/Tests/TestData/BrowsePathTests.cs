@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Null(results.ErrorInfo);
-            Assert.Collection(results.Targets, target =>
+            Assert.Collection(results.Targets!, target =>
             {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod3", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod3", target.Target.DisplayName);
@@ -90,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Null(results.ErrorInfo);
-            Assert.Collection(results.Targets, target =>
+            Assert.Collection(results.Targets!, target =>
             {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod3", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod3", target.Target.DisplayName);
@@ -128,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Null(results.ErrorInfo);
-            Assert.Collection(results.Targets, target =>
+            Assert.Collection(results.Targets!, target =>
             {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod3", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod3", target.Target.DisplayName);
@@ -171,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Null(results.ErrorInfo);
-            Assert.Collection(results.Targets, target =>
+            Assert.Collection(results.Targets!, target =>
             {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod3", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod3", target.Target.DisplayName);
