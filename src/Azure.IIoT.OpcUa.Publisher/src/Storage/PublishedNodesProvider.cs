@@ -89,9 +89,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             _lock.Wait();
             try
             {
-                using (var fileStream = new FileStream(
-                    _fileName,
-                    FileMode.OpenOrCreate,
+                // Create file only if it is the default file.
+                using (var fileStream = new FileStream(_fileName,
+                    _options.Value.PublishedNodesFile == null ?
+                        FileMode.OpenOrCreate : FileMode.Open,
                     FileAccess.Read,
                     FileShare.Read))
                 {
@@ -125,9 +126,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
 
                 try
                 {
-                    using (var fileStream = new FileStream(
-                        _fileName,
-                        FileMode.OpenOrCreate,
+                    using (var fileStream = new FileStream(_fileName,
+                        _options.Value.PublishedNodesFile == null ?
+                            FileMode.OpenOrCreate : FileMode.Open,
                         FileAccess.Write,
                         // We will require that there is no other process using the file.
                         FileShare.None))
@@ -146,9 +147,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     // We will fall back to writing with ReadWrite access.
                     try
                     {
-                        using (var fileStream = new FileStream(
-                            _fileName,
-                            FileMode.OpenOrCreate,
+                        using (var fileStream = new FileStream(_fileName,
+                            _options.Value.PublishedNodesFile == null ?
+                                FileMode.OpenOrCreate : FileMode.Open,
                             FileAccess.Write,
                             // Relaxing requirements.
                             FileShare.ReadWrite))

@@ -99,8 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             if (options.PublishedNodesFile == null)
             {
-                options.PublishedNodesFile = GetStringOrDefault(PublishedNodesFileKey,
-                    PublishedNodesFileDefault);
+                options.PublishedNodesFile = GetStringOrDefault(PublishedNodesFileKey);
             }
 
             if (options.MaxNodesPerDataSet == 0)

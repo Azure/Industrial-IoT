@@ -877,8 +877,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="e"></param>
         private void OnChanged(object? sender, FileSystemEventArgs e)
         {
-            _logger.LogDebug("File {PublishedNodesFile} changed. Triggering file refresh ...",
-                _configuration.Value.PublishedNodesFile);
+            _logger.LogDebug("File {File} changed. Triggering file refresh ...",
+                e.Name);
             _fileChanges.Writer.TryWrite(false);
         }
 
@@ -889,8 +889,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="e"></param>
         private void OnCreated(object? sender, FileSystemEventArgs e)
         {
-            _logger.LogDebug("File {PublishedNodesFile} created. Triggering file refresh ...",
-                _configuration.Value.PublishedNodesFile);
+            _logger.LogDebug("File {File} created. Triggering file refresh ...",
+                e.Name);
             _fileChanges.Writer.TryWrite(false);
         }
 
@@ -901,8 +901,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="e"></param>
         private void OnRenamed(object? sender, FileSystemEventArgs e)
         {
-            _logger.LogDebug("File {PublishedNodesFile} renamed. Triggering file refresh ...",
-                _configuration.Value.PublishedNodesFile);
+            _logger.LogDebug("File {File} renamed. Triggering file refresh ...",
+                e.Name);
             _fileChanges.Writer.TryWrite(false);
         }
 
@@ -913,8 +913,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="e"></param>
         private void OnDeleted(object? sender, FileSystemEventArgs e)
         {
-            _logger.LogDebug("File {PublishedNodesFile} deleted. Clearing configuration ...",
-                _configuration.Value.PublishedNodesFile);
+            _logger.LogDebug("File {File} deleted. Clearing configuration ...",
+                e.Name);
             _fileChanges.Writer.TryWrite(true);
         }
 
@@ -951,10 +951,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 var jobs = Enumerable.Empty<WriterGroupModel>();
                                 if (!clear && !string.IsNullOrEmpty(content))
                                 {
-                                    _logger.LogInformation("File {PublishedNodesFile} has changed, " +
+                                    _logger.LogInformation("Published Nodes File changed, " +
                                         "last known hash {LastHash}, new hash {NewHash}, reloading...",
-                                        _configuration.Value.PublishedNodesFile, _lastKnownFileHash,
-                                        currentFileHash);
+                                        _lastKnownFileHash, currentFileHash);
 
                                     var entries = _publishedNodesJobConverter.Read(content).ToList();
                                     TransformFromLegacyNodeId(entries);
@@ -983,9 +982,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 // avoid double events from FileSystemWatcher
                                 if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10))
                                 {
-                                    _logger.LogInformation("File {PublishedNodesFile} has changed and " +
-                                        "content-hash is equal to last one, nothing to do...",
-                                        _configuration.Value.PublishedNodesFile);
+                                    _logger.LogInformation("Published Nodes File changed but " +
+                                        "content-hash is equal to last one, nothing to do...");
                                 }
                             }
                             _lastRead = lastWriteTime;
