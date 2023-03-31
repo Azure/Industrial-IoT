@@ -285,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync("./Resources/PendingAlarms.json",
                 BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data",
-arguments: new string[] { "--mm=PubSub" }, version: MqttVersion.v311).ConfigureAwait(false);
+                arguments: new string[] { "--mm=PubSub" }, version: MqttVersion.v311).ConfigureAwait(false);
 
             // Assert
             _output.WriteLine(messages.ToString());

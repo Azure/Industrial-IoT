@@ -524,9 +524,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 internalSelectClauses.Add(selectClause);
             }
 
-            var sb = new StringBuilder();
+            ConditionHandlingState? conditionHandlingState = null;
+            if (!EventTemplate.ConditionHandling.IsDisabled())
+            {
+                conditionHandlingState = InitializeConditionHandlingState(eventFilter,
+                    internalSelectClauses);
+            }
 
+            var sb = new StringBuilder();
             // let's loop thru the final set of select clauses and setup the field names used
+            Fields.Clear();
             foreach (var selectClause in eventFilter.SelectClauses)
             {
                 if (!internalSelectClauses.Any(x => x == selectClause))
@@ -579,11 +586,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Fields.Add((null, Guid.Empty));
                 }
             }
+            Debug.Assert(Fields.Count == eventFilter.SelectClauses.Count);
 
-            if (!EventTemplate.ConditionHandling.IsDisabled())
+            if (conditionHandlingState != null)
             {
-                var conditionHandlingState = InitializeConditionHandlingState(eventFilter,
-                    internalSelectClauses);
                 lock (_lock)
                 {
                     _conditionHandlingState = conditionHandlingState;

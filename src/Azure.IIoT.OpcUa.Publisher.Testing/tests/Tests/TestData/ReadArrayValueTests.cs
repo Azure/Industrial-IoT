@@ -257,11 +257,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result);
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
-            Assert.NotNull(result.Value);
             AssertEqualValue(expected, result.Value);
 
             Assert.Equal("ByteString", result.DataType);
-            Assert.True(result.Value.IsNull() || result.Value.IsBytes);
+            Assert.True(result.Value.IsNull() || result.Value!.IsBytes);
         }
 
         public async Task NodeReadStaticArrayInt16ValueVariableTestAsync()
@@ -609,7 +608,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.NotNull(result);
-            Assert.NotNull(result.Value);
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
@@ -618,7 +616,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 return;
             }
-            Assert.True(result.Value.IsListOfValues);
+            Assert.True(result.Value!.IsListOfValues);
             if (result.Value.Count == 0)
             {
                 return;
@@ -987,7 +985,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// </summary>
         /// <param name="expected"></param>
         /// <param name="value"></param>
-        private static void AssertEqualValue(VariantValue expected, VariantValue value)
+        private static void AssertEqualValue(VariantValue? expected, VariantValue? value)
         {
             Assert.True(VariantValue.DeepEquals(expected, value),
                 $"Expected: {expected}  != Actual: {value} ");

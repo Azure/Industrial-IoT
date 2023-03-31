@@ -118,7 +118,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             this EventFieldList eventFieldList, MonitoredItem monitoredItem)
         {
             var handleId = monitoredItem.Handle as OpcUaMonitoredItem;
-            if (eventFieldList != null && monitoredItem != null)
+            if (eventFieldList != null && monitoredItem != null &&
+                handleId?.Fields.Count >= eventFieldList.EventFields.Count)
             {
                 for (var i = 0; i < eventFieldList.EventFields.Count; i++)
                 {
