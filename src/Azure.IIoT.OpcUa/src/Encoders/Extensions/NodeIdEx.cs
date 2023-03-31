@@ -16,7 +16,7 @@ namespace Opc.Ua.Extensions
     /// <summary>
     /// Node id extensions
     /// </summary>
-    public static partial class NodeIdEx
+    public static class NodeIdEx
     {
         /// <summary>
         /// Creates an expanded node id from node id.
@@ -309,7 +309,8 @@ namespace Opc.Ua.Extensions
             if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
             {
                 // Not a absolute uri, try to mitigate a potentially nonstandard namespace string
-                var match = NodeRegex().Match(value);
+                const string sepPattern = @"(.+)#([isgb]{1}\=.*)";
+                var match = Regex.Match(value, sepPattern);
                 if (match.Success)
                 {
                     nsUri = match.Groups[1].Value;
@@ -492,8 +493,5 @@ namespace Opc.Ua.Extensions
                 return false;
             }
         }
-
-        [GeneratedRegex("(.+)#([isgb]{1}\\=.*)")]
-        private static partial Regex NodeRegex();
     }
 }

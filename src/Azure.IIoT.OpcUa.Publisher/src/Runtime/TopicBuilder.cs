@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Topic templating support
     /// </summary>
-    public sealed partial class TopicBuilder
+    public sealed class TopicBuilder
     {
         /// <summary>
         /// Root topic
@@ -86,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher
             return new Formatter(topicName, _variables).Format(template);
         }
 
-        private sealed partial class Formatter
+        private sealed class Formatter
         {
             /// <summary>
             /// Unused variables
@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 {
                     return string.Empty;
                 }
-                return VariableRegex().Replace(template, m =>
+                return Regex.Replace(template, "{([^}]+)}", m =>
                     {
                         if (Variables.TryGetValue(m.Groups[1].Value, out var v))
                         {
@@ -124,9 +124,6 @@ namespace Azure.IIoT.OpcUa.Publisher
                     });
             }
         }
-
-        [GeneratedRegex("{([^}]+)}")]
-        private static partial Regex VariableRegex();
 
         private readonly IOptions<PublisherOptions> _options;
         private readonly Dictionary<string, Func<Formatter, string>> _variables;
