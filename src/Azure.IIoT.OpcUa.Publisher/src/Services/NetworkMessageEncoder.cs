@@ -115,6 +115,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .SetRetain(retain)
                         .SetTtl(ttl)
                         .AddBuffers(chunks);
+                    if (_options.Value.UseStandardsCompliantEncoding != true)
+                    {
+                        chunkedMessage = chunkedMessage
+                            .AddProperty("$$ContentType", networkMessage.ContentType)
+                            .AddProperty("$$ContentEncoding", networkMessage.ContentEncoding);
+                    }
                     if (_options.Value.EnableDataSetRoutingInfo ?? false)
                     {
                         chunkedMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
