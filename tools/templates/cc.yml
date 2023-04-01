@@ -33,7 +33,6 @@ jobs:
       projects: '**/tests/*.csproj'
       arguments: '--blame-hang --blame-hang-timeout 10m --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
       publishTestResults: false
-    continueOnError: true
   - task: DotNetCoreCLI@2
     inputs:
       command: custom
