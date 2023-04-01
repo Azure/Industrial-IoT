@@ -98,8 +98,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Check if session is active
         /// </summary>
-        public bool IsActive => HasSubscriptions || _activeThreads > 0 ||
-            _lastActivity + ClientTimeout > DateTime.UtcNow;
+        public bool IsActive => HasSubscriptions || // Either subscriptions present or
+            (_fastClose != true && // Not fast closing
+                // and either active callers or within non timeout
+                (_activeThreads > 0 || _lastActivity + ClientTimeout > DateTime.UtcNow));
 
         /// <summary>
         /// Create client
@@ -172,6 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogInformation(
                     "Subscription {Subscription} registered/updated in session {Session}.",
                     subscription.Name, id);
+                _fastClose = true;
             }
             catch (Exception ex)
             {
@@ -299,6 +302,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async Task<T> RunAsync<T>(Func<ISessionHandle, Task<T>> service,
             CancellationToken ct)
         {
+            _fastClose = false;
             Interlocked.Increment(ref _activeThreads);
             try
             {
@@ -1783,6 +1787,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private NodeId _authenticationToken;
         private bool _needsConnecting;
         private int _activeThreads;
+        private bool? _fastClose;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly AsyncManualResetEvent _connected = new();
         private readonly ApplicationConfiguration _configuration;

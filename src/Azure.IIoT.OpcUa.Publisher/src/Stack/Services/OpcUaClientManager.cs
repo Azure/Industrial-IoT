@@ -93,7 +93,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 // try to get an existing session
-                if (!_clients.TryGetValue(id, out var client))
+                if (_clients.TryGetValue(id, out var client) && !client.IsActive)
+                {
+                    _inactive.Enqueue(client);
+                    client = null;
+                }
+                if (client == null)
                 {
                     client = CreateClient(id, new OpcUaClientTagList(connection, metrics ?? _metrics));
                     _clients.AddOrUpdate(id, client);
@@ -101,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "New session {Name} added, current number of sessions is {Count}.",
                         id, _clients.Count);
                 }
-                // Try and connect the session
+                // Try and connect the client
                 try
                 {
                     await client.ConnectAsync(false, ct).ConfigureAwait(false);
@@ -357,18 +362,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 _logger.LogDebug("Running client manager connection and garbage collection cycle...");
-                var inactive = new Dictionary<ConnectionIdentifier, OpcUaClient>();
+                var inactive = new List<ConnectionIdentifier>();
                 await _lock.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
                     foreach (var client in _clients)
                     {
-                        //
-                        // If active (lifetime and whether we have subscriptions
-                        // keep the client connected
-                        //
                         if (client.Value.IsActive)
                         {
+                            // If active keep the client connected
                             try
                             {
                                 await client.Value.ConnectAsync(true, ct).ConfigureAwait(false);
@@ -378,19 +380,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 _logger.LogDebug(ex,
                                     "Client manager failed to re-connect session {Name}.",
                                     client.Key);
+                                 // ? inactive.Add(client.Key);
                             }
                         }
                         else
                         {
                             // Collect inactive clients
-                            inactive.Add(client.Key, client.Value);
+                            inactive.Add(client.Key);
                         }
                     }
 
                     // Remove inactive clients from client list
-                    foreach (var key in inactive.Keys)
+                    foreach (var key in inactive)
                     {
-                        _clients.TryRemove(key, out _);
+                        if (_clients.TryRemove(key, out var client))
+                        {
+                            _inactive.Enqueue(client);
+                        }
                     }
                 }
                 catch (OperationCanceledException)
@@ -407,17 +413,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // Garbage collect inactives
+                while (_inactive.TryDequeue(out var client))
+                {
+                    await client.DisposeAsync().ConfigureAwait(false);
+                }
+
                 if (inactive.Count > 0)
                 {
-                    foreach (var client in inactive.Values)
-                    {
-                        await client.DisposeAsync().ConfigureAwait(false);
-                    }
                     _logger.LogInformation(
-                        "Garbage collected {Sessions} sessions" +
-                        ", current number of sessions is {Count}.",
+                        "Garbage collected {Sessions} sessions, current number of sessions is {Count}.",
                         inactive.Count, _clients.Count);
-                    inactive.Clear();
                 }
             }
         }
@@ -714,8 +719,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private void InitializeMetrics()
         {
             Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_count",
-                () => new Measurement<int>(_clients.Count, _metrics.TagList), "Clients",
-                "Number of connected clients.");
+                () => new Measurement<int>(_clients.Count + _inactive.Count, _metrics.TagList),
+                "Clients", "Number of clients.");
         }
 
         private const int kMaxDiscoveryAttempts = 3;
@@ -724,6 +729,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ILogger _logger;
         private readonly IOptions<ClientOptions> _options;
         private readonly IJsonSerializer _serializer;
+        private readonly ConcurrentQueue<OpcUaClient> _inactive = new();
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
         private readonly SemaphoreSlim _lock;
         private readonly CancellationTokenSource _cts;
