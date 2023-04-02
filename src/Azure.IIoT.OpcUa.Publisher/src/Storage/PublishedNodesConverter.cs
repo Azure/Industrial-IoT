@@ -107,7 +107,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DataSetKeyFrameCount = item.Writer.KeyFrameCount,
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
                             DataSetName = item.Writer.DataSet?.Name,
-                            DataSetWriterGroup = item.WriterGroup.WriterGroupId,
+                            DataSetWriterGroup = item.WriterGroup.WriterGroupId == Constants.DefaultWriterGroupId ?
+                                null : item.WriterGroup.WriterGroupId,
                             DataSetWriterId =
                                 RecoverOriginalDataSetWriterId(item.Writer.DataSetWriterName),
                             DataSetPublishingInterval = null,
