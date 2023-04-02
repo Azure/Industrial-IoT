@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
 
-            _current = new Dictionary<string, WriterGroupJob>();
+            _currentJobs = new Dictionary<string, WriterGroupJob>();
 
             TagList = new TagList(new[] {
                 new KeyValuePair<string, object?>("publisherId", PublisherId),
@@ -152,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             // Disposing - stop all groups before exiting
-            foreach (var group in _current.Values)
+            foreach (var group in _currentJobs.Values)
             {
                 try
                 {
@@ -184,16 +184,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var writerGroup in changes)
             {
                 ct.ThrowIfCancellationRequested();
-                var jobId = GetWriterGroupId(writerGroup);
-                if (string.IsNullOrEmpty(jobId))
-                {
-                    continue;
-                }
+                var jobId = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
                 if (writerGroup.DataSetWriters?.Count > 0)
                 {
                     try
                     {
-                        if (_current.TryGetValue(jobId, out var currentJob))
+                        if (_currentJobs.TryGetValue(jobId, out var currentJob))
                         {
                             await currentJob.UpdateAsync(Version, writerGroup, ct).ConfigureAwait(false);
                         }
@@ -202,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             // Create new writer group job
                             currentJob = await WriterGroupJob.CreateAsync(this, jobId, Version,
                                 writerGroup, ct).ConfigureAwait(false);
-                            _current.Add(currentJob.Id, currentJob);
+                            _currentJobs.Add(currentJob.Id, currentJob);
                         }
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
@@ -214,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             // Anything not having an updated version will be deleted
-            foreach (var delete in _current.Values.Where(j => j.Version < Version).ToList())
+            foreach (var delete in _currentJobs.Values.Where(j => j.Version < Version).ToList())
             {
                 try
                 {
@@ -225,14 +221,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     exceptions.Add(ex);
                     _logger.LogError(ex, "Failed to dispose writer group job before removal.");
                 }
-                _current.Remove(delete.Id);
+                _currentJobs.Remove(delete.Id);
             }
 
             if (exceptions.Count == 0)
             {
                 // Update writer groups
                 LastChange = DateTime.UtcNow;
-                WriterGroups = _current.Values
+                WriterGroups = _currentJobs.Values
                     .Select(j => j.WriterGroup)
                     .ToImmutableList();
                 // Complete
@@ -371,33 +367,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly PublisherService _outer;
         }
 
-        /// <summary>
-        /// Create a job id for the group
-        /// </summary>
-        /// <param name="writerGroup"></param>
-        /// <returns></returns>
-        private static string? GetWriterGroupId(WriterGroupModel writerGroup)
-        {
-            if (writerGroup.WriterGroupId != null &&
-                writerGroup.WriterGroupId != Constants.DefaultWriterGroupId)
-            {
-                return writerGroup.WriterGroupId;
-            }
-
-            var connection = writerGroup?.DataSetWriters?.First()?.DataSet?.DataSetSource?.Connection;
-            if (connection == null)
-            {
-                return null;
-            }
-            return $"{Constants.DefaultWriterGroupId}_(${connection.CreateConnectionId()})";
-        }
-
-
         private bool _isDisposed;
         private readonly IWriterGroupScopeFactory _factory;
         private readonly ILogger _logger;
         private readonly Task _processor;
-        private readonly Dictionary<string, WriterGroupJob> _current;
+        private readonly Dictionary<string, WriterGroupJob> _currentJobs;
         private readonly TaskCompletionSource _completedTask;
         private readonly CancellationTokenSource _cts;
         private readonly Channel<(TaskCompletionSource, List<WriterGroupModel>)> _changeFeed;
