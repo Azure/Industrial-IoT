@@ -33,15 +33,15 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Try update configuration
         /// </summary>
-        /// <param name="jobs"></param>
+        /// <param name="writerGroups"></param>
         /// <returns></returns>
-        bool TryUpdate(IEnumerable<WriterGroupModel> jobs);
+        bool TryUpdate(IEnumerable<WriterGroupModel> writerGroups);
 
         /// <summary>
         /// Update configuration
         /// </summary>
-        /// <param name="jobs"></param>
+        /// <param name="writerGroups"></param>
         /// <returns></returns>
-        Task UpdateAsync(IEnumerable<WriterGroupModel> jobs);
+        Task UpdateAsync(IEnumerable<WriterGroupModel> writerGroups);
     }
 }

@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using static System.Net.Mime.MediaTypeNames;
 
     /// <summary>
     /// Json message
@@ -40,6 +41,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// </summary>
     public class PublisherIntegrationTestBase : IDisposable
     {
+        protected ReferenceServer ServerFixture { get; set; }
+
         /// <summary>
         /// Create fixture
         /// </summary>
@@ -48,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         public PublisherIntegrationTestBase(ReferenceServer serverFixture,
             ITestOutputHelper testOutputHelper)
         {
-            _serverFixture = serverFixture;
+            ServerFixture = serverFixture;
             _testOutputHelper = testOutputHelper;
         }
 
@@ -62,23 +65,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Get one message from running publisher
         /// </summary>
+        /// <param name="test"></param>
         /// <param name="publishedNodesFile"></param>
         /// <param name="predicate"></param>
         /// <param name="messageType"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        protected Task<List<JsonMessage>> ProcessMessagesAsync(string publishedNodesFile,
+        protected Task<List<JsonMessage>> ProcessMessagesAsync(string test, string publishedNodesFile,
             Func<JsonElement, JsonElement> predicate = null, string messageType = null,
             string[] arguments = default)
         {
             // Collect messages from server with default settings
-            return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1,
+            return ProcessMessagesAsync(test, publishedNodesFile, TimeSpan.FromMinutes(2), 1,
                 predicate, messageType, arguments);
         }
 
         /// <summary>
         /// Get one message from a running publisher
         /// </summary>
+        /// <param name="test"></param>
         /// <param name="publishedNodesFile"></param>
         /// <param name="predicate"></param>
         /// <param name="messageType"></param>
@@ -86,17 +91,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="version"></param>
         /// <returns></returns>
         protected Task<(JsonMessage? Metadata, List<JsonMessage> Messages)> ProcessMessagesAndMetadataAsync(
-            string publishedNodesFile, Func<JsonElement, JsonElement> predicate = null,
+            string test, string publishedNodesFile, Func<JsonElement, JsonElement> predicate = null,
             string messageType = null, string[] arguments = default, MqttVersion? version = null)
         {
             // Collect messages from server with default settings
-            return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1,
+            return ProcessMessagesAndMetadataAsync(test, publishedNodesFile, TimeSpan.FromMinutes(2), 1,
                 predicate, messageType, arguments, version);
         }
 
         /// <summary>
         /// Process messages and return
         /// </summary>
+        /// <param name="test"></param>
         /// <param name="publishedNodesFile"></param>
         /// <param name="messageCollectionTimeout"></param>
         /// <param name="messageCount"></param>
@@ -104,11 +110,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="messageType"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        protected async Task<List<JsonMessage>> ProcessMessagesAsync(string publishedNodesFile,
+        protected async Task<List<JsonMessage>> ProcessMessagesAsync(string test, string publishedNodesFile,
             TimeSpan messageCollectionTimeout, int messageCount, Func<JsonElement, JsonElement> predicate = null,
             string messageType = null, string[] arguments = default)
         {
-            var (_, messages) = await ProcessMessagesAndMetadataAsync(publishedNodesFile,
+            var (_, messages) = await ProcessMessagesAndMetadataAsync(test, publishedNodesFile,
                 messageCollectionTimeout, messageCount, predicate, messageType, arguments).ConfigureAwait(false);
             return messages;
         }
@@ -116,6 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Start publisher and wait for messages and return them
         /// </summary>
+        /// <param name="test"></param>
         /// <param name="publishedNodesFile"></param>
         /// <param name="messageCollectionTimeout"></param>
         /// <param name="messageCount"></param>
@@ -125,11 +132,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="version"></param>
         /// <returns></returns>
         protected async Task<(JsonMessage? Metadata, List<JsonMessage> Messages)> ProcessMessagesAndMetadataAsync(
-            string publishedNodesFile, TimeSpan messageCollectionTimeout, int messageCount,
+            string test, string publishedNodesFile, TimeSpan messageCollectionTimeout, int messageCount,
             Func<JsonElement, JsonElement> predicate = null, string messageType = null, string[] arguments = default,
             MqttVersion? version = null)
         {
-            StartPublisher(publishedNodesFile, arguments, version);
+            StartPublisher(test, publishedNodesFile, arguments, version);
             try
             {
                 return await WaitForMessagesAndMetadataAsync(messageCollectionTimeout,
@@ -261,21 +268,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Start publisher
         /// </summary>
+        /// <param name="test"></param>
         /// <param name="publishedNodesFile"></param>
         /// <param name="arguments"></param>
         /// <param name="version"></param>
-        protected void StartPublisher(string publishedNodesFile = null, string[] arguments = default,
-            MqttVersion? version = null)
+        protected void StartPublisher(string test, string publishedNodesFile = null,
+            string[] arguments = default, MqttVersion? version = null)
         {
             arguments ??= Array.Empty<string>();
             _publishedNodesFilePath = Path.GetTempFileName();
-            if (!string.IsNullOrEmpty(publishedNodesFile))
-            {
-                File.WriteAllText(_publishedNodesFilePath,
-                    File.ReadAllText(publishedNodesFile).Replace("{{Port}}",
-                    _serverFixture.Port.ToString(CultureInfo.InvariantCulture),
-                    StringComparison.Ordinal));
-            }
+            WritePublishedNodes(test, publishedNodesFile);
 
             arguments = arguments.Concat(
                 new[]
@@ -285,6 +287,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             _publisher = new PublisherModule(null, null, null, null,
                 _testOutputHelper, arguments, version);
+        }
+
+        /// <summary>
+        /// Update published nodes file
+        /// </summary>
+        /// <param name="test"></param>
+        /// <param name="publishedNodesFile"></param>
+        protected void WritePublishedNodes(string test, string publishedNodesFile)
+        {
+            if (!string.IsNullOrEmpty(publishedNodesFile))
+            {
+                File.WriteAllText(_publishedNodesFilePath,
+                    File.ReadAllText(publishedNodesFile)
+                    .Replace("{{Port}}", ServerFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+                    .Replace("{{DataSetWriterGroup}}", test, StringComparison.Ordinal));
+            }
         }
 
         /// <summary>
@@ -312,17 +330,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Get endpoints from file
         /// </summary>
+        /// <param name="test"></param>
         /// <param name="publishedNodesFile"></param>
         /// <returns></returns>
-        protected PublishedNodesEntryModel[] GetEndpointsFromFile(string publishedNodesFile)
+        protected PublishedNodesEntryModel[] GetEndpointsFromFile(string test, string publishedNodesFile)
         {
             IJsonSerializer serializer = new NewtonsoftJsonSerializer();
-            var fileContent = File.ReadAllText(publishedNodesFile).Replace("{{Port}}",
-                _serverFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
+            var fileContent = File.ReadAllText(publishedNodesFile)
+                .Replace("{{Port}}", ServerFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+                .Replace("{{DataSetWriterGroup}}", test, StringComparison.Ordinal);
             return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }
 
-        private readonly ReferenceServer _serverFixture;
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly HashSet<string> _messageIds = new();
         private PublisherModule _publisher;

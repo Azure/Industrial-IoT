@@ -2,6 +2,7 @@
     {
         "EndpointUrl": "opc.tcp://localhost:{{Port}}/UA/SampleServer",
         "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
         "OpcNodes": [
             {
                 "Id": "i=2253",
