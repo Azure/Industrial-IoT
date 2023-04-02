@@ -144,7 +144,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return $"{_sessionName} ({_lastState})";
+            return $"{_sessionName} [state:{_lastState}|subscriptions:{HasSubscriptions}" +
+                $"|fastclose:{_fastClose}|activethreads:{_activeThreads}|lastactivity:{_lastActivity}]";
         }
 
         /// <inheritdoc/>
@@ -167,18 +168,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentException("Subscription name missing", nameof(subscription));
             }
-            var id = new ConnectionIdentifier(subscription.Connection);
             try
             {
                 _subscriptions.AddOrUpdate(subscription.Name, subscription, (_, _) => subscription);
                 _logger.LogInformation(
-                    "Subscription {Subscription} registered/updated in session {Session}.",
-                    subscription.Name, id);
+                    "Subscription {Subscription} registered/updated in client {Client}.",
+                    subscription.Name, this);
                 _fastClose = true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to register subscription");
+                _logger.LogError(ex, "Failed to register subscription with client {Client}", this);
             }
         }
 
@@ -192,8 +192,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (_subscriptions.TryRemove(subscription.Name, out _))
             {
                 _logger.LogInformation(
-                    "Subscription {Subscription} unregistered from session {Session}.",
-                    subscription.Name, _sessionName);
+                    "Subscription {Subscription} unregistered from client {Client}.",
+                    subscription.Name, this);
             }
         }
 
@@ -222,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 catch (Exception ex)
                 {
                     // Log Error
-                    _logger.LogError(ex, "Error creating session {Name}.", _sessionName);
+                    _logger.LogError(ex, "Error connecting a session for Client {Client}.", this);
                     _session?.Dispose();
                     _session = null;
                     Codec = CreateCodec();
@@ -243,8 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     await subscription.ReapplyToSessionAsync(this).ConfigureAwait(false);
                 }
-                _logger.LogInformation("Reapplied all subscriptions to session {Name}.",
-                    _sessionName);
+                _logger.LogInformation("Client {Client} reapplied all subscriptions.", this);
             }
 
             NotifySubscriptionStateChange(connected);
@@ -349,6 +348,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ObjectDisposedException(_sessionName);
             }
             _disposed = true;
+            _logger.LogInformation("Closing client {Client}...", this);
 
             Session? session;
             List<ISubscription>? subscriptions;
@@ -367,44 +367,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _connected.Set(); // Release any waiting tasks with exception
             }
 
-            if (session == null)
+            if (session != null)
             {
-                return;
-            }
-
-            try
-            {
-                _logger.LogInformation("Closing session {Name}...", _sessionName);
-
-                if (subscriptions.Count > 0)
+                try
                 {
-                    //
-                    // Close all subscriptions. Since this might call back into
-                    // the session manager and we are under the lock, queue this
-                    // to the thread pool to execute after
-                    //
-                    ThreadPool.QueueUserWorkItem(_ =>
+                    _logger.LogDebug("Closing session in {Client}...", this);
+                    if (subscriptions.Count > 0)
                     {
-                        foreach (var subscription in _subscriptions.Values)
+                        //
+                        // Close all subscriptions. Since this might call back into
+                        // the session manager and we are under the lock, queue this
+                        // to the thread pool to execute after
+                        //
+                        ThreadPool.QueueUserWorkItem(_ =>
                         {
-                            Try.Op(() => subscription.Dispose());
-                        }
-                    });
+                            foreach (var subscription in _subscriptions.Values)
+                            {
+                                Try.Op(() => subscription.Dispose());
+                            }
+                        });
+                    }
+
+                    await session.CloseAsync().ConfigureAwait(false);
+                    _logger.LogInformation(
+                        "Session of client {Client} cleanly closed.", this);
                 }
-
-                await session.CloseAsync().ConfigureAwait(false);
-
-                // Log Session Disconnected event
-                _logger.LogDebug("Session {Name} closed.", _sessionName);
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Error closing session of client {Client}.", this);
+                }
+                finally
+                {
+                    session.Dispose();
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during closing of session {Name}.", _sessionName);
-            }
-            finally
-            {
-                session.Dispose();
-            }
+            _logger.LogInformation("Client {Client} closed.", this);
         }
 
         /// <summary>
@@ -416,8 +414,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (IsReconnecting)
             {
                 // Cannot connect while reconnecting.
-                _logger.LogInformation("Session {Name} is reconnecting. Not connecting.",
-                    _sessionName);
+                _logger.LogInformation(
+                    "Client {Client} is reconnecting. Not connecting.", this);
                 return false;
             }
 
@@ -531,8 +529,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get complex type system for session {Name}.",
-                    _sessionName);
+                _logger.LogError(ex,
+                    "Failed to get complex type system for client {Client}.", this);
                 return null;
             }
         }
@@ -1307,8 +1305,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (ReconnectPeriod == null || ReconnectPeriod <= TimeSpan.Zero)
                     {
                         _logger.LogWarning(
-                            "KeepAlive status {Status} for session {Name}, but reconnect is disabled.",
-                            e.Status, _sessionName);
+                            "KeepAlive status {Status} for client {Client}, but reconnect is disabled.",
+                            e.Status, this);
 
                         UnsetSession();
                         _needsConnecting = true;
@@ -1320,8 +1318,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         if (_reconnectHandler == null)
                         {
                             _logger.LogInformation(
-                                "KeepAlive status {Status} for session {Name}, reconnecting in {Period}ms.",
-                                e.Status, _sessionName, ReconnectPeriod);
+                                "KeepAlive status {Status} for client {Client}, reconnecting in {Period}ms.",
+                                e.Status, this, ReconnectPeriod);
 
                             _reconnectHandler = new SessionReconnectHandler(true);
                             Debug.Assert(ReferenceEquals(session, _session));
@@ -1336,8 +1334,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         else
                         {
                             _logger.LogDebug(
-                                "KeepAlive status {Status} for session {Name}, reconnect in progress.",
-                                e.Status, _sessionName);
+                                "KeepAlive status {Status} for client {Client}, reconnect in progress.",
+                                e.Status, this);
                         }
                     }
 
@@ -1347,7 +1345,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                Utils.LogError(ex, "Error in OnKeepAlive for session {Name}.", _sessionName);
+                _logger.LogError(ex, "Error in OnKeepAlive for client {Client}.", this);
             }
         }
 
@@ -1455,7 +1453,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             Codec = CreateCodec();
             session.Dispose();
-            _logger.LogDebug("Session {Name} disposed.", _sessionName);
+            _logger.LogDebug("Session in client {Client} disposed.", this);
         }
 
         /// <summary>
@@ -1470,14 +1468,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     var complexTypeSystem = new ComplexTypeSystem(_session);
                     await complexTypeSystem.Load().ConfigureAwait(false);
-                    _logger.LogInformation("Session {Name} complex type system loaded",
-                        _sessionName);
+                    _logger.LogInformation(
+                        "Complex type system loaded into client {Client}.", this);
                     return complexTypeSystem;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to load complex type system.");
+                _logger.LogError(ex,
+                    "Failed to load complex type system into client {Client}.", this);
             }
             return null;
         }
