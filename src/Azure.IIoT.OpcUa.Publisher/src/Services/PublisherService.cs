@@ -184,20 +184,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var writerGroup in changes)
             {
                 ct.ThrowIfCancellationRequested();
-                var writerGroupId = writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId;
-
+                var jobId = GetWriterGroupId(writerGroup);
+                if (string.IsNullOrEmpty(jobId))
+                {
+                    continue;
+                }
                 if (writerGroup.DataSetWriters?.Count > 0)
                 {
                     try
                     {
-                        if (_current.TryGetValue(writerGroupId, out var currentJob))
+                        if (_current.TryGetValue(jobId, out var currentJob))
                         {
                             await currentJob.UpdateAsync(Version, writerGroup, ct).ConfigureAwait(false);
                         }
                         else
                         {
                             // Create new writer group job
-                            currentJob = await WriterGroupJob.CreateAsync(this, writerGroupId, Version,
+                            currentJob = await WriterGroupJob.CreateAsync(this, jobId, Version,
                                 writerGroup, ct).ConfigureAwait(false);
                             _current.Add(currentJob.Id, currentJob);
                         }
@@ -327,13 +330,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public async ValueTask UpdateAsync(int version, WriterGroupModel writerGroup,
                 CancellationToken ct)
             {
-                Debug.Assert(Id == (writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId));
                 try
                 {
-                    await Source.UpdateAsync(writerGroup, ct).ConfigureAwait(false);
+                    var newWriterGroup = writerGroup with { WriterGroupId = Id };
+
+                    await Source.UpdateAsync(newWriterGroup, ct).ConfigureAwait(false);
 
                     // Update inner state if successful
-                    WriterGroup = writerGroup;
+                    WriterGroup = newWriterGroup;
                 }
                 catch (Exception ex)
                 {
@@ -366,6 +370,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly IWriterGroupScope _scope;
             private readonly PublisherService _outer;
         }
+
+        /// <summary>
+        /// Create a job id for the group
+        /// </summary>
+        /// <param name="writerGroup"></param>
+        /// <returns></returns>
+        private static string? GetWriterGroupId(WriterGroupModel writerGroup)
+        {
+            if (writerGroup.WriterGroupId != null &&
+                writerGroup.WriterGroupId != Constants.DefaultWriterGroupId)
+            {
+                return writerGroup.WriterGroupId;
+            }
+
+            var connection = writerGroup?.DataSetWriters?.First()?.DataSet?.DataSetSource?.Connection;
+            if (connection == null)
+            {
+                return null;
+            }
+            return $"{Constants.DefaultWriterGroupId}_(${connection.CreateConnectionId()})";
+        }
+
 
         private bool _isDisposed;
         private readonly IWriterGroupScopeFactory _factory;
