@@ -5,11 +5,10 @@
         "DataSetWriterGroup": "{{DataSetWriterGroup}}",
         "OpcNodes": [
             {
-                "Id": "ns=23;i=1259",
-                "OpcSamplingInterval": 2000,
-                "OpcPublishingInterval": 2000,
-                "DisplayName": "Output",
-                "SkipFirst": true
+                "Id": "http://test.org/UA/Data/#i=11224",
+                "OpcSamplingInterval": 1000,
+                "OpcPublishingInterval": 1000,
+                "DisplayName": "Output2"
             }
         ]
     }

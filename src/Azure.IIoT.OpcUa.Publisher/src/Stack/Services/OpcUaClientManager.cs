@@ -496,7 +496,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private OpcUaClient CreateClient(ConnectionIdentifier id, IMetricsContext metrics)
         {
             var logger = _loggerFactory.CreateLogger<OpcUaClient>();
-            return new OpcUaClient(_configuration.Result, id, _serializer, logger, metrics)
+            return new OpcUaClient(_configuration.Result, id, _serializer, logger,
+                _options.Value.ClientInactivityTimeout, metrics)
             {
                 KeepAliveInterval = _options.Value.KeepAliveInterval,
                 SessionTimeout = _options.Value.DefaultSessionTimeout,

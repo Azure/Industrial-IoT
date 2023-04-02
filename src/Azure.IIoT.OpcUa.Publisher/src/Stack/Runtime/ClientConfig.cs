@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string ApplicationUriKey = "ApplicationUri";
         public const string ProductUriKey = "ProductUri";
         public const string DefaultSessionTimeoutKey = "DefaultSessionTimeout";
+        public const string ClientInactivityTimeout = "ClientInactivityTimeout";
         public const string KeepAliveIntervalKey = "KeepAliveInterval";
         public const string PkiRootPathKey = "PkiRootPath";
         public const string ApplicationCertificateStorePathKey = "ApplicationCertificateStorePath";
@@ -67,6 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int MaxStringLengthDefault = (128 * 1024) - 256;
         public const int OperationTimeoutDefault = 120 * 1000;
         public const int DefaultSessionTimeoutDefaultSec = 60;
+        public const int DefaultClientInactivityTimeoutSec = 5 * 60;
         public const int KeepAliveIntervalDefaultSec = 10;
         public const int ReconnectRetryDelayDefaultSec = 5;
         public const int MinimumCertificateKeySizeDefault = 1024;
@@ -105,6 +107,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 if (sessionTimeout > 0)
                 {
                     options.DefaultSessionTimeout = TimeSpan.FromSeconds(sessionTimeout);
+                }
+            }
+
+            if (options.ClientInactivityTimeout == null)
+            {
+                var inactivityTimeout = GetIntOrDefault(ClientInactivityTimeout,
+                    DefaultClientInactivityTimeoutSec);
+                if (inactivityTimeout > 0)
+                {
+                    options.ClientInactivityTimeout = TimeSpan.FromSeconds(inactivityTimeout);
                 }
             }
 

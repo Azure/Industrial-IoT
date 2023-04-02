@@ -783,6 +783,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             catch (Exception e) when (e is not MethodCallStatusException)
             {
+                _logger.LogError(e, "Failed to get diagnostics information.");
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally

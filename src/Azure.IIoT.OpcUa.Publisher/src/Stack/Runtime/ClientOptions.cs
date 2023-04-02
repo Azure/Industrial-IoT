@@ -38,6 +38,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
+        /// Time of inactivity until client will be collected
+        /// </summary>
+        public TimeSpan? ClientInactivityTimeout { get; set; }
+
+        /// <summary>
         /// How long in milliseconds to wait until
         /// reconnecting is attempted.
         /// </summary>

@@ -29,6 +29,9 @@
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Service\src\Azure.IIoT.OpcUa.Publisher.Service.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Resources\DataItems2.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Deadband.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

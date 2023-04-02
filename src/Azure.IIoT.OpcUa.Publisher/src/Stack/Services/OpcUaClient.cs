@@ -71,11 +71,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public TimeSpan? SessionTimeout { get; set; }
 
         /// <summary>
-        /// The time of inactivity after which the client becomes inactive
-        /// </summary>
-        public TimeSpan ClientTimeout { get; set; } = TimeSpan.FromMinutes(5);
-
-        /// <summary>
         /// The file to use for log output.
         /// </summary>
         public int NumberOfConnectRetries { get; internal set; }
@@ -96,11 +91,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal bool HasSubscriptions => !_subscriptions.IsEmpty;
 
         /// <summary>
+        /// The time of inactivity after which the client becomes inactive
+        /// </summary>
+        internal TimeSpan ClientTimeout { get; }
+
+        /// <summary>
         /// Check if session is active
         /// </summary>
         public bool IsActive => HasSubscriptions || // Either subscriptions present or
             (_fastClose != true && // Not fast closing
-                // and either active callers or within non timeout
+                // and either active callers or within timeout interval
                 (_activeThreads > 0 || _lastActivity + ClientTimeout > DateTime.UtcNow));
 
         /// <summary>
@@ -112,10 +112,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
         /// <param name="sessionName"></param>
+        /// <param name="inactivityTimeout"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaClient(ApplicationConfiguration configuration, ConnectionIdentifier connection,
-            IJsonSerializer serializer, ILogger<OpcUaClient> logger, IMetricsContext metrics,
-            string? sessionName = null)
+            IJsonSerializer serializer, ILogger<OpcUaClient> logger, TimeSpan? inactivityTimeout,
+            IMetricsContext metrics, string? sessionName = null)
         {
             if (connection?.Connection?.Endpoint == null)
             {
@@ -133,11 +134,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _needsConnecting = true;
             _lastState = EndpointConnectivityState.Connecting;
+            // Give time to register subscriptions on the client
+            ClientTimeout = inactivityTimeout ?? TimeSpan.FromMinutes(5);
+            _lastActivity = DateTime.UtcNow + TimeSpan.FromMinutes(1);
             _sessionName = sessionName ?? connection.ToString();
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             Codec = CreateCodec();
-
             InitializeMetrics(metrics ?? throw new ArgumentNullException(nameof(metrics)));
         }
 
@@ -1779,7 +1782,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private OperationLimitsModel? _limits;
         private HistoryServerCapabilitiesModel? _history;
         private Session? _session;
-        private DateTime _lastActivity = DateTime.UtcNow;
+        private DateTime _lastActivity;
         private Task<ComplexTypeSystem?>? _complexTypeSystem;
         private EndpointConnectivityState _lastState;
         private bool _disposed;

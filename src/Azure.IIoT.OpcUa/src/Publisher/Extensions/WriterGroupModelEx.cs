@@ -14,20 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public static class WriterGroupModelEx
     {
         /// <summary>
-        /// Returns the job Id
-        /// </summary>
-        /// <param name="model"></param>
-        public static string? GetJobId(this WriterGroupModel? model)
-        {
-            var connection = model?.DataSetWriters?.First()?.DataSet?.DataSetSource?.Connection;
-            if (connection == null)
-            {
-                return null;
-            }
-            return connection.CreateConnectionId();
-        }
-
-        /// <summary>
         /// Check if same writer group configuration
         /// Excludes writers.
         /// </summary>
