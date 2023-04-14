@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Exceptions;
     using Furly.Extensions.Serializers;
-    using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using Opc.Ua;
@@ -27,12 +26,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Threading.Channels;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    public sealed class OpcUaClient : IAsyncDisposable, ISessionHandle,
-        ISessionServices
+    public sealed class OpcUaClient : IAsyncDisposable, ISessionHandle, ISessionServices
     {
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityState>? OnConnectionStateChange;
@@ -71,37 +70,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public TimeSpan? SessionTimeout { get; set; }
 
         /// <summary>
-        /// The file to use for log output.
+        /// Retries
         /// </summary>
         public int NumberOfConnectRetries { get; internal set; }
 
         /// <summary>
         /// Is reconnecting
         /// </summary>
-        public bool IsReconnecting => _reconnectHandler != null;
-
-        /// <summary>
-        /// Is reconnecting
-        /// </summary>
         internal bool IsConnected => _session?.Connected ?? false;
-
-        /// <summary>
-        /// Whether the connect operation is in progress
-        /// </summary>
-        internal bool HasSubscriptions => !_subscriptions.IsEmpty;
-
-        /// <summary>
-        /// The time of inactivity after which the client becomes inactive
-        /// </summary>
-        internal TimeSpan ClientTimeout { get; }
-
-        /// <summary>
-        /// Check if session is active
-        /// </summary>
-        public bool IsActive => HasSubscriptions || // Either subscriptions present or
-            (_fastClose != true && // Not fast closing
-                // and either active callers or within timeout interval
-                (_activeThreads > 0 || _lastActivity + ClientTimeout > DateTime.UtcNow));
 
         /// <summary>
         /// Create client
@@ -112,36 +88,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
         /// <param name="sessionName"></param>
-        /// <param name="inactivityTimeout"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaClient(ApplicationConfiguration configuration, ConnectionIdentifier connection,
-            IJsonSerializer serializer, ILogger<OpcUaClient> logger, TimeSpan? inactivityTimeout,
-            IMetricsContext metrics, string? sessionName = null)
+            IJsonSerializer serializer, ILogger<OpcUaClient> logger, IMetricsContext metrics,
+            string? sessionName = null)
         {
             if (connection?.Connection?.Endpoint == null)
             {
                 throw new ArgumentNullException(nameof(connection));
             }
-            if (metrics == null)
-            {
-                throw new ArgumentNullException(nameof(metrics));
-            }
-
-            _authenticationToken = NodeId.Null;
             _connection = connection.Connection;
+            _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
+            InitializeMetrics();
+
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _needsConnecting = true;
-            _lastState = EndpointConnectivityState.Connecting;
-            // Give time to register subscriptions on the client
-            ClientTimeout = inactivityTimeout ?? TimeSpan.FromMinutes(5);
-            _lastActivity = DateTime.UtcNow + TimeSpan.FromMinutes(1);
+            _authenticationToken = NodeId.Null;
+            _lastState = EndpointConnectivityState.Disconnected;
             _sessionName = sessionName ?? connection.ToString();
-            _logger = logger ??
-                throw new ArgumentNullException(nameof(logger));
             Codec = CreateCodec();
-            InitializeMetrics(metrics ?? throw new ArgumentNullException(nameof(metrics)));
+
+            _cts = new CancellationTokenSource();
+            _channel = Channel.CreateUnbounded<ConnectionEvent>();
+            _disconnectLock = _lock.WriterLock(_cts.Token);
+            _sessionManager = Task.Factory.StartNew(() => ManageSessionStateMachineAsync(_cts.Token),
+                _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            Release();
         }
 
         /// <inheritdoc/>
@@ -162,22 +141,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public void RegisterSubscription(ISubscription subscription)
         {
-            if (subscription.Connection == null)
-            {
-                throw new ArgumentException("Connection missing", nameof(subscription));
-            }
             if (subscription.Name == null)
             {
                 throw new ArgumentException("Subscription name missing", nameof(subscription));
             }
-            var id = new ConnectionIdentifier(subscription.Connection);
             try
             {
                 _subscriptions.AddOrUpdate(subscription.Name, subscription, (_, _) => subscription);
                 _logger.LogInformation(
                     "Subscription {Subscription} registered/updated in session {Session}.",
-                    subscription.Name, id);
-                _fastClose = true;
+                    subscription.Name, _sessionName);
+
+                AddRef();
             }
             catch (Exception ex)
             {
@@ -197,61 +172,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogInformation(
                     "Subscription {Subscription} unregistered from session {Session}.",
                     subscription.Name, _sessionName);
-            }
-        }
 
-        /// <summary>
-        /// Connect the client. Returns true if connection was established.
-        /// </summary>
-        /// <param name="reapplySubscriptionState"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public async ValueTask<bool> ConnectAsync(bool reapplySubscriptionState = false,
-            CancellationToken ct = default)
-        {
-            if (!_needsConnecting)
-            {
-                return true;
+                Release();
             }
-
-            _needsConnecting = false;
-            bool connected;
-            using (var writerlock = await _lock.WriterLockAsync(ct).ConfigureAwait(false))
-            {
-                try
-                {
-                    connected = await ConnectInternalAsync().ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    // Log Error
-                    _logger.LogError(ex, "Error creating session {Name}.", _sessionName);
-                    _session?.Dispose();
-                    _session = null;
-                    Codec = CreateCodec();
-                    connected = false;
-                    _needsConnecting = true;
-                }
-            }
-
-            if (connected && reapplySubscriptionState)
-            {
-                //
-                // Apply subscription settings for existing subscriptions
-                // This will take the subscription lock, since the connect
-                // can be called under it the default should be false.
-                // Only if the manager task calls connect we should do this.
-                //
-                foreach (var subscription in _subscriptions.Values)
-                {
-                    await subscription.ReapplyToSessionAsync(this).ConfigureAwait(false);
-                }
-                _logger.LogInformation("Reapplied all subscriptions to session {Name}.",
-                    _sessionName);
-            }
-
-            NotifySubscriptionStateChange(connected);
-            return connected;
         }
 
         /// <inheritdoc/>
@@ -302,45 +225,400 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task<T> RunAsync<T>(Func<ISessionHandle, Task<T>> service,
-            CancellationToken ct)
+        public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync()
         {
-            _fastClose = false;
-            Interlocked.Increment(ref _activeThreads);
+            using var readerlock = await _lock.ReaderLockAsync().ConfigureAwait(false);
             try
             {
-                while (true)
-                {
-                    await _connected.WaitAsync(ct).ConfigureAwait(false);
-                    if (_disposed)
-                    {
-                        throw new ConnectionException($"Session {_sessionName} was closed.");
-                    }
-                    if (_session?.Connected != true)
-                    {
-                        _logger.LogInformation(
-                            "Connected signaled but not connected, retry in 5 seconds...");
-                        // Delay and try again
-                        await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
-                        continue;
-                    }
-                    try
-                    {
-                        var result = await service(this).ConfigureAwait(false);
-                        _lastActivity = DateTime.UtcNow;
-                        return result;
-                    }
-                    catch (Exception ex) when (!_session.Connected)
-                    {
-                        _logger.LogInformation("Session disconnected during service call " +
-                            "with message {Message}, retrying.", ex.Message);
-                    }
-                    ct.ThrowIfCancellationRequested();
-                }
+                _complexTypeSystem ??= LoadComplexTypeSystemAsync();
+                return await _complexTypeSystem.ConfigureAwait(false);
             }
-            finally
+            catch (Exception ex)
             {
-                Interlocked.Decrement(ref _activeThreads);
+                _logger.LogError(ex, "Failed to get complex type system for session {Name}.",
+                    _sessionName);
+                return null;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<AddNodesResponse> AddNodesAsync(RequestHeader requestHeader,
+            AddNodesItemCollection nodesToAdd, CancellationToken ct)
+        {
+            using var activity = await BeginAsync<AddNodesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new AddNodesRequest
+            {
+                RequestHeader = requestHeader,
+                NodesToAdd = nodesToAdd
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<AddNodesResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<AddReferencesResponse> AddReferencesAsync(
+            RequestHeader requestHeader, AddReferencesItemCollection referencesToAdd,
+            CancellationToken ct)
+        {
+            using var activity = await BeginAsync<AddReferencesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new AddReferencesRequest
+            {
+                RequestHeader = requestHeader,
+                ReferencesToAdd = referencesToAdd
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<AddReferencesResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<DeleteNodesResponse> DeleteNodesAsync(
+            RequestHeader requestHeader, DeleteNodesItemCollection nodesToDelete,
+            CancellationToken ct)
+        {
+            using var activity = await BeginAsync<DeleteNodesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new DeleteNodesRequest
+            {
+                RequestHeader = requestHeader,
+                NodesToDelete = nodesToDelete
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<DeleteNodesResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<DeleteReferencesResponse> DeleteReferencesAsync(
+            RequestHeader requestHeader, DeleteReferencesItemCollection referencesToDelete,
+            CancellationToken ct)
+        {
+            using var activity = await BeginAsync<DeleteReferencesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new DeleteReferencesRequest
+            {
+                RequestHeader = requestHeader,
+                ReferencesToDelete = referencesToDelete
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<DeleteReferencesResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<BrowseResponse> BrowseAsync(
+            RequestHeader requestHeader, ViewDescription? view,
+            uint requestedMaxReferencesPerNode,
+            BrowseDescriptionCollection nodesToBrowse, CancellationToken ct)
+        {
+            using var activity = await BeginAsync<BrowseResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new BrowseRequest
+            {
+                RequestHeader = requestHeader,
+                View = view,
+                RequestedMaxReferencesPerNode = requestedMaxReferencesPerNode,
+                NodesToBrowse = nodesToBrowse
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<BrowseResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<BrowseNextResponse> BrowseNextAsync(
+            RequestHeader requestHeader, bool releaseContinuationPoints,
+            ByteStringCollection continuationPoints, CancellationToken ct)
+        {
+            using var activity = await BeginAsync<BrowseNextResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new BrowseNextRequest
+            {
+                RequestHeader = requestHeader,
+                ReleaseContinuationPoints = releaseContinuationPoints,
+                ContinuationPoints = continuationPoints
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<BrowseNextResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<TranslateBrowsePathsToNodeIdsResponse> TranslateBrowsePathsToNodeIdsAsync(
+            RequestHeader requestHeader, BrowsePathCollection browsePaths,
+            CancellationToken ct)
+        {
+            using var activity = await BeginAsync<TranslateBrowsePathsToNodeIdsResponse>(
+                requestHeader, ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new TranslateBrowsePathsToNodeIdsRequest
+            {
+                RequestHeader = requestHeader,
+                BrowsePaths = browsePaths
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<TranslateBrowsePathsToNodeIdsResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<RegisterNodesResponse> RegisterNodesAsync(
+            RequestHeader requestHeader, NodeIdCollection nodesToRegister,
+            CancellationToken ct)
+        {
+            using var activity = await BeginAsync<RegisterNodesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new RegisterNodesRequest
+            {
+                RequestHeader = requestHeader,
+                NodesToRegister = nodesToRegister
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<RegisterNodesResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<UnregisterNodesResponse> UnregisterNodesAsync(
+            RequestHeader requestHeader, NodeIdCollection nodesToUnregister,
+            CancellationToken ct)
+        {
+            using var activity = await BeginAsync<UnregisterNodesResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new UnregisterNodesRequest
+            {
+                RequestHeader = requestHeader,
+                NodesToUnregister = nodesToUnregister
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<UnregisterNodesResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<QueryFirstResponse> QueryFirstAsync(
+            RequestHeader requestHeader, ViewDescription view,
+            NodeTypeDescriptionCollection nodeTypes, ContentFilter filter,
+            uint maxDataSetsToReturn, uint maxReferencesToReturn,
+            CancellationToken ct)
+        {
+            using var activity = await BeginAsync<QueryFirstResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new QueryFirstRequest
+            {
+                RequestHeader = requestHeader,
+                View = view,
+                NodeTypes = nodeTypes,
+                Filter = filter,
+                MaxDataSetsToReturn = maxDataSetsToReturn,
+                MaxReferencesToReturn = maxReferencesToReturn
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<QueryFirstResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<QueryNextResponse> QueryNextAsync(
+            RequestHeader requestHeader, bool releaseContinuationPoint,
+            byte[] continuationPoint, CancellationToken ct)
+        {
+            using var activity = await BeginAsync<QueryNextResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new QueryNextRequest
+            {
+                RequestHeader = requestHeader,
+                ReleaseContinuationPoint = releaseContinuationPoint,
+                ContinuationPoint = continuationPoint
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<QueryNextResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<ReadResponse> ReadAsync(RequestHeader requestHeader,
+            double maxAge, Opc.Ua.TimestampsToReturn timestampsToReturn,
+            ReadValueIdCollection nodesToRead, CancellationToken ct)
+        {
+            using var activity = await BeginAsync<ReadResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new ReadRequest
+            {
+                RequestHeader = requestHeader,
+                MaxAge = maxAge,
+                TimestampsToReturn = timestampsToReturn,
+                NodesToRead = nodesToRead
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<ReadResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResponse> HistoryReadAsync(
+            RequestHeader requestHeader, ExtensionObject? historyReadDetails,
+            Opc.Ua.TimestampsToReturn timestampsToReturn, bool releaseContinuationPoints,
+            HistoryReadValueIdCollection nodesToRead, CancellationToken ct)
+        {
+            using var activity = await BeginAsync<HistoryReadResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new HistoryReadRequest
+            {
+                RequestHeader = requestHeader,
+                HistoryReadDetails = historyReadDetails,
+                TimestampsToReturn = timestampsToReturn,
+                ReleaseContinuationPoints = releaseContinuationPoints,
+                NodesToRead = nodesToRead
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<HistoryReadResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<WriteResponse> WriteAsync(RequestHeader requestHeader,
+            WriteValueCollection nodesToWrite, CancellationToken ct)
+        {
+            using var activity = await BeginAsync<WriteResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new WriteRequest
+            {
+                RequestHeader = requestHeader,
+                NodesToWrite = nodesToWrite
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<WriteResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponse> HistoryUpdateAsync(
+            RequestHeader requestHeader, ExtensionObjectCollection historyUpdateDetails,
+            CancellationToken ct)
+        {
+            using var activity = await BeginAsync<HistoryUpdateResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new HistoryUpdateRequest
+            {
+                RequestHeader = requestHeader,
+                HistoryUpdateDetails = historyUpdateDetails
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<HistoryUpdateResponse>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<CallResponse> CallAsync(RequestHeader requestHeader,
+            CallMethodRequestCollection methodsToCall, CancellationToken ct)
+        {
+            using var activity = await BeginAsync<CallResponse>(requestHeader,
+                ct).ConfigureAwait(false);
+            if (activity.Error != null)
+            {
+                return activity.Error;
+            }
+            var request = new CallRequest
+            {
+                RequestHeader = requestHeader,
+                MethodsToCall = methodsToCall
+            };
+            var response = await activity.Session.TransportChannel.SendRequestAsync(
+                request, ct).ConfigureAwait(false);
+            return ValidateResponse<CallResponse>(response);
+        }
+
+        /// <summary>
+        /// Safely invoke the service call and retry if the session
+        /// disconnected during call.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="service"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        /// <exception cref="ConnectionException"></exception>
+        internal async Task<T> RunAsync<T>(Func<ISessionHandle, Task<T>> service,
+            CancellationToken ct)
+        {
+            while (true)
+            {
+                if (_disposed)
+                {
+                    throw new ConnectionException($"Session {_sessionName} was closed.");
+                }
+                try
+                {
+                    return await service(this).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (!IsConnected)
+                {
+                    _logger.LogInformation("Session disconnected during service call " +
+                        "with message {Message}, retrying.", ex.Message);
+                }
+                ct.ThrowIfCancellationRequested();
             }
         }
 
@@ -351,92 +629,259 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ObjectDisposedException(_sessionName);
             }
+
             _disposed = true;
+            _cts.Cancel();
 
-            Session? session;
-            List<ISubscription>? subscriptions;
-            using (var writerlock = await _lock.WriterLockAsync().ConfigureAwait(false))
+            await _sessionManager.ConfigureAwait(false);
+
+            _lastState = EndpointConnectivityState.Disconnected;
+            _subscriptions.Clear();
+            UnsetSession();
+        }
+
+        /// <summary>
+        /// Increment the reference count.
+        /// </summary>
+        internal void AddRef()
+        {
+            if (Interlocked.Increment(ref _refCount) == 1)
             {
-                NumberOfConnectRetries = 0;
-                _lastState = EndpointConnectivityState.Disconnected;
-                _reconnectHandler?.Dispose();
-                _reconnectHandler = null;
-
-                subscriptions = _subscriptions.Values.ToList();
-                _subscriptions.Clear();
-                session = _session;
-                UnsetSession(true);
-
-                _connected.Set(); // Release any waiting tasks with exception
-            }
-
-            if (session == null)
-            {
-                return;
-            }
-
-            try
-            {
-                _logger.LogInformation("Closing session {Name}...", _sessionName);
-
-                if (subscriptions.Count > 0)
-                {
-                    //
-                    // Close all subscriptions. Since this might call back into
-                    // the session manager and we are under the lock, queue this
-                    // to the thread pool to execute after
-                    //
-                    ThreadPool.QueueUserWorkItem(_ =>
-                    {
-                        foreach (var subscription in _subscriptions.Values)
-                        {
-                            Try.Op(() => subscription.Dispose());
-                        }
-                    });
-                }
-
-                await session.CloseAsync().ConfigureAwait(false);
-
-                // Log Session Disconnected event
-                _logger.LogDebug("Session {Name} closed.", _sessionName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during closing of session {Name}.", _sessionName);
-            }
-            finally
-            {
-                session.Dispose();
+                // Post connection request
+                _channel.Writer.TryWrite(ConnectionEvent.Connect);
             }
         }
 
         /// <summary>
-        /// Connect client (no lock)
+        /// Release reference count
+        /// </summary>
+        internal void Release()
+        {
+            // Decrement reference count
+            if (Interlocked.Decrement(ref _refCount) == 0)
+            {
+                // Post disconnect request
+                _channel.Writer.TryWrite(ConnectionEvent.Disconnect);
+            }
+        }
+
+        /// <summary>
+        /// Manages the underlying session state machine.
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task ManageSessionStateMachineAsync(CancellationToken ct)
+        {
+            var currentState = SessionState.Disconnected;
+
+            using var connectTimer = new Timer(_ =>
+                _channel.Writer.TryWrite(ConnectionEvent.Connect));
+            var reconnectPeriod = ReconnectPeriod ?? TimeSpan.FromSeconds(3);
+            SessionReconnectHandler? reconnectHandler = null;
+            try
+            {
+                await foreach (var trigger in _channel.Reader.ReadAllAsync(ct))
+                {
+                    switch (trigger)
+                    {
+                        case ConnectionEvent.Connect:
+                            switch (currentState)
+                            {
+                                case SessionState.Disconnected:
+                                    Debug.Assert(reconnectHandler == null);
+                                    Debug.Assert(_disconnectLock != null);
+                                    Debug.Assert(_session == null);
+
+                                    if (!await TryConnectAsync(ct).ConfigureAwait(false))
+                                    {
+                                        // Reschedule connecting. Todo: Exponential retry
+                                        connectTimer.Change(reconnectPeriod, Timeout.InfiniteTimeSpan);
+                                        break;
+                                    }
+
+                                    Debug.Assert(_session != null);
+
+                                    // Allow access to session now
+                                    _disconnectLock.Dispose();
+                                    _disconnectLock = null;
+
+                                    NotifySubscriptionStateChange(true);
+                                    await ApplySubscriptionAsync().ConfigureAwait(false);
+                                    currentState = SessionState.Connected;
+                                    break;
+                                case SessionState.Connected:
+                                    // Nothing to do, already connected
+                                    break;
+                                case SessionState.Reconnecting:
+                                    Debug.Fail("Should not be connecting during reconnecting.");
+                                    break;
+                            }
+                            break;
+
+                        case ConnectionEvent.BeginReconnect: // sent by the keep alive timeout path
+                            switch (currentState)
+                            {
+                                case SessionState.Connected: // only valid when connected.
+                                    Debug.Assert(reconnectHandler == null);
+
+                                    NotifySubscriptionStateChange(false);
+
+                                    // Ensure no more access to the session through reader locks
+                                    Debug.Assert(_disconnectLock == null);
+                                    _disconnectLock = await _lock.WriterLockAsync(ct);
+
+                                    _logger.LogInformation("Reconnecting session {Name} in {Period} ms.",
+                                        _sessionName, reconnectPeriod);
+
+                                    reconnectHandler = new SessionReconnectHandler(true);
+                                    reconnectHandler.BeginReconnect(_session,
+                                        (int)reconnectPeriod.TotalMilliseconds, (sender, evt) =>
+                                        {
+                                            // ignore callbacks from discarded objects.
+                                            if (ReferenceEquals(sender, reconnectHandler))
+                                            {
+                                                _channel.Writer.TryWrite(ConnectionEvent.EndReconnect);
+                                            }
+                                        });
+
+                                    // Unset session - do not dispose the session while reconnecting.
+                                    UnsetSession(true);
+                                    Debug.Assert(_session == null);
+                                    NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
+                                    currentState = SessionState.Reconnecting;
+                                    break;
+                                case SessionState.Disconnected:
+                                case SessionState.Reconnecting:
+                                    // Nothing to do
+                                    break;
+                            }
+                            break;
+
+                        case ConnectionEvent.EndReconnect:
+                            // if session recovered, Session property is not null
+                            var newSession = reconnectHandler?.Session as Session;
+                            reconnectHandler?.Dispose();
+                            reconnectHandler = null;
+
+                            switch (currentState)
+                            {
+                                case SessionState.Reconnecting:
+                                    if (newSession?.Connected != true)
+                                    {
+                                        // Failed to reconnect.
+                                        _logger.LogInformation("--- SESSION {Name} failed reconnecting. ---",
+                                            _sessionName);
+
+                                        // Schedule a full reconnect immediately
+                                        newSession?.Dispose();
+                                        currentState = SessionState.Disconnected;
+                                        _channel.Writer.TryWrite(ConnectionEvent.Connect);
+                                        break;
+                                    }
+
+                                    SetSession(newSession);
+                                    _logger.LogInformation("--- SESSION {Name} RECONNECTED ---", _sessionName);
+                                    NumberOfConnectRetries++;
+                                    NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
+
+                                    // Allow access to session again
+                                    Debug.Assert(_disconnectLock != null);
+                                    _disconnectLock.Dispose();
+                                    _disconnectLock = null;
+
+                                    NotifySubscriptionStateChange(true);
+                                    await ApplySubscriptionAsync().ConfigureAwait(false);
+                                    currentState = SessionState.Connected;
+                                    break;
+
+                                case SessionState.Connected:
+                                    Debug.Fail("Should not signal reconnected when already connected.");
+                                    break;
+                                case SessionState.Disconnected:
+                                    newSession?.Dispose();
+                                    break;
+                            }
+                            break;
+
+                        case ConnectionEvent.Disconnect:
+
+                            // If currently reconnecting, dispose the reconnect handler
+                            reconnectHandler?.Dispose();
+                            reconnectHandler = null;
+
+                            NotifySubscriptionStateChange(false);
+
+                            // if not already disconnected, aquire writer lock
+                            if (_disconnectLock == null)
+                            {
+                                _disconnectLock = await _lock.WriterLockAsync(ct);
+                            }
+
+                            NumberOfConnectRetries = 0;
+
+                            if (_session != null)
+                            {
+                                try
+                                {
+                                    await _session.CloseAsync(ct).ConfigureAwait(false);
+                                }
+                                catch (Exception ex) when (ex is not OperationCanceledException)
+                                {
+                                    _logger.LogError(ex, "Failed to close session {Name}.",
+                                        _sessionName);
+                                }
+                            }
+
+                            // Clean up
+                            UnsetSession();
+                            Debug.Assert(_session == null);
+
+                            NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
+                            currentState = SessionState.Disconnected;
+                            break;
+                    }
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Client {Client} connection manager exited unexpectedly...", this);
+            }
+            finally
+            {
+                reconnectHandler?.Dispose();
+                reconnectHandler = null;
+            }
+        }
+
+        /// <summary>
+        /// Apply subscription settings on top of session
         /// </summary>
         /// <returns></returns>
-        private async ValueTask<bool> ConnectInternalAsync()
+        private async Task ApplySubscriptionAsync()
         {
-            if (IsReconnecting)
+            foreach (var subscription in _subscriptions.Values)
             {
-                // Cannot connect while reconnecting.
-                _logger.LogInformation("Session {Name} is reconnecting. Not connecting.",
-                    _sessionName);
-                return false;
-            }
-
-            if (IsConnected)
-            {
-                // Nothing to do but try ensure complex type system is loaded
-                if (_complexTypeSystem?.IsCompleted == false)
+                try
                 {
-                    await _complexTypeSystem.ConfigureAwait(false);
+                    await subscription.ReapplyToSessionAsync(this).ConfigureAwait(false);
                 }
-                return true;
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to apply subscription to session");
+                }
             }
+        }
 
-            UnsetSession(); // Ensure any previous session is disposed here.
+        /// <summary>
+        /// Connect client
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async ValueTask<bool> TryConnectAsync(CancellationToken ct)
+        {
             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
-            _logger.LogDebug("--- SESSION {Name} CONNECTING... ---", _sessionName);
 
             var endpointUrlCandidates = _connection.Endpoint!.Url.YieldReturn();
             if (_connection.Endpoint.AlternativeUrls != null)
@@ -444,9 +889,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 endpointUrlCandidates = endpointUrlCandidates.Concat(
                     _connection.Endpoint.AlternativeUrls);
             }
+
+            _logger.LogInformation("--- SESSION {Name} CONNECTING to {EndpointUrl} ---",
+                _sessionName, _connection.Endpoint.Url);
             var attempt = 0;
             foreach (var endpointUrl in endpointUrlCandidates)
             {
+                UnsetSession(); // Ensure any previous session is disposed here.
+                ct.ThrowIfCancellationRequested();
                 try
                 {
                     //
@@ -486,12 +936,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }.ToList();
 
                     var sessionTimeout = SessionTimeout ?? TimeSpan.FromSeconds(30);
-                    var session = await Session.Create(_configuration, endpoint,
+                    var session = await Session.Create(_configuration,
+                        reverseConnectManager: null, endpoint,
                         updateBeforeConnect: true, // Udpate endpoint through discovery
                         checkDomain: false, // Domain must match on connect
                         _sessionName,
                         (uint)sessionTimeout.TotalMilliseconds,
-                        userIdentity, preferredLocales).ConfigureAwait(false);
+                        userIdentity, preferredLocales, ct).ConfigureAwait(false);
 
                     // Assign the created session
                     SetSession(session);
@@ -500,7 +951,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _sessionName, endpointUrl, _connection.Endpoint.Url);
 
                     _limits = await FetchOperationLimitsAsync(new RequestHeader(),
-                        default).ConfigureAwait(false);
+                        ct).ConfigureAwait(false);
 
                     // Try and load type system - does not throw but logs error
                     Debug.Assert(_complexTypeSystem != null);
@@ -521,474 +972,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
             return false;
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync()
-        {
-            using var readerlock = await _lock.ReaderLockAsync().ConfigureAwait(false);
-            try
-            {
-                _complexTypeSystem ??= LoadComplexTypeSystemAsync();
-                return await _complexTypeSystem.ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get complex type system for session {Name}.",
-                    _sessionName);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Invokes the AddNodes service using async Task based request.
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="nodesToAdd"></param>
-        /// <param name="ct"></param>
-        public async Task<AddNodesResponse> AddNodesAsync(RequestHeader requestHeader,
-            AddNodesItemCollection nodesToAdd, CancellationToken ct)
-        {
-            using var activity = await BeginAsync<AddNodesResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new AddNodesRequest
-            {
-                RequestHeader = requestHeader,
-                NodesToAdd = nodesToAdd
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<AddNodesResponse>(response);
-        }
-
-        /// <summary>
-        /// Invokes the AddReferences service using async Task based request.
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="referencesToAdd"></param>
-        /// <param name="ct"></param>
-        public async Task<AddReferencesResponse> AddReferencesAsync(
-            RequestHeader requestHeader, AddReferencesItemCollection referencesToAdd,
-            CancellationToken ct)
-        {
-            using var activity = await BeginAsync<AddReferencesResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new AddReferencesRequest
-            {
-                RequestHeader = requestHeader,
-                ReferencesToAdd = referencesToAdd
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<AddReferencesResponse>(response);
-        }
-
-        /// <summary>
-        /// Invokes the DeleteNodes service using async Task based request.
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="nodesToDelete"></param>
-        /// <param name="ct"></param>
-        public async Task<DeleteNodesResponse> DeleteNodesAsync(
-            RequestHeader requestHeader, DeleteNodesItemCollection nodesToDelete,
-            CancellationToken ct)
-        {
-            using var activity = await BeginAsync<DeleteNodesResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new DeleteNodesRequest
-            {
-                RequestHeader = requestHeader,
-                NodesToDelete = nodesToDelete
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<DeleteNodesResponse>(response);
-        }
-
-        /// <summary>
-        /// Invokes the DeleteReferences service using async Task based request.
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="referencesToDelete"></param>
-        /// <param name="ct"></param>
-        public async Task<DeleteReferencesResponse> DeleteReferencesAsync(
-            RequestHeader requestHeader, DeleteReferencesItemCollection referencesToDelete,
-            CancellationToken ct)
-        {
-            using var activity = await BeginAsync<DeleteReferencesResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new DeleteReferencesRequest
-            {
-                RequestHeader = requestHeader,
-                ReferencesToDelete = referencesToDelete
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<DeleteReferencesResponse>(response);
-        }
-
-        /// <summary>
-        /// Browse
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="view"></param>
-        /// <param name="requestedMaxReferencesPerNode"></param>
-        /// <param name="nodesToBrowse"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public async Task<BrowseResponse> BrowseAsync(
-            RequestHeader requestHeader, ViewDescription? view,
-            uint requestedMaxReferencesPerNode,
-            BrowseDescriptionCollection nodesToBrowse, CancellationToken ct)
-        {
-            using var activity = await BeginAsync<BrowseResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new BrowseRequest
-            {
-                RequestHeader = requestHeader,
-                View = view,
-                RequestedMaxReferencesPerNode = requestedMaxReferencesPerNode,
-                NodesToBrowse = nodesToBrowse
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<BrowseResponse>(response);
-        }
-
-        /// <summary>
-        /// Invokes the BrowseNext service using async Task based request.
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="releaseContinuationPoints"></param>
-        /// <param name="continuationPoints"></param>
-        /// <param name="ct"></param>
-        public async Task<BrowseNextResponse> BrowseNextAsync(
-            RequestHeader requestHeader, bool releaseContinuationPoints,
-            ByteStringCollection continuationPoints, CancellationToken ct)
-        {
-            using var activity = await BeginAsync<BrowseNextResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new BrowseNextRequest
-            {
-                RequestHeader = requestHeader,
-                ReleaseContinuationPoints = releaseContinuationPoints,
-                ContinuationPoints = continuationPoints
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<BrowseNextResponse>(response);
-        }
-
-        /// <summary>
-        /// Translate browse paths
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="browsePaths"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public async Task<TranslateBrowsePathsToNodeIdsResponse> TranslateBrowsePathsToNodeIdsAsync(
-            RequestHeader requestHeader, BrowsePathCollection browsePaths,
-            CancellationToken ct)
-        {
-            using var activity = await BeginAsync<TranslateBrowsePathsToNodeIdsResponse>(
-                requestHeader, ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new TranslateBrowsePathsToNodeIdsRequest
-            {
-                RequestHeader = requestHeader,
-                BrowsePaths = browsePaths
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<TranslateBrowsePathsToNodeIdsResponse>(response);
-        }
-
-        /// <summary>
-        /// Register nodes
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="nodesToRegister"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public async Task<RegisterNodesResponse> RegisterNodesAsync(
-            RequestHeader requestHeader, NodeIdCollection nodesToRegister,
-            CancellationToken ct)
-        {
-            using var activity = await BeginAsync<RegisterNodesResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new RegisterNodesRequest
-            {
-                RequestHeader = requestHeader,
-                NodesToRegister = nodesToRegister
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<RegisterNodesResponse>(response);
-        }
-
-        /// <summary>
-        /// Invokes the UnregisterNodes service using async Task based request.
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="nodesToUnregister"></param>
-        /// <param name="ct"></param>
-        public async Task<UnregisterNodesResponse> UnregisterNodesAsync(
-            RequestHeader requestHeader, NodeIdCollection nodesToUnregister,
-            CancellationToken ct)
-        {
-            using var activity = await BeginAsync<UnregisterNodesResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new UnregisterNodesRequest
-            {
-                RequestHeader = requestHeader,
-                NodesToUnregister = nodesToUnregister
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<UnregisterNodesResponse>(response);
-        }
-
-        /// <summary>
-        /// Invokes the QueryFirst service using async Task based request.
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="view"></param>
-        /// <param name="nodeTypes"></param>
-        /// <param name="filter"></param>
-        /// <param name="maxDataSetsToReturn"></param>
-        /// <param name="maxReferencesToReturn"></param>
-        /// <param name="ct"></param>
-        public async Task<QueryFirstResponse> QueryFirstAsync(
-            RequestHeader requestHeader, ViewDescription view,
-            NodeTypeDescriptionCollection nodeTypes, ContentFilter filter,
-            uint maxDataSetsToReturn, uint maxReferencesToReturn,
-            CancellationToken ct)
-        {
-            using var activity = await BeginAsync<QueryFirstResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new QueryFirstRequest
-            {
-                RequestHeader = requestHeader,
-                View = view,
-                NodeTypes = nodeTypes,
-                Filter = filter,
-                MaxDataSetsToReturn = maxDataSetsToReturn,
-                MaxReferencesToReturn = maxReferencesToReturn
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<QueryFirstResponse>(response);
-        }
-
-        /// <summary>
-        /// Invokes the QueryNext service using async Task based request.
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="releaseContinuationPoint"></param>
-        /// <param name="continuationPoint"></param>
-        /// <param name="ct"></param>
-        public async Task<QueryNextResponse> QueryNextAsync(
-            RequestHeader requestHeader, bool releaseContinuationPoint,
-            byte[] continuationPoint, CancellationToken ct)
-        {
-            using var activity = await BeginAsync<QueryNextResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new QueryNextRequest
-            {
-                RequestHeader = requestHeader,
-                ReleaseContinuationPoint = releaseContinuationPoint,
-                ContinuationPoint = continuationPoint
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<QueryNextResponse>(response);
-        }
-
-        /// <summary>
-        /// Read
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="maxAge"></param>
-        /// <param name="timestampsToReturn"></param>
-        /// <param name="nodesToRead"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public async Task<ReadResponse> ReadAsync(RequestHeader requestHeader,
-            double maxAge, Opc.Ua.TimestampsToReturn timestampsToReturn,
-            ReadValueIdCollection nodesToRead, CancellationToken ct)
-        {
-            using var activity = await BeginAsync<ReadResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new ReadRequest
-            {
-                RequestHeader = requestHeader,
-                MaxAge = maxAge,
-                TimestampsToReturn = timestampsToReturn,
-                NodesToRead = nodesToRead
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<ReadResponse>(response);
-        }
-
-        /// <summary>
-        /// History read
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="historyReadDetails"></param>
-        /// <param name="timestampsToReturn"></param>
-        /// <param name="releaseContinuationPoints"></param>
-        /// <param name="nodesToRead"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public async Task<HistoryReadResponse> HistoryReadAsync(
-            RequestHeader requestHeader, ExtensionObject? historyReadDetails,
-            Opc.Ua.TimestampsToReturn timestampsToReturn, bool releaseContinuationPoints,
-            HistoryReadValueIdCollection nodesToRead, CancellationToken ct)
-        {
-            using var activity = await BeginAsync<HistoryReadResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new HistoryReadRequest
-            {
-                RequestHeader = requestHeader,
-                HistoryReadDetails = historyReadDetails,
-                TimestampsToReturn = timestampsToReturn,
-                ReleaseContinuationPoints = releaseContinuationPoints,
-                NodesToRead = nodesToRead
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<HistoryReadResponse>(response);
-        }
-
-        /// <summary>
-        /// Write
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="nodesToWrite"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public async Task<WriteResponse> WriteAsync(RequestHeader requestHeader,
-            WriteValueCollection nodesToWrite, CancellationToken ct)
-        {
-            using var activity = await BeginAsync<WriteResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new WriteRequest
-            {
-                RequestHeader = requestHeader,
-                NodesToWrite = nodesToWrite
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<WriteResponse>(response);
-        }
-
-        /// <summary>
-        /// History update
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="historyUpdateDetails"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public async Task<HistoryUpdateResponse> HistoryUpdateAsync(
-            RequestHeader requestHeader, ExtensionObjectCollection historyUpdateDetails,
-            CancellationToken ct)
-        {
-            using var activity = await BeginAsync<HistoryUpdateResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new HistoryUpdateRequest
-            {
-                RequestHeader = requestHeader,
-                HistoryUpdateDetails = historyUpdateDetails
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<HistoryUpdateResponse>(response);
-        }
-
-        /// <summary>
-        /// Call
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <param name="methodsToCall"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public async Task<CallResponse> CallAsync(RequestHeader requestHeader,
-            CallMethodRequestCollection methodsToCall, CancellationToken ct)
-        {
-            using var activity = await BeginAsync<CallResponse>(requestHeader,
-                ct).ConfigureAwait(false);
-            if (activity.Error != null)
-            {
-                return activity.Error;
-            }
-            var request = new CallRequest
-            {
-                RequestHeader = requestHeader,
-                MethodsToCall = methodsToCall
-            };
-            var response = await activity.Session.TransportChannel.SendRequestAsync(
-                request, ct).ConfigureAwait(false);
-            return ValidateResponse<CallResponse>(response);
         }
 
         /// <summary>
@@ -1307,92 +1290,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // start reconnect sequence on communication error.
                 if (ServiceResult.IsBad(e.Status))
                 {
-                    if (ReconnectPeriod == null || ReconnectPeriod <= TimeSpan.Zero)
-                    {
-                        _logger.LogWarning(
-                            "KeepAlive status {Status} for session {Name}, but reconnect is disabled.",
-                            e.Status, _sessionName);
-
-                        UnsetSession();
-                        _needsConnecting = true;
-                        return;
-                    }
-
-                    using (var writerLock = _lock.WriterLock())
-                    {
-                        if (_reconnectHandler == null)
-                        {
-                            _logger.LogInformation(
-                                "KeepAlive status {Status} for session {Name}, reconnecting in {Period}ms.",
-                                e.Status, _sessionName, ReconnectPeriod);
-
-                            _reconnectHandler = new SessionReconnectHandler(true);
-                            Debug.Assert(ReferenceEquals(session, _session));
-                            _reconnectHandler.BeginReconnect(session,
-                                (int)ReconnectPeriod.Value.TotalMilliseconds, Client_ReconnectComplete);
-
-                            // Unset session under lock - do not dispose the session while reconnecting.
-                            UnsetSession(true);
-                            Debug.Assert(_session == null);
-                            NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
-                        }
-                        else
-                        {
-                            _logger.LogDebug(
-                                "KeepAlive status {Status} for session {Name}, reconnect in progress.",
-                                e.Status, _sessionName);
-                        }
-                    }
-
-                    // Go offline
-                    NotifySubscriptionStateChange(false);
+                    _channel.Writer.TryWrite(ConnectionEvent.BeginReconnect);
                 }
             }
             catch (Exception ex)
             {
                 Utils.LogError(ex, "Error in OnKeepAlive for session {Name}.", _sessionName);
             }
-        }
-
-        /// <summary>
-        /// Called when the reconnect attempt was successful.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Client_ReconnectComplete(object? sender, EventArgs e)
-        {
-            // ignore callbacks from discarded objects.
-            if (!ReferenceEquals(sender, _reconnectHandler))
-            {
-                return;
-            }
-
-            using (var writerLock = _lock.WriterLock())
-            {
-                // if session recovered, Session property is not null
-                var newSession = _reconnectHandler?.Session as Session;
-                _reconnectHandler?.Dispose();
-                _reconnectHandler = null;
-
-                if (newSession?.Connected != true)
-                {
-                    // Failed to reconnect.
-                    _logger.LogInformation("--- SESSION {Name} failed reconnecting. ---",
-                        _sessionName);
-                    _needsConnecting = true;
-                    return;
-                }
-
-                SetSession(newSession);
-
-                _logger.LogInformation("--- SESSION {Name} RECONNECTED ---", _sessionName);
-                NumberOfConnectRetries++;
-
-                NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
-            }
-
-            // Go back online
-            NotifySubscriptionStateChange(true);
         }
 
         /// <summary>
@@ -1418,6 +1322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // override keep alive interval
             Codec = CreateCodec(session.MessageContext);
             _session = session;
+            kSessions.Add(1, _metrics.TagList);
             _session.Handle = this;
             Debug.Assert(_session.OperationTimeout != 0);
             _session.KeepAliveInterval =
@@ -1459,6 +1364,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Codec = CreateCodec();
             session.Dispose();
             _logger.LogDebug("Session {Name} disposed.", _sessionName);
+            kSessions.Add(-1, _metrics.TagList);
         }
 
         /// <summary>
@@ -1525,14 +1431,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             _lastState = state;
-            if (_lastState == EndpointConnectivityState.Ready)
-            {
-                _connected.Set();
-            }
-            else
-            {
-                _connected.Reset();
-            }
             _logger.LogInformation(
                 "Session {Name} with {Endpoint} changed from {Previous} to {State}",
                 _sessionName, _connection.Endpoint!.Url, previous, state);
@@ -1733,7 +1631,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Session = session;
                 _lock = readerLock;
                 _activity = Diagnostics.Activity.StartActivity(activity);
-                opcUaClient._lastActivity = DateTime.UtcNow;
 
                 if (opcUaClient._logger.IsEnabled(LogLevel.Debug))
                 {
@@ -1767,40 +1664,56 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Create observable metrics
         /// </summary>
-        /// <param name="metrics"></param>
-        private void InitializeMetrics(IMetricsContext metrics)
+        private void InitializeMetrics()
         {
             Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
-                () => new Measurement<long>(NumberOfConnectRetries, metrics.TagList), "Connection attempts",
+                () => new Measurement<long>(NumberOfConnectRetries, _metrics.TagList), "Connection attempts",
                 "OPC UA connect retries.");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
-                () => new Measurement<int>(IsConnected ? 1 : 0, metrics.TagList), "",
+                () => new Measurement<int>(IsConnected ? 1 : 0, _metrics.TagList), "",
                 "OPC UA connection success flag.");
         }
+        private static readonly UpDownCounter<int> kSessions = Diagnostics.Meter.CreateUpDownCounter<int>(
+            "iiot_edge_publisher_session_count", "Number of active sessions.");
 
-        private SessionReconnectHandler? _reconnectHandler;
+        private enum ConnectionEvent
+        {
+            Connect,
+            Disconnect,
+            BeginReconnect,
+            EndReconnect
+        }
+
+        private enum SessionState
+        {
+            Disconnected,
+            Connected,
+            Reconnecting
+        }
+
         private ServerCapabilitiesModel? _server;
         private OperationLimitsModel? _limits;
         private HistoryServerCapabilitiesModel? _history;
         private Session? _session;
-        private DateTime _lastActivity;
+        private IDisposable? _disconnectLock;
         private Task<ComplexTypeSystem?>? _complexTypeSystem;
         private EndpointConnectivityState _lastState;
         private bool _disposed;
         private NodeId _authenticationToken;
-        private bool _needsConnecting;
-        private int _activeThreads;
-        private bool? _fastClose;
+        private int _refCount;
         private readonly AsyncReaderWriterLock _lock = new();
-        private readonly AsyncManualResetEvent _connected = new();
         private readonly ApplicationConfiguration _configuration;
         private readonly IJsonSerializer _serializer;
         private readonly string _sessionName;
         private readonly ConnectionModel _connection;
+        private readonly IMetricsContext _metrics;
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, ISubscription> _subscriptions = new();
         private static readonly TypeTable kTypeTree = new(new NamespaceTable());
         private static readonly SystemContext kSystemContext = new();
         private static readonly ServiceMessageContext kMessageContext = new();
+        private readonly CancellationTokenSource _cts;
+        private readonly Channel<ConnectionEvent> _channel;
+        private readonly Task _sessionManager;
     }
 }

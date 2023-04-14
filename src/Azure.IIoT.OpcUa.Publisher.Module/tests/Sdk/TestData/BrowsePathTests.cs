@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.TestData
         private BrowsePathTests<ConnectionModel> GetTests()
         {
             return new BrowsePathTests<ConnectionModel>(
-                () => _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>(),
+                _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

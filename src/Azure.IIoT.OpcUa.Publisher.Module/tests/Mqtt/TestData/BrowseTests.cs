@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
         private BrowseServicesTests<ConnectionModel> GetTests()
         {
             return new BrowseServicesTests<ConnectionModel>(
-                () => _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>(),
+                _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>,
                     _server.GetConnection());
         }
 

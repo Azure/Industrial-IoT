@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.MsgPack
         private BrowsePathTests<ConnectionModel> GetTests()
         {
             return new BrowsePathTests<ConnectionModel>(
-                () => _client.Resolve<INodeServices<ConnectionModel>>(),
+                _client.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

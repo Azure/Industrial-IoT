@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
-    using Opc.Ua.Client;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -17,7 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     public interface ISessionProvider<T>
     {
         /// <summary>
-        /// Get a connected session
+        /// Get a connected session. The session handle must be
+        /// disposed when not used anymore.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="metrics"></param>
@@ -29,6 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 
         /// <summary>
         /// Execute the service on the provided session.
+        /// The session handle must not be disposed, it is
+        /// automatically disposed when this call returns.
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="connection"></param>
@@ -42,17 +44,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Get a session handle for a connection or null
         /// if the session does not exist. The session might
-        /// be disconnected at point it is returned.
+        /// be disconnected at point it is returned. The session
+        /// handle must be disposed when not used anymore.
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
         ISessionHandle? GetSessionHandle(T connection);
-
-        /// <summary>
-        /// Get a session handle from a session
-        /// </summary>
-        /// <param name="session"></param>
-        /// <returns></returns>
-        ISessionHandle GetSessionHandle(ISession session);
     }
 }

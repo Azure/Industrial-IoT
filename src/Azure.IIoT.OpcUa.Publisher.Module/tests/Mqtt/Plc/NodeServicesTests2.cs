@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Plc
         private PlcModelComplexTypeTests<ConnectionModel> GetTests()
         {
             return new PlcModelComplexTypeTests<ConnectionModel>(_server,
-                () => _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>(),
+                _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

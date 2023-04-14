@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.HistoricalAccess.Js
         private HistoryReadValuesTests<ConnectionModel> GetTests()
         {
             return new HistoryReadValuesTests<ConnectionModel>(_server,
-                () => _client.Resolve<IHistoryServices<ConnectionModel>>(),
+                _client.Resolve<IHistoryServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.HistoricalAccess
         private NodeHistoricalAccessTests<ConnectionModel> GetTests()
         {
             return new NodeHistoricalAccessTests<ConnectionModel>(
-                () => _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>(),
+                _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

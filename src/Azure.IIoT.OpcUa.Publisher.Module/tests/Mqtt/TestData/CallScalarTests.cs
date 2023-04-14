@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.TestData
         private CallScalarMethodTests<ConnectionModel> GetTests()
         {
             return new CallScalarMethodTests<ConnectionModel>(
-                () => _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>(),
+                _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

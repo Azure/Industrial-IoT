@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.Json
         private CallArrayMethodTests<ConnectionModel> GetTests()
         {
             return new CallArrayMethodTests<ConnectionModel>(
-                () => _client.Resolve<INodeServices<ConnectionModel>>(),
+                _client.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

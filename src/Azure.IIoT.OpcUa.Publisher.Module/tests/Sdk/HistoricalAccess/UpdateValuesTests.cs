@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.HistoricalAccess
         private HistoryUpdateValuesTests<ConnectionModel> GetTests()
         {
             return new HistoryUpdateValuesTests<ConnectionModel>(
-                () => _module.SdkContainer.Resolve<IHistoryServices<ConnectionModel>>(),
+                _module.SdkContainer.Resolve<IHistoryServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

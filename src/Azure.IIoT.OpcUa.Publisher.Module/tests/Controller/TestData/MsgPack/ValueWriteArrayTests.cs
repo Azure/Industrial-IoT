@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.MsgPack
         private WriteArrayValueTests<ConnectionModel> GetTests()
         {
             return new WriteArrayValueTests<ConnectionModel>(
-                () => _client.Resolve<INodeServices<ConnectionModel>>(),
+                _client.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection(), (ep, n, s) => _server.Client.ReadValueAsync(new ConnectionModel
                 {
                     Endpoint = new EndpointModel

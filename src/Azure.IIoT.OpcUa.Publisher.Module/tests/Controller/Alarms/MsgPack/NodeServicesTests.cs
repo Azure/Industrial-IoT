@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.Alarms.MsgPack
         private AlarmServerTests<ConnectionModel> GetTests()
         {
             return new AlarmServerTests<ConnectionModel>(
-                () => _client.Resolve<INodeServices<ConnectionModel>>(),
+                _client.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.Plc.Json
         private SimulatorNodesTests<ConnectionModel> GetTests()
         {
             return new SimulatorNodesTests<ConnectionModel>(_server,
-                () => _client.Resolve<INodeServices<ConnectionModel>>(),
+                _client.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

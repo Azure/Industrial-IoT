@@ -58,13 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(loggerFactory));
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
             _configuration = _options.Value.BuildApplicationConfigurationAsync(
-                 identity == null ? "OpcUaClient" : identity.Id,
-                 OnValidate, _logger);
-            _lock = new SemaphoreSlim(1, 1);
-            _cts = new CancellationTokenSource();
-            _processor = Task.Factory.StartNew(() => RunClientManagerAsync(
-                TimeSpan.FromSeconds(5), _cts.Token), _cts.Token,
-                    TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+                 identity == null ? "OpcUaClient" : identity.Id, OnValidate, _logger);
         }
 
         /// <inheritdoc/>
@@ -83,45 +77,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ISessionHandle> GetOrCreateSessionAsync(ConnectionModel connection,
+        public ValueTask<ISessionHandle> GetOrCreateSessionAsync(ConnectionModel connection,
             IMetricsContext? metrics, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             // Find session and if not exists create
             var id = new ConnectionIdentifier(connection);
-            await _lock.WaitAsync(ct).ConfigureAwait(false);
-            try
-            {
-                // try to get an existing session
-                if (_clients.TryGetValue(id, out var client) && !client.IsActive)
-                {
-                    _inactive.Enqueue(client);
-                    client = null;
-                }
-                if (client == null)
-                {
-                    client = CreateClient(id, new OpcUaClientTagList(connection, metrics ?? _metrics));
-                    _clients.AddOrUpdate(id, client);
-                    _logger.LogInformation(
-                        "New session {Name} added, current number of sessions is {Count}.",
-                        id, _clients.Count);
-                }
-                // Try and connect the client
-                try
-                {
-                    await client.ConnectAsync(false, ct).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to connect session {Name}. " +
-                        "Continue with unconnected session.", id);
-                }
-                return client;
-            }
-            finally
-            {
-                _lock.Release();
-            }
+            // try to get an existing session
+            var client = _clients.GetOrAdd(id,
+                id => CreateClient(id, new OpcUaClientTagList(connection, metrics ?? _metrics)));
+            client.AddRef();
+            return ValueTask.FromResult((ISessionHandle)client);
         }
 
         /// <inheritdoc/>
@@ -133,51 +99,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task DisconnectAsync(ConnectionModel endpoint, CredentialModel? credential,
+        public Task DisconnectAsync(ConnectionModel endpoint, CredentialModel? credential,
             CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            await _lock.WaitAsync(ct).ConfigureAwait(false);
-            try
-            {
-                var id = new ConnectionIdentifier(endpoint);
-                if (!_clients.TryGetValue(id, out var client))
-                {
-                    throw new ResourceNotFoundException(
-                        "Cannot disconnect. Connection not found.");
-                }
-                if (client.HasSubscriptions)
-                {
-                    throw new ResourceInvalidStateException(
-                        "Cannot disconnect. Connection has subscriptions.");
-                }
-                if (!_clients.TryRemove(id, out client))
-                {
-                    return;
-                }
-                await client.DisposeAsync().ConfigureAwait(false);
-            }
-            finally
-            {
-                _lock.Release();
-            }
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public ISessionHandle? GetSessionHandle(ConnectionModel connection)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            return FindClient(connection);
-        }
-
-        /// <inheritdoc/>
-        public ISessionHandle GetSessionHandle(ISession session)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            if (session?.Handle is not OpcUaClient client)
-            {
-                throw new ResourceInvalidStateException("Session does not belong to this object.");
-            }
+            var client = FindClient(connection);
+            client?.AddRef();
             return client;
         }
 
@@ -278,45 +212,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
             _disposed = true;
-            try
-            {
-                _logger.LogInformation("Stopping client manager process ...");
-                _cts.Cancel();
-                await _processor.ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) { }
-            finally
-            {
-                _logger.LogDebug("Client manager process stopped.");
-                _cts.Dispose();
-            }
 
             _logger.LogInformation("Stopping all client sessions...");
-            await _lock.WaitAsync().ConfigureAwait(false);
-            try
+            foreach (var client in _clients)
             {
-                foreach (var client in _clients)
+                try
                 {
-                    try
-                    {
-                        await client.Value.DisposeAsync().ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException) { }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Unexpected exception disposing session {Name}",
-                            client.Key);
-                    }
+                    await client.Value.DisposeAsync().ConfigureAwait(false);
                 }
-                _clients.Clear();
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unexpected exception disposing session {Name}",
+                        client.Key);
+                }
             }
-            finally
-            {
-                _lock.Release();
-                _lock.Dispose();
-                _logger.LogInformation(
-                    "Stopped all sessions, current number of sessions is 0");
-            }
+            _clients.Clear();
+            _logger.LogInformation(
+                "Stopped all sessions, current number of sessions is 0");
         }
 
         /// <summary>
@@ -328,103 +241,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             // Find session and if not exists create
             var id = new ConnectionIdentifier(connection);
-            _lock.Wait();
-            try
+            // try to get an existing session
+            if (!_clients.TryGetValue(id, out var client))
             {
-                // try to get an existing session
-                if (!_clients.TryGetValue(id, out var client))
-                {
-                    return null;
-                }
-                return client;
+                return null;
             }
-            finally
-            {
-                _lock.Release();
-            }
-        }
-
-        /// <summary>
-        /// Manage the clients in the client manager.
-        /// </summary>
-        /// <param name="period"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task RunClientManagerAsync(TimeSpan period, CancellationToken ct)
-        {
-            var timer = new PeriodicTimer(period);
-            _logger.LogDebug("Client manager starting...");
-            while (!ct.IsCancellationRequested)
-            {
-                if (!await timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
-                {
-                    break;
-                }
-
-                _logger.LogDebug("Running client manager connection and garbage collection cycle...");
-                var inactive = new List<ConnectionIdentifier>();
-                await _lock.WaitAsync(ct).ConfigureAwait(false);
-                try
-                {
-                    foreach (var client in _clients)
-                    {
-                        if (client.Value.IsActive)
-                        {
-                            // If active keep the client connected
-                            try
-                            {
-                                await client.Value.ConnectAsync(true, ct).ConfigureAwait(false);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogDebug(ex,
-                                    "Client manager failed to re-connect session {Name}.",
-                                    client.Key);
-                                 // ? inactive.Add(client.Key);
-                            }
-                        }
-                        else
-                        {
-                            // Collect inactive clients
-                            inactive.Add(client.Key);
-                        }
-                    }
-
-                    // Remove inactive clients from client list
-                    foreach (var key in inactive)
-                    {
-                        if (_clients.TryRemove(key, out var client))
-                        {
-                            _inactive.Enqueue(client);
-                        }
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Client manager encountered unexpected error.");
-                }
-                finally
-                {
-                    _lock.Release();
-                }
-
-                // Garbage collect inactives
-                while (_inactive.TryDequeue(out var client))
-                {
-                    await client.DisposeAsync().ConfigureAwait(false);
-                }
-
-                if (inactive.Count > 0)
-                {
-                    _logger.LogInformation(
-                        "Garbage collected {Sessions} sessions, current number of sessions is {Count}.",
-                        inactive.Count, _clients.Count);
-                }
-            }
+            return client;
         }
 
         /// <summary>
@@ -502,13 +324,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private OpcUaClient CreateClient(ConnectionIdentifier id, IMetricsContext metrics)
         {
             var logger = _loggerFactory.CreateLogger<OpcUaClient>();
-            return new OpcUaClient(_configuration.Result, id, _serializer, logger,
-                _options.Value.ClientInactivityTimeout, metrics)
+            var client = new OpcUaClient(_configuration.Result, id, _serializer, logger, metrics)
             {
                 KeepAliveInterval = _options.Value.KeepAliveInterval,
                 SessionTimeout = _options.Value.DefaultSessionTimeout,
                 ReconnectPeriod = _options.Value.ReconnectRetryDelay
             };
+            _logger.LogInformation("New client {Client} created.", client);
+            return client;
         }
 
         /// <inheritdoc/>
@@ -597,8 +420,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
-            _cts.Token.ThrowIfCancellationRequested();
-            var session = await GetOrCreateSessionAsync(connection, null, ct).ConfigureAwait(false);
+            using var session = await GetOrCreateSessionAsync(connection, null,
+                ct).ConfigureAwait(false);
             if (session is not OpcUaClient client)
             {
                 throw new ConnectionException("Failed to execute call, " +
@@ -720,7 +543,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private void InitializeMetrics()
         {
             Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_count",
-                () => new Measurement<int>(_clients.Count + _inactive.Count, _metrics.TagList),
+                () => new Measurement<int>(_clients.Count, _metrics.TagList),
                 "Clients", "Number of clients.");
         }
 
@@ -730,11 +553,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ILogger _logger;
         private readonly IOptions<ClientOptions> _options;
         private readonly IJsonSerializer _serializer;
-        private readonly ConcurrentQueue<OpcUaClient> _inactive = new();
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
-        private readonly SemaphoreSlim _lock;
-        private readonly CancellationTokenSource _cts;
-        private readonly Task _processor;
         private readonly Task<ApplicationConfiguration> _configuration;
         private readonly IMetricsContext _metrics;
     }

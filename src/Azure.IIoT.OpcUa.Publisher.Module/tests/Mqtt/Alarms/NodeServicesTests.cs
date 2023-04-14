@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Alarms
         private AlarmServerTests<ConnectionModel> GetTests()
         {
             return new AlarmServerTests<ConnectionModel>(
-                () => _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>(),
+                _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

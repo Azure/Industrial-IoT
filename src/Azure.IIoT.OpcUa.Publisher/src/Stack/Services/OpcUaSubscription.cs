@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return null;
                 }
-                var handle = _sessions.GetSessionHandle(connection);
+                using var handle = _sessions.GetSessionHandle(connection);
                 if (handle == null)
                 {
                     return null;
@@ -242,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // try to get a session using the provided configuration
-                var session = await _sessions.GetOrCreateSessionAsync(
+                using var session = await _sessions.GetOrCreateSessionAsync(
                     _subscription.Id.Connection, _metrics, default).ConfigureAwait(false);
                 Debug.Assert(session != null);
 
@@ -323,14 +323,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Session already closed.
                 return;
             }
-
-            // Get raw subscription from underlying session and close that one too
-            using var accessor = handle.GetSession(out var session);
-            var subscription = session?.Subscriptions.SingleOrDefault(s => s.Handle == this);
-            if (subscription != null)
+            try
             {
-                // This does not throw
-                await CloseSubscriptionAsync(subscription).ConfigureAwait(false);
+                // Get raw subscription from underlying session and close that one too
+                using var accessor = handle.GetSession(out var session);
+                var subscription = session?.Subscriptions.SingleOrDefault(s => s.Handle == this);
+                if (subscription != null)
+                {
+                    // This does not throw
+                    await CloseSubscriptionAsync(subscription).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                handle.Dispose();
             }
         }
 

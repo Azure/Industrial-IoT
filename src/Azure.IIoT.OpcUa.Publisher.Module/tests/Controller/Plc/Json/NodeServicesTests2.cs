@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.Plc.Json
         private PlcModelComplexTypeTests<ConnectionModel> GetTests()
         {
             return new PlcModelComplexTypeTests<ConnectionModel>(_server,
-                () => _client.Resolve<INodeServices<ConnectionModel>>(),
+                _client.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection());
         }
 

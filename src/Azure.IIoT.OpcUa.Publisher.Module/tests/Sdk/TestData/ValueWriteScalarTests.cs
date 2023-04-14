@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.TestData
         private WriteScalarValueTests<ConnectionModel> GetTests()
         {
             return new WriteScalarValueTests<ConnectionModel>(
-                () => _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>(),
+                _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection(), (ep, n, s) => _server.Client.ReadValueAsync(new ConnectionModel
                 {
                     Endpoint = new EndpointModel

@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.DeterministicAlarms
         private DeterministicAlarmsTests1<ConnectionModel> GetTests()
         {
             return new DeterministicAlarmsTests1<ConnectionModel>(
-                () => _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>(),
+                _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>,
                 _server.GetConnection(), _server);
         }
 
