@@ -126,7 +126,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return $"{_sessionName} ({_lastState})";
+            return $"{_sessionName} [state:{_lastState}|subscriptions:{HasSubscriptions}" +
+                $"|fastclose:{_fastClose}|activethreads:{_activeThreads}|lastactivity:{_lastActivity}]";
         }
 
         /// <inheritdoc/>
@@ -149,14 +150,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _subscriptions.AddOrUpdate(subscription.Name, subscription, (_, _) => subscription);
                 _logger.LogInformation(
-                    "Subscription {Subscription} registered/updated in session {Session}.",
-                    subscription.Name, _sessionName);
+                    "Subscription {Subscription} registered/updated in session {Client}.",
+                    subscription.Name, this);
 
                 AddRef();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to register subscription");
+                _logger.LogError(ex, "Failed to register subscription with client {Client}", this);
             }
         }
 
@@ -170,8 +171,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (_subscriptions.TryRemove(subscription.Name, out _))
             {
                 _logger.LogInformation(
-                    "Subscription {Subscription} unregistered from session {Session}.",
-                    subscription.Name, _sessionName);
+                    "Subscription {Subscription} unregistered from client {Client}.",
+                        subscription.Name, this);
 
                 Release();
             }
@@ -235,8 +236,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get complex type system for session {Name}.",
-                    _sessionName);
+                _logger.LogError(ex,
+                    "Failed to get complex type system for client {Client}.", this);
                 return null;
             }
         }
@@ -1295,7 +1296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                Utils.LogError(ex, "Error in OnKeepAlive for session {Name}.", _sessionName);
+                _logger.LogError(ex, "Error in OnKeepAlive for client {Client}.", this);
             }
         }
 
@@ -1379,14 +1380,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     var complexTypeSystem = new ComplexTypeSystem(_session);
                     await complexTypeSystem.Load().ConfigureAwait(false);
-                    _logger.LogInformation("Session {Name} complex type system loaded",
-                        _sessionName);
+                    _logger.LogInformation(
+                        "Complex type system loaded into client {Client}.", this);
                     return complexTypeSystem;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to load complex type system.");
+                _logger.LogError(ex,
+                    "Failed to load complex type system into client {Client}.", this);
             }
             return null;
         }
