@@ -45,6 +45,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             CancellationToken ct = default);
 
         /// <summary>
+        /// Execute the service on the provided session and
+        /// return the result. The service call can return
+        /// an additional boolean to keep the session alive
+        /// for a while to allow short term session state
+        /// for edample for contination token support.
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="connection"></param>
+        /// <param name="func"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<TResult> ExecuteAsync<TResult>(T connection,
+            Func<IOpcUaSession, Task<(TResult, bool)>> func,
+            CancellationToken ct = default);
+
+        /// <summary>
         /// Execute the functions from stack on the provided
         /// session and stream the results.
         /// </summary>

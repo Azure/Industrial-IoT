@@ -122,14 +122,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     request.Header.ToRequestHeader(), rootId, null, true, rawMode,
                     !excludeReferences ? references.Count != 0 : null, ct).ConfigureAwait(false);
 
-                return new BrowseFirstResponseModel
+                return (new BrowseFirstResponseModel
                 {
                     // Read root node
                     Node = node,
                     References = excludeReferences ? null : references,
                     ContinuationToken = continuationToken,
                     ErrorInfo = errorInfo ?? nodeError
-                };
+                }, continuationToken != null);
             }, ct: ct).ConfigureAwait(false);
         }
 
@@ -160,10 +160,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     response.DiagnosticInfos, continuationPoints);
                 if (results.ErrorInfo != null)
                 {
-                    return new BrowseNextResponseModel
+                    return (new BrowseNextResponseModel
                     {
                         ErrorInfo = results.ErrorInfo
-                    };
+                    }, false);
                 }
 
                 var continuationToken = await AddReferencesToBrowseResultAsync(session,
@@ -171,12 +171,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     request.ReadVariableValues ?? false, request.NodeIdsOnly ?? false,
                     references, results[0].Result.ContinuationPoint,
                     results[0].Result.References, ct).ConfigureAwait(false);
-                return new BrowseNextResponseModel
+                return (new BrowseNextResponseModel
                 {
                     References = references,
                     ContinuationToken = continuationToken,
                     ErrorInfo = results[0].ErrorInfo
-                };
+                }, continuationToken != null);
             }, ct: ct).ConfigureAwait(false);
         }
 
@@ -1249,8 +1249,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     throw new ArgumentException("Bad node id", nameof(request));
                 }
                 var readDetails = decode(request.Details, session);
-                var historytoread = new HistoryReadValueIdCollection {
-                    new HistoryReadValueId {
+                var historytoread = new HistoryReadValueIdCollection
+                {
+                    new HistoryReadValueId
+                    {
                         IndexRange = request.IndexRange,
                         NodeId = nodeId,
                         DataEncoding = null // TODO
@@ -1264,7 +1266,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     response.DiagnosticInfos, historytoread);
                 if (results.ErrorInfo != null)
                 {
-                    return new HistoryReadResponseModel<TResult> { ErrorInfo = results.ErrorInfo };
+                    return (new HistoryReadResponseModel<TResult>
+                    {
+                        ErrorInfo = results.ErrorInfo
+                    }, false);
                 }
 
                 var history = encode(results[0].Result.HistoryData, session);
@@ -1278,12 +1283,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     results[0].Result.ContinuationPoint == null ||
                     results[0].Result.ContinuationPoint.Length == 0 ? null :
                     Convert.ToBase64String(results[0].Result.ContinuationPoint);
-                return new HistoryReadResponseModel<TResult>
+                return (new HistoryReadResponseModel<TResult>
                 {
                     ContinuationToken = continuationToken,
                     History = history,
                     ErrorInfo = errorInfo
-                };
+                }, continuationToken != null);
             }, ct: ct).ConfigureAwait(false);
         }
 
@@ -1304,8 +1309,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = Diagnostics.Activity.StartActivity("HistoryReadNext");
             return await _client.ExecuteAsync(connectionId, async session =>
             {
-                var historytoread = new HistoryReadValueIdCollection {
-                    new HistoryReadValueId {
+                var historytoread = new HistoryReadValueIdCollection
+                {
+                    new HistoryReadValueId
+                    {
                         ContinuationPoint = Convert.FromBase64String(request.ContinuationToken),
                         DataEncoding = null // TODO
                     }
@@ -1317,7 +1324,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     response.DiagnosticInfos, historytoread);
                 if (results.ErrorInfo != null)
                 {
-                    return new HistoryReadNextResponseModel<TResult> { ErrorInfo = results.ErrorInfo };
+                    return (new HistoryReadNextResponseModel<TResult>
+                    {
+                        ErrorInfo = results.ErrorInfo
+                    }, false);
                 }
                 var history = encode(results[0].Result.HistoryData, session);
                 var errorInfo = results[0].ErrorInfo;
@@ -1330,12 +1340,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     results[0].Result.ContinuationPoint == null ||
                     results[0].Result.ContinuationPoint.Length == 0 ? null :
                     Convert.ToBase64String(results[0].Result.ContinuationPoint);
-                return new HistoryReadNextResponseModel<TResult>
+                return (new HistoryReadNextResponseModel<TResult>
                 {
                     ContinuationToken = continuationToken,
                     History = history,
                     ErrorInfo = errorInfo
-                };
+                }, continuationToken != null);
             }, ct: ct).ConfigureAwait(false);
         }
 

@@ -193,6 +193,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Safely invoke the service call and retry if the session
+        /// disconnected during call.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="service"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        /// <exception cref="ConnectionException"></exception>
+        internal async Task<T> RunAsync<T>(Func<IOpcUaSession, Task<(T, bool)>> service,
+            CancellationToken ct)
+        {
+            while (true)
+            {
+                if (_disposed)
+                {
+                    throw new ConnectionException($"Session {_sessionName} was closed.");
+                }
+                try
+                {
+                    using var readerlock = await _lock.ReaderLockAsync(ct).ConfigureAwait(false);
+                    if (_session != null)
+                    {
+                        var (result, keep) = await service(_session).ConfigureAwait(false);
+                        if (keep)
+                        {
+                            // Hold the client session alive for a while
+                            AddRef();
+                            _ = Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ => Release());
+                        }
+                        return result;
+                    }
+                }
+                catch (Exception ex) when (!IsConnected)
+                {
+                    _logger.LogInformation("Session disconnected during service call " +
+                        "with message {Message}, retrying.", ex.Message);
+                }
+                ct.ThrowIfCancellationRequested();
+            }
+        }
+
+        /// <summary>
         /// Safely invoke a streaming service and retry if the session
         /// disconnected during an operation.
         /// </summary>

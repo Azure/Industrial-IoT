@@ -430,6 +430,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
+        public async Task<T> ExecuteAsync<T>(ConnectionModel connection,
+            Func<IOpcUaSession, Task<(T, bool)>> func, CancellationToken ct)
+        {
+            if (connection.Endpoint == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
+                throw new ArgumentException("Missing endpoint url", nameof(connection));
+            }
+            using var client = (OpcUaClient)await GetOrCreateClientAsync(connection, null,
+                ct).ConfigureAwait(false);
+            return await client.RunAsync(func, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public IAsyncEnumerable<T> ExecuteAsync<T>(ConnectionModel connection,
             Stack<Func<IOpcUaSession, ValueTask<IEnumerable<T>>>> stack, CancellationToken ct)
         {
