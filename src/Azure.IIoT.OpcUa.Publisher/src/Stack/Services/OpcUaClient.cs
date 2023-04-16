@@ -216,9 +216,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (_session != null)
                     {
                         var (result, keep) = await service(_session).ConfigureAwait(false);
+
+                        // Hold the client session alive for a while
+                        // TODO: This could be more elegant...
                         if (keep)
                         {
-                            // Hold the client session alive for a while
                             AddRef();
                             _ = Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ => Release());
                         }
