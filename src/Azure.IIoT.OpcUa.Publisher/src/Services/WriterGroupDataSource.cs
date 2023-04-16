@@ -42,8 +42,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="metrics"></param>
         /// <param name="logger"></param>
         public WriterGroupDataSource(WriterGroupModel writerGroup,
-            IOptions<PublisherOptions> options, ISubscriptionManager subscriptionManager,
-            IOptions<SubscriptionOptions> subscriptionConfig,
+            IOptions<PublisherOptions> options, IOpcUaSubscriptionManager subscriptionManager,
+            IOptions<OpcUaSubscriptionOptions> subscriptionConfig,
             IMetricsContext? metrics, ILogger<WriterGroupDataSource> logger)
         {
             _writerGroup = writerGroup?.Clone() ??
@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Active subscription
             /// </summary>
-            public ISubscription? Subscription { get; set; }
+            public IOpcUaSubscription? Subscription { get; set; }
 
             /// <summary>
             /// Create subscription from a DataSetWriterModel template
@@ -799,8 +799,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly long[] _dataChangesBuffer = new long[_bucketWidth];
         private readonly ILogger _logger;
         private readonly Dictionary<SubscriptionIdentifier, DataSetWriterSubscription> _subscriptions;
-        private readonly ISubscriptionManager _subscriptionManager;
-        private readonly IOptions<SubscriptionOptions> _subscriptionConfig;
+        private readonly IOpcUaSubscriptionManager _subscriptionManager;
+        private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionConfig;
         private readonly IMetricsContext _metrics;
         private WriterGroupModel _writerGroup;
         private readonly IOptions<PublisherOptions> _options;

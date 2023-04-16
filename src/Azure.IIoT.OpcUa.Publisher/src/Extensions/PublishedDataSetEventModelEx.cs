@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static EventMonitoredItemModel? ToMonitoredItem(
             this PublishedDataSetEventModel publishedEvent,
-            SubscriptionOptions configuration)
+            OpcUaSubscriptionOptions configuration)
         {
             if (publishedEvent == null)
             {

@@ -13,10 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using Xunit;
     using Xunit.Abstractions;
 
-    /// <summary>
-    /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,
-    /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
-    /// </summary>
     public class AdvancedPubSubIntegrationTests : PublisherIntegrationTestBase
     {
         internal const string kEventId = "EventId";

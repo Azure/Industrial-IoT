@@ -378,7 +378,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     new PublishedNodesEntryModel {
                         OpcNodes = nodes.OpcNodes,
                         EndpointUrl = e.EndpointUrl,
-                        UseSecurity = e.UseSecurity
+                        UseSecurity = e.UseSecurity,
+                        DataSetWriterGroup = name
                     }
                 }).ConfigureAwait(false);
 

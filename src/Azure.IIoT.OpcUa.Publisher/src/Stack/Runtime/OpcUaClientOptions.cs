@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Opc ua client options
     /// </summary>
-    public sealed class ClientOptions
+    public sealed class OpcUaClientOptions
     {
         /// <summary>
         /// Application name

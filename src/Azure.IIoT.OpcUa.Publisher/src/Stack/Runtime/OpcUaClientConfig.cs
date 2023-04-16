@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
     /// <summary>
     /// Default client configuration
     /// </summary>
-    public sealed class ClientConfig : PostConfigureOptionBase<ClientOptions>
+    public sealed class OpcUaClientConfig : PostConfigureOptionBase<OpcUaClientOptions>
     {
         /// <summary>
         /// Configuration
@@ -77,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
-        public override void PostConfigure(string? name, ClientOptions options)
+        public override void PostConfigure(string? name, OpcUaClientOptions options)
         {
             if (options.ApplicationName == null)
             {
@@ -270,7 +270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         }
 
         /// <inheritdoc/>
-        public ClientConfig(IConfiguration configuration) : base(configuration)
+        public OpcUaClientConfig(IConfiguration configuration) : base(configuration)
         {
         }
     }

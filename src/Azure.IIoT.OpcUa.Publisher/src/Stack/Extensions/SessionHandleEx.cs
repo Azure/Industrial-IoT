@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<(T?, ServiceResultModel?)> ReadAttributeAsync<T>(
-            this ISessionHandle session, RequestHeader header, NodeId nodeIds,
+            this IOpcUaSession session, RequestHeader header, NodeId nodeIds,
             uint attributeId, CancellationToken ct = default)
         {
             var attributes = await session.ReadAttributeAsync<T>(header,
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<(T?, ServiceResultModel?)>> ReadAttributeAsync<T>(
-            this ISessionHandle session, RequestHeader header, IEnumerable<NodeId> nodeIds,
+            this IOpcUaSession session, RequestHeader header, IEnumerable<NodeId> nodeIds,
             uint attributeId, CancellationToken ct = default)
         {
             if (!nodeIds.Any())
@@ -98,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<ServiceResultModel?> ReadAttributesAsync(
-            this ISessionHandle session, RequestHeader header,
+            this IOpcUaSession session, RequestHeader header,
             IEnumerable<NodeId> nodeIds, IEnumerable<uint> attributeIds,
             Dictionary<NodeId, Dictionary<uint, DataValue>> results,
             CancellationToken ct = default)
@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
         public static async Task<(DataValue?, ServiceResultModel?)> ReadValueAsync(
-            this ISessionHandle session, RequestHeader header,
+            this IOpcUaSession session, RequestHeader header,
             NodeId nodeId, CancellationToken ct = default)
         {
             var itemsToRead = new ReadValueIdCollection {
@@ -169,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<ServiceResponse<uint, DataValue>> ReadNodeAttributesAsync(
-            this ISessionHandle session, RequestHeader requestHeader, NodeId nodeId,
+            this IOpcUaSession session, RequestHeader requestHeader, NodeId nodeId,
             bool skipValueRead = false, Opc.Ua.NodeClass? nodeClass = null,
             CancellationToken ct = default)
         {
@@ -242,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<ServiceResultModel?> ReadNodeStateAsync(
-            this ISessionHandle session, RequestHeader requestHeader, NodeState nodeState,
+            this IOpcUaSession session, RequestHeader requestHeader, NodeState nodeState,
             NodeId rootId, RelativePath? relativePath = null, CancellationToken ct = default)
         {
             var valuesToRead = new List<ReadValueId>();
@@ -433,7 +433,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="hierarchy"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task CollectTypeHierarchyAsync(this ISessionHandle session,
+        public static async Task CollectTypeHierarchyAsync(this IOpcUaSession session,
             RequestHeader header, NodeId typeId, IList<(NodeId, ReferenceDescription)> hierarchy,
             CancellationToken ct = default)
         {
@@ -485,7 +485,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="map"></param>
         /// <param name="ct"></param>
         internal static async Task<ServiceResultModel?> CollectInstanceDeclarationsAsync(
-            this ISessionHandle session, RequestHeader requestHeader, NodeId typeId,
+            this IOpcUaSession session, RequestHeader requestHeader, NodeId typeId,
             InstanceDeclarationModel? parent, List<InstanceDeclarationModel> instances,
             IDictionary<string, InstanceDeclarationModel> map, CancellationToken ct)
         {
@@ -642,7 +642,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(VariableMetadataModel?, ServiceResultModel?)> GetVariableMetadataAsync(
-            this ISessionHandle session, RequestHeader requestHeader, NodeId nodeId, CancellationToken ct)
+            this IOpcUaSession session, RequestHeader requestHeader, NodeId nodeId, CancellationToken ct)
         {
             var results = new List<VariableMetadataModel>();
             var errorInfo = await session.CollectVariableMetadataAsync(requestHeader,
@@ -664,7 +664,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<ServiceResultModel?> CollectVariableMetadataAsync(
-            this ISessionHandle session, RequestHeader requestHeader, IEnumerable<NodeId> nodeIds,
+            this IOpcUaSession session, RequestHeader requestHeader, IEnumerable<NodeId> nodeIds,
             List<VariableMetadataModel> metadata, CancellationToken ct)
         {
             if (!nodeIds.Any())
@@ -707,7 +707,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(MethodMetadataModel?, ServiceResultModel?)> GetMethodMetadataAsync(
-            this ISessionHandle session, RequestHeader requestHeader, NodeId nodeId, CancellationToken ct)
+            this IOpcUaSession session, RequestHeader requestHeader, NodeId nodeId, CancellationToken ct)
         {
             var results = new List<MethodMetadataModel>();
             var errorInfo = await session.CollectMethodMetadataAsync(requestHeader,
@@ -729,7 +729,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<ServiceResultModel?> CollectMethodMetadataAsync(
-            this ISessionHandle session, RequestHeader requestHeader, IEnumerable<NodeId> nodeIds,
+            this IOpcUaSession session, RequestHeader requestHeader, IEnumerable<NodeId> nodeIds,
             List<MethodMetadataModel> metadata, CancellationToken ct)
         {
             if (!nodeIds.Any())
@@ -847,7 +847,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(NodeModel, ServiceResultModel?)> ReadNodeAsync(
-            this ISessionHandle session, RequestHeader header, NodeId nodeId,
+            this IOpcUaSession session, RequestHeader header, NodeId nodeId,
             Opc.Ua.NodeClass? nodeClass, bool skipValue, bool rawMode,
             bool? children = null, CancellationToken ct = default)
         {
@@ -878,7 +878,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(NodeModel, ServiceResultModel?)> ReadNodeAsync(
-            this ISessionHandle session, RequestHeader header, NodeId nodeId,
+            this IOpcUaSession session, RequestHeader header, NodeId nodeId,
             Opc.Ua.NodeClass? nodeClass = null, bool skipValue = true, bool? children = null,
             CancellationToken ct = default)
         {
@@ -1012,7 +1012,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<IEnumerable<(QualifiedName, NodeId)>> FindTargetOfReferenceAsync(
-            this ISessionHandle session, RequestHeader requestHeader,
+            this IOpcUaSession session, RequestHeader requestHeader,
             IEnumerable<NodeId> nodeIds, NodeId referenceTypeId,
             CancellationToken ct = default)
         {
@@ -1095,7 +1095,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async IAsyncEnumerable<BrowseResult> BrowseAsync(
-            this ISessionHandle session, RequestHeader requestHeader,
+            this IOpcUaSession session, RequestHeader requestHeader,
             ViewDescription? view, BrowseDescriptionCollection nodesToBrowse,
             [EnumeratorCancellation] CancellationToken ct = default)
         {
@@ -1162,7 +1162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="parentPath"></param>
         /// <param name="browsePaths"></param>
         private static List<BrowsePath> GetBrowsePathFromNodeState(
-            this ISessionHandle session, NodeId rootId, NodeState parent,
+            this IOpcUaSession session, NodeId rootId, NodeState parent,
             RelativePath? parentPath, List<BrowsePath>? browsePaths = null)
         {
             browsePaths ??= new List<BrowsePath>();

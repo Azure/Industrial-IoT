@@ -5,16 +5,20 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
-    using System;
+    using Opc.Ua.Client;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
-    /// A session handle under lock.
+    /// Internal unsafe session access
     /// </summary>
-    public interface ISessionHandle : IDisposable
+    internal interface ISessionAccessor
     {
         /// <summary>
-        /// Session handle
+        /// Get an unsafe reference of the underlying session or
+        /// null when no session was found.
         /// </summary>
-        IOpcUaSession Handle { get; }
+        /// <param name="session"></param>
+        /// <returns></returns>
+        bool TryGetSession([NotNullWhen(true)] out ISession? session);
     }
 }

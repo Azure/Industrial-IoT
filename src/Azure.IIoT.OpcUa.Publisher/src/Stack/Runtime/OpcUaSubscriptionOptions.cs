@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Subscription configuration
     /// </summary>
-    public sealed class SubscriptionOptions
+    public sealed class OpcUaSubscriptionOptions
     {
         /// <summary>
         /// The default interval for heartbeats if not configured.

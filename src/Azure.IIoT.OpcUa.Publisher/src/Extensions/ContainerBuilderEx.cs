@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
 
     /// <summary>
     /// Container builder extensions
@@ -25,8 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="builder"></param>
         public static void AddPublisherCore(this ContainerBuilder builder)
         {
-            builder.RegisterInstance(IMetricsContext.Empty)
-                .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));
+            builder.AddOpcUaStack();
 
             builder.RegisterType<PublisherIdentity>()
                 .AsImplementedInterfaces();
@@ -60,15 +60,6 @@ namespace Azure.IIoT.OpcUa.Publisher
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ProgressPublisher>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-
-            builder.RegisterType<OpcUaClientManager>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<ClientConfig>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<SubscriptionConfig>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<VariantEncoderFactory>()
-                .AsImplementedInterfaces();
         }
     }
 }

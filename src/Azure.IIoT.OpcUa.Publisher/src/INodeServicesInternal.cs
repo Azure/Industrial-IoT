@@ -31,8 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <returns></returns>
         Task<HistoryReadResponseModel<TOutput>> HistoryReadAsync<TInput, TOutput>(
             T connectionId, HistoryReadRequestModel<TInput> request,
-            Func<TInput, ISessionHandle, ExtensionObject> decode,
-            Func<ExtensionObject, ISessionHandle, TOutput> encode,
+            Func<TInput, IOpcUaSession, ExtensionObject> decode,
+            Func<ExtensionObject, IOpcUaSession, TOutput> encode,
             CancellationToken ct = default)
             where TInput : class where TOutput : class;
 
@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <returns></returns>
         Task<HistoryReadNextResponseModel<TOutput>> HistoryReadNextAsync<TOutput>(
             T connectionId, HistoryReadNextRequestModel request,
-            Func<ExtensionObject, ISessionHandle, TOutput> encode,
+            Func<ExtensionObject, IOpcUaSession, TOutput> encode,
             CancellationToken ct = default)
             where TOutput : class;
 
@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryUpdateAsync<TInput>(
             T connectionId, HistoryUpdateRequestModel<TInput> request,
-            Func<NodeId, TInput, ISessionHandle, Task<ExtensionObject>> decode,
+            Func<NodeId, TInput, IOpcUaSession, Task<ExtensionObject>> decode,
             CancellationToken ct = default) where TInput : class;
     }
 }

@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static DataMonitoredItemModel? ToMonitoredItem(
             this PublishedDataSetVariableModel publishedVariable,
-            SubscriptionOptions options, string? displayName = null)
+            OpcUaSubscriptionOptions options, string? displayName = null)
         {
             if (string.IsNullOrEmpty(publishedVariable.PublishedVariableNodeId))
             {
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         private static DataChangeFilterModel? ToDataChangeFilter(
             this PublishedDataSetVariableModel publishedVariable,
-            SubscriptionOptions options)
+            OpcUaSubscriptionOptions options)
         {
             if (publishedVariable.DataChangeTrigger == null &&
                 publishedVariable.DeadbandType == null &&

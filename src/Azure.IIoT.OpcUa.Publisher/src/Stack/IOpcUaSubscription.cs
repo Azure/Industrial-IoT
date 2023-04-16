@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Subscription abstraction
     /// </summary>
-    public interface ISubscription : IDisposable
+    public interface IOpcUaSubscription : IDisposable
     {
         /// <summary>
         /// Subscription data change events
@@ -75,22 +75,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="ct"></param>
         ValueTask UpdateAsync(SubscriptionModel configuration,
             CancellationToken ct = default);
-
-        /// <summary>
-        /// Reapply current configuration
-        /// </summary>
-        /// <param name="session"></param>
-        /// <returns></returns>
-        ValueTask ReapplyToSessionAsync(ISessionHandle session);
-
-        /// <summary>
-        /// Called to signal the underlying session is disconnected and the
-        /// subscription is offline, or when it is reconnected and the
-        /// session is back online. This is the case during reconnect handler
-        /// execution or when the subscription was disconnected.
-        /// </summary>
-        /// <param name="online"></param>
-        void OnSubscriptionStateChanged(bool online);
 
         /// <summary>
         /// Close and delete subscription

@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
     /// <summary>
     /// Client's application configuration implementation
     /// </summary>
-    public sealed class TestClientConfig : ConfigureOptionBase<ClientOptions>,
+    public sealed class TestClientConfig : ConfigureOptionBase<OpcUaClientOptions>,
         IDisposable
     {
         public TestClientConfig(IConfiguration configuration,
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
         }
 
         /// <inheritdoc/>
-        public override void Configure(string? name, ClientOptions options)
+        public override void Configure(string? name, OpcUaClientOptions options)
         {
             options.Security.AutoAcceptUntrustedCertificates = _autoAccept;
             options.Security.PkiRootPath = _path;

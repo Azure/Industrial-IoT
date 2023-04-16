@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// Subscription implementation
     /// </summary>
-    internal sealed class OpcUaSubscription : ISubscription
+    internal sealed class OpcUaSubscription : IOpcUaSubscription, ISubscriptionHandle
     {
         /// <inheritdoc/>
         public string? Name => _subscription?.Id.Id;
@@ -57,35 +57,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             get
             {
-                // Called under lock of session manager
                 var connection = _subscription?.Id.Connection;
                 if (connection == null)
                 {
                     return null;
                 }
-                using var handle = _sessions.GetSessionHandle(connection);
-                if (handle == null)
+
+                using var client = _clients.GetClient(connection);
+                if (client is not ISessionAccessor accessor ||
+                    !accessor.TryGetSession(out var session))
                 {
                     return null;
                 }
-                using var accessor = handle.GetSession(out var session);
-                return session?.Subscriptions.SingleOrDefault(s => s.Handle == this);
+                return session.Subscriptions.SingleOrDefault(s => s.Handle == this);
             }
         }
 
         /// <summary>
         /// Subscription
         /// </summary>
-        /// <param name="session"></param>
+        /// <param name="clients"></param>
         /// <param name="options"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="metrics"></param>
-        private OpcUaSubscription(ISessionProvider<ConnectionModel> session,
-            IOptions<ClientOptions> options, ILoggerFactory loggerFactory,
+        private OpcUaSubscription(IClientAccessor<ConnectionModel> clients,
+            IOptions<OpcUaClientOptions> options, ILoggerFactory loggerFactory,
             IMetricsContext? metrics)
         {
-            _sessions = session ??
-                throw new ArgumentNullException(nameof(session));
+            _clients = clients ??
+                throw new ArgumentNullException(nameof(clients));
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
             _loggerFactory = loggerFactory ??
@@ -110,8 +110,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="metrics"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal static async ValueTask<ISubscription> CreateAsync(
-            ISessionProvider<ConnectionModel> outer, IOptions<ClientOptions> options,
+        internal static async ValueTask<IOpcUaSubscription> CreateAsync(
+            IClientAccessor<ConnectionModel> outer, IOptions<OpcUaClientOptions> options,
             SubscriptionModel subscription, ILoggerFactory loggerFactory,
             IMetricsContext? metrics, CancellationToken ct = default)
         {
@@ -242,9 +242,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // try to get a session using the provided configuration
-                using var session = await _sessions.GetOrCreateSessionAsync(
+                using var client = await _clients.GetOrCreateClientAsync(
                     _subscription.Id.Connection, _metrics, default).ConfigureAwait(false);
-                Debug.Assert(session != null);
+                Debug.Assert(client != null);
 
                 try
                 {
@@ -252,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // Try and apply configuration. If we fail session will retry
                     // periodically through the session manager
                     //
-                    await ApplyInternalAsync(session, ct).ConfigureAwait(false);
+                    await ApplyInternalAsync(client.GetSessionHandle().Handle, ct).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -263,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Now register with the session to ensure the state is
                 // re-applied when session changes or connects if unconnected.
                 //
-                session.RegisterSubscription(this);
+                client.RegisterSubscription(this);
             }
             finally
             {
@@ -272,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask ReapplyToSessionAsync(ISessionHandle session)
+        public async ValueTask ReapplyToSessionAsync(IOpcUaSession session)
         {
             // This is
             await _lock.WaitAsync().ConfigureAwait(false);
@@ -290,7 +290,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask CloseAsync()
         {
             await _lock.WaitAsync().ConfigureAwait(false);
-            ISessionHandle? handle = null;
+            IOpcUaClient? client = null;
             try
             {
                 var connection = _subscription?.Id.Connection;
@@ -300,8 +300,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 _closed = true;
 
-                handle = _sessions.GetSessionHandle(connection);
-                if (handle == null)
+                client = _clients.GetClient(connection);
+                if (client == null)
                 {
                     _logger.LogWarning(
                         "Failed to close subscription '{Subscription}'. " +
@@ -310,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // Unregister subscription from session
-                handle.UnregisterSubscription(this);
+                client.UnregisterSubscription(this);
             }
             catch (ObjectDisposedException) { } // _session manager already disposed
             finally
@@ -318,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _lock.Release();
             }
 
-            if (handle == null)
+            if (client == null)
             {
                 // Session already closed.
                 return;
@@ -326,17 +326,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 // Get raw subscription from underlying session and close that one too
-                using var accessor = handle.GetSession(out var session);
-                var subscription = session?.Subscriptions.SingleOrDefault(s => s.Handle == this);
-                if (subscription != null)
+                using var handle = await client.GetSessionHandleAsync().ConfigureAwait(false);
+                if (handle.Handle is ISessionAccessor accessor &&
+                    accessor.TryGetSession(out var session))
                 {
-                    // This does not throw
-                    await CloseSubscriptionAsync(subscription).ConfigureAwait(false);
+                    var subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
+                    if (subscription != null)
+                    {
+                        // This does not throw
+                        await CloseSubscriptionAsync(subscription).ConfigureAwait(false);
+                    }
                 }
             }
             finally
             {
-                handle.Dispose();
+                client.Dispose();
             }
         }
 
@@ -388,15 +392,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="handle"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task ApplyInternalAsync(ISessionHandle handle, CancellationToken ct)
+        private async Task ApplyInternalAsync(IOpcUaSession handle, CancellationToken ct)
         {
             var subscription = _subscription;
             Debug.Assert(subscription != null, "No subscription during apply");
 
-            using var accessor = handle.GetSession(out var session);
-            if (session == null)
+            if (handle is not ISessionAccessor accessor ||
+                !accessor.TryGetSession(out var session))
             {
-                _logger.LogInformation("Failed to aquire session to update the subscription.");
+                _logger.LogInformation("Failed to aquire session to update the subscription {Name}.", Name);
                 return;
             }
             try
@@ -406,7 +410,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // set the new set of monitored items
                 subscription.MonitoredItems = subscription.MonitoredItems?.ToList();
 
-                if (session != null && rawSubscription != null)
+                if (rawSubscription != null)
                 {
                     if (!rawSubscription.PublishingEnabled)
                     {
@@ -424,11 +428,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (!rawSubscription.PublishingEnabled || rawSubscription.ChangesPending)
                     {
                         _logger.LogDebug("Enabling subscription {Name} in session '{Session}'...",
-                            this, session);
+                            this, handle);
                         rawSubscription.SetPublishingMode(true);
                         await rawSubscription.ApplyChangesAsync(ct).ConfigureAwait(false);
-                        _logger.LogInformation("Subscription {Name} in session '{Session}' enabled.",
-                            this, session);
+                        _logger.LogInformation("Subscription {Name} in session '{Session}'enabled.",
+                            this, handle);
                     }
                 }
                 else
@@ -440,8 +444,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to apply monitored items to Subscription {Name}.",
-                    Name);
+                _logger.LogError(e, "Failed to apply monitored items to Subscription {Name}.", Name);
             }
         }
 
@@ -547,7 +550,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="rawSubscription"></param>
         /// <param name="monitoredItems"></param>
         /// <param name="ct"></param>
-        private async Task<bool> SetMonitoredItemsAsync(ISessionHandle sessionHandle,
+        private async Task<bool> SetMonitoredItemsAsync(IOpcUaSession sessionHandle,
             Subscription rawSubscription, IEnumerable<BaseMonitoredItemModel> monitoredItems,
             CancellationToken ct)
         {
@@ -1429,8 +1432,8 @@ Actual (revised) state/desired state:
         private ImmutableDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel? _subscription;
         private DataSetMetaDataType? _currentMetaData;
-        private readonly ISessionProvider<ConnectionModel> _sessions;
-        private readonly IOptions<ClientOptions> _options;
+        private readonly IClientAccessor<ConnectionModel> _clients;
+        private readonly IOptions<OpcUaClientOptions> _options;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private readonly IMetricsContext _metrics;

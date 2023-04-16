@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Subscription manager
     /// </summary>
-    public interface ISubscriptionManager
+    public interface IOpcUaSubscriptionManager
     {
         /// <summary>
         /// Get or create new subscription
@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="metrics"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask<ISubscription> CreateSubscriptionAsync(
+        ValueTask<IOpcUaSubscription> CreateSubscriptionAsync(
             SubscriptionModel subscription, IMetricsContext metrics,
             CancellationToken ct = default);
     }

@@ -27,15 +27,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// Client manager
     /// </summary>
-    public sealed class OpcUaClientManager : ISessionProvider<ConnectionModel>,
-        ISubscriptionManager, IEndpointDiscovery, IAwaitable<OpcUaClientManager>,
+    internal sealed class OpcUaClientManager : IOpcUaClientManager<ConnectionModel>,
+        IOpcUaSubscriptionManager, IEndpointDiscovery, IAwaitable<OpcUaClientManager>,
         ICertificateServices<EndpointModel>, IConnectionServices<ConnectionModel>,
-        IDisposable
+        IClientAccessor<ConnectionModel>, IDisposable
     {
+        /// <inheritdoc/>
+        public event EventHandler<EndpointConnectivityState>? OnConnectionStateChange;
+
         /// <summary>
         /// Create client manager
         /// </summary>
@@ -44,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="serializer"></param>
         /// <param name="identity"></param>
         /// <param name="metrics"></param>
-        public OpcUaClientManager(ILoggerFactory loggerFactory, IOptions<ClientOptions> options,
+        public OpcUaClientManager(ILoggerFactory loggerFactory, IOptions<OpcUaClientOptions> options,
             IJsonSerializer serializer, IProcessIdentity? identity = null,
             IMetricsContext? metrics = null)
         {
@@ -68,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public ValueTask<ISubscription> CreateSubscriptionAsync(SubscriptionModel subscription,
+        public ValueTask<IOpcUaSubscription> CreateSubscriptionAsync(SubscriptionModel subscription,
             IMetricsContext metrics, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -77,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public ValueTask<ISessionHandle> GetOrCreateSessionAsync(ConnectionModel connection,
+        public ValueTask<IOpcUaClient> GetOrCreateClientAsync(ConnectionModel connection,
             IMetricsContext? metrics, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -87,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = _clients.GetOrAdd(id,
                 id => CreateClient(id, new OpcUaClientTagList(connection, metrics ?? _metrics)));
             client.AddRef();
-            return ValueTask.FromResult((ISessionHandle)client);
+            return ValueTask.FromResult((IOpcUaClient)client);
         }
 
         /// <inheritdoc/>
@@ -107,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public ISessionHandle? GetSessionHandle(ConnectionModel connection)
+        public IOpcUaClient? GetClient(ConnectionModel connection)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             var client = FindClient(connection);
@@ -323,8 +327,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private OpcUaClient CreateClient(ConnectionIdentifier id, IMetricsContext metrics)
         {
-            var logger = _loggerFactory.CreateLogger<OpcUaClient>();
-            var client = new OpcUaClient(_configuration.Result, id, _serializer, logger, metrics)
+            var client = new OpcUaClient(_configuration.Result, id, _serializer,
+                _loggerFactory, metrics, OnConnectionStateChange)
             {
                 KeepAliveInterval = _options.Value.KeepAliveInterval,
                 SessionTimeout = _options.Value.DefaultSessionTimeout,
@@ -409,8 +413,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task<T> ExecuteServiceAsync<T>(ConnectionModel connection,
-            Func<ISessionHandle, Task<T>> service, CancellationToken ct)
+        public async Task<T> ExecuteAsync<T>(ConnectionModel connection,
+            Func<IOpcUaSession, Task<T>> func, CancellationToken ct)
         {
             if (connection.Endpoint == null)
             {
@@ -420,14 +424,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
-            using var session = await GetOrCreateSessionAsync(connection, null,
+            using var client = (OpcUaClient)await GetOrCreateClientAsync(connection, null,
                 ct).ConfigureAwait(false);
-            if (session is not OpcUaClient client)
+            return await client.RunAsync(func, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public IAsyncEnumerable<T> ExecuteAsync<T>(ConnectionModel connection,
+            Stack<Func<IOpcUaSession, ValueTask<IEnumerable<T>>>> stack, CancellationToken ct)
+        {
+            if (connection.Endpoint == null)
             {
-                throw new ConnectionException("Failed to execute call, " +
-                    $"no connection for {connection?.Endpoint?.Url}");
+                throw new ArgumentNullException(nameof(connection));
             }
-            return await client.RunAsync(service, ct).ConfigureAwait(false);
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
+                throw new ArgumentException("Missing endpoint url", nameof(connection));
+            }
+            return ExecuteAsyncCore(ct);
+
+            async IAsyncEnumerable<T> ExecuteAsyncCore([EnumeratorCancellation] CancellationToken ct)
+            {
+                using var client = (OpcUaClient)await GetOrCreateClientAsync(connection, null,
+                    ct).ConfigureAwait(false);
+                await foreach (var result in client.RunAsync(stack, ct).ConfigureAwait(false))
+                {
+                    yield return result;
+                }
+            }
         }
 
         /// <summary>
@@ -551,7 +575,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private bool _disposed;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
-        private readonly IOptions<ClientOptions> _options;
+        private readonly IOptions<OpcUaClientOptions> _options;
         private readonly IJsonSerializer _serializer;
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
         private readonly Task<ApplicationConfiguration> _configuration;

@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Configuration extensions
     /// </summary>
-    public static class ClientOptionsEx
+    public static class OpcUaClientOptionsEx
     {
         /// <summary>
         /// Build the opc ua stack application configuration
@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <exception cref="InvalidConfigurationException"></exception>
         /// <exception cref="InvalidProgramException"></exception>
         public static async Task<ApplicationConfiguration> BuildApplicationConfigurationAsync(
-            this ClientOptions options, string identity, CertificateValidationEventHandler handler,
+            this OpcUaClientOptions options, string identity, CertificateValidationEventHandler handler,
             ILogger logger)
         {
             if (string.IsNullOrWhiteSpace(options.ApplicationName))

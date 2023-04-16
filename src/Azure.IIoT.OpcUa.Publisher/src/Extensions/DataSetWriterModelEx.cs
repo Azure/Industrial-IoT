@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         public static SubscriptionModel ToSubscriptionModel(
-            this DataSetWriterModel dataSetWriter, SubscriptionOptions configuration,
+            this DataSetWriterModel dataSetWriter, OpcUaSubscriptionOptions configuration,
             string? writerGroupId = null)
         {
             if (dataSetWriter.DataSet == null)

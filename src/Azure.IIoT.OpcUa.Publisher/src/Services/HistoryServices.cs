@@ -545,7 +545,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="session"></param>
         /// <returns></returns>
         private static HistoricEventModel[] DecodeEvents(ExtensionObject extensionObject,
-            ISessionHandle session)
+            IOpcUaSession session)
         {
             if (extensionObject.Body is HistoryEvent ev)
             {
@@ -572,7 +572,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         private static async Task<BuiltInType> GetDataTypeAsync(
-            ISessionHandle session, RequestHeaderModel? requestHeader,
+            IOpcUaSession session, RequestHeaderModel? requestHeader,
             NodeId nodeId, IEnumerable<HistoricValueModel> values,
             CancellationToken ct)
         {
@@ -613,7 +613,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         /// <exception cref="FormatException"></exception>
         private static HistoricValueModel[] DecodeValues(ExtensionObject extensionObject,
-            ISessionHandle session)
+            IOpcUaSession session)
         {
             if (extensionObject.Body is HistoryData data)
             {

@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
     /// <summary>
     /// Subscription options configuration
     /// </summary>
-    public sealed class SubscriptionConfig : PostConfigureOptionBase<SubscriptionOptions>
+    public sealed class OpcUaSubscriptionConfig : PostConfigureOptionBase<OpcUaSubscriptionOptions>
     {
         /// <summary>
         /// Configuration
@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
-        public override void PostConfigure(string? name, SubscriptionOptions options)
+        public override void PostConfigure(string? name, OpcUaSubscriptionOptions options)
         {
             if (options.DefaultHeartbeatInterval == null)
             {
@@ -124,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// Create configurator
         /// </summary>
         /// <param name="configuration"></param>
-        public SubscriptionConfig(IConfiguration configuration) : base(configuration)
+        public OpcUaSubscriptionConfig(IConfiguration configuration) : base(configuration)
         {
         }
     }

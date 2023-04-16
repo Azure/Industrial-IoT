@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="options"></param>
         /// <returns></returns>
         public static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
-            this PublishedEventItemsModel eventItems, SubscriptionOptions options)
+            this PublishedEventItemsModel eventItems, OpcUaSubscriptionOptions options)
         {
             if (eventItems?.PublishedData == null)
             {

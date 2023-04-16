@@ -55,7 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <summary>
         /// Client
         /// </summary>
-        public OpcUaClientManager Client => _container.Resolve<OpcUaClientManager>();
+        public IOpcUaClientManager<ConnectionModel> Client
+            => _container.Resolve<IOpcUaClientManager<ConnectionModel>>();
 
         /// <summary>
         /// Now
@@ -105,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             _timeService = CreateTimeServiceMock(Now);
             var port = NextPort();
             var logger = _container.Resolve<ILogger<BaseServerFixture>>();
-            var options = _container.Resolve<IOptions<ClientOptions>>();
+            var options = _container.Resolve<IOptions<OpcUaClientOptions>>();
             var nodes = nodesFactory(_container.Resolve<ILoggerFactory>(), TimeService);
             while (true)
             {
@@ -159,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     _serverHost.Dispose();
 
                     // Clean up all created certificates
-                    if (_container.TryResolve<IOptions<ClientOptions>>(out var options) &&
+                    if (_container.TryResolve<IOptions<OpcUaClientOptions>>(out var options) &&
                         Directory.Exists(options.Value.Security.PkiRootPath))
                     {
                         logger.LogInformation("Server disposed - cleaning up server certificates...");
@@ -187,12 +188,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             builder.RegisterType<TestClientConfig>()
                 .AsImplementedInterfaces();
 
+            builder.AddOpcUaStack();
             builder.RegisterType<OpcUaStack>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
-            builder.RegisterType<OpcUaClientManager>()
-                .AsImplementedInterfaces().SingleInstance().AsSelf();
-            builder.RegisterType<ClientConfig>()
-                .AsImplementedInterfaces().SingleInstance();
             return builder.Build();
         }
 

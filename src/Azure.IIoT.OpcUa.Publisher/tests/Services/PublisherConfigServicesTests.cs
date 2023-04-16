@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
             _loggerFactory = LogFactory.Create(output, Logging.Config);
 
-            var clientConfigMock = new ClientConfig(new ConfigurationBuilder().Build()).ToOptions();
+            var clientConfigMock = new OpcUaClientConfig(new ConfigurationBuilder().Build()).ToOptions();
 
             _options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             _options.Value.PublishedNodesFile = _tempFile;

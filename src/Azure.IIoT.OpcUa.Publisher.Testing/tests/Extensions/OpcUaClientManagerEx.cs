@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <summary>
     /// Session provider extensions
     /// </summary>
-    public static class SessionProviderEx
+    public static class OpcUaClientManagerEx
     {
         /// <summary>
         /// Read value
@@ -27,10 +27,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="serializer"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static Task<VariantValue> ReadValueAsync<T>(this ISessionProvider<T> client,
+        public static Task<VariantValue> ReadValueAsync<T>(this IOpcUaClientManager<T> client,
             T connection, string readNode, IJsonSerializer serializer, CancellationToken ct = default)
         {
-            return client.ExecuteServiceAsync(connection, async session =>
+            return client.ExecuteAsync(connection, async session =>
             {
                 var nodesToRead = new ReadValueIdCollection {
                     new ReadValueId {
