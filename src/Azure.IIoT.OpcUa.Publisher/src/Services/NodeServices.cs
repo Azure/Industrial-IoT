@@ -23,6 +23,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Tasks;
     using System.Collections.Immutable;
+    using Opc.Ua.Export;
+    using System.Diagnostics;
+    using System.Collections;
 
     /// <summary>
     /// This class provides access to a servers address space providing node
@@ -178,239 +181,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async IAsyncEnumerable<BrowseStreamChunkModel> BrowseAsync(T endpoint,
-            BrowseStreamRequestModel request, [EnumeratorCancellation] CancellationToken ct)
+        public IAsyncEnumerable<BrowseStreamChunkModel> BrowseAsync(T endpoint,
+            BrowseStreamRequestModel request, CancellationToken ct)
         {
-            var browseStack = new Stack<NodeId>();
-            var visited = new HashSet<NodeId>();
-            var nodes = 0;
-            var references = 0;
-            NodeId? typeId = null;
-            NodeId[]? nodeIds = null;
-            ViewDescription? view = null;
-            using var trace = Diagnostics.Activity.StartActivity("Browse");
-            _logger.LogDebug("Browsing all nodes in address space ...");
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-            do
-            {
-                ct.ThrowIfCancellationRequested();
-                // Read source node
-                var source = await _client.ExecuteAsync(endpoint, async session =>
-                {
-                    // Lazy initialize to capture session context
-                    if (nodeIds == null)
-                    {
-                        // Initialize
-                        nodeIds = request.NodeIds == null ? Array.Empty<NodeId>() : request.NodeIds
-                            .Select(n => n.ToNodeId(session.MessageContext))
-                            .Where(n => !NodeId.IsNull(n))
-                            .ToArray();
-                        if (nodeIds.Length == 0)
-                        {
-                            browseStack.Push(ObjectIds.RootFolder);
-                        }
-                        else
-                        {
-                            foreach (var id in nodeIds)
-                            {
-                                browseStack.Push(id);
-                            }
-                        }
-                    }
-
-                    BrowseStreamChunkModel? chunk = null;
-                    var nodeId = PopNode();
-                    if (nodeId != null)
-                    {
-                        var (node, errorInfo) = await session.ReadNodeAsync(
-                            request.Header.ToRequestHeader(),
-                            nodeId, null, !(request.ReadVariableValues ?? false),
-                            null, ct).ConfigureAwait(false);
-
-                        visited.Add(nodeId); // Mark as visited
-                        var id = nodeId.AsString(session.MessageContext);
-                        if (id != null)
-                        {
-                            chunk = new BrowseStreamChunkModel
-                            {
-                                SourceId = id,
-                                Attributes = node,
-                                Reference = null,
-                                ErrorInfo = errorInfo
-                            };
-                        }
-                    }
-                    return (chunk, nodeId);
-                }, ct: ct).ConfigureAwait(false);
-
-                // Return result and read references
-                if (source.nodeId != null)
-                {
-                    if (source.chunk == null)
-                    {
-                        continue; // Check whether there is more
-                    }
-                    nodes++;
-                    yield return source.chunk;
-                    //  if (source.chunk.ErrorInfo != null) {
-                    //      continue; // Check whether there is more
-                    //  }
-
-                    // Read first set of references
-                    var chunks = await _client.ExecuteAsync(endpoint, async session =>
-                    {
-                        if (typeId == null)
-                        {
-                            typeId = request.ReferenceTypeId.ToNodeId(session.MessageContext);
-                            if (NodeId.IsNull(typeId))
-                            {
-                                typeId = ReferenceTypeIds.HierarchicalReferences;
-                            }
-                        }
-                        if (view == null)
-                        {
-                            view = request.View.ToStackModel(session.MessageContext);
-                        }
-                        var browseDescriptions = new BrowseDescriptionCollection {
-                            new BrowseDescription {
-                                BrowseDirection = (request.Direction ?? BrowseDirection.Both)
-                                    .ToStackType(),
-                                IncludeSubtypes = !(request.NoSubtypes ?? false),
-                                NodeClassMask = (uint)request.NodeClassFilter.ToStackMask(),
-                                NodeId = source.nodeId,
-                                ReferenceTypeId = typeId,
-                                ResultMask = (uint)BrowseResultMask.All
-                            }
-                        };
-                        // Browse and read children
-                        var response = await session.Services.BrowseAsync(request.Header.ToRequestHeader(),
-                            ViewDescription.IsDefault(view) ? null : view, 0,
-                            browseDescriptions, ct).ConfigureAwait(false);
-
-                        var results = response.Validate(response.Results, r => r.StatusCode,
-                            response.DiagnosticInfos, browseDescriptions);
-                        if (results.ErrorInfo != null)
-                        {
-                            var chunk = new BrowseStreamChunkModel
-                            {
-                                ErrorInfo = results.ErrorInfo
-                            };
-                            return (chunk.YieldReturn(), Array.Empty<byte>());
-                        }
-                        var refs = CollectReferences(session, source.chunk.SourceId,
-                            results[0].Result.References, results[0].ErrorInfo);
-                        return (refs, results[0].Result.ContinuationPoint ?? Array.Empty<byte>());
-                    }, ct: ct).ConfigureAwait(false);
-
-                    foreach (var chunk in chunks.Item1.Where(r => r != null))
-                    {
-                        references++;
-                        yield return chunk;
-                    }
-                    while (chunks.Item2.Length > 0)
-                    {
-                        // Get remainder
-                        chunks = await _client.ExecuteAsync(endpoint, async session =>
-                        {
-                            // Browse and read children
-                            var continuationPoints = new ByteStringCollection {
-                                chunks.Item2
-                            };
-                            var response = await session.Services.BrowseNextAsync(
-                                request.Header.ToRequestHeader(), false, continuationPoints,
-                                ct).ConfigureAwait(false);
-
-                            var results = response.Validate(response.Results, r => r.StatusCode,
-                                response.DiagnosticInfos, continuationPoints);
-                            if (results.ErrorInfo != null)
-                            {
-                                var chunk = new BrowseStreamChunkModel
-                                {
-                                    ErrorInfo = results.ErrorInfo
-                                };
-                                return (chunk.YieldReturn(), Array.Empty<byte>());
-                            }
-                            var refs = CollectReferences(session, source.chunk.SourceId,
-                                results[0].Result.References, results[0].ErrorInfo);
-                            return (refs, results[0].Result.ContinuationPoint ?? Array.Empty<byte>());
-                        }, ct: ct).ConfigureAwait(false);
-
-                        foreach (var chunk in chunks.Item1.Where(r => r != null))
-                        {
-                            references++;
-                            yield return chunk;
-                        }
-                    }
-                }
-            }
-            while (browseStack.Count != 0 && (!(request.NoRecurse ?? false)));
-            _logger.LogDebug("Browsed {Nodes} nodes and {References} references " +
-                "in address space in {Elapsed}...", nodes, references, sw.Elapsed);
-
-            // Helper to push nodes onto the browse stack
-            void PushNode(ExpandedNodeId nodeId)
-            {
-                if ((nodeId?.ServerIndex ?? 1u) != 0)
-                {
-                    return;
-                }
-                var local = (NodeId)nodeId;
-                if (!NodeId.IsNull(local) && !visited.Contains(local))
-                {
-                    browseStack.Push(local);
-                }
-            }
-
-            // Helper to pop nodes from the browse stack
-            NodeId? PopNode()
-            {
-                while (browseStack.TryPop(out var nodeId))
-                {
-                    if (!NodeId.IsNull(nodeId) && !visited.Contains(nodeId))
-                    {
-                        return nodeId;
-                    }
-                }
-                return null;
-            }
-
-            // Collect references
-            IReadOnlyList<BrowseStreamChunkModel?> CollectReferences(
-                IOpcUaSession session, string sourceId, ReferenceDescriptionCollection refs,
-                ServiceResultModel? errorInfo)
-            {
-                return refs.Select(r =>
-                {
-                    PushNode(r.NodeId);
-                    PushNode(r.ReferenceTypeId);
-                    PushNode(r.TypeDefinition);
-
-                    var id = r.NodeId.AsString(session.MessageContext);
-                    if (id == null)
-                    {
-                        return null;
-                    }
-                    return new BrowseStreamChunkModel
-                    {
-                        SourceId = sourceId,
-                        ErrorInfo = errorInfo,
-                        Reference = new NodeReferenceModel
-                        {
-                            ReferenceTypeId = r.ReferenceTypeId.AsString(
-                                session.MessageContext),
-                            Direction = r.IsForward ?
-                                BrowseDirection.Forward : BrowseDirection.Backward,
-                            Target = new NodeModel
-                            {
-                                NodeId = id,
-                                DisplayName = r.DisplayName?.ToString(),
-                                TypeDefinitionId = r.TypeDefinition.AsString(session.MessageContext),
-                                BrowseName = r.BrowseName.AsString(session.MessageContext)
-                            }
-                        }
-                    };
-                }).ToList();
-            }
+            var stream = new BrowseStream(request, _logger, ct);
+            return _client.ExecuteAsync(endpoint, stream.Stack, ct);
         }
 
         /// <inheritdoc/>
@@ -1889,6 +1664,295 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         nodesToRead, ct).ConfigureAwait(false);
                 }
             }
+        }
+
+        private sealed class BrowseStream
+        {
+            /// <summary>
+            /// Browse stack
+            /// </summary>
+            public Stack<Func<IOpcUaSession, ValueTask<IEnumerable<BrowseStreamChunkModel>>>> Stack { get; }
+
+            /// <summary>
+            /// Create browse stream helper
+            /// </summary>
+            /// <param name="request"></param>
+            /// <param name="logger"></param>
+            /// <param name="ct"></param>
+            public BrowseStream(BrowseStreamRequestModel request, ILogger logger, CancellationToken ct)
+            {
+                _sw = System.Diagnostics.Stopwatch.StartNew();
+                _logger = logger;
+                _ct = ct;
+                _request = request;
+                Stack = new Stack<Func<IOpcUaSession, ValueTask<IEnumerable<BrowseStreamChunkModel>>>>();
+                Stack.Push(ReadNodeAsync);
+            }
+
+            /// <summary>
+            /// Read node
+            /// </summary>
+            /// <param name="session"></param>
+            /// <returns></returns>
+            private async ValueTask<IEnumerable<BrowseStreamChunkModel>> ReadNodeAsync(IOpcUaSession session)
+            {
+                using var trace = Diagnostics.Activity.StartActivity("ReadNode");
+
+                // Lazy initialize to capture session context
+                if (_nodeIds == null)
+                {
+                    // Initialize
+                    _nodeIds = _request.NodeIds == null ? Array.Empty<NodeId>() : _request.NodeIds
+                        .Select(n => n.ToNodeId(session.MessageContext))
+                        .Where(n => !NodeId.IsNull(n))
+                        .ToArray();
+                    if (_nodeIds.Length == 0)
+                    {
+                        _browseStack.Push(ObjectIds.RootFolder);
+                    }
+                    else
+                    {
+                        foreach (var resolvedId in _nodeIds)
+                        {
+                            _browseStack.Push(resolvedId);
+                        }
+                    }
+                }
+
+                BrowseStreamChunkModel? chunk = null;
+                var nodeId = PopNode();
+                if (nodeId == null)
+                {
+                    // Done - no more nodes on the browse stack to browse
+                    _logger.LogDebug("Browsed {Nodes} nodes and {References} references " +
+                        "in address space in {Elapsed}...", _nodes, _references, _sw.Elapsed);
+                    return Enumerable.Empty<BrowseStreamChunkModel>();
+                }
+
+                var (node, errorInfo) = await session.ReadNodeAsync(
+                    _request.Header.ToRequestHeader(),
+                    nodeId, null, !(_request.ReadVariableValues ?? false),
+                    null, _ct).ConfigureAwait(false);
+
+                _visited.Add(nodeId); // Mark as visited
+
+                var id = nodeId.AsString(session.MessageContext);
+                if (id == null)
+                {
+                    return Enumerable.Empty<BrowseStreamChunkModel>();
+                }
+
+                chunk = new BrowseStreamChunkModel
+                {
+                    SourceId = id,
+                    Attributes = node,
+                    Reference = null,
+                    ErrorInfo = errorInfo
+                };
+                _nodes++;
+
+                // Browse the node now
+                Stack.Push(session => BrowseAsync(session, id, nodeId));
+
+                // Read another node from the browse stack
+                Stack.Push(ReadNodeAsync);
+                return chunk.YieldReturn();
+            }
+
+            /// <summary>
+            /// Browse references
+            /// </summary>
+            /// <param name="session"></param>
+            /// <param name="sourceId"></param>
+            /// <param name="nodeId"></param>
+            /// <returns></returns>
+            private async ValueTask<IEnumerable<BrowseStreamChunkModel>> BrowseAsync(IOpcUaSession session,
+                string sourceId, NodeId nodeId)
+            {
+                using var trace = Diagnostics.Activity.StartActivity("Browse");
+
+                if (_typeId == null)
+                {
+                    _typeId = _request.ReferenceTypeId.ToNodeId(session.MessageContext);
+                    if (NodeId.IsNull(_typeId))
+                    {
+                        _typeId = ReferenceTypeIds.HierarchicalReferences;
+                    }
+                }
+                if (_view == null)
+                {
+                    _view = _request.View.ToStackModel(session.MessageContext);
+                }
+                var browseDescriptions = new BrowseDescriptionCollection {
+                    new BrowseDescription {
+                        BrowseDirection = (_request.Direction ?? BrowseDirection.Both)
+                            .ToStackType(),
+                        IncludeSubtypes = !(_request.NoSubtypes ?? false),
+                        NodeClassMask = (uint)_request.NodeClassFilter.ToStackMask(),
+                        NodeId = nodeId,
+                        ReferenceTypeId = _typeId,
+                        ResultMask = (uint)BrowseResultMask.All
+                    }
+                };
+                // Browse and read children
+                var response = await session.Services.BrowseAsync(_request.Header.ToRequestHeader(),
+                    ViewDescription.IsDefault(_view) ? null : _view, 0,
+                    browseDescriptions, _ct).ConfigureAwait(false);
+
+                var results = response.Validate(response.Results, r => r.StatusCode,
+                    response.DiagnosticInfos, browseDescriptions);
+                if (results.ErrorInfo != null)
+                {
+                    var chunk = new BrowseStreamChunkModel
+                    {
+                        ErrorInfo = results.ErrorInfo
+                    };
+                    return chunk.YieldReturn();
+                }
+                var refs = CollectReferences(session, sourceId, results[0].Result.References,
+                    results[0].ErrorInfo, _request.NoRecurse ?? false);
+                var continuation = results[0].Result.ContinuationPoint ?? Array.Empty<byte>();
+                if (continuation.Length > 0)
+                {
+                    Stack.Push(session => BrowseNextAsync(session, sourceId, continuation));
+                }
+                return refs;
+            }
+
+            /// <summary>
+            /// Browse remainder of references
+            /// </summary>
+            /// <param name="session"></param>
+            /// <param name="sourceId"></param>
+            /// <param name="continuationPoint"></param>
+            /// <returns></returns>
+            private async ValueTask<IEnumerable<BrowseStreamChunkModel>> BrowseNextAsync(
+                IOpcUaSession session, string sourceId, byte[] continuationPoint)
+            {
+                using var trace = Diagnostics.Activity.StartActivity("BrowseNext");
+
+                var continuationPoints = new ByteStringCollection { continuationPoint };
+                var response = await session.Services.BrowseNextAsync(
+                    _request.Header.ToRequestHeader(), false, continuationPoints,
+                    _ct).ConfigureAwait(false);
+
+                var results = response.Validate(response.Results, r => r.StatusCode,
+                    response.DiagnosticInfos, continuationPoints);
+                if (results.ErrorInfo != null)
+                {
+                    var chunk = new BrowseStreamChunkModel
+                    {
+                        ErrorInfo = results.ErrorInfo
+                    };
+                    return chunk.YieldReturn();
+                }
+
+                var refs = CollectReferences(session, sourceId, results[0].Result.References,
+                    results[0].ErrorInfo, _request.NoRecurse ?? false);
+
+                var continuation = results[0].Result.ContinuationPoint ?? Array.Empty<byte>();
+                if (continuation.Length > 0)
+                {
+                    Stack.Push(session => BrowseNextAsync(session, sourceId, continuation));
+                }
+                return refs;
+            }
+
+            /// <summary>
+            /// Helper to push nodes onto the browse stack
+            /// </summary>
+            /// <param name="nodeId"></param>
+            private void PushNode(ExpandedNodeId nodeId)
+            {
+                if ((nodeId?.ServerIndex ?? 1u) != 0)
+                {
+                    return;
+                }
+                var local = (NodeId)nodeId;
+                if (!NodeId.IsNull(local) && !_visited.Contains(local))
+                {
+                    _browseStack.Push(local);
+                }
+            }
+
+            /// <summary>
+            /// Helper to pop nodes from the browse stack
+            /// </summary>
+            /// <returns></returns>
+            private NodeId? PopNode()
+            {
+                while (_browseStack.TryPop(out var nodeId))
+                {
+                    if (!NodeId.IsNull(nodeId) && !_visited.Contains(nodeId))
+                    {
+                        return nodeId;
+                    }
+                }
+                return null;
+            }
+
+            /// <summary>
+            /// Collect references
+            /// </summary>
+            /// <param name="session"></param>
+            /// <param name="sourceId"></param>
+            /// <param name="refs"></param>
+            /// <param name="errorInfo"></param>
+            /// <param name="noRecurse"></param>
+            /// <returns></returns>
+            private IEnumerable<BrowseStreamChunkModel> CollectReferences(
+                IOpcUaSession session, string sourceId, ReferenceDescriptionCollection refs,
+                ServiceResultModel? errorInfo, bool noRecurse)
+            {
+                foreach (var reference in refs)
+                {
+                    if (!noRecurse)
+                    {
+                        PushNode(reference.NodeId);
+                        PushNode(reference.ReferenceTypeId);
+                        PushNode(reference.TypeDefinition);
+                    }
+
+                    _references++;
+
+                    var id = reference.NodeId.AsString(session.MessageContext);
+                    if (id == null)
+                    {
+                        continue;
+                    }
+                    yield return new BrowseStreamChunkModel
+                    {
+                        SourceId = sourceId,
+                        ErrorInfo = errorInfo,
+                        Reference = new NodeReferenceModel
+                        {
+                            ReferenceTypeId = reference.ReferenceTypeId.AsString(
+                                session.MessageContext),
+                            Direction = reference.IsForward ?
+                                BrowseDirection.Forward : BrowseDirection.Backward,
+                            Target = new NodeModel
+                            {
+                                NodeId = id,
+                                DisplayName = reference.DisplayName?.ToString(),
+                                TypeDefinitionId = reference.TypeDefinition.AsString(session.MessageContext),
+                                BrowseName = reference.BrowseName.AsString(session.MessageContext)
+                            }
+                        }
+                    };
+                }
+            }
+
+            private readonly Stack<NodeId> _browseStack = new();
+            private readonly HashSet<NodeId> _visited = new();
+            private int _nodes;
+            private int _references;
+            private NodeId? _typeId;
+            private NodeId[]? _nodeIds;
+            private ViewDescription? _view;
+            private readonly Stopwatch _sw;
+            private readonly BrowseStreamRequestModel _request;
+            private readonly ILogger _logger;
+            private readonly CancellationToken _ct;
         }
 
         private readonly ILogger _logger;

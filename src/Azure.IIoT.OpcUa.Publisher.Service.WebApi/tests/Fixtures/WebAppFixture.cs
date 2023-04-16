@@ -21,6 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
+    using Microsoft.Extensions.Configuration;
+    using System.Collections.Generic;
 
     /// <inheritdoc/>
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory
@@ -52,6 +54,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
             builder
                 .UseContentRoot(".")
                 .UseStartup<TestStartup>()
+                .ConfigureAppConfiguration(builder => builder.AddInMemoryCollection(
+                    new Dictionary<string, string>
+                    {
+                        ["PCS_KEYVAULT_CONFIG_ENABLED"] = "False"
+                    }))
                 .ConfigureServices(services =>
                 {
                     if (_loggerFactory != null)
