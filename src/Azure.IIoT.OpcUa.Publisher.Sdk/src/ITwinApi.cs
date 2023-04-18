@@ -16,14 +16,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
     public interface ITwinApi
     {
         /// <summary>
-        /// Connect client. Optional but can be used
-        /// to test connectivity.
+        /// This call is used to ensure a connection exists for other
+        /// calls and speeds up overall operations.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task ConnectAsync(ConnectionModel connection,
-            CancellationToken ct = default);
+        Task<ConnectResponseModel> ConnectAsync(ConnectionModel connection,
+            ConnectRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Get the capabilities of the server
@@ -190,12 +191,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
             CancellationToken ct = default);
 
         /// <summary>
-        /// Disconnect connection
+        /// Disconnect connection using a connection handle that was returned
+        /// by <see cref="ConnectAsync(ConnectionModel, ConnectRequestModel, CancellationToken)"/>
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task DisconnectAsync(ConnectionModel connection,
-            CancellationToken ct = default);
+            DisconnectRequestModel request, CancellationToken ct = default);
     }
 }

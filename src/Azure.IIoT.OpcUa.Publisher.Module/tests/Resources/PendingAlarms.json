@@ -11,8 +11,8 @@
                     "TypeDefinitionId": "i=2041"
                 },
                 "ConditionHandling": {
-                    "UpdateInterval": 10,
-                    "SnapshotInterval": 20
+                    "UpdateInterval": 1,
+                    "SnapshotInterval": 2
                 }
             }
         ]

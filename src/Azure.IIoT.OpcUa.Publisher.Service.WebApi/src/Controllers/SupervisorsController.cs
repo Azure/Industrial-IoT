@@ -135,7 +135,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// available</param>
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Supervisors</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("query")]
         public async Task<SupervisorListModel> QuerySupervisorsAsync(
             [FromBody][Required] SupervisorQueryModel query,

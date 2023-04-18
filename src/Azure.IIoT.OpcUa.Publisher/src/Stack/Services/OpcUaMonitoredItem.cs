@@ -82,32 +82,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public void OnMonitoredItemStateChanged(bool online)
         {
             var conditionTimer = _conditionTimer;
-            if (conditionTimer != null)
+            if (conditionTimer == null)
             {
-                var enabled = conditionTimer.Enabled;
-                if (online && !enabled)
+                return;
+            }
+            lock (_lock)
+            {
+                if (_conditionHandlingState == null)
                 {
-                    lock (_lock)
-                    {
-                        if (_conditionHandlingState == null)
-                        {
-                            return;
-                        }
-                    }
-                    conditionTimer.Start();
-                    _logger.LogDebug("{Item}: Restarted pending condition handling after item went online.", this);
+                    return;
                 }
-                else if (enabled)
+                if (online)
+                {
+                    conditionTimer.Start();
+                    _logger.LogDebug(
+    "{Item}: Restarted pending condition handling after item went online.",
+                        this);
+                }
+                else
                 {
                     conditionTimer.Stop();
-                    lock (_lock)
-                    {
-                        _conditionHandlingState?.Active.Clear();
-                    }
-                    if (!online)
-                    {
-                        _logger.LogDebug("{Item}: Stopped pending condition handling while item is offline.", this);
-                    }
+                    _logger.LogDebug(
+    "{Item}: Stopped pending condition handling while item is offline.",
+                        this);
+                    _conditionHandlingState.Active.Clear();
                 }
             }
         }

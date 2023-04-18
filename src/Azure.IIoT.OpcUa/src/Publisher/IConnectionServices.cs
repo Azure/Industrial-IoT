@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -16,24 +17,24 @@ namespace Azure.IIoT.OpcUa.Publisher
     public interface IConnectionServices<T>
     {
         /// <summary>
-        /// Connect endpoint
+        /// Create a connection and keep it alive for the specified
+        /// duration or until disconnected.
         /// </summary>
-        /// <param name="endpoint">Server endpoint to talk to</param>
-        /// <param name="credential"></param>
-        /// <returns></returns>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
-        Task ConnectAsync(T endpoint, CredentialModel? credential = null,
-            CancellationToken ct = default);
+        /// <returns></returns>
+        Task<ConnectResponseModel> ConnectAsync(T endpoint,
+            ConnectRequestModel request, CancellationToken ct = default);
 
         /// <summary>
-        /// Disconnect endpoint if there are
-        /// no subscriptions
+        /// Disconnect using the handle provided by connect call.
         /// </summary>
-        /// <param name="endpoint">Server endpoint to talk to</param>
-        /// <param name="credential"></param>
-        /// <returns></returns>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
-        Task DisconnectAsync(T endpoint, CredentialModel? credential = null,
+        /// <returns></returns>
+        Task DisconnectAsync(T endpoint, DisconnectRequestModel request,
             CancellationToken ct = default);
     }
 }

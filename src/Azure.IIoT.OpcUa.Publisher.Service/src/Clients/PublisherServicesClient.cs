@@ -49,10 +49,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                 return client.GetEndpointCertificateAsync(endpoint, ct);
             }, ct);
         }
-
         /// <inheritdoc/>
-        public Task ConnectAsync(string endpoint, CredentialModel? credential,
-            CancellationToken ct)
+        public Task<ConnectResponseModel> ConnectAsync(string endpoint,
+            ConnectRequestModel request, CancellationToken ct)
         {
             return Execute("Connect", endpoint, (publisherId, endpoint) =>
             {
@@ -60,13 +59,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                 return client.ConnectAsync(new ConnectionModel
                 {
                     Endpoint = endpoint,
-                    User = credential
-                }, ct);
+                    User = request.Header?.Elevation
+                }, request, ct);
             }, ct);
         }
 
         /// <inheritdoc/>
-        public Task DisconnectAsync(string endpoint, CredentialModel? credential,
+        public Task DisconnectAsync(string endpoint, DisconnectRequestModel request,
             CancellationToken ct)
         {
             return Execute("Disconnect", endpoint, (publisherId, endpoint) =>
@@ -75,8 +74,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                 return client.DisconnectAsync(new ConnectionModel
                 {
                     Endpoint = endpoint,
-                    User = credential
-                }, ct);
+                    User = request.Header?.Elevation
+                }, request, ct);
             }, ct);
         }
 

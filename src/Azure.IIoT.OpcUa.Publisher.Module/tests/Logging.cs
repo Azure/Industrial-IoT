@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests
         /// <summary>
         /// Default level
         /// </summary>
-        public static LogLevel Level => LogLevel.Warning;
+        public static LogLevel Level => LogLevel.Information;
 
         /// <summary>
         /// Configuration

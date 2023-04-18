@@ -54,6 +54,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         }
 
         /// <inheritdoc/>
+        public async Task<ConnectResponseModel> ConnectAsync(ConnectionModel connection,
+            ConnectRequestModel request, CancellationToken ct)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
+                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
+            }
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var response = await _methodClient.CallMethodAsync(_target,
+                "Connect_V2", _serializer.SerializeToMemory(new
+                {
+                    connection,
+                    request
+                }),
+                ContentMimeType.Json, null, ct).ConfigureAwait(false);
+            return _serializer.DeserializeResponse<ConnectResponseModel>(response);
+        }
+
+        /// <inheritdoc/>
         public async Task<BrowseFirstResponseModel> NodeBrowseFirstAsync(ConnectionModel connection,
             BrowseFirstRequestModel request, CancellationToken ct)
         {
@@ -476,7 +502,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         }
 
         /// <inheritdoc/>
-        public async Task ConnectAsync(ConnectionModel connection, CancellationToken ct)
+        public async Task DisconnectAsync(ConnectionModel connection,
+            DisconnectRequestModel request, CancellationToken ct)
         {
             if (connection == null)
             {
@@ -486,24 +513,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             {
                 throw new ArgumentException("Endpoint Url missing.", nameof(connection));
             }
-            await _methodClient.CallMethodAsync(_target,
-                "Connect_V2", _serializer.SerializeToMemory(connection),
-                ContentMimeType.Json, null, ct).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc/>
-        public async Task DisconnectAsync(ConnectionModel connection, CancellationToken ct)
-        {
-            if (connection == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
-            {
-                throw new ArgumentException("Endpoint Url missing.", nameof(connection));
+                throw new ArgumentNullException(nameof(request));
             }
             await _methodClient.CallMethodAsync(_target,
-                "Disconnect_V2", _serializer.SerializeToMemory(connection),
+                "Disconnect_V2", _serializer.SerializeToMemory(new
+                {
+                    connection,
+                    request
+                }),
                 ContentMimeType.Json, null, ct).ConfigureAwait(false);
         }
 

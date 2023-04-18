@@ -50,6 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string MaxStringLengthKey = "MaxStringLength";
         public const string OperationTimeoutKey = "OperationTimeout";
         public const string ReconnectRetryDelayKey = "ReconnectRetryDelay";
+        public const string LingerTimeoutKey = "LingerTimeout";
 
         /// <summary>
         /// Default values for transport quotas.
@@ -125,6 +126,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 if (reconnectRetryDelay > 0)
                 {
                     options.ReconnectRetryDelay = TimeSpan.FromSeconds(reconnectRetryDelay);
+                }
+            }
+
+            if (options.LingerTimeout == null)
+            {
+                var lingerTimeout = GetIntOrDefault(LingerTimeoutKey);
+                if (lingerTimeout > 0)
+                {
+                    options.LingerTimeout = TimeSpan.FromSeconds(lingerTimeout);
                 }
             }
 

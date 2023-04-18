@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using static System.Net.Mime.MediaTypeNames;
 
     /// <summary>
     /// Json message
@@ -41,25 +40,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// </summary>
     public class PublisherIntegrationTestBase : IDisposable
     {
-        protected ReferenceServer ServerFixture { get; set; }
+        protected int ServerPort { get; set; }
 
         /// <summary>
         /// Create fixture
         /// </summary>
-        /// <param name="serverFixture"></param>
         /// <param name="testOutputHelper"></param>
-        public PublisherIntegrationTestBase(ReferenceServer serverFixture,
-            ITestOutputHelper testOutputHelper)
+        public PublisherIntegrationTestBase(ITestOutputHelper testOutputHelper)
         {
-            ServerFixture = serverFixture;
             _testOutputHelper = testOutputHelper;
+        }
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                StopPublisher();
+            }
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            StopPublisher();
-            GC.SuppressFinalize(this);
+            if (!_disposedValue)
+            {
+                _disposedValue = true;
+
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
         }
 
         /// <summary>
@@ -300,7 +313,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             {
                 File.WriteAllText(_publishedNodesFilePath,
                     File.ReadAllText(publishedNodesFile)
-                    .Replace("{{Port}}", ServerFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+                    .Replace("{{Port}}", ServerPort.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
                     .Replace("{{DataSetWriterGroup}}", test, StringComparison.Ordinal));
             }
         }
@@ -337,7 +350,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         {
             IJsonSerializer serializer = new NewtonsoftJsonSerializer();
             var fileContent = File.ReadAllText(publishedNodesFile)
-                .Replace("{{Port}}", ServerFixture.Port.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+                .Replace("{{Port}}", ServerPort.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
                 .Replace("{{DataSetWriterGroup}}", test, StringComparison.Ordinal);
             return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }
@@ -346,5 +359,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private readonly HashSet<string> _messageIds = new();
         private PublisherModule _publisher;
         private string _publishedNodesFilePath;
+        private bool _disposedValue;
     }
 }

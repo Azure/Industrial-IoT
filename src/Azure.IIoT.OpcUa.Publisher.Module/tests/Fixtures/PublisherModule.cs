@@ -99,7 +99,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             string deviceId = null, string moduleId = null, ITestOutputHelper testOutputHelper = null,
             string[] arguments = default, MqttVersion? version = null)
         {
-            ClientContainer = CreateIoTHubSdkClientContainer(messageSink, testOutputHelper, devices, version);
+            _testOutputHelper = testOutputHelper;
+            ClientContainer = CreateIoTHubSdkClientContainer(messageSink,
+                _testOutputHelper, devices, version);
 
             // Create module identitity
             deviceId ??= Utils.GetHostName();
@@ -291,6 +293,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             builder.RegisterInstance(_connection.EventClient);
             builder.RegisterInstance(_connection.RpcServer);
             builder.RegisterInstance(_connection.Twin);
+
+            if (_testOutputHelper != null)
+            {
+                builder.RegisterInstance(LogFactory.Create(
+                    _testOutputHelper, Logging.Config));
+            }
 
             // Register transport services
             if (_useMqtt)
@@ -496,6 +504,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private readonly IDisposable _handler1;
         private readonly IAsyncDisposable _handler2;
         private readonly EventConsumer _consumer;
+        private readonly ITestOutputHelper _testOutputHelper;
     }
 
     public class ModuleStartup : Startup

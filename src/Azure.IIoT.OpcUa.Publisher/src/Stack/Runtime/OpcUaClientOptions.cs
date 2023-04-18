@@ -28,20 +28,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public string? ProductUri { get; set; }
 
         /// <summary>
-        /// Default session timeout in milliseconds.
+        /// Default session timeout.
         /// </summary>
         public TimeSpan? DefaultSessionTimeout { get; set; }
 
         /// <summary>
-        /// Keep alive interval in milliseconds.
+        /// Keep alive interval.
         /// </summary>
         public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
-        /// How long in milliseconds to wait until
-        /// reconnecting is attempted.
+        /// How long to wait until reconnecting is attempted.
         /// </summary>
         public TimeSpan? ReconnectRetryDelay { get; set; }
+
+        /// <summary>
+        /// How long to keep clients around after a service call.
+        /// </summary>
+        public TimeSpan? LingerTimeout { get; set; }
 
         /// <summary>
         /// Transport quota

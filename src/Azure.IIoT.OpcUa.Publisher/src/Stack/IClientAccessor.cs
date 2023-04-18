@@ -19,12 +19,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// disposed when not used anymore.
         /// </summary>
         /// <param name="connection"></param>
-        /// <param name="metrics"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask<IOpcUaClient> GetOrCreateClientAsync(
-            T connection, IMetricsContext? metrics = null,
-            CancellationToken ct = default);
+            T connection, CancellationToken ct = default);
 
         /// <summary>
         /// Get a client handle for a connection or null

@@ -30,18 +30,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public static Task<VariantValue> ReadValueAsync<T>(this IOpcUaClientManager<T> client,
             T connection, string readNode, IJsonSerializer serializer, CancellationToken ct = default)
         {
-            return client.ExecuteAsync(connection, async session =>
+            return client.ExecuteAsync(connection, async context =>
             {
-                var nodesToRead = new ReadValueIdCollection {
-                    new ReadValueId {
-                        NodeId = readNode.ToNodeId(session.MessageContext),
+                var nodesToRead = new ReadValueIdCollection
+                {
+                    new ReadValueId
+                    {
+                        NodeId = readNode.ToNodeId(context.Session.MessageContext),
                         AttributeId = Attributes.Value
                     }
                 };
-                var response = await session.Services.ReadAsync(new RequestHeader(), 0,
-                    TimestampsToReturn.Both,
+                var response = await context.Session.Services.ReadAsync(
+                    new RequestHeader(), 0, TimestampsToReturn.Both,
                     nodesToRead, ct).ConfigureAwait(false);
-                return new JsonVariantEncoder(session.MessageContext, serializer)
+                return new JsonVariantEncoder(context.Session.MessageContext, serializer)
                     .Encode(response.Results[0].WrappedValue, out var tmp);
             }, ct);
         }

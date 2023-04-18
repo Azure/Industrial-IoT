@@ -730,6 +730,11 @@ namespace HistoricalEvents
                     }
                 }
             }
+            catch (NullReferenceException)
+            {
+                // Stop simulation because the subscription is closed. This should be fixed in the server library.
+                _simulationTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            }
             catch (Exception e)
             {
                 Utils.Trace(e, "Unexpected error during simulation.");

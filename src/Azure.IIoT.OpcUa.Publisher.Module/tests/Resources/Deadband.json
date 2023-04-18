@@ -6,8 +6,8 @@
         "OpcNodes": [
             {
                 "Id": "http://test.org/UA/Data/#i=11224",
-                "OpcSamplingInterval": 1000,
-                "OpcPublishingInterval": 1000,
+                "OpcSamplingInterval": 100,
+                "OpcPublishingInterval": 100,
                 "QueueSize": 10,
                 "DeadbandType": "Absolute",
                 "DeadbandValue": 5.0,
@@ -15,8 +15,8 @@
             },
             {
                 "Id": "http://test.org/UA/Data/#i=11206",
-                "OpcSamplingInterval": 1000,
-                "OpcPublishingInterval": 1000,
+                "OpcSamplingInterval": 100,
+                "OpcPublishingInterval": 100,
                 "QueueSize": 10,
                 "DeadbandType": "Percent",
                 "DeadbandValue": 5.0,

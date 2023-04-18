@@ -31,6 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
         {
             options.Security.AutoAcceptUntrustedCertificates = _autoAccept;
             options.Security.PkiRootPath = _path;
+            options.LingerTimeout = TimeSpan.FromSeconds(20);
         }
 
         /// <inheritdoc/>

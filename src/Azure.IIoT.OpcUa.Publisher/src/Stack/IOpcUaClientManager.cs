@@ -5,16 +5,16 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
-    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Client managers manages clients connected to servers and
-    /// provides access to session services.
+    /// Client managers manages clients connected to servers and provides
+    /// access to session services.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IOpcUaClientManager<T>
@@ -41,23 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<TResult> ExecuteAsync<TResult>(T connection,
-            Func<IOpcUaSession, Task<TResult>> func,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Execute the service on the provided session and
-        /// return the result. The service call can return
-        /// an additional boolean to keep the session alive
-        /// for a while to allow short term session state
-        /// for edample for contination token support.
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="connection"></param>
-        /// <param name="func"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<TResult> ExecuteAsync<TResult>(T connection,
-            Func<IOpcUaSession, Task<(TResult, bool)>> func,
+            Func<ServiceCallContext, Task<TResult>> func,
             CancellationToken ct = default);
 
         /// <summary>
@@ -70,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="ct"></param>
         /// <returns></returns>
         IAsyncEnumerable<TResult> ExecuteAsync<TResult>(T connection,
-            Stack<Func<IOpcUaSession, ValueTask<IEnumerable<TResult>>>> stack,
+            Stack<Func<ServiceCallContext, ValueTask<IEnumerable<TResult>>>> stack,
             CancellationToken ct = default);
 
         /// <summary>

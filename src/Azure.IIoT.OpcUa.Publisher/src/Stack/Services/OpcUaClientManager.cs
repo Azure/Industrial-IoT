@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Exceptions;
     using Furly;
     using Furly.Exceptions;
     using Furly.Extensions.Hosting;
@@ -16,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Microsoft.Extensions.Caching.Memory;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
@@ -34,8 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal sealed class OpcUaClientManager : IOpcUaClientManager<ConnectionModel>,
         IOpcUaSubscriptionManager, IEndpointDiscovery, IAwaitable<OpcUaClientManager>,
-        ICertificateServices<EndpointModel>, IConnectionServices<ConnectionModel>,
-        IClientAccessor<ConnectionModel>, IDisposable
+        ICertificateServices<EndpointModel>, IClientAccessor<ConnectionModel>,
+        IConnectionServices<ConnectionModel>, IDisposable
     {
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityState>? OnConnectionStateChange;
@@ -44,13 +44,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create client manager
         /// </summary>
         /// <param name="loggerFactory"></param>
-        /// <param name="options"></param>
         /// <param name="serializer"></param>
+        /// <param name="options"></param>
+        /// <param name="memoryCache"></param>
         /// <param name="identity"></param>
         /// <param name="metrics"></param>
-        public OpcUaClientManager(ILoggerFactory loggerFactory, IOptions<OpcUaClientOptions> options,
-            IJsonSerializer serializer, IProcessIdentity? identity = null,
-            IMetricsContext? metrics = null)
+        public OpcUaClientManager(ILoggerFactory loggerFactory, IJsonSerializer serializer,
+            IOptions<OpcUaClientOptions> options, IMemoryCache? memoryCache = null,
+            IProcessIdentity? identity = null, IMetricsContext? metrics = null)
         {
             _metrics = metrics ?? IMetricsContext.Empty;
             InitializeMetrics();
@@ -58,6 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(options));
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
+            _memoryCache = memoryCache ?? new MemoryCache(new MemoryCacheOptions());
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
@@ -72,42 +74,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public ValueTask<IOpcUaSubscription> CreateSubscriptionAsync(SubscriptionModel subscription,
-            IMetricsContext metrics, CancellationToken ct)
+        public ValueTask<IOpcUaSubscription> CreateSubscriptionAsync(
+            SubscriptionModel subscription, IMetricsContext metrics,
+            CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            return OpcUaSubscription.CreateAsync(this, _options, subscription, _loggerFactory,
-                new OpcUaClientTagList(subscription.Id.Connection, metrics ?? _metrics), ct);
+            return OpcUaSubscription.CreateAsync(this, _options, subscription,
+                _loggerFactory, new OpcUaClientTagList(
+                    subscription.Id.Connection, metrics ?? _metrics), ct);
         }
 
         /// <inheritdoc/>
-        public ValueTask<IOpcUaClient> GetOrCreateClientAsync(ConnectionModel connection,
-            IMetricsContext? metrics, CancellationToken ct)
+        public ValueTask<IOpcUaClient> GetOrCreateClientAsync(
+            ConnectionModel connection, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            // Find session and if not exists create
-            var id = new ConnectionIdentifier(connection);
-            // try to get an existing session
-            var client = _clients.GetOrAdd(id,
-                id => CreateClient(id, new OpcUaClientTagList(connection, metrics ?? _metrics)));
-            client.AddRef();
+            var client = GetOrAddClient(connection);
             return ValueTask.FromResult((IOpcUaClient)client);
-        }
-
-        /// <inheritdoc/>
-        public Task ConnectAsync(ConnectionModel endpoint, CredentialModel? credential,
-            CancellationToken ct)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        public Task DisconnectAsync(ConnectionModel endpoint, CredentialModel? credential,
-            CancellationToken ct)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
@@ -117,6 +100,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = FindClient(connection);
             client?.AddRef();
             return client;
+        }
+
+        /// <inheritdoc/>
+        public Task<ConnectResponseModel> ConnectAsync(ConnectionModel connection,
+            ConnectRequestModel request, CancellationToken ct)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            using var client = GetOrAddClient(connection);
+
+            var handle = Guid.NewGuid().ToString();
+            client.AddRef(handle, request.ExpiresAfter);
+            return Task.FromResult(new ConnectResponseModel
+            {
+                ConnectionHandle = handle
+            });
+        }
+
+        /// <inheritdoc/>
+        public Task DisconnectAsync(ConnectionModel connection,
+            DisconnectRequestModel request, CancellationToken ct)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            var client = FindClient(connection);
+            client?.Release(request.ConnectionHandle);
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
@@ -200,145 +208,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                DisposeAsync().AsTask().GetAwaiter().GetResult();
-            }
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask DisposeAsync()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-            _disposed = true;
-
-            _logger.LogInformation("Stopping all client sessions...");
-            foreach (var client in _clients)
-            {
-                try
-                {
-                    await client.Value.DisposeAsync().ConfigureAwait(false);
-                }
-                catch (OperationCanceledException) { }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Unexpected exception disposing session {Name}",
-                        client.Key);
-                }
-            }
-            _clients.Clear();
-            _logger.LogInformation(
-                "Stopped all sessions, current number of sessions is 0");
-        }
-
-        /// <summary>
-        /// Find the client using the connection information
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        private OpcUaClient? FindClient(ConnectionModel connection)
-        {
-            // Find session and if not exists create
-            var id = new ConnectionIdentifier(connection);
-            // try to get an existing session
-            if (!_clients.TryGetValue(id, out var client))
-            {
-                return null;
-            }
-            return client;
-        }
-
-        /// <summary>
-        /// Validate certificates
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e)
-        {
-            if (e.Accept || e.AcceptAll)
-            {
-                return;
-            }
-            var configuration = _configuration.Result;
-            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
-            {
-                if (configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates)
-                {
-                    _logger.LogWarning("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
-                        "due to AutoAccept(UntrustedCertificates) set!",
-                        e.Certificate.Thumbprint, e.Certificate.Subject);
-                    e.AcceptAll = true;
-                    e.Accept = true;
-                }
-
-                // Validate thumbprint
-                else if (e.Certificate.RawData != null && !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint) &&
-                    _clients.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
-                    e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate))
-                {
-                    e.Accept = true;
-
-                    _logger.LogInformation("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
-                        "since the same thumbprint was specified in the connection!",
-                        e.Certificate.Thumbprint, e.Certificate.Subject);
-
-                    // add the certificate to trusted store
-                    configuration.SecurityConfiguration.AddTrustedPeer(e.Certificate.RawData);
-                    try
-                    {
-                        var store = configuration.
-                            SecurityConfiguration.TrustedPeerCertificates.OpenStore();
-
-                        try
-                        {
-                            store.Delete(e.Certificate.Thumbprint);
-                            store.Add(e.Certificate);
-                        }
-                        finally
-                        {
-                            store.Close();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to add peer certificate {Thumbprint}, '{Subject}' " +
-                            "to trusted store", e.Certificate.Thumbprint, e.Certificate.Subject);
-                    }
-                }
-            }
-            if (!e.Accept)
-            {
-                _logger.LogInformation("Rejecting peer certificate {Thumbprint}, '{Subject}' " +
-                    "because of {Status}.", e.Certificate.Thumbprint, e.Certificate.Subject,
-                    e.Error.StatusCode);
-            }
-        }
-
-        /// <summary>
-        /// Create new client
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="metrics"></param>
-        /// <returns></returns>
-        private OpcUaClient CreateClient(ConnectionIdentifier id, IMetricsContext metrics)
-        {
-            var client = new OpcUaClient(_configuration.Result, id, _serializer,
-                _loggerFactory, metrics, OnConnectionStateChange)
-            {
-                KeepAliveInterval = _options.Value.KeepAliveInterval,
-                SessionTimeout = _options.Value.DefaultSessionTimeout,
-                ReconnectPeriod = _options.Value.ReconnectRetryDelay
-            };
-            _logger.LogInformation("New client {Client} created.", client);
-            return client;
-        }
-
-        /// <inheritdoc/>
         public async Task<IEnumerable<DiscoveredEndpointModel>> FindEndpointsAsync(
             Uri discoveryUrl, IReadOnlyList<string>? locales, CancellationToken ct)
         {
@@ -414,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public async Task<T> ExecuteAsync<T>(ConnectionModel connection,
-            Func<IOpcUaSession, Task<T>> func, CancellationToken ct)
+            Func<ServiceCallContext, Task<T>> func, CancellationToken ct)
         {
             if (connection.Endpoint == null)
             {
@@ -424,31 +293,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
-            using var client = (OpcUaClient)await GetOrCreateClientAsync(connection, null,
-                ct).ConfigureAwait(false);
-            return await client.RunAsync(func, ct).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc/>
-        public async Task<T> ExecuteAsync<T>(ConnectionModel connection,
-            Func<IOpcUaSession, Task<(T, bool)>> func, CancellationToken ct)
-        {
-            if (connection.Endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
-            {
-                throw new ArgumentException("Missing endpoint url", nameof(connection));
-            }
-            using var client = (OpcUaClient)await GetOrCreateClientAsync(connection, null,
-                ct).ConfigureAwait(false);
+            using var client = GetOrAddClient(connection);
             return await client.RunAsync(func, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public IAsyncEnumerable<T> ExecuteAsync<T>(ConnectionModel connection,
-            Stack<Func<IOpcUaSession, ValueTask<IEnumerable<T>>>> stack, CancellationToken ct)
+            Stack<Func<ServiceCallContext, ValueTask<IEnumerable<T>>>> stack,
+            CancellationToken ct)
         {
             if (connection.Endpoint == null)
             {
@@ -460,15 +312,69 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             return ExecuteAsyncCore(ct);
 
-            async IAsyncEnumerable<T> ExecuteAsyncCore([EnumeratorCancellation] CancellationToken ct)
+            async IAsyncEnumerable<T> ExecuteAsyncCore(
+                [EnumeratorCancellation] CancellationToken ct)
             {
-                using var client = (OpcUaClient)await GetOrCreateClientAsync(connection, null,
-                    ct).ConfigureAwait(false);
+                using var client = GetOrAddClient(connection);
                 await foreach (var result in client.RunAsync(stack, ct).ConfigureAwait(false))
                 {
                     yield return result;
                 }
             }
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+            _disposed = true;
+
+            _logger.LogInformation("Stopping all clients...");
+            foreach (var client in _clients)
+            {
+                try
+                {
+                    await client.Value.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unexpected exception disposing session {Name}",
+                        client.Key);
+                }
+            }
+            _clients.Clear();
+            _logger.LogInformation(
+                "Stopped all sessions, current number of sessions is 0");
+        }
+
+        /// <summary>
+        /// Find the client using the connection information
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        private OpcUaClient? FindClient(ConnectionModel connection)
+        {
+            // Find session and if not exists create
+            var id = new ConnectionIdentifier(connection);
+            // try to get an existing session
+            if (!_clients.TryGetValue(id, out var client))
+            {
+                return null;
+            }
+            return client;
         }
 
         /// <summary>
@@ -579,6 +485,100 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Validate certificates
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e)
+        {
+            if (e.Accept || e.AcceptAll)
+            {
+                return;
+            }
+            var configuration = _configuration.Result;
+            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+            {
+                if (configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates)
+                {
+                    _logger.LogWarning("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+                        "due to AutoAccept(UntrustedCertificates) set!",
+                        e.Certificate.Thumbprint, e.Certificate.Subject);
+                    e.AcceptAll = true;
+                    e.Accept = true;
+                }
+
+                // Validate thumbprint
+                else if (e.Certificate.RawData != null && !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint) &&
+                    _clients.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
+                    e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate))
+                {
+                    e.Accept = true;
+
+                    _logger.LogInformation("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+                        "since the same thumbprint was specified in the connection!",
+                        e.Certificate.Thumbprint, e.Certificate.Subject);
+
+                    // add the certificate to trusted store
+                    configuration.SecurityConfiguration.AddTrustedPeer(e.Certificate.RawData);
+                    try
+                    {
+                        var store = configuration.
+                            SecurityConfiguration.TrustedPeerCertificates.OpenStore();
+
+                        try
+                        {
+                            store.Delete(e.Certificate.Thumbprint);
+                            store.Add(e.Certificate);
+                        }
+                        finally
+                        {
+                            store.Close();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to add peer certificate {Thumbprint}, '{Subject}' " +
+                            "to trusted store", e.Certificate.Thumbprint, e.Certificate.Subject);
+                    }
+                }
+            }
+            if (!e.Accept)
+            {
+                _logger.LogInformation("Rejecting peer certificate {Thumbprint}, '{Subject}' " +
+                    "because of {Status}.", e.Certificate.Thumbprint, e.Certificate.Subject,
+                    e.Error.StatusCode);
+            }
+        }
+
+        /// <summary>
+        /// Get or add new client
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        private OpcUaClient GetOrAddClient(ConnectionModel connection)
+        {
+            // Find session and if not exists create
+            var id = new ConnectionIdentifier(connection);
+            // try to get an existing session
+            var client = _clients.GetOrAdd(id, id =>
+            {
+                var client = new OpcUaClient(_configuration.Result, id, _serializer,
+                    _loggerFactory, _metrics, OnConnectionStateChange, _memoryCache)
+                {
+                    KeepAliveInterval = _options.Value.KeepAliveInterval,
+                    SessionTimeout = _options.Value.DefaultSessionTimeout,
+                    ReconnectPeriod = _options.Value.ReconnectRetryDelay,
+                    LingerTimeout = _options.Value.LingerTimeout
+                };
+                _logger.LogInformation("New client {Client} created.", client);
+                return client;
+            });
+
+            client.AddRef();
+            return client;
+        }
+
+        /// <summary>
         /// Create metrics
         /// </summary>
         private void InitializeMetrics()
@@ -591,6 +591,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private const int kMaxDiscoveryAttempts = 3;
         private bool _disposed;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly IMemoryCache _memoryCache;
         private readonly ILogger _logger;
         private readonly IOptions<OpcUaClientOptions> _options;
         private readonly IJsonSerializer _serializer;

@@ -236,8 +236,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ct|createsessiontimeout=|{OpcUaClientConfig.DefaultSessionTimeoutKey}=",
                     $"Maximum amount of time in seconds that a session should remain open by the OPC server without any activity (session timeout). Requested from the OPC server at session creation.\nDefault: `{OpcUaClientConfig.DefaultSessionTimeoutDefaultSec}` seconds.\n",
                     (uint u) => this[OpcUaClientConfig.DefaultSessionTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"cl|clientlinger=|{OpcUaClientConfig.LingerTimeoutKey}=",
+                    "Amount of time in seconds to delay closing a client and underlying session after the a last service call.\nUse this setting to speed up multiple subsequent calls to a server.\nDefault: `0` sec (no linger).\n",
+                    (uint u) => this[OpcUaClientConfig.LingerTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"rd|reconnectdelay=|{OpcUaClientConfig.ReconnectRetryDelayKey}=",
-                    $"Amount of time in seconds to wait between client reconnecting to the server to reastablish connectivity.\nSet to 0 to disable reconnect handling and instead recreate the session when required.\nDefault: `{OpcUaClientConfig.ReconnectRetryDelayDefaultSec}` seconds.\n",
+                    $"Amount of time in seconds to wait between client reconnecting to the server to reastablish connectivity.\nDefault: `{OpcUaClientConfig.ReconnectRetryDelayDefaultSec}` seconds.\n",
                     (uint u) => this[OpcUaClientConfig.ReconnectRetryDelayKey] = u.ToString(CultureInfo.CurrentCulture) },
 
                 { $"otl|opctokenlifetime=|{OpcUaClientConfig.SecurityTokenLifetimeKey}=",

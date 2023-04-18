@@ -59,7 +59,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ConnectionModel connection, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(connection);
-            return await _nodes.GetServerCapabilitiesAsync(connection, ct).ConfigureAwait(false);
+            return await _nodes.GetServerCapabilitiesAsync(connection,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -72,7 +73,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("browse/first")]
         public async Task<BrowseFirstResponseModel> BrowseAsync(
-            RequestEnvelope<BrowseFirstRequestModel> request, CancellationToken ct = default)
+            RequestEnvelope<BrowseFirstRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -91,7 +93,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("browse/next")]
         public async Task<BrowseNextResponseModel> BrowseNextAsync(
-            RequestEnvelope<BrowseNextRequestModel> request, CancellationToken ct = default)
+            RequestEnvelope<BrowseNextRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -110,7 +113,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("browse")]
         public IAsyncEnumerable<BrowseStreamChunkModel> BrowseStreamAsync(
-            RequestEnvelope<BrowseStreamRequestModel> request, CancellationToken ct = default)
+            RequestEnvelope<BrowseStreamRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -128,7 +132,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("browse/path")]
         public async Task<BrowsePathResponseModel> BrowsePathAsync(
-            RequestEnvelope<BrowsePathRequestModel> request, CancellationToken ct = default)
+            RequestEnvelope<BrowsePathRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -147,7 +152,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("read")]
         public async Task<ValueReadResponseModel> ValueReadAsync(
-            RequestEnvelope<ValueReadRequestModel> request, CancellationToken ct = default)
+            RequestEnvelope<ValueReadRequestModel> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
@@ -384,37 +390,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// Activate connection
+        /// Connect
         /// </summary>
-        /// <param name="connection"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("connect")]
-        public async Task<bool> ConnectAsync(ConnectionModel connection,
+        public async Task<ConnectResponseModel> ConnectAsync(
+            RequestEnvelope<ConnectRequestModel> request,
             CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(connection);
-            await _endpoints.ConnectAsync(connection, ct: ct).ConfigureAwait(false);
-            return true;
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            ArgumentNullException.ThrowIfNull(request.Request);
+            return await _endpoints.ConnectAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Deactivate connection
+        /// Disconnect
         /// </summary>
-        /// <param name="connection"></param>
+        /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="connection"/>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("disconnect")]
-        public async Task<bool> DisconnectAsync(ConnectionModel connection,
+        public async Task DisconnectAsync(
+            RequestEnvelope<DisconnectRequestModel> request,
             CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(connection);
-            await _endpoints.DisconnectAsync(connection, ct: ct).ConfigureAwait(false);
-            return true;
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            ArgumentNullException.ThrowIfNull(request.Request);
+            await _endpoints.DisconnectAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         private readonly ICertificateServices<EndpointModel> _certificates;

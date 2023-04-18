@@ -7,6 +7,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using Divergic.Logging.Xunit;
+    using Microsoft.AspNetCore.Hosting.Server;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Text.Json;
     using System.Threading.Tasks;
@@ -19,17 +22,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         internal const string kMessage = "Message";
         internal const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
         internal const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
-        private readonly ITestOutputHelper _output;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public AdvancedPubSubIntegrationTests(ITestOutputHelper output)
-            : base(new ReferenceServer(), output)
+        public AdvancedPubSubIntegrationTests(ITestOutputHelper output) : base(output)
         {
-            _output = output;
+            _loggerFactory = LogFactory.Create(output, Logging.Config);
         }
 
         [Fact]
         public async Task SwitchServerTestWithSameWriterGroup()
         {
+            var server = ReferenceServer.Create(_loggerFactory);
+            ServerPort = server.Port;
+
             const string name = nameof(SwitchServerTestWithSameWriterGroup);
             StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub" });
             try
@@ -51,13 +56,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.Equal(name, diag.Endpoint.DataSetWriterGroup);
 
                 // Switch to new server
-                var old = ServerFixture;
-                ServerFixture = new ReferenceServer();
+                var old = server;
+                server = ReferenceServer.Create(_loggerFactory);
+                ServerPort = server.Port;
                 old?.Dispose();
 
                 // Point to new server
                 WritePublishedNodes(name, "./Resources/DataItems.json");
 
+                await Task.Delay(100).ConfigureAwait(false);
                 // Now we should have torn down the other subscription
 
                 (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
@@ -74,14 +81,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
+                server.Dispose();
                 StopPublisher();
-                ServerFixture.Dispose();
             }
         }
 
         [Fact]
         public async Task SwitchServerTestWithDifferentWriterGroup()
         {
+            var server = ReferenceServer.Create(_loggerFactory);
+            ServerPort = server.Port;
             const string name = nameof(SwitchServerTestWithDifferentWriterGroup);
             StartPublisher(name, "./Resources/DataItems2.json", arguments: new string[] { "--mm=PubSub" });
             try
@@ -103,14 +112,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.Equal(name, diag.Endpoint.DataSetWriterGroup);
 
                 // Switch to new server
-                var old = ServerFixture;
-                ServerFixture = new ReferenceServer();
+                var old = server;
+                server = ReferenceServer.Create(_loggerFactory);
+                ServerPort = server.Port;
                 old?.Dispose();
 
                 // Point to new server
                 const string name2 = nameof(SwitchServerTestWithDifferentWriterGroup) + "new";
                 WritePublishedNodes(name2, "./Resources/DataItems2.json");
 
+                await Task.Delay(100).ConfigureAwait(false);
                 // Now we should have torn down the other subscription
 
                 (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
@@ -128,13 +139,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             finally
             {
                 StopPublisher();
-                ServerFixture.Dispose();
+                server.Dispose();
             }
         }
 
         [Fact]
         public async Task SwitchServerTestWithDifferentData()
         {
+            var server = ReferenceServer.Create(_loggerFactory);
+            ServerPort = server.Port;
             const string name = nameof(SwitchServerTestWithDifferentWriterGroup);
             StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub" });
             try
@@ -164,13 +177,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.Empty(diagnostics);
 
                 // Switch to different server
-                var old = ServerFixture;
-                ServerFixture = new ReferenceServer();
+                var old = server;
+                server = ReferenceServer.Create(_loggerFactory);
+                ServerPort = server.Port;
                 old?.Dispose();
 
                 // Point to new server
                 WritePublishedNodes(name, "./Resources/DataItems2.json");
 
+                await Task.Delay(100).ConfigureAwait(false);
                 // Now we should have torn down the other subscription
 
                 (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
@@ -188,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                ServerFixture.Dispose();
+                server.Dispose();
                 StopPublisher();
             }
         }

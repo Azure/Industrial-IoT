@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Activate, Deactivate and Query endpoint resources
@@ -57,11 +58,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// have at least the discovery url. If more information is specified it
         /// is used to validate that the application has such endpoint and if
         /// not the call will fail.</param>
+        /// <param name="ct"></param>
         /// <returns>Endpoint identifier</returns>
         [HttpPut]
-        public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query)
+        public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
+            CancellationToken ct)
         {
-            return await _manager.RegisterEndpointAsync(query).ConfigureAwait(false);
+            return await _manager.RegisterEndpointAsync(query, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -74,12 +77,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if
         /// available</param>
+        /// <param name="ct"></param>
         /// <returns>Endpoint registration</returns>
         [HttpGet("{endpointId}")]
         public async Task<EndpointInfoModel> GetEndpointAsync(string endpointId,
-            [FromQuery] bool? onlyServerState)
+            [FromQuery] bool? onlyServerState, CancellationToken ct)
         {
-            return await _endpoints.GetEndpointAsync(endpointId, onlyServerState ?? false).ConfigureAwait(false);
+            return await _endpoints.GetEndpointAsync(endpointId,
+                onlyServerState ?? false, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -95,13 +100,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// state, or display current client state of the endpoint if available</param>
         /// <param name="continuationToken">Optional Continuation token</param>
         /// <param name="pageSize">Optional number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<EndpointInfoListModel> GetListOfEndpointsAsync(
             [FromQuery] bool? onlyServerState,
             [FromQuery] string? continuationToken,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
             {
@@ -118,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             // TODO: Redact username/token based on policy/permission
 
             return await _endpoints.ListEndpointsAsync(continuationToken,
-                onlyServerState ?? false, pageSize).ConfigureAwait(false);
+                onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -135,13 +141,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if available</param>
         /// <param name="pageSize">Optional number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
         [HttpPost("query")]
         public async Task<EndpointInfoListModel> QueryEndpointsAsync(
             [FromBody][Required] EndpointRegistrationQueryModel query,
             [FromQuery] bool? onlyServerState,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -154,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     CultureInfo.InvariantCulture);
             }
             return await _endpoints.QueryEndpointsAsync(query,
-                onlyServerState ?? false, pageSize).ConfigureAwait(false);
+                onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -172,13 +179,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// current client state of the endpoint if available</param>
         /// <param name="pageSize">Optional number of results to
         /// return</param>
+        /// <param name="ct"></param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
         [HttpGet("query")]
         public async Task<EndpointInfoListModel> GetFilteredListOfEndpointsAsync(
             [FromQuery][Required] EndpointRegistrationQueryModel query,
             [FromQuery] bool? onlyServerState,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -191,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     CultureInfo.InvariantCulture);
             }
             return await _endpoints.QueryEndpointsAsync(query,
-                onlyServerState ?? false, pageSize).ConfigureAwait(false);
+                onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -203,10 +211,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// activation filter during application registration or discovery.
         /// </remarks>
         /// <param name="endpointId">endpoint identifier</param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
         [HttpPost("{endpointId}/activate")]
-        public async Task ConnectAsync(string endpointId)
+        public async Task<ConnectResponseModel> ConnectAsync(
+            string endpointId, [FromBody][Required] ConnectRequestModel request,
+            CancellationToken ct)
         {
-            await _activation.ConnectAsync(endpointId).ConfigureAwait(false);
+            return await _activation.ConnectAsync(endpointId,
+                request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -216,12 +229,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// Gets current certificate of the endpoint.
         /// </remarks>
         /// <param name="endpointId">endpoint identifier</param>
+        /// <param name="ct"></param>
         /// <returns>Endpoint registration</returns>
         [HttpGet("{endpointId}/certificate")]
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
-            string endpointId)
+            string endpointId, CancellationToken ct)
         {
-            return await _certificates.GetEndpointCertificateAsync(endpointId).ConfigureAwait(false);
+            return await _certificates.GetEndpointCertificateAsync(endpointId,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -231,10 +246,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// Deactivates the endpoint and disable access through twin service.
         /// </remarks>
         /// <param name="endpointId">endpoint identifier</param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
         [HttpPost("{endpointId}/deactivate")]
-        public async Task DisconnectAsync(string endpointId)
+        public async Task DisconnectAsync(string endpointId,
+            [FromBody][Required] DisconnectRequestModel request, CancellationToken ct)
         {
-            await _activation.DisconnectAsync(endpointId).ConfigureAwait(false);
+            await _activation.DisconnectAsync(endpointId, request,
+                ct).ConfigureAwait(false);
         }
 
         private readonly IEndpointManager _manager;

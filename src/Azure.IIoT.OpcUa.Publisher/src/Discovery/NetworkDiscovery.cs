@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
@@ -29,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Threading.Channels;
 
     /// <summary>
     /// Provides network discovery of endpoints
@@ -68,6 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
 
+            _channel = Channel.CreateUnbounded<DiscoveryRequest>();
             _metrics = metrics ?? IMetricsContext.Empty;
             _logger = loggerFactory.CreateLogger<NetworkDiscovery>();
             _topic = new TopicBuilder(options).EventsTopic;
@@ -104,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 throw new ArgumentNullException(nameof(request));
             }
             var task = new DiscoveryRequest(request);
-            var scheduled = _queue.TryAdd(task);
+            var scheduled = _channel.Writer.TryWrite(task);
             if (!scheduled)
             {
                 task.Dispose();
@@ -182,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 {
                     // Push request
                     var task = _request.Clone();
-                    if (_queue.TryAdd(task))
+                    if (_channel.Writer.TryWrite(task))
                     {
                         _pending.Add(task);
                     }
@@ -204,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <returns></returns>
         private async Task StopDiscoveryRequestProcessingAsync()
         {
-            _queue.CompleteAdding();
+            _channel.Writer.TryComplete();
             _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             await _lock.WaitAsync().ConfigureAwait(false);
             try
@@ -242,11 +243,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             _logger.LogInformation("Starting discovery processor...");
             // Process all discovery requests
-            while (!ct.IsCancellationRequested)
+            await foreach (var request in _channel.Reader.ReadAllAsync(ct))
             {
                 try
                 {
-                    var request = _queue.Take(ct);
                     try
                     {
                         // Update pending queue size
@@ -795,6 +795,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly IEventClient _events;
         private readonly IDiscoveryProgress _progress;
         private readonly IOptions<PublisherOptions> _options;
+        private readonly Channel<DiscoveryRequest> _channel;
         private readonly IMetricsContext _metrics;
         private readonly IEndpointDiscovery _client;
         private readonly Task _runner;
@@ -802,7 +803,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly string _topic;
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly List<DiscoveryRequest> _pending = new();
-        private readonly BlockingCollection<DiscoveryRequest> _queue = new();
         private readonly CancellationTokenSource _cts = new();
         private readonly DiscoveryRequest _request = new();
     }

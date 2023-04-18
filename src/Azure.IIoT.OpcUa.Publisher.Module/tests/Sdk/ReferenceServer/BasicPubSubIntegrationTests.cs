@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using Divergic.Logging.Xunit;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -14,11 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using Xunit;
     using Xunit.Abstractions;
 
-    /// <summary>
-    /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,
-    /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
-    /// </summary>
-    [Collection(ReferenceServerReadCollection.Name)]
     public class BasicPubSubIntegrationTests : PublisherIntegrationTestBase
     {
         internal const string kEventId = "EventId";
@@ -26,11 +22,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         internal const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
         internal const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private readonly ITestOutputHelper _output;
+        private readonly ReferenceServer _fixture;
 
-        public BasicPubSubIntegrationTests(ReferenceServer fixture, ITestOutputHelper output)
-            : base(fixture, output)
+        public BasicPubSubIntegrationTests(ITestOutputHelper output)
+            : base(output)
         {
             _output = output;
+            _fixture = new ReferenceServer();
+            ServerPort = _fixture.Port;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing)
+            {
+                _fixture.Dispose();
+            }
         }
 
         [Fact]

@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using Divergic.Logging.Xunit;
     using Furly.Extensions.Mqtt;
     using System;
     using System.Linq;
@@ -16,20 +17,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Xunit;
     using Xunit.Abstractions;
 
-    /// <summary>
-    /// Currently, we create new independent instances of server, publisher and services for each test,
-    /// this could be optimised e.g. create only single instance of server and publisher between
-    /// tests in the same class.
-    /// </summary>
-    [Collection(ReferenceServerReadCollection.Name)]
     public class MqttPubSubIntegrationTests : PublisherIntegrationTestBase
     {
+        private readonly ReferenceServer _fixture;
         private readonly ITestOutputHelper _output;
 
-        public MqttPubSubIntegrationTests(ReferenceServer fixture, ITestOutputHelper output)
-            : base(fixture, output)
+        public MqttPubSubIntegrationTests(ITestOutputHelper output) : base(output)
         {
             _output = output;
+            _fixture = new ReferenceServer();
+            ServerPort = _fixture.Port;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing)
+            {
+                _fixture.Dispose();
+            }
         }
 
         [Fact]
@@ -292,8 +298,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 arguments: new string[] { "--mm=PubSub" }, version: MqttVersion.v311).ConfigureAwait(false);
 
             // Assert
-            _output.WriteLine(messages.ToString());
             var evt = Assert.Single(messages);
+            _output.WriteLine(evt.ToString());
 
             Assert.Equal(JsonValueKind.Object, evt.Message.ValueKind);
             Assert.True(evt.Message.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 100);

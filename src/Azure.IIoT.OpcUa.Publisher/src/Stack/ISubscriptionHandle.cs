@@ -5,27 +5,36 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Subscription handle
+    /// The subscription handle is an internal interface
+    /// between opc ua client and the subscription owned
+    /// by the client.
     /// </summary>
     internal interface ISubscriptionHandle
     {
         /// <summary>
-        /// Reapply current configuration
+        /// Apply the current subscription configuration to
+        /// the session.
         /// </summary>
         /// <param name="session"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask ReapplyToSessionAsync(IOpcUaSession session);
+        ValueTask ReapplyToSessionAsync(IOpcUaSession session,
+            CancellationToken ct = default);
 
         /// <summary>
-        /// Called to signal the underlying session is disconnected and the
-        /// subscription is offline, or when it is reconnected and the
-        /// session is back online. This is the case during reconnect handler
-        /// execution or when the subscription was disconnected.
+        /// Called to signal the underlying session is
+        /// disconnected and the subscription is offline, or
+        /// when it is reconnected and the session is back online.
+        /// This is the case during reconnect handler execution
+        /// or when the subscription was disconnected.
         /// </summary>
         /// <param name="online"></param>
-        void OnSubscriptionStateChanged(bool online);
+        /// <param name="connectionAttempts"></param>
+        void OnSubscriptionStateChanged(bool online,
+            int connectionAttempts);
     }
 }

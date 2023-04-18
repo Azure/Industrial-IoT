@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     /// <summary>
     /// Lookup key for connections
     /// </summary>
-    public sealed class ConnectionIdentifier
+    internal sealed class ConnectionIdentifier
     {
         /// <summary>
         /// Create new key
