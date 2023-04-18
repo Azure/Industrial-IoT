@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -39,12 +40,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="endpointId">The endpoint to subscribe to</param>
         /// <param name="connectionId">The connection that will receive publisher
         /// samples.</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPut("telemetry/{endpointId}/samples")]
         public async Task SubscribeAsync(string endpointId,
-            [FromBody] string connectionId)
+            [FromBody] string connectionId, CancellationToken ct)
         {
-            await _events.SubscribeAsync(endpointId, connectionId).ConfigureAwait(false);
+            await _events.SubscribeAsync(endpointId, connectionId,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -57,11 +60,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </param>
         /// <param name="connectionId">The connection that will not receive
         /// any more published samples</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         [HttpDelete("telemetry/{endpointId}/samples/{connectionId}")]
-        public async Task UnsubscribeAsync(string endpointId, string connectionId)
+        public async Task UnsubscribeAsync(string endpointId, string connectionId,
+            CancellationToken ct)
         {
-            await _events.UnsubscribeAsync(endpointId, connectionId).ConfigureAwait(false);
+            await _events.UnsubscribeAsync(endpointId, connectionId,
+                ct).ConfigureAwait(false);
         }
 
         private readonly IGroupRegistration<PublishersHub> _events;

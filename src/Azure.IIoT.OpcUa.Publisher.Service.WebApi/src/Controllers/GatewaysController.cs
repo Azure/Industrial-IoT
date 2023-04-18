@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Read, Update and Query Gateway resources
@@ -44,11 +45,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// A Gateway id corresponds to the twin modules module identity.
         /// </remarks>
         /// <param name="GatewayId">Gateway identifier</param>
+        /// <param name="ct"></param>
         /// <returns>Gateway registration</returns>
         [HttpGet("{GatewayId}")]
-        public async Task<GatewayInfoModel> GetGatewayAsync(string GatewayId)
+        public async Task<GatewayInfoModel> GetGatewayAsync(string GatewayId,
+            CancellationToken ct)
         {
-            return await _gateways.GetGatewayAsync(GatewayId).ConfigureAwait(false);
+            return await _gateways.GetGatewayAsync(GatewayId, ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -60,18 +63,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="GatewayId">Gateway identifier</param>
         /// <param name="request">Patch request</param>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> 
+        /// is <c>null</c>.</exception>
         [HttpPatch("{GatewayId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateGatewayAsync(string GatewayId,
-            [FromBody][Required] GatewayUpdateModel request)
+            [FromBody][Required] GatewayUpdateModel request, CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _gateways.UpdateGatewayAsync(GatewayId,
-                request).ConfigureAwait(false);
+            await _gateways.UpdateGatewayAsync(GatewayId, request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -85,6 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="continuationToken">Optional Continuation token</param>
         /// <param name="pageSize">Optional number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>
         /// List of Gateways and continuation token to use for next request
         /// in x-ms-continuation header.
@@ -93,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<GatewayListModel> GetListOfGatewayAsync(
             [FromQuery] string? continuationToken,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
             {
@@ -106,8 +111,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _gateways.ListGatewaysAsync(
-                continuationToken, pageSize).ConfigureAwait(false);
+            return await _gateways.ListGatewaysAsync(continuationToken, 
+                pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -122,12 +127,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="query">Gateway query model</param>
         /// <param name="pageSize">Number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>Gateway</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("query")]
         public async Task<GatewayListModel> QueryGatewayAsync(
             [FromBody][Required] GatewayQueryModel query,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -139,8 +146,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _gateways.QueryGatewaysAsync(
-                query, pageSize).ConfigureAwait(false);
+            return await _gateways.QueryGatewaysAsync(query, pageSize, 
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -155,12 +162,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="query">Gateway Query model</param>
         /// <param name="pageSize">Number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>Gateway</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/>
+        /// is <c>null</c>.</exception>
         [HttpGet("query")]
         public async Task<GatewayListModel> GetFilteredListOfGatewayAsync(
             [FromQuery][Required] GatewayQueryModel query,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -172,8 +181,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _gateways.QueryGatewaysAsync(
-                query, pageSize).ConfigureAwait(false);
+            return await _gateways.QueryGatewaysAsync(query, pageSize, 
+                ct).ConfigureAwait(false);
         }
 
         private readonly IGatewayRegistry _gateways;

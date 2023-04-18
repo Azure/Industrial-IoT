@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Read, Update and Query publisher resources
@@ -47,13 +48,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if
         /// available</param>
+        /// <param name="ct"></param>
         /// <returns>Publisher registration</returns>
         [HttpGet("{publisherId}")]
         public async Task<PublisherModel> GetPublisherAsync(string publisherId,
-            [FromQuery] bool? onlyServerState)
+            [FromQuery] bool? onlyServerState, CancellationToken ct)
         {
-            return await _publishers.GetPublisherAsync(publisherId,
-                onlyServerState ?? false).ConfigureAwait(false);
+            return await _publishers.GetPublisherAsync(publisherId, 
+                onlyServerState ?? false, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -65,18 +67,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="publisherId">Publisher identifier</param>
         /// <param name="request">Patch request</param>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPatch("{publisherId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdatePublisherAsync(string publisherId,
-            [FromBody][Required] PublisherUpdateModel request)
+            [FromBody][Required] PublisherUpdateModel request, CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _publishers.UpdatePublisherAsync(publisherId,
-                request).ConfigureAwait(false);
+            await _publishers.UpdatePublisherAsync(publisherId, request, 
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -92,6 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// state, or display current client state of the endpoint if available</param>
         /// <param name="continuationToken">Optional Continuation token</param>
         /// <param name="pageSize">Optional number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>
         /// List of publishers and continuation token to use for next request
         /// in x-ms-continuation header.
@@ -101,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<PublisherListModel> GetListOfPublisherAsync(
             [FromQuery] bool? onlyServerState,
             [FromQuery] string? continuationToken,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
             {
@@ -114,8 +119,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _publishers.ListPublishersAsync(
-                continuationToken, onlyServerState ?? false, pageSize).ConfigureAwait(false);
+            return await _publishers.ListPublishersAsync(continuationToken, 
+                onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -133,13 +138,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// state, or display current client state of the endpoint if
         /// available</param>
         /// <param name="pageSize">Number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>Publisher</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("query")]
         public async Task<PublisherListModel> QueryPublisherAsync(
             [FromBody][Required] PublisherQueryModel query,
             [FromQuery] bool? onlyServerState,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -154,8 +161,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 
             // TODO: Filter results based on RBAC
 
-            return await _publishers.QueryPublishersAsync(
-                query, onlyServerState ?? false, pageSize).ConfigureAwait(false);
+            return await _publishers.QueryPublishersAsync(query, 
+                onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -173,13 +180,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// state, or display current client state of the endpoint if
         /// available</param>
         /// <param name="pageSize">Number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>Publisher</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/>
+        /// is <c>null</c>.</exception>
         [HttpGet("query")]
         public async Task<PublisherListModel> GetFilteredListOfPublisherAsync(
             [FromQuery][Required] PublisherQueryModel query,
             [FromQuery] bool? onlyServerState,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -194,8 +203,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 
             // TODO: Filter results based on RBAC
 
-            return await _publishers.QueryPublishersAsync(
-                query, onlyServerState ?? false, pageSize).ConfigureAwait(false);
+            return await _publishers.QueryPublishersAsync(query, 
+                onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
         private readonly IPublisherRegistry _publishers;

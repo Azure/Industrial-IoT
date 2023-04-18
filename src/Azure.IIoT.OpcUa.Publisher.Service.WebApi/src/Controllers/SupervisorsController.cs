@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Read, Update and Query publisher resources
@@ -47,13 +48,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="onlyServerState">Whether to include only server
         /// state, or display current client state of the endpoint if
         /// available</param>
+        /// <param name="ct"></param>
         /// <returns>Supervisor registration</returns>
         [HttpGet("{supervisorId}")]
         public async Task<SupervisorModel> GetSupervisorAsync(string supervisorId,
-            [FromQuery] bool? onlyServerState)
+            [FromQuery] bool? onlyServerState, CancellationToken ct)
         {
-            return await _supervisors.GetSupervisorAsync(supervisorId,
-                onlyServerState ?? false).ConfigureAwait(false);
+            return await _supervisors.GetSupervisorAsync(supervisorId, 
+                onlyServerState ?? false, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -65,19 +67,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="supervisorId">supervisor identifier</param>
         /// <param name="request">Patch request</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPatch("{supervisorId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateSupervisorAsync(string supervisorId,
-            [FromBody][Required] SupervisorUpdateModel request)
+            [FromBody][Required] SupervisorUpdateModel request, CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _supervisors.UpdateSupervisorAsync(supervisorId,
-                request).ConfigureAwait(false);
+            await _supervisors.UpdateSupervisorAsync(supervisorId, request,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -93,6 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// state, or display current client state of the endpoint if available</param>
         /// <param name="continuationToken">Optional Continuation token</param>
         /// <param name="pageSize">Optional number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>
         /// List of supervisors and continuation token to use for next request
         /// in x-ms-continuation header.
@@ -102,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<SupervisorListModel> GetListOfSupervisorsAsync(
             [FromQuery] bool? onlyServerState,
             [FromQuery] string? continuationToken,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
             {
@@ -115,8 +120,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _supervisors.ListSupervisorsAsync(
-                continuationToken, onlyServerState ?? false, pageSize).ConfigureAwait(false);
+            return await _supervisors.ListSupervisorsAsync(continuationToken,
+                onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -134,6 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// state, or display current client state of the endpoint if
         /// available</param>
         /// <param name="pageSize">Number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>Supervisors</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/>
         /// is <c>null</c>.</exception>
@@ -141,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<SupervisorListModel> QuerySupervisorsAsync(
             [FromBody][Required] SupervisorQueryModel query,
             [FromQuery] bool? onlyServerState,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -156,8 +162,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 
             // TODO: Filter results based on RBAC
 
-            return await _supervisors.QuerySupervisorsAsync(
-                query, onlyServerState ?? false, pageSize).ConfigureAwait(false);
+            return await _supervisors.QuerySupervisorsAsync(query, 
+                onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -175,13 +181,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// state, or display current client state of the endpoint if
         /// available</param>
         /// <param name="pageSize">Number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>Supervisors</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/>
+        /// is <c>null</c>.</exception>
         [HttpGet("query")]
         public async Task<SupervisorListModel> GetFilteredListOfSupervisorsAsync(
             [FromQuery][Required] SupervisorQueryModel query,
             [FromQuery] bool? onlyServerState,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -196,8 +204,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 
             // TODO: Filter results based on RBAC
 
-            return await _supervisors.QuerySupervisorsAsync(
-                query, onlyServerState ?? false, pageSize).ConfigureAwait(false);
+            return await _supervisors.QuerySupervisorsAsync(query, 
+                onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
         private readonly ISupervisorRegistry _supervisors;

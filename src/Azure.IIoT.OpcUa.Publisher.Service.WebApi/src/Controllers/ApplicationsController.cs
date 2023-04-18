@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// CRUD and Query application resources
@@ -48,19 +49,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// located by a supervisor in its network using the discovery url.
         /// </remarks>
         /// <param name="request">Server registration request</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task RegisterServerAsync(
-            [FromBody][Required] ServerRegistrationRequestModel request)
+            [FromBody][Required] ServerRegistrationRequestModel request,
+            CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _onboarding.RegisterAsync(request).ConfigureAwait(false);
+            await _onboarding.RegisterAsync(request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -70,12 +73,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// A manager can disable an application.
         /// </remarks>
         /// <param name="applicationId">The application id</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPost("{applicationId}/disable")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task DisableApplicationAsync(string applicationId)
+        public async Task DisableApplicationAsync(string applicationId,
+            CancellationToken ct)
         {
-            await _applications.DisableApplicationAsync(applicationId).ConfigureAwait(false);
+            await _applications.DisableApplicationAsync(applicationId, 
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -85,12 +91,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// A manager can enable an application.
         /// </remarks>
         /// <param name="applicationId">The application id</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPost("{applicationId}/enable")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task EnableApplicationAsync(string applicationId)
+        public async Task EnableApplicationAsync(string applicationId,
+            CancellationToken ct)
         {
-            await _applications.EnableApplicationAsync(applicationId).ConfigureAwait(false);
+            await _applications.EnableApplicationAsync(applicationId,
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -101,19 +110,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// network. Requires that the onboarding agent service is running.
         /// </remarks>
         /// <param name="request">Discovery request</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPost("discover")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DiscoverServerAsync(
-            [FromBody][Required] DiscoveryRequestModel request)
+            [FromBody][Required] DiscoveryRequestModel request,
+            CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _onboarding.DiscoverAsync(request).ConfigureAwait(false);
+            await _onboarding.DiscoverAsync(request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -123,11 +134,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// Cancels a discovery request using the request identifier.
         /// </remarks>
         /// <param name="requestId">Discovery request</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         [HttpDelete("discover/{requestId}")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task CancelAsync(string requestId)
+        public async Task CancelAsync(string requestId,
+            CancellationToken ct)
         {
             if (string.IsNullOrEmpty(requestId))
             {
@@ -137,7 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             {
                 Id = requestId
                 // TODO: AuthorityId = User.Identity.Name;
-            }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -150,13 +163,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// in a network not reachable through a Twin module.
         /// </remarks>
         /// <param name="request">Application registration request</param>
+        /// <param name="ct"></param>
         /// <returns>Application registration response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
         [HttpPut]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task<ApplicationRegistrationResponseModel> CreateApplicationAsync(
-            [FromBody][Required] ApplicationRegistrationRequestModel request)
+            [FromBody][Required] ApplicationRegistrationRequestModel request,
+            CancellationToken ct)
         {
             if (request == null)
             {
@@ -164,19 +179,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             var model = request;
             // TODO: applicationServiceModel.AuthorityId = User.Identity.Name;
-            return await _applications.RegisterApplicationAsync(model).ConfigureAwait(false);
+            return await _applications.RegisterApplicationAsync(model,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get application registration
         /// </summary>
         /// <param name="applicationId">Application id for the server</param>
+        /// <param name="ct"></param>
         /// <returns>Application registration</returns>
         [HttpGet("{applicationId}")]
         public async Task<ApplicationRegistrationModel> GetApplicationRegistrationAsync(
-            string applicationId)
+            string applicationId, CancellationToken ct)
         {
-            return await _applications.GetApplicationAsync(applicationId).ConfigureAwait(false);
+            return await _applications.GetApplicationAsync(applicationId, 
+                ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -189,12 +207,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="applicationId">The identifier of the application</param>
         /// <param name="request">Application update request</param>
+        /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPatch("{applicationId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateApplicationRegistrationAsync(string applicationId,
-            [FromBody][Required] ApplicationRegistrationUpdateModel request)
+            [FromBody][Required] ApplicationRegistrationUpdateModel request,
+            CancellationToken ct)
         {
             if (request == null)
             {
@@ -202,7 +222,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             var model = request;
             // TODO: applicationServiceModel.AuthorityId = User.Identity.Name;
-            await _applications.UpdateApplicationAsync(applicationId, model).ConfigureAwait(false);
+            await _applications.UpdateApplicationAsync(applicationId, model,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -212,12 +233,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// Unregisters and deletes application and all its associated endpoints.
         /// </remarks>
         /// <param name="applicationId">The identifier of the application</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         [HttpDelete("{applicationId}")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task DeleteApplicationAsync(string applicationId)
+        public async Task DeleteApplicationAsync(string applicationId, CancellationToken ct)
         {
-            await _applications.UnregisterApplicationAsync(applicationId).ConfigureAwait(false);
+            await _applications.UnregisterApplicationAsync(applicationId, ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -227,14 +249,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// Purges all applications that have not been seen for a specified amount of time.
         /// </remarks>
         /// <param name="notSeenFor">A duration in milliseconds</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         [HttpDelete]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DeleteAllDisabledApplicationsAsync(
-            [FromQuery] TimeSpan? notSeenFor)
+            [FromQuery] TimeSpan? notSeenFor, CancellationToken ct)
         {
             await _applications.PurgeDisabledApplicationsAsync(
-                notSeenFor ?? TimeSpan.FromTicks(0)).ConfigureAwait(false);
+                notSeenFor ?? TimeSpan.FromTicks(0), ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -247,12 +270,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// token</param>
         /// <param name="pageSize">Optional number of results to
         /// return</param>
+        /// <param name="ct"></param>
         /// <returns>Sites</returns>
         [HttpGet("sites")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<ApplicationSiteListModel> GetListOfSitesAsync(
             [FromQuery] string? continuationToken,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
             {
@@ -265,8 +289,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _applications.ListSitesAsync(
-                continuationToken, pageSize).ConfigureAwait(false);
+            return await _applications.ListSitesAsync(continuationToken,
+                pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -282,6 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// token</param>
         /// <param name="pageSize">Optional number of results to
         /// return</param>
+        /// <param name="ct"></param>
         /// <returns>
         /// List of servers and continuation token to use for next request
         /// in x-ms-continuation header.
@@ -290,7 +315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<ApplicationInfoListModel> GetListOfApplicationsAsync(
             [FromQuery] string? continuationToken,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
             {
@@ -303,8 +328,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _applications.ListApplicationsAsync(
-                continuationToken, pageSize).ConfigureAwait(false);
+            return await _applications.ListApplicationsAsync(continuationToken, 
+                pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -320,13 +345,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="query">Application query</param>
         /// <param name="pageSize">Optional number of results to
         /// return</param>
+        /// <param name="ct"></param>
         /// <returns>Applications</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/>
         /// is <c>null</c>.</exception>
         [HttpPost("query")]
         public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
             [FromBody][Required] ApplicationRegistrationQueryModel query,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -338,8 +364,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _applications.QueryApplicationsAsync(
-                query, pageSize).ConfigureAwait(false);
+            return await _applications.QueryApplicationsAsync(query,
+                pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -354,13 +380,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="query">Applications Query model</param>
         /// <param name="pageSize">Number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>Applications</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/>
         /// is <c>null</c>.</exception>
         [HttpGet("query")]
         public async Task<ApplicationInfoListModel> GetFilteredListOfApplicationsAsync(
             [FromBody][Required] ApplicationRegistrationQueryModel query,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -372,8 +399,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _applications.QueryApplicationsAsync(
-                query, pageSize).ConfigureAwait(false);
+            return await _applications.QueryApplicationsAsync(query, 
+                pageSize, ct).ConfigureAwait(false);
         }
 
         private readonly IApplicationRegistry _applications;

@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Value and Event publishing services
@@ -45,18 +46,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The publish request</param>
+        /// <param name="ct"></param>
         /// <returns>The publish response</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("{endpointId}/start")]
         public async Task<PublishStartResponseModel> StartPublishingValuesAsync(
-            string endpointId, [FromBody][Required] PublishStartRequestModel request)
+            string endpointId, [FromBody][Required] PublishStartRequestModel request,
+            CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await _publisher.PublishStartAsync(
-                endpointId, request).ConfigureAwait(false);
+            return await _publisher.PublishStartAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -68,18 +71,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="endpointId">The identifier of an activated endpoint.</param>
         /// <param name="request">The bulk publish request</param>
+        /// <param name="ct"></param>
         /// <returns>The bulk publish response</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("{endpointId}/bulk")]
         public async Task<PublishBulkResponseModel> BulkPublishValuesAsync(
-            string endpointId, [FromBody][Required] PublishBulkRequestModel request)
+            string endpointId, [FromBody][Required] PublishBulkRequestModel request,
+            CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await _publisher.PublishBulkAsync(
-                endpointId, request).ConfigureAwait(false);
+            return await _publisher.PublishBulkAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -92,18 +97,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The unpublish request</param>
+        /// <param name="ct"></param>
         /// <returns>The unpublish response</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("{endpointId}/stop")]
         public async Task<PublishStopResponseModel> StopPublishingValuesAsync(
-            string endpointId, [FromBody][Required] PublishStopRequestModel request)
+            string endpointId, [FromBody][Required] PublishStopRequestModel request,
+            CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await _publisher.PublishStopAsync(
-                endpointId, request).ConfigureAwait(false);
+            return await _publisher.PublishStopAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -116,18 +123,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The list request</param>
+        /// <param name="ct"></param>
         /// <returns>The list of published nodes</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("{endpointId}")]
         public async Task<PublishedItemListResponseModel> GetFirstListOfPublishedNodesAsync(
-            string endpointId, [FromBody][Required] PublishedItemListRequestModel request)
+            string endpointId, [FromBody][Required] PublishedItemListRequestModel request,
+            CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await _publisher.PublishListAsync(
-                endpointId, request).ConfigureAwait(false);
+            return await _publisher.PublishListAsync(endpointId, request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -140,21 +149,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="continuationToken">The continuation token to continue with</param>
+        /// <param name="ct"></param>
         /// <returns>The list of published nodes</returns>
         [HttpGet("{endpointId}")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<PublishedItemListResponseModel> GetNextListOfPublishedNodesAsync(
-            string endpointId, [FromQuery][Required] string? continuationToken)
+            string endpointId, [FromQuery][Required] string? continuationToken, CancellationToken ct)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
             {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
             }
-            return await _publisher.PublishListAsync(endpointId,
-                new PublishedItemListRequestModel
+            return await _publisher.PublishListAsync(endpointId, new PublishedItemListRequestModel
                 {
                     ContinuationToken = continuationToken
-                }).ConfigureAwait(false);
+                }, ct).ConfigureAwait(false);
         }
 
         private readonly IPublishServices<string> _publisher;

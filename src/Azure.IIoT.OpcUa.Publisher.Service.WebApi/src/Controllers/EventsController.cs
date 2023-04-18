@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -40,12 +41,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="discovererId">The discoverer to subscribe to</param>
         /// <param name="connectionId">The connection that will receive discovery
         /// events.</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPut("discovery/{discovererId}/events")]
         public async Task SubscribeByDiscovererIdAsync(string discovererId,
-            [FromBody] string connectionId)
+            [FromBody] string connectionId, CancellationToken ct)
         {
-            await _events.SubscribeAsync(discovererId, connectionId).ConfigureAwait(false);
+            await _events.SubscribeAsync(discovererId, connectionId, 
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -58,12 +61,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="requestId">The request to monitor</param>
         /// <param name="connectionId">The connection that will receive discovery
         /// events.</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPut("discovery/requests/{requestId}/events")]
         public async Task SubscribeByRequestIdAsync(string requestId,
-            [FromBody] string connectionId)
+            [FromBody] string connectionId, CancellationToken ct)
         {
-            await _events.SubscribeAsync(requestId, connectionId).ConfigureAwait(false);
+            await _events.SubscribeAsync(requestId, connectionId,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -77,12 +82,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </param>
         /// <param name="connectionId">The connection that will not receive
         /// any more discovery progress</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         [HttpDelete("discovery/requests/{requestId}/events/{connectionId}")]
         public async Task UnsubscribeByRequestIdAsync(string requestId,
-            string connectionId)
+            string connectionId, CancellationToken ct)
         {
-            await _events.UnsubscribeAsync(requestId, connectionId).ConfigureAwait(false);
+            await _events.UnsubscribeAsync(requestId, connectionId,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -95,12 +102,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </param>
         /// <param name="connectionId">The connection that will not receive
         /// any more discovery progress</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         [HttpDelete("discovery/{discovererId}/events/{connectionId}")]
         public async Task UnsubscribeByDiscovererIdAsync(string discovererId,
-            string connectionId)
+            string connectionId, CancellationToken ct)
         {
-            await _events.UnsubscribeAsync(discovererId, connectionId).ConfigureAwait(false);
+            await _events.UnsubscribeAsync(discovererId, connectionId, 
+                ct).ConfigureAwait(false);
         }
 
         private readonly IGroupRegistration<DiscoverersHub> _events;

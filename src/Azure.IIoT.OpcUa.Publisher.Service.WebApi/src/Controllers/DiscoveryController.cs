@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Configure discovery
@@ -44,11 +45,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// A discoverer id corresponds to the twin modules module identity.
         /// </remarks>
         /// <param name="discovererId">Discoverer identifier</param>
+        /// <param name="ct"></param>
         /// <returns>Discoverer registration</returns>
         [HttpGet("{discovererId}")]
-        public async Task<DiscovererModel> GetDiscovererAsync(string discovererId)
+        public async Task<DiscovererModel> GetDiscovererAsync(string discovererId,
+            CancellationToken ct)
         {
-            return await _discoverers.GetDiscovererAsync(discovererId).ConfigureAwait(false);
+            return await _discoverers.GetDiscovererAsync(discovererId,
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -60,18 +64,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="discovererId">discoverer identifier</param>
         /// <param name="request">Patch request</param>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
         [HttpPatch("{discovererId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateDiscovererAsync(string discovererId,
-            [FromBody][Required] DiscovererUpdateModel request)
+            [FromBody][Required] DiscovererUpdateModel request, CancellationToken ct)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _discoverers.UpdateDiscovererAsync(discovererId,
-                request).ConfigureAwait(false);
+            await _discoverers.UpdateDiscovererAsync(discovererId, 
+                request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -85,6 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="continuationToken">Optional Continuation token</param>
         /// <param name="pageSize">Optional number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>
         /// List of discoverers and continuation token to use for next request
         /// in x-ms-continuation header.
@@ -93,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<DiscovererListModel> GetListOfDiscoverersAsync(
             [FromQuery] string? continuationToken,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken))
             {
@@ -106,8 +113,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _discoverers.ListDiscoverersAsync(
-                continuationToken, pageSize).ConfigureAwait(false);
+            return await _discoverers.ListDiscoverersAsync(continuationToken,
+                pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -122,12 +129,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="query">Discoverers query model</param>
         /// <param name="pageSize">Number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>Discoverers</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/>
+        /// is <c>null</c>.</exception>
         [HttpPost("query")]
         public async Task<DiscovererListModel> QueryDiscoverersAsync(
             [FromBody][Required] DiscovererQueryModel query,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -139,8 +148,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _discoverers.QueryDiscoverersAsync(
-                query, pageSize).ConfigureAwait(false);
+            return await _discoverers.QueryDiscoverersAsync(query, 
+                pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -155,12 +164,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </remarks>
         /// <param name="query">Discoverers Query model</param>
         /// <param name="pageSize">Number of results to return</param>
+        /// <param name="ct"></param>
         /// <returns>Discoverers</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="query"/>
+        /// is <c>null</c>.</exception>
         [HttpGet("query")]
         public async Task<DiscovererListModel> GetFilteredListOfDiscoverersAsync(
             [FromQuery][Required] DiscovererQueryModel query,
-            [FromQuery] int? pageSize)
+            [FromQuery] int? pageSize, CancellationToken ct)
         {
             if (query == null)
             {
@@ -172,8 +183,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _discoverers.QueryDiscoverersAsync(
-                query, pageSize).ConfigureAwait(false);
+            return await _discoverers.QueryDiscoverersAsync(query, 
+                pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -186,19 +197,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="discovererId">discoverer identifier</param>
         /// <param name="mode">Discovery mode</param>
         /// <param name="config">Discovery configuration</param>
+        /// <param name="ct"></param>
         [HttpPost("{discovererId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task SetDiscoveryModeAsync(string discovererId,
             [FromQuery][Required] DiscoveryMode mode,
-            [FromBody] DiscoveryConfigModel config)
+            [FromBody] DiscoveryConfigModel config, CancellationToken ct)
         {
             var request = new DiscovererUpdateModel
             {
                 Discovery = mode,
                 DiscoveryConfig = config
             };
-            await _discoverers.UpdateDiscovererAsync(discovererId,
-                request).ConfigureAwait(false);
+            await _discoverers.UpdateDiscovererAsync(discovererId, 
+                request, ct).ConfigureAwait(false);
         }
 
         private readonly IDiscovererRegistry _discoverers;
