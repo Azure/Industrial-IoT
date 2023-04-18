@@ -15,8 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Globalization;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Read, Update and Query publisher resources
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<SupervisorModel> GetSupervisorAsync(string supervisorId,
             [FromQuery] bool? onlyServerState, CancellationToken ct)
         {
-            return await _supervisors.GetSupervisorAsync(supervisorId, 
+            return await _supervisors.GetSupervisorAsync(supervisorId,
                 onlyServerState ?? false, ct).ConfigureAwait(false);
         }
 
@@ -162,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 
             // TODO: Filter results based on RBAC
 
-            return await _supervisors.QuerySupervisorsAsync(query, 
+            return await _supervisors.QuerySupervisorsAsync(query,
                 onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
@@ -204,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 
             // TODO: Filter results based on RBAC
 
-            return await _supervisors.QuerySupervisorsAsync(query, 
+            return await _supervisors.QuerySupervisorsAsync(query,
                 onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 

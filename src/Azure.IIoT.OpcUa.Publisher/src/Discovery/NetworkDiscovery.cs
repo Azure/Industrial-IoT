@@ -27,8 +27,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Net.Sockets;
     using System.Text;
     using System.Threading;
-    using System.Threading.Tasks;
     using System.Threading.Channels;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Provides network discovery of endpoints

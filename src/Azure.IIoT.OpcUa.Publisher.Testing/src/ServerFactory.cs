@@ -29,26 +29,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         {
             get
             {
-                var extensions = new List<object> {
-                new MemoryBuffer.MemoryBufferConfiguration {
-                    Buffers = new MemoryBuffer.MemoryBufferInstanceCollection {
-                        new MemoryBuffer.MemoryBufferInstance {
-                            Name = "UInt32",
-                            TagCount = 10000,
-                            DataType = "UInt32"
-                        },
-                        new MemoryBuffer.MemoryBufferInstance {
-                            Name = "Double",
-                            TagCount = 100,
-                            DataType = "Double"
+                var extensions = new List<object>
+                {
+                    new MemoryBuffer.MemoryBufferConfiguration
+                    {
+                        Buffers = new MemoryBuffer.MemoryBufferInstanceCollection
+                        {
+                            new MemoryBuffer.MemoryBufferInstance
+                            {
+                                Name = "UInt32",
+                                TagCount = 10000,
+                                DataType = "UInt32"
+                            },
+                            new MemoryBuffer.MemoryBufferInstance
+                            {
+                                Name = "Double",
+                                TagCount = 100,
+                                DataType = "Double"
+                            }
                         }
                     }
-                }
-
-                /// ...
-            };
+                    /// ...
+                };
                 return new XmlElementCollection(
-                extensions.Select(XmlElementEx.SerializeObject));
+                    extensions.Select(XmlElementEx.SerializeObject));
             }
         }
 

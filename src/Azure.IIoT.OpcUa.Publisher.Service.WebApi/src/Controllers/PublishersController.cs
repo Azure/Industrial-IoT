@@ -15,8 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Globalization;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Read, Update and Query publisher resources
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<PublisherModel> GetPublisherAsync(string publisherId,
             [FromQuery] bool? onlyServerState, CancellationToken ct)
         {
-            return await _publishers.GetPublisherAsync(publisherId, 
+            return await _publishers.GetPublisherAsync(publisherId,
                 onlyServerState ?? false, ct).ConfigureAwait(false);
         }
 
@@ -79,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _publishers.UpdatePublisherAsync(publisherId, request, 
+            await _publishers.UpdatePublisherAsync(publisherId, request,
                 ct).ConfigureAwait(false);
         }
 
@@ -119,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _publishers.ListPublishersAsync(continuationToken, 
+            return await _publishers.ListPublishersAsync(continuationToken,
                 onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
@@ -161,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 
             // TODO: Filter results based on RBAC
 
-            return await _publishers.QueryPublishersAsync(query, 
+            return await _publishers.QueryPublishersAsync(query,
                 onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 
@@ -203,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 
             // TODO: Filter results based on RBAC
 
-            return await _publishers.QueryPublishersAsync(query, 
+            return await _publishers.QueryPublishersAsync(query,
                 onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
         }
 

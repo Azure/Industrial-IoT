@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// Creates PubSub encoded messages
     /// </summary>
-    public class NetworkMessageEncoder : IMessageEncoder
+    public sealed class NetworkMessageEncoder : IMessageEncoder, IDisposable
     {
         /// <inheritdoc/>
         public long NotificationsDroppedCount { get; private set; }
@@ -57,6 +57,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _logger = logger;
             _options = options;
             InitializeMetrics(metrics);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            _meter.Dispose();
         }
 
         /// <inheritdoc/>
@@ -405,42 +411,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _logger.LogWarning("Dropped {TotalNotifications} values", totalNotifications);
         }
 
-        private static readonly ConfigurationVersionDataType kEmptyConfiguration =
-            new() { MajorVersion = 1u };
-        private readonly IOptions<PublisherOptions> _options;
-        private readonly ILogger _logger;
-        private uint _sequenceNumber;
-
         /// <summary>
         /// Create observable metric registrations
         /// </summary>
         /// <param name="metrics"></param>
         private void InitializeMetrics(IMetricsContext metrics)
         {
-            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_encoded_notifications",
+            _meter.CreateObservableCounter("iiot_edge_publisher_encoded_notifications",
                 () => new Measurement<long>(NotificationsProcessedCount, metrics.TagList), "Notifications",
                 "Number of successfully processed subscription notifications received from OPC client.");
-            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_dropped_notifications",
+            _meter.CreateObservableCounter("iiot_edge_publisher_dropped_notifications",
                 () => new Measurement<long>(NotificationsDroppedCount, metrics.TagList), "Notifications",
                 "Number of incoming subscription notifications that are too big to be processed based " +
                 "on the message size limits or other issues with the notification.");
-            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_processed_messages",
+            _meter.CreateObservableCounter("iiot_edge_publisher_processed_messages",
                 () => new Measurement<long>(MessagesProcessedCount, metrics.TagList), "Messages",
                 "Number of successfully generated messages that are to be sent using the message sender");
-            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_notifications_per_message_average",
+            _meter.CreateObservableGauge("iiot_edge_publisher_notifications_per_message_average",
                 () => new Measurement<double>(AvgNotificationsPerMessage, metrics.TagList), "Notifications/Message",
                 "Average subscription notifications packed into a message");
-            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_encoded_message_size_average",
+            _meter.CreateObservableGauge("iiot_edge_publisher_encoded_message_size_average",
                 () => new Measurement<double>(AvgMessageSize, metrics.TagList), "Bytes",
                 "Average size of a message through the lifetime of the encoder.");
-            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_chunk_size_average",
+            _meter.CreateObservableGauge("iiot_edge_publisher_chunk_size_average",
                 () => new Measurement<double>(AvgMessageSize / (4 * 1024), metrics.TagList), "4kb Chunks",
                 "IoT Hub chunk size average");
-            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_message_split_ratio_max",
+            _meter.CreateObservableGauge("iiot_edge_publisher_message_split_ratio_max",
                 () => new Measurement<double>(MaxMessageSplitRatio, metrics.TagList), "Splits",
                 "The message split ration specifies into how many messages a subscription notification had to be split. " +
                 "Less is better for performance. If the number is large user should attempt to limit the number of " +
                 "notifications in a message using configuration.");
         }
+
+        private static readonly ConfigurationVersionDataType kEmptyConfiguration = new() { MajorVersion = 1u };
+        private uint _sequenceNumber;
+        private readonly IOptions<PublisherOptions> _options;
+        private readonly ILogger _logger;
+        private readonly Meter _meter = Diagnostics.NewMeter();
     }
 }

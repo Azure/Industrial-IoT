@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task SubscribeByDiscovererIdAsync(string discovererId,
             [FromBody] string connectionId, CancellationToken ct)
         {
-            await _events.SubscribeAsync(discovererId, connectionId, 
+            await _events.SubscribeAsync(discovererId, connectionId,
                 ct).ConfigureAwait(false);
         }
 
@@ -108,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task UnsubscribeByDiscovererIdAsync(string discovererId,
             string connectionId, CancellationToken ct)
         {
-            await _events.UnsubscribeAsync(discovererId, connectionId, 
+            await _events.UnsubscribeAsync(discovererId, connectionId,
                 ct).ConfigureAwait(false);
         }
 

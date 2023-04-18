@@ -133,6 +133,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
 
                 diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                for (var i = 0; i < 1000 && diagnostics.Count != 1 && diagnostics[0].Endpoint.DataSetWriterGroup != name2; i++)
+                {
+                    _output.WriteLine($"{i}: Failed to get diagnosticsinfo.");
+                    await Task.Delay(1000).ConfigureAwait(false);
+                    diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                }
+
                 diag = Assert.Single(diagnostics);
                 Assert.Equal(name2, diag.Endpoint.DataSetWriterGroup);
             }

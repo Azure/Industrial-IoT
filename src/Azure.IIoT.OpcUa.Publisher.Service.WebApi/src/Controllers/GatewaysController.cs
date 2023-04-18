@@ -15,8 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Globalization;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Read, Update and Query Gateway resources
@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="GatewayId">Gateway identifier</param>
         /// <param name="request">Patch request</param>
         /// <param name="ct"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> 
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
         [HttpPatch("{GatewayId}")]
         [Authorize(Policy = Policies.CanWrite)]
@@ -111,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _gateways.ListGatewaysAsync(continuationToken, 
+            return await _gateways.ListGatewaysAsync(continuationToken,
                 pageSize, ct).ConfigureAwait(false);
         }
 
@@ -146,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _gateways.QueryGatewaysAsync(query, pageSize, 
+            return await _gateways.QueryGatewaysAsync(query, pageSize,
                 ct).ConfigureAwait(false);
         }
 
@@ -181,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _gateways.QueryGatewaysAsync(query, pageSize, 
+            return await _gateways.QueryGatewaysAsync(query, pageSize,
                 ct).ConfigureAwait(false);
         }
 

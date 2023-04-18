@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
@@ -98,11 +98,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public void Dispose()
         {
             Session.KeepAlive -= _keepAlive;
+
             if (!DoNotDisposeSessionWhenDisposing)
             {
                 Session.Dispose();
                 _logger.LogDebug("Session {Name} disposed.", Session.SessionName);
             }
+
+            _activitySource.Dispose();
         }
 
         /// <inheritdoc/>
@@ -956,7 +959,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public SessionActivity(OpcUaSession outer, string activity)
             {
-                _activity = Diagnostics.Activity.StartActivity(activity);
+                _activity = outer._activitySource.StartActivity(activity);
 
                 if (outer._logger.IsEnabled(LogLevel.Debug))
                 {
@@ -1034,5 +1037,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly NodeId _authenticationToken;
         private readonly KeepAliveEventHandler _keepAlive;
         private readonly ILogger _logger;
+        private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

@@ -14,8 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Value and Event publishing services
@@ -161,9 +161,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
             }
             return await _publisher.PublishListAsync(endpointId, new PublishedItemListRequestModel
-                {
-                    ContinuationToken = continuationToken
-                }, ct).ConfigureAwait(false);
+            {
+                ContinuationToken = continuationToken
+            }, ct).ConfigureAwait(false);
         }
 
         private readonly IPublishServices<string> _publisher;

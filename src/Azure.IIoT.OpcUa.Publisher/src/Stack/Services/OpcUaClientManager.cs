@@ -13,9 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
+    using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Microsoft.Extensions.Caching.Memory;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
@@ -24,10 +24,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// Client manager
@@ -328,6 +328,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (!_disposed)
             {
+                _meter.Dispose();
+
                 DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
         }
@@ -583,7 +585,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         private void InitializeMetrics()
         {
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_count",
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_count",
                 () => new Measurement<int>(_clients.Count, _metrics.TagList),
                 "Clients", "Number of clients.");
         }
@@ -598,5 +600,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
         private readonly Task<ApplicationConfiguration> _configuration;
         private readonly IMetricsContext _metrics;
+        private readonly Meter _meter = Diagnostics.NewMeter();
     }
 }

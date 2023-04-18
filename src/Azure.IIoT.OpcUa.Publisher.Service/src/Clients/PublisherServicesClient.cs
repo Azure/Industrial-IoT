@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
     using Microsoft.Extensions.Caching.Memory;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -21,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
     /// </summary>
     public sealed class PublisherServicesClient : IConnectionServices<string>,
         ICertificateServices<string>, INodeServices<string>, IPublishServices<string>,
-        IHistoryServices<string>
+        IHistoryServices<string>, IDisposable
     {
         /// <summary>
         /// Create ep registry
@@ -37,6 +38,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _cache = cache ?? throw new ArgumentNullException(nameof(serializer));
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            _activitySource.Dispose();
         }
 
         /// <inheritdoc/>
@@ -839,7 +846,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         private async Task<T> Execute<T>(string operation, string endpoint,
             Func<string, EndpointModel, Task<T>> call, CancellationToken ct)
         {
-            using var activity = Diagnostics.Activity.StartActivity(operation);
+            using var activity = _activitySource.StartActivity(operation);
             var ep = await GetEndpointAsync(endpoint, ct).ConfigureAwait(false);
             try
             {
@@ -863,7 +870,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         private async Task Execute(string operation, string endpoint,
             Func<string, EndpointModel, Task> call, CancellationToken ct)
         {
-            using var activity = Diagnostics.Activity.StartActivity(operation);
+            using var activity = _activitySource.StartActivity(operation);
             var ep = await GetEndpointAsync(endpoint, ct).ConfigureAwait(false);
             try
             {
@@ -914,5 +921,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         private readonly IMethodClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly IMemoryCache _cache;
+        private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

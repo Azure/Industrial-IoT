@@ -26,11 +26,16 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Metrics
         /// </summary>
-        public static readonly Meter Meter = new(Namespace, Version);
+        public static readonly Meter Meter = NewMeter();
+
+        /// <summary>
+        /// Metrics
+        /// </summary>
+        public static Meter NewMeter() => new(Namespace, Version);
 
         /// <summary>
         /// Tracing
         /// </summary>
-        public static readonly ActivitySource Activity = new(Namespace, Version);
+        public static ActivitySource NewActivitySource() => new(Namespace, Version);
     }
 }

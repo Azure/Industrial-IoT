@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using Divergic.Logging.Xunit;
     using Furly.Extensions.Mqtt;
     using Json.More;
     using System;
@@ -16,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using Divergic.Logging.Xunit;
 
     public class MqttConfigurationIntegrationTests : PublisherIntegrationTestBase
     {

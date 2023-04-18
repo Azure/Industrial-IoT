@@ -77,12 +77,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<PublishStartResponseModel> PublishStartAsync(ConnectionModel endpoint,
             PublishStartRequestModel request, CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered ... ", nameof(PublishStartAsync));
+            _logger.LogInformation("{Method} method triggered...", nameof(PublishStartAsync));
             var sw = Stopwatch.StartNew();
             if (request?.Item is null)
             {
                 var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishStartAsync), sw.Elapsed);
                 sw.Stop();
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishStartAsync), sw.Elapsed);
                 sw.Stop();
             }
@@ -147,12 +147,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<PublishStopResponseModel> PublishStopAsync(ConnectionModel endpoint,
             PublishStopRequestModel request, CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered ... ", nameof(PublishStopAsync));
+            _logger.LogInformation("{Method} method triggered...", nameof(PublishStopAsync));
             var sw = Stopwatch.StartNew();
             if (request?.NodeId is null)
             {
                 var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishStopAsync), sw.Elapsed);
                 sw.Stop();
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
@@ -179,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishStopAsync), sw.Elapsed);
                 sw.Stop();
             }
@@ -189,12 +189,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<PublishBulkResponseModel> PublishBulkAsync(ConnectionModel endpoint,
             PublishBulkRequestModel request, CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered ... ", nameof(PublishBulkAsync));
+            _logger.LogInformation("{Method} method triggered...", nameof(PublishBulkAsync));
             var sw = Stopwatch.StartNew();
             if (request?.NodesToAdd is null && request?.NodesToRemove is null)
             {
                 var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishBulkAsync), sw.Elapsed);
                 sw.Stop();
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
@@ -232,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishBulkAsync), sw.Elapsed);
                 sw.Stop();
             }
@@ -242,12 +242,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<PublishedItemListResponseModel> PublishListAsync(ConnectionModel endpoint,
             PublishedItemListRequestModel request, CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered ... ", nameof(PublishListAsync));
+            _logger.LogInformation("{Method} method triggered...", nameof(PublishListAsync));
             var sw = Stopwatch.StartNew();
             if (request is null)
             {
                 var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishListAsync), sw.Elapsed);
                 sw.Stop();
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
@@ -281,7 +281,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishListAsync), sw.Elapsed);
                 sw.Stop();
             }
@@ -291,12 +291,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task PublishNodesAsync(PublishedNodesEntryModel request,
             CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered ... ", nameof(PublishNodesAsync));
+            _logger.LogInformation("{Method} method triggered ...", nameof(PublishNodesAsync));
             var sw = Stopwatch.StartNew();
             if (request is null || request.OpcNodes is null || request.OpcNodes.Count == 0)
             {
                 var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishNodesAsync), sw.Elapsed);
                 sw.Stop();
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
@@ -355,7 +355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishNodesAsync), sw.Elapsed);
                 sw.Stop();
             }
@@ -369,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var sw = Stopwatch.StartNew();
             if (request is null)
             {
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(UnpublishNodesAsync), sw.Elapsed);
                 sw.Stop();
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
@@ -492,7 +492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(UnpublishNodesAsync), sw.Elapsed);
                 sw.Stop();
             }
@@ -502,7 +502,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task UnpublishAllNodesAsync(PublishedNodesEntryModel request,
             CancellationToken ct)
         {
-            _logger.LogInformation("{Method} method triggered", nameof(UnpublishAllNodesAsync));
+            _logger.LogInformation("{Method} method triggered...", nameof(UnpublishAllNodesAsync));
             //
             // when no endpoint is specified remove all the configuration
             // purge content feature is implemented to ensure the backwards compatibility
@@ -559,7 +559,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(UnpublishAllNodesAsync), sw.Elapsed);
                 sw.Stop();
             }
@@ -570,12 +570,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             CancellationToken ct = default)
         {
             const string methodName = nameof(AddOrUpdateEndpointsAsync);
-            _logger.LogInformation("{Method} method triggered ... ", methodName);
+            _logger.LogInformation("{Method} method triggered...", methodName);
             var sw = Stopwatch.StartNew();
 
             if (request is null)
             {
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     methodName, sw.Elapsed);
                 sw.Stop();
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
@@ -639,7 +639,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     methodName, sw.Elapsed);
                 sw.Stop();
             }
@@ -650,7 +650,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             CancellationToken ct = default)
         {
             const string methodName = nameof(GetConfiguredEndpointsAsync);
-            _logger.LogInformation("{Method} method triggered", methodName);
+            _logger.LogInformation("{Method} method triggered...", methodName);
             var sw = Stopwatch.StartNew();
 
             var currentNodes = GetCurrentPublishedNodes();
@@ -666,7 +666,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             finally
             {
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     methodName, sw.Elapsed);
                 sw.Stop();
             }
@@ -677,13 +677,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request, CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered",
+            _logger.LogInformation("{Method} method triggered...",
                 nameof(GetConfiguredNodesOnEndpointAsync));
             var sw = Stopwatch.StartNew();
 
             if (request is null)
             {
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
                 sw.Stop();
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
@@ -720,7 +720,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             finally
             {
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
                 sw.Stop();
             }
@@ -731,7 +731,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(
             CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered", nameof(GetDiagnosticInfoAsync));
+            _logger.LogInformation("{Method} method triggered...", nameof(GetDiagnosticInfoAsync));
             var sw = Stopwatch.StartNew();
             await _file.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -789,7 +789,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _file.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}",
+                _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(GetDiagnosticInfoAsync), sw.Elapsed);
                 sw.Stop();
             }

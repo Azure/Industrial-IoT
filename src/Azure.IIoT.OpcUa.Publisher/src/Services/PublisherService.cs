@@ -116,11 +116,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _isDisposed = true;
             try
             {
+                _logger.LogDebug("Closing publisher service...");
+
                 _cts.Cancel();
                 _changeFeed.Writer.TryComplete();
                 _processor.GetAwaiter().GetResult();
+
+                _logger.LogInformation("Publisher service closed succesfully.");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to close publisher service succesfully.");
+            }
             finally
             {
                 _cts.Dispose();

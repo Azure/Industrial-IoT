@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
     /// <summary>
     /// Implement the discovery services through all registered publishers
     /// </summary>
-    public sealed class DiscoveryServicesClient : INetworkDiscovery, IServerDiscovery
+    public sealed class DiscoveryServicesClient : INetworkDiscovery, IServerDiscovery, IDisposable
     {
         /// <summary>
         /// Create endpoint registry
@@ -38,9 +39,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         }
 
         /// <inheritdoc/>
+        public void Dispose()
+        {
+            _activitySource.Dispose();
+        }
+
+        /// <inheritdoc/>
         public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct)
         {
-            using var activity = Diagnostics.Activity.StartActivity("CancelDiscovery");
+            using var activity = _activitySource.StartActivity("CancelDiscovery");
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
                 if (publisher.Id == null)
@@ -65,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public async Task<ApplicationRegistrationModel> FindServerAsync(ServerEndpointQueryModel query,
             CancellationToken ct)
         {
-            using var activity = Diagnostics.Activity.StartActivity("FindServer");
+            using var activity = _activitySource.StartActivity("FindServer");
             var exceptions = new List<Exception>();
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
@@ -90,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         /// <inheritdoc/>
         public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct)
         {
-            using var activity = Diagnostics.Activity.StartActivity("Discover");
+            using var activity = _activitySource.StartActivity("Discover");
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
                 if (publisher.Id == null)
@@ -113,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         /// <inheritdoc/>
         public async Task RegisterAsync(ServerRegistrationRequestModel request, CancellationToken ct)
         {
-            using var activity = Diagnostics.Activity.StartActivity("RegisterServer");
+            using var activity = _activitySource.StartActivity("RegisterServer");
             await foreach (var publisher in EnumeratePublishersAsync(ct))
             {
                 if (publisher.Id == null)
@@ -163,5 +170,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         private readonly IMethodClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
+        private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

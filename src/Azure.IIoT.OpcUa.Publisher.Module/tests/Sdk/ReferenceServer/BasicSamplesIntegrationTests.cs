@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Divergic.Logging.Xunit;
     using FluentAssertions;
     using Json.More;
     using Opc.Ua;
@@ -22,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using Divergic.Logging.Xunit;
 
     public class BasicSamplesIntegrationTests : PublisherIntegrationTestBase
     {

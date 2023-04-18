@@ -125,6 +125,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public void Dispose()
         {
+            _meter.Dispose();
+
             DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
@@ -184,26 +186,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="metrics"></param>
         private void InitMetricsContext(IMetricsContext metrics)
         {
-            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_iothub_queue_dropped_count",
+            _meter.CreateObservableCounter("iiot_edge_publisher_iothub_queue_dropped_count",
                 () => new Measurement<long>(_sinkBlockInputDroppedCount, metrics.TagList), "Messages",
                 "Telemetry messages dropped due to overflow.");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_iothub_queue_size",
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_iothub_queue_size",
                 () => new Measurement<long>(_sinkBlock.InputCount, metrics.TagList), "Messages",
                 "Telemetry messages queued for sending upstream.");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_batch_input_queue_size",
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_batch_input_queue_size",
                 () => new Measurement<long>(_batchDataSetMessageBlock.OutputCount, metrics.TagList), "Notifications",
                 "Telemetry messages queued for sending upstream.");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_encoding_input_queue_size",
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_encoding_input_queue_size",
                 () => new Measurement<long>(_encodingBlock.InputCount, metrics.TagList), "Notifications",
                 "Telemetry messages queued for sending upstream.");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_encoding_output_queue_size",
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_encoding_output_queue_size",
                 () => new Measurement<long>(_encodingBlock.InputCount, metrics.TagList), "Messages",
                 "Telemetry messages queued for sending upstream.");
         }
 
         private long _sinkBlockInputDroppedCount;
         private DateTime _dataFlowStartTime = DateTime.MinValue;
-        private readonly int _notificationBufferSize = 1;
+        private readonly int _notificationBufferSize;
         private readonly int _maxEncodedMessageSize;
         private readonly int _maxOutgressMessages;
         private readonly Timer _batchTriggerIntervalTimer;
@@ -216,5 +218,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly BatchBlock<SubscriptionNotificationModel> _batchDataSetMessageBlock;
         private readonly TransformManyBlock<SubscriptionNotificationModel[], IEvent> _encodingBlock;
         private readonly ActionBlock<IEvent> _sinkBlock;
+        private readonly Meter _meter = Diagnostics.NewMeter();
     }
 }

@@ -7,8 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Autofac;
     using Azure.IIoT.OpcUa.Encoders;
+    using Autofac;
 
     /// <summary>
     /// Container builder extensions

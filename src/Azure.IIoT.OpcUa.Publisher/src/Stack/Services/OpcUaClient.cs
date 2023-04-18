@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
-    using Azure.IIoT.OpcUa.Exceptions;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
@@ -887,10 +887,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly IDisposable _readerLock;
             private readonly OpcUaClient _client;
         }
-
-        private static readonly UpDownCounter<int> kSessions = Diagnostics.Meter.CreateUpDownCounter<int>(
-            "iiot_edge_publisher_session_count", "Number of active sessions.");
-
         private enum ConnectionEvent
         {
             Connect,
@@ -907,6 +903,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Connected,
             Reconnecting
         }
+
+        private static readonly UpDownCounter<int> kSessions = Diagnostics.Meter.CreateUpDownCounter<int>(
+            "iiot_edge_publisher_session_count", "Number of active sessions.");
 
         private OpcUaSession? _session;
         private IDisposable? _disconnectLock;

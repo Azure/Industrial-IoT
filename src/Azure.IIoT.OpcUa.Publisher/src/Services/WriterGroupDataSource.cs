@@ -766,35 +766,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         private void InitializeMetrics()
         {
-            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_events",
+            _meter.CreateObservableCounter("iiot_edge_publisher_events",
                 () => new Measurement<long>(_eventCount, _metrics.TagList), "Events",
                 "Total Opc Events delivered for processing.");
-            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_value_changes",
+            _meter.CreateObservableCounter("iiot_edge_publisher_value_changes",
                 () => new Measurement<long>(ValueChangesCount, _metrics.TagList), "Values",
                 "Total Opc Value changes delivered for processing.");
-            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second",
+            _meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second",
                 () => new Measurement<double>(ValueChangesCount / UpTime, _metrics.TagList), "Values/sec",
                 "Opc Value changes/second delivered for processing.");
-            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second_last_min",
+            _meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second_last_min",
                 () => new Measurement<long>(ValueChangesCountLastMinute, _metrics.TagList), "Values",
                 "Opc Value changes/second delivered for processing in last 60s.");
 
-            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_event_notifications",
+            _meter.CreateObservableCounter("iiot_edge_publisher_event_notifications",
                 () => new Measurement<long>(_eventNotificationCount, _metrics.TagList), "Notifications",
                 "Total Opc Event notifications delivered for processing.");
-            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_data_changes",
+            _meter.CreateObservableCounter("iiot_edge_publisher_data_changes",
                 () => new Measurement<long>(DataChangesCount, _metrics.TagList), "Notifications",
                 "Total Opc Data change notifications delivered for processing.");
-            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second",
+            _meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second",
                 () => new Measurement<double>(DataChangesCount / UpTime, _metrics.TagList), "Notifications/sec",
                 "Opc Data change notifications/second delivered for processing.");
-            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second_last_min",
+            _meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second_last_min",
                 () => new Measurement<long>(DataChangesCountLastMinute, _metrics.TagList), "Notifications",
                 "Opc Data change notifications/second delivered for processing in last 60s.");
         }
 
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
         private const int _bucketWidth = 60;
+        private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly long[] _valueChangesBuffer = new long[_bucketWidth];
         private readonly long[] _dataChangesBuffer = new long[_bucketWidth];
         private readonly ILogger _logger;
@@ -802,9 +803,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IOpcUaSubscriptionManager _subscriptionManager;
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionConfig;
         private readonly IMetricsContext _metrics;
-        private WriterGroupModel _writerGroup;
         private readonly IOptions<PublisherOptions> _options;
         private readonly SemaphoreSlim _lock = new(1, 1);
+        private WriterGroupModel _writerGroup;
         private int _lastPointerValueChanges;
         private long _valueChangesCount;
         private int _lastPointerDataChanges;

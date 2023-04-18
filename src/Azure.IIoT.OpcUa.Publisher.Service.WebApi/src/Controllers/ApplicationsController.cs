@@ -15,8 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Globalization;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// CRUD and Query application resources
@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task DisableApplicationAsync(string applicationId,
             CancellationToken ct)
         {
-            await _applications.DisableApplicationAsync(applicationId, 
+            await _applications.DisableApplicationAsync(applicationId,
                 ct: ct).ConfigureAwait(false);
         }
 
@@ -193,7 +193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         public async Task<ApplicationRegistrationModel> GetApplicationRegistrationAsync(
             string applicationId, CancellationToken ct)
         {
-            return await _applications.GetApplicationAsync(applicationId, 
+            return await _applications.GetApplicationAsync(applicationId,
                 ct: ct).ConfigureAwait(false);
         }
 
@@ -328,7 +328,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _applications.ListApplicationsAsync(continuationToken, 
+            return await _applications.ListApplicationsAsync(continuationToken,
                 pageSize, ct).ConfigureAwait(false);
         }
 
@@ -399,7 +399,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _applications.QueryApplicationsAsync(query, 
+            return await _applications.QueryApplicationsAsync(query,
                 pageSize, ct).ConfigureAwait(false);
         }
 

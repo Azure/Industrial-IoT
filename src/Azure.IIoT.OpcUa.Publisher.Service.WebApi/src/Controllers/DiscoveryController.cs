@@ -15,8 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Globalization;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Configure discovery
@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _discoverers.UpdateDiscovererAsync(discovererId, 
+            await _discoverers.UpdateDiscovererAsync(discovererId,
                 request, ct).ConfigureAwait(false);
         }
 
@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _discoverers.QueryDiscoverersAsync(query, 
+            return await _discoverers.QueryDiscoverersAsync(query,
                 pageSize, ct).ConfigureAwait(false);
         }
 
@@ -183,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                     Request.Headers[HttpHeader.MaxItemCount].FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
-            return await _discoverers.QueryDiscoverersAsync(query, 
+            return await _discoverers.QueryDiscoverersAsync(query,
                 pageSize, ct).ConfigureAwait(false);
         }
 
@@ -209,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                 Discovery = mode,
                 DiscoveryConfig = config
             };
-            await _discoverers.UpdateDiscovererAsync(discovererId, 
+            await _discoverers.UpdateDiscovererAsync(discovererId,
                 request, ct).ConfigureAwait(false);
         }
 

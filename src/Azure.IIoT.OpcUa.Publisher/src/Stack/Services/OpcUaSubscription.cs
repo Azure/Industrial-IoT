@@ -412,8 +412,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (!_closed)
             {
                 Try.Async(() => CloseAsync().AsTask()).Wait();
+
                 Debug.Assert(_closed);
             }
+
+            _meter.Dispose();
             _lock.Dispose();
         }
 
@@ -1437,19 +1440,19 @@ Actual (revised) state/desired state:
         /// </summary>
         public void InitializeMetrics()
         {
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
                 () => new Measurement<long>(NumberOfGoodNodes, _metrics.TagList), "Monitored items",
                 "Monitored items successfully created..");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
                 () => new Measurement<long>(NumberOfBadNodes, _metrics.TagList), "Monitored items",
                 "Monitored items with errors.");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
                 () => new Measurement<long>(_currentlyMonitored.Count, _metrics.TagList), "Monitored items",
                 "Monitored item count.");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
                 () => new Measurement<long>(_connectionAttempts, _metrics.TagList),
                 "Connection attempts", "OPC UA connect retries.");
-            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
+            _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
                 () => new Measurement<int>(_online ? 1 : 0, _metrics.TagList),
                 "", "OPC UA connection success flag.");
         }
@@ -1459,15 +1462,16 @@ Actual (revised) state/desired state:
         private DataSetMetaDataType? _currentMetaData;
         private bool _online;
         private long _connectionAttempts;
+        private uint _lastSequenceNumber;
+        private uint _sequenceNumber;
+        private bool _closed;
         private readonly IClientAccessor<ConnectionModel> _clients;
         private readonly IOptions<OpcUaClientOptions> _options;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private readonly IMetricsContext _metrics;
         private readonly SemaphoreSlim _lock;
-        private uint _lastSequenceNumber;
-        private uint _sequenceNumber;
-        private bool _closed;
+        private readonly Meter _meter = Diagnostics.NewMeter();
         private static uint _lastIndex;
     }
 }
