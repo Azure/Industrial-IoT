@@ -133,9 +133,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
 
                 diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
-                for (var i = 0; i < 1000 && diagnostics.Count != 1 && diagnostics[0].Endpoint.DataSetWriterGroup != name2; i++)
+                for (var i = 0; i < 1000 &&
+                    (diagnostics.Count != 1 || diagnostics[0].Endpoint.DataSetWriterGroup != name2); i++)
                 {
-                    _output.WriteLine($"{i}: Failed to get diagnosticsinfo.");
+                    _output.WriteLine($"######### {i}: Failed to get diagnosticsinfo.");
                     await Task.Delay(1000).ConfigureAwait(false);
                     diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
                 }
@@ -213,6 +214,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             {
                 server.Dispose();
                 StopPublisher();
+            }
+        }
+
+        [Fact]
+        public async Task RestartConfigurationTest()
+        {
+            var server = new ReferenceServer();
+            ServerPort = server.Port;
+            for (var cycles = 0; cycles < 5; cycles++)
+            {
+                const string name = nameof(RestartConfigurationTest);
+                StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub" });
+                try
+                {
+                    // Arrange
+                    // Act
+                    await WaitForMessagesAndMetadataAsync(TimeSpan.FromSeconds(10), 1, messageType: "ua-data").ConfigureAwait(false);
+
+                    var name2 = nameof(RestartConfigurationTest) + "new";
+                    WritePublishedNodes(name2, "./Resources/DataItems2.json");
+                    var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                    for (var i = 0; i < 1000 &&
+                        (diagnostics.Count != 1 || diagnostics[0].Endpoint.DataSetWriterGroup != name2); i++)
+                    {
+                        _output.WriteLine($"######### {i}: Failed to get diagnosticsinfo.");
+                        await Task.Delay(1000).ConfigureAwait(false);
+                        diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
+                    }
+                    var diag = Assert.Single(diagnostics);
+                    Assert.Equal(name2, diag.Endpoint.DataSetWriterGroup);
+                }
+                finally
+                {
+                    StopPublisher();
+                }
             }
         }
 

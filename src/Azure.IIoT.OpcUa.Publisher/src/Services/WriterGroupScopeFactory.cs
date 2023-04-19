@@ -24,17 +24,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create job scope factory
         /// </summary>
         /// <param name="lifetimeScope"></param>
-        public WriterGroupScopeFactory(ILifetimeScope lifetimeScope)
+        /// <param name="serializer"></param>
+        /// <param name="options"></param>
+        /// <param name="collector"></param>
+        public WriterGroupScopeFactory(ILifetimeScope lifetimeScope, IJsonSerializer serializer,
+            IOptions<PublisherOptions>? options = null, IDiagnosticCollector ? collector = null)
         {
             _lifetimeScope = lifetimeScope;
-            _lifetimeScope.TryResolve(out _collector);
-            _lifetimeScope.TryResolve(out _options);
+            _serializer = serializer;
+            _collector = collector;
+            _options = options;
         }
 
         /// <inheritdoc/>
         public IWriterGroupScope Create(WriterGroupModel writerGroup)
         {
-            return new WriterGroupScope(this, writerGroup, _lifetimeScope.Resolve<IJsonSerializer>());
+            return new WriterGroupScope(this, writerGroup, _serializer);
         }
 
         /// <summary>
@@ -118,6 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private readonly ILifetimeScope _lifetimeScope;
+        private readonly IJsonSerializer _serializer;
         private readonly IDiagnosticCollector? _collector;
         private readonly IOptions<PublisherOptions>? _options;
     }
