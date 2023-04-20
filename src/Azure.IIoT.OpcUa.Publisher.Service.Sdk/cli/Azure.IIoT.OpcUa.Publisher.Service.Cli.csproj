@@ -14,7 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.27" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.29" />
     <PackageReference Include="Microsoft.NET.Build.Containers" Version="0.4.0" />
   </ItemGroup>
   <ItemGroup>

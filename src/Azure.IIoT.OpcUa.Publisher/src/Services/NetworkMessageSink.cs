@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ?? throw new ArgumentNullException(nameof(logger));
 
             _cts = new CancellationTokenSource();
-            InitMetricsContext();
+            InitializeMetrics();
         }
 
         /// <inheritdoc/>
@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create observable metric registrations
         /// </summary>
-        private void InitMetricsContext()
+        private void InitializeMetrics()
         {
             _meter.CreateObservableCounter("iiot_edge_publisher_sent_iot_messages",
                 () => new Measurement<long>(_messagesSentCount, _metrics.TagList), "Messages",

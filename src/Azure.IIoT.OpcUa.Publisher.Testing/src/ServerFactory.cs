@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         }
 
         /// <inheritdoc/>
-        public ServerProperties ServerProperties
+        public static ServerProperties ServerProperties
         {
             get
             {
@@ -310,15 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <inheritdoc/>
             protected override ServerProperties LoadServerProperties()
             {
-                return new ServerProperties
-                {
-                    ManufacturerName = "OPC Foundation",
-                    ProductName = "OPC UA Sample Servers",
-                    ProductUri = "http://opcfoundation.org/UA/Samples/v1.0",
-                    SoftwareVersion = Utils.GetAssemblySoftwareVersion(),
-                    BuildNumber = Utils.GetAssemblyBuildNumber(),
-                    BuildDate = Utils.GetAssemblyTimestamp()
-                };
+                return ServerProperties;
             }
 
             /// <inheritdoc/>

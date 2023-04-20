@@ -54,7 +54,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IProcessIdentity? identity = null, IMetricsContext? metrics = null)
         {
             _metrics = metrics ?? IMetricsContext.Empty;
-            InitializeMetrics();
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
             _serializer = serializer ??
@@ -65,6 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
             _configuration = _options.Value.BuildApplicationConfigurationAsync(
                  identity == null ? "OpcUaClient" : identity.Id, OnValidate, _logger);
+            InitializeMetrics();
         }
 
         /// <inheritdoc/>

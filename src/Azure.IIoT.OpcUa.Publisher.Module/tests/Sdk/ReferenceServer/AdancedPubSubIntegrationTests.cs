@@ -232,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     // Act
                     await WaitForMessagesAndMetadataAsync(TimeSpan.FromSeconds(10), 1, messageType: "ua-data").ConfigureAwait(false);
 
-                    var name2 = nameof(RestartConfigurationTest) + "new";
+                    const string name2 = nameof(RestartConfigurationTest) + "new";
                     WritePublishedNodes(name2, "./Resources/DataItems2.json");
                     var diagnostics = await PublisherApi.GetDiagnosticInfoAsync().ConfigureAwait(false);
                     for (var i = 0; i < 1000 &&

@@ -47,8 +47,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _logger = logger;
             _diagnostics = diagnostics;
 
-            InitMetricsContext(metrics ?? throw new ArgumentNullException(nameof(metrics)));
-
             if (_options.Value.BatchSize > 1)
             {
                 _notificationBufferSize = _options.Value.BatchSize.Value;
@@ -97,6 +95,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             Source.OnMessage += OnMessageReceived;
             Source.OnCounterReset += MessageTriggerCounterResetReceived;
+
+            InitializeMetrics(metrics ?? throw new ArgumentNullException(nameof(metrics)));
         }
 
         /// <inheritdoc/>
@@ -184,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create observable metrics
         /// </summary>
         /// <param name="metrics"></param>
-        private void InitMetricsContext(IMetricsContext metrics)
+        private void InitializeMetrics(IMetricsContext metrics)
         {
             _meter.CreateObservableCounter("iiot_edge_publisher_iothub_queue_dropped_count",
                 () => new Measurement<long>(_sinkBlockInputDroppedCount, metrics.TagList), "Messages",
@@ -199,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 () => new Measurement<long>(_encodingBlock.InputCount, metrics.TagList), "Notifications",
                 "Telemetry messages queued for sending upstream.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_encoding_output_queue_size",
-                () => new Measurement<long>(_encodingBlock.InputCount, metrics.TagList), "Messages",
+                () => new Measurement<long>(_encodingBlock.OutputCount, metrics.TagList), "Messages",
                 "Telemetry messages queued for sending upstream.");
         }
 

@@ -405,6 +405,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 options.AllowUntrustedCertificates = true;
                 options.UseTls = false;
                 options.Version = mqttVersion ?? MqttVersion.v5;
+                options.KeepAlivePeriod = TimeSpan.Zero;
                 options.Port = Interlocked.Increment(ref _mqttPort);
             });
 
