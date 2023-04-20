@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
     public sealed class ServerFactory : IServerFactory
     {
         /// <inheritdoc/>
-        public XmlElementCollection Extensions
+        public static XmlElementCollection Extensions
         {
             get
             {
@@ -53,23 +53,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 };
                 return new XmlElementCollection(
                     extensions.Select(XmlElementEx.SerializeObject));
-            }
-        }
-
-        /// <inheritdoc/>
-        public static ServerProperties ServerProperties
-        {
-            get
-            {
-                return new ServerProperties
-                {
-                    ManufacturerName = "OPC Foundation",
-                    ProductName = "OPC UA Sample Servers",
-                    ProductUri = "http://opcfoundation.org/UA/Samples/v1.0",
-                    SoftwareVersion = Utils.GetAssemblySoftwareVersion(),
-                    BuildNumber = Utils.GetAssemblyBuildNumber(),
-                    BuildDate = Utils.GetAssemblyTimestamp()
-                };
             }
         }
 
@@ -310,7 +293,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <inheritdoc/>
             protected override ServerProperties LoadServerProperties()
             {
-                return ServerProperties;
+                return new ServerProperties
+                {
+                    ManufacturerName = "OPC Foundation",
+                    ProductName = "OPC UA Sample Servers",
+                    ProductUri = "http://opcfoundation.org/UA/Samples/v1.0",
+                    SoftwareVersion = Utils.GetAssemblySoftwareVersion(),
+                    BuildNumber = Utils.GetAssemblyBuildNumber(),
+                    BuildDate = Utils.GetAssemblyTimestamp()
+                };
             }
 
             /// <inheritdoc/>

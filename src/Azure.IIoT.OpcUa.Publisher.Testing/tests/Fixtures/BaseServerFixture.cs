@@ -130,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 }
                 catch (Exception ex)
                 {
-                    kPorts.AddOrUpdate(Port, false, (_, _) => false);
+                    kPorts.AddOrUpdate(port, false, (_, _) => false);
                     port = NextPort();
                     logger.LogError(ex,
                         "Failed to start server host, retrying {Port}...", port);
