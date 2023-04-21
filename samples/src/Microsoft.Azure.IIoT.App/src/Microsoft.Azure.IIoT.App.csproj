@@ -14,8 +14,8 @@
     <ContainerPort Include="443" Type="tcp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.25" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.29" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="0.4.27" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="0.1.35" />
     <PackageReference Include="Accelist.FluentValidation.Blazor" Version="4.0.0" />
     <PackageReference Include="Blazored.Modal" Version="4.1.0" />
     <PackageReference Include="Blazored.SessionStorage" Version="2.3.0" />
