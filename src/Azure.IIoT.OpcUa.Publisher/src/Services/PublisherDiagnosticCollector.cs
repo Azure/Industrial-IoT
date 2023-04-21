@@ -145,20 +145,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 for (var index = 0; index < tags.Length; index++)
                 {
                     if (tags[index].Key == Constants.WriterGroupIdTag &&
-                        tags[index].Value is string name)
+                        tags[index].Value is string name &&
+                        _diagnostics.TryGetValue(name, out var diag))
                     {
-                        _diagnostics.AddOrUpdate(name,
-                            writerGroupId => Update(new WriterGroupDiagnosticModel()),
-                            (writerGroupId, existing) => Update(existing));
-                        // Apply value through binding
-                        WriterGroupDiagnosticModel Update(WriterGroupDiagnosticModel diag)
-                        {
-                            if (!EqualityComparer<T?>.Default.Equals(measurement, default))
-                            {
-                                binding(diag, measurement!);
-                            }
-                            return diag;
-                        }
+                        binding(diag, measurement!);
                         break;
                     }
                 }
