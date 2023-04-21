@@ -63,6 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     Timestamp = DateTime.UtcNow,
                     Value = v
                 };
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 await bus.HandleSampleAsync(expected).ConfigureAwait(false);
                 await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
@@ -113,6 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 for (var i = 0; i < total; i++)
                 {
                     await bus.HandleSampleAsync(expected).ConfigureAwait(false);
@@ -221,6 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         private static readonly Guid kGuid = Guid.NewGuid();
         private static readonly DateTime kNow1 = DateTime.UtcNow;
         private static readonly DateTimeOffset kNow2 = DateTimeOffset.UtcNow;
+        private const int kSubscribeDelay = 10;
 
         public static IEnumerable<object[]> GetScalarValues()
         {

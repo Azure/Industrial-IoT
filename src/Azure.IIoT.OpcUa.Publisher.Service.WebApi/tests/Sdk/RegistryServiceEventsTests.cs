@@ -30,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         }
 
         private const int kTimeoutMillis = 10000;
+        private const int kSubscribeDelay = 10;
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
 
@@ -52,6 +53,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 await bus.OnPublisherNewAsync(null, expected).ConfigureAwait(false);
                 await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
@@ -89,6 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 for (var i = 0; i < total; i++)
                 {
                     await bus.OnPublisherUpdatedAsync(null, expected).ConfigureAwait(false);
@@ -123,6 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 await bus.OnDiscovererNewAsync(null, expected).ConfigureAwait(false);
                 await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
@@ -162,6 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 for (var i = 0; i < total; i++)
                 {
                     await bus.OnDiscovererUpdatedAsync(null, expected).ConfigureAwait(false);
@@ -191,6 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 await bus.OnSupervisorNewAsync(null, expected).ConfigureAwait(false);
                 await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
@@ -228,6 +234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 for (var i = 0; i < total; i++)
                 {
                     await bus.OnSupervisorUpdatedAsync(null, expected).ConfigureAwait(false);
@@ -259,6 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 await bus.OnApplicationNewAsync(null, expected).ConfigureAwait(false);
                 await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
@@ -302,6 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 for (var i = 0; i < total; i++)
                 {
                     await bus.OnApplicationUpdatedAsync(null, expected).ConfigureAwait(false);
@@ -335,6 +344,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 await bus.OnEndpointNewAsync(null, expected).ConfigureAwait(false);
                 await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
@@ -377,6 +387,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 for (var i = 0; i < total; i++)
                 {
                     await bus.OnEndpointDisabledAsync(null, expected).ConfigureAwait(false);
@@ -405,6 +416,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 await bus.OnGatewayNewAsync(null, expected).ConfigureAwait(false);
                 await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
@@ -441,6 +453,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 return Task.CompletedTask;
             }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 for (var i = 0; i < total; i++)
                 {
                     await bus.OnGatewayUpdatedAsync(null, expected).ConfigureAwait(false);
@@ -475,6 +488,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     return Task.CompletedTask;
                 }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 await bus.OnDiscoveryProgressAsync(expected).ConfigureAwait(false);
                 await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
@@ -521,6 +535,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     return Task.CompletedTask;
                 }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 await bus.OnDiscoveryProgressAsync(expected).ConfigureAwait(false);
                 await Task.WhenAny(result.Task, Task.Delay(kTimeoutMillis)).ConfigureAwait(false);
 
@@ -566,6 +581,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                     return Task.CompletedTask;
                 }).ConfigureAwait(false))
             {
+                await Task.Delay(kSubscribeDelay).ConfigureAwait(false);
                 for (var i = 0; i < total; i++)
                 {
                     await bus.OnDiscoveryProgressAsync(expected).ConfigureAwait(false);
