@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
 
-        [RetryTheory]
+        [Theory]
         [MemberData(nameof(GetScalarValues))]
         public async Task TestPublishTelemetryEventAndReceiveAsync(VariantValue v)
         {
@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory]
+        [Theory]
         [InlineData(10)]
         [InlineData(4455)]
         [InlineData(262345)]

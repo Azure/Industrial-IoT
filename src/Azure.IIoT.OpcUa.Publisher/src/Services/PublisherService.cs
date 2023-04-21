@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// supports aggregation of diagnostics and single sink console output of
     /// the diagnostics data.
     /// </summary>
-    public sealed class PublisherService : IPublisher, IDisposable,
+    public sealed class PublisherService : IPublisher, IAsyncDisposable, IDisposable,
         IMetricsContext
     {
         /// <inheritdoc/>
@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             if (_isDisposed)
             {
@@ -117,21 +117,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 _logger.LogDebug("Closing publisher service...");
-
                 _cts.Cancel();
                 _changeFeed.Writer.TryComplete();
-                _processor.GetAwaiter().GetResult();
-
+                try
+                {
+                    await _processor.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to close publisher service processor.");
+                }
                 _logger.LogInformation("Publisher service closed succesfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to close publisher service succesfully.");
             }
             finally
             {
                 _cts.Dispose();
             }
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -141,33 +149,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         private async Task RunAsync(CancellationToken ct)
         {
-            await foreach (var (task, changes) in _changeFeed.Reader.ReadAllAsync(default))
+            try
             {
-                if (ct.IsCancellationRequested)
+                await foreach (var (task, changes) in _changeFeed.Reader.ReadAllAsync(default))
                 {
-                    task.SetCanceled(ct);
-                    continue;
-                }
-                try
-                {
-                    await ProcessChangesAsync(task, changes, ct).ConfigureAwait(false);
-                }
-                catch (ObjectDisposedException)
-                {
-                    task.TrySetCanceled(ct);
+                    if (ct.IsCancellationRequested)
+                    {
+                        task.SetCanceled(ct);
+                        continue;
+                    }
+                    try
+                    {
+                        await ProcessChangesAsync(task, changes, ct).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        task.TrySetCanceled(ct);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Fail("We have not processed all exceptions.");
+                        task.TrySetException(ex);
+                    }
                 }
             }
-
-            // Disposing - stop all groups before exiting
-            foreach (var group in _currentJobs.Values)
+            catch (OperationCanceledException) { }
+            finally
             {
-                try
+                // Disposing - stop all groups before exiting
+                foreach (var group in _currentJobs)
                 {
-                    await group.DisposeAsync().ConfigureAwait(false);
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    _logger.LogError(ex, "Failed to stop writer group job.");
+                    try
+                    {
+                        await group.Value.DisposeAsync().ConfigureAwait(false);
+                        _logger.LogInformation("Writer group job {Job} stopped.",
+                            group.Key);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        _logger.LogError(ex, "Failed to stop writer group job {Job}.",
+                            group.Key);
+                    }
                 }
             }
         }
