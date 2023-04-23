@@ -5,17 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System;
+
     /// <summary>
     /// Data set message emitted by writer in a writer group.
     /// </summary>
     public record class WriterGroupMessageContext
     {
-        /// <summary>
-        /// Sequence number inside the writer group and based
-        /// on message type
-        /// </summary>
-        public required uint SequenceNumber { get; init; }
-
         /// <summary>
         /// Topic for the message if not metadata message
         /// </summary>
@@ -35,6 +31,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Dataset writer model reference
         /// </summary>
         public required DataSetWriterModel Writer { get; init; }
+
+        /// <summary>
+        /// Sequence number inside the writer
+        /// </summary>
+        public required Func<uint> NextWriterSequenceNumber { get; init; }
 
         /// <summary>
         /// Writer group model reference

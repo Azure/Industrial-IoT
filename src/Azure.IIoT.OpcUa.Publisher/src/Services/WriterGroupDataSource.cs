@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -562,7 +563,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 var metadata = new SubscriptionNotificationModel
                                 {
-                                    Context = CreateMessageContext(ref _metadataSequenceNumber),
+                                    Context = CreateMessageContext(
+                                        () => Interlocked.Increment(ref _metadataSequenceNumber)),
                                     MessageType = Encoders.PubSub.MessageType.Metadata,
                                     SequenceNumber = notification.SequenceNumber,
                                     ServiceMessageContext = notification.ServiceMessageContext,
@@ -581,7 +583,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         if (!metaDataTimer)
                         {
                             Debug.Assert(notification.Notifications != null);
-                            notification.Context = CreateMessageContext(ref _dataSetSequenceNumber);
+                            notification.Context = CreateMessageContext(
+                                () => Interlocked.Increment(ref _dataSetSequenceNumber));
                             _outer._logger.LogTrace("Enqueuing notification: {Notification}",
                                 notification.ToString());
                             _outer.OnMessage?.Invoke(sender, notification);
@@ -601,18 +604,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _outer._logger.LogWarning(ex, "Failed to produce message.");
                 }
 
-                WriterGroupMessageContext CreateMessageContext(ref uint sequenceNumber)
+                WriterGroupMessageContext CreateMessageContext(Func<uint> sequenceNumber)
                 {
-                    do
-                    {
-                        unchecked { sequenceNumber++; }
-                    }
-                    while (sequenceNumber == 0);
                     return new WriterGroupMessageContext
                     {
                         PublisherId = _outer._options.Value.PublisherId ?? Constants.DefaultPublisherId,
                         Writer = _dataSetWriter,
-                        SequenceNumber = sequenceNumber,
+                        NextWriterSequenceNumber = sequenceNumber,
                         WriterGroup = _outer._writerGroup,
                         Topic = _topic,
                         MetaDataTopic = _metadataTopic

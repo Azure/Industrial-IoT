@@ -252,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 ?? kEmptyConfiguration;
                                             dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
                                             dataSetMessage.Timestamp = Notification.Timestamp;
-                                            dataSetMessage.SequenceNumber = Context.SequenceNumber;
+                                            dataSetMessage.SequenceNumber = Context.NextWriterSequenceNumber();
                                             dataSetMessage.Payload = new DataSet(orderedNotifications.ToDictionary(
                                                 s => s.DataSetFieldName!, s => s.Value), (uint)dataSetFieldContentMask);
 
@@ -308,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             MessageType = Notification.MessageType,
                                                             DataSetMessageContentMask = dataSetMessageContentMask,
                                                             Timestamp = Notification.Timestamp,
-                                                            SequenceNumber = Context.SequenceNumber,
+                                                            SequenceNumber = Context.NextWriterSequenceNumber(),
                                                             ExtensionFields = Context.Writer.DataSet?.ExtensionFields,
                                                             Payload = new DataSet(notification.DataSetFieldName,
                                                                 notification.Value, (uint)dataSetFieldContentMask)
@@ -448,7 +448,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private static readonly ConfigurationVersionDataType kEmptyConfiguration = new() { MajorVersion = 1u };
-        private uint _sequenceNumber;
+        private uint _sequenceNumber; // TODO: Use writer group context
         private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;
         private readonly Meter _meter = Diagnostics.NewMeter();
