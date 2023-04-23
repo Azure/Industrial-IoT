@@ -582,6 +582,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             Debug.Assert(notification.Notifications != null);
                             notification.Context = CreateMessageContext(ref _dataSetSequenceNumber);
+                            _outer._logger.LogTrace("Enqueuing notification: {Notification}",
+                                notification.ToString());
                             _outer.OnMessage?.Invoke(sender, notification);
 
                             if (notification.MessageType != Encoders.PubSub.MessageType.DeltaFrame &&

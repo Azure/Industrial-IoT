@@ -288,14 +288,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             .Select(n => new KeyDataValuePair(n.DataSetFieldName!, n.Value)))
                                                     };
                                                     eventNotification.DataSetFieldName = notificationsInGroup[0].DisplayName;
-                                                    notificationsInGroup = new List<MonitoredItemNotificationModel> {
-                                                    eventNotification
-                                                };
+                                                    notificationsInGroup = new List<MonitoredItemNotificationModel>
+                                                    {
+                                                        eventNotification
+                                                    };
                                                 }
                                                 foreach (var notification in notificationsInGroup)
                                                 {
                                                     if (notification?.DataSetFieldName != null)
                                                     {
+                                                        _logger.LogTrace("Processing notification: {Notification}",
+                                                            notification.ToString());
                                                         var dataSetMessage = new MonitoredItemMessage
                                                         {
                                                             UseCompatibilityMode = !standardsCompliant,
@@ -328,6 +331,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
                                             {
                                                 result.Add((currentNotificationCount, currentMessage, topic, false, default));
+                                                _logger.LogTrace("Encoding message {Message}...", currentMessage.ToString());
                                                 currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
                                                     dataSetClassId, publisherId);
                                                 currentNotificationCount = 0;

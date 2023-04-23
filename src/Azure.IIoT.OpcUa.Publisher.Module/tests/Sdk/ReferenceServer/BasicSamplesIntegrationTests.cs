@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Divergic.Logging.Xunit;
     using FluentAssertions;
     using Json.More;
     using Opc.Ua;
@@ -71,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendDeadbandItemsToIoTHubTest), "./Resources/Deadband.json",
-                TimeSpan.FromMinutes(2), 20, arguments: new[] { "--fm=True" }).ConfigureAwait(false);
+                TimeSpan.FromMinutes(5), 1000, arguments: new[] { "--fm=True" }).ConfigureAwait(false);
 
             // Assert
             var doubleValues = messages
@@ -86,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 if (dvalue != null)
                 {
                     var abs = Math.Abs(dvalue.Value - value1);
-                    Assert.True(abs >= 5.0, $"Value within absolute deadband limit {abs} < 5");
+                    Assert.True(abs >= 5.0, $"Value within absolute deadband limit {abs} < 5 ({dvalue.Value}/{value1})");
                 }
                 dvalue = value1;
             }
@@ -103,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 {
                     var abs = Math.Abs(lvalue.Value - value1);
                     // TODO: Investigate this, it should be 10%
-                    Assert.True(abs >= 3, $"Value within percent deadband limit {abs} < 3%");
+                    Assert.True(abs >= 3, $"Value within percent deadband limit {abs} < 3% ({lvalue.Value}/{value1})");
                 }
                 lvalue = value1;
             }
