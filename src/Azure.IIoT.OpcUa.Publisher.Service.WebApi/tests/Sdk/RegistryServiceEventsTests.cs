@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         }
 
         private const int kTimeoutMillis = 10000;
-        private const int kSubscribeDelay = 10;
+        private const int kSubscribeDelay = 100;
         private readonly WebAppFixture _factory;
         private readonly ITestOutputHelper _output;
 
